@@ -1,0 +1,1 @@
+export { useAppStore } from '@/stores/modules/app.store.ts'

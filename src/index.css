@@ -1,0 +1,461 @@
+@import 'tailwindcss';
+@plugin 'tailwindcss-animate';
+
+:root {
+    --font-size: 14px;
+    --font-family: 'Saira', sans-serif;
+
+    /* Optimized motion variables */
+    --motion-duration-fast: 0.15s;
+    --motion-duration-normal: 0.25s;
+    --motion-duration-slow: 0.35s;
+    --motion-ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --motion-ease-in: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+
+    /* Route transition - simplified */
+    --route-transition-duration: var(--motion-duration-normal);
+    --route-transition-offset: 12px;
+
+    /* Container max-widths following Web3 standards */
+    --container-sm: 640px;
+    --container-md: 768px;
+    --container-lg: 1024px;
+    --container-xl: 1280px;
+    --container-2xl: 1400px;
+
+    /* Responsive spacing */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 1rem;
+    --spacing-md: 1.5rem;
+    --spacing-lg: 2rem;
+    --spacing-xl: 3rem;
+    --spacing-2xl: 4rem;
+
+    /* Light theme - Zinc/Amber palette */
+    --background: #fafafa;
+    --foreground: #18181b;
+    --card: #ffffff;
+    --card-foreground: #18181b;
+    --popover: #ffffff;
+    --popover-foreground: #18181b;
+    --primary: #f59e0b;
+    --primary-foreground: #18181b;
+    --secondary: #f4f4f5;
+    --secondary-foreground: #18181b;
+    --muted: #f4f4f5;
+    --muted-foreground: #71717a;
+    --accent: #f4f4f5;
+    --accent-foreground: #18181b;
+    --destructive: #dc2626;
+    --destructive-foreground: #fafafa;
+    --border: #e4e4e7;
+    --input: #e4e4e7;
+    --input-background: #ffffff;
+    --switch-background: #e4e4e7;
+    --font-weight-medium: 500;
+    --font-weight-normal: 400;
+    --ring: #f59e0b;
+    --chart-1: #f59e0b;
+    --chart-2: #eab308;
+    --chart-3: #facc15;
+    --chart-4: #fde047;
+    --chart-5: #fef08a;
+    --radius: 0;
+    --sidebar: #ffffff;
+    --sidebar-foreground: #18181b;
+    --sidebar-primary: #f59e0b;
+    --sidebar-primary-foreground: #18181b;
+    --sidebar-accent: #f4f4f5;
+    --sidebar-accent-foreground: #18181b;
+    --sidebar-border: #e4e4e7;
+    --sidebar-ring: #f59e0b;
+}
+
+.dark {
+    /* Dark theme - Zinc/Amber palette */
+    --background: #09090b;
+    --foreground: #fafafa;
+    --card: #18181b;
+    --card-foreground: #fafafa;
+    --popover: #18181b;
+    --popover-foreground: #fafafa;
+    --primary: #f59e0b;
+    --primary-foreground: #18181b;
+    --secondary: #27272a;
+    --secondary-foreground: #fafafa;
+    --muted: #27272a;
+    --muted-foreground: #a1a1aa;
+    --accent: #27272a;
+    --accent-foreground: #fafafa;
+    --destructive: #dc2626;
+    --destructive-foreground: #fafafa;
+    --border: #27272a;
+    --input: #27272a;
+    --input-background: #18181b;
+    --switch-background: #3f3f46;
+    --ring: #f59e0b;
+    --font-weight-medium: 500;
+    --font-weight-normal: 400;
+    --chart-1: #f59e0b;
+    --chart-2: #eab308;
+    --chart-3: #facc15;
+    --chart-4: #fde047;
+    --chart-5: #fef08a;
+    --sidebar: #18181b;
+    --sidebar-foreground: #fafafa;
+    --sidebar-primary: #f59e0b;
+    --sidebar-primary-foreground: #18181b;
+    --sidebar-accent: #27272a;
+    --sidebar-accent-foreground: #fafafa;
+    --sidebar-border: #27272a;
+    --sidebar-ring: #f59e0b;
+}
+
+/* Reduced motion - complete override */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    :root {
+        --motion-duration-fast: 0.01ms;
+        --motion-duration-normal: 0.01ms;
+        --motion-duration-slow: 0.01ms;
+        --route-transition-duration: 0.01ms;
+        --route-transition-offset: 0px;
+    }
+}
+
+.reduce-motion,
+.reduce-motion * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+}
+
+.reduce-motion {
+    --motion-duration-fast: 0.01ms !important;
+    --motion-duration-normal: 0.01ms !important;
+    --motion-duration-slow: 0.01ms !important;
+    --route-transition-duration: 0.01ms !important;
+    --route-transition-offset: 0px !important;
+}
+
+/* Custom container utilities */
+.container-responsive {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--spacing-sm);
+    padding-right: var(--spacing-sm);
+}
+
+@media (min-width: 640px) {
+    .container-responsive {
+        max-width: var(--container-sm);
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
+    }
+}
+
+@media (min-width: 768px) {
+    .container-responsive {
+        max-width: var(--container-md);
+        padding-left: var(--spacing-lg);
+        padding-right: var(--spacing-lg);
+    }
+}
+
+@media (min-width: 1024px) {
+    .container-responsive {
+        max-width: var(--container-lg);
+        padding-left: var(--spacing-xl);
+        padding-right: var(--spacing-xl);
+    }
+}
+
+@media (min-width: 1280px) {
+    .container-responsive {
+        max-width: var(--container-xl);
+    }
+}
+
+@media (min-width: 1400px) {
+    .container-responsive {
+        max-width: var(--container-2xl);
+    }
+}
+
+/* Full-width container for Web3 applications */
+.container-full {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--spacing-sm);
+    padding-right: var(--spacing-sm);
+}
+
+@media (min-width: 640px) {
+    .container-full {
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
+    }
+}
+
+@media (min-width: 768px) {
+    .container-full {
+        padding-left: var(--spacing-lg);
+        padding-right: var(--spacing-lg);
+    }
+}
+
+@media (min-width: 1024px) {
+    .container-full {
+        padding-left: var(--spacing-xl);
+        padding-right: var(--spacing-xl);
+    }
+}
+
+@media (min-width: 1280px) {
+    .container-full {
+        padding-left: var(--spacing-2xl);
+        padding-right: var(--spacing-2xl);
+    }
+}
+
+@theme {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-input-background: var(--input-background);
+    --color-switch-background: var(--switch-background);
+    --color-ring: var(--ring);
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+    --radius-sm: 0;
+    --radius-md: 0;
+    --radius-lg: 0;
+    --radius-xl: 0;
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --font-family-sans: var(--font-family);
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    html {
+        font-family: var(--font-family);
+        font-size: var(--font-size);
+        height: 100%;
+        scroll-behavior: smooth;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+    }
+
+    body {
+        @apply bg-background text-foreground;
+        font-family: var(--font-family);
+        font-size: var(--font-size);
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+
+    #root {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    /* Responsive typography scaling */
+    @media (min-width: 768px) {
+        :root {
+            --font-size: 15px;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        :root {
+            --font-size: 16px;
+        }
+    }
+}
+
+/**
+ * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
+ */
+@layer base {
+    :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
+        h1 {
+            font-size: calc(var(--font-size) * 1.875);
+            font-weight: var(--font-weight-medium);
+            line-height: 1.4;
+            font-family: var(--font-family);
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: calc(var(--font-size) * 1.5);
+            font-weight: var(--font-weight-medium);
+            line-height: 1.4;
+            font-family: var(--font-family);
+            margin-bottom: 0.75rem;
+        }
+
+        h3 {
+            font-size: calc(var(--font-size) * 1.25);
+            font-weight: var(--font-weight-medium);
+            line-height: 1.4;
+            font-family: var(--font-family);
+            margin-bottom: 0.5rem;
+        }
+
+        h4 {
+            font-size: var(--font-size);
+            font-weight: var(--font-weight-medium);
+            line-height: 1.5;
+            font-family: var(--font-family);
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            font-size: var(--font-size);
+            font-weight: var(--font-weight-normal);
+            line-height: 1.6;
+            font-family: var(--font-family);
+            margin-bottom: 1rem;
+        }
+
+        label {
+            font-size: var(--font-size);
+            font-weight: var(--font-weight-medium);
+            line-height: 1.5;
+            font-family: var(--font-family);
+        }
+
+        button {
+            font-size: var(--font-size);
+            font-weight: var(--font-weight-medium);
+            line-height: 1.5;
+            font-family: var(--font-family);
+        }
+
+        input {
+            font-size: var(--font-size);
+            font-weight: var(--font-weight-normal);
+            line-height: 1.5;
+            font-family: var(--font-family);
+        }
+    }
+}
+
+/* Responsive utility classes */
+@layer utilities {
+    .text-responsive {
+        font-size: clamp(0.875rem, 2.5vw, 1rem);
+    }
+
+    .heading-responsive {
+        font-size: clamp(1.25rem, 4vw, 2rem);
+    }
+
+    .subheading-responsive {
+        font-size: clamp(1rem, 3vw, 1.5rem);
+    }
+
+    .spacing-responsive {
+        padding: clamp(1rem, 3vw, 2rem);
+    }
+
+    .gap-responsive {
+        gap: clamp(0.5rem, 2vw, 1.5rem);
+    }
+
+    /* Simple transition utilities */
+    .transition-smooth {
+        transition: all var(--motion-duration-normal) var(--motion-ease);
+    }
+
+    .transition-fast {
+        transition: all var(--motion-duration-fast) var(--motion-ease-out);
+    }
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+    .container-responsive,
+    .container-full {
+        padding-left: var(--spacing-xs);
+        padding-right: var(--spacing-xs);
+    }
+
+    /* Reduce route transition offset on mobile */
+    :root {
+        --route-transition-offset: 8px;
+    }
+
+    /* Improve touch targets on mobile */
+    button,
+    [role="button"],
+    input,
+    select,
+    textarea {
+        min-height: 44px;
+    }
+}
+
+/* High refresh rate display optimizations */
+@media (min-resolution: 120dpi) and (prefers-reduced-motion: no-preference) {
+    :root {
+        --motion-duration-fast: 0.12s;
+        --motion-duration-normal: 0.2s;
+        --motion-duration-slow: 0.3s;
+    }
+}
+
+/* Performance optimization for route transitions */
+[data-route-container] {
+    contain: layout paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}

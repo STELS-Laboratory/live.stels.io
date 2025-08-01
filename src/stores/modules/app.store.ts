@@ -1,0 +1,78 @@
+import { create } from 'zustand'
+import { devtools, persist } from 'zustand/middleware'
+
+export interface NetworkStatus {
+	online: boolean
+	effectiveType: string | null
+	downlink: number | null
+	rtt: number | null
+	saveData: boolean | null
+	type: string | null
+	updateStatus: () => void
+}
+
+export interface AppState extends NetworkStatus {
+	version: string
+	setVersion: (v: string) => void
+	
+	allowedRoutes: string[]
+	currentRoute: string
+	setRoute: (route: string) => void
+}
+
+export const useAppStore = create<AppState>()(
+	devtools(
+		persist(
+			(set, get) => {
+				const getNetworkInfo = () => {
+					const connection =
+						(navigator as any).connection ||
+						(navigator as any).mozConnection ||
+						(navigator as any).webkitConnection
+					
+					return {
+						online: navigator.onLine,
+						effectiveType: connection?.effectiveType || null,
+						downlink: connection?.downlink || null,
+						rtt: connection?.rtt || null,
+						saveData: connection?.saveData || null,
+						type: connection?.type || null,
+					}
+				}
+				
+				const initialNetwork = getNetworkInfo()
+				
+				if (typeof window !== 'undefined') {
+					window.addEventListener('online', () => set(getNetworkInfo()))
+					window.addEventListener('offline', () => set(getNetworkInfo()))
+					
+					const connection = (navigator as any).connection
+					if (connection) {
+						connection.addEventListener('change', () => set(getNetworkInfo()))
+					}
+				}
+				
+				return {
+					version: '1.0.1',
+					setVersion: (v: string) => set({ version: v }),
+					...initialNetwork,
+					updateStatus: () => set(getNetworkInfo()),
+					
+					allowedRoutes: ['welcome', 'scanner', 'markets', 'canvas', 'network', 'wallet'],
+					currentRoute: 'welcome',
+					setRoute: (route: string) => {
+						const { allowedRoutes } = get()
+						if (allowedRoutes.includes(route)) {
+							set({ currentRoute: route })
+						} else {
+							console.warn(`Route "${route}" is not allowed!`)
+						}
+					},
+				}
+			},
+			{
+				name: 'app-storage',
+			}
+		)
+	)
+)
