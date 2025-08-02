@@ -1,4 +1,6 @@
-import {create} from "zustand";
+import { create } from "zustand";
+import { useAppStore } from "@/stores";
+import { generateDataHash } from "@/lib/utils";
 
 
 type WebSocketInfo = {
@@ -100,32 +102,48 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 			existingWebSocket.close();
 		}
 		
-		const connectWebSocket = () => {
-			const ws = createWebSocket(
-				config.raw.info,
-				(event: MessageEvent) => {
-					try {
-						const json = JSON.parse(event.data);
-						if (json.value) {
-							sessionStorage.setItem(json.value.channel, JSON.stringify(json.value));
-							set({connection: true});
+						const connectWebSocket = () => {
+					const ws = createWebSocket(
+						config.raw.info,
+						(event: MessageEvent) => {
+							try {
+								const json = JSON.parse(event.data);
+								if (json.value) {
+									sessionStorage.setItem(json.value.channel, JSON.stringify(json.value));
+									set({ connection: true });
+									
+									// Only notify sync system about significant data changes
+									// Skip frequent sessionStorage updates, focus on important state changes
+									if (json.value.type === 'sync' || json.value.important) {
+										const appStore = useAppStore.getState();
+										const dataVersion = generateDataHash(json.value);
+										appStore.markDataAsUpdated(dataVersion);
+									}
+								}
+							} catch (error) {
+								console.error("Error parsing WebSocket message:", error);
+								
+								// Notify sync system about error
+								const appStore = useAppStore.getState();
+								appStore.setSyncError("Failed to process WebSocket data");
+							}
+						},
+						() => {
+							console.log("WebSocket connection closed. Reconnecting...");
+							set({ connection: false });
+							setTimeout(connectWebSocket, 1000);
+						},
+						() => {
+							console.error("WebSocket encountered an error. Connection lost.");
+							set({ connection: false });
+							
+							// Notify sync system about connection error
+							const appStore = useAppStore.getState();
+							appStore.setSyncError("WebSocket connection lost");
 						}
-					} catch (error) {
-						console.error("Error parsing WebSocket message:", error);
-					}
-				},
-				() => {
-					console.log("WebSocket connection closed. Reconnecting...");
-					set({connection: false});
-					setTimeout(connectWebSocket, 1000);
-				},
-				() => {
-					console.error("WebSocket encountered an error. Connection lost.");
-					set({connection: false});
-				}
-			);
-			set({ws, connection: false});
-		};
+					);
+					set({ ws, connection: false });
+				};
 		
 		connectWebSocket();
 	},

@@ -52,3 +52,24 @@ export function cleanBrands(): void {
 		}
 	});
 }
+
+/**
+ * Generate a UTF-8 safe hash from any data
+ * Uses a simple djb2-style string hash algorithm that works with Unicode characters
+ */
+export function generateDataHash(data: unknown): string {
+	try {
+		const jsonString = JSON.stringify(data);
+		// Simple djb2-style hash function that works with UTF-8
+		let hash = 0;
+		for (let i = 0; i < jsonString.length; i++) {
+			const char = jsonString.charCodeAt(i);
+			hash = ((hash << 5) - hash) + char;
+			hash = hash & hash; // Convert to 32-bit integer
+		}
+		return Math.abs(hash).toString(16).slice(0, 16);
+	} catch (error) {
+		console.error("Failed to generate data hash:", error);
+		return Date.now().toString(16);
+	}
+}

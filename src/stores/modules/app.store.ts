@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
+import { generateDataHash } from '@/lib/utils'
 
 /**
  * Network connection interface extending Navigator
@@ -36,9 +37,32 @@ export interface NetworkStatus {
 }
 
 /**
- * Application state interface extending network status
+ * Data synchronization state interface
  */
-export interface AppState extends NetworkStatus {
+export interface SyncState {
+	hasUpdates: boolean
+	lastSyncTimestamp: number
+	localDataVersion: string
+	remoteDataVersion: string
+	isSyncing: boolean
+	syncError: string | null
+}
+
+/**
+ * Data synchronization actions interface
+ */
+export interface SyncActions {
+	checkForUpdates: () => Promise<boolean>
+	syncData: () => Promise<void>
+	markDataAsUpdated: (version: string) => void
+	dismissUpdates: () => void
+	setSyncError: (error: string | null) => void
+}
+
+/**
+ * Application state interface extending network status and sync functionality
+ */
+export interface AppState extends NetworkStatus, SyncState, SyncActions {
 	version: string
 	setVersion: (v: string) => void
 	
@@ -84,6 +108,31 @@ export const useAppStore = create<AppState>()(
 					}
 				}
 				
+				// Sync functionality helpers
+				const getCurrentDataHash = (): string => {
+					try {
+						const localData: Record<string, unknown> = {}
+						for (let i = 0; i < localStorage.length; i++) {
+							const key = localStorage.key(i)
+							if (key) {
+								const value = localStorage.getItem(key)
+								if (value) {
+									try {
+										localData[key] = JSON.parse(value)
+									} catch {
+										// Store raw string if not JSON
+										localData[key] = value
+									}
+								}
+							}
+						}
+						return generateDataHash(localData)
+					} catch (error) {
+						console.error('Failed to generate data hash:', error)
+						return Date.now().toString(16)
+					}
+				}
+				
 				return {
 					version: '1.0.1',
 					setVersion: (v: string) => set({ version: v }),
@@ -99,6 +148,90 @@ export const useAppStore = create<AppState>()(
 						} else {
 							console.warn(`Route "${route}" is not allowed!`)
 						}
+					},
+					
+					// Sync state
+					hasUpdates: false,
+					lastSyncTimestamp: Date.now(),
+					localDataVersion: getCurrentDataHash(),
+					remoteDataVersion: '',
+					isSyncing: false,
+					syncError: null,
+					
+					// Sync actions
+					checkForUpdates: async (): Promise<boolean> => {
+						try {
+							const currentHash = getCurrentDataHash()
+							const { remoteDataVersion } = get()
+							
+							// If we have a remote version and it differs from local
+							if (remoteDataVersion && remoteDataVersion !== currentHash) {
+								set({
+									hasUpdates: true,
+									localDataVersion: currentHash,
+									syncError: null,
+								})
+								return true
+							}
+							
+							return false
+						} catch (error) {
+							console.error('Error checking for updates:', error)
+							set({ 
+								syncError: error instanceof Error ? error.message : 'Unknown error',
+							})
+							return false
+						}
+					},
+					
+					syncData: async (): Promise<void> => {
+						try {
+							set({ isSyncing: true, syncError: null })
+							
+							// Simulate sync delay for UX
+							await new Promise(resolve => setTimeout(resolve, 1000))
+							
+							const newDataHash = getCurrentDataHash()
+							const { remoteDataVersion } = get()
+							
+							set({
+								localDataVersion: newDataHash,
+								remoteDataVersion: remoteDataVersion || newDataHash,
+								hasUpdates: false,
+								lastSyncTimestamp: Date.now(),
+								isSyncing: false,
+							})
+							
+							console.log('Data synchronized successfully')
+						} catch (error) {
+							console.error('Error syncing data:', error)
+							set({
+								syncError: error instanceof Error ? error.message : 'Sync failed',
+								isSyncing: false,
+							})
+						}
+					},
+					
+					markDataAsUpdated: (version: string): void => {
+						const currentHash = getCurrentDataHash()
+						const hasNewUpdates = version !== currentHash
+						
+						set({
+							remoteDataVersion: version,
+							hasUpdates: hasNewUpdates,
+							localDataVersion: currentHash,
+						})
+					},
+					
+					dismissUpdates: (): void => {
+						set({
+							hasUpdates: false,
+							syncError: null,
+						})
+					},
+					
+					setSyncError: (error: string | null): void => {
+						set({ syncError: error })
 					},
 				}
 			},

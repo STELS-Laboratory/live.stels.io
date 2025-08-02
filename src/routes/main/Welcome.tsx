@@ -1,4 +1,5 @@
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
+import { SyncDemo } from "@/components/main/SyncDemo";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -213,6 +214,10 @@ function Welcome(): React.ReactElement | null {
 	return (
 		<Screen>
 			<div className="grid gap-4">
+				{/* Sync Demo Component for Testing */}
+				<div className="flex justify-end mb-4">
+					<SyncDemo />
+				</div>
 				{/* Protection & Risk Management */}
 				<Card>
 					<CardHeader>

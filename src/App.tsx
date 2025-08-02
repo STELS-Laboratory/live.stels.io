@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useAppStore } from "@/stores";
 import { ReactFlowProvider } from "reactflow";
 import SessionProvider from "@/components/main/Provider";
+import { SyncNotification } from "@/components/main/SyncNotification";
+import { useDataSync } from "@/hooks/useDataSync";
 import Welcome from "@/routes/main/Welcome.tsx";
 import MarketDataViewer from "@/routes/main/Markets.tsx";
 import Flow from "@/routes/main/canvas/Flow.tsx";
@@ -17,14 +19,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-	Globe,
-	Home,
-	Layers,
-	Search,
-	TrendingUp,
-	Wallet,
-} from "lucide-react";
+import { Globe, Home, Layers, Search, TrendingUp, Wallet } from "lucide-react";
 import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
 
 /**
@@ -41,6 +36,31 @@ interface NavigationRoute {
  */
 export default function Dashboard(): React.ReactElement {
 	const { currentRoute, setRoute, allowedRoutes } = useAppStore();
+
+	// Initialize data synchronization
+	const { checkForUpdates, isOnline } = useDataSync();
+
+	// Check for updates on app start and periodically
+	useEffect(() => {
+		const performInitialCheck = async (): Promise<void> => {
+			if (isOnline) {
+				await checkForUpdates();
+			}
+		};
+
+		performInitialCheck();
+
+		// Set up periodic check for updates every 30 seconds
+		const interval = setInterval(() => {
+			if (isOnline) {
+				checkForUpdates();
+			}
+		}, 30000);
+
+		return (): void => {
+			clearInterval(interval);
+		};
+	}, [checkForUpdates, isOnline]);
 
 	const navigationRoutes: NavigationRoute[] = [
 		{ key: "welcome", icon: <Home size={20} />, label: "Welcome" },
@@ -82,7 +102,7 @@ export default function Dashboard(): React.ReactElement {
 					<nav className="w-[60px] bg-zinc-900 border-r border-zinc-800 flex flex-col items-center py-4">
 						{/* Logo */}
 						<div className="mb-8">
-							<Graphite size={2} primary="orange"/>
+							<Graphite size={2} primary="orange" />
 						</div>
 
 						{/* Navigation Items */}
@@ -140,7 +160,6 @@ export default function Dashboard(): React.ReactElement {
 											className="pl-10 w-64 bg-zinc-800 border-zinc-700 text-zinc-100 placeholder-zinc-400"
 										/>
 									</div>
-									
 								</div>
 							</div>
 						</header>
@@ -175,6 +194,9 @@ export default function Dashboard(): React.ReactElement {
 							</div>
 						</footer>
 					</div>
+
+					{/* Sync Notifications */}
+					<SyncNotification />
 				</div>
 			</TooltipProvider>
 		</SessionProvider>
