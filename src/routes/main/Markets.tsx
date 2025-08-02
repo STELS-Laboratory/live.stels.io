@@ -62,7 +62,16 @@ function MiniCandlestickChart(
 	const minPrice = Math.min(...prices);
 	const priceRange = maxPrice - minPrice;
 
-	if (priceRange === 0) return null;
+	if (priceRange === 0) {
+		return (
+			<div
+				className="flex items-center justify-center text-xs text-muted-foreground"
+				style={{ width, height }}
+			>
+				No range
+			</div>
+		);
+	}
 
 	const candleWidth = (width - 10) / recentCandles.length;
 
@@ -114,13 +123,13 @@ function MiniCandlestickChart(
  */
 function Markets(): React.ReactElement {
 	const session = useSessionStoreSync() as Record<string, unknown> | null;
-	const spotTickers = filterSession(session, /\.futures\..*\.ticker$/);
-	const spotCandles = filterSession(session, /\.futures\..*\.candles$/);
+	const spotTickers = filterSession(session || {}, /\.futures\..*\.ticker$/);
+	const spotCandles = filterSession(session || {}, /\.futures\..*\.candles$/);
 
 	const formattedTickers = useMemo(() => {
 		return spotTickers.map(
-			(
-				ticker: {
+			(tickerItem) => {
+				const ticker = tickerItem as {
 					key: string;
 					value: {
 						raw: {
@@ -135,19 +144,21 @@ function Markets(): React.ReactElement {
 							latency: number;
 						};
 					};
-				},
-			) => {
+				};
 				const raw = ticker.value.raw;
 				const symbol = raw.market.split("/")[0];
 				const baseSymbol = raw.market.split("/")[1].split(":")[0];
 
 				// Find corresponding candles
-				const candleData = spotCandles.find((
-					candle: { value: { raw: { market: string; candles: number[][] } } },
-				) => candle.value.raw.market === raw.market);
+				const candleData = spotCandles.find((candleItem) => {
+					const candle = candleItem as {
+						value: { raw: { market: string; candles: number[][] } };
+					};
+					return candle.value.raw.market === raw.market;
+				});
 
 				const candles = candleData
-					? candleData.value.raw.candles.map((c: number[]) => ({
+					? (candleData as any).value.raw.candles.map((c: number[]) => ({
 						timestamp: c[0],
 						open: c[1],
 						high: c[2],

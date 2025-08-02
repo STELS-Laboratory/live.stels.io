@@ -223,8 +223,9 @@ export function deterministicStringify(obj: unknown): string {
 	if (Array.isArray(obj)) {
 		return `[${obj.map(deterministicStringify).join(",")}]`
 	}
-	const keys = Object.keys(obj).sort()
-	return `{${keys.map((key) => `"${key}":${deterministicStringify(obj[key] ?? null)}`).join(",")}}`
+	const objRecord = obj as Record<string, unknown>
+	const keys = Object.keys(objRecord).sort()
+	return `{${keys.map((key) => `"${key}":${deterministicStringify(objRecord[key] ?? null)}`).join(",")}}`
 }
 
 /**
@@ -232,7 +233,7 @@ export function deterministicStringify(obj: unknown): string {
  */
 export function sign(data: string, privateKey: string): string {
 	const hash = sha256(new TextEncoder().encode(data))
-	// @ts-ignore
+	// @ts-expect-error: secp256k1 library types are incomplete for EC.sign method
 	const signature = EC.sign(hash, hexToUint8Array(privateKey), {
 		canonical: true,
 	})

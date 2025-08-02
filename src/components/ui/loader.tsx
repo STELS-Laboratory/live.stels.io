@@ -1,15 +1,14 @@
-import {motion} from "framer-motion";
-import type {ReactNode} from "react";
+import { motion } from "framer-motion";
+import type { ReactNode } from "react";
 
-function Loader({children}: { children: ReactNode }) {
-	
+function Loader({ children }: { children: ReactNode }) {
 	return (
 		<motion.div
 			className="fixed left-0 right-0 top-0 bottom-0 flex flex-1 flex-col justify-center items-center"
-			initial={{opacity: 0}}
-			animate={{opacity: 1}}
-			exit={{opacity: 0}}
-			transition={{duration: 0.4}}
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			exit={{ opacity: 0 }}
+			transition={{ duration: 0.4 }}
 		>
 			<div>
 				<motion.svg
@@ -20,8 +19,8 @@ function Loader({children}: { children: ReactNode }) {
 					xmlns="http://www.w3.org/2000/svg"
 				>
 					<motion.g
-						animate={{rotate: 360}}
-						transition={{duration: 2, repeat: Infinity, ease: "linear"}}
+						animate={{ rotate: 360 }}
+						transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
 					>
 						<motion.rect
 							width={40}
@@ -38,10 +37,10 @@ function Loader({children}: { children: ReactNode }) {
 							fill="#F7A608"
 						/>
 					</motion.g>
-					
+
 					<motion.g
-						animate={{rotate: -360}}
-						transition={{duration: 2, repeat: Infinity, ease: "linear"}}
+						animate={{ rotate: -360 }}
+						transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
 					>
 						<motion.rect
 							width={58}

@@ -4,6 +4,7 @@ import ReactFlow, {
   addEdge,
   type Connection,
   type Edge,
+  type Node,
   type NodeTypes,
   type ReactFlowInstance,
   useEdgesState,
@@ -18,23 +19,18 @@ import { ChevronDown, ChevronRight, Filter, ShoppingBag } from "lucide-react";
 import { cleanBrands, cn } from "@/lib/utils";
 import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
 import Screen from "@/routes/main/Screen.tsx";
-import Header from "@/components/main/Header.tsx";
 
 const NODES_STORAGE_KEY = "stels-canvas-nodes";
 const EDGES_STORAGE_KEY = "stels-canvas-edges";
 
-interface FlowNode {
-  id: string;
-  type: string;
-  position: { x: number; y: number };
-  data: {
-    channel: string;
-    label: string;
-    onDelete: (nodeId: string) => void;
-    sessionData?: unknown;
-  };
-  dragHandle?: string;
+interface FlowNodeData {
+  channel: string;
+  label: string;
+  onDelete: (nodeId: string) => void;
+  sessionData?: unknown;
 }
+
+type FlowNode = Node<FlowNodeData>;
 
 const defaultNodes: FlowNode[] = [];
 
@@ -314,7 +310,7 @@ function Tab(
  * Main Flow Component
  */
 function Flow(): React.ReactElement | null {
-  const [nodes, setNodes, onNodesChange] = useNodesState<FlowNode>([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<FlowNodeData>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
   const [isWidgetStoreOpen, setIsWidgetStoreOpen] = useState<boolean>(false);
@@ -366,11 +362,12 @@ function Flow(): React.ReactElement | null {
     } catch (error) {
       console.error("Error loading flow data from localStorage:", error);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (nodes.length > 0) {
-      const nodesToSave = nodes.map((node: FlowNode) => ({
+      const nodesToSave = nodes.map((node) => ({
         ...node,
         data: {
           ...node.data,
@@ -401,7 +398,7 @@ function Flow(): React.ReactElement | null {
 
   const handleDeleteNode = useCallback(
     (nodeId: string) => {
-      setNodes((nds: FlowNode[]) => {
+      setNodes((nds) => {
         const updatedNodes = nds.filter((node) => node.id !== nodeId);
         setEdges((edges) => {
           const updatedEdges = edges.filter((edge) =>
@@ -465,7 +462,7 @@ function Flow(): React.ReactElement | null {
       dragHandle: ".drag-handle",
     };
 
-    setNodes((prevNodes: FlowNode[]) => {
+    setNodes((prevNodes) => {
       const updatedNodes = [...prevNodes, newNode];
       const nodesToSave = updatedNodes.map((node) => ({
         ...node,

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Screen from "@/routes/main/Screen.tsx";
+import Loader from "@/components/ui/loader.tsx";
 
 class ProfessionalCalculations {
 	static formatCurrency(value: number, precision = 2): string {
@@ -160,17 +161,7 @@ function Welcome(): React.ReactElement | null {
 		!session || !session["testnet.snapshot.sonar"] ||
 		!session["testnet.runtime.sonar"]
 	) {
-		return (
-			<div className="flex items-center justify-center min-h-screen bg-gray-950 text-gray-100">
-				<div className="text-center space-y-4">
-					<h1 className="text-3xl font-bold">Welcome to SONAR</h1>
-					<p className="text-gray-400">
-						Loading professional trading analytics...
-					</p>
-					<RefreshCw className="w-8 h-8 animate-spin text-gray-500" />
-				</div>
-			</div>
-		);
+		return <Loader>Scanning connection Testnet</Loader>;
 	}
 
 	const snapshot = session["testnet.snapshot.sonar"];

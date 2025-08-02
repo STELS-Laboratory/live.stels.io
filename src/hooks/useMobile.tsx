@@ -7,7 +7,7 @@ export function useMobile(breakpoint = 768): boolean {
 		/**
 		 * Checks if the current device is mobile based on user agent
 		 */
-		function checkMobile(): boolean {
+		function checkMobile(): void {
 			setIsMobile(window.innerWidth < breakpoint);
 		}
 
@@ -75,15 +75,21 @@ export function useOrientation(): "portrait" | "landscape" {
  */
 export function useDeviceType(): {
 	isMobile: boolean;
+	isTablet: boolean;
+	isDesktop: boolean;
+	isLargeDesktop: boolean;
 	width: number;
 	orientation: "portrait" | "landscape";
 } {
 	const width = useScreenWidth();
+	const orientation = useOrientation();
 
 	return {
 		isMobile: width < 768,
 		isTablet: width >= 768 && width < 1024,
 		isDesktop: width >= 1024,
 		isLargeDesktop: width >= 1440,
+		width,
+		orientation,
 	};
 }

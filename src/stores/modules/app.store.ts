@@ -2,6 +2,27 @@ import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 
 /**
+ * Network connection interface extending Navigator
+ */
+interface NetworkConnection {
+	effectiveType?: string;
+	downlink?: number;
+	rtt?: number;
+	saveData?: boolean;
+	type?: string;
+	addEventListener?: (type: string, listener: () => void) => void;
+}
+
+/**
+ * Extended Navigator interface with network connection properties
+ */
+interface ExtendedNavigator extends Navigator {
+	connection?: NetworkConnection;
+	mozConnection?: NetworkConnection;
+	webkitConnection?: NetworkConnection;
+}
+
+/**
  * Network status interface with connection information
  */
 export interface NetworkStatus {
@@ -35,10 +56,11 @@ export const useAppStore = create<AppState>()(
 		persist(
 			(set, get) => {
 				const getNetworkInfo = () => {
+					const extendedNavigator = navigator as ExtendedNavigator
 					const connection =
-						(navigator as any).connection ||
-						(navigator as any).mozConnection ||
-						(navigator as any).webkitConnection
+						extendedNavigator.connection ||
+						extendedNavigator.mozConnection ||
+						extendedNavigator.webkitConnection
 					
 					return {
 						online: navigator.onLine,
@@ -56,8 +78,8 @@ export const useAppStore = create<AppState>()(
 					window.addEventListener('online', () => set(getNetworkInfo()))
 					window.addEventListener('offline', () => set(getNetworkInfo()))
 					
-					const connection = (navigator as any).connection
-					if (connection) {
+					const connection = (navigator as ExtendedNavigator).connection
+					if (connection && connection.addEventListener) {
 						connection.addEventListener('change', () => set(getNetworkInfo()))
 					}
 				}

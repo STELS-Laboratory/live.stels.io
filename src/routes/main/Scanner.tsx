@@ -262,8 +262,13 @@ function AccountCard(
 			canceled: [] as OrderInfo[],
 		};
 
-		const combineOrders = (orderData: Record<string, unknown[]>): void => {
-			Object.values(orderData).forEach((symbolOrders: unknown[]) => {
+		const combineOrders = (
+			orderData: Record<
+				string,
+				{ open: OrderInfo[]; closed: OrderInfo[]; canceled: OrderInfo[] }
+			>,
+		): void => {
+			Object.values(orderData).forEach((symbolOrders) => {
 				orders.open.push(...(symbolOrders.open || []));
 				orders.closed.push(...(symbolOrders.closed || []));
 				orders.canceled.push(...(symbolOrders.canceled || []));
@@ -271,11 +276,21 @@ function AccountCard(
 		};
 
 		walletData.orders?.spot?.forEach((spotData) => {
-			combineOrders(spotData.value.raw.orders);
+			combineOrders(
+				spotData.value.raw.orders as Record<
+					string,
+					{ open: OrderInfo[]; closed: OrderInfo[]; canceled: OrderInfo[] }
+				>,
+			);
 		});
 
 		walletData.orders?.futures?.forEach((futuresData) => {
-			combineOrders(futuresData.value.raw.orders);
+			combineOrders(
+				futuresData.value.raw.orders as Record<
+					string,
+					{ open: OrderInfo[]; closed: OrderInfo[]; canceled: OrderInfo[] }
+				>,
+			);
 		});
 
 		return orders;
@@ -1053,15 +1068,25 @@ export default function WalletWidget(): React.ReactElement {
 			// Count open orders
 			account.orders?.spot?.forEach((spotData) => {
 				Object.values(spotData.value.raw.orders).forEach(
-					(symbolOrders: unknown[]) => {
-						totalOpenOrders += symbolOrders.open?.length || 0;
+					(symbolOrders) => {
+						const typedOrders = symbolOrders as {
+							open: OrderInfo[];
+							closed: OrderInfo[];
+							canceled: OrderInfo[];
+						};
+						totalOpenOrders += typedOrders.open?.length || 0;
 					},
 				);
 			});
 			account.orders?.futures?.forEach((futuresData) => {
 				Object.values(futuresData.value.raw.orders).forEach(
-					(symbolOrders: unknown[]) => {
-						totalOpenOrders += symbolOrders.open?.length || 0;
+					(symbolOrders) => {
+						const typedOrders = symbolOrders as {
+							open: OrderInfo[];
+							closed: OrderInfo[];
+							canceled: OrderInfo[];
+						};
+						totalOpenOrders += typedOrders.open?.length || 0;
 					},
 				);
 			});

@@ -5,7 +5,6 @@ import Globe from "react-globe.gl";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
 import { filterSession } from "@/lib/utils.ts";
 import Screen from "@/routes/main/Screen.tsx";
-import Header from "@/components/main/Header.tsx";
 
 interface LocationData {
 	latitude: number;
@@ -62,6 +61,43 @@ interface NodeData {
 	config: ConfigData;
 }
 
+interface SessionItem {
+	key: string;
+	value: {
+		raw: {
+			location: LocationData;
+			network: string;
+			name: string;
+			protocol: string;
+		};
+	};
+}
+
+/**
+ * Parse network data into node structure for globe visualization
+ */
+function parseNodeData(data: unknown[]): NodeData[] {
+	const nodeMap: Record<string, Partial<NodeData>> = {};
+
+	data.forEach((item) => {
+		const sessionItem = item as SessionItem;
+		const nodeName = sessionItem.key;
+
+		if (!nodeMap[nodeName]) {
+			nodeMap[nodeName] = { name: nodeName };
+		}
+
+		const node = nodeMap[nodeName];
+
+		node.location = sessionItem.value.raw.location;
+		node.config = sessionItem.value.raw as unknown as ConfigData;
+	});
+
+	return Object.values(nodeMap).filter((node) =>
+		node.location && node.config
+	) as NodeData[];
+}
+
 const HeterogenComponent: React.FC = () => {
 	const [nodes, setNodes] = useState<NodeData[]>([]);
 
@@ -69,33 +105,12 @@ const HeterogenComponent: React.FC = () => {
 		| Record<string, { value: { raw: { nodes: unknown[] } } }>
 		| null;
 
-	const netMap = filterSession(session, /\.heterogen\..*\.setting$/);
+	const netMap = filterSession(session || {}, /\.heterogen\..*\.setting$/);
 
 	useEffect(() => {
 		const parsedNodes = parseNodeData(netMap);
 		setNodes(parsedNodes);
-	}, []);
-
-	const parseNodeData = (data: unknown[]): NodeData[] => {
-		const nodeMap: Record<string, Partial<NodeData>> = {};
-
-		data.forEach((item) => {
-			const nodeName = item.key;
-
-			if (!nodeMap[nodeName]) {
-				nodeMap[nodeName] = { name: nodeName };
-			}
-
-			const node = nodeMap[nodeName];
-
-			node.location = item.value.raw.location as LocationData;
-			node.config = item.value.raw as ConfigData;
-		});
-
-		return Object.values(nodeMap).filter((node) =>
-			node.location && node.config
-		) as NodeData[];
-	};
+	}, [netMap]);
 
 	return (
 		<Screen>
@@ -109,7 +124,7 @@ const HeterogenComponent: React.FC = () => {
 					pointColor={() => "orange"}
 					pointAltitude={0.02}
 					pointRadius={0.8}
-					// @ts-ignore
+					// @ts-expect-error: react-globe.gl library types are incomplete for pointLabel prop
 					pointLabel={(d: NodeData) => (
 						<div className="p-4 border">
 							<h3 className="text-sm font-bold">{d.name}</h3>
