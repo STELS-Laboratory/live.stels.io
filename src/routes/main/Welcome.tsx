@@ -286,7 +286,6 @@ function Welcome(): React.ReactElement | null {
 	return (
 		<Screen>
 			<div className="grid gap-4">
-				
 				{/* Network Nodes Status */}
 				<Card>
 					<CardHeader>
@@ -306,7 +305,7 @@ function Welcome(): React.ReactElement | null {
 									distributed globally
 								</div>
 							</div>
-							
+
 							<div className="text-center">
 								<div className="text-xs text-gray-400 mb-2">ACTIVE NODES</div>
 								<div className="text-2xl font-bold text-emerald-400 mb-1">
@@ -319,7 +318,7 @@ function Welcome(): React.ReactElement | null {
 										: 0}% online
 								</div>
 							</div>
-							
+
 							<div className="text-center">
 								<div className="text-xs text-gray-400 mb-2">NETWORK HEALTH</div>
 								<Badge
@@ -327,13 +326,13 @@ function Welcome(): React.ReactElement | null {
 									className={cn(
 										"text-sm px-3 py-1",
 										networkAnalysis.healthStatus === "EXCELLENT" &&
-										"border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+											"border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
 										networkAnalysis.healthStatus === "GOOD" &&
-										"border-blue-500/30 bg-blue-500/10 text-blue-400",
+											"border-blue-500/30 bg-blue-500/10 text-blue-400",
 										networkAnalysis.healthStatus === "WARNING" &&
-										"border-amber-500/30 bg-amber-500/10 text-amber-400",
+											"border-amber-500/30 bg-amber-500/10 text-amber-400",
 										networkAnalysis.healthStatus === "CRITICAL" &&
-										"border-red-500/30 bg-red-500/10 text-red-400",
+											"border-red-500/30 bg-red-500/10 text-red-400",
 									)}
 								>
 									{networkAnalysis.healthStatus}
@@ -342,7 +341,7 @@ function Welcome(): React.ReactElement | null {
 									overall status
 								</div>
 							</div>
-							
+
 							<div className="text-center">
 								<div className="text-xs text-gray-400 mb-2">REGIONS</div>
 								<div className="text-sm font-medium text-blue-400">
@@ -353,7 +352,7 @@ function Welcome(): React.ReactElement | null {
 								</div>
 							</div>
 						</div>
-						
+
 						{/* Regional Distribution */}
 						<div className="mt-6 pt-4 border-t border-gray-800">
 							<div className="text-xs text-gray-400 mb-3">
@@ -384,7 +383,7 @@ function Welcome(): React.ReactElement | null {
 									))}
 							</div>
 						</div>
-						
+
 						{/* System Metrics */}
 						<div className="mt-6 pt-4 border-t border-gray-800">
 							<div className="text-xs text-gray-400 mb-3">
@@ -400,8 +399,8 @@ function Welcome(): React.ReactElement | null {
 												networkAnalysis.avgCpuUsage > 80
 													? "text-red-400"
 													: networkAnalysis.avgCpuUsage > 60
-														? "text-amber-400"
-														: "text-emerald-400",
+													? "text-amber-400"
+													: "text-emerald-400",
 											)}
 										>
 											{networkAnalysis.avgCpuUsage.toFixed(1)}%
@@ -412,7 +411,7 @@ function Welcome(): React.ReactElement | null {
 										className="h-2"
 									/>
 								</div>
-								
+
 								<div>
 									<div className="flex justify-between items-center mb-2">
 										<span className="text-sm text-gray-400">AVG MEMORY</span>
@@ -422,8 +421,8 @@ function Welcome(): React.ReactElement | null {
 												networkAnalysis.avgMemoryUsage > 80
 													? "text-red-400"
 													: networkAnalysis.avgMemoryUsage > 60
-														? "text-amber-400"
-														: "text-emerald-400",
+													? "text-amber-400"
+													: "text-emerald-400",
 											)}
 										>
 											{networkAnalysis.avgMemoryUsage.toFixed(1)}%
@@ -434,7 +433,7 @@ function Welcome(): React.ReactElement | null {
 										className="h-2"
 									/>
 								</div>
-								
+
 								<div>
 									<div className="flex items-center justify-between mb-2">
 										<span className="text-sm text-gray-400">LAST UPDATE</span>
@@ -454,7 +453,7 @@ function Welcome(): React.ReactElement | null {
 						</div>
 					</CardContent>
 				</Card>
-				
+
 				{/* Protection & Risk Management */}
 				<Card>
 					<CardHeader>
