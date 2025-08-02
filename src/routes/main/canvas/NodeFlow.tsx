@@ -1,12 +1,20 @@
-import type React from "react"
-import {memo} from "react"
-import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts"
+import type React from "react";
+import { memo } from "react";
+import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
 
-const Widget = ({widget, raw}: any) => {
+interface WidgetProps {
+  widget: string;
+  raw: unknown;
+}
+
+/**
+ * Widget component for displaying session data in various formats
+ */
+const Widget = ({ widget, raw }: WidgetProps) => {
   const stopPropagation = (e: React.MouseEvent | React.WheelEvent) => {
-    e.stopPropagation()
-  }
-  
+    e.stopPropagation();
+  };
+
   switch (widget) {
     default:
       return (
@@ -30,23 +38,38 @@ const Widget = ({widget, raw}: any) => {
             </div>
           </div>
         </div>
-      )
+      );
   }
+};
+
+interface NodeFlowProps {
+  data: {
+    channel: string;
+    label?: string;
+    sessionData?: unknown;
+  };
 }
 
-const NodeFlow = memo(({data}: any) => {
-  const session: any = useSessionStoreSync()
+interface SessionData {
+  widget: string;
+  raw: unknown;
+}
 
-  if (!session) return <div>Loading Session</div>
+/**
+ * NodeFlow component for rendering session data in ReactFlow nodes
+ */
+const NodeFlow = memo(({ data }: NodeFlowProps) => {
+  const session = useSessionStoreSync() as Record<string, SessionData> | null;
 
-  const st: any = session[data.channel]
+  if (!session) return <div>Loading Session</div>;
 
-  if (!st) return <div>Loading RAW</div>
+  const st = session[data.channel];
 
-  return <Widget widget={st.widget} raw={st.raw}/>
-})
+  if (!st) return <div>Loading RAW</div>;
 
-NodeFlow.displayName = "NodeFlow"
+  return <Widget widget={st.widget} raw={st.raw} />;
+});
 
-export default NodeFlow
+NodeFlow.displayName = "NodeFlow";
 
+export default NodeFlow;

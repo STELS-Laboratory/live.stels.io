@@ -28,7 +28,9 @@ const VERSION_BYTE = 98 // Gliesereum's version byte for addresses (e.g., 'g')
 export function hexToUint8Array(hex: string): Uint8Array {
 	if (hex.startsWith("0x")) hex = hex.slice(2)
 	if (hex.length % 2 !== 0) hex = "0" + hex
-	return new Uint8Array(hex.match(/.{1,2}/g)!.map((byte) => Number.parseInt(byte, 16)))
+	const matches = hex.match(/.{1,2}/g);
+	if (!matches) throw new Error('Invalid hex string format');
+	return new Uint8Array(matches.map((byte) => Number.parseInt(byte, 16)))
 }
 
 /**
@@ -108,8 +110,9 @@ export function validateAddress(address: string): boolean {
 		const actualChecksum = decoded.slice(-CHECKSUM_SIZE)
 		const expectedChecksum = createChecksum(concatUint8([Uint8Array.of(version), payload]))
 		return constantTimeEqual(expectedChecksum, actualChecksum)
-	} catch (error: any) {
-		console.error(`Address validation failed: ${error.message}`)
+	} catch (error: unknown) {
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+		console.error(`Address validation failed: ${errorMessage}`)
 		return false
 	}
 }
@@ -215,7 +218,7 @@ export function luhnChecksum(number: string): string {
 /**
  * Deterministically stringifies any object, used for signature/data hashing.
  */
-export function deterministicStringify(obj: any): string {
+export function deterministicStringify(obj: unknown): string {
 	if (obj === null || typeof obj !== "object") return JSON.stringify(obj)
 	if (Array.isArray(obj)) {
 		return `[${obj.map(deterministicStringify).join(",")}]`

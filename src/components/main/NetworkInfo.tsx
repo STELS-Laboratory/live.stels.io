@@ -1,7 +1,10 @@
-import {useEffect} from 'react'
-import {useAppStore} from "@/stores";
+import { useEffect } from "react";
+import { useAppStore } from "@/stores";
 
-export default function NetworkInfo() {
+/**
+ * NetworkInfo component displaying connection status and network information
+ */
+export default function NetworkInfo(): React.ReactElement {
 	const {
 		online,
 		effectiveType,
@@ -10,22 +13,22 @@ export default function NetworkInfo() {
 		type,
 		saveData,
 		updateStatus,
-	} = useAppStore()
-	
+	} = useAppStore();
+
 	useEffect(() => {
-		updateStatus()
-	}, [updateStatus])
-	
+		updateStatus();
+	}, [updateStatus]);
+
 	return (
 		<div>
-			<h2>Network: {online ? '🟢' : '🔴'}</h2>
+			<h2>Network: {online ? "🟢" : "🔴"}</h2>
 			<ul>
-				<li>Type (connection): {type || 'unknown'}</li>
-				<li>Type: {effectiveType || 'n/a'}</li>
-				<li>Speed (downlink): {downlink ? `${downlink} mb/s` : 'n/a'}</li>
-				<li>RTT: {rtt ? `${rtt} мс` : 'n/a'}</li>
-				<li>Traffic economy: {saveData ? 'Yes' : 'No'}</li>
+				<li>Type (connection): {type || "unknown"}</li>
+				<li>Type: {effectiveType || "n/a"}</li>
+				<li>Speed (downlink): {downlink ? `${downlink} mb/s` : "n/a"}</li>
+				<li>RTT: {rtt ? `${rtt} ms` : "n/a"}</li>
+				<li>Traffic economy: {saveData ? "Yes" : "No"}</li>
 			</ul>
 		</div>
-	)
+	);
 }

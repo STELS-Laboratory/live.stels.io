@@ -1,4 +1,4 @@
-// --- Типы для протокола и аккаунта ---
+// --- Protocol and account types ---
 export type ProtocolData = {
 	maxRiskPerTrade: number
 	strategy: string
@@ -37,7 +37,7 @@ export interface AccountRequest {
 }
 
 /**
- * Новый тип запроса: подписанный пакет + открытый ключ и адрес
+ * New request type: signed package + public key and address
  */
 export interface SignedAccountRequest {
 	account: AccountRequest

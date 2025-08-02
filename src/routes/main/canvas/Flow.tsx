@@ -1,46 +1,59 @@
-import type React from "react"
+import type React from "react";
 
 import ReactFlow, {
   addEdge,
   type Connection,
   type Edge,
+  type NodeTypes,
+  type ReactFlowInstance,
   useEdgesState,
   useNodesState,
-  type ReactFlowInstance,
   useReactFlow,
-  type NodeTypes,
-} from "reactflow"
-import "reactflow/dist/style.css"
-import {useCallback, useMemo, useState, useEffect, useRef} from "react"
-import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts"
-import MacOSNode from "@/routes/main/canvas/MacOSNode.tsx"
-import {ShoppingBag, Filter, ChevronDown, ChevronRight} from "lucide-react"
-import {cleanBrands, cn} from "@/lib/utils"
+} from "reactflow";
+import "reactflow/dist/style.css";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
+import MacOSNode from "@/routes/main/canvas/MacOSNode.tsx";
+import { ChevronDown, ChevronRight, Filter, ShoppingBag } from "lucide-react";
+import { cleanBrands, cn } from "@/lib/utils";
 import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
 import Screen from "@/routes/main/Screen.tsx";
 import Header from "@/components/main/Header.tsx";
 
-const NODES_STORAGE_KEY = "stels-canvas-nodes"
-const EDGES_STORAGE_KEY = "stels-canvas-edges"
+const NODES_STORAGE_KEY = "stels-canvas-nodes";
+const EDGES_STORAGE_KEY = "stels-canvas-edges";
 
-const defaultNodes: any =  []
+interface FlowNode {
+  id: string;
+  type: string;
+  position: { x: number; y: number };
+  data: {
+    channel: string;
+    label: string;
+    onDelete: (nodeId: string) => void;
+    sessionData?: unknown;
+  };
+  dragHandle?: string;
+}
+
+const defaultNodes: FlowNode[] = [];
 
 /**
  * Widget data structure from session storage
  */
 export interface WidgetData {
-  module: string
-  channel: string
-  timestamp: number | string | object
+  module: string;
+  channel: string;
+  timestamp: number | string | object;
 
-  [key: string]: any
+  [key: string]: unknown;
 }
 
 /**
  * Session storage data structure
  */
 export interface SessionStore {
-  [key: string]: WidgetData
+  [key: string]: WidgetData;
 }
 
 /**
@@ -48,13 +61,13 @@ export interface SessionStore {
  */
 interface DockItemProps {
   /** Icon to display in the dock */
-  icon: React.ReactNode
+  icon: React.ReactNode;
   /** Label to display in the tooltip */
-  label: string
+  label: string;
   /** Whether the item is currently active */
-  isActive?: boolean
+  isActive?: boolean;
   /** Callback when the item is clicked */
-  onClick: () => void
+  onClick: () => void;
 }
 
 /**
@@ -62,9 +75,9 @@ interface DockItemProps {
  */
 interface MacOSDockProps {
   /** Callback to open the widget store */
-  onOpenWidgetStore: () => void
+  onOpenWidgetStore: () => void;
   /** Whether the widget store is currently open */
-  isWidgetStoreOpen: boolean
+  isWidgetStoreOpen: boolean;
 }
 
 /**
@@ -72,15 +85,15 @@ interface MacOSDockProps {
  */
 interface GroupHeaderProps {
   /** Title of the group */
-  title: string
+  title: string;
   /** Number of items in the group */
-  count: number
+  count: number;
   /** Whether the group is currently expanded */
-  isOpen: boolean
+  isOpen: boolean;
   /** Callback when the group is toggled */
-  onToggle: () => void
+  onToggle: () => void;
   /** Indentation level (0 for top level) */
-  level?: number
+  level?: number;
 }
 
 /**
@@ -88,11 +101,14 @@ interface GroupHeaderProps {
  */
 interface ItemStoreProps {
   /** Key of the widget in session storage */
-  keyStore: string
+  keyStore: string;
   /** Callback when drag starts */
-  onDragStart: (event: React.DragEvent<HTMLDivElement>, keyStore: string) => void
+  onDragStart: (
+    event: React.DragEvent<HTMLDivElement>,
+    keyStore: string,
+  ) => void;
   /** Indentation level for nested items */
-  indentLevel?: number
+  indentLevel?: number;
 }
 
 /**
@@ -100,13 +116,13 @@ interface ItemStoreProps {
  */
 interface TabProps {
   /** Label to display in the tab */
-  label: string
+  label: string;
   /** Whether the tab is currently active */
-  isActive: boolean
+  isActive: boolean;
   /** Callback when the tab is clicked */
-  onClick: () => void
+  onClick: () => void;
   /** Number of items in the tab */
-  count: number
+  count: number;
 }
 
 /**
@@ -114,33 +130,35 @@ interface TabProps {
  */
 type GroupedWidgets = {
   [exchange: string]: {
-    [asset: string]: string[]
-  }
-}
+    [asset: string]: string[];
+  };
+};
 
 /**
  * Type for widget categories
  */
-type WidgetCategories = Record<string, string[]>
+type WidgetCategories = Record<string, string[]>;
 
 /**
  * Type for grouping mode
  */
-type GroupingMode = "exchange" | "asset"
+type GroupingMode = "exchange" | "asset";
 
 /**
  * Helper function to extract category from widget key
  */
 function extractNetwork(key: string): string {
-  const parts = key.split(".")
-  return parts[1]
+  const parts = key.split(".");
+  return parts[1];
 }
 
 /**
  * Dock Item Component
  */
-function DockItem({icon, label, isActive = false, onClick}: DockItemProps): React.ReactElement {
-  const [isHovered, setIsHovered] = useState<boolean>(false)
+function DockItem(
+  { icon, label, isActive = false, onClick }: DockItemProps,
+): React.ReactElement {
+  const [isHovered, setIsHovered] = useState<boolean>(false);
 
   return (
     <div className="group relative flex flex-col items-center">
@@ -164,68 +182,80 @@ function DockItem({icon, label, isActive = false, onClick}: DockItemProps): Reac
       >
         {icon}
       </button>
-      {isActive && <div className="mt-1 h-1 w-1 rounded-full bg-white"/>}
+      {isActive && <div className="mt-1 h-1 w-1 rounded-full bg-white" />}
     </div>
-  )
+  );
 }
 
 /**
  * macOS Dock Component
  */
-function MacOSDock({onOpenWidgetStore, isWidgetStoreOpen}: MacOSDockProps): React.ReactElement {
+function MacOSDock(
+  { onOpenWidgetStore, isWidgetStoreOpen }: MacOSDockProps,
+): React.ReactElement {
   return (
     <div className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-2xl bg-black/20 p-2 backdrop-blur-lg">
       <div className="flex items-center space-x-2">
         <DockItem
-          icon={<ShoppingBag className="h-6 w-6"/>}
+          icon={<ShoppingBag className="h-6 w-6" />}
           label="Widget Store"
           isActive={isWidgetStoreOpen}
           onClick={onOpenWidgetStore}
         />
       </div>
     </div>
-  )
+  );
 }
 
 /**
  * Group Header Component
  */
-function GroupHeader({title, count, isOpen, onToggle, level = 0}: GroupHeaderProps): React.ReactElement {
+function GroupHeader(
+  { title, count, isOpen, onToggle, level = 0 }: GroupHeaderProps,
+): React.ReactElement {
   return (
     <div
       onClick={onToggle}
       className={cn(
         "flex items-center justify-between p-2 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors",
-        level === 0 ? "bg-zinc-200/50 dark:bg-zinc-700/50" : "bg-zinc-100/50 dark:bg-zinc-800/50",
+        level === 0
+          ? "bg-zinc-200/50 dark:bg-zinc-700/50"
+          : "bg-zinc-100/50 dark:bg-zinc-800/50",
         level === 0 ? "sticky top-0" : "",
       )}
-      style={{paddingLeft: `${level * 8 + 8}px`}}
+      style={{ paddingLeft: `${level * 8 + 8}px` }}
     >
       <div className="flex items-center">
-        {isOpen ? (
-          <ChevronDown className="h-4 w-4 mr-1 text-zinc-500"/>
-        ) : (
-          <ChevronRight className="h-4 w-4 mr-1 text-zinc-500"/>
-        )}
-        <span className={cn("font-medium", level === 0 ? "text-sm" : "text-xs")}>{title}</span>
+        {isOpen
+          ? <ChevronDown className="h-4 w-4 mr-1 text-zinc-500" />
+          : <ChevronRight className="h-4 w-4 mr-1 text-zinc-500" />}
+        <span
+          className={cn("font-medium", level === 0 ? "text-sm" : "text-xs")}
+        >
+          {title}
+        </span>
       </div>
-      <span className="text-xs px-1.5 py-0.5 rounded-full bg-zinc-200 dark:bg-zinc-700">{count}</span>
+      <span className="text-xs px-1.5 py-0.5 rounded-full bg-zinc-200 dark:bg-zinc-700">
+        {count}
+      </span>
     </div>
-  )
+  );
 }
 
 /**
  * Item Store Component
  */
-function ItemStore({keyStore, onDragStart, indentLevel = 0}: ItemStoreProps): React.ReactElement {
-  const session = useSessionStoreSync() as SessionStore | null
+function ItemStore(
+  { keyStore, onDragStart, indentLevel = 0 }: ItemStoreProps,
+): React.ReactElement {
+  const session = useSessionStoreSync() as SessionStore | null;
 
-  if (!session) return (<div>Loading Session....</div>) as React.ReactElement
+  if (!session) return <div>Loading Session....</div> as React.ReactElement;
 
-  const widget = session[keyStore]
+  const widget = session[keyStore];
 
   if (!widget || !widget.module) {
-    return (<div>Invalid widget data</div>) as React.ReactElement
+    return <div>Invalid widget data</div> as React.ReactElement;
   }
 
   return (
@@ -233,10 +263,13 @@ function ItemStore({keyStore, onDragStart, indentLevel = 0}: ItemStoreProps): Re
       draggable
       onDragStart={(event) => onDragStart(event, keyStore)}
       onTouchStart={(event: React.TouchEvent<HTMLDivElement>) => {
-        onDragStart(event as unknown as React.DragEvent<HTMLDivElement>, keyStore)
+        onDragStart(
+          event as unknown as React.DragEvent<HTMLDivElement>,
+          keyStore,
+        );
       }}
       className="flex bg-amber-600 text-black touch-auto text-sm justify-between items-center p-2 border-b cursor-grab"
-      style={{paddingLeft: `${indentLevel * 8 + 8}px`}}
+      style={{ paddingLeft: `${indentLevel * 8 + 8}px` }}
     >
       <div>
         <div>
@@ -248,13 +281,15 @@ function ItemStore({keyStore, onDragStart, indentLevel = 0}: ItemStoreProps): Re
         </code>
       </div>
     </div>
-  )
+  );
 }
 
 /**
  * Tab Component
  */
-function Tab({label, isActive, onClick, count}: TabProps): React.ReactElement {
+function Tab(
+  { label, isActive, onClick, count }: TabProps,
+): React.ReactElement {
   return (
     <button
       onClick={onClick}
@@ -265,108 +300,119 @@ function Tab({label, isActive, onClick, count}: TabProps): React.ReactElement {
           : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300",
       )}
     >
-      {label} {count > 0 && <span className="ml-1 rounded-full px-2 py-0.5 text-xs dark:bg-zinc-700">{count}</span>}
+      {label}{" "}
+      {count > 0 && (
+        <span className="ml-1 rounded-full px-2 py-0.5 text-xs dark:bg-zinc-700">
+          {count}
+        </span>
+      )}
     </button>
-  )
+  );
 }
 
 /**
  * Main Flow Component
  */
 function Flow(): React.ReactElement | null {
-  const [nodes, setNodes, onNodesChange] = useNodesState<any>([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
+  const [nodes, setNodes, onNodesChange] = useNodesState<FlowNode>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
-  const [isWidgetStoreOpen, setIsWidgetStoreOpen] = useState<boolean>(false)
-  const [activeCategory, setActiveCategory] = useState<string>("All")
-  const [searchTerm, setSearchTerm] = useState<string>("")
-  const [expandedExchanges, setExpandedExchanges] = useState<Record<string, boolean>>({})
-  const [expandedAssets, setExpandedAssets] = useState<Record<string, boolean>>({})
-  const [groupingMode, setGroupingMode] = useState<GroupingMode>("exchange")
+  const [isWidgetStoreOpen, setIsWidgetStoreOpen] = useState<boolean>(false);
+  const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [expandedExchanges, setExpandedExchanges] = useState<
+    Record<string, boolean>
+  >({});
+  const [expandedAssets, setExpandedAssets] = useState<Record<string, boolean>>(
+    {},
+  );
+  const [groupingMode, setGroupingMode] = useState<GroupingMode>("exchange");
 
-  const session = useSessionStoreSync() as SessionStore | null
-  const reactFlowInstance = useRef<ReactFlowInstance | null>(null)
-  const {screenToFlowPosition} = useReactFlow()
+  const session = useSessionStoreSync() as SessionStore | null;
+  const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
+  const { screenToFlowPosition } = useReactFlow();
 
   useEffect(() => {
     try {
-      const savedNodes = localStorage.getItem(NODES_STORAGE_KEY)
-      const savedEdges = localStorage.getItem(EDGES_STORAGE_KEY)
+      const savedNodes = localStorage.getItem(NODES_STORAGE_KEY);
+      const savedEdges = localStorage.getItem(EDGES_STORAGE_KEY);
 
       if (savedNodes) {
-        const parsedNodes = JSON.parse(savedNodes)
-        const nodesWithFunctions = parsedNodes.map((node: any) => ({
+        const parsedNodes = JSON.parse(savedNodes);
+        const nodesWithFunctions = parsedNodes.map((node: FlowNode) => ({
           ...node,
           data: {
             ...node.data,
             onDelete: handleDeleteNode,
           },
-        }))
-        setNodes(nodesWithFunctions)
+        }));
+        setNodes(nodesWithFunctions);
       } else {
-        localStorage.setItem(NODES_STORAGE_KEY, JSON.stringify(defaultNodes))
-        const parsedNodes = defaultNodes
-        const nodesWithFunctions = parsedNodes.map((node: any) => ({
+        localStorage.setItem(NODES_STORAGE_KEY, JSON.stringify(defaultNodes));
+        const parsedNodes = defaultNodes;
+        const nodesWithFunctions = parsedNodes.map((node: FlowNode) => ({
           ...node,
           data: {
             ...node.data,
             onDelete: handleDeleteNode,
           },
-        }))
-        setNodes(nodesWithFunctions)
+        }));
+        setNodes(nodesWithFunctions);
       }
 
       if (savedEdges) {
-        setEdges(JSON.parse(savedEdges))
+        setEdges(JSON.parse(savedEdges));
       }
     } catch (error) {
-      console.error("Error loading flow data from localStorage:", error)
+      console.error("Error loading flow data from localStorage:", error);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (nodes.length > 0) {
-      const nodesToSave = nodes.map((node: any) => ({
+      const nodesToSave = nodes.map((node: FlowNode) => ({
         ...node,
         data: {
           ...node.data,
           onDelete: undefined,
         },
-      }))
-      localStorage.setItem(NODES_STORAGE_KEY, JSON.stringify(nodesToSave))
+      }));
+      localStorage.setItem(NODES_STORAGE_KEY, JSON.stringify(nodesToSave));
     }
-    cleanBrands()
-  }, [nodes])
+    cleanBrands();
+  }, [nodes]);
 
   useEffect(() => {
     if (edges.length > 0) {
-      localStorage.setItem(EDGES_STORAGE_KEY, JSON.stringify(edges))
+      localStorage.setItem(EDGES_STORAGE_KEY, JSON.stringify(edges));
     }
-  }, [edges])
+  }, [edges]);
 
   const onConnect = useCallback(
     (params: Edge | Connection) => {
       setEdges((eds) => {
-        const newEdges = addEdge(params, eds)
-        localStorage.setItem(EDGES_STORAGE_KEY, JSON.stringify(newEdges))
-        return newEdges
-      })
+        const newEdges = addEdge(params, eds);
+        localStorage.setItem(EDGES_STORAGE_KEY, JSON.stringify(newEdges));
+        return newEdges;
+      });
     },
     [setEdges],
-  )
+  );
 
   const handleDeleteNode = useCallback(
     (nodeId: string) => {
-      setNodes((nds: any[]) => {
-        const updatedNodes = nds.filter((node) => node.id !== nodeId)
+      setNodes((nds: FlowNode[]) => {
+        const updatedNodes = nds.filter((node) => node.id !== nodeId);
         setEdges((edges) => {
-          const updatedEdges = edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
-          localStorage.setItem(EDGES_STORAGE_KEY, JSON.stringify(updatedEdges))
-          return updatedEdges
-        })
+          const updatedEdges = edges.filter((edge) =>
+            edge.source !== nodeId && edge.target !== nodeId
+          );
+          localStorage.setItem(EDGES_STORAGE_KEY, JSON.stringify(updatedEdges));
+          return updatedEdges;
+        });
 
         if (updatedNodes.length === 0) {
-          localStorage.removeItem(NODES_STORAGE_KEY)
+          localStorage.removeItem(NODES_STORAGE_KEY);
         } else {
           const nodesToSave = updatedNodes.map((node) => ({
             ...node,
@@ -374,34 +420,37 @@ function Flow(): React.ReactElement | null {
               ...node.data,
               onDelete: undefined,
             },
-          }))
-          localStorage.setItem(NODES_STORAGE_KEY, JSON.stringify(nodesToSave))
+          }));
+          localStorage.setItem(NODES_STORAGE_KEY, JSON.stringify(nodesToSave));
         }
 
-        return updatedNodes
-      })
+        return updatedNodes;
+      });
     },
     [setNodes, setEdges],
-  )
+  );
 
-  const onDragStart = (event: React.DragEvent<HTMLDivElement>, key: string): void => {
-    event.dataTransfer.setData("application/reactflow", key)
-    event.dataTransfer.effectAllowed = "move"
-  }
+  const onDragStart = (
+    event: React.DragEvent<HTMLDivElement>,
+    key: string,
+  ): void => {
+    event.dataTransfer.setData("application/reactflow", key);
+    event.dataTransfer.effectAllowed = "move";
+  };
 
   const onDrop = (event: React.DragEvent<HTMLDivElement>): void => {
-    event.preventDefault()
+    event.preventDefault();
 
-    const key = event.dataTransfer.getData("application/reactflow")
-    const sessionData = sessionStorage.getItem(key)
-    if (!sessionData) return
+    const key = event.dataTransfer.getData("application/reactflow");
+    const sessionData = sessionStorage.getItem(key);
+    if (!sessionData) return;
 
     const position = screenToFlowPosition({
       x: event.clientX,
       y: event.clientY,
-    })
+    });
 
-    const newNodeId = `node-${Date.now()}`
+    const newNodeId = `node-${Date.now()}`;
 
     const newNode = {
       id: newNodeId,
@@ -414,146 +463,152 @@ function Flow(): React.ReactElement | null {
         sessionData: JSON.parse(sessionData),
       },
       dragHandle: ".drag-handle",
-    }
+    };
 
-    setNodes((prevNodes: any[]) => {
-      const updatedNodes = [...prevNodes, newNode]
+    setNodes((prevNodes: FlowNode[]) => {
+      const updatedNodes = [...prevNodes, newNode];
       const nodesToSave = updatedNodes.map((node) => ({
         ...node,
         data: {
           ...node.data,
           onDelete: undefined,
         },
-      }))
-      localStorage.setItem(NODES_STORAGE_KEY, JSON.stringify(nodesToSave))
+      }));
+      localStorage.setItem(NODES_STORAGE_KEY, JSON.stringify(nodesToSave));
 
-      return updatedNodes
-    })
-  }
+      return updatedNodes;
+    });
+  };
 
   const onDragOver = (event: React.DragEvent<HTMLDivElement>): void => {
-    event.preventDefault()
-    event.dataTransfer.dropEffect = "move"
-  }
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  };
 
   const nodeTypes = useMemo<NodeTypes>(
     () => ({
       custom: MacOSNode,
     }),
     [],
-  )
+  );
 
   const toggleWidgetStore = (): void => {
-    setIsWidgetStoreOpen(!isWidgetStoreOpen)
-  }
+    setIsWidgetStoreOpen(!isWidgetStoreOpen);
+  };
 
   const toggleExchange = (exchange: string): void => {
     setExpandedExchanges((prev) => ({
       ...prev,
       [exchange]: !prev[exchange],
-    }))
-  }
+    }));
+  };
 
   const toggleAsset = (exchange: string, asset: string): void => {
-    const key = `${exchange}:${asset}`
+    const key = `${exchange}:${asset}`;
     setExpandedAssets((prev) => ({
       ...prev,
       [key]: !prev[key],
-    }))
-  }
+    }));
+  };
 
-  const keys = Object.keys(sessionStorage)
+  const keys = Object.keys(sessionStorage);
 
   const widgetsByCategory = useMemo<WidgetCategories>(() => {
-    const categorized: WidgetCategories = {All: []}
+    const categorized: WidgetCategories = { All: [] };
 
     if (session) {
       keys.forEach((key) => {
-        const widget = session[key]
+        const widget = session[key];
         if (widget && widget.module) {
           // Add to "All" category
-          categorized.All.push(key)
+          categorized.All.push(key);
 
           // Add to specific category
-          const category = extractNetwork(key)
+          const category = extractNetwork(key);
           if (!categorized[category]) {
-            categorized[category] = []
+            categorized[category] = [];
           }
-          categorized[category].push(key)
+          categorized[category].push(key);
         }
-      })
+      });
     }
 
-    return categorized
-  }, [keys, session])
+    return categorized;
+  }, [keys, session]);
 
   const categories = useMemo<string[]>(() => {
     return Object.keys(widgetsByCategory).sort((a, b) => {
-      if (a === "All") return -1
-      if (b === "All") return 1
-      return a.localeCompare(b)
-    })
-  }, [widgetsByCategory])
+      if (a === "All") return -1;
+      if (b === "All") return 1;
+      return a.localeCompare(b);
+    });
+  }, [widgetsByCategory]);
 
   const filteredWidgets = useMemo<string[]>(() => {
-    const categoryWidgets = widgetsByCategory[activeCategory] || []
+    const categoryWidgets = widgetsByCategory[activeCategory] || [];
 
     if (!searchTerm) {
-      return categoryWidgets
+      return categoryWidgets;
     }
 
     return categoryWidgets.filter((key) => {
-      if (!session) return false
-      const widget = session[key]
-      const searchLower = searchTerm.toLowerCase()
+      if (!session) return false;
+      const widget = session[key];
+      const searchLower = searchTerm.toLowerCase();
 
-      return widget.module.toLowerCase().includes(searchLower) || widget.channel.toLowerCase().includes(searchLower)
-    })
-  }, [activeCategory, searchTerm, widgetsByCategory, session])
+      return widget.module.toLowerCase().includes(searchLower) ||
+        widget.channel.toLowerCase().includes(searchLower);
+    });
+  }, [activeCategory, searchTerm, widgetsByCategory, session]);
 
   const groupedWidgets = useMemo<GroupedWidgets>(() => {
-    const grouped: GroupedWidgets = {}
+    const grouped: GroupedWidgets = {};
 
     filteredWidgets.forEach((key) => {
-      const exchange = extractNetwork(key)
-      const asset = extractNetwork(key)
+      const exchange = extractNetwork(key);
+      const asset = extractNetwork(key);
 
       if (!grouped[exchange]) {
-        grouped[exchange] = {}
+        grouped[exchange] = {};
       }
 
       if (!grouped[exchange][asset]) {
-        grouped[exchange][asset] = []
+        grouped[exchange][asset] = [];
       }
 
-      grouped[exchange][asset].push(key)
+      grouped[exchange][asset].push(key);
 
-      if (Object.keys(expandedExchanges).length === 0 && Object.keys(grouped).length > 0) {
-        setExpandedExchanges({[exchange]: true})
-        setExpandedAssets({[`${exchange}:${asset}`]: true})
+      if (
+        Object.keys(expandedExchanges).length === 0 &&
+        Object.keys(grouped).length > 0
+      ) {
+        setExpandedExchanges({ [exchange]: true });
+        setExpandedAssets({ [`${exchange}:${asset}`]: true });
       }
-    })
+    });
 
-    return grouped
-  }, [filteredWidgets, expandedExchanges])
+    return grouped;
+  }, [filteredWidgets, expandedExchanges]);
 
   const toggleGroupingMode = (): void => {
-    setGroupingMode((prev) => (prev === "exchange" ? "asset" : "exchange"))
-  }
+    setGroupingMode((prev) => (prev === "exchange" ? "asset" : "exchange"));
+  };
 
   const renderGroupedWidgets = (): React.ReactNode => {
     if (filteredWidgets.length === 0) {
       return (
         <div className="p-4 text-center text-muted-foreground">
-          {searchTerm ? "No widgets match your search" : "No widgets available in this category"}
+          {searchTerm
+            ? "No widgets match your search"
+            : "No widgets available in this category"}
         </div>
-      )
+      );
     }
 
     if (groupingMode === "exchange") {
       return Object.entries(groupedWidgets).map(([exchange, assets]) => {
-        const isExchangeOpen = expandedExchanges[exchange] || false
-        const exchangeWidgetCount = Object.values(assets).flat().length
+        const isExchangeOpen = expandedExchanges[exchange] || false;
+        const exchangeWidgetCount = Object.values(assets).flat().length;
 
         return (
           <div key={exchange} className="border-b last:border-b-0">
@@ -567,11 +622,14 @@ function Flow(): React.ReactElement | null {
 
             {isExchangeOpen &&
               Object.entries(assets).map(([asset, assetWidgets]) => {
-                const assetKey = `${exchange}:${asset}`
-                const isAssetOpen = expandedAssets[assetKey] || false
+                const assetKey = `${exchange}:${asset}`;
+                const isAssetOpen = expandedAssets[assetKey] || false;
 
                 return (
-                  <div key={assetKey} className="border-t border-zinc-100 dark:border-zinc-800">
+                  <div
+                    key={assetKey}
+                    className="border-t border-zinc-100 dark:border-zinc-800"
+                  >
                     <GroupHeader
                       title={`${asset}`}
                       count={assetWidgets.length}
@@ -590,26 +648,26 @@ function Flow(): React.ReactElement | null {
                         />
                       ))}
                   </div>
-                )
+                );
               })}
           </div>
-        )
-      })
+        );
+      });
     } else {
-      const assetFirst: Record<string, Record<string, string[]>> = {}
+      const assetFirst: Record<string, Record<string, string[]>> = {};
 
       Object.entries(groupedWidgets).forEach(([exchange, assets]) => {
         Object.entries(assets).forEach(([asset, widgets]) => {
           if (!assetFirst[asset]) {
-            assetFirst[asset] = {}
+            assetFirst[asset] = {};
           }
-          assetFirst[asset][exchange] = widgets
-        })
-      })
+          assetFirst[asset][exchange] = widgets;
+        });
+      });
 
       return Object.entries(assetFirst).map(([asset, exchanges]) => {
-        const isAssetOpen = expandedAssets[asset] || false
-        const assetWidgetCount = Object.values(exchanges).flat().length
+        const isAssetOpen = expandedAssets[asset] || false;
+        const assetWidgetCount = Object.values(exchanges).flat().length;
 
         return (
           <div key={asset} className="border-b last:border-b-0">
@@ -623,11 +681,14 @@ function Flow(): React.ReactElement | null {
 
             {isAssetOpen &&
               Object.entries(exchanges).map(([exchange, exchangeWidgets]) => {
-                const exchangeKey = `${asset}:${exchange}`
-                const isExchangeOpen = expandedExchanges[exchangeKey] || false
+                const exchangeKey = `${asset}:${exchange}`;
+                const isExchangeOpen = expandedExchanges[exchangeKey] || false;
 
                 return (
-                  <div key={exchangeKey} className="border-t border-zinc-100 dark:border-zinc-800">
+                  <div
+                    key={exchangeKey}
+                    className="border-t border-zinc-100 dark:border-zinc-800"
+                  >
                     <GroupHeader
                       title={`${exchange}`}
                       count={exchangeWidgets.length}
@@ -646,19 +707,18 @@ function Flow(): React.ReactElement | null {
                         />
                       ))}
                   </div>
-                )
+                );
               })}
           </div>
-        )
-      })
+        );
+      });
     }
-  }
+  };
 
-  if (!session) return null
+  if (!session) return null;
 
   return (
     <Screen>
-      <Header title={"Canvas"} description={"Web3 Runtime Widget store"} />
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -669,15 +729,14 @@ function Flow(): React.ReactElement | null {
         snapToGrid={true}
         fitView
         onInit={(instance) => {
-          reactFlowInstance.current = instance
+          reactFlowInstance.current = instance;
         }}
         onDrop={onDrop}
         onDragOver={onDragOver}
       >
-        <div
-          className="absolute z-1 flex justify-center items-center flex-col w-60 h-60 bottom-0 right-0">
+        <div className="absolute z-1 flex justify-center items-center flex-col w-60 h-60 bottom-0 right-0">
           <div>
-            <Graphite size={4} primary="#27272a99"/>
+            <Graphite size={4} primary="#27272a99" />
           </div>
           <div className="mt-4 text-2xl font-semibold text-zinc-800/60">
             STELS
@@ -688,23 +747,34 @@ function Flow(): React.ReactElement | null {
         </div>
       </ReactFlow>
 
-      <MacOSDock onOpenWidgetStore={toggleWidgetStore} isWidgetStoreOpen={isWidgetStoreOpen}/>
+      <MacOSDock
+        onOpenWidgetStore={toggleWidgetStore}
+        isWidgetStoreOpen={isWidgetStoreOpen}
+      />
 
       <div
         className={cn(
-          "absolute top-4 bottom-20 right-4 z-50 w-1/3 border bg-background/90 shadow-xl rounded-lg overflow-hidden transition-all duration-300 transform backdrop-blur-md",
-          isWidgetStoreOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0",
+          "absolute top-4 bottom-20 right-4 z-50 w-1/3 border bg-background/90 rounded-lg overflow-hidden transition-all duration-300 transform backdrop-blur-md",
+          isWidgetStoreOpen
+            ? "translate-x-0 opacity-100"
+            : "translate-x-full opacity-0",
         )}
       >
         <div className="border-b p-3 flex justify-between items-center bg-muted/80">
           <div className="flex items-center">
-            <ShoppingBag className="h-4 w-4 mr-2"/>
+            <ShoppingBag className="h-4 w-4 mr-2" />
             <h3 className="font-semibold">Widget Store</h3>
           </div>
           <div className="flex space-x-2">
-            <button className="h-3 w-3 rounded-full bg-[#febc2e]" onClick={() => {
-            }}/>
-            <button className="h-3 w-3 rounded-full bg-[#ff5f57]" onClick={toggleWidgetStore}/>
+            <button
+              className="h-3 w-3 rounded-full bg-[#febc2e]"
+              onClick={() => {
+              }}
+            />
+            <button
+              className="h-3 w-3 rounded-full bg-[#ff5f57]"
+              onClick={toggleWidgetStore}
+            />
           </div>
         </div>
 
@@ -718,7 +788,7 @@ function Flow(): React.ReactElement | null {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-3 py-2 pl-9 bg-zinc-100 dark:bg-zinc-800 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
               />
-              <Filter className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400"/>
+              <Filter className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
             </div>
             <button
               onClick={toggleGroupingMode}
@@ -743,11 +813,12 @@ function Flow(): React.ReactElement | null {
           </div>
         </div>
 
-        <div className="h-[calc(100%-144px)] overflow-y-auto">{renderGroupedWidgets()}</div>
+        <div className="h-[calc(100%-144px)] overflow-y-auto">
+          {renderGroupedWidgets()}
+        </div>
       </div>
     </Screen>
-  )
+  );
 }
 
-export default Flow
-
+export default Flow;

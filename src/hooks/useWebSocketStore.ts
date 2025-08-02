@@ -77,7 +77,9 @@ function createWebSocket(
 }
 
 interface WebSocketConfig {
-	raw: any;
+	raw: {
+		info: WebSocketInfo;
+	};
 }
 
 interface WebSocketState {

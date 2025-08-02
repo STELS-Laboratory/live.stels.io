@@ -22,10 +22,3 @@ createRoot(rootElement).render(
 		<App/>
 	</StrictMode>
 );
-
-const removeLoader = () => {
-	const loaderEl = document.getElementById("loader");
-	if (loaderEl) loaderEl.remove();
-};
-
-removeLoader();

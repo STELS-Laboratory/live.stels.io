@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 
+/**
+ * Network status interface with connection information
+ */
 export interface NetworkStatus {
 	online: boolean
 	effectiveType: string | null
@@ -11,6 +14,9 @@ export interface NetworkStatus {
 	updateStatus: () => void
 }
 
+/**
+ * Application state interface extending network status
+ */
 export interface AppState extends NetworkStatus {
 	version: string
 	setVersion: (v: string) => void
@@ -20,6 +26,10 @@ export interface AppState extends NetworkStatus {
 	setRoute: (route: string) => void
 }
 
+/**
+ * Zustand store for application state management
+ * Includes network monitoring, routing, and persistence
+ */
 export const useAppStore = create<AppState>()(
 	devtools(
 		persist(

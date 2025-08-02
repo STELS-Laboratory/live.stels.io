@@ -1,103 +1,108 @@
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
 
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
-import {Badge} from "@/components/ui/badge"
-import {Progress} from "@/components/ui/progress"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
-	TrendingUp,
-	TrendingDown,
 	Activity,
-	Wallet,
-	Shield,
-	Users,
+	Calculator,
 	Clock,
 	DollarSign,
-	Target,
 	PieChart,
-	Calculator,
 	RefreshCw,
-} from "lucide-react"
-import {cn} from "@/lib/utils"
-import Header from "@/components/main/Header.tsx";
+	Shield,
+	Target,
+	TrendingDown,
+	TrendingUp,
+	Users,
+	Wallet,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import Screen from "@/routes/main/Screen.tsx";
 
 class ProfessionalCalculations {
 	static formatCurrency(value: number, precision = 2): string {
-		const isNegative = value < 0
-		const absValue = Math.abs(value)
+		const isNegative = value < 0;
+		const absValue = Math.abs(value);
 		const formatted = new Intl.NumberFormat("en-US", {
 			style: "currency",
 			currency: "USD",
 			minimumFractionDigits: precision,
 			maximumFractionDigits: precision,
-		}).format(absValue)
-		return isNegative ? `-${formatted}` : formatted
+		}).format(absValue);
+		return isNegative ? `-${formatted}` : formatted;
 	}
-	
+
 	static formatNumber(value: number, precision = 8): string {
 		return new Intl.NumberFormat("en-US", {
 			minimumFractionDigits: Math.min(2, precision),
 			maximumFractionDigits: precision,
-		}).format(value)
+		}).format(value);
 	}
-	
+
 	static formatPercentage(value: number, precision = 2): string {
-		return `${value >= 0 ? "+" : ""}${value.toFixed(precision)}%`
+		return `${value >= 0 ? "+" : ""}${value.toFixed(precision)}%`;
 	}
-	
+
 	static calculatePnL(
 		current: number,
 		previous: number,
 	): {
-		absolute: number
-		percentage: number
-		isProfit: boolean
+		absolute: number;
+		percentage: number;
+		isProfit: boolean;
 	} {
-		const absolute = current - previous
-		const percentage = previous !== 0 ? (absolute / Math.abs(previous)) * 100 : 0
+		const absolute = current - previous;
+		const percentage = previous !== 0
+			? (absolute / Math.abs(previous)) * 100
+			: 0;
 		return {
 			absolute,
 			percentage,
 			isProfit: absolute >= 0,
-		}
+		};
 	}
-	
+
 	static calculateMarginRatio(
 		balance: number,
 		initial: number,
 		maintenance: number,
 	): {
-		utilizationRatio: number
-		marginLevel: number
-		riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
+		utilizationRatio: number;
+		marginLevel: number;
+		riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 	} {
-		const utilizationRatio = (initial / balance) * 100
-		const marginLevel = balance / maintenance
-		
-		let riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" = "LOW"
-		if (marginLevel < 1.5) riskLevel = "CRITICAL"
-		else if (marginLevel < 2.5) riskLevel = "HIGH"
-		else if (marginLevel < 5) riskLevel = "MEDIUM"
-		
-		return {utilizationRatio, marginLevel, riskLevel}
+		const utilizationRatio = (initial / balance) * 100;
+		const marginLevel = balance / maintenance;
+
+		let riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" = "LOW";
+		if (marginLevel < 1.5) riskLevel = "CRITICAL";
+		else if (marginLevel < 2.5) riskLevel = "HIGH";
+		else if (marginLevel < 5) riskLevel = "MEDIUM";
+
+		return { utilizationRatio, marginLevel, riskLevel };
 	}
-	
-	static calculateWorkerEfficiency(workers: { active: number; stopped: number; total: number }): {
-		efficiency: number
-		status: "OPTIMAL" | "GOOD" | "WARNING" | "CRITICAL"
+
+	static calculateWorkerEfficiency(
+		workers: { active: number; stopped: number; total: number },
+	): {
+		efficiency: number;
+		status: "OPTIMAL" | "GOOD" | "WARNING" | "CRITICAL";
 	} {
-		const efficiency = workers.total > 0 ? (workers.active / workers.total) * 100 : 0
-		
-		let status: "OPTIMAL" | "GOOD" | "WARNING" | "CRITICAL" = "CRITICAL"
-		if (efficiency >= 95) status = "OPTIMAL"
-		else if (efficiency >= 80) status = "GOOD"
-		else if (efficiency >= 60) status = "WARNING"
-		
-		return {efficiency, status}
+		const efficiency = workers.total > 0
+			? (workers.active / workers.total) * 100
+			: 0;
+
+		let status: "OPTIMAL" | "GOOD" | "WARNING" | "CRITICAL" = "CRITICAL";
+		if (efficiency >= 95) status = "OPTIMAL";
+		else if (efficiency >= 80) status = "GOOD";
+		else if (efficiency >= 60) status = "WARNING";
+
+		return { efficiency, status };
 	}
-	
+
 	static formatTimestamp(timestamp: number): string {
-		const date = new Date(timestamp)
+		const date = new Date(timestamp);
 		return date.toLocaleString("en-US", {
 			month: "short",
 			day: "2-digit",
@@ -105,88 +110,138 @@ class ProfessionalCalculations {
 			minute: "2-digit",
 			second: "2-digit",
 			hour12: false,
-		})
+		});
 	}
-	
+
 	static getTimeDifference(timestamp1: number, timestamp2: number): string {
-		const diff = Math.abs(timestamp1 - timestamp2)
-		const seconds = Math.floor(diff / 1000)
-		const minutes = Math.floor(seconds / 60)
-		const hours = Math.floor(minutes / 60)
-		
-		if (hours > 0) return `${hours}h ${minutes % 60}m ago`
-		if (minutes > 0) return `${minutes}m ${seconds % 60}s ago`
-		return `${seconds}s ago`
+		const diff = Math.abs(timestamp1 - timestamp2);
+		const seconds = Math.floor(diff / 1000);
+		const minutes = Math.floor(seconds / 60);
+		const hours = Math.floor(minutes / 60);
+
+		if (hours > 0) return `${hours}h ${minutes % 60}m ago`;
+		if (minutes > 0) return `${minutes}m ${seconds % 60}s ago`;
+		return `${seconds}s ago`;
 	}
 }
 
+/**
+ * Welcome dashboard component with professional trading analytics
+ */
+function Welcome(): React.ReactElement | null {
+	interface WelcomeSessionData {
+		[key: string]: {
+			raw: {
+				liquidity: number;
+				available: number;
+				margin: {
+					balance: number;
+					initial: number;
+					maintenance: number;
+				};
+				protection: number;
+				coins: Record<string, number>;
+				rate: number;
+				timestamp: number;
+				exchanges: string[];
+				accounts: unknown[];
+				workers: {
+					active: number;
+					stopped: number;
+					total: number;
+				};
+			};
+		};
+	}
 
-function Welcome() {
-	const session: any = useSessionStoreSync()
-	
-	if (!session || !session["testnet.snapshot.sonar"] || !session["testnet.runtime.sonar"]) {
+	const session = useSessionStoreSync() as WelcomeSessionData | null;
+
+	if (
+		!session || !session["testnet.snapshot.sonar"] ||
+		!session["testnet.runtime.sonar"]
+	) {
 		return (
 			<div className="flex items-center justify-center min-h-screen bg-gray-950 text-gray-100">
 				<div className="text-center space-y-4">
 					<h1 className="text-3xl font-bold">Welcome to SONAR</h1>
-					<p className="text-gray-400">Loading professional trading analytics...</p>
-					<RefreshCw className="w-8 h-8 animate-spin text-gray-500"/>
+					<p className="text-gray-400">
+						Loading professional trading analytics...
+					</p>
+					<RefreshCw className="w-8 h-8 animate-spin text-gray-500" />
 				</div>
 			</div>
-		)
+		);
 	}
-	
-	const snapshot = session["testnet.snapshot.sonar"]
-	const runtime = session["testnet.runtime.sonar"]
-	
-	const calc = ProfessionalCalculations
-	
-	const liquidityPnL = calc.calculatePnL(runtime.raw.liquidity, snapshot.raw.liquidity)
-	const availablePnL = calc.calculatePnL(runtime.raw.available, snapshot.raw.available)
-	const marginPnL = calc.calculatePnL(runtime.raw.margin.balance, snapshot.raw.margin.balance)
-	const protectionPnL = calc.calculatePnL(runtime.raw.protection, snapshot.raw.protection)
-	
+
+	const snapshot = session["testnet.snapshot.sonar"];
+	const runtime = session["testnet.runtime.sonar"];
+
+	const calc = ProfessionalCalculations;
+
+	const liquidityPnL = calc.calculatePnL(
+		runtime.raw.liquidity,
+		snapshot.raw.liquidity,
+	);
+	const availablePnL = calc.calculatePnL(
+		runtime.raw.available,
+		snapshot.raw.available,
+	);
+	const marginPnL = calc.calculatePnL(
+		runtime.raw.margin.balance,
+		snapshot.raw.margin.balance,
+	);
+	const protectionPnL = calc.calculatePnL(
+		runtime.raw.protection,
+		snapshot.raw.protection,
+	);
+
 	const coinChanges = Object.keys(runtime.raw.coins).reduce(
 		(acc, coin) => {
-			const current = runtime.raw.coins[coin as keyof typeof runtime.raw.coins] || 0
-			const previous = snapshot.raw.coins[coin as keyof typeof snapshot.raw.coins] || 0
-			acc[coin] = calc.calculatePnL(current, previous)
-			return acc
+			const current =
+				runtime.raw.coins[coin as keyof typeof runtime.raw.coins] || 0;
+			const previous =
+				snapshot.raw.coins[coin as keyof typeof snapshot.raw.coins] || 0;
+			acc[coin] = calc.calculatePnL(current, previous);
+			return acc;
 		},
 		{} as Record<string, ReturnType<typeof calc.calculatePnL>>,
-	)
-	
+	);
+
 	const marginAnalysis = calc.calculateMarginRatio(
 		runtime.raw.margin.balance,
 		runtime.raw.margin.initial,
 		runtime.raw.margin.maintenance,
-	)
-	const workerAnalysis = calc.calculateWorkerEfficiency(runtime.raw.workers)
-	
-	const totalROI = calc.calculatePnL(runtime.raw.liquidity, snapshot.raw.liquidity)
-	
+	);
+	const workerAnalysis = calc.calculateWorkerEfficiency(runtime.raw.workers);
+
+	const totalROI = calc.calculatePnL(
+		runtime.raw.liquidity,
+		snapshot.raw.liquidity,
+	);
+
 	return (
 		<Screen>
 			<div className="grid gap-4">
-				{/* Professional Header */}
-				<Header title="Dashboard" description="Network information"/>
-				
 				{/* Protection & Risk Management */}
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center text-white">
-							<Shield className="w-5 h-5 mr-2"/>
+							<Shield className="w-5 h-5 mr-2" />
 							PROTECTION & RISK MANAGEMENT
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 							<div className="text-center">
-								<div className="text-xs text-gray-400 mb-2">PROTECTION VALUE</div>
+								<div className="text-xs text-gray-400 mb-2">
+									PROTECTION VALUE
+								</div>
 								<div
 									className={cn(
 										"text-2xl font-bold mb-1",
-										runtime.raw.protection >= 0 ? "text-green-400" : "text-red-400",
+										runtime.raw.protection >= 0
+											? "text-green-400"
+											: "text-red-400",
 									)}
 								>
 									{calc.formatCurrency(runtime.raw.protection)}
@@ -197,160 +252,199 @@ function Welcome() {
 										protectionPnL.isProfit ? "text-green-400" : "text-red-400",
 									)}
 								>
-									{protectionPnL.isProfit ? (
-										<TrendingUp className="w-3 h-3 mr-1"/>
-									) : (
-										<TrendingDown className="w-3 h-3 mr-1"/>
-									)}
+									{protectionPnL.isProfit
+										? <TrendingUp className="w-3 h-3 mr-1" />
+										: <TrendingDown className="w-3 h-3 mr-1" />}
 									{calc.formatCurrency(protectionPnL.absolute)}
 								</div>
 							</div>
-							
+
 							<div className="text-center">
 								<div className="text-xs text-gray-400 mb-2">RISK LEVEL</div>
 								<Badge
 									variant="outline"
 									className={cn(
 										"text-sm px-3 py-1",
-										marginAnalysis.riskLevel === "LOW" && "border-green-500/30 bg-green-500/10 text-green-400",
-										marginAnalysis.riskLevel === "MEDIUM" && "border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
-										marginAnalysis.riskLevel === "HIGH" && "border-orange-500/30 bg-orange-500/10 text-orange-400",
-										marginAnalysis.riskLevel === "CRITICAL" && "border-red-500/30 bg-red-500/10 text-red-400",
+										marginAnalysis.riskLevel === "LOW" &&
+											"border-green-500/30 bg-green-500/10 text-green-400",
+										marginAnalysis.riskLevel === "MEDIUM" &&
+											"border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
+										marginAnalysis.riskLevel === "HIGH" &&
+											"border-orange-500/30 bg-orange-500/10 text-orange-400",
+										marginAnalysis.riskLevel === "CRITICAL" &&
+											"border-red-500/30 bg-red-500/10 text-red-400",
 									)}
 								>
 									{marginAnalysis.riskLevel}
 								</Badge>
-								<div className="text-xs text-gray-400 mt-1">based on margin</div>
+								<div className="text-xs text-gray-400 mt-1">
+									based on margin
+								</div>
 							</div>
-							
+
 							<div className="text-center">
 								<div className="text-xs text-gray-400 mb-2">EXCHANGE</div>
-								<div className="text-sm font-medium text-white">{runtime.raw.exchanges[0].toUpperCase()}</div>
-								<div className="text-xs text-gray-400 mt-1">primary exchange</div>
+								<div className="text-sm font-medium text-white">
+									{runtime.raw.exchanges[0].toUpperCase()}
+								</div>
+								<div className="text-xs text-gray-400 mt-1">
+									primary exchange
+								</div>
 							</div>
-							
+
 							<div className="text-center">
 								<div className="text-xs text-gray-400 mb-2">ACCOUNTS</div>
-								<div className="text-sm font-medium text-white">{runtime.raw.accounts.length}</div>
-								<div className="text-xs text-gray-400 mt-1">active accounts</div>
+								<div className="text-sm font-medium text-white">
+									{runtime.raw.accounts.length}
+								</div>
+								<div className="text-xs text-gray-400 mt-1">
+									active accounts
+								</div>
 							</div>
 						</div>
 					</CardContent>
 				</Card>
-				
+
 				{/* Key Performance Metrics */}
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 					{/* Total Liquidity */}
 					<Card>
 						<CardHeader className="pb-3">
 							<CardTitle className="text-sm font-medium text-gray-400 flex items-center">
-								<Wallet className="w-4 h-4 mr-2"/>
+								<Wallet className="w-4 h-4 mr-2" />
 								TOTAL LIQUIDITY
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="text-2xl font-bold text-white mb-2">{calc.formatCurrency(runtime.raw.liquidity)}</div>
-							<div
-								className={cn("flex items-center text-sm", liquidityPnL.isProfit ? "text-green-400" : "text-red-400")}
-							>
-								{liquidityPnL.isProfit ? (
-									<TrendingUp className="w-4 h-4 mr-1"/>
-								) : (
-									<TrendingDown className="w-4 h-4 mr-1"/>
-								)}
-								{calc.formatCurrency(liquidityPnL.absolute)}
-								<span className="ml-1">({calc.formatPercentage(liquidityPnL.percentage)})</span>
+							<div className="text-2xl font-bold text-white mb-2">
+								{calc.formatCurrency(runtime.raw.liquidity)}
 							</div>
-							<div className="text-xs text-gray-500 mt-1">vs previous snapshot</div>
+							<div
+								className={cn(
+									"flex items-center text-sm",
+									liquidityPnL.isProfit ? "text-green-400" : "text-red-400",
+								)}
+							>
+								{liquidityPnL.isProfit
+									? <TrendingUp className="w-4 h-4 mr-1" />
+									: <TrendingDown className="w-4 h-4 mr-1" />}
+								{calc.formatCurrency(liquidityPnL.absolute)}
+								<span className="ml-1">
+									({calc.formatPercentage(liquidityPnL.percentage)})
+								</span>
+							</div>
+							<div className="text-xs text-gray-500 mt-1">
+								vs previous snapshot
+							</div>
 						</CardContent>
 					</Card>
-					
+
 					{/* Available Balance */}
 					<Card>
 						<CardHeader className="pb-3">
 							<CardTitle className="text-sm font-medium text-gray-400 flex items-center">
-								<DollarSign className="w-4 h-4 mr-2"/>
+								<DollarSign className="w-4 h-4 mr-2" />
 								AVAILABLE BALANCE
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="text-2xl font-bold text-white mb-2">{calc.formatCurrency(runtime.raw.available)}</div>
+							<div className="text-2xl font-bold text-white mb-2">
+								{calc.formatCurrency(runtime.raw.available)}
+							</div>
 							<div
-								className={cn("flex items-center text-sm", availablePnL.isProfit ? "text-green-400" : "text-red-400")}
-							>
-								{availablePnL.isProfit ? (
-									<TrendingUp className="w-4 h-4 mr-1"/>
-								) : (
-									<TrendingDown className="w-4 h-4 mr-1"/>
+								className={cn(
+									"flex items-center text-sm",
+									availablePnL.isProfit ? "text-green-400" : "text-red-400",
 								)}
+							>
+								{availablePnL.isProfit
+									? <TrendingUp className="w-4 h-4 mr-1" />
+									: <TrendingDown className="w-4 h-4 mr-1" />}
 								{calc.formatCurrency(availablePnL.absolute)}
-								<span className="ml-1">({calc.formatPercentage(availablePnL.percentage)})</span>
+								<span className="ml-1">
+									({calc.formatPercentage(availablePnL.percentage)})
+								</span>
 							</div>
 							<div className="text-xs text-gray-500 mt-1">
-								{((runtime.raw.available / runtime.raw.liquidity) * 100).toFixed(1)}% of total liquidity
+								{((runtime.raw.available / runtime.raw.liquidity) * 100)
+									.toFixed(1)}% of total liquidity
 							</div>
 						</CardContent>
 					</Card>
-					
+
 					{/* Portfolio ROI */}
 					<Card>
 						<CardHeader className="pb-3">
 							<CardTitle className="text-sm font-medium text-gray-400 flex items-center">
-								<Target className="w-4 h-4 mr-2"/>
+								<Target className="w-4 h-4 mr-2" />
 								PORTFOLIO ROI
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className={cn("text-2xl font-bold mb-2", totalROI.isProfit ? "text-green-400" : "text-red-400")}>
+							<div
+								className={cn(
+									"text-2xl font-bold mb-2",
+									totalROI.isProfit ? "text-green-400" : "text-red-400",
+								)}
+							>
 								{calc.formatPercentage(totalROI.percentage, 3)}
 							</div>
-							<div className={cn("flex items-center text-sm", totalROI.isProfit ? "text-green-400" : "text-red-400")}>
-								{totalROI.isProfit ? (
-									<TrendingUp className="w-4 h-4 mr-1"/>
-								) : (
-									<TrendingDown className="w-4 h-4 mr-1"/>
+							<div
+								className={cn(
+									"flex items-center text-sm",
+									totalROI.isProfit ? "text-green-400" : "text-red-400",
 								)}
+							>
+								{totalROI.isProfit
+									? <TrendingUp className="w-4 h-4 mr-1" />
+									: <TrendingDown className="w-4 h-4 mr-1" />}
 								{calc.formatCurrency(totalROI.absolute)}
 							</div>
 							<div className="text-xs text-gray-500 mt-1">unrealized P&L</div>
 						</CardContent>
 					</Card>
-					
+
 					{/* Performance Rate */}
 					<Card>
 						<CardHeader className="pb-3">
 							<CardTitle className="text-sm font-medium text-gray-400 flex items-center">
-								<Activity className="w-4 h-4 mr-2"/>
+								<Activity className="w-4 h-4 mr-2" />
 								PERFORMANCE RATE
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="text-2xl font-bold text-white mb-2">{(runtime.raw.rate * 100).toFixed(3)}%</div>
+							<div className="text-2xl font-bold text-white mb-2">
+								{(runtime.raw.rate * 100).toFixed(3)}%
+							</div>
 							<div
 								className={cn(
 									"flex items-center text-sm",
-									runtime.raw.rate > snapshot.raw.rate ? "text-green-400" : "text-red-400",
+									runtime.raw.rate > snapshot.raw.rate
+										? "text-green-400"
+										: "text-red-400",
 								)}
 							>
-								{runtime.raw.rate > snapshot.raw.rate ? (
-									<TrendingUp className="w-4 h-4 mr-1"/>
-								) : (
-									<TrendingDown className="w-4 h-4 mr-1"/>
+								{runtime.raw.rate > snapshot.raw.rate
+									? <TrendingUp className="w-4 h-4 mr-1" />
+									: <TrendingDown className="w-4 h-4 mr-1" />}
+								{calc.formatPercentage(
+									((runtime.raw.rate - snapshot.raw.rate) / snapshot.raw.rate) *
+										100,
+									3,
 								)}
-								{calc.formatPercentage(((runtime.raw.rate - snapshot.raw.rate) / snapshot.raw.rate) * 100, 3)}
 							</div>
 							<div className="text-xs text-gray-500 mt-1">vs previous rate</div>
 						</CardContent>
 					</Card>
 				</div>
-				
+
 				{/* Advanced Analytics Section */}
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 					{/* Margin Analysis */}
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center text-white">
-								<Calculator className="w-5 h-5 mr-2"/>
+								<Calculator className="w-5 h-5 mr-2" />
 								MARGIN ANALYSIS
 							</CardTitle>
 						</CardHeader>
@@ -358,55 +452,80 @@ function Welcome() {
 							<div className="grid grid-cols-2 gap-4">
 								<div>
 									<div className="text-xs text-gray-400 mb-1">BALANCE</div>
-									<div className="text-lg font-bold text-white">{calc.formatCurrency(runtime.raw.margin.balance)}</div>
-									<div className={cn("text-xs", marginPnL.isProfit ? "text-green-400" : "text-red-400")}>
-										{calc.formatCurrency(marginPnL.absolute)} ({calc.formatPercentage(marginPnL.percentage)})
+									<div className="text-lg font-bold text-white">
+										{calc.formatCurrency(runtime.raw.margin.balance)}
+									</div>
+									<div
+										className={cn(
+											"text-xs",
+											marginPnL.isProfit ? "text-green-400" : "text-red-400",
+										)}
+									>
+										{calc.formatCurrency(marginPnL.absolute)}{" "}
+										({calc.formatPercentage(marginPnL.percentage)})
 									</div>
 								</div>
 								<div>
 									<div className="text-xs text-gray-400 mb-1">MARGIN LEVEL</div>
-									<div className="text-lg font-bold text-white">{marginAnalysis.marginLevel.toFixed(2)}×</div>
+									<div className="text-lg font-bold text-white">
+										{marginAnalysis.marginLevel.toFixed(2)}×
+									</div>
 									<Badge
 										variant="outline"
 										className={cn(
 											"text-xs",
-											marginAnalysis.riskLevel === "LOW" && "border-green-500/30 bg-green-500/10 text-green-400",
-											marginAnalysis.riskLevel === "MEDIUM" && "border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
-											marginAnalysis.riskLevel === "HIGH" && "border-orange-500/30 bg-orange-500/10 text-orange-400",
-											marginAnalysis.riskLevel === "CRITICAL" && "border-red-500/30 bg-red-500/10 text-red-400",
+											marginAnalysis.riskLevel === "LOW" &&
+												"border-green-500/30 bg-green-500/10 text-green-400",
+											marginAnalysis.riskLevel === "MEDIUM" &&
+												"border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
+											marginAnalysis.riskLevel === "HIGH" &&
+												"border-orange-500/30 bg-orange-500/10 text-orange-400",
+											marginAnalysis.riskLevel === "CRITICAL" &&
+												"border-red-500/30 bg-red-500/10 text-red-400",
 										)}
 									>
 										{marginAnalysis.riskLevel}
 									</Badge>
 								</div>
 							</div>
-							
+
 							<div>
 								<div className="flex justify-between items-center mb-2">
-									<span className="text-sm text-gray-400">UTILIZATION RATIO</span>
-									<span className="text-sm text-white font-mono">{marginAnalysis.utilizationRatio.toFixed(2)}%</span>
+									<span className="text-sm text-gray-400">
+										UTILIZATION RATIO
+									</span>
+									<span className="text-sm text-white font-mono">
+										{marginAnalysis.utilizationRatio.toFixed(2)}%
+									</span>
 								</div>
-								<Progress value={marginAnalysis.utilizationRatio} className="h-2"/>
+								<Progress
+									value={marginAnalysis.utilizationRatio}
+									className="h-2"
+								/>
 							</div>
-							
+
 							<div className="pt-2 space-y-2 text-xs">
 								<div className="flex justify-between">
 									<span className="text-gray-400">Initial Margin:</span>
-									<span className="text-white font-mono">{calc.formatCurrency(runtime.raw.margin.initial)}</span>
+									<span className="text-white font-mono">
+										{calc.formatCurrency(runtime.raw.margin.initial)}
+									</span>
 								</div>
 								<div className="flex justify-between">
 									<span className="text-gray-400">Maintenance:</span>
-									<span className="text-white font-mono">{calc.formatCurrency(runtime.raw.margin.maintenance)}</span>
+									<span className="text-white font-mono">
+										{calc.formatCurrency(runtime.raw.margin.maintenance)}
+									</span>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
-					
+
 					{/* Worker Optimization */}
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center text-white">
-								<Users className="w-5 h-5 mr-2"/>
+								<Users className="w-5 h-5 mr-2" />
 								WORKER OPTIMIZATION
 							</CardTitle>
 						</CardHeader>
@@ -414,160 +533,215 @@ function Welcome() {
 							<div className="grid grid-cols-3 gap-4 text-center">
 								<div>
 									<div className="text-xs text-gray-400 mb-1">ACTIVE</div>
-									<div className="text-2xl font-bold text-green-400">{runtime.raw.workers.active}</div>
+									<div className="text-2xl font-bold text-green-400">
+										{runtime.raw.workers.active}
+									</div>
 								</div>
 								<div>
 									<div className="text-xs text-gray-400 mb-1">STOPPED</div>
-									<div className="text-2xl font-bold text-red-400">{runtime.raw.workers.stopped}</div>
+									<div className="text-2xl font-bold text-red-400">
+										{runtime.raw.workers.stopped}
+									</div>
 								</div>
 								<div>
 									<div className="text-xs text-gray-400 mb-1">TOTAL</div>
-									<div className="text-2xl font-bold text-white">{runtime.raw.workers.total}</div>
+									<div className="text-2xl font-bold text-white">
+										{runtime.raw.workers.total}
+									</div>
 								</div>
 							</div>
-							
+
 							<div>
 								<div className="flex justify-between items-center mb-2">
 									<span className="text-sm text-gray-400">EFFICIENCY</span>
 									<div className="flex items-center space-x-2">
-										<span className="text-sm text-white font-mono">{workerAnalysis.efficiency.toFixed(1)}%</span>
+										<span className="text-sm text-white font-mono">
+											{workerAnalysis.efficiency.toFixed(1)}%
+										</span>
 										<Badge
 											variant="outline"
 											className={cn(
 												"text-xs",
-												workerAnalysis.status === "OPTIMAL" && "border-green-500/30 bg-green-500/10 text-green-400",
-												workerAnalysis.status === "GOOD" && "border-blue-500/30 bg-blue-500/10 text-blue-400",
-												workerAnalysis.status === "WARNING" && "border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
-												workerAnalysis.status === "CRITICAL" && "border-red-500/30 bg-red-500/10 text-red-400",
+												workerAnalysis.status === "OPTIMAL" &&
+													"border-green-500/30 bg-green-500/10 text-green-400",
+												workerAnalysis.status === "GOOD" &&
+													"border-blue-500/30 bg-blue-500/10 text-blue-400",
+												workerAnalysis.status === "WARNING" &&
+													"border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
+												workerAnalysis.status === "CRITICAL" &&
+													"border-red-500/30 bg-red-500/10 text-red-400",
 											)}
 										>
 											{workerAnalysis.status}
 										</Badge>
 									</div>
 								</div>
-								<Progress value={workerAnalysis.efficiency} className="h-2 bg-gray-800"/>
+								<Progress
+									value={workerAnalysis.efficiency}
+									className="h-2 bg-gray-800"
+								/>
 							</div>
-							
+
 							<div className="pt-2">
-								<div className="text-xs text-gray-400 mb-2">PERFORMANCE INSIGHTS</div>
+								<div className="text-xs text-gray-400 mb-2">
+									PERFORMANCE INSIGHTS
+								</div>
 								<div className="space-y-1 text-xs">
 									<div className="flex justify-between">
 										<span className="text-gray-400">Uptime:</span>
-										<span className="text-white">{workerAnalysis.efficiency.toFixed(1)}%</span>
+										<span className="text-white">
+											{workerAnalysis.efficiency.toFixed(1)}%
+										</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-gray-400">Avg. Load:</span>
 										<span className="text-white">
-                      {((runtime.raw.workers.active / runtime.raw.workers.total) * 100).toFixed(1)}%
-                    </span>
+											{((runtime.raw.workers.active /
+												runtime.raw.workers.total) * 100).toFixed(1)}%
+										</span>
 									</div>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
 				</div>
-				
+
 				{/* Cryptocurrency Positions */}
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center text-white">
-							<PieChart className="w-5 h-5 mr-2"/>
+							<PieChart className="w-5 h-5 mr-2" />
 							CRYPTOCURRENCY POSITIONS
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-							{Object.entries(runtime.raw.coins).map(([coin, amount]: [string, any]) => {
-								const change = coinChanges[coin]
-								const previousAmount = snapshot.raw.coins[coin as keyof typeof snapshot.raw.coins] || 0
-								
-								return (
-									<div key={coin} className="p-4">
-										<div className="flex items-center justify-between mb-3">
-											<div className="flex items-center space-x-3">
-												<div
-													className={cn(
-														"w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm",
-														coin === "ETH" && "bg-gradient-to-r from-blue-500 to-blue-600",
-														coin === "SOL" && "bg-gradient-to-r from-purple-500 to-purple-600",
-														coin === "USDT" && "bg-gradient-to-r from-green-500 to-green-600",
-													)}
-												>
-													{coin}
+							{Object.entries(runtime.raw.coins).map(
+								([coin, amount]: [string, number]) => {
+									const change = coinChanges[coin];
+									const previousAmount = snapshot.raw
+										.coins[coin as keyof typeof snapshot.raw.coins] || 0;
+
+									return (
+										<div key={coin} className="p-4">
+											<div className="flex items-center justify-between mb-3">
+												<div className="flex items-center space-x-3">
+													<div
+														className={cn(
+															"w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm",
+															coin === "ETH" &&
+																"bg-gradient-to-r from-blue-500 to-blue-600",
+															coin === "SOL" &&
+																"bg-gradient-to-r from-purple-500 to-purple-600",
+															coin === "USDT" &&
+																"bg-gradient-to-r from-green-500 to-green-600",
+														)}
+													>
+														{coin}
+													</div>
+													<div>
+														<div className="font-medium text-white">{coin}</div>
+														<div className="text-xs text-gray-400">
+															{coin === "USDT"
+																? "Stablecoin"
+																: "Cryptocurrency"}
+														</div>
+													</div>
 												</div>
+											</div>
+
+											<div className="space-y-2">
 												<div>
-													<div className="font-medium text-white">{coin}</div>
-													<div className="text-xs text-gray-400">
-														{coin === "USDT" ? "Stablecoin" : "Cryptocurrency"}
+													<div className="text-xs text-gray-400 mb-1">
+														CURRENT POSITION
+													</div>
+													<div
+														className={cn(
+															"text-lg font-bold",
+															amount >= 0 ? "text-green-400" : "text-red-400",
+														)}
+													>
+														{amount >= 0 ? "+" : ""}
+														{calc.formatNumber(amount, coin === "USDT" ? 2 : 8)}
+													</div>
+												</div>
+
+												<div>
+													<div className="text-xs text-gray-400 mb-1">
+														CHANGE
+													</div>
+													<div
+														className={cn(
+															"text-sm flex items-center",
+															change.isProfit
+																? "text-green-400"
+																: "text-red-400",
+														)}
+													>
+														{change.isProfit
+															? <TrendingUp className="w-3 h-3 mr-1" />
+															: <TrendingDown className="w-3 h-3 mr-1" />}
+														{change.absolute >= 0 ? "+" : ""}
+														{calc.formatNumber(
+															change.absolute,
+															coin === "USDT" ? 2 : 8,
+														)}
+													</div>
+												</div>
+
+												<div>
+													<div className="text-xs text-gray-400 mb-1">
+														PREVIOUS
+													</div>
+													<div className="text-sm text-gray-300 font-mono">
+														{previousAmount >= 0 ? "+" : ""}
+														{calc.formatNumber(
+															previousAmount,
+															coin === "USDT" ? 2 : 8,
+														)}
 													</div>
 												</div>
 											</div>
 										</div>
-										
-										<div className="space-y-2">
-											<div>
-												<div className="text-xs text-gray-400 mb-1">CURRENT POSITION</div>
-												<div className={cn("text-lg font-bold", amount >= 0 ? "text-green-400" : "text-red-400")}>
-													{amount >= 0 ? "+" : ""}
-													{calc.formatNumber(amount, coin === "USDT" ? 2 : 8)}
-												</div>
-											</div>
-											
-											<div>
-												<div className="text-xs text-gray-400 mb-1">CHANGE</div>
-												<div
-													className={cn(
-														"text-sm flex items-center",
-														change.isProfit ? "text-green-400" : "text-red-400",
-													)}
-												>
-													{change.isProfit ? (
-														<TrendingUp className="w-3 h-3 mr-1"/>
-													) : (
-														<TrendingDown className="w-3 h-3 mr-1"/>
-													)}
-													{change.absolute >= 0 ? "+" : ""}
-													{calc.formatNumber(change.absolute, coin === "USDT" ? 2 : 8)}
-												</div>
-											</div>
-											
-											<div>
-												<div className="text-xs text-gray-400 mb-1">PREVIOUS</div>
-												<div className="text-sm text-gray-300 font-mono">
-													{previousAmount >= 0 ? "+" : ""}
-													{calc.formatNumber(previousAmount, coin === "USDT" ? 2 : 8)}
-												</div>
-											</div>
-										</div>
-									</div>
-								)
-							})}
+									);
+								},
+							)}
 						</div>
 					</CardContent>
 				</Card>
-				
+
 				{/* System Status Footer */}
 				<Card>
 					<CardContent className="pt-6">
 						<div className="flex items-center justify-between">
 							<div className="flex items-center space-x-6">
 								<div className="flex items-center text-sm">
-									<Clock className="w-4 h-4 mr-2 text-gray-400"/>
+									<Clock className="w-4 h-4 mr-2 text-gray-400" />
 									<span className="text-gray-400">Snapshot:</span>
-									<span className="text-white font-mono ml-2">{calc.formatTimestamp(snapshot.raw.timestamp)}</span>
+									<span className="text-white font-mono ml-2">
+										{calc.formatTimestamp(snapshot.raw.timestamp)}
+									</span>
 								</div>
 								<div className="flex items-center text-sm">
-									<RefreshCw className="w-4 h-4 mr-2 text-gray-400"/>
+									<RefreshCw className="w-4 h-4 mr-2 text-gray-400" />
 									<span className="text-gray-400">Runtime:</span>
-									<span className="text-white font-mono ml-2">{calc.formatTimestamp(runtime.raw.timestamp)}</span>
+									<span className="text-white font-mono ml-2">
+										{calc.formatTimestamp(runtime.raw.timestamp)}
+									</span>
 								</div>
 							</div>
 							<div className="flex items-center space-x-4">
 								<div className="text-xs text-gray-400">
-									Update interval: {calc.getTimeDifference(snapshot.raw.timestamp, runtime.raw.timestamp)}
+									Update interval: {calc.getTimeDifference(
+										snapshot.raw.timestamp,
+										runtime.raw.timestamp,
+									)}
 								</div>
-								<Badge variant="outline" className="border-green-500/30 bg-green-500/10 text-green-400">
-									<div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"/>
+								<Badge
+									variant="outline"
+									className="border-green-500/30 bg-green-500/10 text-green-400"
+								>
+									<div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse" />
 									CONNECTED
 								</Badge>
 							</div>
@@ -576,7 +750,7 @@ function Welcome() {
 				</Card>
 			</div>
 		</Screen>
-	)
+	);
 }
 
-export default Welcome
+export default Welcome;

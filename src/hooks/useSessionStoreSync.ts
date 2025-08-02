@@ -3,7 +3,7 @@ import {create} from "zustand";
 const useSessionStoreSync = create((set) => {
 	const loadState = () => {
 		try {
-			const storedState = {} as any;
+			const storedState = {} as Record<string, unknown>;
 			for (let i = 0; i < sessionStorage.length; i++) {
 				const key = sessionStorage.key(i);
 				if (key) {
@@ -18,7 +18,7 @@ const useSessionStoreSync = create((set) => {
 		}
 	};
 	
-	const saveData = (key: string, newItem: any) => {
+	const saveData = (key: string, newItem: unknown): void => {
 		sessionStorage.setItem(key.toLowerCase(), JSON.stringify(newItem));
 		set(() => loadState());
 	};

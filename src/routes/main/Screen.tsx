@@ -1,12 +1,14 @@
-import type {ReactNode} from "react";
+import type { ReactNode } from "react";
 
-function Screen({children}: {children: ReactNode}) {
+/**
+ * Screen wrapper component for consistent page layout
+ */
+function Screen({ children }: { children: ReactNode }): React.ReactElement {
 	return (
-		<div
-			className="flex p-4 gap-4 relative flex-1 flex-col overflow-y-auto">
+		<div className="flex p-4 gap-4 relative w-full h-full flex-col overflow-y-auto">
 			{children}
 		</div>
-	)
+	);
 }
 
-export default Screen
+export default Screen;

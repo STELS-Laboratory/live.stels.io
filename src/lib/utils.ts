@@ -1,15 +1,26 @@
 import {clsx, type ClassValue} from "clsx"
 import {twMerge} from "tailwind-merge"
 
-export function cn(...inputs: ClassValue[]) {
+/**
+ * Combines and merges CSS classes using clsx and tailwind-merge
+ */
+export function cn(...inputs: ClassValue[]): string {
 	return twMerge(clsx(inputs))
 }
 
+interface SessionValue {
+	key: string;
+	value: unknown;
+}
+
+/**
+ * Filters session data by pattern matching on keys
+ */
 export function filterSession(
-	session: Record<string, any>,
+	session: Record<string, unknown>,
 	pattern: string | RegExp
-) {
-	const result: { key: string; value: any }[] = [];
+): SessionValue[] {
+	const result: SessionValue[] = [];
 	
 	const regex = typeof pattern === "string" ? new RegExp(pattern) : pattern;
 	
@@ -25,7 +36,10 @@ export function filterSession(
 	return result;
 }
 
-export function cleanBrands(){
+/**
+ * Removes ReactFlow branding links from the DOM
+ */
+export function cleanBrands(): void {
 	const links = document.querySelectorAll('a');
 	
 	links.forEach(link => {
