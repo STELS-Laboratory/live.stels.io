@@ -459,3 +459,36 @@
     transform: translateZ(0);
     backface-visibility: hidden;
 }
+
+/* iOS-style bottom modal animations */
+@layer utilities {
+    .slide-in-from-bottom-100 {
+        animation: slide-in-from-bottom 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .slide-out-to-bottom-100 {
+        animation: slide-out-to-bottom 0.25s cubic-bezier(0.55, 0.055, 0.675, 0.19);
+    }
+}
+
+@keyframes slide-in-from-bottom {
+    from {
+        transform: translateY(100%);
+        opacity: 0.8;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-out-to-bottom {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(100%);
+        opacity: 0.8;
+    }
+}

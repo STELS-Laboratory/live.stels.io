@@ -15,6 +15,13 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import {
 	Activity,
 	AlertCircle,
 	CheckCircle,
@@ -26,9 +33,11 @@ import {
 	TrendingUp,
 	Users,
 	Wallet,
+	X,
 	XCircle,
 } from "lucide-react";
 import Screen from "@/routes/main/Screen";
+import { validateAddress } from "@/lib/gliesereum";
 
 // Data types
 interface CoinInfo {
@@ -205,11 +214,54 @@ const formatCurrency = (value: string | number) => {
 		style: "currency",
 		currency: "USD",
 		minimumFractionDigits: 2,
-		maximumFractionDigits: 6,
+		maximumFractionDigits: 2,
 	}).format(num);
 };
 
-const formatNumber = (value: string | number, decimals = 8) => {
+const formatCurrencyWithColor = (value: string | number) => {
+	const num = typeof value === "string" ? Number.parseFloat(value) : value;
+	if (isNaN(num)) return { value: "$0.00", color: "text-zinc-400" };
+
+	const formatted = new Intl.NumberFormat("en-US", {
+		style: "currency",
+		currency: "USD",
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2,
+	}).format(num);
+
+	// Color coding for currency values
+	if (num > 0) return { value: formatted, color: "text-green-600" };
+	if (num < 0) return { value: formatted, color: "text-red-600" };
+	return { value: formatted, color: "text-zinc-400" };
+};
+
+const formatPercentageWithColor = (value: string | number) => {
+	const num = typeof value === "string" ? Number.parseFloat(value) : value;
+	if (isNaN(num)) return { value: "0%", color: "text-zinc-400" };
+
+	const formatted = `${(num * 100).toFixed(2)}%`;
+
+	// Color coding for percentage values
+	if (num > 0) return { value: formatted, color: "text-green-600" };
+	if (num < 0) return { value: formatted, color: "text-red-600" };
+	return { value: formatted, color: "text-zinc-400" };
+};
+
+const formatROIWithColor = (
+	entryPrice: number,
+	currentPrice: number,
+	side: string,
+) => {
+	const roi = (currentPrice - entryPrice) / entryPrice * 100 *
+		(side.toLowerCase() === "sell" ? -1 : 1);
+	const formatted = `${roi.toFixed(2)}%`;
+
+	if (roi > 0) return { value: formatted, color: "text-green-600" };
+	if (roi < 0) return { value: formatted, color: "text-red-600" };
+	return { value: formatted, color: "text-zinc-400" };
+};
+
+const formatNumber = (value: string | number, decimals = 4) => {
 	const num = typeof value === "string" ? Number.parseFloat(value) : value;
 	if (isNaN(num)) return "0";
 
@@ -219,12 +271,37 @@ const formatNumber = (value: string | number, decimals = 8) => {
 	}).format(num);
 };
 
-const formatPercentage = (value: string | number) => {
-	const num = typeof value === "string" ? Number.parseFloat(value) : value;
-	if (isNaN(num)) return "0%";
+// const formatNumberWithColor = (
+// 	value: string | number,
+// 	decimals = 4,
+// 	type: "balance" | "risk" = "balance",
+// ) => {
+// 	const num = typeof value === "string" ? Number.parseFloat(value) : value;
+// 	if (isNaN(num)) return { value: "0", color: "text-zinc-400" };
+//
+// 	const formatted = new Intl.NumberFormat("en-US", {
+// 		minimumFractionDigits: 2,
+// 		maximumFractionDigits: decimals,
+// 	}).format(num);
+//
+// 	if (type === "risk") {
+// 		// Color coding for risk indicators (higher = more risk)
+// 		if (num > 0.8) return { value: formatted, color: "text-red-600" };
+// 		if (num > 0.5) return { value: formatted, color: "text-orange-600" };
+// 		if (num > 0.2) return { value: formatted, color: "text-yellow-600" };
+// 		return { value: formatted, color: "text-green-600" };
+// 	}
+//
+// 	// Default balance coloring
+// 	return { value: formatted, color: "text-zinc-300" };
+// };
 
-	return `${(num * 100).toFixed(2)}%`;
-};
+// const formatPercentage = (value: string | number) => {
+// 	const num = typeof value === "string" ? Number.parseFloat(value) : value;
+// 	if (isNaN(num)) return "0%";
+//
+// 	return `${(num * 100).toFixed(2)}%`;
+// };
 
 const formatDate = (timestamp: number | string) => {
 	const date = new Date(
@@ -297,118 +374,148 @@ function AccountCard(
 	}, [walletData.orders]);
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-4">
 			{/* Account Overview */}
-			<Card className="border-2">
-				<CardHeader>
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-2">
-							<DollarSign className="h-5 w-5" />
-							<CardTitle>Account Overview {walletData.nid}</CardTitle>
+			<Card className="border">
+				<CardHeader className="pb-3">
+					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+						<div className="flex items-center gap-2 min-w-0">
+							<DollarSign className="h-4 w-4 flex-shrink-0" />
+							<CardTitle className="text-base truncate">
+								Account Overview
+							</CardTitle>
 						</div>
-						<div className="flex items-center gap-2">
+						<div className="flex items-center gap-2 flex-wrap">
 							<Badge
 								variant={walletData.connection ? "default" : "destructive"}
+								className="text-xs"
 							>
 								{walletData.connection ? "Connected" : "Disconnected"}
 							</Badge>
-							<Badge variant="outline">
+							<Badge variant="outline" className="text-xs">
 								{walletData.exchange.toUpperCase()}
+							</Badge>
+							<Badge variant="secondary" className="text-xs font-mono">
+								{walletData.nid}
 							</Badge>
 						</div>
 					</div>
 					{walletData.note && (
-						<CardDescription>{walletData.note}</CardDescription>
+						<CardDescription className="mt-1 text-xs">
+							{walletData.note}
+						</CardDescription>
 					)}
 				</CardHeader>
-				<CardContent>
-					<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-						<div className="space-y-2">
-							<p className="text-sm text-muted-foreground">Total Equity</p>
-							<p className="text-3xl">
+				<CardContent className="space-y-4">
+					{/* Main Metrics */}
+					<div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+						<div className="space-y-1">
+							<p className="text-xs text-muted-foreground font-mono">
+								Total Equity
+							</p>
+							<p className="text-base font-bold">
 								{formatCurrency(
 									walletData.wallet.info.result.list[0].totalEquity,
 								)}
 							</p>
 						</div>
-						<div className="space-y-2">
-							<p className="text-sm text-muted-foreground">Wallet Balance</p>
-							<p className="text-2xl">
+						<div className="space-y-1">
+							<p className="text-xs text-muted-foreground font-mono">
+								Balance
+							</p>
+							<p className="text-sm font-semibold">
 								{formatCurrency(
 									walletData.wallet.info.result.list[0].totalWalletBalance,
 								)}
 							</p>
 						</div>
-						<div className="space-y-2">
-							<p className="text-sm text-muted-foreground">Available</p>
-							<p className="text-2xl">
+						<div className="space-y-1">
+							<p className="text-xs text-muted-foreground font-mono">
+								Available
+							</p>
+							<p className="text-sm font-semibold">
 								{formatCurrency(
 									walletData.wallet.info.result.list[0].totalAvailableBalance ||
 										"0",
 								)}
 							</p>
 						</div>
-						<div className="space-y-2">
-							<p className="text-sm text-muted-foreground">
-								Unrealized P&L
+						<div className="space-y-1">
+							<p className="text-xs text-muted-foreground font-mono">
+								P&L
 							</p>
-							<div className="flex items-center gap-2">
-								{Number.parseFloat(
-										walletData.wallet.info.result.list[0].totalPerpUPL,
-									) >= 0
-									? <TrendingUp className="h-4 w-4 text-green-600" />
-									: <TrendingDown className="h-4 w-4 text-red-600" />}
-								<p
-									className={`text-2xl ${
-										Number.parseFloat(
+							{(() => {
+								const pnlData = formatCurrencyWithColor(
+									walletData.wallet.info.result.list[0].totalPerpUPL,
+								);
+								return (
+									<div className="flex items-center gap-1">
+										{Number.parseFloat(
 												walletData.wallet.info.result.list[0].totalPerpUPL,
 											) >= 0
-											? "text-green-600"
-											: "text-red-600"
-									}`}
-								>
-									{formatCurrency(
-										walletData.wallet.info.result.list[0].totalPerpUPL,
-									)}
-								</p>
-							</div>
+											? (
+												<TrendingUp className="h-3 w-3 text-green-600 flex-shrink-0" />
+											)
+											: (
+												<TrendingDown className="h-3 w-3 text-red-600 flex-shrink-0" />
+											)}
+										<p className={`text-sm font-semibold ${pnlData.color}`}>
+											{pnlData.value}
+										</p>
+									</div>
+								);
+							})()}
 						</div>
 					</div>
 
-					<Separator className="my-6" />
+					<Separator />
 
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-						<div className="space-y-1">
-							<p className="text-muted-foreground">Wallet Address</p>
-							<code className="bg-muted px-3 py-1 rounded text-xs break-all">
+					{/* Secondary Metrics */}
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+						<div className="space-y-2">
+							<p className="text-xs text-muted-foreground font-mono">
+								Wallet Address
+							</p>
+							<code className="bg-muted px-2 py-1 rounded text-xs break-all font-mono">
 								{walletData.address}
 							</code>
 						</div>
-						<div className="space-y-1">
-							<p className="text-muted-foreground">Initial Margin</p>
-							<p className="font-medium">
+						<div className="space-y-2">
+							<p className="text-xs text-muted-foreground font-mono">
+								Initial Margin
+							</p>
+							<p className="font-semibold text-blue-600">
 								{formatCurrency(
 									walletData.wallet.info.result.list[0].totalInitialMargin ||
 										"0",
 								)}
 							</p>
 						</div>
-						<div className="space-y-1">
-							<p className="text-muted-foreground">Maintenance Margin</p>
-							<p className="font-medium">
+						<div className="space-y-2">
+							<p className="text-xs text-muted-foreground font-mono">
+								Maintenance Margin
+							</p>
+							<p className="font-semibold text-purple-600">
 								{formatCurrency(
 									walletData.wallet.info.result.list[0]
 										.totalMaintenanceMargin || "0",
 								)}
 							</p>
 						</div>
-						<div className="space-y-1">
-							<p className="text-muted-foreground">Margin Level</p>
-							<p className="font-medium">
-								{formatPercentage(
-									walletData.wallet.info.result.list[0].accountLTV || "0",
-								)}
+						<div className="space-y-2">
+							<p className="text-xs text-muted-foreground font-mono">
+								Margin Level
 							</p>
+							{(() => {
+								const marginData = formatPercentageWithColor(
+									walletData.wallet.info.result.list[0].accountLTV || "0",
+								);
+								return (
+									<p className={`font-semibold ${marginData.color}`}>
+										{marginData.value}
+									</p>
+								);
+							})()}
 						</div>
 					</div>
 				</CardContent>
@@ -416,23 +523,31 @@ function AccountCard(
 
 			{/* Coin Balances */}
 			<Card>
-				<CardHeader>
-					<CardTitle>Asset Balances</CardTitle>
+				<CardHeader className="pb-4">
+					<CardTitle className="flex items-center gap-2">
+						<Wallet className="h-5 w-5" />
+						Asset Balances
+					</CardTitle>
 					<CardDescription>
 						Detailed information for each coin in the portfolio
 					</CardDescription>
 				</CardHeader>
-				<CardContent>
-					<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+				<CardContent className="p-0">
+					<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-0">
 						{walletData.wallet.info.result.list[0].coin.map((
 							coin: CoinInfo,
 							index: number,
 						) => (
-							<Card key={index} className="relative">
+							<Card
+								key={index}
+								className="relative hover:shadow-sm transition-shadow border-0"
+							>
 								<CardContent className="p-4">
-									<div className="flex items-center justify-between mb-3">
-										<h3 className="text-lg font-semibold">{coin.coin}</h3>
-										<div className="flex items-center gap-2">
+									<div className="flex items-center justify-between mb-4">
+										<h3 className="text-base sm:text-lg font-semibold truncate">
+											{coin.coin}
+										</h3>
+										<div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
 											{Number.parseFloat(coin.locked) > 0 && (
 												<Badge variant="secondary" className="text-xs">
 													Locked
@@ -442,6 +557,7 @@ function AccountCard(
 												variant={Number.parseFloat(coin.equity) > 0
 													? "default"
 													: "secondary"}
+												className="text-xs"
 											>
 												{Number.parseFloat(coin.equity) > 0
 													? "Active"
@@ -450,12 +566,12 @@ function AccountCard(
 										</div>
 									</div>
 
-									<div className="space-y-3">
+									<div className="space-y-1">
 										<div className="flex justify-between">
 											<span className="text-sm text-muted-foreground">
 												Balance
 											</span>
-											<span className="font-medium">
+											<span className="font-mono">
 												{formatNumber(coin.walletBalance)} {coin.coin}
 											</span>
 										</div>
@@ -464,7 +580,7 @@ function AccountCard(
 											<span className="text-sm text-muted-foreground">
 												Equity
 											</span>
-											<span className="font-medium">
+											<span className="font-mono">
 												{formatNumber(coin.equity)} {coin.coin}
 											</span>
 										</div>
@@ -473,7 +589,7 @@ function AccountCard(
 											<span className="text-sm text-muted-foreground">
 												USD Value
 											</span>
-											<span className="font-medium text-green-600">
+											<span className="font-mono text-green-600 font-semibold">
 												{formatCurrency(coin.usdValue)}
 											</span>
 										</div>
@@ -483,15 +599,16 @@ function AccountCard(
 												<span className="text-sm text-muted-foreground">
 													Unrealized P&L
 												</span>
-												<span
-													className={`font-medium ${
-														Number.parseFloat(coin.unrealisedPnl) >= 0
-															? "text-green-600"
-															: "text-red-600"
-													}`}
-												>
-													{formatCurrency(coin.unrealisedPnl)}
-												</span>
+												{(() => {
+													const pnlData = formatCurrencyWithColor(
+														coin.unrealisedPnl,
+													);
+													return (
+														<span className={`font-mono ${pnlData.color}`}>
+															{pnlData.value}
+														</span>
+													);
+												})()}
 											</div>
 										)}
 
@@ -500,7 +617,7 @@ function AccountCard(
 												<span className="text-sm text-muted-foreground">
 													Borrowed
 												</span>
-												<span className="font-medium text-orange-600">
+												<span className="font-mono text-orange-600 font-semibold">
 													{formatNumber(coin.borrowAmount)} {coin.coin}
 												</span>
 											</div>
@@ -511,15 +628,16 @@ function AccountCard(
 												<span className="text-sm text-muted-foreground">
 													Realized P&L
 												</span>
-												<span
-													className={`font-medium ${
-														Number.parseFloat(coin.cumRealisedPnl) >= 0
-															? "text-green-600"
-															: "text-red-600"
-													}`}
-												>
-													{formatCurrency(coin.cumRealisedPnl)}
-												</span>
+												{(() => {
+													const pnlData = formatCurrencyWithColor(
+														coin.cumRealisedPnl,
+													);
+													return (
+														<span className={`font-mono ${pnlData.color}`}>
+															{pnlData.value}
+														</span>
+													);
+												})()}
 											</div>
 										)}
 									</div>
@@ -533,10 +651,10 @@ function AccountCard(
 			{/* Trading Positions */}
 			{positions.length > 0 && (
 				<Card>
-					<CardHeader>
+					<CardHeader className="pb-4">
 						<CardTitle className="flex items-center gap-2">
 							<Activity className="h-5 w-5" />
-							Open Positions
+							Open Positions ({positions.length})
 						</CardTitle>
 						<CardDescription>
 							Current trading positions and their performance
@@ -545,94 +663,113 @@ function AccountCard(
 					<CardContent>
 						<div className="space-y-4">
 							{positions.map((position: RawPosition, index: number) => (
-								<Card key={index} className="border-l-4 border-l-primary">
+								<Card
+									key={index}
+									className="border-l-4 border-l-primary hover:shadow-sm transition-shadow"
+								>
 									<CardContent className="p-4">
-										<div className="flex items-center justify-between mb-4">
-											<div className="flex items-center gap-3">
-												<h3 className="text-lg font-semibold">
+										<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+											<div className="flex items-center gap-3 min-w-0">
+												<h3 className="text-lg font-semibold truncate">
 													{position.symbol}
 												</h3>
-												<Badge
-													variant={position.side.toLowerCase() === "sell"
-														? "destructive"
-														: "default"}
-												>
-													{position.side.toLowerCase() === "sell"
-														? "SHORT"
-														: "LONG"}
-												</Badge>
-												<Badge variant="outline">
-													x{position.leverage}
-												</Badge>
+												<div className="flex items-center gap-2 flex-shrink-0">
+													<Badge
+														variant={position.side.toLowerCase() === "sell"
+															? "destructive"
+															: "default"}
+														className="text-xs"
+													>
+														{position.side.toLowerCase() === "sell"
+															? "SHORT"
+															: "LONG"}
+													</Badge>
+													<Badge
+														variant="outline"
+														className={`text-xs ${
+															position.leverage >= 10
+																? "border-red-500 text-red-500"
+																: position.leverage >= 5
+																? "border-orange-500 text-orange-500"
+																: "border-green-500 text-green-500"
+														}`}
+													>
+														x{position.leverage}
+													</Badge>
+												</div>
 											</div>
-											<div className="flex items-center gap-2">
-												{Number.parseFloat(position.unrealizedPnl.toString()) >=
-														0
-													? <TrendingUp className="h-4 w-4 text-green-600" />
-													: <TrendingDown className="h-4 w-4 text-red-600" />}
-												<span
-													className={`text-lg font-semibold ${
-														Number.parseFloat(
-																position.unrealizedPnl.toString(),
-															) >= 0
-															? "text-green-600"
-															: "text-red-600"
-													}`}
-												>
-													{formatCurrency(position.unrealizedPnl)}
-												</span>
+											<div className="flex items-center gap-2 flex-shrink-0">
+												{(() => {
+													const pnlData = formatCurrencyWithColor(
+														position.unrealizedPnl,
+													);
+													return (
+														<>
+															{Number.parseFloat(
+																	position.unrealizedPnl.toString(),
+																) >= 0
+																? (
+																	<TrendingUp className="h-4 w-4 text-green-600 flex-shrink-0" />
+																)
+																: (
+																	<TrendingDown className="h-4 w-4 text-red-600 flex-shrink-0" />
+																)}
+															<span
+																className={`text-lg font-semibold ${pnlData.color}`}
+															>
+																{pnlData.value}
+															</span>
+														</>
+													);
+												})()}
 											</div>
 										</div>
 
-										<div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm">
+										<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-xs sm:text-sm">
 											<div>
 												<p className="text-muted-foreground">Size</p>
-												<p className="font-medium">
+												<p className="font-mono">
 													{formatNumber(position.contracts, 4)}
 												</p>
 											</div>
 											<div>
 												<p className="text-muted-foreground">Entry Price</p>
-												<p className="font-medium">
+												<p className="font-mono">
 													{formatCurrency(position.entryPrice)}
 												</p>
 											</div>
 											<div>
 												<p className="text-muted-foreground">Current Price</p>
-												<p className="font-medium">
+												<p className="font-mono">
 													{formatCurrency(position.markPrice)}
 												</p>
 											</div>
 											<div>
 												<p className="text-muted-foreground">Value</p>
-												<p className="font-medium">
+												<p className="font-mono">
 													{formatCurrency(position.notional)}
 												</p>
 											</div>
 											<div>
 												<p className="text-muted-foreground">Liquidation</p>
-												<p className="font-medium text-red-600">
+												<p className="font-mono text-red-600 font-semibold">
 													{formatCurrency(position.liquidationPrice)}
 												</p>
 											</div>
 											<div>
 												<p className="text-muted-foreground">ROI</p>
-												<p
-													className={`font-medium ${
-														((position.markPrice - position.entryPrice) /
-																position.entryPrice * 100 *
-																(position.side.toLowerCase() === "sell"
-																	? -1
-																	: 1)) >= 0
-															? "text-green-600"
-															: "text-red-600"
-													}`}
-												>
-													{((position.markPrice - position.entryPrice) /
-														position.entryPrice * 100 *
-														(position.side.toLowerCase() === "sell" ? -1 : 1))
-														.toFixed(2)}%
-												</p>
+												{(() => {
+													const roiData = formatROIWithColor(
+														position.entryPrice,
+														position.markPrice,
+														position.side,
+													);
+													return (
+														<p className={`font-mono ${roiData.color}`}>
+															{roiData.value}
+														</p>
+													);
+												})()}
 											</div>
 										</div>
 									</CardContent>
@@ -647,66 +784,93 @@ function AccountCard(
 			{(allOrders.open.length > 0 || allOrders.closed.length > 0 ||
 				allOrders.canceled.length > 0) && (
 				<Card>
-					<CardHeader>
+					<CardHeader className="pb-4">
 						<CardTitle className="flex items-center gap-2">
 							<ShoppingCart className="h-5 w-5" />
 							Orders
 						</CardTitle>
 						<CardDescription>Trading orders history</CardDescription>
 					</CardHeader>
-					<CardContent>
+					<CardContent className="p-0">
 						<Tabs defaultValue="open" className="w-full">
-							<TabsList className="grid w-full grid-cols-3">
-								<TabsTrigger value="open" className="flex items-center gap-2">
-									<Clock className="h-4 w-4" />
-									Open ({allOrders.open.length})
+							<TabsList className="w-full h-auto p-1 bg-transparent border-b">
+								<TabsTrigger
+									value="open"
+									className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm"
+								>
+									<Clock className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+									<span>Open</span>
+									<Badge variant="secondary" className="text-xs">
+										{allOrders.open.length}
+									</Badge>
 								</TabsTrigger>
-								<TabsTrigger value="closed" className="flex items-center gap-2">
-									<CheckCircle className="h-4 w-4" />
-									Executed ({allOrders.closed.length})
+								<TabsTrigger
+									value="closed"
+									className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm "
+								>
+									<CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+									<span>Executed</span>
+									<Badge variant="secondary" className="text-xs">
+										{allOrders.closed.length}
+									</Badge>
 								</TabsTrigger>
 								<TabsTrigger
 									value="canceled"
-									className="flex items-center gap-2"
+									className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm "
 								>
-									<XCircle className="h-4 w-4" />
-									Canceled ({allOrders.canceled.length})
+									<XCircle className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+									<span>Canceled</span>
+									<Badge variant="secondary" className="text-xs">
+										{allOrders.canceled.length}
+									</Badge>
 								</TabsTrigger>
 							</TabsList>
 
-							<TabsContent value="open" className="space-y-4">
+							<TabsContent value="open" className="space-y-2 p-0 sm:p-0">
 								{allOrders.open.length === 0
 									? (
-										<p className="text-center text-muted-foreground py-8">
-											No open orders
-										</p>
+										<div className="text-center py-12">
+											<Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+											<p className="text-muted-foreground">No open orders</p>
+										</div>
 									)
 									: (
 										allOrders.open.map((order: OrderInfo, index: number) => (
-											<Card key={index}>
+											<Card
+												key={index}
+												className="hover:shadow-sm transition-shadow"
+											>
 												<CardContent className="p-4">
-													<div className="flex items-center justify-between mb-3">
-														<div className="flex items-center gap-3">
-															<h4 className="font-semibold">{order.symbol}</h4>
-															<Badge
-																variant={order.side === "sell"
-																	? "destructive"
-																	: "default"}
-															>
-																{order.side.toUpperCase()}
-															</Badge>
-															<Badge variant="outline">
-																{order.type.toUpperCase()}
-															</Badge>
+													<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+														<div className="flex items-center gap-3 min-w-0">
+															<h4 className="font-semibold truncate">
+																{order.symbol}
+															</h4>
+															<div className="flex items-center gap-2 flex-shrink-0">
+																<Badge
+																	variant={order.side === "sell"
+																		? "destructive"
+																		: "default"}
+																	className="text-xs"
+																>
+																	{order.side.toUpperCase()}
+																</Badge>
+																<Badge variant="outline" className="text-xs">
+																	{order.type.toUpperCase()}
+																</Badge>
+															</div>
 														</div>
-														<Badge variant="secondary">
+														<Badge
+															variant="secondary"
+															className="text-xs flex-shrink-0"
+														>
 															{order.status}
 														</Badge>
 													</div>
-													<div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm">
+													<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-xs sm:text-sm">
 														<div>
 															<p className="text-muted-foreground">Price</p>
-															<p className="font-medium">
+															<p className="font-mono">
 																{formatCurrency(order.price)}
 															</p>
 														</div>
@@ -714,31 +878,31 @@ function AccountCard(
 															<p className="text-muted-foreground">
 																Quantity
 															</p>
-															<p className="font-medium">
+															<p className="font-mono">
 																{formatNumber(order.amount, 4)}
 															</p>
 														</div>
 														<div>
 															<p className="text-muted-foreground">Executed</p>
-															<p className="font-medium">
+															<p className="font-mono">
 																{formatNumber(order.filled, 4)}
 															</p>
 														</div>
 														<div>
 															<p className="text-muted-foreground">Remaining</p>
-															<p className="font-medium">
+															<p className="font-mono">
 																{formatNumber(order.remaining, 4)}
 															</p>
 														</div>
 														<div>
 															<p className="text-muted-foreground">Cost</p>
-															<p className="font-medium">
+															<p className="font-mono">
 																{formatCurrency(order.cost)}
 															</p>
 														</div>
 														<div>
 															<p className="text-muted-foreground">Time</p>
-															<p className="font-medium">
+															<p className="font-mono">
 																{formatDate(order.timestamp)}
 															</p>
 														</div>
@@ -749,39 +913,53 @@ function AccountCard(
 									)}
 							</TabsContent>
 
-							<TabsContent value="closed" className="space-y-4">
+							<TabsContent value="closed" className="space-y-2 p-0 sm:p-0">
 								{allOrders.closed.length === 0
 									? (
-										<p className="text-center text-muted-foreground py-8">
-											No executed orders
-										</p>
+										<div className="text-center py-12">
+											<CheckCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+											<p className="text-muted-foreground">
+												No executed orders
+											</p>
+										</div>
 									)
 									: (
 										allOrders.closed.map((order: OrderInfo, index: number) => (
-											<Card key={index}>
+											<Card
+												key={index}
+												className="hover:shadow-sm transition-shadow"
+											>
 												<CardContent className="p-4">
-													<div className="flex items-center justify-between mb-3">
-														<div className="flex items-center gap-3">
-															<h4 className="font-semibold">{order.symbol}</h4>
-															<Badge
-																variant={order.side === "sell"
-																	? "destructive"
-																	: "default"}
-															>
-																{order.side.toUpperCase()}
-															</Badge>
-															<Badge variant="outline">
-																{order.type.toUpperCase()}
-															</Badge>
+													<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+														<div className="flex items-center gap-3 min-w-0">
+															<h4 className="font-semibold truncate">
+																{order.symbol}
+															</h4>
+															<div className="flex items-center gap-2 flex-shrink-0">
+																<Badge
+																	variant={order.side === "sell"
+																		? "destructive"
+																		: "default"}
+																	className="text-xs"
+																>
+																	{order.side.toUpperCase()}
+																</Badge>
+																<Badge variant="outline" className="text-xs">
+																	{order.type.toUpperCase()}
+																</Badge>
+															</div>
 														</div>
-														<Badge variant="default">
+														<Badge
+															variant="default"
+															className="text-xs flex-shrink-0"
+														>
 															{order.status}
 														</Badge>
 													</div>
-													<div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm">
+													<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-xs sm:text-sm">
 														<div>
 															<p className="text-muted-foreground">Price</p>
-															<p className="font-medium">
+															<p className="font-mono">
 																{formatCurrency(order.price)}
 															</p>
 														</div>
@@ -789,32 +967,32 @@ function AccountCard(
 															<p className="text-muted-foreground">
 																Quantity
 															</p>
-															<p className="font-medium">
+															<p className="font-mono">
 																{formatNumber(order.amount, 4)}
 															</p>
 														</div>
 														<div>
 															<p className="text-muted-foreground">Executed</p>
-															<p className="font-medium">
+															<p className="font-mono">
 																{formatNumber(order.filled, 4)}
 															</p>
 														</div>
 														<div>
 															<p className="text-muted-foreground">Cost</p>
-															<p className="font-medium">
+															<p className="font-mono">
 																{formatCurrency(order.cost)}
 															</p>
 														</div>
 														<div>
 															<p className="text-muted-foreground">Fee</p>
-															<p className="font-medium">
+															<p className="font-mono">
 																{formatCurrency(order.fee.cost)}{" "}
 																{order.fee.currency}
 															</p>
 														</div>
 														<div>
 															<p className="text-muted-foreground">Time</p>
-															<p className="font-medium">
+															<p className="font-mono">
 																{formatDate(order.timestamp)}
 															</p>
 														</div>
@@ -825,42 +1003,56 @@ function AccountCard(
 									)}
 							</TabsContent>
 
-							<TabsContent value="canceled" className="space-y-4">
+							<TabsContent value="canceled" className="space-y-2 p-0 sm:p-0">
 								{allOrders.canceled.length === 0
 									? (
-										<p className="text-center text-muted-foreground py-8">
-											No canceled orders
-										</p>
+										<div className="text-center py-12">
+											<XCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+											<p className="text-muted-foreground">
+												No canceled orders
+											</p>
+										</div>
 									)
 									: (
 										allOrders.canceled.map((
 											order: OrderInfo,
 											index: number,
 										) => (
-											<Card key={index}>
+											<Card
+												key={index}
+												className="hover:shadow-sm transition-shadow"
+											>
 												<CardContent className="p-4">
-													<div className="flex items-center justify-between mb-3">
-														<div className="flex items-center gap-3">
-															<h4 className="font-semibold">{order.symbol}</h4>
-															<Badge
-																variant={order.side === "sell"
-																	? "destructive"
-																	: "default"}
-															>
-																{order.side.toUpperCase()}
-															</Badge>
-															<Badge variant="outline">
-																{order.type.toUpperCase()}
-															</Badge>
+													<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+														<div className="flex items-center gap-3 min-w-0">
+															<h4 className="font-semibold truncate">
+																{order.symbol}
+															</h4>
+															<div className="flex items-center gap-2 flex-shrink-0">
+																<Badge
+																	variant={order.side === "sell"
+																		? "destructive"
+																		: "default"}
+																	className="text-xs"
+																>
+																	{order.side.toUpperCase()}
+																</Badge>
+																<Badge variant="outline" className="text-xs">
+																	{order.type.toUpperCase()}
+																</Badge>
+															</div>
 														</div>
-														<Badge variant="destructive">
+														<Badge
+															variant="destructive"
+															className="text-xs flex-shrink-0"
+														>
 															{order.status}
 														</Badge>
 													</div>
-													<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+													<div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs sm:text-sm">
 														<div>
 															<p className="text-muted-foreground">Price</p>
-															<p className="font-medium">
+															<p className="font-mono">
 																{formatCurrency(order.price)}
 															</p>
 														</div>
@@ -868,7 +1060,7 @@ function AccountCard(
 															<p className="text-muted-foreground">
 																Quantity
 															</p>
-															<p className="font-medium">
+															<p className="font-mono">
 																{formatNumber(order.amount, 4)}
 															</p>
 														</div>
@@ -876,13 +1068,15 @@ function AccountCard(
 															<p className="text-muted-foreground">
 																Creation Time
 															</p>
-															<p className="font-medium">
+															<p className="font-mono">
 																{formatDate(order.timestamp)}
 															</p>
 														</div>
 														<div>
 															<p className="text-muted-foreground">Order ID</p>
-															<p className="font-medium text-xs">{order.id}</p>
+															<p className="font-mono text-xs break-all">
+																{order.id}
+															</p>
 														</div>
 													</div>
 												</CardContent>
@@ -898,76 +1092,139 @@ function AccountCard(
 			{/* Trading Protocol */}
 			{walletData.protocol && (
 				<Card>
-					<CardHeader>
-						<CardTitle>Trading Protocol</CardTitle>
+					<CardHeader className="pb-4">
+						<CardTitle className="flex items-center gap-2">
+							<Activity className="h-5 w-5" />
+							Trading Protocol
+						</CardTitle>
 						<CardDescription>
 							Strategy settings and risk management
 						</CardDescription>
 					</CardHeader>
-					<CardContent>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+					<CardContent className="space-y-6">
+						<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
 							<div className="space-y-2">
-								<p className="text-sm text-muted-foreground">Strategy</p>
-								<p className="font-medium">{walletData.protocol.strategy}</p>
+								<p className="text-xs sm:text-sm text-muted-foreground">
+									Strategy
+								</p>
+								<p className="font-mono">{walletData.protocol.strategy}</p>
 							</div>
 							<div className="space-y-2">
-								<p className="text-sm text-muted-foreground">Trading Style</p>
-								<p className="font-medium">
+								<p className="text-xs sm:text-sm text-muted-foreground">
+									Trading Style
+								</p>
+								<p className="font-mono">
 									{walletData.protocol.tradingStyle}
 								</p>
 							</div>
 							<div className="space-y-2">
-								<p className="text-sm text-muted-foreground">
+								<p className="text-xs sm:text-sm text-muted-foreground">
 									Max Risk Per Trade
 								</p>
-								<p className="font-medium text-orange-600">
+								<p
+									className={`font-mono ${
+										walletData.protocol.maxRiskPerTrade > 5
+											? "text-red-600"
+											: walletData.protocol.maxRiskPerTrade > 2
+											? "text-orange-600"
+											: "text-green-600"
+									}`}
+								>
 									{walletData.protocol.maxRiskPerTrade}%
 								</p>
 							</div>
 							<div className="space-y-2">
-								<p className="text-sm text-muted-foreground">Max Leverage</p>
-								<p className="font-medium">
+								<p className="text-xs sm:text-sm text-muted-foreground">
+									Max Leverage
+								</p>
+								<p
+									className={`font-mono ${
+										walletData.protocol.maxLeverage >= 10
+											? "text-red-600"
+											: walletData.protocol.maxLeverage >= 5
+											? "text-orange-600"
+											: "text-green-600"
+									}`}
+								>
 									x{walletData.protocol.maxLeverage}
 								</p>
 							</div>
 							<div className="space-y-2">
-								<p className="text-sm text-muted-foreground">Max Drawdown</p>
-								<p className="font-medium text-red-600">
+								<p className="text-xs sm:text-sm text-muted-foreground">
+									Max Drawdown
+								</p>
+								<p
+									className={`font-mono ${
+										walletData.protocol.maxDrawdown > 20
+											? "text-red-600"
+											: walletData.protocol.maxDrawdown > 10
+											? "text-orange-600"
+											: "text-green-600"
+									}`}
+								>
 									{walletData.protocol.maxDrawdown}%
 								</p>
 							</div>
 							<div className="space-y-2">
-								<p className="text-sm text-muted-foreground">Stop Loss</p>
-								<p className="font-medium">{walletData.protocol.stopLoss}%</p>
+								<p className="text-xs sm:text-sm text-muted-foreground">
+									Stop Loss
+								</p>
+								<p className="font-mono text-red-600">
+									{walletData.protocol.stopLoss}%
+								</p>
 							</div>
 							<div className="space-y-2">
-								<p className="text-sm text-muted-foreground">Take Profit</p>
-								<p className="font-medium">{walletData.protocol.takeProfit}%</p>
+								<p className="text-xs sm:text-sm text-muted-foreground">
+									Take Profit
+								</p>
+								<p className="font-mono text-green-600">
+									{walletData.protocol.takeProfit}%
+								</p>
 							</div>
 							<div className="space-y-2">
-								<p className="text-sm text-muted-foreground">Risk/Reward</p>
-								<p className="font-medium">
+								<p className="text-xs sm:text-sm text-muted-foreground">
+									Risk/Reward
+								</p>
+								<p
+									className={`font-mono ${
+										walletData.protocol.riskRewardRatio >= 3
+											? "text-green-600"
+											: walletData.protocol.riskRewardRatio >= 2
+											? "text-yellow-600"
+											: "text-red-600"
+									}`}
+								>
 									1:{walletData.protocol.riskRewardRatio}
 								</p>
 							</div>
 						</div>
 
-						<Separator className="my-6" />
+						<Separator className="my-4 sm:my-6" />
 
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-							<div className="space-y-2">
-								<p className="text-sm text-muted-foreground">Traded Markets</p>
+						<Separator />
+
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+							<div className="space-y-1">
+								<p className="text-sm text-muted-foreground font-mono">
+									Traded Markets
+								</p>
 								<div className="flex flex-wrap gap-2">
 									{walletData.protocol.markets.map((market, index) => (
-										<Badge key={index} variant="outline">{market}</Badge>
+										<Badge key={index} variant="outline" className="text-xs">
+											{market}
+										</Badge>
 									))}
 								</div>
 							</div>
-							<div className="space-y-2">
-								<p className="text-sm text-muted-foreground">Order Types</p>
+							<div className="space-y-1">
+								<p className="text-sm text-muted-foreground font-mono">
+									Order Types
+								</p>
 								<div className="flex flex-wrap gap-2">
 									{walletData.protocol.orderTypes.map((type, index) => (
-										<Badge key={index} variant="outline">{type}</Badge>
+										<Badge key={index} variant="outline" className="text-xs">
+											{type}
+										</Badge>
 									))}
 								</div>
 							</div>
@@ -983,10 +1240,11 @@ function AccountCard(
  * WalletWidget component for scanning and analyzing trading accounts
  */
 export default function WalletWidget(): React.ReactElement {
-	const [address, setAddress] = useState("ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv");
+	const [address, setAddress] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [response, setResponse] = useState<WalletResponse[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [isResultsOpen, setIsResultsOpen] = useState(false);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -996,9 +1254,18 @@ export default function WalletWidget(): React.ReactElement {
 			return;
 		}
 
+		// Validate address using gliesereum library
+		if (!validateAddress(address.trim())) {
+			setError(
+				"Invalid wallet address format. Please check your address and try again.",
+			);
+			return;
+		}
+
 		setLoading(true);
 		setError(null);
 		setResponse(null);
+		setIsResultsOpen(false);
 
 		try {
 			const requestBody = {
@@ -1023,7 +1290,17 @@ export default function WalletWidget(): React.ReactElement {
 			}
 
 			const data = await res.json();
+
+			// Check if the response is empty
+			if (!data || data.length === 0) {
+				setError(
+					"This wallet is not connected to the network or has not performed any actions yet. Please check the address or try again later.",
+				);
+				return;
+			}
+
 			setResponse(data);
+			setIsResultsOpen(true);
 		} catch (err) {
 			setError(
 				err instanceof Error
@@ -1109,8 +1386,9 @@ export default function WalletWidget(): React.ReactElement {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Wallet className="h-5 w-5" />
-						Wallet Verification
+						<Wallet className="h-5 w-5 text-amber-700" />
+						Sonar Scanner :
+						<span className="text-mono text-amber-700">TestNet</span>
 					</CardTitle>
 					<CardDescription>
 						Enter a wallet address to get detailed account information
@@ -1124,7 +1402,7 @@ export default function WalletWidget(): React.ReactElement {
 								<Input
 									id="address"
 									type="text"
-									placeholder="Enter wallet address (e.g., gqPWhyKqd7GGozJUvZupc82Eoi9AJGvy4V)"
+									placeholder="Enter wallet address Gliesereum"
 									value={address}
 									onChange={(e) => setAddress(e.target.value)}
 									disabled={loading}
@@ -1149,123 +1427,186 @@ export default function WalletWidget(): React.ReactElement {
 				</Alert>
 			)}
 
-			{/* Results */}
-			{response && response.length > 0 && (
-				<div className="space-y-6">
-					{/* Total Statistics */}
-					{totalStats && totalStats.accountsCount > 1 && (
-						<Card className="border-2 bg-gradient-to-r from-primary/5 to-secondary/5">
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<Users className="h-5 w-5" />
-									Overall Statistics ({totalStats.accountsCount} accounts)
-								</CardTitle>
-								<CardDescription>
-									Summary information for all accounts
-								</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-									<div className="space-y-2">
-										<p className="text-sm text-muted-foreground">
-											Total Equity
-										</p>
-										<p className="text-3xl">
-											{formatCurrency(totalStats.totalEquity)}
-										</p>
-									</div>
-									<div className="space-y-2">
-										<p className="text-sm text-muted-foreground">
-											Total Balance
-										</p>
-										<p className="text-2xl">
-											{formatCurrency(totalStats.totalWalletBalance)}
-										</p>
-									</div>
-									<div className="space-y-2">
-										<p className="text-sm text-muted-foreground">Available</p>
-										<p className="text-2xl">
-											{formatCurrency(totalStats.totalAvailableBalance)}
-										</p>
-									</div>
-									<div className="space-y-2">
-										<p className="text-sm text-muted-foreground">
-											Total Unrealized P&L
-										</p>
-										<div className="flex items-center gap-2">
-											{totalStats.totalPerpUPL >= 0
-												? <TrendingUp className="h-4 w-4 text-green-600" />
-												: <TrendingDown className="h-4 w-4 text-red-600" />}
-											<p
-												className={`text-2xl ${
-													totalStats.totalPerpUPL >= 0
-														? "text-green-600"
-														: "text-red-600"
-												}`}
-											>
-												{formatCurrency(totalStats.totalPerpUPL)}
-											</p>
-										</div>
-									</div>
+			{/* Results Modal */}
+			<Dialog open={isResultsOpen} onOpenChange={setIsResultsOpen}>
+				<DialogContent
+					showCloseButton={false}
+					className="backdrop-blur-lg backdrop-opacity bg-zinc-700/10  max-w-6xl w-full max-h-[100%] overflow-y-auto sm:max-w-[95vw]"
+				>
+					<div className="flex flex-col h-full">
+						{/* Modal Header - Fixed */}
+						<DialogHeader className="mb-4">
+							<div className="flex items-start justify-between">
+								<div className="flex-1 min-w-0 text-left">
+									<DialogTitle className="flex items-center gap-2 text-base font-semibold">
+										<Wallet className="h-4 w-4 flex-shrink-0" />
+										<span className="truncate">Wallet Analysis</span>
+									</DialogTitle>
+									<DialogDescription className="text-xs mt-0.5">
+										{response?.length === 1
+											? "Account details and trading data"
+											: `${response?.length} accounts found`}
+									</DialogDescription>
 								</div>
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => setIsResultsOpen(false)}
+									className="h-8 w-8 p-0 flex-shrink-0"
+								>
+									<X className="h-4 w-4" />
+									<span className="sr-only">Close</span>
+								</Button>
+							</div>
+						</DialogHeader>
 
-								<Separator className="my-6" />
+						{/* Modal Content - Scrollable */}
+						<div className="flex-1 space-y-2">
+							{response && response.length > 0 && (
+								<>
+									{/* Total Statistics */}
+									{totalStats && totalStats.accountsCount > 1 && (
+										<Card>
+											<CardHeader className="pb-3">
+												<CardTitle className="flex items-center gap-2 text-sm">
+													<Users className="h-4 w-4" />
+													Portfolio Overview
+												</CardTitle>
+											</CardHeader>
+											<CardContent className="space-y-4">
+												{/* Main Metrics */}
+												<div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+													<div className="space-y-1">
+														<p className="text-xs text-muted-foreground font-mono">
+															Total Equity
+														</p>
+														<p className="text-xl font-bold">
+															{formatCurrency(totalStats.totalEquity)}
+														</p>
+													</div>
+													<div className="space-y-1">
+														<p className="text-xs text-muted-foreground font-mono">
+															Balance
+														</p>
+														<p className="text-xl font-semibold">
+															{formatCurrency(totalStats.totalWalletBalance)}
+														</p>
+													</div>
+													<div className="space-y-1">
+														<p className="text-xs text-muted-foreground font-mono">
+															Available
+														</p>
+														<p className="text-sm font-semibold">
+															{formatCurrency(totalStats.totalAvailableBalance)}
+														</p>
+													</div>
+													<div className="space-y-1">
+														<p className="text-xs text-muted-foreground font-mono">
+															P&L
+														</p>
+														{(() => {
+															const pnlData = formatCurrencyWithColor(
+																totalStats.totalPerpUPL,
+															);
+															return (
+																<div className="flex items-center gap-1">
+																	{totalStats.totalPerpUPL >= 0
+																		? (
+																			<TrendingUp className="h-3 w-3 text-green-600 flex-shrink-0" />
+																		)
+																		: (
+																			<TrendingDown className="h-3 w-3 text-red-600 flex-shrink-0" />
+																		)}
+																	<p
+																		className={`text-sm font-semibold ${pnlData.color}`}
+																	>
+																		{pnlData.value}
+																	</p>
+																</div>
+															);
+														})()}
+													</div>
+												</div>
 
-								<div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-									<div className="space-y-1">
-										<p className="text-muted-foreground">
-											Number of Accounts
-										</p>
-										<p className="font-medium">{totalStats.accountsCount}</p>
-									</div>
-									<div className="space-y-1">
-										<p className="text-muted-foreground">
-											Total Number of Positions
-										</p>
-										<p className="font-medium">{totalStats.totalPositions}</p>
-									</div>
-									<div className="space-y-1">
-										<p className="text-muted-foreground">Open Orders</p>
-										<p className="font-medium">{totalStats.totalOpenOrders}</p>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
-					)}
+												{/* Secondary Metrics */}
+												<div className="flex justify-between text-xs">
+													<div className="flex items-center gap-1">
+														<span className="text-muted-foreground">
+															Accounts:
+														</span>
+														<span className="font-semibold text-primary">
+															{totalStats.accountsCount}
+														</span>
+													</div>
+													<div className="flex items-center gap-1">
+														<span className="text-muted-foreground">
+															Positions:
+														</span>
+														<span className="font-semibold">
+															{totalStats.totalPositions}
+														</span>
+													</div>
+													<div className="flex items-center gap-1">
+														<span className="text-muted-foreground">
+															Orders:
+														</span>
+														<span className="font-semibold">
+															{totalStats.totalOpenOrders}
+														</span>
+													</div>
+												</div>
+											</CardContent>
+										</Card>
+									)}
 
-					{/* Account Tabs */}
-					<Card>
-						<CardHeader>
-							<CardTitle>Accounts</CardTitle>
-							<CardDescription>
-								Detailed information for each account
-							</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<Tabs defaultValue={response[0].nid} className="w-full">
-								<TabsList className="grid w-full grid-cols-2">
-									{response.map((account) => (
-										<TabsTrigger
-											key={account.nid}
-											value={account.nid}
-											className="flex items-center gap-2"
-										>
-											<Wallet className="h-4 w-4" />
-											{account.nid} ({account.exchange.toUpperCase()})
-										</TabsTrigger>
-									))}
-								</TabsList>
+									{/* Account Tabs */}
+									<Card>
+										<CardHeader className="pb-3">
+											<CardTitle className="flex items-center gap-2 text-sm">
+												<Activity className="h-4 w-4" />
+												Accounts
+											</CardTitle>
+										</CardHeader>
+										<CardContent className="p-0">
+											<Tabs defaultValue={response[0].nid} className="w-full">
+												<TabsList className="w-full h-auto p-1 bg-transparent border-b">
+													<div className="flex w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+														{response.map((account) => (
+															<TabsTrigger
+																key={account.nid}
+																value={account.nid}
+																className="bg-zinc-900 flex items-center gap-2 px-3 py-2 text-xs whitespace-nowrap flex-shrink-0 data-[state=active]:bg-zinc-700 data-[state=active]:text-zinc-300"
+															>
+																<Wallet className="h-3 w-3 flex-shrink-0" />
+																<span className="truncate max-w-[100px]">
+																	{account.nid}
+																</span>
+																<Badge variant="outline" className="text-xs">
+																	{account.exchange.toUpperCase()}
+																</Badge>
+															</TabsTrigger>
+														))}
+													</div>
+												</TabsList>
 
-								{response.map((account) => (
-									<TabsContent key={account.nid} value={account.nid}>
-										<AccountCard walletData={account} />
-									</TabsContent>
-								))}
-							</Tabs>
-						</CardContent>
-					</Card>
-				</div>
-			)}
+												{response.map((account) => (
+													<TabsContent
+														key={account.nid}
+														value={account.nid}
+														className="mt-0 p-4"
+													>
+														<AccountCard walletData={account} />
+													</TabsContent>
+												))}
+											</Tabs>
+										</CardContent>
+									</Card>
+								</>
+							)}
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</Screen>
 	);
 }

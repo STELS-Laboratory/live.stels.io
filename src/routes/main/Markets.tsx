@@ -236,7 +236,7 @@ function Markets(): React.ReactElement {
 		<Screen>
 			<Card>
 				<CardHeader>
-					<CardTitle>Live Ticker Data</CardTitle>
+					<CardTitle>Connection Markets</CardTitle>
 					<CardDescription>
 						Real-time cryptocurrency futures prices and market data
 					</CardDescription>
@@ -252,7 +252,7 @@ function Markets(): React.ReactElement {
 									<TableHead className="text-right">24h Change</TableHead>
 									<TableHead className="text-right">Volume</TableHead>
 									<TableHead className="text-right">Bid/Ask</TableHead>
-									<TableHead className="text-right">Latency</TableHead>
+									<TableHead className="text-right">Status</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
@@ -341,10 +341,10 @@ function Markets(): React.ReactElement {
 											<Badge
 												variant={ticker.latency < 3000
 													? "default"
-													: "destructive"}
-												className="text-xs"
+													: "secondary"}
+												className="text-xs w-18"
 											>
-												{ticker.latency}ms
+												{Number(ticker.latency / 500).toFixed(2)}
 											</Badge>
 										</TableCell>
 									</TableRow>

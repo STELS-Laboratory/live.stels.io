@@ -101,7 +101,8 @@ function parseNodeData(data: unknown[]): NodeData[] {
 
 // HeterogenComponent
 const HeterogenComponent: React.FC = () => {
-	const globeEl: unknown = useRef();
+	// @ts-ignore
+	const globeEl: any = useRef();
 	const [nodes, setNodes] = useState<NodeData[]>([]);
 
 	const session = useSessionStoreSync() as
@@ -109,7 +110,8 @@ const HeterogenComponent: React.FC = () => {
 		| null;
 
 	const netMap = filterSession(session || {}, /\.heterogen\..*\.setting$/);
-
+	
+	
 	useEffect(() => {
 		const parsedNodes = parseNodeData(netMap);
 		setNodes(parsedNodes);
@@ -124,11 +126,11 @@ const HeterogenComponent: React.FC = () => {
 	}, []);
 
 	return (
-		<div>
-			<div className="absolute top-[80px] p-4 z-10 w-[100%] h-[90%]">
+		<>
+			<div className="absolute p-4 z-10 w-[100%] h-[100%] overflow-y-auto">
 				<WalletWidget />
-				<Markets />
 				<Welcome />
+				<Markets />
 			</div>
 			<div className="fixed w-[100%] h-[100%] left-0 top-0 bottom-0 right-0 z-0">
 				<Globe
@@ -158,7 +160,7 @@ const HeterogenComponent: React.FC = () => {
 					backgroundColor="black"
 				/>
 			</div>
-		</div>
+		</>
 	);
 };
 

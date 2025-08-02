@@ -6,10 +6,10 @@ import { Progress } from "@/components/ui/progress";
 import {
 	Activity,
 	Calculator,
-	Clock,
 	DollarSign,
-	PieChart,
-	RefreshCw,
+	Globe,
+	MapPin,
+	Monitor,
 	Shield,
 	Target,
 	TrendingDown,
@@ -17,7 +17,7 @@ import {
 	Users,
 	Wallet,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, filterSession } from "@/lib/utils";
 import Screen from "@/routes/main/Screen.tsx";
 import Loader from "@/components/ui/loader.tsx";
 
@@ -124,6 +124,76 @@ class ProfessionalCalculations {
 		if (minutes > 0) return `${minutes}m ${seconds % 60}s ago`;
 		return `${seconds}s ago`;
 	}
+
+	static analyzeNetworkNodes(nodeMap: Record<string, any>): {
+		totalNodes: number;
+		activeNodes: number;
+		regions: Record<string, number>;
+		avgCpuUsage: number;
+		avgMemoryUsage: number;
+		healthStatus: "EXCELLENT" | "GOOD" | "WARNING" | "CRITICAL";
+		lastUpdate: number;
+	} {
+		const nodes = Object.values(nodeMap);
+		const totalNodes = nodes.length;
+
+		const currentTime = Date.now();
+		const activeNodes = nodes.filter((node) => {
+			const nodeTime = node.value?.timestamp || 0;
+			return (currentTime - nodeTime) < 300000; // 5 minutes threshold
+		}).length;
+
+		const regions = nodes.reduce((acc, node) => {
+			const location = node.value?.raw?.location;
+			if (location?.country_name) {
+				acc[location.country_name] = (acc[location.country_name] || 0) + 1;
+			}
+			return acc;
+		}, {} as Record<string, number>);
+
+		const cpuUsages = nodes.map((node) => {
+			const cpu = node.value?.raw?.cpu || [0, 0, 0];
+			return cpu.reduce((sum: number, val: number) => sum + val, 0) /
+				cpu.length;
+		}).filter((usage) => usage > 0);
+
+		const memoryUsages = nodes.map((node) => {
+			const memory = node.value?.raw?.memory;
+			if (!memory) return 0;
+			return (memory.heapUsed / memory.heapTotal) * 100;
+		}).filter((usage) => usage > 0);
+
+		const avgCpuUsage = cpuUsages.length > 0
+			? cpuUsages.reduce((sum, val) => sum + val, 0) / cpuUsages.length
+			: 0;
+
+		const avgMemoryUsage = memoryUsages.length > 0
+			? memoryUsages.reduce((sum, val) => sum + val, 0) / memoryUsages.length
+			: 0;
+
+		const healthPercentage = totalNodes > 0
+			? (activeNodes / totalNodes) * 100
+			: 0;
+		let healthStatus: "EXCELLENT" | "GOOD" | "WARNING" | "CRITICAL" =
+			"CRITICAL";
+		if (healthPercentage >= 95) healthStatus = "EXCELLENT";
+		else if (healthPercentage >= 80) healthStatus = "GOOD";
+		else if (healthPercentage >= 60) healthStatus = "WARNING";
+
+		const lastUpdate = Math.max(
+			...nodes.map((node) => node.value?.timestamp || 0),
+		);
+
+		return {
+			totalNodes,
+			activeNodes,
+			regions,
+			avgCpuUsage,
+			avgMemoryUsage,
+			healthStatus,
+			lastUpdate,
+		};
+	}
 }
 
 /**
@@ -164,6 +234,8 @@ function Welcome(): React.ReactElement | null {
 		return <Loader>Scanning connection Testnet</Loader>;
 	}
 
+	const netMap = filterSession(session || {}, /\.heterogen\..*\.setting$/);
+
 	const snapshot = session["testnet.snapshot.sonar"];
 	const runtime = session["testnet.runtime.sonar"];
 
@@ -186,17 +258,17 @@ function Welcome(): React.ReactElement | null {
 		snapshot.raw.protection,
 	);
 
-	const coinChanges = Object.keys(runtime.raw.coins).reduce(
-		(acc, coin) => {
-			const current =
-				runtime.raw.coins[coin as keyof typeof runtime.raw.coins] || 0;
-			const previous =
-				snapshot.raw.coins[coin as keyof typeof snapshot.raw.coins] || 0;
-			acc[coin] = calc.calculatePnL(current, previous);
-			return acc;
-		},
-		{} as Record<string, ReturnType<typeof calc.calculatePnL>>,
-	);
+	// const coinChanges = Object.keys(runtime.raw.coins).reduce(
+	// 	(acc, coin) => {
+	// 		const current =
+	// 			runtime.raw.coins[coin as keyof typeof runtime.raw.coins] || 0;
+	// 		const previous =
+	// 			snapshot.raw.coins[coin as keyof typeof snapshot.raw.coins] || 0;
+	// 		acc[coin] = calc.calculatePnL(current, previous);
+	// 		return acc;
+	// 	},
+	// 	{} as Record<string, ReturnType<typeof calc.calculatePnL>>,
+	// );
 
 	const marginAnalysis = calc.calculateMarginRatio(
 		runtime.raw.margin.balance,
@@ -204,6 +276,7 @@ function Welcome(): React.ReactElement | null {
 		runtime.raw.margin.maintenance,
 	);
 	const workerAnalysis = calc.calculateWorkerEfficiency(runtime.raw.workers);
+	const networkAnalysis = calc.analyzeNetworkNodes(netMap);
 
 	const totalROI = calc.calculatePnL(
 		runtime.raw.liquidity,
@@ -213,6 +286,175 @@ function Welcome(): React.ReactElement | null {
 	return (
 		<Screen>
 			<div className="grid gap-4">
+				
+				{/* Network Nodes Status */}
+				<Card>
+					<CardHeader>
+						<CardTitle className="flex items-center text-white">
+							<Globe className="w-5 h-5 mr-2" />
+							NETWORK NODES STATUS
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+							<div className="text-center">
+								<div className="text-xs text-gray-400 mb-2">TOTAL NODES</div>
+								<div className="text-2xl font-bold text-white mb-1">
+									{networkAnalysis.totalNodes}
+								</div>
+								<div className="text-xs text-gray-400">
+									distributed globally
+								</div>
+							</div>
+							
+							<div className="text-center">
+								<div className="text-xs text-gray-400 mb-2">ACTIVE NODES</div>
+								<div className="text-2xl font-bold text-emerald-400 mb-1">
+									{networkAnalysis.activeNodes}
+								</div>
+								<div className="text-xs text-emerald-400">
+									{networkAnalysis.totalNodes > 0
+										? ((networkAnalysis.activeNodes /
+											networkAnalysis.totalNodes) * 100).toFixed(1)
+										: 0}% online
+								</div>
+							</div>
+							
+							<div className="text-center">
+								<div className="text-xs text-gray-400 mb-2">NETWORK HEALTH</div>
+								<Badge
+									variant="outline"
+									className={cn(
+										"text-sm px-3 py-1",
+										networkAnalysis.healthStatus === "EXCELLENT" &&
+										"border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+										networkAnalysis.healthStatus === "GOOD" &&
+										"border-blue-500/30 bg-blue-500/10 text-blue-400",
+										networkAnalysis.healthStatus === "WARNING" &&
+										"border-amber-500/30 bg-amber-500/10 text-amber-400",
+										networkAnalysis.healthStatus === "CRITICAL" &&
+										"border-red-500/30 bg-red-500/10 text-red-400",
+									)}
+								>
+									{networkAnalysis.healthStatus}
+								</Badge>
+								<div className="text-xs text-gray-400 mt-1">
+									overall status
+								</div>
+							</div>
+							
+							<div className="text-center">
+								<div className="text-xs text-gray-400 mb-2">REGIONS</div>
+								<div className="text-sm font-medium text-blue-400">
+									{Object.keys(networkAnalysis.regions).length}
+								</div>
+								<div className="text-xs text-gray-400 mt-1">
+									countries
+								</div>
+							</div>
+						</div>
+						
+						{/* Regional Distribution */}
+						<div className="mt-6 pt-4 border-t border-gray-800">
+							<div className="text-xs text-gray-400 mb-3">
+								REGIONAL DISTRIBUTION
+							</div>
+							<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+								{Object.entries(networkAnalysis.regions)
+									.sort(([, a], [, b]) => b - a)
+									.slice(0, 8)
+									.map(([country, count]) => (
+										<div
+											key={country}
+											className="flex items-center justify-between text-xs"
+										>
+											<div className="flex items-center">
+												<MapPin className="w-3 h-3 mr-1 text-gray-400" />
+												<span className="text-gray-300 truncate">
+													{country}
+												</span>
+											</div>
+											<Badge
+												variant="outline"
+												className="text-xs px-2 py-0.5 border-gray-600 text-gray-300"
+											>
+												{count}
+											</Badge>
+										</div>
+									))}
+							</div>
+						</div>
+						
+						{/* System Metrics */}
+						<div className="mt-6 pt-4 border-t border-gray-800">
+							<div className="text-xs text-gray-400 mb-3">
+								SYSTEM PERFORMANCE
+							</div>
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+								<div>
+									<div className="flex justify-between items-center mb-2">
+										<span className="text-sm text-gray-400">AVG CPU USAGE</span>
+										<span
+											className={cn(
+												"text-sm font-mono",
+												networkAnalysis.avgCpuUsage > 80
+													? "text-red-400"
+													: networkAnalysis.avgCpuUsage > 60
+														? "text-amber-400"
+														: "text-emerald-400",
+											)}
+										>
+											{networkAnalysis.avgCpuUsage.toFixed(1)}%
+										</span>
+									</div>
+									<Progress
+										value={networkAnalysis.avgCpuUsage}
+										className="h-2"
+									/>
+								</div>
+								
+								<div>
+									<div className="flex justify-between items-center mb-2">
+										<span className="text-sm text-gray-400">AVG MEMORY</span>
+										<span
+											className={cn(
+												"text-sm font-mono",
+												networkAnalysis.avgMemoryUsage > 80
+													? "text-red-400"
+													: networkAnalysis.avgMemoryUsage > 60
+														? "text-amber-400"
+														: "text-emerald-400",
+											)}
+										>
+											{networkAnalysis.avgMemoryUsage.toFixed(1)}%
+										</span>
+									</div>
+									<Progress
+										value={networkAnalysis.avgMemoryUsage}
+										className="h-2"
+									/>
+								</div>
+								
+								<div>
+									<div className="flex items-center justify-between mb-2">
+										<span className="text-sm text-gray-400">LAST UPDATE</span>
+										<div className="flex items-center text-xs text-gray-300">
+											<Monitor className="w-3 h-3 mr-1" />
+											{calc.getTimeDifference(
+												Date.now(),
+												networkAnalysis.lastUpdate,
+											)}
+										</div>
+									</div>
+									<div className="text-xs text-gray-500">
+										{calc.formatTimestamp(networkAnalysis.lastUpdate)}
+									</div>
+								</div>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+				
 				{/* Protection & Risk Management */}
 				<Card>
 					<CardHeader>
@@ -231,7 +473,7 @@ function Welcome(): React.ReactElement | null {
 									className={cn(
 										"text-2xl font-bold mb-1",
 										runtime.raw.protection >= 0
-											? "text-green-400"
+											? "text-emerald-400"
 											: "text-red-400",
 									)}
 								>
@@ -240,7 +482,9 @@ function Welcome(): React.ReactElement | null {
 								<div
 									className={cn(
 										"text-xs flex items-center justify-center",
-										protectionPnL.isProfit ? "text-green-400" : "text-red-400",
+										protectionPnL.isProfit
+											? "text-emerald-400"
+											: "text-red-400",
 									)}
 								>
 									{protectionPnL.isProfit
@@ -257,9 +501,9 @@ function Welcome(): React.ReactElement | null {
 									className={cn(
 										"text-sm px-3 py-1",
 										marginAnalysis.riskLevel === "LOW" &&
-											"border-green-500/30 bg-green-500/10 text-green-400",
+											"border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
 										marginAnalysis.riskLevel === "MEDIUM" &&
-											"border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
+											"border-amber-500/30 bg-amber-500/10 text-amber-400",
 										marginAnalysis.riskLevel === "HIGH" &&
 											"border-orange-500/30 bg-orange-500/10 text-orange-400",
 										marginAnalysis.riskLevel === "CRITICAL" &&
@@ -275,7 +519,7 @@ function Welcome(): React.ReactElement | null {
 
 							<div className="text-center">
 								<div className="text-xs text-gray-400 mb-2">EXCHANGE</div>
-								<div className="text-sm font-medium text-white">
+								<div className="text-sm font-medium text-amber-400">
 									{runtime.raw.exchanges[0].toUpperCase()}
 								</div>
 								<div className="text-xs text-gray-400 mt-1">
@@ -285,7 +529,7 @@ function Welcome(): React.ReactElement | null {
 
 							<div className="text-center">
 								<div className="text-xs text-gray-400 mb-2">ACCOUNTS</div>
-								<div className="text-sm font-medium text-white">
+								<div className="text-sm font-medium text-blue-400">
 									{runtime.raw.accounts.length}
 								</div>
 								<div className="text-xs text-gray-400 mt-1">
@@ -313,7 +557,7 @@ function Welcome(): React.ReactElement | null {
 							<div
 								className={cn(
 									"flex items-center text-sm",
-									liquidityPnL.isProfit ? "text-green-400" : "text-red-400",
+									liquidityPnL.isProfit ? "text-emerald-400" : "text-red-400",
 								)}
 							>
 								{liquidityPnL.isProfit
@@ -345,20 +589,28 @@ function Welcome(): React.ReactElement | null {
 							<div
 								className={cn(
 									"flex items-center text-sm",
-									availablePnL.isProfit ? "text-green-400" : "text-red-400",
+									availablePnL.isProfit ? "text-emerald-400" : "text-red-400",
 								)}
 							>
 								{availablePnL.isProfit
 									? <TrendingUp className="w-4 h-4 mr-1" />
 									: <TrendingDown className="w-4 h-4 mr-1" />}
 								{calc.formatCurrency(availablePnL.absolute)}
-								<span className="ml-1">
+								<span
+									className={cn(
+										"ml-1",
+										availablePnL.isProfit ? "text-emerald-400" : "text-red-400",
+									)}
+								>
 									({calc.formatPercentage(availablePnL.percentage)})
 								</span>
 							</div>
 							<div className="text-xs text-gray-500 mt-1">
-								{((runtime.raw.available / runtime.raw.liquidity) * 100)
-									.toFixed(1)}% of total liquidity
+								<span className="text-blue-400 font-medium">
+									{((runtime.raw.available / runtime.raw.liquidity) * 100)
+										.toFixed(1)}%
+								</span>{" "}
+								of total liquidity
 							</div>
 						</CardContent>
 					</Card>
@@ -375,7 +627,7 @@ function Welcome(): React.ReactElement | null {
 							<div
 								className={cn(
 									"text-2xl font-bold mb-2",
-									totalROI.isProfit ? "text-green-400" : "text-red-400",
+									totalROI.isProfit ? "text-emerald-400" : "text-red-400",
 								)}
 							>
 								{calc.formatPercentage(totalROI.percentage, 3)}
@@ -383,7 +635,7 @@ function Welcome(): React.ReactElement | null {
 							<div
 								className={cn(
 									"flex items-center text-sm",
-									totalROI.isProfit ? "text-green-400" : "text-red-400",
+									totalROI.isProfit ? "text-emerald-400" : "text-red-400",
 								)}
 							>
 								{totalROI.isProfit
@@ -411,7 +663,7 @@ function Welcome(): React.ReactElement | null {
 								className={cn(
 									"flex items-center text-sm",
 									runtime.raw.rate > snapshot.raw.rate
-										? "text-green-400"
+										? "text-emerald-400"
 										: "text-red-400",
 								)}
 							>
@@ -449,7 +701,7 @@ function Welcome(): React.ReactElement | null {
 									<div
 										className={cn(
 											"text-xs",
-											marginPnL.isProfit ? "text-green-400" : "text-red-400",
+											marginPnL.isProfit ? "text-emerald-400" : "text-red-400",
 										)}
 									>
 										{calc.formatCurrency(marginPnL.absolute)}{" "}
@@ -466,9 +718,9 @@ function Welcome(): React.ReactElement | null {
 										className={cn(
 											"text-xs",
 											marginAnalysis.riskLevel === "LOW" &&
-												"border-green-500/30 bg-green-500/10 text-green-400",
+												"border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
 											marginAnalysis.riskLevel === "MEDIUM" &&
-												"border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
+												"border-amber-500/30 bg-amber-500/10 text-amber-400",
 											marginAnalysis.riskLevel === "HIGH" &&
 												"border-orange-500/30 bg-orange-500/10 text-orange-400",
 											marginAnalysis.riskLevel === "CRITICAL" &&
@@ -485,7 +737,16 @@ function Welcome(): React.ReactElement | null {
 									<span className="text-sm text-gray-400">
 										UTILIZATION RATIO
 									</span>
-									<span className="text-sm text-white font-mono">
+									<span
+										className={cn(
+											"text-sm font-mono",
+											marginAnalysis.utilizationRatio > 80
+												? "text-red-400"
+												: marginAnalysis.utilizationRatio > 60
+												? "text-amber-400"
+												: "text-emerald-400",
+										)}
+									>
 										{marginAnalysis.utilizationRatio.toFixed(2)}%
 									</span>
 								</div>
@@ -524,7 +785,7 @@ function Welcome(): React.ReactElement | null {
 							<div className="grid grid-cols-3 gap-4 text-center">
 								<div>
 									<div className="text-xs text-gray-400 mb-1">ACTIVE</div>
-									<div className="text-2xl font-bold text-green-400">
+									<div className="text-2xl font-bold text-emerald-400">
 										{runtime.raw.workers.active}
 									</div>
 								</div>
@@ -546,7 +807,18 @@ function Welcome(): React.ReactElement | null {
 								<div className="flex justify-between items-center mb-2">
 									<span className="text-sm text-gray-400">EFFICIENCY</span>
 									<div className="flex items-center space-x-2">
-										<span className="text-sm text-white font-mono">
+										<span
+											className={cn(
+												"text-sm font-mono",
+												workerAnalysis.efficiency >= 95
+													? "text-emerald-400"
+													: workerAnalysis.efficiency >= 80
+													? "text-blue-400"
+													: workerAnalysis.efficiency >= 60
+													? "text-amber-400"
+													: "text-red-400",
+											)}
+										>
 											{workerAnalysis.efficiency.toFixed(1)}%
 										</span>
 										<Badge
@@ -554,11 +826,11 @@ function Welcome(): React.ReactElement | null {
 											className={cn(
 												"text-xs",
 												workerAnalysis.status === "OPTIMAL" &&
-													"border-green-500/30 bg-green-500/10 text-green-400",
+													"border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
 												workerAnalysis.status === "GOOD" &&
 													"border-blue-500/30 bg-blue-500/10 text-blue-400",
 												workerAnalysis.status === "WARNING" &&
-													"border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
+													"border-amber-500/30 bg-amber-500/10 text-amber-400",
 												workerAnalysis.status === "CRITICAL" &&
 													"border-red-500/30 bg-red-500/10 text-red-400",
 											)}
