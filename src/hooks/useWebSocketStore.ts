@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import { useAppStore } from "@/stores";
-import { generateDataHash } from "@/lib/utils";
+import {create} from "zustand";
+import {useAppStore} from "@/stores";
+import {generateDataHash} from "@/lib/utils";
 
 
 type WebSocketInfo = {
@@ -49,6 +49,10 @@ function createWebSocket(
 	ws.onopen = () => {
 		console.log('WebSocket connection opened');
 		
+		// Clear any previous sync errors when connection is restored
+		const appStore = useAppStore.getState();
+		appStore.setSyncError(null);
+		
 		ws.send(JSON.stringify({
 			webfix: "testnet",
 			method: "subscribe",
@@ -65,14 +69,14 @@ function createWebSocket(
 	
 	ws.onclose = () => {
 		console.log('WebSocket connection closed. Attempting to reconnect...');
-		setTimeout(onReconnect, 1000);
+		setTimeout(onReconnect, 3000);
 		onError();
 	};
 	
 	ws.onerror = (error) => {
 		console.error('WebSocket encountered an error:', error);
 		ws.close();
-		setTimeout(onReconnect, 1000);
+		setTimeout(onReconnect, 3000);
 	};
 	
 	return ws;
@@ -91,59 +95,50 @@ interface WebSocketState {
 	connectNode: (config: WebSocketConfig) => void;
 }
 
-const useWebSocketStore = create<WebSocketState>((set, get) => ({
+const useWebSocketStore = create<WebSocketState>((set,) => ({
 	ws: null,
 	connection: false,
 	locked: true,
 	
 	connectNode: (config: WebSocketConfig) => {
-		const existingWebSocket = get().ws;
-		if (existingWebSocket) {
-			existingWebSocket.close();
-		}
-		
-						const connectWebSocket = () => {
-					const ws = createWebSocket(
-						config.raw.info,
-						(event: MessageEvent) => {
-							try {
-								const json = JSON.parse(event.data);
-								if (json.value) {
-									sessionStorage.setItem(json.value.channel, JSON.stringify(json.value));
-									set({ connection: true });
-									
-									// Only notify sync system about significant data changes
-									// Skip frequent sessionStorage updates, focus on important state changes
-									if (json.value.type === 'sync' || json.value.important) {
-										const appStore = useAppStore.getState();
-										const dataVersion = generateDataHash(json.value);
-										appStore.markDataAsUpdated(dataVersion);
-									}
-								}
-							} catch (error) {
-								console.error("Error parsing WebSocket message:", error);
-								
-								// Notify sync system about error
-								const appStore = useAppStore.getState();
-								appStore.setSyncError("Failed to process WebSocket data");
-							}
-						},
-						() => {
-							console.log("WebSocket connection closed. Reconnecting...");
-							set({ connection: false });
-							setTimeout(connectWebSocket, 1000);
-						},
-						() => {
-							console.error("WebSocket encountered an error. Connection lost.");
-							set({ connection: false });
+		const connectWebSocket = () => {
+			const ws = createWebSocket(
+				config.raw.info,
+				(event: MessageEvent) => {
+					try {
+						const json = JSON.parse(event.data);
+						if (json.value) {
+							sessionStorage.setItem(json.value.channel, JSON.stringify(json.value));
+							set({connection: true});
 							
-							// Notify sync system about connection error
-							const appStore = useAppStore.getState();
-							appStore.setSyncError("WebSocket connection lost");
+							// Only notify sync system about significant data changes
+							// Skip frequent sessionStorage updates, focus on important state changes
+							if (json.value.type === 'sync' || json.value.important) {
+								const appStore = useAppStore.getState();
+								const dataVersion = generateDataHash(json.value);
+								appStore.markDataAsUpdated(dataVersion);
+							}
 						}
-					);
-					set({ ws, connection: false });
-				};
+					} catch (error) {
+						console.error("Error parsing WebSocket message:", error);
+						// Don't show sync errors for WebSocket message parsing issues
+						// These are usually temporary and don't affect localStorage sync
+					}
+				},
+				() => {
+					console.log("WebSocket connection closed. Reconnecting...");
+					set({connection: false});
+					setTimeout(connectWebSocket, 3000);
+				},
+				() => {
+					console.error("WebSocket encountered an error. Connection lost.");
+					set({connection: false});
+					// Don't show sync errors for WebSocket connection issues
+					// localStorage sync works independently of WebSocket status
+				}
+			);
+			set({ws, connection: false});
+		};
 		
 		connectWebSocket();
 	},

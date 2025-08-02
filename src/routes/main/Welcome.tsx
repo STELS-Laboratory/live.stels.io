@@ -1,5 +1,4 @@
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
-import { SyncDemo } from "@/components/main/SyncDemo";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -214,10 +213,6 @@ function Welcome(): React.ReactElement | null {
 	return (
 		<Screen>
 			<div className="grid gap-4">
-				{/* Sync Demo Component for Testing */}
-				<div className="flex justify-end mb-4">
-					<SyncDemo />
-				</div>
 				{/* Protection & Risk Management */}
 				<Card>
 					<CardHeader>
@@ -601,149 +596,6 @@ function Welcome(): React.ReactElement | null {
 						</CardContent>
 					</Card>
 				</div>
-
-				{/* Cryptocurrency Positions */}
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center text-white">
-							<PieChart className="w-5 h-5 mr-2" />
-							CRYPTOCURRENCY POSITIONS
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-							{Object.entries(runtime.raw.coins).map(
-								([coin, amount]: [string, number]) => {
-									const change = coinChanges[coin];
-									const previousAmount = snapshot.raw
-										.coins[coin as keyof typeof snapshot.raw.coins] || 0;
-
-									return (
-										<div key={coin} className="p-4">
-											<div className="flex items-center justify-between mb-3">
-												<div className="flex items-center space-x-3">
-													<div
-														className={cn(
-															"w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm",
-															coin === "ETH" &&
-																"bg-gradient-to-r from-blue-500 to-blue-600",
-															coin === "SOL" &&
-																"bg-gradient-to-r from-purple-500 to-purple-600",
-															coin === "USDT" &&
-																"bg-gradient-to-r from-green-500 to-green-600",
-														)}
-													>
-														{coin}
-													</div>
-													<div>
-														<div className="font-medium text-white">{coin}</div>
-														<div className="text-xs text-gray-400">
-															{coin === "USDT"
-																? "Stablecoin"
-																: "Cryptocurrency"}
-														</div>
-													</div>
-												</div>
-											</div>
-
-											<div className="space-y-2">
-												<div>
-													<div className="text-xs text-gray-400 mb-1">
-														CURRENT POSITION
-													</div>
-													<div
-														className={cn(
-															"text-lg font-bold",
-															amount >= 0 ? "text-green-400" : "text-red-400",
-														)}
-													>
-														{amount >= 0 ? "+" : ""}
-														{calc.formatNumber(amount, coin === "USDT" ? 2 : 8)}
-													</div>
-												</div>
-
-												<div>
-													<div className="text-xs text-gray-400 mb-1">
-														CHANGE
-													</div>
-													<div
-														className={cn(
-															"text-sm flex items-center",
-															change.isProfit
-																? "text-green-400"
-																: "text-red-400",
-														)}
-													>
-														{change.isProfit
-															? <TrendingUp className="w-3 h-3 mr-1" />
-															: <TrendingDown className="w-3 h-3 mr-1" />}
-														{change.absolute >= 0 ? "+" : ""}
-														{calc.formatNumber(
-															change.absolute,
-															coin === "USDT" ? 2 : 8,
-														)}
-													</div>
-												</div>
-
-												<div>
-													<div className="text-xs text-gray-400 mb-1">
-														PREVIOUS
-													</div>
-													<div className="text-sm text-gray-300 font-mono">
-														{previousAmount >= 0 ? "+" : ""}
-														{calc.formatNumber(
-															previousAmount,
-															coin === "USDT" ? 2 : 8,
-														)}
-													</div>
-												</div>
-											</div>
-										</div>
-									);
-								},
-							)}
-						</div>
-					</CardContent>
-				</Card>
-
-				{/* System Status Footer */}
-				<Card>
-					<CardContent className="pt-6">
-						<div className="flex items-center justify-between">
-							<div className="flex items-center space-x-6">
-								<div className="flex items-center text-sm">
-									<Clock className="w-4 h-4 mr-2 text-gray-400" />
-									<span className="text-gray-400">Snapshot:</span>
-									<span className="text-white font-mono ml-2">
-										{calc.formatTimestamp(snapshot.raw.timestamp)}
-									</span>
-								</div>
-								<div className="flex items-center text-sm">
-									<RefreshCw className="w-4 h-4 mr-2 text-gray-400" />
-									<span className="text-gray-400">Runtime:</span>
-									<span className="text-white font-mono ml-2">
-										{calc.formatTimestamp(runtime.raw.timestamp)}
-									</span>
-								</div>
-							</div>
-							<div className="flex items-center space-x-4">
-								<div className="text-xs text-gray-400">
-									Update interval: {calc.getTimeDifference(
-										snapshot.raw.timestamp,
-										runtime.raw.timestamp,
-									)}
-								</div>
-								<Badge
-									variant="outline"
-									className="border-green-500/30 bg-green-500/10 text-green-400"
-								>
-									<div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse" />
-									CONNECTED
-								</Badge>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
 			</div>
 		</Screen>
 	);

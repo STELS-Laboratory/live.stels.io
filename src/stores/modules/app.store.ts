@@ -139,8 +139,9 @@ export const useAppStore = create<AppState>()(
 					...initialNetwork,
 					updateStatus: () => set(getNetworkInfo()),
 					
-					allowedRoutes: ['welcome', 'scanner', 'markets', 'canvas', 'network', 'wallet'],
-					currentRoute: 'welcome',
+					//allowedRoutes: ['welcome', 'scanner', 'markets', 'canvas', 'network', 'wallet'],
+					allowedRoutes: ['network', 'scanner'],
+					currentRoute: 'network',
 					setRoute: (route: string) => {
 						const { allowedRoutes } = get()
 						if (allowedRoutes.includes(route)) {
@@ -193,6 +194,8 @@ export const useAppStore = create<AppState>()(
 							
 							const newDataHash = getCurrentDataHash()
 							const { remoteDataVersion } = get()
+							
+							localStorage.clear()
 							
 							set({
 								localDataVersion: newDataHash,

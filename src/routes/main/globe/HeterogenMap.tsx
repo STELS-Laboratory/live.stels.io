@@ -1,10 +1,11 @@
-import type React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Globe from "react-globe.gl";
 
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
 import { filterSession } from "@/lib/utils.ts";
-import Screen from "@/routes/main/Screen.tsx";
+import Markets from "@/routes/main/Markets.tsx";
+import WalletWidget from "@/routes/main/Scanner.tsx";
+import Welcome from "@/routes/main/Welcome.tsx";
 
 interface LocationData {
 	latitude: number;
@@ -98,7 +99,9 @@ function parseNodeData(data: unknown[]): NodeData[] {
 	) as NodeData[];
 }
 
+// HeterogenComponent
 const HeterogenComponent: React.FC = () => {
+	const globeEl: unknown = useRef();
 	const [nodes, setNodes] = useState<NodeData[]>([]);
 
 	const session = useSessionStoreSync() as
@@ -110,13 +113,26 @@ const HeterogenComponent: React.FC = () => {
 	useEffect(() => {
 		const parsedNodes = parseNodeData(netMap);
 		setNodes(parsedNodes);
-	}, [netMap]);
+	}, []);
+
+	useEffect(() => {
+		// Auto-rotate
+		// @ts-ignore
+		globeEl.current.controls().autoRotate = true;
+		// @ts-ignore
+		globeEl.current.controls().autoRotateSpeed = 0.3;
+	}, []);
 
 	return (
-		<Screen>
-			<div className="bg-black w-[100%] h-[100%] overflow-hidden relative">
+		<div>
+			<div className="absolute top-[80px] p-4 z-10 w-[100%] h-[90%]">
+				<WalletWidget />
+				<Markets />
+				<Welcome />
+			</div>
+			<div className="fixed w-[100%] h-[100%] left-0 top-0 bottom-0 right-0 z-0">
 				<Globe
-					width={window.innerWidth - 100}
+					ref={globeEl}
 					globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
 					pointsData={nodes}
 					pointLat={(d) => (d as NodeData).location.latitude}
@@ -142,7 +158,7 @@ const HeterogenComponent: React.FC = () => {
 					backgroundColor="black"
 				/>
 			</div>
-		</Screen>
+		</div>
 	);
 };
 

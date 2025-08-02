@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
  */
 function Screen({ children }: { children: ReactNode }): React.ReactElement {
 	return (
-		<div className="flex p-4 gap-4 relative w-full h-full flex-col overflow-y-auto">
+		<div className="flex relative flex-col overflow-y-auto">
 			{children}
 		</div>
 	);

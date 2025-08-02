@@ -37,7 +37,7 @@ const useSessionStoreSync = create((set) => {
 		set(() => loadState());
 	};
 	
-	const POLLING_INTERVAL = 100;
+	const POLLING_INTERVAL = 1000;
 	setInterval(() => {
 		reloadState();
 	}, POLLING_INTERVAL);
