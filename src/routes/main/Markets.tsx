@@ -252,7 +252,7 @@ function Markets(): React.ReactElement {
 									<TableHead className="text-right">24h Change</TableHead>
 									<TableHead className="text-right">Volume</TableHead>
 									<TableHead className="text-right">Bid/Ask</TableHead>
-									<TableHead className="text-right">Status</TableHead>
+									<TableHead className="text-right">Energy</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
