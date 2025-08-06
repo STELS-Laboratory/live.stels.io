@@ -1,7 +1,7 @@
 import type React from "react";
 
 import ReactFlow, {
-  addEdge,
+  addEdge, Background,
   type Connection,
   type Edge,
   type Node,
@@ -18,7 +18,6 @@ import MacOSNode from "@/routes/main/canvas/MacOSNode.tsx";
 import { ChevronDown, ChevronRight, Filter, ShoppingBag } from "lucide-react";
 import { cleanBrands, cn } from "@/lib/utils";
 import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
-import Screen from "@/routes/main/Screen.tsx";
 
 const NODES_STORAGE_KEY = "stels-canvas-nodes";
 const EDGES_STORAGE_KEY = "stels-canvas-edges";
@@ -715,7 +714,7 @@ function Flow(): React.ReactElement | null {
   if (!session) return null;
 
   return (
-    <Screen>
+    <div className="absolute w-[100%] h-[100%] top-0 left-0">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -731,9 +730,10 @@ function Flow(): React.ReactElement | null {
         onDrop={onDrop}
         onDragOver={onDragOver}
       >
+        <Background className="stels-canvas" color={"#222222"} gap={10} size={1}/>
         <div className="absolute z-1 flex justify-center items-center flex-col w-60 h-60 bottom-0 right-0">
           <div>
-            <Graphite size={4} primary="#27272a99" />
+            <Graphite size={4} primary="orange" />
           </div>
           <div className="mt-4 text-2xl font-semibold text-zinc-800/60">
             STELS
@@ -814,7 +814,7 @@ function Flow(): React.ReactElement | null {
           {renderGroupedWidgets()}
         </div>
       </div>
-    </Screen>
+    </div>
   );
 }
 

@@ -36,6 +36,14 @@ export function filterSession(
 	return result;
 }
 
+export function parseTradingPair(pair: string): { base: string; quote: string } | null {
+	const match = pair.match(/^([A-Z0-9]+)\/([A-Z0-9]+)(?::[A-Z0-9]+)?$/);
+	if (!match) return null;
+	
+	const [, base, quote] = match;
+	return { base, quote };
+}
+
 /**
  * Removes ReactFlow branding links from the DOM
  */

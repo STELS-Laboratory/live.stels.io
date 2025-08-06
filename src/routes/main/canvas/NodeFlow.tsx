@@ -1,10 +1,12 @@
 import type React from "react";
 import { memo } from "react";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
+import TradesWidget from "@/components/widgets/TradeWidget.tsx";
+import OrderBook from "@/components/widgets/OrderBook.tsx";
 
 interface WidgetProps {
   widget: string;
-  raw: unknown;
+  raw: any;
 }
 
 /**
@@ -15,7 +17,11 @@ const Widget = ({ widget, raw }: WidgetProps) => {
     e.stopPropagation();
   };
 
-  switch (widget) {
+  switch (widget.split(".").pop()) {
+    case "trades":
+      return <TradesWidget exchange={raw.exchange} market={raw.market} trades={raw.trades}/>
+    case "book":
+      return <OrderBook book={raw} />
     default:
       return (
         <div className="bg-zinc-950 flex flex-col relative">
