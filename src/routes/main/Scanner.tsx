@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import Screen from "@/routes/main/Screen";
 import { validateAddress } from "@/lib/gliesereum";
+import OpenRawCanvas from "@/routes/main/notify/OpenRawCanvas.tsx";
 
 // Data types
 interface CoinInfo {
@@ -1418,6 +1419,8 @@ export default function WalletWidget(): React.ReactElement {
 					</form>
 				</CardContent>
 			</Card>
+			
+			<OpenRawCanvas/>
 
 			{/* Error State */}
 			{error && (
