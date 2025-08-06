@@ -31,7 +31,613 @@ interface FlowNodeData {
 
 type FlowNode = Node<FlowNodeData>;
 
-const defaultNodes: FlowNode[] = [];
+const defaultNodes: any[] = [
+  {
+    "id": "node-1754455771395",
+    "type": "custom",
+    "position": {
+      "x": -1155,
+      "y": 1440
+    },
+    "data": {
+      "channel": "testnet.runtime.connector.exchange.crypto.bybit.futures.BTC/USDT:USDT.book",
+      "label": "testnet.runtime.connector.exchange.crypto.bybit.futures.BTC/USDT:USDT.book",
+      "sessionData": {
+        "channel": "testnet.runtime.connector.exchange.crypto.bybit.futures.BTC/USDT:USDT.book",
+        "module": "book",
+        "widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.futures.BTC/USDT:USDT.book",
+        "raw": {
+          "exchange": "bybit",
+          "market": "BTC/USDT:USDT",
+          "bids": [
+            [
+              113388,
+              4.942
+            ],
+            [
+              113387.8,
+              0.002
+            ],
+            [
+              113387.7,
+              0.101
+            ],
+            [
+              113386.9,
+              0.12
+            ],
+            [
+              113386.5,
+              0.009
+            ],
+            [
+              113386.4,
+              0.171
+            ],
+            [
+              113386,
+              0.001
+            ],
+            [
+              113384.9,
+              0.002
+            ],
+            [
+              113384.6,
+              0.018
+            ],
+            [
+              113384.5,
+              0.021
+            ]
+          ],
+          "asks": [
+            [
+              113388.1,
+              0.39
+            ],
+            [
+              113388.3,
+              0.001
+            ],
+            [
+              113389.6,
+              0.005
+            ],
+            [
+              113390,
+              0.001
+            ],
+            [
+              113392.3,
+              0.009
+            ],
+            [
+              113392.5,
+              0.061
+            ],
+            [
+              113392.7,
+              0.143
+            ],
+            [
+              113393,
+              0.001
+            ],
+            [
+              113393.4,
+              0.001
+            ],
+            [
+              113393.5,
+              0.001
+            ]
+          ],
+          "volume": [
+            5.3870000000000005,
+            0.613
+          ],
+          "timestamp": 1754455761121,
+          "latency": 5275
+        },
+        "timestamp": 1754455761121
+      }
+    },
+    "dragHandle": ".drag-handle",
+    "width": 452,
+    "height": 658,
+    "selected": false,
+    "positionAbsolute": {
+      "x": -1155,
+      "y": 1440
+    },
+    "dragging": false
+  },
+  {
+    "id": "node-1754455954167",
+    "type": "custom",
+    "position": {
+      "x": -690,
+      "y": 1440
+    },
+    "data": {
+      "channel": "testnet.runtime.connector.exchange.crypto.bybit.futures.XRP/USDT:USDT.book",
+      "label": "testnet.runtime.connector.exchange.crypto.bybit.futures.XRP/USDT:USDT.book",
+      "sessionData": {
+        "channel": "testnet.runtime.connector.exchange.crypto.bybit.futures.XRP/USDT:USDT.book",
+        "module": "book",
+        "widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.futures.XRP/USDT:USDT.book",
+        "raw": {
+          "exchange": "bybit",
+          "market": "XRP/USDT:USDT",
+          "bids": [
+            [
+              2.9102,
+              18304
+            ],
+            [
+              2.91,
+              8840
+            ],
+            [
+              2.9099,
+              8663
+            ],
+            [
+              2.9098,
+              18830
+            ],
+            [
+              2.9097,
+              22763
+            ],
+            [
+              2.9096,
+              37451
+            ],
+            [
+              2.9095,
+              16133
+            ],
+            [
+              2.9094,
+              35656
+            ],
+            [
+              2.9093,
+              22856
+            ],
+            [
+              2.9092,
+              32971
+            ]
+          ],
+          "asks": [
+            [
+              2.9103,
+              5523
+            ],
+            [
+              2.9104,
+              8140
+            ],
+            [
+              2.9105,
+              35858
+            ],
+            [
+              2.9106,
+              19018
+            ],
+            [
+              2.9107,
+              83828
+            ],
+            [
+              2.9108,
+              56206
+            ],
+            [
+              2.9109,
+              41962
+            ],
+            [
+              2.911,
+              25998
+            ],
+            [
+              2.9111,
+              12130
+            ],
+            [
+              2.9112,
+              51639
+            ]
+          ],
+          "volume": [
+            222467,
+            340302
+          ],
+          "timestamp": 1754455946640,
+          "latency": 1684
+        },
+        "timestamp": 1754455946640
+      }
+    },
+    "dragHandle": ".drag-handle",
+    "width": 452,
+    "height": 658,
+    "selected": false,
+    "positionAbsolute": {
+      "x": -690,
+      "y": 1440
+    },
+    "dragging": false
+  },
+  {
+    "id": "node-1754455998281",
+    "type": "custom",
+    "position": {
+      "x": -225,
+      "y": 1440
+    },
+    "data": {
+      "channel": "testnet.runtime.connector.exchange.crypto.bybit.futures.JASMY/USDT:USDT.book",
+      "label": "testnet.runtime.connector.exchange.crypto.bybit.futures.JASMY/USDT:USDT.book",
+      "sessionData": {
+        "channel": "testnet.runtime.connector.exchange.crypto.bybit.futures.JASMY/USDT:USDT.book",
+        "module": "book",
+        "widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.futures.JASMY/USDT:USDT.book",
+        "raw": {
+          "exchange": "bybit",
+          "market": "JASMY/USDT:USDT",
+          "bids": [
+            [
+              0.01422,
+              918
+            ],
+            [
+              0.014219,
+              5525
+            ],
+            [
+              0.014218,
+              8478
+            ],
+            [
+              0.014217,
+              65974
+            ],
+            [
+              0.014216,
+              67165
+            ],
+            [
+              0.014215,
+              66782
+            ],
+            [
+              0.014214,
+              71655
+            ],
+            [
+              0.014213,
+              74225
+            ],
+            [
+              0.014212,
+              95134
+            ],
+            [
+              0.014211,
+              89281
+            ]
+          ],
+          "asks": [
+            [
+              0.014221,
+              2644
+            ],
+            [
+              0.014222,
+              30467
+            ],
+            [
+              0.014223,
+              55842
+            ],
+            [
+              0.014224,
+              49898
+            ],
+            [
+              0.014225,
+              47047
+            ],
+            [
+              0.014226,
+              73197
+            ],
+            [
+              0.014227,
+              56733
+            ],
+            [
+              0.014228,
+              97143
+            ],
+            [
+              0.014229,
+              79416
+            ],
+            [
+              0.01423,
+              159641
+            ]
+          ],
+          "volume": [
+            545137,
+            652028
+          ],
+          "timestamp": 1754455992784,
+          "latency": 1875
+        },
+        "timestamp": 1754455992784
+      }
+    },
+    "dragHandle": ".drag-handle",
+    "width": 452,
+    "height": 658,
+    "positionAbsolute": {
+      "x": -225,
+      "y": 1440
+    },
+    "selected": false,
+    "dragging": false
+  },
+  {
+    "id": "node-1754456013118",
+    "type": "custom",
+    "position": {
+      "x": -1155,
+      "y": 2115
+    },
+    "data": {
+      "channel": "testnet.runtime.connector.exchange.crypto.bybit.futures.ETH/USDT:USDT.book",
+      "label": "testnet.runtime.connector.exchange.crypto.bybit.futures.ETH/USDT:USDT.book",
+      "sessionData": {
+        "channel": "testnet.runtime.connector.exchange.crypto.bybit.futures.ETH/USDT:USDT.book",
+        "module": "book",
+        "widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.futures.ETH/USDT:USDT.book",
+        "raw": {
+          "exchange": "bybit",
+          "market": "ETH/USDT:USDT",
+          "bids": [
+            [
+              3573.89,
+              216.85
+            ],
+            [
+              3573.88,
+              6.74
+            ],
+            [
+              3573.86,
+              72.03
+            ],
+            [
+              3573.85,
+              10.09
+            ],
+            [
+              3573.82,
+              0.14
+            ],
+            [
+              3573.81,
+              0.02
+            ],
+            [
+              3573.8,
+              2.31
+            ],
+            [
+              3573.78,
+              4.4
+            ],
+            [
+              3573.77,
+              0.1
+            ],
+            [
+              3573.76,
+              0.4
+            ]
+          ],
+          "asks": [
+            [
+              3573.9,
+              0.01
+            ],
+            [
+              3573.94,
+              3.81
+            ],
+            [
+              3573.99,
+              0.01
+            ],
+            [
+              3574,
+              0.01
+            ],
+            [
+              3574.01,
+              0.02
+            ],
+            [
+              3574.04,
+              0.01
+            ],
+            [
+              3574.08,
+              0.01
+            ],
+            [
+              3574.11,
+              1.67
+            ],
+            [
+              3574.12,
+              9.02
+            ],
+            [
+              3574.13,
+              12.53
+            ]
+          ],
+          "volume": [
+            313.0799999999999,
+            27.099999999999998
+          ],
+          "timestamp": 1754456008937,
+          "latency": 1237
+        },
+        "timestamp": 1754456008937
+      }
+    },
+    "dragHandle": ".drag-handle",
+    "width": 452,
+    "height": 658,
+    "selected": false,
+    "positionAbsolute": {
+      "x": -1155,
+      "y": 2115
+    },
+    "dragging": false
+  },
+  {
+    "id": "node-1754456030840",
+    "type": "custom",
+    "position": {
+      "x": -225,
+      "y": 2115
+    },
+    "data": {
+      "channel": "testnet.runtime.connector.exchange.crypto.bybit.futures.SOL/USDT:USDT.book",
+      "label": "testnet.runtime.connector.exchange.crypto.bybit.futures.SOL/USDT:USDT.book",
+      "sessionData": {
+        "channel": "testnet.runtime.connector.exchange.crypto.bybit.futures.SOL/USDT:USDT.book",
+        "module": "book",
+        "widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.futures.SOL/USDT:USDT.book",
+        "raw": {
+          "exchange": "bybit",
+          "market": "SOL/USDT:USDT",
+          "bids": [
+            [
+              162.38,
+              114.3
+            ],
+            [
+              162.37,
+              271.4
+            ],
+            [
+              162.36,
+              553.4
+            ],
+            [
+              162.35,
+              1466.3
+            ],
+            [
+              162.34,
+              1892
+            ],
+            [
+              162.33,
+              1581.3
+            ],
+            [
+              162.32,
+              1739.2
+            ],
+            [
+              162.31,
+              1474
+            ],
+            [
+              162.3,
+              2029.7
+            ],
+            [
+              162.29,
+              944.4
+            ]
+          ],
+          "asks": [
+            [
+              162.39,
+              325.1
+            ],
+            [
+              162.4,
+              1655.4
+            ],
+            [
+              162.41,
+              1809.8
+            ],
+            [
+              162.42,
+              1804.1
+            ],
+            [
+              162.43,
+              1069.7
+            ],
+            [
+              162.44,
+              1437.6
+            ],
+            [
+              162.45,
+              1755.9
+            ],
+            [
+              162.46,
+              1273.6
+            ],
+            [
+              162.47,
+              2108.7
+            ],
+            [
+              162.48,
+              1893.3
+            ]
+          ],
+          "volume": [
+            12066,
+            15133.199999999997
+          ],
+          "timestamp": 1754456024728,
+          "latency": 2349
+        },
+        "timestamp": 1754456024728
+      }
+    },
+    "dragHandle": ".drag-handle",
+    "width": 452,
+    "height": 658,
+    "selected": false,
+    "positionAbsolute": {
+      "x": -225,
+      "y": 2115
+    },
+    "dragging": false
+  }
+];
 
 /**
  * Widget data structure from session storage
