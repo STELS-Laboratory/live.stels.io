@@ -3,6 +3,8 @@ import { memo } from "react";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
 import TradesWidget from "@/components/widgets/TradeWidget.tsx";
 import OrderBook from "@/components/widgets/OrderBook.tsx";
+import Candles from "@/components/widgets/Candles";
+import Ticker from "@/components/widgets/Ticker";
 
 interface WidgetProps {
   widget: string;
@@ -19,9 +21,19 @@ const Widget = ({ widget, raw }: WidgetProps) => {
 
   switch (widget.split(".").pop()) {
     case "trades":
-      return <TradesWidget exchange={raw.exchange} market={raw.market} trades={raw.trades}/>
+      return (
+        <TradesWidget
+          exchange={raw.exchange}
+          market={raw.market}
+          trades={raw.trades}
+        />
+      );
     case "book":
-      return <OrderBook book={raw} />
+      return <OrderBook book={raw} />;
+    case "candles":
+      return <Candles raw={raw} />;
+    case "ticker":
+      return <Ticker raw={raw} />;
     default:
       return (
         <div className="bg-zinc-950 flex flex-col relative">
