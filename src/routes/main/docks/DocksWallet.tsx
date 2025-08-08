@@ -1,4 +1,4 @@
-import { type ReactElement, useState } from "react";
+import { type ReactElement, useMemo, useState } from "react";
 import Screen from "@/routes/main/Screen.tsx";
 import Header from "@/components/main/Header.tsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,12 +16,38 @@ import {
 	AccordionTrigger,
 } from "@/components/ui/accordion";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync";
-import {filterSession} from "@/lib/utils.ts";
+import { filterSession } from "@/lib/utils.ts";
+import {
+	ArrowDownRight,
+	ArrowUpRight,
+	Code2,
+	Globe,
+	Send,
+	ShieldAlert,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 function CodeBlock(
 	{ children, label }: { children: string; label?: string },
 ): ReactElement {
 	const [copied, setCopied] = useState<boolean>(false);
+
+	const language = useMemo<string>(() => {
+		const map: Record<string, string> = {
+			typescript: "typescript",
+			ts: "typescript",
+			javascript: "javascript",
+			js: "javascript",
+			json: "json",
+			curl: "bash",
+			pseudocode: "none",
+		};
+		const key = (label || "text").trim().toLowerCase();
+		return map[key] || "none";
+	}, [label]);
 
 	const onCopy = async (): Promise<void> => {
 		try {
@@ -42,9 +68,18 @@ function CodeBlock(
 					</div>
 				)
 				: null}
-			<pre className="mt-2 w-full overflow-x-auto rounded-md bg-zinc-900 p-3 pt-5 text-xs text-zinc-200">
-        <code>{children}</code>
-			</pre>
+			<div className="mt-2 w-full overflow-hidden rounded-md bg-zinc-900 pt-5">
+				<SyntaxHighlighter
+					language={language}
+					style={vscDarkPlus as unknown as {
+						[key: string]: React.CSSProperties;
+					}}
+					customStyle={{ margin: 0, padding: "12px" }}
+					wrapLongLines
+				>
+					{children}
+				</SyntaxHighlighter>
+			</div>
 			<div className="absolute right-2 top-2">
 				<Tooltip>
 					<TooltipTrigger asChild>
@@ -88,6 +123,179 @@ function DocSection(
 	);
 }
 
+// Types for safely parsing ticker data from session entries
+interface SessionEntry {
+	key: string;
+	value: unknown;
+}
+
+interface TickerRaw {
+	exchange: string;
+	market: string;
+	last: number;
+	bid: number;
+	ask: number;
+	change: number;
+	percentage: number;
+	baseVolume: number;
+	quoteVolume: number;
+	timestamp: number;
+	latency: number;
+}
+
+interface TickerValue {
+	channel: string;
+	module: string;
+	widget: string;
+	raw: TickerRaw;
+	timestamp: number;
+}
+
+interface MappedTicker {
+	id: string;
+	exchange: string;
+	symbol: string;
+	last: number;
+	bid: number;
+	ask: number;
+	change: number;
+	percentage: number;
+}
+
+function isTickerValue(v: unknown): v is TickerValue {
+	if (typeof v !== "object" || v === null) return false;
+	const tv = v as Record<string, unknown>;
+	const raw = tv.raw as Record<string, unknown> | undefined;
+	return typeof tv.channel === "string" &&
+		typeof tv.module === "string" &&
+		typeof tv.widget === "string" &&
+		typeof tv.timestamp === "number" &&
+		!!raw &&
+		typeof raw.exchange === "string" &&
+		typeof raw.market === "string" &&
+		typeof raw.last === "number" &&
+		typeof raw.bid === "number" &&
+		typeof raw.ask === "number" &&
+		typeof raw.change === "number" &&
+		typeof raw.percentage === "number";
+}
+
+function formatPrice(value: number): string {
+	return new Intl.NumberFormat("en-US", {
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 2,
+	}).format(value);
+}
+
+function formatPercent(value: number, precision = 2): string {
+	return `${value >= 0 ? "+" : ""}${value.toFixed(precision)}%`;
+}
+
+function formatChangeAbs(value: number): string {
+	const abs = Math.abs(value);
+	const sign = value >= 0 ? "+" : "-";
+	return `${sign}${
+		new Intl.NumberFormat("en-US", {
+			minimumFractionDigits: 0,
+			maximumFractionDigits: 2,
+		}).format(abs)
+	}`;
+}
+
+function mapTickers(entries: SessionEntry[]): MappedTicker[] {
+	const result: MappedTicker[] = [];
+	for (const { key, value } of entries) {
+		if (!isTickerValue(value)) continue;
+		const raw = value.raw;
+		result.push({
+			id: key,
+			exchange: raw.exchange,
+			symbol: raw.market,
+			last: raw.last,
+			bid: raw.bid,
+			ask: raw.ask,
+			change: raw.change,
+			percentage: raw.percentage,
+		});
+	}
+	return result;
+}
+
+function TickerTape(
+	{ entries }: { entries: SessionEntry[] },
+): ReactElement | null {
+	const items = mapTickers(entries);
+	if (items.length === 0) return null;
+
+	return (
+		<div
+			aria-label="Live market ticker"
+			className="rounded-md border border-zinc-800 bg-zinc-900/40"
+		>
+			<div className="flex items-stretch gap-2 overflow-x-auto px-2 py-2">
+				{items.map((t) => {
+					const positive = t.percentage > 0 ||
+						(t.percentage === 0 && t.change > 0);
+					const negative = t.percentage < 0 ||
+						(t.percentage === 0 && t.change < 0);
+					const priceColor = positive
+						? "text-emerald-400"
+						: negative
+						? "text-red-400"
+						: "text-zinc-200";
+					const badgeBase = positive
+						? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+						: negative
+						? "border-red-500/30 bg-red-500/10 text-red-400"
+						: "border-zinc-700 bg-zinc-800 text-zinc-300";
+
+					return (
+						<div
+							key={t.id}
+							className="min-w-[260px] rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2"
+						>
+							<div className="flex items-center justify-between">
+								<div>
+									<div className="text-xs text-zinc-400">
+										{t.exchange.toUpperCase()}
+									</div>
+									<div className="text-sm font-medium text-white">
+										{t.symbol}
+									</div>
+								</div>
+								<div className="text-right">
+									<div className={`text-sm font-semibold ${priceColor}`}>
+										<span className="font-mono">{formatPrice(t.last)}</span>
+									</div>
+									<div className="mt-1 flex items-center justify-end gap-1 text-xs">
+										<div
+											className={`flex items-center gap-1 rounded border px-1.5 py-0.5 ${badgeBase}`}
+										>
+											{positive
+												? <ArrowUpRight className="h-3 w-3" />
+												: negative
+												? <ArrowDownRight className="h-3 w-3" />
+												: null}
+											<span className="font-mono">
+												{formatPercent(t.percentage)}
+											</span>
+										</div>
+										<div className="rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 text-zinc-300">
+											<span className="font-mono">
+												{formatChangeAbs(t.change)}
+											</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					);
+				})}
+			</div>
+		</div>
+	);
+}
+
 /**
  * Developer documentation for Gliesereum wallet protocol and reference API.
  * The goal is to describe the algorithms precisely so developers can
@@ -95,124 +303,8 @@ function DocSection(
  */
 function DocksWallet(): ReactElement {
 	const session = useSessionStoreSync() as Record<string, unknown> | null;
-	const tickers = filterSession(session || {}, /\.spot\..*\.ticker$/);
-	
-	console.log(tickers);
-	
-	// tickers data structure example:
-	// [
-	// 	{
-	// 		"key": "testnet.runtime.connector.exchange.crypto.bybit.spot.JASMY/USDT.ticker",
-	// 		"value": {
-	// 			"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.JASMY/USDT.ticker",
-	// 			"module": "ticker",
-	// 			"widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.spot.JASMY/USDT.ticker",
-	// 			"raw": {
-	// 				"exchange": "bybit",
-	// 				"market": "JASMY/USDT",
-	// 				"last": 0.01595,
-	// 				"bid": 0.01596,
-	// 				"ask": 0.01597,
-	// 				"change": 0.00055,
-	// 				"percentage": 3.57,
-	// 				"baseVolume": 123323858.92,
-	// 				"quoteVolume": 1942660.4621817,
-	// 				"timestamp": 1754684423790,
-	// 				"latency": 5286
-	// 			},
-	// 			"timestamp": 1754684423790
-	// 		}
-	// 	},
-	// 	{
-	// 		"key": "testnet.runtime.connector.exchange.crypto.bybit.spot.XRP/USDT.ticker",
-	// 		"value": {
-	// 			"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.XRP/USDT.ticker",
-	// 			"module": "ticker",
-	// 			"widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.spot.XRP/USDT.ticker",
-	// 			"raw": {
-	// 				"exchange": "bybit",
-	// 				"market": "XRP/USDT",
-	// 				"last": 3.3012,
-	// 				"bid": 3.3008,
-	// 				"ask": 3.3009,
-	// 				"change": 0.1926,
-	// 				"percentage": 6.2,
-	// 				"baseVolume": 136115594.92,
-	// 				"quoteVolume": 448677611.570038,
-	// 				"timestamp": 1754684428717,
-	// 				"latency": 3809
-	// 			},
-	// 			"timestamp": 1754684428717
-	// 		}
-	// 	},
-	// 	{
-	// 		"key": "testnet.runtime.connector.exchange.crypto.bybit.spot.BTC/USDT.ticker",
-	// 		"value": {
-	// 			"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.BTC/USDT.ticker",
-	// 			"module": "ticker",
-	// 			"widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.spot.BTC/USDT.ticker",
-	// 			"raw": {
-	// 				"exchange": "bybit",
-	// 				"market": "BTC/USDT",
-	// 				"last": 116425.9,
-	// 				"bid": 116425.9,
-	// 				"ask": 116426,
-	// 				"change": -918.9,
-	// 				"percentage": -0.78,
-	// 				"baseVolume": 5989.752191,
-	// 				"quoteVolume": 699368844.7694075,
-	// 				"timestamp": 1754684428160,
-	// 				"latency": 3590
-	// 			},
-	// 			"timestamp": 1754684428160
-	// 		}
-	// 	},
-	// 	{
-	// 		"key": "testnet.runtime.connector.exchange.crypto.bybit.spot.ETH/USDT.ticker",
-	// 		"value": {
-	// 			"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.ETH/USDT.ticker",
-	// 			"module": "ticker",
-	// 			"widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.spot.ETH/USDT.ticker",
-	// 			"raw": {
-	// 				"exchange": "bybit",
-	// 				"market": "ETH/USDT",
-	// 				"last": 4050.39,
-	// 				"bid": 4050.3,
-	// 				"ask": 4050.31,
-	// 				"change": 190.29,
-	// 				"percentage": 4.93,
-	// 				"baseVolume": 283557.95185,
-	// 				"quoteVolume": 1120380293.8686707,
-	// 				"timestamp": 1754684428953,
-	// 				"latency": 2709
-	// 			},
-	// 			"timestamp": 1754684428953
-	// 		}
-	// 	},
-	// 	{
-	// 		"key": "testnet.runtime.connector.exchange.crypto.bybit.spot.SOL/USDT.ticker",
-	// 		"value": {
-	// 			"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.SOL/USDT.ticker",
-	// 			"module": "ticker",
-	// 			"widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.spot.SOL/USDT.ticker",
-	// 			"raw": {
-	// 				"exchange": "bybit",
-	// 				"market": "SOL/USDT",
-	// 				"last": 177.44,
-	// 				"bid": 177.44,
-	// 				"ask": 177.45,
-	// 				"change": 5.11,
-	// 				"percentage": 2.97,
-	// 				"baseVolume": 1032170.128,
-	// 				"quoteVolume": 181579570.49285,
-	// 				"timestamp": 1754684428122,
-	// 				"latency": 3476
-	// 			},
-	// 			"timestamp": 1754684428122
-	// 		}
-	// 	}
-	// ]
-	
+	const tickers = filterSession(session || {}, /.spot\..*\.ticker$/);
+
 	return (
 		<Screen>
 			<div id="top" className="space-y-4">
@@ -221,13 +313,16 @@ function DocksWallet(): ReactElement {
 					description="Deterministic address format, signing/verification, and utility primitives."
 				/>
 
+				{/* Top ticker tape */}
+				<TickerTape entries={tickers as SessionEntry[]} />
+
 				{/* Table of Contents */}
 				<Card>
 					<CardHeader>
 						<CardTitle className="text-white">Contents</CardTitle>
 					</CardHeader>
 					<CardContent className="text-sm text-zinc-300">
-						<nav className="grid grid-cols-1 sm:grid-cols-2 gap-y-1">
+						<nav className="grid grid-cols-1 gap-y-1 sm:grid-cols-2">
 							<a className="text-amber-400 hover:underline" href="#overview">
 								1. Overview
 							</a>
@@ -258,8 +353,11 @@ function DocksWallet(): ReactElement {
 							<a className="text-amber-400 hover:underline" href="#api">
 								8. High-level API Reference
 							</a>
+							<a className="text-amber-400 hover:underline" href="#wallet-info">
+								9. Wallet Info (WebFix API)
+							</a>
 							<a className="text-amber-400 hover:underline" href="#security">
-								9. Security Considerations
+								10. Security Considerations
 							</a>
 						</nav>
 					</CardContent>
@@ -286,7 +384,7 @@ function DocksWallet(): ReactElement {
 						<Separator className="my-2" />
 						<div className="grid gap-2">
 							<div className="text-xs text-zinc-400">Core parameters:</div>
-							<ul className="list-disc pl-5 space-y-1">
+							<ul className="list-disc space-y-1 pl-5">
 								<li>
 									<span className="text-white font-medium">Curve</span>:
 									secp256k1
@@ -358,7 +456,7 @@ function DocksWallet(): ReactElement {
 				<DocSection id="address-spec" title="Address Specification">
 					<>
 						<p>Address derivation from a secp256k1 public key:</p>
-						<ol className="list-decimal pl-5 space-y-1">
+						<ol className="list-decimal space-y-1 pl-5">
 							<li>Ensure the public key is compressed to 33 bytes.</li>
 							<li>Compute hash = RIPEMD160(SHA256(publicKeyCompressed)).</li>
 							<li>Prefix with version byte 98: payload = [98] + hash.</li>
@@ -367,7 +465,7 @@ function DocksWallet(): ReactElement {
 							<li>Encode using Base58 to obtain the address string.</li>
 						</ol>
 						<p>Validation steps:</p>
-						<ol className="list-decimal pl-5 space-y-1">
+						<ol className="list-decimal space-y-1 pl-5">
 							<li>Base58-decode to bytes.</li>
 							<li>
 								Verify minimum length ≥ 1 (version) + 20 (hash) + 4 (checksum).
@@ -401,7 +499,7 @@ address = BASE58_ENCODE(full)`}
 							message to sign is UTF-8 encoded and hashed with SHA-256 before
 							signing.
 						</p>
-						<ol className="list-decimal pl-5 space-y-1">
+						<ol className="list-decimal space-y-1 pl-5">
 							<li>dataHash = SHA256(UTF8_ENCODE(dataString))</li>
 							<li>signature = ECDSA_SIGN_SECP256K1(privateKey, dataHash)</li>
 							<li>Serialize signature as DER, then hex-encode</li>
@@ -435,7 +533,7 @@ isValid = ECDSA_VERIFY_SECP256K1(pubKeyCompressed, dataHash, sigDER)`}
 							<AccordionItem value="rules">
 								<AccordionTrigger>Serialization rules</AccordionTrigger>
 								<AccordionContent>
-									<ul className="list-disc pl-5 space-y-1">
+									<ul className="list-disc space-y-1 pl-5">
 										<li>Sort object keys alphabetically (ascending).</li>
 										<li>
 											Represent arrays by serializing each element recursively.
@@ -469,10 +567,10 @@ isValid = ECDSA_VERIFY_SECP256K1(pubKeyCompressed, dataHash, sigDER)`}
 							Generates a 16-digit, Luhn-valid number from arbitrary input with
 							an optional secret for HMAC-based personalization.
 						</p>
-						<ol className="list-decimal pl-5 space-y-1">
+						<ol className="list-decimal space-y-1 pl-5">
 							<li>data = UTF8(input)</li>
 							<li>hash = secret ? HMAC-SHA256(secret, data) : SHA256(data)</li>
-							<li>digitsNeeded = 16 - prefix.length - 1</li>
+							<li>digitsNeeded = 16 - prefix length - 1</li>
 							<li>body = DECIMAL(hash) padded/truncated to digitsNeeded</li>
 							<li>base = prefix + body</li>
 							<li>control = Luhn checksum over base</li>
@@ -548,7 +646,7 @@ isValid = ECDSA_VERIFY_SECP256K1(pubKeyCompressed, dataHash, sigDER)`}
 
 				<DocSection id="api" title="High-level API Reference">
 					<>
-						<ul className="list-disc pl-5 space-y-2">
+						<ul className="list-disc space-y-2 pl-5">
 							<li>
 								<span className="text-white font-medium">createWallet()</span>
 								{" "}
@@ -623,9 +721,122 @@ const addrOk = Gliesereum.validateAddress(w.address)`}
 					</>
 				</DocSection>
 
+				<DocSection id="wallet-info" title="Wallet Info (WebFix API)">
+					<>
+						<p>
+							You can fetch wallet information using the WebFix API endpoint.
+							This example demonstrates how to request wallet details for a
+							Gliesereum address.
+						</p>
+
+						{/* Pretty chips row */}
+						<div className="flex flex-wrap items-center gap-2">
+							<div className="flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-xs">
+								<Globe className="h-3.5 w-3.5 text-amber-400" />
+								<span className="text-zinc-400">Endpoint</span>
+								<span className="text-white">https://live.stels.dev</span>
+							</div>
+							<div className="flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-xs">
+								<Send className="h-3.5 w-3.5 text-amber-400" />
+								<span className="text-zinc-400">Method</span>
+								<Badge className="border-amber-500/30 bg-amber-500/10 text-amber-400">
+									POST
+								</Badge>
+							</div>
+							<div className="flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-xs">
+								<Code2 className="h-3.5 w-3.5 text-amber-400" />
+								<span className="text-zinc-400">Content-Type</span>
+								<span className="text-white">application/json</span>
+							</div>
+						</div>
+
+						<Alert className="border-amber-500/30 bg-amber-500/5">
+							<ShieldAlert className="text-amber-400" />
+							<AlertTitle>Security Note</AlertTitle>
+							<AlertDescription>
+								Do not send private keys. The endpoint only requires a wallet
+								address. Always use HTTPS.
+							</AlertDescription>
+						</Alert>
+
+						<p className="text-xs text-zinc-400">Request body (JSON):</p>
+						<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+							<CodeBlock label="JSON">
+								{`{
+  "webfix": "1.0",
+  "method": "getWalletInfo",
+  "params": [
+    "gliesereum"
+  ],
+  "body": {
+    "address": "ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv"
+  }
+}`}
+							</CodeBlock>
+							<div>
+								<p className="text-xs text-zinc-400">Example (cURL):</p>
+								<CodeBlock label="cURL">
+									{`curl -sS -X POST \
+  -H "Content-Type: application/json" \
+  -d '{
+    "webfix": "1.0",
+    "method": "getWalletInfo",
+    "params": ["gliesereum"],
+    "body": { "address": "ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv" }
+  }' \
+  https://live.stels.dev`}
+								</CodeBlock>
+							</div>
+						</div>
+
+						<p className="text-xs text-zinc-400">
+							Example (fetch, TypeScript):
+						</p>
+						<CodeBlock label="TypeScript">
+							{`interface GetWalletInfoRequest {
+  webfix: "1.0";
+  method: "getWalletInfo";
+  params: ["gliesereum"];
+  body: { address: string };
+}
+
+interface GetWalletInfoResponse<T = unknown> {
+  ok: boolean;
+  result?: T;
+  error?: { code: string; message: string };
+}
+
+async function getWalletInfo(address: string) {
+  const payload: GetWalletInfoRequest = {
+    webfix: "1.0",
+    method: "getWalletInfo",
+    params: ["gliesereum"],
+    body: { address },
+  };
+
+  const res = await fetch("https://live.stels.dev", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const data = (await res.json()) as GetWalletInfoResponse;
+  if (!data.ok) throw new Error(data.error?.message || "Unknown error");
+  return data.result;
+}`}
+						</CodeBlock>
+						<div className="pt-2 text-xs">
+							<a href="#top" className="text-amber-400 hover:underline">
+								Back to top
+							</a>
+						</div>
+					</>
+				</DocSection>
+
 				<DocSection id="security" title="Security Considerations">
 					<>
-						<ul className="list-disc pl-5 space-y-1">
+						<ul className="list-disc space-y-1 pl-5">
 							<li>Never log or transmit private keys or raw seeds.</li>
 							<li>
 								Use constant-time comparisons for sensitive data (checksums,
