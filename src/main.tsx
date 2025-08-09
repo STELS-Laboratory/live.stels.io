@@ -3,6 +3,8 @@ import {createRoot} from 'react-dom/client';
 import '@/index.css';
 import App from '@/App.tsx';
 
+localStorage.clear()
+
 function generateId(length = 16): string {
   const bytes = new Uint8Array(length);
   crypto.getRandomValues(bytes);
