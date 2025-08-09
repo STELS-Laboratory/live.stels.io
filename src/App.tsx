@@ -9,26 +9,22 @@ import Flow from "@/routes/main/canvas/Flow.tsx";
 import HeterogenComponent from "@/routes/main/globe/HeterogenMap.tsx";
 import Scanner from "@/routes/main/Scanner.tsx";
 import GliesereumWallet from "@/routes/wallet/Wallet.tsx";
-
 import {
 	TooltipProvider,
 } from "@/components/ui/tooltip";
-import DocksWallet from "@/routes/main/docks/DocksWallet.tsx";
+import Layout from "@/routes/Layout.tsx";
 
 /**
  * Professional Dashboard component with fixed layout structure
  */
 export default function Dashboard(): React.ReactElement {
-	const { currentRoute,
-	} =
+	const { currentRoute } =
 		useAppStore();
 
 	const renderMainContent = (): React.ReactElement => {
 		switch (currentRoute) {
 			case "welcome":
 				return <Welcome />;
-			case "docks":
-				return <DocksWallet />;
 			case "scanner":
 				return <Scanner />;
 			case "markets":
@@ -51,7 +47,9 @@ export default function Dashboard(): React.ReactElement {
 	return (
 		<SessionProvider>
 			<TooltipProvider>
-				{renderMainContent()}
+				<Layout>
+					{renderMainContent()}
+				</Layout>
 			</TooltipProvider>
 		</SessionProvider>
 	);

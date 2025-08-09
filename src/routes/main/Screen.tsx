@@ -5,9 +5,11 @@ import type { ReactNode } from "react";
  */
 function Screen({ children }: { children: ReactNode }): React.ReactElement {
 	return (
-		<div className="flex p-2 m-auto max-w-xl relative flex-col overflow-y-auto">
-			{children}
-		</div>
+		<>
+			<div className="min-w-0">
+				{children}
+			</div>
+		</>
 	);
 }
 

@@ -9,7 +9,7 @@ import {
 	DollarSign,
 	Globe,
 	MapPin,
-	// Monitor,
+	Monitor,
 	Shield,
 	Target,
 	TrendingDown,
@@ -18,8 +18,9 @@ import {
 	Wallet,
 } from "lucide-react";
 import { cn, filterSession } from "@/lib/utils";
-import Screen from "@/routes/main/Screen.tsx";
 import Loader from "@/components/ui/loader.tsx";
+import Markets from "@/routes/main/Markets.tsx";
+import React from "react";
 
 class ProfessionalCalculations {
 	static formatCurrency(value: number, precision = 2): string {
@@ -174,8 +175,7 @@ class ProfessionalCalculations {
 		const healthPercentage = totalNodes > 0
 			? (activeNodes / totalNodes) * 100
 			: 0;
-		let healthStatus: "EXCELLENT" | "GOOD" | "STABLE" | "CRITICAL" =
-			"CRITICAL";
+		let healthStatus: "EXCELLENT" | "GOOD" | "STABLE" | "CRITICAL" = "CRITICAL";
 		if (healthPercentage >= 95) healthStatus = "EXCELLENT";
 		else if (healthPercentage >= 40) healthStatus = "GOOD";
 		else if (healthPercentage >= 10) healthStatus = "STABLE";
@@ -284,9 +284,8 @@ function Welcome(): React.ReactElement | null {
 	);
 
 	return (
-		<Screen>
-			<div className="grid gap-4">
-				{/* Network Nodes Status */}
+		<>
+			<div className="grid gap-4 min-w-0">
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center text-white">
@@ -295,9 +294,11 @@ function Welcome(): React.ReactElement | null {
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+						<div className="grid grid-cols-1 md:grid-cols-4 gap-6 min-w-0 overflow-hidden">
 							<div className="text-center">
-								<div className="text-xs text-gray-400 mb-2">TOTAL HETEROGENS</div>
+								<div className="text-xs text-gray-400 mb-2">
+									TOTAL HETEROGENS
+								</div>
 								<div className="text-2xl font-bold text-white mb-1">
 									{networkAnalysis.totalNodes}
 								</div>
@@ -354,20 +355,20 @@ function Welcome(): React.ReactElement | null {
 						</div>
 
 						{/* Regional Distribution */}
-						<div className="mt-6 pt-4 border-t border-gray-800">
+						<div className="mt-6 pt-4 border-t border-gray-800 min-w-0 overflow-hidden">
 							<div className="text-xs text-gray-400 mb-3">
 								REGIONAL DISTRIBUTION
 							</div>
-							<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+							<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 min-w-0 overflow-hidden">
 								{Object.entries(networkAnalysis.regions)
 									.sort(([, a], [, b]) => b - a)
 									.slice(0, 8)
 									.map(([country, count]) => (
 										<div
 											key={country}
-											className="flex items-center justify-between text-xs"
+											className="flex items-center justify-between text-xs min-w-0"
 										>
-											<div className="flex items-center">
+											<div className="flex items-center min-w-0 overflow-hidden">
 												<MapPin className="w-3 h-3 mr-1 text-gray-400" />
 												<span className="text-gray-300 truncate">
 													{country}
@@ -385,72 +386,72 @@ function Welcome(): React.ReactElement | null {
 						</div>
 
 						{/*/!* System Metrics *!/*/}
-						{/*<div className="mt-6 pt-4 border-t border-gray-800">*/}
-						{/*	<div className="text-xs text-gray-400 mb-3">*/}
-						{/*		SYSTEM PERFORMANCE*/}
-						{/*	</div>*/}
-						{/*	<div className="grid grid-cols-1 md:grid-cols-3 gap-4">*/}
-						{/*		<div>*/}
-						{/*			<div className="flex justify-between items-center mb-2">*/}
-						{/*				<span className="text-sm text-gray-400">AVG CPU USAGE</span>*/}
-						{/*				<span*/}
-						{/*					className={cn(*/}
-						{/*						"text-sm font-mono",*/}
-						{/*						networkAnalysis.avgCpuUsage > 80*/}
-						{/*							? "text-red-400"*/}
-						{/*							: networkAnalysis.avgCpuUsage > 60*/}
-						{/*							? "text-amber-400"*/}
-						{/*							: "text-emerald-400",*/}
-						{/*					)}*/}
-						{/*				>*/}
-						{/*					{networkAnalysis.avgCpuUsage.toFixed(1)}%*/}
-						{/*				</span>*/}
-						{/*			</div>*/}
-						{/*			<Progress*/}
-						{/*				value={networkAnalysis.avgCpuUsage}*/}
-						{/*				className="h-2"*/}
-						{/*			/>*/}
-						{/*		</div>*/}
-						
-						{/*		<div>*/}
-						{/*			<div className="flex justify-between items-center mb-2">*/}
-						{/*				<span className="text-sm text-gray-400">AVG MEMORY</span>*/}
-						{/*				<span*/}
-						{/*					className={cn(*/}
-						{/*						"text-sm font-mono",*/}
-						{/*						networkAnalysis.avgMemoryUsage > 80*/}
-						{/*							? "text-red-400"*/}
-						{/*							: networkAnalysis.avgMemoryUsage > 60*/}
-						{/*							? "text-amber-400"*/}
-						{/*							: "text-emerald-400",*/}
-						{/*					)}*/}
-						{/*				>*/}
-						{/*					{networkAnalysis.avgMemoryUsage.toFixed(1)}%*/}
-						{/*				</span>*/}
-						{/*			</div>*/}
-						{/*			<Progress*/}
-						{/*				value={networkAnalysis.avgMemoryUsage}*/}
-						{/*				className="h-2"*/}
-						{/*			/>*/}
-						{/*		</div>*/}
-						
-						{/*		<div>*/}
-						{/*			<div className="flex items-center justify-between mb-2">*/}
-						{/*				<span className="text-sm text-gray-400">LAST UPDATE</span>*/}
-						{/*				<div className="flex items-center text-xs text-gray-300">*/}
-						{/*					<Monitor className="w-3 h-3 mr-1" />*/}
-						{/*					{calc.getTimeDifference(*/}
-						{/*						Date.now(),*/}
-						{/*						networkAnalysis.lastUpdate,*/}
-						{/*					)}*/}
-						{/*				</div>*/}
-						{/*			</div>*/}
-						{/*			<div className="text-xs text-gray-500">*/}
-						{/*				{calc.formatTimestamp(networkAnalysis.lastUpdate)}*/}
-						{/*			</div>*/}
-						{/*		</div>*/}
-						{/*	</div>*/}
-						{/*</div>*/}
+						<div className="mt-6 pt-4 border-t border-gray-800 min-w-0 overflow-hidden">
+							<div className="text-xs text-gray-400 mb-3">
+								SYSTEM PERFORMANCE
+							</div>
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-w-0 overflow-hidden">
+								<div>
+									<div className="flex justify-between items-center mb-2">
+										<span className="text-sm text-gray-400">AVG CPU USAGE</span>
+										<span
+											className={cn(
+												"text-sm font-mono",
+												networkAnalysis.avgCpuUsage > 80
+													? "text-red-400"
+													: networkAnalysis.avgCpuUsage > 60
+													? "text-amber-400"
+													: "text-emerald-400",
+											)}
+										>
+											{networkAnalysis.avgCpuUsage.toFixed(1)}%
+										</span>
+									</div>
+									<Progress
+										value={networkAnalysis.avgCpuUsage}
+										className="h-2"
+									/>
+								</div>
+
+								<div>
+									<div className="flex justify-between items-center mb-2">
+										<span className="text-sm text-gray-400">AVG MEMORY</span>
+										<span
+											className={cn(
+												"text-sm font-mono",
+												networkAnalysis.avgMemoryUsage > 80
+													? "text-red-400"
+													: networkAnalysis.avgMemoryUsage > 60
+													? "text-amber-400"
+													: "text-emerald-400",
+											)}
+										>
+											{networkAnalysis.avgMemoryUsage.toFixed(1)}%
+										</span>
+									</div>
+									<Progress
+										value={networkAnalysis.avgMemoryUsage}
+										className="h-2"
+									/>
+								</div>
+
+								<div>
+									<div className="flex items-center justify-between mb-2">
+										<span className="text-sm text-gray-400">LAST UPDATE</span>
+										<div className="flex items-center text-xs text-gray-300">
+											<Monitor className="w-3 h-3 mr-1" />
+											{calc.getTimeDifference(
+												Date.now(),
+												networkAnalysis.lastUpdate,
+											)}
+										</div>
+									</div>
+									<div className="text-xs text-gray-500">
+										{calc.formatTimestamp(networkAnalysis.lastUpdate)}
+									</div>
+								</div>
+							</div>
+						</div>
 					</CardContent>
 				</Card>
 
@@ -540,7 +541,7 @@ function Welcome(): React.ReactElement | null {
 				</Card>
 
 				{/* Key Performance Metrics */}
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 min-w-0">
 					{/* Total Liquidity */}
 					<Card>
 						<CardHeader className="pb-3">
@@ -681,7 +682,7 @@ function Welcome(): React.ReactElement | null {
 				</div>
 
 				{/* Advanced Analytics Section */}
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
 					{/* Margin Analysis */}
 					<Card>
 						<CardHeader>
@@ -867,8 +868,10 @@ function Welcome(): React.ReactElement | null {
 						</CardContent>
 					</Card>
 				</div>
+
+				<Markets />
 			</div>
-		</Screen>
+		</>
 	);
 }
 

@@ -3,9 +3,6 @@ import Globe from "react-globe.gl";
 
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
 import { filterSession } from "@/lib/utils.ts";
-import Markets from "@/routes/main/Markets.tsx";
-import WalletWidget from "@/routes/main/Scanner.tsx";
-import Welcome from "@/routes/main/Welcome.tsx";
 
 interface LocationData {
 	latitude: number;
@@ -127,11 +124,6 @@ const HeterogenComponent: React.FC = () => {
 
 	return (
 		<>
-			<div className="absolute p-4 z-10 w-[100%] h-[100%] overflow-y-auto">
-				<WalletWidget />
-				<Welcome />
-				<Markets />
-			</div>
 			<div className="fixed w-[100%] h-[100%] left-0 top-0 bottom-0 right-0 z-0">
 				<Globe
 					ref={globeEl}

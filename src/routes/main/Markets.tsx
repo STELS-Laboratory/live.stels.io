@@ -20,7 +20,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import Screen from "@/routes/main/Screen.tsx";
 
 interface CandleData {
 	timestamp: number;
@@ -233,7 +232,7 @@ function Markets(): React.ReactElement {
 	};
 
 	return (
-		<Screen>
+		<>
 			<Card>
 				<CardHeader>
 					<CardTitle>Connection Markets</CardTitle>
@@ -241,9 +240,9 @@ function Markets(): React.ReactElement {
 						Real-time cryptocurrency futures prices and market data
 					</CardDescription>
 				</CardHeader>
-				<CardContent>
-					<div className="rounded-md border">
-						<Table>
+				<CardContent className="min-w-0">
+					<div className="rounded-md border overflow-x-auto">
+						<Table className="min-w-[720px]">
 							<TableHeader>
 								<TableRow>
 									<TableHead>Market</TableHead>
@@ -294,9 +293,13 @@ function Markets(): React.ReactElement {
 												</div>
 											</div>
 										</TableCell>
-										<TableCell>
-											<div className="flex items-center justify-center">
-												<MiniCandlestickChart candles={ticker.candles} />
+										<TableCell className="min-w-[130px]">
+											<div className="flex items-center justify-center overflow-hidden">
+												<MiniCandlestickChart
+													candles={ticker.candles}
+													width={120}
+													height={40}
+												/>
 											</div>
 										</TableCell>
 										<TableCell className="text-right font-mono">
@@ -354,7 +357,7 @@ function Markets(): React.ReactElement {
 					</div>
 				</CardContent>
 			</Card>
-		</Screen>
+		</>
 	);
 }
 

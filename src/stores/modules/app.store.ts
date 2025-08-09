@@ -139,9 +139,9 @@ export const useAppStore = create<AppState>()(
 					...initialNetwork,
 					updateStatus: () => set(getNetworkInfo()),
 					
-					//allowedRoutes: ['welcome', 'scanner', 'markets', 'canvas', 'network', 'wallet'],
-					allowedRoutes: ['canvas'],
-					currentRoute: 'canvas',
+					allowedRoutes: ['welcome', 'scanner', 'markets', 'canvas', 'network', 'wallet'],
+					//allowedRoutes: ['canvas'],
+					currentRoute: 'welcome',
 					setRoute: (route: string) => {
 						const { allowedRoutes } = get()
 						if (allowedRoutes.includes(route)) {
