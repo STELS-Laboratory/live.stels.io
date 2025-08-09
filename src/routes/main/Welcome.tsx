@@ -355,7 +355,7 @@ function Welcome(): React.ReactElement | null {
 						</div>
 
 						{/* Regional Distribution */}
-						<div className="mt-6 pt-4 border-t border-gray-800 min-w-0 overflow-hidden">
+						<div className="mt-6 pt-4 border-t  min-w-0 overflow-hidden">
 							<div className="text-xs text-gray-400 mb-3">
 								REGIONAL DISTRIBUTION
 							</div>
@@ -386,7 +386,7 @@ function Welcome(): React.ReactElement | null {
 						</div>
 
 						{/*/!* System Metrics *!/*/}
-						<div className="mt-6 pt-4 border-t border-gray-800 min-w-0 overflow-hidden">
+						<div className="mt-6 pt-4 border-t  min-w-0 overflow-hidden">
 							<div className="text-xs text-gray-400 mb-3">
 								SYSTEM PERFORMANCE
 							</div>

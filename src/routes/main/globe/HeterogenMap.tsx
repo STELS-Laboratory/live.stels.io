@@ -1,8 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
-import Globe from "react-globe.gl";
+import { type ReactElement, useEffect, useMemo, useRef, useState } from "react";
+import Globe, { type GlobeMethods } from "react-globe.gl";
 
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
 import { filterSession } from "@/lib/utils.ts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 interface LocationData {
 	latitude: number;
@@ -59,6 +62,20 @@ interface NodeData {
 	config: ConfigData;
 }
 
+interface CountEntry {
+	name: string;
+	count: number;
+}
+
+interface NetworkStats {
+	totalNodes: number;
+	uniqueNetworks: number;
+	uniqueCountries: number;
+	topNetworks: CountEntry[];
+	topCountries: CountEntry[];
+	versions: CountEntry[];
+}
+
 interface SessionItem {
 	key: string;
 	value: {
@@ -97,18 +114,19 @@ function parseNodeData(data: unknown[]): NodeData[] {
 }
 
 // HeterogenComponent
-const HeterogenComponent: React.FC = () => {
-	// @ts-ignore
-	const globeEl: any = useRef();
+const HeterogenComponent = (): ReactElement => {
+	const globeEl = useRef<GlobeMethods | undefined>(undefined);
 	const [nodes, setNodes] = useState<NodeData[]>([]);
 
 	const session = useSessionStoreSync() as
 		| Record<string, { value: { raw: { nodes: unknown[] } } }>
 		| null;
 
-	const netMap = filterSession(session || {}, /\.heterogen\..*\.setting$/);
-	
-	
+	const netMap = useMemo(
+		() => filterSession(session || {}, /\.heterogen\..*\.setting$/),
+		[session],
+	);
+
 	useEffect(() => {
 		const parsedNodes = parseNodeData(netMap);
 		setNodes(parsedNodes);
@@ -116,11 +134,40 @@ const HeterogenComponent: React.FC = () => {
 
 	useEffect(() => {
 		// Auto-rotate
-		// @ts-ignore
-		globeEl.current.controls().autoRotate = true;
-		// @ts-ignore
-		globeEl.current.controls().autoRotateSpeed = 0.3;
+		const controls = globeEl.current?.controls();
+		if (controls) {
+			controls.autoRotate = true;
+			controls.autoRotateSpeed = 0.1;
+		}
 	}, []);
+
+	const stats: NetworkStats = useMemo(() => {
+		const totalNodes = nodes.length;
+
+		const countBy = (items: string[]): CountEntry[] => {
+			const map = new Map<string, number>();
+			items.forEach((key) => {
+				if (!key) return;
+				map.set(key, (map.get(key) ?? 0) + 1);
+			});
+			return Array.from(map.entries())
+				.map(([name, count]) => ({ name, count }))
+				.sort((a, b) => b.count - a.count);
+		};
+
+		const networks = countBy(nodes.map((n) => n.config.network));
+		const countries = countBy(nodes.map((n) => n.location.country_name));
+		const versions = countBy(nodes.map((n) => n.location.version));
+
+		return {
+			totalNodes,
+			uniqueNetworks: networks.length,
+			uniqueCountries: countries.length,
+			topNetworks: networks.slice(0, 4),
+			topCountries: countries.slice(0, 6),
+			versions: versions.slice(0, 4),
+		};
+	}, [nodes]);
 
 	return (
 		<>
@@ -132,7 +179,7 @@ const HeterogenComponent: React.FC = () => {
 					pointLat={(d) => (d as NodeData).location.latitude}
 					pointLng={(d) => (d as NodeData).location.longitude}
 					pointColor={() => "orange"}
-					pointAltitude={0.02}
+					pointAltitude={0.001}
 					pointRadius={0.8}
 					// @ts-expect-error: react-globe.gl library types are incomplete for pointLabel prop
 					pointLabel={(d: NodeData) => (
@@ -151,6 +198,91 @@ const HeterogenComponent: React.FC = () => {
 					atmosphereColor="gray"
 					backgroundColor="black"
 				/>
+			</div>
+			<div className="fixed z-10 max-w-[460px]">
+				<Card
+					aria-live="polite"
+					className="bg-zinc-900/80 border-zinc-800 backdrop-blur"
+				>
+					<CardHeader className="pb-3">
+						<CardTitle className="text-amber-400">Heterogen Network</CardTitle>
+						<div className="text-sm text-zinc-400">
+							Live overview aggregated from active nodes
+						</div>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<div className="grid grid-cols-3 gap-3">
+							<div className="rounded-md border  p-3">
+								<div className="text-xs text-zinc-400">Nodes</div>
+								<div className="text-xl font-semibold text-zinc-100">
+									{stats.totalNodes}
+								</div>
+							</div>
+							<div className="rounded-md border  p-3">
+								<div className="text-xs text-zinc-400">Networks</div>
+								<div className="text-xl font-semibold text-zinc-100">
+									{stats.uniqueNetworks}
+								</div>
+							</div>
+							<div className="rounded-md border  p-3">
+								<div className="text-xs text-zinc-400">Countries</div>
+								<div className="text-xl font-semibold text-zinc-100">
+									{stats.uniqueCountries}
+								</div>
+							</div>
+						</div>
+
+						<Separator className="bg-zinc-800" />
+
+						<div className="space-y-2">
+							<div className="text-xs uppercase tracking-wide text-zinc-400">
+								Heterogeneous
+							</div>
+							<div className="flex flex-wrap gap-2">
+								{stats.topNetworks.length === 0
+									? <span className="text-xs text-zinc-500">No data</span>
+									: (
+										stats.topNetworks.map((n) => (
+											<Badge
+												key={n.name}
+												variant="secondary"
+												className="bg-amber-500/10 text-amber-400 border-amber-400/30"
+											>
+												{n.name}
+												<span className="ml-2 rounded bg-amber-500/20 px-1.5 text-[10px] text-amber-300">
+													{n.count}
+												</span>
+											</Badge>
+										))
+									)}
+							</div>
+						</div>
+
+						<div className="space-y-2">
+							<div className="text-xs uppercase tracking-wide text-zinc-400">
+								Top Countries
+							</div>
+							<div className="flex flex-wrap gap-2">
+								{stats.topCountries.length === 0
+									? <span className="text-xs text-zinc-500">No data</span>
+									: (
+										stats.topCountries.map((c) => (
+											<Badge
+												key={c.name}
+												variant="outline"
+												className="border-zinc-700 text-zinc-200"
+											>
+												{c.name}
+												<span className="ml-2 rounded bg-zinc-700/60 px-1.5 text-[10px] text-zinc-300">
+													{c.count}
+												</span>
+											</Badge>
+										))
+									)}
+							</div>
+						</div>
+					</CardContent>
+				</Card>
 			</div>
 		</>
 	);

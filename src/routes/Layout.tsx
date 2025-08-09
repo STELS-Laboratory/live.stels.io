@@ -96,8 +96,11 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 				>
 					<div className="px-4 py-4 shrink-0">
 						<div className="flex items-center gap-3">
-							<div onClick={() => setRoute("welcome")} className="size-9 flex items-center justify-center">
-								<Graphite size={2}/>
+							<div
+								onClick={() => setRoute("welcome")}
+								className="size-9 flex items-center justify-center"
+							>
+								<Graphite size={2} />
 							</div>
 							<div className="flex flex-col">
 								<span className="text-sm font-medium">STELS</span>
@@ -149,8 +152,11 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 					<header className="py-4 z-30 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0">
 						<div className="container-full">
 							<div className="lg:hidden flex gap-2">
-								<div onClick={() => setRoute("welcome")} className="size-9 flex items-center justify-center">
-									<Graphite size={2}/>
+								<div
+									onClick={() => setRoute("welcome")}
+									className="size-9 flex items-center justify-center"
+								>
+									<Graphite size={2} />
 								</div>
 								<span className="text-sm font-medium">STELS</span>
 							</div>
@@ -162,7 +168,9 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								<span className="text-sm text-muted-foreground">
 									MODULE:
 								</span>
-								<span className="text-xs text-amber-700 uppercase">{currentRoute}</span>
+								<span className="text-xs text-amber-700 uppercase">
+									{currentRoute}
+								</span>
 							</div>
 						</div>
 
@@ -229,8 +237,16 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 					</main>
 
 					<footer className="border-t shrink-0">
-						<div className="container-full py-4 text-xs text-muted-foreground">
-							© 2024 Gliesereum Ukraine. All rights reserved.
+						<div className="container-full py-4 text-xs text-muted-foreground flex items-center justify-between gap-3">
+							<span>© 2024 Gliesereum Ukraine. All rights reserved.</span>
+							<a
+								href="https://doc.stels.io"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="text-amber-400 hover:underline focus:outline-none focus:ring-2 focus:ring-amber-500/50 rounded-sm"
+							>
+								Documentation
+							</a>
 						</div>
 					</footer>
 				</div>
