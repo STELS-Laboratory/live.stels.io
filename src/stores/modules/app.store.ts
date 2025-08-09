@@ -247,7 +247,7 @@ export const useAppStore = create<AppState>()(
 				}
 			},
 			{
-				name: 'app-storage-test',
+				name: 'app-storage-test-store',
 			}
 		)
 	)
