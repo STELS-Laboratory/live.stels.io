@@ -69,6 +69,10 @@ export interface AppState extends NetworkStatus, SyncState, SyncActions {
 	allowedRoutes: string[]
 	currentRoute: string
 	setRoute: (route: string) => void
+
+  /** Indicates that a route (screen) is being loaded via Suspense/lazy. */
+  routeLoading: boolean
+  setRouteLoading: (value: boolean) => void
 }
 
 /**
@@ -150,6 +154,10 @@ export const useAppStore = create<AppState>()(
 							console.warn(`Route "${route}" is not allowed!`)
 						}
 					},
+                  
+                  // Route loading state
+                  routeLoading: false,
+                  setRouteLoading: (value: boolean): void => set({ routeLoading: value }),
 					
 					// Sync state
 					hasUpdates: false,

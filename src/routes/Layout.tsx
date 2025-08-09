@@ -10,16 +10,17 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import {
 	Activity,
-	Bot,
 	Boxes,
 	CandlestickChart,
 	Globe,
 	Home,
 	ScanSearch,
-	Wallet,
+	// Wallet,
 } from "lucide-react";
+import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
 
 interface LayoutProps {
 	children: React.ReactNode;
@@ -36,7 +37,7 @@ interface NavItem {
  * and a content area optimized for trading and analytics screens.
  */
 function Layout({ children }: LayoutProps): React.ReactElement {
-	const { currentRoute, setRoute, allowedRoutes } = useAppStore();
+	const { currentRoute, setRoute, allowedRoutes, routeLoading } = useAppStore();
 
 	const generalNav: NavItem[] = [
 		{ key: "welcome", label: "Sonar", icon: Home },
@@ -46,7 +47,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 
 	const systemNav: NavItem[] = [
 		{ key: "network", label: "Network", icon: Globe },
-		{ key: "wallet", label: "Wallet", icon: Wallet },
+		// { key: "wallet", label: "Wallet", icon: Wallet },
 		{ key: "canvas", label: "Canvas", icon: Boxes },
 	].filter((i) => allowedRoutes.includes(i.key));
 
@@ -93,15 +94,15 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 					className="hidden lg:flex lg:flex-col border-r bg-card/40 backdrop-blur-sm overflow-hidden"
 					aria-label="Primary navigation"
 				>
-					<div className="px-4 py-4 border-b shrink-0">
+					<div className="px-4 py-4 shrink-0">
 						<div className="flex items-center gap-3">
-							<div className="size-9 rounded-md bg-gradient-to-br from-amber-500 to-amber-700/80 flex items-center justify-center">
-								<Bot className="size-5 text-background" />
+							<div onClick={() => setRoute("welcome")} className="size-9 flex items-center justify-center">
+								<Graphite size={2}/>
 							</div>
 							<div className="flex flex-col">
 								<span className="text-sm font-medium">STELS</span>
 								<span className="text-xs text-muted-foreground">
-									Artificial Intelligence
+									Artificial Marker Intelligence
 								</span>
 							</div>
 						</div>
@@ -127,7 +128,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						</nav>
 					</div>
 
-					<div className="mt-auto px-4 py-3 border-t">
+					<div className="mt-auto px-4 py-3">
 						<div className="flex items-center justify-between">
 							<Badge
 								variant="outline"
@@ -145,11 +146,11 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 				</aside>
 
 				<div className="flex flex-col min-w-0 h-full overflow-hidden">
-					<header className="z-30 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0">
-						<div className="container-full py-3 flex items-center gap-3">
-							<div className="lg:hidden flex items-center gap-2">
-								<div className="size-8 rounded-md bg-gradient-to-br from-amber-500 to-amber-700/80 flex items-center justify-center">
-									<Bot className="size-4 text-background" />
+					<header className="py-4 z-30 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0">
+						<div className="container-full">
+							<div className="lg:hidden flex gap-2">
+								<div onClick={() => setRoute("welcome")} className="size-9 flex items-center justify-center">
+									<Graphite size={2}/>
 								</div>
 								<span className="text-sm font-medium">STELS</span>
 							</div>
@@ -157,16 +158,16 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								orientation="vertical"
 								className="hidden lg:block h-6"
 							/>
-							<div className="flex items-center gap-3">
+							<div className="flex items-center gap-2">
 								<span className="text-sm text-muted-foreground">
-									STELS – Artificial Intelligence Dashboard
+									MODULE:
 								</span>
-								<span className="text-xs text-amber-400">{currentRoute}</span>
+								<span className="text-xs text-amber-700 uppercase">{currentRoute}</span>
 							</div>
 						</div>
 
 						{/* Mobile nav */}
-						<div className="container-full pb-3 lg:hidden">
+						<div className="container-full lg:hidden">
 							<div className="w-full overflow-x-auto">
 								<ul
 									className="flex items-center gap-1.5 min-w-max"
@@ -201,16 +202,35 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						</div>
 					</header>
 
+					{routeLoading
+						? (
+							<div className="w-full border-b">
+								<Progress value={60} />
+							</div>
+						)
+						: null}
+
 					<main
-						className="bg-zinc-950 container-full py-6 overflow-y-auto overflow-x-hidden min-h-0 flex-1"
+						className="bg-gradient-to-r from-zinc-950 to-zinc-900/30 container-full py-6 overflow-y-auto overflow-x-hidden min-h-0 flex-1 relative"
 						data-route-container
 					>
 						{children}
+						{routeLoading
+							? (
+								<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+									<div className="bg-background/60 backdrop-blur-sm rounded-md p-3 border">
+										<span className="text-xs text-muted-foreground">
+											Loading…
+										</span>
+									</div>
+								</div>
+							)
+							: null}
 					</main>
 
 					<footer className="border-t shrink-0">
 						<div className="container-full py-4 text-xs text-muted-foreground">
-							© 2024 STELS / SONAR. All rights reserved.
+							© 2024 Gliesereum Ukraine. All rights reserved.
 						</div>
 					</footer>
 				</div>
