@@ -10988,8 +10988,7 @@ function Flow(): React.ReactElement | null {
         }}
         onDrop={onDrop}
         onDragOver={onDragOver}
-        minZoom={0.1}
-        maxZoom={10}
+        minZoom={0.4}
       >
         <Background className="stels-canvas" color={"#222222"} gap={10} size={1}/>
         <div className="absolute z-1 flex justify-center items-center flex-col w-60 h-60 bottom-0 right-0">
