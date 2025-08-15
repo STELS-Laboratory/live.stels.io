@@ -138,7 +138,7 @@ export const useAppStore = create<AppState>()(
 				}
 				
 				return {
-					version: '1.0.1',
+					version: '1.0.3',
 					setVersion: (v: string) => set({ version: v }),
 					...initialNetwork,
 					updateStatus: () => set(getNetworkInfo()),

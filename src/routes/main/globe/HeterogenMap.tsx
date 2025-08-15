@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
+import globeImage from "@/assets/stels-ai.jpg";
+
 interface LocationData {
 	latitude: number;
 	longitude: number;
@@ -174,7 +176,7 @@ const HeterogenComponent = (): ReactElement => {
 			<div className="fixed w-[100%] h-[100%] left-0 top-0 bottom-0 right-0 z-0">
 				<Globe
 					ref={globeEl}
-					globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
+					globeImageUrl={globeImage}
 					pointsData={nodes}
 					pointLat={(d) => (d as NodeData).location.latitude}
 					pointLng={(d) => (d as NodeData).location.longitude}
