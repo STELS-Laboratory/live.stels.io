@@ -12,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
-	Activity,
 	Boxes,
 	CandlestickChart,
 	Globe,
@@ -55,7 +54,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 		const Icon = item.icon;
 		const isActive = currentRoute === item.key;
 		return (
-			<li key={item.key}>
+			<div className="w-[100%] flex" key={item.key}>
 				<TooltipProvider>
 					<Tooltip delayDuration={200}>
 						<TooltipTrigger asChild>
@@ -63,7 +62,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								type="button"
 								onClick={() => setRoute(item.key)}
 								className={cn(
-									"group w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-smooth outline-none",
+									"cursor-pointer flex flex-1 items-center p-4 m-2 justify-center text-sm transition-smooth outline-none",
 									"hover:bg-amber-500/10 hover:text-amber-400",
 									isActive
 										? "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/30"
@@ -73,51 +72,53 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 							>
 								<Icon
 									className={cn(
-										"size-4 shrink-0",
+										"size-6 shrink-0",
 										isActive ? "text-amber-400" : "",
 									)}
 								/>
-								<span className="truncate">{item.label}</span>
+								{/*<span className="truncate">{item.label}</span>*/}
 							</button>
 						</TooltipTrigger>
 						<TooltipContent side="right">{item.label}</TooltipContent>
 					</Tooltip>
 				</TooltipProvider>
-			</li>
+			</div>
 		);
 	};
 
 	return (
 		<div className="h-dvh w-full bg-background text-foreground overflow-hidden">
-			<div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-0 h-full overflow-hidden">
+			<div className="grid grid-cols-1 lg:grid-cols-[70px_1fr] gap-0 h-full overflow-hidden">
 				<aside
-					className="hidden lg:flex lg:flex-col border-r bg-card/40 backdrop-blur-sm overflow-hidden"
+					className="text-center hidden lg:flex lg:flex-col border-r bg-card/80 overflow-hidden"
 					aria-label="Primary navigation"
 				>
-					<div className="px-4 py-4 shrink-0">
-						<div className="flex items-center gap-3">
+					<div className="px-4 py-12 shrink-0">
+						<div className="flex items-center gap-2">
 							<div
 								onClick={() => setRoute("welcome")}
-								className="size-9 flex items-center justify-center"
+								className="flex items-center justify-center"
 							>
-								<Graphite size={2} />
+								<Graphite size={3} />
 							</div>
-							<div className="flex flex-col">
-								<span className="text-sm font-medium">STELS</span>
-								<span className="text-xs text-muted-foreground">
-									Artificial Marker Intelligence
-								</span>
-							</div>
+							{/*<div className="flex flex-col">*/}
+							{/*	<span className="text-sm font-medium">STELS</span>*/}
+							{/*	<span className="text-xs text-muted-foreground">*/}
+							{/*		Artificial Marker Intelligence*/}
+							{/*	</span>*/}
+							{/*</div>*/}
 						</div>
 					</div>
 
-					<div className="flex-1 p-4 overflow-hidden">
+					<div className="flex-1 overflow-hidden">
 						<nav className="space-y-6">
+							<Separator className="my-2" />
+							
 							<div>
 								<div className="px-2 pb-2 text-xs uppercase tracking-wide text-muted-foreground">
 									General
 								</div>
-								<ul className="space-y-1">{generalNav.map(renderNavItem)}</ul>
+								<div className="space-y-1">{generalNav.map(renderNavItem)}</div>
 							</div>
 
 							<Separator className="my-2" />
@@ -131,19 +132,15 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						</nav>
 					</div>
 
-					<div className="mt-auto px-4 py-3">
+					<div className="mt-auto p-3">
 						<div className="flex items-center justify-between">
 							<Badge
 								variant="outline"
-								className="gap-2 px-2 py-1 text-amber-400 border-amber-500/30"
+								className="text-amber-400 border-amber-500/30"
 							>
 								<span className="size-2 rounded-full bg-amber-400 animate-pulse" />
 								LIVE
 							</Badge>
-							<Button variant="outline" size="sm" className="text-xs">
-								<Activity className="size-4" />
-								Status
-							</Button>
 						</div>
 					</div>
 				</aside>
