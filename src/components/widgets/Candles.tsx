@@ -227,8 +227,8 @@ function Candles({ raw, height = 320 }: CandlesWidgetProps): ReactElement {
   const latency = parsed?.latency ?? 0;
 
   return (
-    <Card className="w-[700px] rounded-xl border-zinc-800/50 shadow-xl">
-      <CardHeader className="border-b border-zinc-800/50 pb-4">
+    <Card className="w-[700px] h-[430px] border-0">
+      <CardHeader>
         <div className="flex items-center justify-between gap-3">
           <div>
             <CardTitle className="text-sm flex items-center gap-2">
@@ -260,10 +260,10 @@ function Candles({ raw, height = 320 }: CandlesWidgetProps): ReactElement {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-4">
+      <CardContent className="p-0">
         {bars.length === 0
           ? (
-            <div className="flex h-[320px] items-center justify-center text-sm text-muted-foreground">
+            <div className="flex h-[430px] items-center justify-center text-sm text-muted-foreground">
               No candlestick data
             </div>
           )
@@ -271,12 +271,12 @@ function Candles({ raw, height = 320 }: CandlesWidgetProps): ReactElement {
             <div className="relative">
               <div
                 ref={containerRef}
-                className="w-full"
+                className="w-full border-0"
                 style={{ height }}
                 aria-label="Candlestick chart"
                 role="img"
               />
-              <div className="pointer-events-none absolute left-3 top-3 rounded bg-black/40 px-2 py-1 text-[11px] text-zinc-300 ring-1 ring-zinc-800/60">
+              <div className="w-full pointer-events-none absolute bg-black/40 px-1 py-1 text-[11px] text-zinc-300 ring-1 ring-zinc-800/60">
                 <span className="mr-2 text-zinc-500">O</span>
                 {last?.open.toFixed(2) ?? "-"}
                 <span className="mx-2 text-zinc-700">|</span>
