@@ -24,7 +24,6 @@ import {
 	AlertCircle,
 	Loader2,
 	Users,
-	X,
 	BarChart3,
 	Shield,
 	Target,
