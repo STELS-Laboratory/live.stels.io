@@ -16,6 +16,7 @@ import {
 	CandlestickChart,
 	Globe,
 	Home,
+	Layers,
 	ScanSearch,
 	// Wallet,
 } from "lucide-react";
@@ -42,6 +43,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 		{ key: "welcome", label: "Sonar", icon: Home },
 		{ key: "scanner", label: "Scanner", icon: ScanSearch },
 		{ key: "markets", label: "Markets", icon: CandlestickChart },
+		{ key: "fred", label: "Fred", icon: Layers },
 	].filter((i) => allowedRoutes.includes(i.key));
 
 	const systemNav: NavItem[] = [
@@ -101,19 +103,13 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 							>
 								<Graphite size={3} />
 							</div>
-							{/*<div className="flex flex-col">*/}
-							{/*	<span className="text-sm font-medium">STELS</span>*/}
-							{/*	<span className="text-xs text-muted-foreground">*/}
-							{/*		Artificial Marker Intelligence*/}
-							{/*	</span>*/}
-							{/*</div>*/}
 						</div>
 					</div>
 
 					<div className="flex-1 overflow-hidden">
 						<nav className="space-y-6">
 							<Separator className="my-2" />
-							
+
 							<div>
 								<div className="px-2 pb-2 text-xs uppercase tracking-wide text-muted-foreground">
 									General

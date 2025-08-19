@@ -3,14 +3,15 @@ import { useAppStore } from "@/stores";
 import { ReactFlowProvider } from "reactflow";
 import SessionProvider from "@/components/main/Provider";
 
-import Welcome from "@/routes/main/Welcome.tsx";
-import MarketDataViewer from "@/routes/main/Markets.tsx";
-import Flow from "@/routes/main/canvas/Flow.tsx";
-import HeterogenComponent from "@/routes/main/globe/HeterogenMap.tsx";
-import Scanner from "@/routes/main/Scanner.tsx";
-import GliesereumWallet from "@/routes/wallet/Wallet.tsx";
+import Welcome from "@/routes/main/Welcome";
+import MarketDataViewer from "@/routes/main/Markets";
+import Flow from "@/routes/main/canvas/Flow";
+import HeterogenComponent from "@/routes/main/globe/HeterogenMap";
+import Scanner from "@/routes/main/Scanner";
+import GliesereumWallet from "@/routes/wallet/Wallet";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Layout from "@/routes/Layout.tsx";
+import Layout from "@/routes/Layout";
+import Fred from "@/routes/main/Fred";
 
 /**
  * Professional Dashboard component with fixed layout structure
@@ -38,6 +39,8 @@ export default function Dashboard(): React.ReactElement {
 				return <Welcome />;
 			case "scanner":
 				return <Scanner />;
+			case "fred":
+				return <Fred />;
 			case "markets":
 				return <MarketDataViewer />;
 			case "network":
