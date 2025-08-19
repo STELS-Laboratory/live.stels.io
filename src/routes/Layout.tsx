@@ -21,6 +21,7 @@ import {
 	// Wallet,
 } from "lucide-react";
 import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
+import { navigateTo } from "@/lib/router";
 
 interface LayoutProps {
 	children: React.ReactNode;
@@ -62,7 +63,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						<TooltipTrigger asChild>
 							<button
 								type="button"
-								onClick={() => setRoute(item.key)}
+								onClick={() => navigateTo(item.key)}
 								className={cn(
 									"cursor-pointer flex flex-1 items-center p-4 m-2 justify-center text-sm transition-smooth outline-none",
 									"hover:bg-amber-500/10 hover:text-amber-400",
@@ -98,7 +99,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 					<div className="px-4 py-12 shrink-0">
 						<div className="flex items-center gap-2">
 							<div
-								onClick={() => setRoute("welcome")}
+								onClick={() => navigateTo("welcome")}
 								className="flex items-center justify-center"
 							>
 								<Graphite size={3} />
@@ -146,7 +147,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						<div className="container-full">
 							<div className="lg:hidden flex gap-2">
 								<div
-									onClick={() => setRoute("welcome")}
+									onClick={() => navigateTo("welcome")}
 									className="size-9 flex items-center justify-center"
 								>
 									<Graphite size={2} />
@@ -189,7 +190,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 															? "text-amber-400 border-amber-500/30"
 															: "text-muted-foreground",
 													)}
-													onClick={() => setRoute(item.key)}
+													onClick={() => navigateTo(item.key)}
 													aria-current={isActive ? "page" : undefined}
 												>
 													<Icon className="size-4" />

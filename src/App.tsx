@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from "react";
 import { useAppStore } from "@/stores";
 import { ReactFlowProvider } from "reactflow";
 import SessionProvider from "@/components/main/Provider";
+import { useUrlRouter } from "@/hooks/useUrlRouter";
 
 import Welcome from "@/routes/main/Welcome";
 import MarketDataViewer from "@/routes/main/Markets";
@@ -18,6 +19,9 @@ import Fred from "@/routes/main/Fred";
  */
 export default function Dashboard(): React.ReactElement {
 	const { currentRoute, setRouteLoading } = useAppStore();
+
+	// Initialize URL-based routing
+	useUrlRouter();
 
 	// Mark heavy routes as loading during mount and when route changes
 	const isHeavyRoute = useMemo(() => currentRoute === "canvas", [currentRoute]);
