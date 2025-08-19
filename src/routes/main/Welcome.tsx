@@ -285,6 +285,82 @@ function Welcome(): React.ReactElement | null {
 	return (
 		<>
 			<div className="container m-auto gap-4 space-y-4">
+				{/* Notify Users Block */}
+				<Card className="border-amber-500/30 bg-amber-500/5">
+					<CardHeader>
+						<CardTitle className="flex items-center text-amber-400">
+							<Shield className="w-5 h-5 mr-2" />
+							IMPORTANT ANNOUNCEMENT
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="space-y-4">
+							<div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
+								<div className="flex items-start space-x-3">
+									<div className="flex-shrink-0">
+										<Badge
+											variant="outline"
+											className="border-amber-500/50 bg-amber-500/20 text-amber-400 px-3 py-1"
+										>
+											August 20th
+										</Badge>
+									</div>
+									<div className="flex-1 min-w-0">
+										<h3 className="text-lg font-semibold text-amber-400 mb-2">
+											Blockchain Integration Launch
+										</h3>
+										<div className="text-sm text-gray-300 space-y-2">
+											<p>
+												The STELS Labs team will activate the blockless and
+												Genesis for integration with the STELS platform economy
+												management system.
+											</p>
+											<p>
+												<strong className="text-amber-400">
+													New Features:
+												</strong>
+											</p>
+											<ul className="list-disc list-inside space-y-1 ml-4 text-gray-300">
+												<li>User wallet functionality</li>
+												<li>
+													Transaction management in the heterogeneous network
+												</li>
+												<li>Enhanced economic control capabilities</li>
+											</ul>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+								<div className="flex items-start space-x-3">
+									<div className="flex-shrink-0">
+										<Badge
+											variant="outline"
+											className="border-blue-500/50 bg-blue-500/20 text-blue-400 px-3 py-1"
+										>
+											Available Now
+										</Badge>
+									</div>
+									<div className="flex-1 min-w-0">
+										<h3 className="text-lg font-semibold text-blue-400 mb-2">
+											FRED & World Bank Integration
+										</h3>
+										<div className="text-sm text-gray-300">
+											<p>
+												We have successfully connected FRED (Federal Reserve
+												Economic Data) and World Bank data sources, now
+												available in the Canvas system for advanced economic
+												analysis and trading strategies.
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center text-white">
@@ -383,7 +459,6 @@ function Welcome(): React.ReactElement | null {
 									))}
 							</div>
 						</div>
-						
 					</CardContent>
 				</Card>
 
@@ -527,7 +602,7 @@ function Welcome(): React.ReactElement | null {
 						</CardContent>
 					</Card>
 				</div>
-				
+
 				{/* Protection & Risk Management */}
 				<Card>
 					<CardHeader>
@@ -566,7 +641,7 @@ function Welcome(): React.ReactElement | null {
 									{calc.formatCurrency(protectionPnL.absolute)}
 								</div>
 							</div>
-							
+
 							<div className="text-center">
 								<div className="text-xs text-gray-400 mb-2">RISK LEVEL</div>
 								<Badge
@@ -574,13 +649,13 @@ function Welcome(): React.ReactElement | null {
 									className={cn(
 										"text-sm px-3 py-1",
 										marginAnalysis.riskLevel === "LOW" &&
-										"border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+											"border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
 										marginAnalysis.riskLevel === "MEDIUM" &&
-										"border-amber-500/30 bg-amber-500/10 text-amber-400",
+											"border-amber-500/30 bg-amber-500/10 text-amber-400",
 										marginAnalysis.riskLevel === "HIGH" &&
-										"border-orange-500/30 bg-orange-500/10 text-orange-400",
+											"border-orange-500/30 bg-orange-500/10 text-orange-400",
 										marginAnalysis.riskLevel === "CRITICAL" &&
-										"border-red-500/30 bg-red-500/10 text-red-400",
+											"border-red-500/30 bg-red-500/10 text-red-400",
 									)}
 								>
 									{marginAnalysis.riskLevel}
@@ -589,7 +664,7 @@ function Welcome(): React.ReactElement | null {
 									based on margin
 								</div>
 							</div>
-							
+
 							<div className="text-center">
 								<div className="text-xs text-gray-400 mb-2">EXCHANGE</div>
 								<div className="text-sm font-medium text-amber-400">
@@ -599,7 +674,7 @@ function Welcome(): React.ReactElement | null {
 									primary exchange
 								</div>
 							</div>
-							
+
 							<div className="text-center">
 								<div className="text-xs text-gray-400 mb-2">ACCOUNTS</div>
 								<div className="text-sm font-medium text-blue-400">
@@ -612,7 +687,7 @@ function Welcome(): React.ReactElement | null {
 						</div>
 					</CardContent>
 				</Card>
-				
+
 				{/* Advanced Analytics Section */}
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
 					{/* Margin Analysis */}
