@@ -137,21 +137,25 @@ export const useAppStore = create<AppState>()(
 					}
 				}
 				
+				const allowedRoutes = ['welcome', 'scanner', 'markets', 'canvas', 'fred', 'network'];
+				console.log('[Store] Initializing with allowedRoutes:', allowedRoutes);
+				
 				return {
-					version: '1.0.3',
+					version: '1.0.4',
 					setVersion: (v: string) => set({ version: v }),
 					...initialNetwork,
 					updateStatus: () => set(getNetworkInfo()),
 					
-					allowedRoutes: ['welcome', 'scanner', 'markets', 'canvas', 'fred', 'network', 'wallet'],
-					//allowedRoutes: ['canvas'],
+					allowedRoutes,
 					currentRoute: 'welcome',
 					setRoute: (route: string) => {
 						const { allowedRoutes } = get()
+						console.log('[Store] setRoute called:', { route, allowedRoutes });
 						if (allowedRoutes.includes(route)) {
+							console.log('[Store] Setting route to:', route);
 							set({ currentRoute: route })
 						} else {
-							console.warn(`Route "${route}" is not allowed!`)
+							console.warn(`[Store] Route "${route}" is not allowed!`)
 						}
 					},
                   
@@ -247,7 +251,7 @@ export const useAppStore = create<AppState>()(
 				}
 			},
 			{
-				name: 'live_app_testnet_01',
+				name: 'live_app_testnet_02',
 			}
 		)
 	)

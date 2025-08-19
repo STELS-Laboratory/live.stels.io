@@ -28,7 +28,6 @@ import {
   LineChart,
   PieChart,
   Search,
-  TrendingDown,
   TrendingUp,
 } from "lucide-react";
 
@@ -333,7 +332,7 @@ const CountryComparison = ({ countries }: { countries: CountryData[] }) => {
         {selectedIndicator && comparisonData.length > 0
           ? (
             <div className="space-y-4">
-              {comparisonData.map((item, index) => (
+              {comparisonData.map((item) => (
                 <div key={item.country} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{item.country}</span>

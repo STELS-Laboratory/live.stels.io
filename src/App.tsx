@@ -3,6 +3,7 @@ import { useAppStore } from "@/stores";
 import { ReactFlowProvider } from "reactflow";
 import SessionProvider from "@/components/main/Provider";
 import { useUrlRouter } from "@/hooks/useUrlRouter";
+import { RouteLoader } from "@/components/main/RouteLoader";
 
 import Welcome from "@/routes/main/Welcome";
 import MarketDataViewer from "@/routes/main/Markets";
@@ -65,9 +66,11 @@ export default function Dashboard(): React.ReactElement {
 	return (
 		<SessionProvider>
 			<TooltipProvider>
-				<Layout>
-					{renderMainContent()}
-				</Layout>
+				<RouteLoader>
+					<Layout>
+						{renderMainContent()}
+					</Layout>
+				</RouteLoader>
 			</TooltipProvider>
 		</SessionProvider>
 	);

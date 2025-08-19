@@ -21,6 +21,7 @@ import Loader from "@/components/ui/loader.tsx";
 import Markets from "@/routes/main/Markets.tsx";
 import React from "react";
 import { UrlRouterDemo } from "@/components/main/UrlRouterDemo";
+import { RouterDebug } from "@/components/main/RouterDebug";
 
 class ProfessionalCalculations {
 	static formatCurrency(value: number, precision = 2): string {
@@ -878,9 +879,12 @@ function Welcome(): React.ReactElement | null {
 				</div>
 
 				<Markets />
-				
+
 				{/* URL Router Demo */}
 				<UrlRouterDemo />
+
+				{/* Router Debug */}
+				<RouterDebug />
 			</div>
 		</>
 	);
