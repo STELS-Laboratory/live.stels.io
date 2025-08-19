@@ -20,6 +20,7 @@ import { cn, filterSession } from "@/lib/utils";
 import Loader from "@/components/ui/loader.tsx";
 import Markets from "@/routes/main/Markets.tsx";
 import React from "react";
+import { UrlRouterDemo } from "@/components/main/UrlRouterDemo";
 
 class ProfessionalCalculations {
 	static formatCurrency(value: number, precision = 2): string {
@@ -877,6 +878,9 @@ function Welcome(): React.ReactElement | null {
 				</div>
 
 				<Markets />
+				
+				{/* URL Router Demo */}
+				<UrlRouterDemo />
 			</div>
 		</>
 	);
