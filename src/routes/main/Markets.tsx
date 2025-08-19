@@ -232,7 +232,7 @@ function Markets(): React.ReactElement {
 	};
 
 	return (
-		<>
+		<div className="container m-auto">
 			<Card>
 				<CardHeader>
 					<CardTitle>Connection Markets</CardTitle>
@@ -357,7 +357,7 @@ function Markets(): React.ReactElement {
 					</div>
 				</CardContent>
 			</Card>
-		</>
+		</div>
 	);
 }
 

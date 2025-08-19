@@ -3069,7 +3069,7 @@ function Flow(): React.ReactElement | null {
 
       <div
         className={cn(
-          "absolute top-4 bottom-20 right-4 z-50 w-1/3 border bg-background/90 rounded-lg overflow-hidden transition-all duration-300 transform backdrop-blur-md",
+          "absolute top-4 bottom-20 right-4 z-50 border bg-background/90 overflow-hidden transition-all duration-300 transform backdrop-blur-md",
           isWidgetStoreOpen
             ? "translate-x-0 opacity-100"
             : "translate-x-full opacity-0",

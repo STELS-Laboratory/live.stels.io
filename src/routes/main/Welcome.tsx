@@ -284,7 +284,7 @@ function Welcome(): React.ReactElement | null {
 
 	return (
 		<>
-			<div className="grid gap-4 min-w-0">
+			<div className="container m-auto gap-4 space-y-4">
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center text-white">

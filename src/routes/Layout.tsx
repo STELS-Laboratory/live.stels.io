@@ -216,7 +216,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						: null}
 
 					<main
-						className="bg-gradient-to-r from-zinc-950 to-zinc-900/30 container-full py-6 overflow-y-auto overflow-x-hidden min-h-0 flex-1 relative"
+						className="bg-black container-full py-6 overflow-y-auto overflow-x-hidden min-h-0 flex-1 relative"
 						data-route-container
 					>
 						{children}
