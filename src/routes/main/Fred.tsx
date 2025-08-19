@@ -169,37 +169,48 @@ const IndicatorCard = ({ indicator }: { indicator: FredIndicator }) => {
   const category = categories[raw.groupId];
 
   return (
-    <Card className="h-full hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <Badge variant="outline" className="text-xs">
+    <Card className="h-full hover:shadow-lg transition-all duration-200 border-2 hover:border-amber-500/20">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between mb-3">
+          <Badge variant="outline" className="text-xs font-semibold px-2 py-1">
             {raw.country}
           </Badge>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             {category?.icon}
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs font-medium text-muted-foreground">
               {category?.displayName}
             </span>
           </div>
         </div>
-        <CardTitle className="text-sm font-medium line-clamp-2">
+        <CardTitle className="text-base font-semibold line-clamp-2 leading-tight">
           {raw.indicatorName}
         </CardTitle>
-        <CardDescription className="text-xs">
+        <CardDescription className="text-xs mt-2">
           {raw.date} • {raw.source}
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Value</span>
-            <span className={`text-lg font-semibold ${valueColor}`}>
+        <div className="space-y-4">
+          <div className="text-center">
+            <span className="text-xs font-medium text-muted-foreground block mb-2">
+              Current Value
+            </span>
+            <span
+              className={`text-3xl font-bold ${valueColor} block leading-none`}
+            >
               {formattedValue}
             </span>
           </div>
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Indicator: {raw.indicator}</span>
-            <span>Unit: {raw.unit}</span>
+          <Separator />
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <span className="text-muted-foreground block">Indicator</span>
+              <span className="font-medium">{raw.indicator}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground block">Unit</span>
+              <span className="font-medium">{raw.unit}</span>
+            </div>
           </div>
         </div>
       </CardContent>
@@ -232,24 +243,31 @@ const CategoryOverview = ({ indicators }: { indicators: FredIndicator[] }) => {
   }, [indicators]);
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
       {Object.entries(categoryStats).map(([category, stats]) => {
         const categoryInfo = categories[category];
         if (!categoryInfo) return null;
 
         return (
-          <Card key={category} className="text-center">
-            <CardContent className="pt-6">
+          <Card
+            key={category}
+            className="text-center hover:shadow-md transition-shadow border-2"
+          >
+            <CardContent className="pt-8 pb-6">
               <div
-                className={`w-8 h-8 mx-auto mb-2 rounded-full ${categoryInfo.color} flex items-center justify-center`}
+                className={`w-12 h-12 mx-auto mb-4 rounded-full ${categoryInfo.color} flex items-center justify-center shadow-lg`}
               >
-                {categoryInfo.icon}
+                <div className="text-white">
+                  {categoryInfo.icon}
+                </div>
               </div>
-              <h3 className="font-semibold text-sm">
+              <h3 className="font-bold text-lg mb-2">
                 {categoryInfo.displayName}
               </h3>
-              <p className="text-2xl font-bold">{stats.count}</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-4xl font-black text-amber-500 mb-2">
+                {stats.count}
+              </p>
+              <p className="text-sm text-muted-foreground font-medium">
                 {stats.countries.size} countries
               </p>
             </CardContent>
@@ -421,32 +439,34 @@ function Fred() {
   }, [filteredCountries]);
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-8">
       {/* Header */}
-      <div className="flex flex-col gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">FRED Economic Indicators</h1>
-          <p className="text-muted-foreground">
+      <div className="flex flex-col gap-6">
+        <div className="text-center">
+          <h1 className="text-4xl font-black mb-3 bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
+            World Bank Group
+          </h1>
+          <p className="text-lg text-muted-foreground font-medium">
             Real-time economic data from World Development Indicators
           </p>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 max-w-4xl mx-auto">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
               <Input
                 placeholder="Search indicators or countries..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-12 h-12 text-base"
               />
             </div>
           </div>
 
           <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-            <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectTrigger className="w-full sm:w-[220px] h-12 text-base">
               <SelectValue placeholder="Select country" />
             </SelectTrigger>
             <SelectContent>
@@ -460,7 +480,7 @@ function Fred() {
           </Select>
 
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectTrigger className="w-full sm:w-[220px] h-12 text-base">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
@@ -476,38 +496,54 @@ function Fred() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <Globe className="w-5 h-5 text-blue-500" />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card className="border-2 hover:shadow-lg transition-shadow">
+          <CardContent className="pt-8 pb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                <Globe className="w-6 h-6 text-white" />
+              </div>
               <div>
-                <p className="text-sm font-medium">Countries</p>
-                <p className="text-2xl font-bold">{countries.length}</p>
+                <p className="text-sm font-semibold text-muted-foreground mb-1">
+                  Countries
+                </p>
+                <p className="text-3xl font-black text-blue-600">
+                  {countries.length}
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-green-500" />
+        <Card className="border-2 hover:shadow-lg transition-shadow">
+          <CardContent className="pt-8 pb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                <BarChart3 className="w-6 h-6 text-white" />
+              </div>
               <div>
-                <p className="text-sm font-medium">Indicators</p>
-                <p className="text-2xl font-bold">{allIndicators.length}</p>
+                <p className="text-sm font-semibold text-muted-foreground mb-1">
+                  Indicators
+                </p>
+                <p className="text-3xl font-black text-green-600">
+                  {allIndicators.length}
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <PieChart className="w-5 h-5 text-purple-500" />
+        <Card className="border-2 hover:shadow-lg transition-shadow">
+          <CardContent className="pt-8 pb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center shadow-lg">
+                <PieChart className="w-6 h-6 text-white" />
+              </div>
               <div>
-                <p className="text-sm font-medium">Categories</p>
-                <p className="text-2xl font-bold">
+                <p className="text-sm font-semibold text-muted-foreground mb-1">
+                  Categories
+                </p>
+                <p className="text-3xl font-black text-purple-600">
                   {Object.keys(categories).length}
                 </p>
               </div>
@@ -515,13 +551,17 @@ function Fred() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <Activity className="w-5 h-5 text-orange-500" />
+        <Card className="border-2 hover:shadow-lg transition-shadow">
+          <CardContent className="pt-8 pb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                <Activity className="w-6 h-6 text-white" />
+              </div>
               <div>
-                <p className="text-sm font-medium">Latest Update</p>
-                <p className="text-sm font-bold">
+                <p className="text-sm font-semibold text-muted-foreground mb-1">
+                  Latest Update
+                </p>
+                <p className="text-lg font-bold text-orange-600">
                   {allIndicators.length > 0
                     ? new Date(allIndicators[0].value.timestamp)
                       .toLocaleDateString()
@@ -534,23 +574,31 @@ function Fred() {
       </div>
 
       {/* Main Content */}
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="indicators">Indicators</TabsTrigger>
-          <TabsTrigger value="comparison">Comparison</TabsTrigger>
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3 h-14">
+          <TabsTrigger value="overview" className="text-base font-semibold">
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="indicators" className="text-base font-semibold">
+            Indicators
+          </TabsTrigger>
+          <TabsTrigger value="comparison" className="text-base font-semibold">
+            Comparison
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
+        <TabsContent value="overview" className="space-y-8">
           <CategoryOverview indicators={allIndicators} />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card className="border-2">
               <CardHeader>
-                <CardTitle>Top Indicators by Category</CardTitle>
+                <CardTitle className="text-xl font-bold">
+                  Top Indicators by Category
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {Object.entries(categories).map(([key, category]) => {
                     const categoryIndicators = allIndicators.filter(
                       (ind) => ind.value.raw.groupId === key,
@@ -560,17 +608,20 @@ function Fred() {
                     return (
                       <div
                         key={key}
-                        className="flex items-center justify-between"
+                        className="flex items-center justify-between p-4 bg-muted/30 rounded-lg"
                       >
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                           <div
-                            className={`w-3 h-3 rounded-full ${category.color}`}
+                            className={`w-4 h-4 rounded-full ${category.color}`}
                           />
-                          <span className="text-sm font-medium">
+                          <span className="text-base font-semibold">
                             {category.displayName}
                           </span>
                         </div>
-                        <Badge variant="secondary">
+                        <Badge
+                          variant="secondary"
+                          className="text-lg font-bold px-4 py-2"
+                        >
                           {categoryIndicators.length}
                         </Badge>
                       </div>
@@ -580,21 +631,26 @@ function Fred() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-2">
               <CardHeader>
-                <CardTitle>Countries Coverage</CardTitle>
+                <CardTitle className="text-xl font-bold">
+                  Countries Coverage
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {countries.map((country) => (
                     <div
                       key={country.country}
-                      className="flex items-center justify-between"
+                      className="flex items-center justify-between p-4 bg-muted/30 rounded-lg"
                     >
-                      <span className="text-sm font-medium">
+                      <span className="text-base font-semibold">
                         {country.countryName}
                       </span>
-                      <Badge variant="outline">
+                      <Badge
+                        variant="outline"
+                        className="text-lg font-bold px-4 py-2"
+                      >
                         {country.indicators.length}
                       </Badge>
                     </div>
@@ -605,17 +661,17 @@ function Fred() {
           </div>
         </TabsContent>
 
-        <TabsContent value="indicators" className="space-y-6">
+        <TabsContent value="indicators" className="space-y-8">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">
+            <h2 className="text-2xl font-bold">
               Economic Indicators ({allIndicators.length})
             </h2>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="lg" className="h-12 px-6">
               Export Data
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {allIndicators.map((indicator, index) => (
               <IndicatorCard
                 key={`${indicator.key}-${index}`}
@@ -625,17 +681,17 @@ function Fred() {
           </div>
 
           {allIndicators.length === 0 && (
-            <div className="text-center py-12">
-              <BarChart3 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No indicators found</h3>
-              <p className="text-muted-foreground">
+            <div className="text-center py-16">
+              <BarChart3 className="w-16 h-16 mx-auto text-muted-foreground mb-6" />
+              <h3 className="text-2xl font-bold mb-4">No indicators found</h3>
+              <p className="text-lg text-muted-foreground">
                 Try adjusting your filters to see more results
               </p>
             </div>
           )}
         </TabsContent>
 
-        <TabsContent value="comparison" className="space-y-6">
+        <TabsContent value="comparison" className="space-y-8">
           <CountryComparison countries={countries} />
         </TabsContent>
       </Tabs>
