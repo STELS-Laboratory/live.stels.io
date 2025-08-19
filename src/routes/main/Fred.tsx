@@ -1,1976 +1,646 @@
+import { useMemo, useState } from "react";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
 import { filterSession } from "@/lib/utils";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Activity,
+  BarChart3,
+  Globe,
+  LineChart,
+  PieChart,
+  Search,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
+
+interface FredIndicator {
+  key: string;
+  value: {
+    channel: string;
+    module: string;
+    widget: string;
+    raw: {
+      source: string;
+      groupId: string;
+      indicator: string;
+      indicatorName: string;
+      unit: string;
+      scale?: number;
+      agg: string;
+      invert?: boolean;
+      country: string;
+      countryName: string;
+      date: string;
+      value: number;
+      decimal: number;
+    };
+    timestamp: number;
+  };
+}
+
+interface CountryData {
+  country: string;
+  countryName: string;
+  indicators: FredIndicator[];
+  categories: Record<string, FredIndicator[]>;
+}
+
+interface CategoryData {
+  name: string;
+  displayName: string;
+  color: string;
+  icon: React.ReactNode;
+}
+
+const categories: Record<string, CategoryData> = {
+  macro: {
+    name: "macro",
+    displayName: "Macroeconomic",
+    color: "bg-blue-500",
+    icon: <TrendingUp className="w-4 h-4" />,
+  },
+  social: {
+    name: "social",
+    displayName: "Social",
+    color: "bg-green-500",
+    icon: <Activity className="w-4 h-4" />,
+  },
+  tech: {
+    name: "tech",
+    displayName: "Technology",
+    color: "bg-purple-500",
+    icon: <BarChart3 className="w-4 h-4" />,
+  },
+  invest: {
+    name: "invest",
+    displayName: "Investment",
+    color: "bg-orange-500",
+    icon: <TrendingUp className="w-4 h-4" />,
+  },
+  external: {
+    name: "external",
+    displayName: "External Trade",
+    color: "bg-red-500",
+    icon: <Globe className="w-4 h-4" />,
+  },
+  fiscal: {
+    name: "fiscal",
+    displayName: "Fiscal",
+    color: "bg-yellow-500",
+    icon: <PieChart className="w-4 h-4" />,
+  },
+  depth: {
+    name: "depth",
+    displayName: "Financial Depth",
+    color: "bg-indigo-500",
+    icon: <LineChart className="w-4 h-4" />,
+  },
+  energy: {
+    name: "energy",
+    displayName: "Energy",
+    color: "bg-teal-500",
+    icon: <Activity className="w-4 h-4" />,
+  },
+};
+
+const formatValue = (
+  value: number,
+  unit: string,
+  decimal: number = 0,
+): string => {
+  if (unit === "usd") {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: decimal,
+      maximumFractionDigits: decimal,
+      notation: value > 1e12 ? "compact" : "standard",
+    }).format(value);
+  }
+
+  if (unit === "pct") {
+    return `${value.toFixed(decimal)}%`;
+  }
+
+  if (unit === "count") {
+    return new Intl.NumberFormat("en-US", {
+      notation: value > 1e6 ? "compact" : "standard",
+    }).format(value);
+  }
+
+  return `${value.toFixed(decimal)} ${unit}`;
+};
+
+const getValueColor = (
+  value: number,
+  unit: string,
+  invert?: boolean,
+): string => {
+  if (unit === "pct") {
+    const isGood = invert ? value < 5 : value > 5;
+    return isGood ? "text-green-500" : "text-red-500";
+  }
+  return "text-foreground";
+};
+
+const IndicatorCard = ({ indicator }: { indicator: FredIndicator }) => {
+  const { raw } = indicator.value;
+  const formattedValue = formatValue(raw.value, raw.unit, raw.decimal);
+  const valueColor = getValueColor(raw.value, raw.unit, raw.invert);
+  const category = categories[raw.groupId];
+
+  return (
+    <Card className="h-full hover:shadow-md transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <Badge variant="outline" className="text-xs">
+            {raw.country}
+          </Badge>
+          <div className="flex items-center gap-1">
+            {category?.icon}
+            <span className="text-xs text-muted-foreground">
+              {category?.displayName}
+            </span>
+          </div>
+        </div>
+        <CardTitle className="text-sm font-medium line-clamp-2">
+          {raw.indicatorName}
+        </CardTitle>
+        <CardDescription className="text-xs">
+          {raw.date} • {raw.source}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Value</span>
+            <span className={`text-lg font-semibold ${valueColor}`}>
+              {formattedValue}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Indicator: {raw.indicator}</span>
+            <span>Unit: {raw.unit}</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const CategoryOverview = ({ indicators }: { indicators: FredIndicator[] }) => {
+  const categoryStats = useMemo(() => {
+    const stats: Record<
+      string,
+      { count: number; avgValue: number; countries: Set<string> }
+    > = {};
+
+    indicators.forEach((indicator) => {
+      const groupId = indicator.value.raw.groupId;
+      if (!stats[groupId]) {
+        stats[groupId] = { count: 0, avgValue: 0, countries: new Set() };
+      }
+      stats[groupId].count++;
+      stats[groupId].avgValue += indicator.value.raw.value;
+      stats[groupId].countries.add(indicator.value.raw.country);
+    });
+
+    Object.keys(stats).forEach((key) => {
+      stats[key].avgValue /= stats[key].count;
+    });
+
+    return stats;
+  }, [indicators]);
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {Object.entries(categoryStats).map(([category, stats]) => {
+        const categoryInfo = categories[category];
+        if (!categoryInfo) return null;
+
+        return (
+          <Card key={category} className="text-center">
+            <CardContent className="pt-6">
+              <div
+                className={`w-8 h-8 mx-auto mb-2 rounded-full ${categoryInfo.color} flex items-center justify-center`}
+              >
+                {categoryInfo.icon}
+              </div>
+              <h3 className="font-semibold text-sm">
+                {categoryInfo.displayName}
+              </h3>
+              <p className="text-2xl font-bold">{stats.count}</p>
+              <p className="text-xs text-muted-foreground">
+                {stats.countries.size} countries
+              </p>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+};
+
+const CountryComparison = ({ countries }: { countries: CountryData[] }) => {
+  const [selectedIndicator, setSelectedIndicator] = useState<string>("");
+
+  const availableIndicators = useMemo(() => {
+    const indicators = new Set<string>();
+    countries.forEach((country) => {
+      country.indicators.forEach((indicator) => {
+        indicators.add(indicator.value.raw.indicatorName);
+      });
+    });
+    return Array.from(indicators).sort();
+  }, [countries]);
+
+  const comparisonData = useMemo(() => {
+    if (!selectedIndicator) return [];
+
+    return countries.map((country) => {
+      const indicator = country.indicators.find(
+        (ind) => ind.value.raw.indicatorName === selectedIndicator,
+      );
+      return {
+        country: country.countryName,
+        value: indicator?.value.raw.value || 0,
+        unit: indicator?.value.raw.unit || "",
+        decimal: indicator?.value.raw.decimal || 0,
+      };
+    }).filter((item) => item.value > 0);
+  }, [countries, selectedIndicator]);
+
+  const maxValue = Math.max(...comparisonData.map((d) => d.value));
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <BarChart3 className="w-5 h-5" />
+          Country Comparison
+        </CardTitle>
+        <Select value={selectedIndicator} onValueChange={setSelectedIndicator}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select indicator to compare" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableIndicators.map((indicator) => (
+              <SelectItem key={indicator} value={indicator}>
+                {indicator}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </CardHeader>
+      <CardContent>
+        {selectedIndicator && comparisonData.length > 0
+          ? (
+            <div className="space-y-4">
+              {comparisonData.map((item, index) => (
+                <div key={item.country} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">{item.country}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {formatValue(item.value, item.unit, item.decimal)}
+                    </span>
+                  </div>
+                  <Progress
+                    value={(item.value / maxValue) * 100}
+                    className="h-2"
+                  />
+                </div>
+              ))}
+            </div>
+          )
+          : (
+            <div className="text-center py-8 text-muted-foreground">
+              Select an indicator to view country comparison
+            </div>
+          )}
+      </CardContent>
+    </Card>
+  );
+};
 
 function Fred() {
   const session = useSessionStoreSync() as any;
+  const [selectedCountry, setSelectedCountry] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  const fredData = filterSession(session || {}, /\.fred\..*\.indicator$/);
-  //console.log(fredData);
-  // Example of fredData
-  //   [
-  //     {
-  //         "key": "testnet.fred.WDI.NE.TRD.GNFS.ZS.US.external.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NE.TRD.GNFS.ZS.US.external.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NE.TRD.GNFS.ZS.US.external.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "external",
-  //                 "indicator": "NE.TRD.GNFS.ZS",
-  //                 "indicatorName": "Trade (X+M) (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 24.8879916970734,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.TX.VAL.TECH.MF.ZS.EU.tech.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.TX.VAL.TECH.MF.ZS.EU.tech.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.TX.VAL.TECH.MF.ZS.EU.tech.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "tech",
-  //                 "indicator": "TX.VAL.TECH.MF.ZS",
-  //                 "indicatorName": "High-tech exports (% of manuf. exports)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2023",
-  //                 "value": 19.182000672927,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NE.GDI.TOTL.CD.EU.invest.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NE.GDI.TOTL.CD.EU.invest.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NE.GDI.TOTL.CD.EU.invest.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "invest",
-  //                 "indicator": "NE.GDI.TOTL.CD",
-  //                 "indicatorName": "Gross capital formation (US$)",
-  //                 "unit": "usd",
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2024",
-  //                 "value": 4136322702940.97,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.BX.KLT.DINV.CD.WD.UA.invest.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.BX.KLT.DINV.CD.WD.UA.invest.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.BX.KLT.DINV.CD.WD.UA.invest.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "invest",
-  //                 "indicator": "BX.KLT.DINV.CD.WD",
-  //                 "indicatorName": "FDI, net inflows (US$)",
-  //                 "unit": "usd",
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2024",
-  //                 "value": 3796000000,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SP.DYN.LE00.IN.US.social.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SP.DYN.LE00.IN.US.social.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SP.DYN.LE00.IN.US.social.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "social",
-  //                 "indicator": "SP.DYN.LE00.IN",
-  //                 "indicatorName": "Life expectancy at birth (years)",
-  //                 "unit": "years",
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2023",
-  //                 "value": 78.3853658536585,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SH.XPD.CHEX.GD.ZS.EU.social.2022.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SH.XPD.CHEX.GD.ZS.EU.social.2022.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SH.XPD.CHEX.GD.ZS.EU.social.2022.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "social",
-  //                 "indicator": "SH.XPD.CHEX.GD.ZS",
-  //                 "indicatorName": "Current health exp. (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2022",
-  //                 "value": 10.3657237718615,
-  //                 "decimal": 2
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SL.UEM.TOTL.ZS.US.macro.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SL.UEM.TOTL.ZS.US.macro.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SL.UEM.TOTL.ZS.US.macro.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "macro",
-  //                 "indicator": "SL.UEM.TOTL.ZS",
-  //                 "indicatorName": "Unemployment (% of labor force)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "invert": true,
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 4.106,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NY.GDP.PCAP.CD.US.macro.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NY.GDP.PCAP.CD.US.macro.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NY.GDP.PCAP.CD.US.macro.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "macro",
-  //                 "indicator": "NY.GDP.PCAP.CD",
-  //                 "indicatorName": "GDP per capita (current US$)",
-  //                 "unit": "usd",
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 85809.9003846356,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NE.GDI.TOTL.CD.UA.invest.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NE.GDI.TOTL.CD.UA.invest.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NE.GDI.TOTL.CD.UA.invest.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "invest",
-  //                 "indicator": "NE.GDI.TOTL.CD",
-  //                 "indicatorName": "Gross capital formation (US$)",
-  //                 "unit": "usd",
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2024",
-  //                 "value": 35559948654.6493,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.IT.NET.USER.ZS.US.tech.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.IT.NET.USER.ZS.US.tech.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.IT.NET.USER.ZS.US.tech.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "tech",
-  //                 "indicator": "IT.NET.USER.ZS",
-  //                 "indicatorName": "Internet users (% of population)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2023",
-  //                 "value": 93.1,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NY.GNS.ICTR.ZS.EU.invest.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NY.GNS.ICTR.ZS.EU.invest.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NY.GNS.ICTR.ZS.EU.invest.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "invest",
-  //                 "indicator": "NY.GNS.ICTR.ZS",
-  //                 "indicatorName": "Gross savings (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2024",
-  //                 "value": 24.4518141078614,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.FI.RES.TOTL.CD.US.external.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.FI.RES.TOTL.CD.US.external.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.FI.RES.TOTL.CD.US.external.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "external",
-  //                 "indicator": "FI.RES.TOTL.CD",
-  //                 "indicatorName": "Total reserves (current US$)",
-  //                 "unit": "usd",
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 910036546651.5,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.CM.MKT.TRAD.GD.ZS.US.depth.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.CM.MKT.TRAD.GD.ZS.US.depth.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.CM.MKT.TRAD.GD.ZS.US.depth.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "depth",
-  //                 "indicator": "CM.MKT.TRAD.GD.ZS",
-  //                 "indicatorName": "Stocks traded value (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 145.96665284673,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.FS.AST.PRVT.GD.ZS.UA.depth.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.FS.AST.PRVT.GD.ZS.UA.depth.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.FS.AST.PRVT.GD.ZS.UA.depth.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "depth",
-  //                 "indicator": "FS.AST.PRVT.GD.ZS",
-  //                 "indicatorName": "Credit to private sector (% GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2023",
-  //                 "value": 18.6466208363539,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.FP.CPI.TOTL.ZG.EU.macro.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.FP.CPI.TOTL.ZG.EU.macro.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.FP.CPI.TOTL.ZG.EU.macro.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "macro",
-  //                 "indicator": "FP.CPI.TOTL.ZG",
-  //                 "indicatorName": "Inflation, CPI (annual %)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "invert": true,
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2024",
-  //                 "value": 2.43531202435314,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.AG.LND.FRST.ZS.US.energy.2022.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.AG.LND.FRST.ZS.US.energy.2022.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.AG.LND.FRST.ZS.US.energy.2022.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "energy",
-  //                 "indicator": "AG.LND.FRST.ZS",
-  //                 "indicatorName": "Forest area (% of land)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2022",
-  //                 "value": 33.8669264120375,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SP.DYN.LE00.IN.EU.social.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SP.DYN.LE00.IN.EU.social.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SP.DYN.LE00.IN.EU.social.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "social",
-  //                 "indicator": "SP.DYN.LE00.IN",
-  //                 "indicatorName": "Life expectancy at birth (years)",
-  //                 "unit": "years",
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2023",
-  //                 "value": 81.4114503796875,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SL.UEM.TOTL.ZS.EU.macro.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SL.UEM.TOTL.ZS.EU.macro.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SL.UEM.TOTL.ZS.EU.macro.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "macro",
-  //                 "indicator": "SL.UEM.TOTL.ZS",
-  //                 "indicatorName": "Unemployment (% of labor force)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "invert": true,
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2024",
-  //                 "value": 5.91813025174577,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NY.GDP.MKTP.CD.EU.macro.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NY.GDP.MKTP.CD.EU.macro.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NY.GDP.MKTP.CD.EU.macro.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "macro",
-  //                 "indicator": "NY.GDP.MKTP.CD",
-  //                 "indicatorName": "GDP (current US$)",
-  //                 "unit": "usd",
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2024",
-  //                 "value": 19423319451330.3,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.TX.VAL.TECH.MF.ZS.UA.tech.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.TX.VAL.TECH.MF.ZS.UA.tech.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.TX.VAL.TECH.MF.ZS.UA.tech.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "tech",
-  //                 "indicator": "TX.VAL.TECH.MF.ZS",
-  //                 "indicatorName": "High-tech exports (% of manuf. exports)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2023",
-  //                 "value": 6.68812192869261,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.DT.DOD.DECT.CD.UA.external.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.DT.DOD.DECT.CD.UA.external.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.DT.DOD.DECT.CD.UA.external.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "external",
-  //                 "indicator": "DT.DOD.DECT.CD",
-  //                 "indicatorName": "External debt stocks (US$)",
-  //                 "unit": "usd",
-  //                 "agg": "last",
-  //                 "invert": true,
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2023",
-  //                 "value": 176645481677.3,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NE.IMP.GNFS.ZS.EU.external.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NE.IMP.GNFS.ZS.EU.external.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NE.IMP.GNFS.ZS.EU.external.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "external",
-  //                 "indicator": "NE.IMP.GNFS.ZS",
-  //                 "indicatorName": "Imports of G&S (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2024",
-  //                 "value": 46.3055205455627,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.BN.CAB.XOKA.GD.ZS.US.external.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.BN.CAB.XOKA.GD.ZS.US.external.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.BN.CAB.XOKA.GD.ZS.US.external.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "external",
-  //                 "indicator": "BN.CAB.XOKA.GD.ZS",
-  //                 "indicatorName": "Current account (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": -3.88426682437385,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NY.GNS.ICTR.ZS.US.invest.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NY.GNS.ICTR.ZS.US.invest.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NY.GNS.ICTR.ZS.US.invest.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "invest",
-  //                 "indicator": "NY.GNS.ICTR.ZS",
-  //                 "indicatorName": "Gross savings (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 18.1401506053304,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NE.EXP.GNFS.ZS.US.external.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NE.EXP.GNFS.ZS.US.external.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NE.EXP.GNFS.ZS.US.external.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "external",
-  //                 "indicator": "NE.EXP.GNFS.ZS",
-  //                 "indicatorName": "Exports of G&S (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 10.8968750610333,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.GB.XPD.RSDV.GD.ZS.US.tech.2022.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.GB.XPD.RSDV.GD.ZS.US.tech.2022.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.GB.XPD.RSDV.GD.ZS.US.tech.2022.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "tech",
-  //                 "indicator": "GB.XPD.RSDV.GD.ZS",
-  //                 "indicatorName": "R&D expenditure (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2022",
-  //                 "value": 3.58623003959656,
-  //                 "decimal": 2
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.GC.TAX.TOTL.GD.ZS.EU.fiscal.2022.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.GC.TAX.TOTL.GD.ZS.EU.fiscal.2022.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.GC.TAX.TOTL.GD.ZS.EU.fiscal.2022.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "fiscal",
-  //                 "indicator": "GC.TAX.TOTL.GD.ZS",
-  //                 "indicatorName": "Tax revenue (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2022",
-  //                 "value": 19.7708146687632,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NE.GDI.TOTL.CD.US.invest.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NE.GDI.TOTL.CD.US.invest.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NE.GDI.TOTL.CD.US.invest.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "invest",
-  //                 "indicator": "NE.GDI.TOTL.CD",
-  //                 "indicatorName": "Gross capital formation (US$)",
-  //                 "unit": "usd",
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 6345913000000,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.BN.CAB.XOKA.GD.ZS.UA.external.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.BN.CAB.XOKA.GD.ZS.UA.external.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.BN.CAB.XOKA.GD.ZS.UA.external.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "external",
-  //                 "indicator": "BN.CAB.XOKA.GD.ZS",
-  //                 "indicatorName": "Current account (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2024",
-  //                 "value": -7.20819382813332,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.EG.USE.PCAP.KG.OE.EU.energy.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.EG.USE.PCAP.KG.OE.EU.energy.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.EG.USE.PCAP.KG.OE.EU.energy.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "energy",
-  //                 "indicator": "EG.USE.PCAP.KG.OE",
-  //                 "indicatorName": "Energy use (kg oil eq. per cap)",
-  //                 "unit": "ratio",
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2023",
-  //                 "value": 2849.40218908629,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NE.TRD.GNFS.ZS.UA.external.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NE.TRD.GNFS.ZS.UA.external.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NE.TRD.GNFS.ZS.UA.external.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "external",
-  //                 "indicator": "NE.TRD.GNFS.ZS",
-  //                 "indicatorName": "Trade (X+M) (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2024",
-  //                 "value": 77.7530113300514,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NY.GDP.MKTP.KD.ZG.US.macro.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NY.GDP.MKTP.KD.ZG.US.macro.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NY.GDP.MKTP.KD.ZG.US.macro.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "macro",
-  //                 "indicator": "NY.GDP.MKTP.KD.ZG",
-  //                 "indicatorName": "Real GDP growth (annual %)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 2.79619035621393,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NY.GDP.MKTP.CD.UA.macro.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NY.GDP.MKTP.CD.UA.macro.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NY.GDP.MKTP.CD.UA.macro.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "macro",
-  //                 "indicator": "NY.GDP.MKTP.CD",
-  //                 "indicatorName": "GDP (current US$)",
-  //                 "unit": "usd",
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2024",
-  //                 "value": 190741263731.535,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NE.EXP.GNFS.ZS.EU.external.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NE.EXP.GNFS.ZS.EU.external.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NE.EXP.GNFS.ZS.EU.external.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "external",
-  //                 "indicator": "NE.EXP.GNFS.ZS",
-  //                 "indicatorName": "Exports of G&S (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2024",
-  //                 "value": 50.6996759251977,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SP.DYN.LE00.IN.UA.social.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SP.DYN.LE00.IN.UA.social.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SP.DYN.LE00.IN.UA.social.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "social",
-  //                 "indicator": "SP.DYN.LE00.IN",
-  //                 "indicatorName": "Life expectancy at birth (years)",
-  //                 "unit": "years",
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2023",
-  //                 "value": 73.422,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.IT.CEL.SETS.P2.US.tech.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.IT.CEL.SETS.P2.US.tech.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.IT.CEL.SETS.P2.US.tech.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "tech",
-  //                 "indicator": "IT.CEL.SETS.P2",
-  //                 "indicatorName": "Mobile subscriptions (per 100)",
-  //                 "unit": "per100",
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2023",
-  //                 "value": 112.411,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.GC.DOD.TOTL.GD.ZS.US.fiscal.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.GC.DOD.TOTL.GD.ZS.US.fiscal.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.GC.DOD.TOTL.GD.ZS.US.fiscal.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "fiscal",
-  //                 "indicator": "GC.DOD.TOTL.GD.ZS",
-  //                 "indicatorName": "Central gov. debt (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "invert": true,
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2023",
-  //                 "value": 114.755553330184,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.GC.TAX.TOTL.GD.ZS.UA.fiscal.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.GC.TAX.TOTL.GD.ZS.UA.fiscal.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.GC.TAX.TOTL.GD.ZS.UA.fiscal.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "fiscal",
-  //                 "indicator": "GC.TAX.TOTL.GD.ZS",
-  //                 "indicatorName": "Tax revenue (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2023",
-  //                 "value": 17.4590616933322,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NY.GDP.MKTP.CD.US.macro.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NY.GDP.MKTP.CD.US.macro.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NY.GDP.MKTP.CD.US.macro.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "macro",
-  //                 "indicator": "NY.GDP.MKTP.CD",
-  //                 "indicatorName": "GDP (current US$)",
-  //                 "unit": "usd",
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 29184890000000,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NY.GDP.MKTP.KD.ZG.EU.macro.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NY.GDP.MKTP.KD.ZG.EU.macro.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NY.GDP.MKTP.KD.ZG.EU.macro.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "macro",
-  //                 "indicator": "NY.GDP.MKTP.KD.ZG",
-  //                 "indicatorName": "Real GDP growth (annual %)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2024",
-  //                 "value": 1.02536782724844,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.FM.LBL.BMNY.GD.ZS.US.depth.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.FM.LBL.BMNY.GD.ZS.US.depth.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.FM.LBL.BMNY.GD.ZS.US.depth.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "depth",
-  //                 "indicator": "FM.LBL.BMNY.GD.ZS",
-  //                 "indicatorName": "Broad money (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 99.2267346257056,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SH.XPD.CHEX.GD.ZS.US.social.2022.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SH.XPD.CHEX.GD.ZS.US.social.2022.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SH.XPD.CHEX.GD.ZS.US.social.2022.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "social",
-  //                 "indicator": "SH.XPD.CHEX.GD.ZS",
-  //                 "indicatorName": "Current health exp. (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2022",
-  //                 "value": 16.49613953,
-  //                 "decimal": 2
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SP.POP.TOTL.UA.social.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SP.POP.TOTL.UA.social.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SP.POP.TOTL.UA.social.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "social",
-  //                 "indicator": "SP.POP.TOTL",
-  //                 "indicatorName": "Population, total",
-  //                 "unit": "count",
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2024",
-  //                 "value": 37860221,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SE.SEC.ENRR.US.social.2022.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SE.SEC.ENRR.US.social.2022.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SE.SEC.ENRR.US.social.2022.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "social",
-  //                 "indicator": "SE.SEC.ENRR",
-  //                 "indicatorName": "School enrollment, secondary (% gross)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2022",
-  //                 "value": 97.4734878540039,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.FS.AST.PRVT.GD.ZS.US.depth.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.FS.AST.PRVT.GD.ZS.US.depth.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.FS.AST.PRVT.GD.ZS.US.depth.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "depth",
-  //                 "indicator": "FS.AST.PRVT.GD.ZS",
-  //                 "indicatorName": "Credit to private sector (% GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 197.896120599056,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SE.SEC.ENRR.EU.social.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SE.SEC.ENRR.EU.social.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SE.SEC.ENRR.EU.social.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "social",
-  //                 "indicator": "SE.SEC.ENRR",
-  //                 "indicatorName": "School enrollment, secondary (% gross)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2023",
-  //                 "value": 107.661437988281,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NE.EXP.GNFS.ZS.UA.external.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NE.EXP.GNFS.ZS.UA.external.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NE.EXP.GNFS.ZS.UA.external.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "external",
-  //                 "indicator": "NE.EXP.GNFS.ZS",
-  //                 "indicatorName": "Exports of G&S (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2024",
-  //                 "value": 29.4102139813249,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SP.URB.TOTL.IN.ZS.EU.social.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SP.URB.TOTL.IN.ZS.EU.social.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SP.URB.TOTL.IN.ZS.EU.social.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "social",
-  //                 "indicator": "SP.URB.TOTL.IN.ZS",
-  //                 "indicatorName": "Urban population (% of total)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2024",
-  //                 "value": 75.949283176978,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.FP.CPI.TOTL.ZG.US.macro.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.FP.CPI.TOTL.ZG.US.macro.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.FP.CPI.TOTL.ZG.US.macro.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "macro",
-  //                 "indicator": "FP.CPI.TOTL.ZG",
-  //                 "indicatorName": "Inflation, CPI (annual %)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "invert": true,
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 2.94952520485207,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SP.POP.TOTL.EU.social.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SP.POP.TOTL.EU.social.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SP.POP.TOTL.EU.social.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "social",
-  //                 "indicator": "SP.POP.TOTL",
-  //                 "indicatorName": "Population, total",
-  //                 "unit": "count",
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2024",
-  //                 "value": 450185396,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.GC.REV.XGRT.GD.ZS.US.fiscal.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.GC.REV.XGRT.GD.ZS.US.fiscal.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.GC.REV.XGRT.GD.ZS.US.fiscal.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "fiscal",
-  //                 "indicator": "GC.REV.XGRT.GD.ZS",
-  //                 "indicatorName": "Revenue excl. grants (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2023",
-  //                 "value": 17.5921957840256,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NE.GDI.TOTL.ZS.UA.invest.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NE.GDI.TOTL.ZS.UA.invest.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NE.GDI.TOTL.ZS.UA.invest.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "invest",
-  //                 "indicator": "NE.GDI.TOTL.ZS",
-  //                 "indicatorName": "Gross capital formation (% GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2024",
-  //                 "value": 18.6430287599957,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SL.UEM.1524.ZS.US.macro.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SL.UEM.1524.ZS.US.macro.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SL.UEM.1524.ZS.US.macro.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "macro",
-  //                 "indicator": "SL.UEM.1524.ZS",
-  //                 "indicatorName": "Youth unemployment 15–24 (%)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "invert": true,
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 9.389,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NY.GNS.ICTR.ZS.UA.invest.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NY.GNS.ICTR.ZS.UA.invest.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NY.GNS.ICTR.ZS.UA.invest.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "invest",
-  //                 "indicator": "NY.GNS.ICTR.ZS",
-  //                 "indicatorName": "Gross savings (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2024",
-  //                 "value": 11.3293261562199,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.FS.AST.PRVT.GD.ZS.EU.depth.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.FS.AST.PRVT.GD.ZS.EU.depth.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.FS.AST.PRVT.GD.ZS.EU.depth.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "depth",
-  //                 "indicator": "FS.AST.PRVT.GD.ZS",
-  //                 "indicatorName": "Credit to private sector (% GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2024",
-  //                 "value": 75.8306206925824,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SP.POP.TOTL.US.social.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SP.POP.TOTL.US.social.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SP.POP.TOTL.US.social.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "social",
-  //                 "indicator": "SP.POP.TOTL",
-  //                 "indicatorName": "Population, total",
-  //                 "unit": "count",
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 340110988,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.IT.NET.USER.ZS.UA.tech.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.IT.NET.USER.ZS.UA.tech.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.IT.NET.USER.ZS.UA.tech.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "tech",
-  //                 "indicator": "IT.NET.USER.ZS",
-  //                 "indicatorName": "Internet users (% of population)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2023",
-  //                 "value": 82.4,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.FM.LBL.BMNY.GD.ZS.UA.depth.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.FM.LBL.BMNY.GD.ZS.UA.depth.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.FM.LBL.BMNY.GD.ZS.UA.depth.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "depth",
-  //                 "indicator": "FM.LBL.BMNY.GD.ZS",
-  //                 "indicatorName": "Broad money (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2024",
-  //                 "value": 45.5481410402979,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.AG.LND.FRST.ZS.EU.energy.2022.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.AG.LND.FRST.ZS.EU.energy.2022.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.AG.LND.FRST.ZS.EU.energy.2022.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "energy",
-  //                 "indicator": "AG.LND.FRST.ZS",
-  //                 "indicatorName": "Forest area (% of land)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2022",
-  //                 "value": 39.9291602010185,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.GC.TAX.TOTL.GD.ZS.US.fiscal.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.GC.TAX.TOTL.GD.ZS.US.fiscal.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.GC.TAX.TOTL.GD.ZS.US.fiscal.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "fiscal",
-  //                 "indicator": "GC.TAX.TOTL.GD.ZS",
-  //                 "indicatorName": "Tax revenue (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2023",
-  //                 "value": 10.6459127722888,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.FI.RES.TOTL.CD.UA.external.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.FI.RES.TOTL.CD.UA.external.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.FI.RES.TOTL.CD.UA.external.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "external",
-  //                 "indicator": "FI.RES.TOTL.CD",
-  //                 "indicatorName": "Total reserves (current US$)",
-  //                 "unit": "usd",
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2024",
-  //                 "value": 43780549772.8406,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SP.URB.TOTL.IN.ZS.UA.social.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SP.URB.TOTL.IN.ZS.UA.social.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SP.URB.TOTL.IN.ZS.UA.social.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "social",
-  //                 "indicator": "SP.URB.TOTL.IN.ZS",
-  //                 "indicatorName": "Urban population (% of total)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2024",
-  //                 "value": 70.284,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.GC.REV.XGRT.GD.ZS.EU.fiscal.2022.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.GC.REV.XGRT.GD.ZS.EU.fiscal.2022.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.GC.REV.XGRT.GD.ZS.EU.fiscal.2022.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "fiscal",
-  //                 "indicator": "GC.REV.XGRT.GD.ZS",
-  //                 "indicatorName": "Revenue excl. grants (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2022",
-  //                 "value": 35.6591577207594,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NY.GDP.MKTP.KD.ZG.UA.macro.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NY.GDP.MKTP.KD.ZG.UA.macro.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NY.GDP.MKTP.KD.ZG.UA.macro.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "macro",
-  //                 "indicator": "NY.GDP.MKTP.KD.ZG",
-  //                 "indicatorName": "Real GDP growth (annual %)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2024",
-  //                 "value": 2.91382221470535,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.IT.CEL.SETS.P2.EU.tech.2022.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.IT.CEL.SETS.P2.EU.tech.2022.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.IT.CEL.SETS.P2.EU.tech.2022.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "tech",
-  //                 "indicator": "IT.CEL.SETS.P2",
-  //                 "indicatorName": "Mobile subscriptions (per 100)",
-  //                 "unit": "per100",
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2022",
-  //                 "value": 123.687099666304,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.CM.MKT.LCAP.GD.ZS.US.depth.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.CM.MKT.LCAP.GD.ZS.US.depth.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.CM.MKT.LCAP.GD.ZS.US.depth.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "depth",
-  //                 "indicator": "CM.MKT.LCAP.GD.ZS",
-  //                 "indicatorName": "Market capitalization (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 213.074934735063,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NE.IMP.GNFS.ZS.US.external.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NE.IMP.GNFS.ZS.US.external.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NE.IMP.GNFS.ZS.US.external.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "external",
-  //                 "indicator": "NE.IMP.GNFS.ZS",
-  //                 "indicatorName": "Imports of G&S (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 13.9911166360401,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NE.IMP.GNFS.ZS.UA.external.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NE.IMP.GNFS.ZS.UA.external.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NE.IMP.GNFS.ZS.UA.external.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "external",
-  //                 "indicator": "NE.IMP.GNFS.ZS",
-  //                 "indicatorName": "Imports of G&S (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2024",
-  //                 "value": 48.3427973487265,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NE.TRD.GNFS.ZS.EU.external.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NE.TRD.GNFS.ZS.EU.external.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NE.TRD.GNFS.ZS.EU.external.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "external",
-  //                 "indicator": "NE.TRD.GNFS.ZS",
-  //                 "indicatorName": "Trade (X+M) (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2024",
-  //                 "value": 92.1542833802318,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.BX.KLT.DINV.CD.WD.EU.invest.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.BX.KLT.DINV.CD.WD.EU.invest.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.BX.KLT.DINV.CD.WD.EU.invest.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "invest",
-  //                 "indicator": "BX.KLT.DINV.CD.WD",
-  //                 "indicatorName": "FDI, net inflows (US$)",
-  //                 "unit": "usd",
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2024",
-  //                 "value": 247680815882.403,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.EG.USE.PCAP.KG.OE.UA.energy.2022.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.EG.USE.PCAP.KG.OE.UA.energy.2022.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.EG.USE.PCAP.KG.OE.UA.energy.2022.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "energy",
-  //                 "indicator": "EG.USE.PCAP.KG.OE",
-  //                 "indicatorName": "Energy use (kg oil eq. per cap)",
-  //                 "unit": "ratio",
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2022",
-  //                 "value": 1492.96963034755,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.GB.XPD.RSDV.GD.ZS.UA.tech.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.GB.XPD.RSDV.GD.ZS.UA.tech.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.GB.XPD.RSDV.GD.ZS.UA.tech.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "tech",
-  //                 "indicator": "GB.XPD.RSDV.GD.ZS",
-  //                 "indicatorName": "R&D expenditure (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2023",
-  //                 "value": 0.326530009508133,
-  //                 "decimal": 2
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.EG.USE.PCAP.KG.OE.US.energy.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.EG.USE.PCAP.KG.OE.US.energy.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.EG.USE.PCAP.KG.OE.US.energy.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "energy",
-  //                 "indicator": "EG.USE.PCAP.KG.OE",
-  //                 "indicatorName": "Energy use (kg oil eq. per cap)",
-  //                 "unit": "ratio",
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2023",
-  //                 "value": 6392.26488409079,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NY.GDP.PCAP.CD.UA.macro.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NY.GDP.PCAP.CD.UA.macro.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NY.GDP.PCAP.CD.UA.macro.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "macro",
-  //                 "indicator": "NY.GDP.PCAP.CD",
-  //                 "indicatorName": "GDP per capita (current US$)",
-  //                 "unit": "usd",
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2024",
-  //                 "value": 5389.47314453125,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.GB.XPD.RSDV.GD.ZS.EU.tech.2022.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.GB.XPD.RSDV.GD.ZS.EU.tech.2022.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.GB.XPD.RSDV.GD.ZS.EU.tech.2022.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "tech",
-  //                 "indicator": "GB.XPD.RSDV.GD.ZS",
-  //                 "indicatorName": "R&D expenditure (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2022",
-  //                 "value": 2.24284673104663,
-  //                 "decimal": 2
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.BX.KLT.DINV.CD.WD.US.invest.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.BX.KLT.DINV.CD.WD.US.invest.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.BX.KLT.DINV.CD.WD.US.invest.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "invest",
-  //                 "indicator": "BX.KLT.DINV.CD.WD",
-  //                 "indicatorName": "FDI, net inflows (US$)",
-  //                 "unit": "usd",
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 387990000000,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SP.URB.TOTL.IN.ZS.US.social.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SP.URB.TOTL.IN.ZS.US.social.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SP.URB.TOTL.IN.ZS.US.social.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "social",
-  //                 "indicator": "SP.URB.TOTL.IN.ZS",
-  //                 "indicatorName": "Urban population (% of total)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 83.515,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NE.GDI.TOTL.ZS.US.invest.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NE.GDI.TOTL.ZS.US.invest.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NE.GDI.TOTL.ZS.US.invest.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "invest",
-  //                 "indicator": "NE.GDI.TOTL.ZS",
-  //                 "indicatorName": "Gross capital formation (% GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 21.7438304547319,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NY.GDP.PCAP.CD.EU.macro.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NY.GDP.PCAP.CD.EU.macro.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NY.GDP.PCAP.CD.EU.macro.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "macro",
-  //                 "indicator": "NY.GDP.PCAP.CD",
-  //                 "indicatorName": "GDP per capita (current US$)",
-  //                 "unit": "usd",
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2024",
-  //                 "value": 43145.1566930223,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.SL.UEM.1524.ZS.EU.macro.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.SL.UEM.1524.ZS.EU.macro.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.SL.UEM.1524.ZS.EU.macro.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "macro",
-  //                 "indicator": "SL.UEM.1524.ZS",
-  //                 "indicatorName": "Youth unemployment 15–24 (%)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "invert": true,
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2024",
-  //                 "value": 15.9411990871465,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.TX.VAL.TECH.MF.ZS.US.tech.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.TX.VAL.TECH.MF.ZS.US.tech.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.TX.VAL.TECH.MF.ZS.US.tech.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "tech",
-  //                 "indicator": "TX.VAL.TECH.MF.ZS",
-  //                 "indicatorName": "High-tech exports (% of manuf. exports)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "US",
-  //                 "countryName": "United States",
-  //                 "date": "2024",
-  //                 "value": 24.322982844202,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.IT.CEL.SETS.P2.UA.tech.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.IT.CEL.SETS.P2.UA.tech.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.IT.CEL.SETS.P2.UA.tech.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "tech",
-  //                 "indicator": "IT.CEL.SETS.P2",
-  //                 "indicatorName": "Mobile subscriptions (per 100)",
-  //                 "unit": "per100",
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2023",
-  //                 "value": 122.758,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.FP.CPI.TOTL.ZG.UA.macro.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.FP.CPI.TOTL.ZG.UA.macro.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.FP.CPI.TOTL.ZG.UA.macro.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "macro",
-  //                 "indicator": "FP.CPI.TOTL.ZG",
-  //                 "indicatorName": "Inflation, CPI (annual %)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "invert": true,
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2024",
-  //                 "value": 6.50198464669254,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.GC.REV.XGRT.GD.ZS.UA.fiscal.2023.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.GC.REV.XGRT.GD.ZS.UA.fiscal.2023.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.GC.REV.XGRT.GD.ZS.UA.fiscal.2023.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "fiscal",
-  //                 "indicator": "GC.REV.XGRT.GD.ZS",
-  //                 "indicatorName": "Revenue excl. grants (% of GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2023",
-  //                 "value": 30.8349656855253,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.AG.LND.FRST.ZS.UA.energy.2022.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.AG.LND.FRST.ZS.UA.energy.2022.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.AG.LND.FRST.ZS.UA.energy.2022.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "energy",
-  //                 "indicator": "AG.LND.FRST.ZS",
-  //                 "indicatorName": "Forest area (% of land)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "UA",
-  //                 "countryName": "Ukraine",
-  //                 "date": "2022",
-  //                 "value": 16.7449085260614,
-  //                 "decimal": 1
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     },
-  //     {
-  //         "key": "testnet.fred.WDI.NE.GDI.TOTL.ZS.EU.invest.2024.indicator",
-  //         "value": {
-  //             "channel": "testnet.fred.WDI.NE.GDI.TOTL.ZS.EU.invest.2024.indicator",
-  //             "module": "fred",
-  //             "widget": "widget.testnet.fred.WDI.NE.GDI.TOTL.ZS.EU.invest.2024.indicator",
-  //             "raw": {
-  //                 "source": "WDI",
-  //                 "groupId": "invest",
-  //                 "indicator": "NE.GDI.TOTL.ZS",
-  //                 "indicatorName": "Gross capital formation (% GDP)",
-  //                 "unit": "pct",
-  //                 "scale": 0.01,
-  //                 "agg": "last",
-  //                 "country": "EU",
-  //                 "countryName": "European Union",
-  //                 "date": "2024",
-  //                 "value": 21.2956529562596,
-  //                 "decimal": 0
-  //             },
-  //             "timestamp": 1755626502774
-  //         }
-  //     }
-  // ]
+  const fredData = filterSession(
+    session || {},
+    /\.fred\..*\.indicator$/,
+  ) as FredIndicator[];
 
-  return <div>Fred</div>;
+  const countries = useMemo(() => {
+    const countryMap = new Map<string, CountryData>();
+
+    fredData.forEach((indicator) => {
+      const { country, countryName, groupId } = indicator.value.raw;
+
+      if (!countryMap.has(country)) {
+        countryMap.set(country, {
+          country,
+          countryName,
+          indicators: [],
+          categories: {},
+        });
+      }
+
+      const countryData = countryMap.get(country)!;
+      countryData.indicators.push(indicator);
+
+      if (!countryData.categories[groupId]) {
+        countryData.categories[groupId] = [];
+      }
+      countryData.categories[groupId].push(indicator);
+    });
+
+    return Array.from(countryMap.values()).sort((a, b) =>
+      a.countryName.localeCompare(b.countryName)
+    );
+  }, [fredData]);
+
+  const filteredCountries = useMemo(() => {
+    let filtered = countries;
+
+    if (selectedCountry !== "all") {
+      filtered = filtered.filter((country) =>
+        country.country === selectedCountry
+      );
+    }
+
+    if (searchTerm) {
+      filtered = filtered.map((country) => ({
+        ...country,
+        indicators: country.indicators.filter((indicator) =>
+          indicator.value.raw.indicatorName.toLowerCase().includes(
+            searchTerm.toLowerCase(),
+          ) ||
+          indicator.value.raw.countryName.toLowerCase().includes(
+            searchTerm.toLowerCase(),
+          )
+        ),
+      })).filter((country) => country.indicators.length > 0);
+    }
+
+    if (selectedCategory !== "all") {
+      filtered = filtered.map((country) => ({
+        ...country,
+        indicators: country.indicators.filter((indicator) =>
+          indicator.value.raw.groupId === selectedCategory
+        ),
+      })).filter((country) => country.indicators.length > 0);
+    }
+
+    return filtered;
+  }, [countries, selectedCountry, searchTerm, selectedCategory]);
+
+  const allIndicators = useMemo(() => {
+    return filteredCountries.flatMap((country) => country.indicators);
+  }, [filteredCountries]);
+
+  return (
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">FRED Economic Indicators</h1>
+          <p className="text-muted-foreground">
+            Real-time economic data from World Development Indicators
+          </p>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Search indicators or countries..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Select country" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Countries</SelectItem>
+              {countries.map((country) => (
+                <SelectItem key={country.country} value={country.country}>
+                  {country.countryName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {Object.entries(categories).map(([key, category]) => (
+                <SelectItem key={key} value={key}>
+                  {category.displayName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2">
+              <Globe className="w-5 h-5 text-blue-500" />
+              <div>
+                <p className="text-sm font-medium">Countries</p>
+                <p className="text-2xl font-bold">{countries.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-green-500" />
+              <div>
+                <p className="text-sm font-medium">Indicators</p>
+                <p className="text-2xl font-bold">{allIndicators.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2">
+              <PieChart className="w-5 h-5 text-purple-500" />
+              <div>
+                <p className="text-sm font-medium">Categories</p>
+                <p className="text-2xl font-bold">
+                  {Object.keys(categories).length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2">
+              <Activity className="w-5 h-5 text-orange-500" />
+              <div>
+                <p className="text-sm font-medium">Latest Update</p>
+                <p className="text-sm font-bold">
+                  {allIndicators.length > 0
+                    ? new Date(allIndicators[0].value.timestamp)
+                      .toLocaleDateString()
+                    : "N/A"}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content */}
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="indicators">Indicators</TabsTrigger>
+          <TabsTrigger value="comparison">Comparison</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+          <CategoryOverview indicators={allIndicators} />
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Indicators by Category</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Object.entries(categories).map(([key, category]) => {
+                    const categoryIndicators = allIndicators.filter(
+                      (ind) => ind.value.raw.groupId === key,
+                    );
+                    if (categoryIndicators.length === 0) return null;
+
+                    return (
+                      <div
+                        key={key}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`w-3 h-3 rounded-full ${category.color}`}
+                          />
+                          <span className="text-sm font-medium">
+                            {category.displayName}
+                          </span>
+                        </div>
+                        <Badge variant="secondary">
+                          {categoryIndicators.length}
+                        </Badge>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Countries Coverage</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {countries.map((country) => (
+                    <div
+                      key={country.country}
+                      className="flex items-center justify-between"
+                    >
+                      <span className="text-sm font-medium">
+                        {country.countryName}
+                      </span>
+                      <Badge variant="outline">
+                        {country.indicators.length}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="indicators" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">
+              Economic Indicators ({allIndicators.length})
+            </h2>
+            <Button variant="outline" size="sm">
+              Export Data
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {allIndicators.map((indicator, index) => (
+              <IndicatorCard
+                key={`${indicator.key}-${index}`}
+                indicator={indicator}
+              />
+            ))}
+          </div>
+
+          {allIndicators.length === 0 && (
+            <div className="text-center py-12">
+              <BarChart3 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">No indicators found</h3>
+              <p className="text-muted-foreground">
+                Try adjusting your filters to see more results
+              </p>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="comparison" className="space-y-6">
+          <CountryComparison countries={countries} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
 }
 
 export default Fred;
