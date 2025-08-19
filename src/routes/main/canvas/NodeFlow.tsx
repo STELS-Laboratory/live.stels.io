@@ -5,21 +5,25 @@ import TradesWidget from "@/components/widgets/TradeWidget.tsx";
 import OrderBook from "@/components/widgets/OrderBook.tsx";
 import Candles from "@/components/widgets/Candles";
 import Ticker from "@/components/widgets/Ticker";
+import {FredIndicatorWidget} from "@/components/widgets/FredIndicatorWidget.tsx";
 
 interface WidgetProps {
   widget: string;
   raw: any;
+	data?: any;
 }
 
 /**
  * Widget component for displaying session data in various formats
  */
-const Widget = ({ widget, raw }: WidgetProps) => {
+const Widget = ({ widget, raw, data }: WidgetProps) => {
   const stopPropagation = (e: React.MouseEvent | React.WheelEvent) => {
     e.stopPropagation();
   };
 
   switch (widget.split(".").pop()) {
+	  case "indicator":
+			return <FredIndicatorWidget data={data}/>
     case "trades":
       return (
         <TradesWidget
@@ -85,7 +89,7 @@ const NodeFlow = memo(({ data }: NodeFlowProps) => {
 
   if (!st) return <div>Loading RAW</div>;
 
-  return <Widget widget={st.widget} raw={st.raw} />;
+  return <Widget widget={st.widget} raw={st.raw} data={st} />;
 });
 
 NodeFlow.displayName = "NodeFlow";
