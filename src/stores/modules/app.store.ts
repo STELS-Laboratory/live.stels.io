@@ -251,7 +251,7 @@ export const useAppStore = create<AppState>()(
 				}
 			},
 			{
-				name: 'live_app_testnet_02',
+				name: 'live_app_testnet_03',
 			}
 		)
 	)
