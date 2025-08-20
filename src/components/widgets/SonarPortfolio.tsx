@@ -18,6 +18,7 @@ interface AssetData {
 	change?: number;
 	changePercent?: number;
 	price?: number;
+	priceSource?: "realtime" | "fallback";
 	changeValue?: number;
 }
 
@@ -31,6 +32,10 @@ interface PortfolioMetrics {
 	totalPortfolioValue: number;
 	totalChange: number;
 	totalChangePercent: number;
+	priceStatus: {
+		realtimeCount: number;
+		totalCount: number;
+	};
 }
 
 function SonarPortfolio() {
@@ -44,24 +49,52 @@ function SonarPortfolio() {
 		return <Loader>Scanning connection Testnet</Loader>;
 	}
 
-	const ASSET_PRICES: Record<string, number> = {
-		BTC:
-			session[
-				"testnet.runtime.connector.exchange.crypto.bybit.futures.BTC/USDT:USDT.ticker"
-			].raw.last,
-		ETH:
-			session[
-				"testnet.runtime.connector.exchange.crypto.bybit.futures.ETH/USDT:USDT.ticker"
-			].raw.last,
-		SOL:
-			session[
-				"testnet.runtime.connector.exchange.crypto.bybit.futures.SOL/USDT:USDT.ticker"
-			].raw.last,
-		BNB:
-			session[
-				"testnet.runtime.connector.exchange.crypto.bybit.futures.BNB/USDT:USDT.ticker"
-			].raw.last,
-	};
+	const ASSET_PRICES: Record<string, number> = useMemo(() => {
+		const prices: Record<string, number> = {
+			USDT: 1, // Stablecoin always 1:1
+		};
+
+		// Major cryptocurrencies with real-time prices
+		const majorPairs = [
+			{ symbol: "BTC", pair: "BTC/USDT:USDT" },
+			{ symbol: "ETH", pair: "ETH/USDT:USDT" },
+			{ symbol: "SOL", pair: "SOL/USDT:USDT" },
+			{ symbol: "BNB", pair: "BNB/USDT:USDT" },
+			{ symbol: "TRX", pair: "TRX/USDT:USDT" },
+			{ symbol: "JASMY", pair: "JASMY/USDT:USDT" },
+		];
+
+		majorPairs.forEach(({ symbol, pair }) => {
+			try {
+				const tickerKey =
+					`testnet.runtime.connector.exchange.crypto.bybit.futures.${pair}.ticker`;
+				const tickerData = session[tickerKey];
+
+				if (tickerData?.raw?.last) {
+					prices[symbol] = tickerData.raw.last;
+				} else {
+					// Fallback prices for missing data
+					const fallbackPrices: Record<string, number> = {};
+					prices[symbol] = fallbackPrices[symbol] || 1;
+				}
+			} catch (error) {
+				console.warn(`Failed to fetch price for ${symbol}:`, error);
+				// Use fallback prices
+				const fallbackPrices: Record<string, number> = {};
+				prices[symbol] = fallbackPrices[symbol] || 1;
+			}
+		});
+
+		// Minor tokens with estimated prices (could be fetched from other sources)
+		const minorTokens: Record<string, number> = {};
+
+		// Add minor tokens, using fallback if not in session
+		Object.entries(minorTokens).forEach(([symbol, fallbackPrice]) => {
+			prices[symbol] = fallbackPrice;
+		});
+
+		return prices;
+	}, [session]);
 
 	const snapshot = session["testnet.snapshot.sonar"];
 	const runtime = session["testnet.runtime.sonar"];
@@ -79,8 +112,17 @@ function SonarPortfolio() {
 				? (change / previousAmount) * 100
 				: 0;
 
-			// Get asset price (default to 1 for unknown assets)
+			// Get asset price and determine source
 			const price = ASSET_PRICES[symbol] || 1;
+			const majorPairs = ["BTC", "ETH", "SOL", "BNB", "TON", "GRT"];
+			const priceSource: "realtime" | "fallback" =
+				majorPairs.includes(symbol) &&
+					session[
+						`testnet.runtime.connector.exchange.crypto.bybit.futures.${symbol}/USDT:USDT.ticker`
+					]?.raw?.last
+					? "realtime"
+					: "fallback";
+
 			const value = currentAmount * price;
 			const changeValue = change * price;
 
@@ -89,12 +131,13 @@ function SonarPortfolio() {
 				amount: currentAmount,
 				value,
 				price,
+				priceSource,
 				change,
 				changePercent,
 				changeValue,
 			};
 		}).filter((asset) => asset.amount > 0).sort((a, b) => b.value - a.value);
-	}, [snapshot, runtime]);
+	}, [snapshot, runtime, ASSET_PRICES, session]);
 
 	// Calculate portfolio metrics with accurate totals
 	const metrics: PortfolioMetrics = useMemo(() => {
@@ -110,6 +153,11 @@ function SonarPortfolio() {
 			? (totalChange / (totalPortfolioValue - totalChange)) * 100
 			: 0;
 
+		const realtimeCount = assets.filter((asset) =>
+			asset.priceSource === "realtime"
+		).length;
+		const totalCount = assets.length;
+
 		return {
 			totalLiquidity: runtime.raw.liquidity,
 			available: runtime.raw.available,
@@ -120,6 +168,10 @@ function SonarPortfolio() {
 			totalPortfolioValue,
 			totalChange,
 			totalChangePercent,
+			priceStatus: {
+				realtimeCount,
+				totalCount,
+			},
 		};
 	}, [assets, runtime]);
 
@@ -184,12 +236,27 @@ function SonarPortfolio() {
 						Real-time portfolio performance and asset allocation
 					</p>
 				</div>
-				<Badge
-					variant="outline"
-					className="bg-amber-500/10 text-amber-500 border-amber-500/20"
-				>
-					{metrics.activeWorkers}/{metrics.totalWorkers} Workers Active
-				</Badge>
+				<div className="flex items-center space-x-2">
+					<Badge
+						variant="outline"
+						className="bg-amber-500/10 text-amber-500 border-amber-500/20"
+					>
+						{metrics.activeWorkers}/{metrics.totalWorkers} Workers Active
+					</Badge>
+					<Badge
+						variant="outline"
+						className={`${
+							metrics.priceStatus.realtimeCount ===
+									metrics.priceStatus.totalCount
+								? "bg-green-500/10 text-green-500 border-green-500/20"
+								: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
+						}`}
+					>
+						{metrics.priceStatus.realtimeCount}/{metrics.priceStatus.totalCount}
+						{" "}
+						Real-time Prices
+					</Badge>
+				</div>
 			</div>
 
 			{/* Key Metrics */}
@@ -364,9 +431,21 @@ function SonarPortfolio() {
 													{formatAssetAmount(asset.symbol, asset.amount)}
 												</p>
 												{asset.price && asset.price !== 1 && (
-													<p className="text-xs text-zinc-500">
-														Price: {formatCurrency(asset.price)}
-													</p>
+													<div className="flex items-center space-x-1">
+														<p className="text-xs text-zinc-500">
+															Price: {formatCurrency(asset.price)}
+														</p>
+														<div
+															className={`w-1.5 h-1.5 rounded-full ${
+																asset.priceSource === "realtime"
+																	? "bg-green-500"
+																	: "bg-yellow-500"
+															}`}
+															title={asset.priceSource === "realtime"
+																? "Real-time price"
+																: "Estimated price"}
+														/>
+													</div>
 												)}
 											</div>
 										</div>
