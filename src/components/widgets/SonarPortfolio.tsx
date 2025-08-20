@@ -1,139 +1,444 @@
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
 import Loader from "@/components/ui/loader.tsx";
+import {
+	Card,
+	CardContent,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card.tsx";
+import { Badge } from "@/components/ui/badge.tsx";
+import { Separator } from "@/components/ui/separator.tsx";
+import { ArrowDownIcon, ArrowUpIcon, MinusIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+
+interface AssetData {
+	symbol: string;
+	amount: number;
+	value: number;
+	change?: number;
+	changePercent?: number;
+	price?: number;
+	changeValue?: number;
+}
+
+interface PortfolioMetrics {
+	totalLiquidity: number;
+	available: number;
+	protection: number;
+	rate: number;
+	activeWorkers: number;
+	totalWorkers: number;
+	totalPortfolioValue: number;
+	totalChange: number;
+	totalChangePercent: number;
+}
 
 function SonarPortfolio() {
 	const session = useSessionStoreSync() as any;
-	
+	const [selectedAsset, setSelectedAsset] = useState<string | null>(null);
+
 	if (
 		!session || !session["testnet.snapshot.sonar"] ||
 		!session["testnet.runtime.sonar"]
 	) {
 		return <Loader>Scanning connection Testnet</Loader>;
 	}
-	
+
+	const ASSET_PRICES: Record<string, number> = {
+		BTC:
+			session[
+				"testnet.runtime.connector.exchange.crypto.bybit.futures.BTC/USDT:USDT.ticker"
+			].raw.last,
+		ETH:
+			session[
+				"testnet.runtime.connector.exchange.crypto.bybit.futures.ETH/USDT:USDT.ticker"
+			].raw.last,
+		SOL:
+			session[
+				"testnet.runtime.connector.exchange.crypto.bybit.futures.SOL/USDT:USDT.ticker"
+			].raw.last,
+		BNB:
+			session[
+				"testnet.runtime.connector.exchange.crypto.bybit.futures.BNB/USDT:USDT.ticker"
+			].raw.last,
+	};
+
 	const snapshot = session["testnet.snapshot.sonar"];
-	console.log(snapshot);
-	// {
-	// 	"channel": "testnet.snapshot.sonar",
-	// 	"module": "snapshot",
-	// 	"widget": "widget.testnet.snapshot.sonar",
-	// 	"raw": {
-	// 	"accounts": [
-	// 		"snapshot.balance.gYjDnckjrKCw3CYVerH1LMbgTWv3dmg6Hu.bybit.g-rns.1754182950589",
-	// 		"snapshot.balance.gfmUbwVewst8tJi8nsNbXS662sqUYmG6j6.bybit.g-egor.1754182839513",
-	// 		"snapshot.balance.ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv.bybit.g-vld.1754005140854",
-	// 		"snapshot.balance.gnwx16wheMmeQrALvxmfwAiEiE82cqKavW.bybit.g-gnl.1754010377076"
-	// 	],
-	// 		"connectors": [],
-	// 		"workers": {
-	// 		"active": 0,
-	// 			"stopped": 0,
-	// 			"total": 0
-	// 	},
-	// 	"liquidity": 794840.1071516799,
-	// 		"protection": 2299.72830056,
-	// 		"available": 190070.39964545,
-	// 		"margin": {
-	// 		"balance": 190070.39964545,
-	// 			"initial": 0,
-	// 			"maintenance": 0
-	// 	},
-	// 	"rate": 0,
-	// 		"exchanges": [
-	// 		"bybit"
-	// 	],
-	// 		"uniqueExchange": 1,
-	// 		"coins": {
-	// 		"BTC": 0.00212835,
-	// 			"ETH": 0.00001206,
-	// 			"SOL": 0.00184265,
-	// 			"ETHW": 2e-8,
-	// 			"ETHF": 2e-8,
-	// 			"USDT": 792044.9108656,
-	// 			"BNB": 0.00000423,
-	// 			"SQR": 0.9371156,
-	// 			"TON": 0.0138415,
-	// 			"SIS": 0.0021,
-	// 			"IZI": 0.0069,
-	// 			"BBL": 846.0585,
-	// 			"CBX": 0.0068,
-	// 			"APEX": 1351.5613,
-	// 			"GENE": 0.0026,
-	// 			"PLY": 0.0083,
-	// 			"KASTA": 0.002,
-	// 			"DLC": 902.3802,
-	// 			"PTU": 0.0007,
-	// 			"VELAR": 1568.0708,
-	// 			"TAP": 0.0077
-	// 	},
-	// 	"timestamp": 1754010377076
-	// }
-	// }
 	const runtime = session["testnet.runtime.sonar"];
-	console.log(runtime);
-	// {
-	// 	"channel": "testnet.runtime.sonar",
-	// 	"module": "sonar",
-	// 	"widget": "widget.testnet.runtime.sonar",
-	// 	"raw": {
-	// 	"accounts": [
-	// 		"account.balance.gYjDnckjrKCw3CYVerH1LMbgTWv3dmg6Hu.bybit.g-rns",
-	// 		"account.balance.gfmUbwVewst8tJi8nsNbXS662sqUYmG6j6.bybit.g-egor",
-	// 		"account.balance.ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv.bybit.g-bht",
-	// 		"account.balance.ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv.bybit.g-bhts",
-	// 		"account.balance.ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv.bybit.g-fullip",
-	// 		"account.balance.ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv.bybit.g-vld",
-	// 		"account.balance.gnwx16wheMmeQrALvxmfwAiEiE82cqKavW.bybit.g-gnl"
-	// 	],
-	// 		"connectors": [],
-	// 		"workers": {
-	// 		"active": 40,
-	// 			"stopped": 0,
-	// 			"total": 40
-	// 	},
-	// 	"liquidity": 2069877.32074595,
-	// 		"protection": 0,
-	// 		"available": 1189642.42132761,
-	// 		"margin": {
-	// 		"balance": 1193813.76098706,
-	// 			"initial": 4171.33965945,
-	// 			"maintenance": 1668.53586378
-	// 	},
-	// 	"rate": 0.0034,
-	// 		"exchanges": [
-	// 		"bybit"
-	// 	],
-	// 		"uniqueExchange": 1,
-	// 		"coins": {
-	// 		"BTC": 0.00214993,
-	// 			"ETH": 317.65010628,
-	// 			"SOL": 0.0022883499999999998,
-	// 			"ETHW": 2e-8,
-	// 			"ETHF": 2e-8,
-	// 			"USDT": 768732.93190062,
-	// 			"BNB": 0.00000423,
-	// 			"SQR": 1.628303,
-	// 			"TON": 0.0138415,
-	// 			"GRT": 0.005,
-	// 			"SIS": 0.0021,
-	// 			"IZI": 0.0069,
-	// 			"BBL": 846.0585,
-	// 			"CBX": 0.0068,
-	// 			"APEX": 1351.5613,
-	// 			"GENE": 0.0026,
-	// 			"PLY": 0.0083,
-	// 			"KASTA": 0.002,
-	// 			"DLC": 902.3802,
-	// 			"PTU": 0.0007,
-	// 			"VELAR": 1568.0708,
-	// 			"TAP": 0.0077
-	// 	},
-	// 	"timestamp": 1755649869241
-	// },
-	// 	"timestamp": 1755649874694
-	// }
-	
-	return <div>Sonar Portfolio</div>;
+
+	// Process assets with accurate value calculations
+	const assets: AssetData[] = useMemo(() => {
+		const snapshotCoins = snapshot.raw.coins;
+		const runtimeCoins = runtime.raw.coins;
+
+		return Object.keys(runtimeCoins).map((symbol) => {
+			const currentAmount = runtimeCoins[symbol];
+			const previousAmount = snapshotCoins[symbol] || 0;
+			const change = currentAmount - previousAmount;
+			const changePercent = previousAmount > 0
+				? (change / previousAmount) * 100
+				: 0;
+
+			// Get asset price (default to 1 for unknown assets)
+			const price = ASSET_PRICES[symbol] || 1;
+			const value = currentAmount * price;
+			const changeValue = change * price;
+
+			return {
+				symbol,
+				amount: currentAmount,
+				value,
+				price,
+				change,
+				changePercent,
+				changeValue,
+			};
+		}).filter((asset) => asset.amount > 0).sort((a, b) => b.value - a.value);
+	}, [snapshot, runtime]);
+
+	// Calculate portfolio metrics with accurate totals
+	const metrics: PortfolioMetrics = useMemo(() => {
+		const totalPortfolioValue = assets.reduce(
+			(sum, asset) => sum + asset.value,
+			0,
+		);
+		const totalChange = assets.reduce(
+			(sum, asset) => sum + (asset.changeValue || 0),
+			0,
+		);
+		const totalChangePercent = totalPortfolioValue > 0
+			? (totalChange / (totalPortfolioValue - totalChange)) * 100
+			: 0;
+
+		return {
+			totalLiquidity: runtime.raw.liquidity,
+			available: runtime.raw.available,
+			protection: runtime.raw.protection,
+			rate: runtime.raw.rate,
+			activeWorkers: runtime.raw.workers.active,
+			totalWorkers: runtime.raw.workers.total,
+			totalPortfolioValue,
+			totalChange,
+			totalChangePercent,
+		};
+	}, [assets, runtime]);
+
+	// Generate pie chart data
+	const pieData = useMemo(() =>
+		assets.map((asset) => ({
+			symbol: asset.symbol,
+			value: asset.value,
+			percentage: (asset.value / metrics.totalPortfolioValue) * 100,
+		})), [assets, metrics.totalPortfolioValue]);
+
+	const formatNumber = (num: number, decimals: number = 2): string => {
+		if (num === 0) return "0";
+		if (Math.abs(num) < 0.000001) return num.toExponential(2);
+		return num.toFixed(decimals);
+	};
+
+	const formatCurrency = (num: number): string => {
+		return new Intl.NumberFormat("en-US", {
+			style: "currency",
+			currency: "USD",
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2,
+		}).format(num);
+	};
+
+	const formatAssetAmount = (symbol: string, amount: number): string => {
+		// Different formatting for different asset types
+		if (symbol === "USDT") {
+			return formatCurrency(amount);
+		}
+		if (["BTC", "ETH", "SOL", "BNB"].includes(symbol)) {
+			return `${formatNumber(amount, 8)} ${symbol}`;
+		}
+		if (amount >= 1000) {
+			return `${formatNumber(amount, 2)} ${symbol}`;
+		}
+		return `${formatNumber(amount, 6)} ${symbol}`;
+	};
+
+	const getChangeIcon = (change: number) => {
+		if (change > 0) return <ArrowUpIcon className="w-4 h-4 text-green-500" />;
+		if (change < 0) return <ArrowDownIcon className="w-4 h-4 text-red-500" />;
+		return <MinusIcon className="w-4 h-4 text-gray-500" />;
+	};
+
+	const getChangeColor = (change: number) => {
+		if (change > 0) return "text-green-500";
+		if (change < 0) return "text-red-500";
+		return "text-gray-500";
+	};
+
+	return (
+		<div className="space-y-6">
+			{/* Header */}
+			<div className="flex items-center justify-between">
+				<div>
+					<h2 className="text-2xl font-bold text-zinc-100">
+						Portfolio Overview
+					</h2>
+					<p className="text-zinc-400">
+						Real-time portfolio performance and asset allocation
+					</p>
+				</div>
+				<Badge
+					variant="outline"
+					className="bg-amber-500/10 text-amber-500 border-amber-500/20"
+				>
+					{metrics.activeWorkers}/{metrics.totalWorkers} Workers Active
+				</Badge>
+			</div>
+
+			{/* Key Metrics */}
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+				<Card className="bg-zinc-900/50 border-zinc-800">
+					<CardContent className="p-4">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm text-zinc-400">Portfolio Value</p>
+								<p className="text-xl font-semibold text-zinc-100">
+									{formatCurrency(metrics.totalPortfolioValue)}
+								</p>
+								{metrics.totalChange !== 0 && (
+									<div className="flex items-center space-x-1 mt-1">
+										{getChangeIcon(metrics.totalChange)}
+										<span
+											className={`text-sm ${
+												getChangeColor(metrics.totalChange)
+											}`}
+										>
+											{metrics.totalChange > 0 ? "+" : ""}
+											{formatCurrency(metrics.totalChange)}
+										</span>
+										<span
+											className={`text-xs ${
+												getChangeColor(metrics.totalChange)
+											}`}
+										>
+											({metrics.totalChangePercent > 0 ? "+" : ""}
+											{metrics.totalChangePercent.toFixed(2)}%)
+										</span>
+									</div>
+								)}
+							</div>
+							<div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center">
+								<span className="text-amber-500 text-sm font-medium">$</span>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card className="bg-zinc-900/50 border-zinc-800">
+					<CardContent className="p-4">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm text-zinc-400">Total Liquidity</p>
+								<p className="text-xl font-semibold text-zinc-100">
+									{formatCurrency(metrics.totalLiquidity)}
+								</p>
+							</div>
+							<div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+								<span className="text-blue-500 text-sm font-medium">💧</span>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card className="bg-zinc-900/50 border-zinc-800">
+					<CardContent className="p-4">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm text-zinc-400">Available</p>
+								<p className="text-xl font-semibold text-zinc-100">
+									{formatCurrency(metrics.available)}
+								</p>
+							</div>
+							<div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+								<span className="text-green-500 text-sm font-medium">✓</span>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card className="bg-zinc-900/50 border-zinc-800">
+					<CardContent className="p-4">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm text-zinc-400">Rate</p>
+								<p className="text-xl font-semibold text-zinc-100">
+									{(metrics.rate * 100).toFixed(2)}%
+								</p>
+							</div>
+							<div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+								<span className="text-purple-500 text-sm font-medium">%</span>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+				{/* Pie Chart */}
+				<Card className="lg:col-span-1 bg-zinc-900/50 border-zinc-800">
+					<CardHeader>
+						<CardTitle className="text-zinc-100">Asset Allocation</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="space-y-3">
+							{pieData.slice(0, 8).map((item, index) => (
+								<div key={item.symbol} className="flex items-center space-x-3">
+									<div
+										className="w-4 h-4 rounded-full"
+										style={{
+											backgroundColor: `hsl(${index * 45}, 70%, 60%)`,
+										}}
+									/>
+									<div className="flex-1 min-w-0">
+										<div className="flex items-center justify-between">
+											<span className="text-sm font-medium text-zinc-100 truncate">
+												{item.symbol}
+											</span>
+											<span className="text-sm text-zinc-400">
+												{item.percentage.toFixed(1)}%
+											</span>
+										</div>
+										<div className="w-full bg-zinc-800 rounded-full h-1.5 mt-1">
+											<div
+												className="h-1.5 rounded-full"
+												style={{
+													width: `${item.percentage}%`,
+													backgroundColor: `hsl(${index * 45}, 70%, 60%)`,
+												}}
+											/>
+										</div>
+									</div>
+								</div>
+							))}
+							{pieData.length > 8 && (
+								<div className="pt-2">
+									<Separator className="bg-zinc-800" />
+									<p className="text-xs text-zinc-500 mt-2">
+										+{pieData.length - 8} more assets
+									</p>
+								</div>
+							)}
+						</div>
+					</CardContent>
+				</Card>
+
+				{/* Asset List */}
+				<Card className="lg:col-span-2 bg-zinc-900/50 border-zinc-800">
+					<CardHeader>
+						<CardTitle className="text-zinc-100">Asset Performance</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="space-y-3">
+							{assets.map((asset) => (
+								<div
+									key={asset.symbol}
+									className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+										selectedAsset === asset.symbol
+											? "bg-amber-500/10 border-amber-500/30"
+											: "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-800/70"
+									}`}
+									onClick={() =>
+										setSelectedAsset(
+											selectedAsset === asset.symbol ? null : asset.symbol,
+										)}
+								>
+									<div className="flex items-center justify-between">
+										<div className="flex items-center space-x-3">
+											<div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center">
+												<span className="text-amber-500 text-sm font-bold">
+													{asset.symbol.slice(0, 2)}
+												</span>
+											</div>
+											<div>
+												<p className="font-medium text-zinc-100">
+													{asset.symbol}
+												</p>
+												<p className="text-sm text-zinc-400">
+													{formatAssetAmount(asset.symbol, asset.amount)}
+												</p>
+												{asset.price && asset.price !== 1 && (
+													<p className="text-xs text-zinc-500">
+														Price: {formatCurrency(asset.price)}
+													</p>
+												)}
+											</div>
+										</div>
+
+										<div className="text-right">
+											<p className="font-medium text-zinc-100">
+												{formatCurrency(asset.value)}
+											</p>
+											{asset.change !== undefined && asset.change !== 0 && (
+												<div className="flex items-center space-x-1">
+													{getChangeIcon(asset.change)}
+													<span
+														className={`text-sm ${
+															getChangeColor(asset.change)
+														}`}
+													>
+														{asset.change > 0 ? "+" : ""}
+														{formatAssetAmount(asset.symbol, asset.change)}
+													</span>
+													{asset.changePercent !== undefined && (
+														<span
+															className={`text-xs ${
+																getChangeColor(asset.change)
+															}`}
+														>
+															({asset.changePercent > 0 ? "+" : ""}
+															{asset.changePercent.toFixed(2)}%)
+														</span>
+													)}
+												</div>
+											)}
+										</div>
+									</div>
+								</div>
+							))}
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+
+			{/* Summary */}
+			<Card className="bg-zinc-900/50 border-zinc-800">
+				<CardContent className="p-6">
+					<div className="flex items-center justify-between">
+						<div>
+							<p className="text-sm text-zinc-400">Portfolio Summary</p>
+							<p className="text-2xl font-bold text-zinc-100">
+								{formatCurrency(metrics.totalPortfolioValue)}
+							</p>
+							{metrics.totalChange !== 0 && (
+								<p className={`text-sm ${getChangeColor(metrics.totalChange)}`}>
+									{metrics.totalChange > 0 ? "+" : ""}
+									{formatCurrency(metrics.totalChange)}
+									({metrics.totalChangePercent > 0 ? "+" : ""}
+									{metrics.totalChangePercent.toFixed(2)}%)
+								</p>
+							)}
+						</div>
+						<div className="text-right">
+							<p className="text-sm text-zinc-400">Total Assets</p>
+							<p className="text-lg font-semibold text-zinc-100">
+								{assets.length}
+							</p>
+							<p className="text-xs text-zinc-500">
+								{assets.filter((a) => a.change && a.change > 0).length} gaining
+							</p>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+		</div>
+	);
 }
 
 export default SonarPortfolio;
