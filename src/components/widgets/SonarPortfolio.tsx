@@ -36,6 +36,11 @@ interface PortfolioMetrics {
 		realtimeCount: number;
 		totalCount: number;
 	};
+	filteredStats: {
+		displayedCount: number;
+		totalAssetsCount: number;
+		minLiquidityThreshold: number;
+	};
 }
 
 function SonarPortfolio() {
@@ -100,7 +105,7 @@ function SonarPortfolio() {
 	const runtime = session["testnet.runtime.sonar"];
 
 	// Process assets with accurate value calculations
-	const assets: AssetData[] = useMemo(() => {
+	const allAssets: AssetData[] = useMemo(() => {
 		const snapshotCoins = snapshot.raw.coins;
 		const runtimeCoins = runtime.raw.coins;
 
@@ -139,6 +144,12 @@ function SonarPortfolio() {
 		}).filter((asset) => asset.amount > 0).sort((a, b) => b.value - a.value);
 	}, [snapshot, runtime, ASSET_PRICES, session]);
 
+	// Filter assets by liquidity threshold
+	const assets = useMemo(() => {
+		const minLiquidityThreshold = 100; // $100 minimum
+		return allAssets.filter((asset) => asset.value >= minLiquidityThreshold);
+	}, [allAssets]);
+
 	// Calculate portfolio metrics with accurate totals
 	const metrics: PortfolioMetrics = useMemo(() => {
 		const totalPortfolioValue = assets.reduce(
@@ -172,8 +183,13 @@ function SonarPortfolio() {
 				realtimeCount,
 				totalCount,
 			},
+			filteredStats: {
+				displayedCount: assets.length,
+				totalAssetsCount: allAssets.length,
+				minLiquidityThreshold: 100,
+			},
 		};
-	}, [assets, runtime]);
+	}, [assets, allAssets, runtime]);
 
 	// Generate pie chart data
 	const pieData = useMemo(() =>
@@ -225,7 +241,7 @@ function SonarPortfolio() {
 	};
 
 	return (
-		<div className="space-y-6">
+		<div className="w-[980px] space-y-6 p-4">
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
@@ -234,6 +250,12 @@ function SonarPortfolio() {
 					</h2>
 					<p className="text-zinc-400">
 						Real-time portfolio performance and asset allocation
+					</p>
+					<p className="text-xs text-zinc-500 mt-1">
+						Showing assets with liquidity ≥ ${metrics.filteredStats
+							.minLiquidityThreshold}
+						({metrics.filteredStats.displayedCount}/{metrics.filteredStats
+							.totalAssetsCount} assets)
 					</p>
 				</div>
 				<div className="flex items-center space-x-2">
