@@ -336,7 +336,7 @@ export default function OrderBook({book}: { book: OrderBookData }) {
 			initial={{opacity: 0.9, y: 10}}
 			animate={{opacity: 1, y: 0}}
 			transition={{duration: 0.2}}
-			className="w-[450px] bg-gradient-to-b from-zinc-900 to-black rounded-xl border border-zinc-800/50 shadow-xl overflow-hidden backdrop-blur-sm"
+			className="w-[520px] bg-gradient-to-b from-zinc-900 to-black rounded-xl border border-zinc-800/50 shadow-xl overflow-hidden backdrop-blur-sm"
 		>
 			<header className="border-b border-zinc-800/50 p-4 bg-black/40">
 				<div className="flex justify-between items-center">

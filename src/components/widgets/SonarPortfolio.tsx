@@ -241,7 +241,7 @@ function SonarPortfolio() {
 	};
 
 	return (
-		<div className="w-[980px] space-y-6 p-4">
+		<div className="w-[1044px] h-[907px] overflow-y-scroll space-y-5 p-4">
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
@@ -282,7 +282,7 @@ function SonarPortfolio() {
 			</div>
 
 			{/* Key Metrics */}
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
 				<Card className="bg-zinc-900/50 border-zinc-800">
 					<CardContent className="p-4">
 						<div className="flex items-center justify-between">
@@ -369,7 +369,7 @@ function SonarPortfolio() {
 				</Card>
 			</div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
 				{/* Pie Chart */}
 				<Card className="lg:col-span-1 bg-zinc-900/50 border-zinc-800">
 					<CardHeader>
@@ -424,11 +424,11 @@ function SonarPortfolio() {
 						<CardTitle className="text-zinc-100">Asset Performance</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="space-y-3">
+						<div className="space-y-1">
 							{assets.map((asset) => (
 								<div
 									key={asset.symbol}
-									className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+									className={`pl-2 pr-2 rounded-lg border transition-colors cursor-pointer ${
 										selectedAsset === asset.symbol
 											? "bg-amber-500/10 border-amber-500/30"
 											: "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-800/70"

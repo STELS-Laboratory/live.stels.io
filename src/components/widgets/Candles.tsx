@@ -42,7 +42,7 @@ type CandleBar = CandlestickData & { volume: number };
  * Candlestick chart widget using lightweight-charts.
  * Renders OHLC candles with synced volume histogram.
  */
-function Candles({ raw, height = 320 }: CandlesWidgetProps): ReactElement {
+function Candles({ raw, height = 220 }: CandlesWidgetProps): ReactElement {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -227,7 +227,7 @@ function Candles({ raw, height = 320 }: CandlesWidgetProps): ReactElement {
   const latency = parsed?.latency ?? 0;
 
   return (
-    <Card className="w-[700px] h-[430px] border-0">
+    <Card className="w-[520px] h-[330px] border-0">
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -263,12 +263,12 @@ function Candles({ raw, height = 320 }: CandlesWidgetProps): ReactElement {
       <CardContent className="p-0">
         {bars.length === 0
           ? (
-            <div className="flex h-[430px] items-center justify-center text-sm text-muted-foreground">
+            <div className="flex h-[330px] items-center justify-center text-sm text-muted-foreground">
               No candlestick data
             </div>
           )
           : (
-            <div className="relative">
+            <div className="relative pl-2 pr-2">
               <div
                 ref={containerRef}
                 className="w-full border-0"
@@ -276,7 +276,7 @@ function Candles({ raw, height = 320 }: CandlesWidgetProps): ReactElement {
                 aria-label="Candlestick chart"
                 role="img"
               />
-              <div className="w-full pointer-events-none absolute bg-black/40 px-1 py-1 text-[11px] text-zinc-300 ring-1 ring-zinc-800/60">
+              <div className="w-full">
                 <span className="mr-2 text-zinc-500">O</span>
                 {last?.open.toFixed(2) ?? "-"}
                 <span className="mx-2 text-zinc-700">|</span>
