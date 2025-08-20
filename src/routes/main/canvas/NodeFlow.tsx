@@ -7,6 +7,7 @@ import Candles from "@/components/widgets/Candles";
 import Ticker from "@/components/widgets/Ticker";
 import {FredIndicatorWidget} from "@/components/widgets/FredIndicatorWidget.tsx";
 import SonarPortfolio from "@/components/widgets/SonarPortfolio.tsx";
+import Ariadna from "@/components/widgets/Ariadna.tsx";
 
 interface WidgetProps {
   widget: string;
@@ -35,6 +36,8 @@ const Widget = ({ widget, raw, data }: WidgetProps) => {
       );
     case "book":
       return <OrderBook book={raw} />;
+	  case "ariadna":
+		  return <Ariadna data={data} />;
     case "candles":
       return <Candles raw={raw} />;
 	  case "sonar":

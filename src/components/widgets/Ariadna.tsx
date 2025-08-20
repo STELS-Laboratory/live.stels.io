@@ -1,0 +1,157 @@
+"use client"
+
+import { useState, useEffect } from "react"
+
+function Ariadna({ data }: { data: any }) {
+	const [isAnimating, setIsAnimating] = useState(false)
+	const [pulseActive, setPulseActive] = useState(false)
+	
+	const strategyData = data?.raw || {
+		nid: "ariadna",
+		status: "stopped",
+		name: "Anna Ariadna",
+		description: "Anna Ariadna AI Collective control",
+		info: "This group controls the tasks",
+		plugins: ["arbitrage", "liquidity", "market-maker"],
+		accounts: ["account.balance.ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv.bybit.g-fullip"],
+		timestamp: 1753230478399,
+	}
+	
+	const isActive = strategyData.status === "running"
+	
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setIsAnimating(true)
+			setPulseActive(!pulseActive)
+			setTimeout(() => setIsAnimating(false), 1000)
+		}, 3000)
+		
+		return () => clearInterval(interval)
+	}, [pulseActive])
+	
+	const formatTimestamp = (timestamp: number) => {
+		return new Date(timestamp).toLocaleString("en-US", {
+			month: "short",
+			day: "numeric",
+			hour: "2-digit",
+			minute: "2-digit",
+		})
+	}
+	
+	return (
+		<div className="w-[1044px] h-[330px] bg-zinc-950 ">
+			{/* Animated background grid */}
+			<div className="absolute inset-0 opacity-10">
+				<div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_24px,rgba(255,255,255,0.05)_25px,rgba(255,255,255,0.05)_26px,transparent_27px,transparent_49px,rgba(255,255,255,0.05)_50px,rgba(255,255,255,0.05)_51px,transparent_52px),linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[50px_50px]"></div>
+			</div>
+			
+			{/* Status indicator glow */}
+			<div
+				className={`absolute top-12 left-6 w-6 h-6 rounded-full transition-all duration-1000 ${
+					isActive
+						? "bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.6)]"
+						: "bg-red-400 shadow-[0_0_20px_rgba(248,113,113,0.6)]"
+				} ${pulseActive ? "scale-125" : "scale-100"}`}
+			></div>
+			
+			{/* Main content */}
+			<div className="relative z-10 p-8 h-full flex flex-col">
+				{/* Header */}
+				<div className="flex items-start justify-between mb-6">
+					<div className="flex items-center space-x-4">
+						<div
+							className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500 ${
+								isActive
+									? "bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/25"
+									: "bg-gradient-to-br from-zinc-600"
+							} ${isAnimating ? "scale-110 rotate-3" : "scale-100 rotate-0"}`}
+						>
+							<div className="text-2xl font-bold text-white">AI</div>
+						</div>
+						<div>
+							<h1 className="text-2xl font-bold text-white mb-1">{strategyData.name}</h1>
+							<p className="text-zinc-400 text-sm">{strategyData.description}</p>
+						</div>
+					</div>
+					
+					<div
+						className={`px-4 py-2 text-sm font-semibold transition-all duration-300 ${
+							isActive
+								? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+								: "bg-red-500/20 text-red-300 border border-red-500/30"
+						}`}
+					>
+						{isActive ? "● ACTIVE" : "● STOPPED"}
+					</div>
+				</div>
+				
+				{/* Info section */}
+				<div className="mb-6">
+					<p className="text-zinc-300 text-base leading-relaxed">{strategyData.info}</p>
+				</div>
+				
+				{/* Plugins grid */}
+				<div className="flex-1 flex flex-col">
+					<h3 className="zinc text-sm font-semibold mb-3 uppercase tracking-wider">Active Plugins</h3>
+					<div className="grid grid-cols-3 gap-4 mb-6">
+						{strategyData.plugins.map((plugin: string, index: number) => (
+							<div
+								key={plugin}
+								className={`bg-zinc-800/50 border border-zinc-700/50 rounded-xl p-4 transition-all duration-500 hover:bg-zinc-700/50 hover:border-zinc-600/50 ${
+									isAnimating ? "translate-y-[-2px] shadow-lg" : "translate-y-0"
+								}`}
+								style={{ transitionDelay: `${index * 100}ms` }}
+							>
+								<div className="flex items-center space-x-3">
+									<div
+										className={`w-2 h-2 rounded-full transition-all duration-300 ${
+											isActive ? "bg-emerald-400" : "bg-zinc-500"
+										} ${pulseActive && isActive ? "animate-pulse" : ""}`}
+									></div>
+									<span className="text-zinc-200 font-medium capitalize">{plugin.replace("-", " ")}</span>
+								</div>
+							</div>
+						))}
+					</div>
+				</div>
+				
+				{/* Footer stats */}
+				<div className="flex items-center justify-between pt-4 border-t border-zinc-700/50">
+					<div className="flex items-center space-x-6">
+						<div className="text-zinc-400 text-sm">
+							<span className="text-zinc-500">Accounts:</span>
+							<span className="text-zinc-300 ml-1">{strategyData.accounts.length}</span>
+						</div>
+						<div className="text-zinc-400 text-sm">
+							<span className="text-zinc-500">Last Update:</span>
+							<span className="text-zinc-300 ml-1">{formatTimestamp(strategyData.timestamp)}</span>
+						</div>
+					</div>
+					
+					<div className="flex items-center space-x-2">
+						<div className="w-2 h-2 bg-zinc-600 rounded-full animate-pulse"></div>
+						<div className="w-2 h-2 bg-zinc-600 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }}></div>
+						<div className="w-2 h-2 bg-zinc-600 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }}></div>
+					</div>
+				</div>
+			</div>
+			
+			{/* Animated particles for active state */}
+			{isActive && (
+				<div className="absolute inset-0 pointer-events-none">
+					<div className="absolute top-1/4 left-1/4 w-1 h-1 bg-emerald-400 rounded-full animate-ping opacity-75"></div>
+					<div
+						className="absolute top-3/4 right-1/3 w-1 h-1 bg-teal-400 rounded-full animate-ping opacity-50"
+						style={{ animationDelay: "1s" }}
+					></div>
+					<div
+						className="absolute bottom-1/4 left-2/3 w-1 h-1 bg-emerald-300 rounded-full animate-ping opacity-60"
+						style={{ animationDelay: "2s" }}
+					></div>
+				</div>
+			)}
+		</div>
+	)
+}
+
+export default Ariadna

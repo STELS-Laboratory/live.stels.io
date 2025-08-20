@@ -5504,6 +5504,49 @@ const defaultNodes: any[] = [
 			"y": 3225
 		},
 		"dragging": false
+	},
+	{
+		"id": "node-1755653998100",
+		"type": "custom",
+		"position": {
+			"x": -4620,
+			"y": 3225
+		},
+		"data": {
+			"channel": "testnet.group.task.ariadna",
+			"label": "testnet.group.task.ariadna",
+			"sessionData": {
+				"channel": "testnet.group.task.ariadna",
+				"module": "task",
+				"widget": "widget.testnet.group.task.ariadna",
+				"raw": {
+					"nid": "ariadna",
+					"status": "stopped",
+					"name": "Anna Ariadna",
+					"description": "Anna Ariadna AI Collective control",
+					"info": "This group controls the tasks",
+					"plugins": [
+						"arbitrage",
+						"liquidity",
+						"market-maker"
+					],
+					"accounts": [
+						"account.balance.ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv.bybit.g-fullip"
+					],
+					"timestamp": 1753230478399
+				},
+				"timestamp": 1753230478399
+			}
+		},
+		"dragHandle": ".drag-handle",
+		"width": 1046,
+		"height": 351,
+		"selected": false,
+		"positionAbsolute": {
+			"x": -4620,
+			"y": 3225
+		},
+		"dragging": false
 	}
 ]
 
