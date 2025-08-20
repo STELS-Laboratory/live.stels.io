@@ -6,6 +6,7 @@ import OrderBook from "@/components/widgets/OrderBook.tsx";
 import Candles from "@/components/widgets/Candles";
 import Ticker from "@/components/widgets/Ticker";
 import {FredIndicatorWidget} from "@/components/widgets/FredIndicatorWidget.tsx";
+import SonarPortfolio from "@/components/widgets/SonarPortfolio.tsx";
 
 interface WidgetProps {
   widget: string;
@@ -36,6 +37,8 @@ const Widget = ({ widget, raw, data }: WidgetProps) => {
       return <OrderBook book={raw} />;
     case "candles":
       return <Candles raw={raw} />;
+	  case "sonar":
+		  return <SonarPortfolio />;
     case "ticker":
       return <Ticker raw={raw} />;
     default:
