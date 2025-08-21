@@ -530,48 +530,6 @@ function AccountCard(
     return allPositions;
   }, [walletData.positions]);
 
-  // Get orders for this account
-  const allOrders = useMemo(() => {
-    const orders = {
-      open: [] as OrderInfo[],
-      closed: [] as OrderInfo[],
-      canceled: [] as OrderInfo[],
-    };
-
-    const combineOrders = (
-      orderData: Record<
-        string,
-        { open: OrderInfo[]; closed: OrderInfo[]; canceled: OrderInfo[] }
-      >,
-    ): void => {
-      Object.values(orderData).forEach((symbolOrders) => {
-        orders.open.push(...(symbolOrders.open || []));
-        orders.closed.push(...(symbolOrders.closed || []));
-        orders.canceled.push(...(symbolOrders.canceled || []));
-      });
-    };
-
-    walletData.orders?.spot?.forEach((spotData) => {
-      combineOrders(
-        spotData.value.raw.orders as Record<
-          string,
-          { open: OrderInfo[]; closed: OrderInfo[]; canceled: OrderInfo[] }
-        >,
-      );
-    });
-
-    walletData.orders?.futures?.forEach((futuresData) => {
-      combineOrders(
-        futuresData.value.raw.orders as Record<
-          string,
-          { open: OrderInfo[]; closed: OrderInfo[]; canceled: OrderInfo[] }
-        >,
-      );
-    });
-
-    return orders;
-  }, [walletData.orders]);
-
   return (
     <div className="space-y-6">
       {/* Account Overview */}
