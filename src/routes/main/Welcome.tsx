@@ -3,8 +3,10 @@ import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import {
 	Activity,
+	ArrowRight,
 	Calculator,
 	DollarSign,
 	Globe,
@@ -22,6 +24,7 @@ import Markets from "@/routes/main/Markets.tsx";
 import React from "react";
 import { UrlRouterDemo } from "@/components/main/UrlRouterDemo";
 import { RouterDebug } from "@/components/main/RouterDebug";
+import { navigateTo } from "@/lib/router";
 
 class ProfessionalCalculations {
 	static formatCurrency(value: number, precision = 2): string {
@@ -356,6 +359,46 @@ function Welcome(): React.ReactElement | null {
 												analysis and trading strategies.
 											</p>
 										</div>
+									</div>
+								</div>
+							</div>
+
+							<div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
+								<div className="flex items-start justify-between">
+									<div className="flex items-start space-x-3">
+										<div className="flex-shrink-0">
+											<Badge
+												variant="outline"
+												className="border-emerald-500/50 bg-emerald-500/20 text-emerald-400 px-3 py-1"
+											>
+												Connected
+											</Badge>
+										</div>
+										<div className="flex-1 min-w-0">
+											<h3 className="text-lg font-semibold text-emerald-400 mb-2">
+												Wallet System Connected
+											</h3>
+											<div className="text-sm text-gray-300">
+												<p>
+													The wallet system is now fully connected to the
+													heterogeneous network. You can manage your accounts,
+													view transactions, and perform secure operations
+													through the integrated wallet interface.
+												</p>
+											</div>
+										</div>
+									</div>
+									<div className="flex-shrink-0 ml-4">
+										<Button
+											onClick={() => navigateTo("wallet")}
+											variant="outline"
+											size="sm"
+											className="border-emerald-500/50 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 hover:text-emerald-300"
+										>
+											<Wallet className="w-4 h-4 mr-2" />
+											Open Wallet
+											<ArrowRight className="w-4 h-4 ml-2" />
+										</Button>
 									</div>
 								</div>
 							</div>
