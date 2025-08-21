@@ -7,6 +7,7 @@ import { WalletCard } from "@/components/wallet/WalletCard";
 import { WalletSetup } from "@/components/wallet/WalletSetup";
 import { SendTransaction } from "@/components/wallet/SendTransaction";
 import { TransactionList } from "@/components/wallet/TransactionList";
+import { WalletAccounts } from "@/components/wallet/WalletAccounts";
 import { useWalletStore } from "@/stores/modules/wallet.store";
 import { type Transaction } from "@/lib/gliesereum";
 
@@ -20,6 +21,7 @@ export default function GliesereumWallet() {
 		isUnlocked,
 		unlockWallet,
 		lockWallet,
+		logoutWallet,
 		exportPrivateKey,
 		transactions,
 		clearError,
@@ -28,7 +30,7 @@ export default function GliesereumWallet() {
 	const [showPrivateKey, setShowPrivateKey] = useState(false);
 	const [privateKey, setPrivateKey] = useState<string | null>(null);
 	const [activeTab, setActiveTab] = useState<
-		"overview" | "send" | "transactions"
+		"overview" | "send" | "transactions" | "accounts"
 	>("overview");
 
 	// Clear errors on component mount
@@ -65,12 +67,12 @@ export default function GliesereumWallet() {
 	// If no wallet exists, show setup
 	if (!currentWallet) {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 p-4">
+			<div className="p-4">
 				<div className="container mx-auto max-w-4xl">
 					{/* Header */}
 					<div className="text-center mb-8">
 						<h1 className="text-3xl font-bold text-zinc-100 mb-2">
-							Gliesereum Wallet
+							Stels Network - Gliesereum Wallet
 						</h1>
 						<p className="text-zinc-400">
 							Secure cryptocurrency wallet with beautiful card design
@@ -85,7 +87,7 @@ export default function GliesereumWallet() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 p-4">
+		<div className="p-4">
 			<div className="container mx-auto max-w-6xl">
 				{/* Header */}
 				<div className="text-center mb-8">
@@ -136,9 +138,22 @@ export default function GliesereumWallet() {
 									<div className="flex justify-between items-center">
 										<span className="text-zinc-400">Balance</span>
 										<span className="text-zinc-100 font-medium">
-											∞ GLM (Demo)
+											∞ GRH (TestNet)
 										</span>
 									</div>
+								</CardContent>
+							</Card>
+
+							{/* Logout Button */}
+							<Card className="mt-6 bg-zinc-900/80 border-zinc-700/50">
+								<CardContent className="p-4">
+									<Button
+										onClick={logoutWallet}
+										variant="outline"
+										className="w-full bg-red-500/10 border-red-500/30 text-red-300 hover:bg-red-500/20 hover:text-red-200"
+									>
+										Logout Wallet
+									</Button>
 								</CardContent>
 							</Card>
 						</div>
@@ -179,6 +194,16 @@ export default function GliesereumWallet() {
 										}`}
 									>
 										Transactions
+									</button>
+									<button
+										onClick={() => setActiveTab("accounts")}
+										className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+											activeTab === "accounts"
+												? "text-amber-400 border-b-2 border-amber-400"
+												: "text-zinc-400 hover:text-zinc-300"
+										}`}
+									>
+										Accounts
 									</button>
 								</div>
 							</CardContent>
@@ -247,7 +272,7 @@ export default function GliesereumWallet() {
 																<div className="w-2 h-2 rounded-full bg-amber-400" />
 																<div>
 																	<div className="text-sm text-zinc-300">
-																		{tx.amount.toFixed(8)} GLM
+																		{tx.amount.toFixed(8)} GRH
 																	</div>
 																	<div className="text-xs text-zinc-500">
 																		{new Date(tx.timestamp)
@@ -296,6 +321,8 @@ export default function GliesereumWallet() {
 						{activeTab === "transactions" && (
 							<TransactionList transactions={transactions} />
 						)}
+
+						{activeTab === "accounts" && <WalletAccounts />}
 					</div>
 				</div>
 			</div>
