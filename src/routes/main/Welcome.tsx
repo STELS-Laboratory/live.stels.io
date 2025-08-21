@@ -307,30 +307,33 @@ function Welcome(): React.ReactElement | null {
 											variant="outline"
 											className="border-amber-500/50 bg-amber-500/20 text-amber-400 px-3 py-1"
 										>
-											August 20th
+											August 21th
 										</Badge>
 									</div>
 									<div className="flex-1 min-w-0">
 										<h3 className="text-lg font-semibold text-amber-400 mb-2">
-											Blockchain Integration Launch
+											Wallet System Connected to STELS Network
 										</h3>
 										<div className="text-sm text-gray-300 space-y-2">
 											<p>
-												The STELS Labs team will activate the blockless and
-												Genesis for integration with the STELS platform economy
-												management system.
+												The wallet system is now fully connected to the STELS
+												network. Users can manage accounts, view transactions,
+												and perform secure operations.
 											</p>
 											<p>
 												<strong className="text-amber-400">
-													New Features:
+													Upcoming Network Launches:
 												</strong>
 											</p>
 											<ul className="list-disc list-inside space-y-1 ml-4 text-gray-300">
-												<li>User wallet functionality</li>
 												<li>
-													Transaction management in the heterogeneous network
+													<strong>August 21-22:</strong>{" "}
+													Genesis block publication for TestNet, DevNet, MainNet
 												</li>
-												<li>Enhanced economic control capabilities</li>
+												<li>
+													<strong>August 23-24:</strong>{" "}
+													Network connections for Solana, Ethereum, Bitcoin
+												</li>
 											</ul>
 										</div>
 									</div>
