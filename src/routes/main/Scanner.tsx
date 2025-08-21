@@ -1537,7 +1537,7 @@ export default function WalletWidget(): React.ReactElement {
 						<CardHeader className="pb-3">
 							<CardTitle className="text-sm font-medium text-gray-400 flex items-center">
 								<Target className="w-4 h-4 mr-2" />
-								PORTFOLIO ROI
+								PORTFOLIO NAV
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
@@ -1560,7 +1560,7 @@ export default function WalletWidget(): React.ReactElement {
 									: <TrendingDown className="w-4 h-4 mr-1" />}
 								{calc.formatCurrency(totalROI.absolute)}
 							</div>
-							<div className="text-xs text-gray-500 mt-1">unrealized P&L</div>
+							<div className="text-xs text-gray-500 mt-1">growth NAV</div>
 						</CardContent>
 					</Card>
 					
