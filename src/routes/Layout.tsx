@@ -17,7 +17,7 @@ import {
 	Globe,
 	Home,
 	Layers,
-	ScanSearch,
+	ScanSearch, Wallet,
 	// Wallet,
 } from "lucide-react";
 import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
@@ -49,7 +49,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 
 	const systemNav: NavItem[] = [
 		{ key: "network", label: "Network", icon: Globe },
-		// { key: "wallet", label: "Wallet", icon: Wallet },
+		{ key: "wallet", label: "Wallet", icon: Wallet },
 		{ key: "canvas", label: "Canvas", icon: Boxes },
 	].filter((i) => allowedRoutes.includes(i.key));
 
