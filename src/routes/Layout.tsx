@@ -41,7 +41,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 	const { currentRoute, allowedRoutes, routeLoading } = useAppStore();
 
 	const generalNav: NavItem[] = [
-		{ key: "welcome", label: "Sonar", icon: Home },
+		{ key: "welcome", label: "Welcome", icon: Home },
 		{ key: "scanner", label: "Scanner", icon: ScanSearch },
 		{ key: "markets", label: "Markets", icon: CandlestickChart },
 		{ key: "fred", label: "Indicators", icon: Layers },
