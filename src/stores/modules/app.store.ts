@@ -62,20 +62,55 @@ export interface SyncActions {
 /**
  * Application state interface extending network status and sync functionality
  */
-export interface AppState extends NetworkStatus, SyncState, SyncActions {
-	version: string
+/**
+ * Worker interface for the distributed execution platform
+ */
+export interface Worker {
+	key: string[];
+	value: {
+		raw: {
+			sid: string;
+			nid: string;
+			active: boolean;
+			note: string;
+			script: string;
+			dependencies: string[];
+			version: string;
+			timestamp: number;
+		};
+		channel: string;
+	};
+}
 
-	workers: [],
-	workersLoading: false,
-	workersError: null,
-
+/**
+ * Worker management state interface
+ */
+export interface WorkerState {
+	workers: Worker[];
+	workersLoading: boolean;
+	workersError: string | null;
 	worker: {
-		isLoading: false,
-		isEditor: false,
-	},
+		isLoading: boolean;
+		isEditor: boolean;
+	};
+}
 
-	
+/**
+ * Worker management actions interface
+ */
+export interface WorkerActions {
+	listWorkers: () => Promise<void>;
+	setWorker: () => Promise<Worker | null>;
+	updateWorker: (workerData: Worker) => Promise<Worker | null>;
+	setLocked: (locked: boolean) => void;
+	token: string | null;
+}
 
+/**
+ * Application state interface extending network status, sync functionality, and worker management
+ */
+export interface AppState extends NetworkStatus, SyncState, SyncActions, WorkerState, WorkerActions {
+	version: string
 	setVersion: (v: string) => void
 	
 	allowedRoutes: string[]
