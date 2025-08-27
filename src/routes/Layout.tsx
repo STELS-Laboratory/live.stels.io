@@ -14,11 +14,12 @@ import { Progress } from "@/components/ui/progress";
 import {
 	Boxes,
 	CandlestickChart,
+	Code,
 	Globe,
 	Home,
 	Layers,
-	ScanSearch, Wallet,
-	// Wallet,
+	ScanSearch,
+	Wallet,
 } from "lucide-react";
 import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
 import { navigateTo } from "@/lib/router";
@@ -51,6 +52,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 		{ key: "network", label: "Network", icon: Globe },
 		{ key: "wallet", label: "Wallet", icon: Wallet },
 		{ key: "canvas", label: "Canvas", icon: Boxes },
+		{ key: "editor", label: "Editor", icon: Code },
 	].filter((i) => allowedRoutes.includes(i.key));
 
 	const renderNavItem = (item: NavItem): React.ReactElement => {

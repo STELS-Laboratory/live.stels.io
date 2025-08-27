@@ -64,6 +64,18 @@ export interface SyncActions {
  */
 export interface AppState extends NetworkStatus, SyncState, SyncActions {
 	version: string
+
+	workers: [],
+	workersLoading: false,
+	workersError: null,
+
+	worker: {
+		isLoading: false,
+		isEditor: false,
+	},
+
+	
+
 	setVersion: (v: string) => void
 	
 	allowedRoutes: string[]
@@ -137,7 +149,7 @@ export const useAppStore = create<AppState>()(
 					}
 				}
 				
-				const allowedRoutes = ['welcome', 'scanner', 'markets', 'canvas', 'fred', 'wallet', 'network'];
+				const allowedRoutes = ['welcome', 'scanner', 'markets', 'canvas', 'fred', 'wallet', 'network', 'editor'];
 				console.log('[Store] Initializing with allowedRoutes:', allowedRoutes);
 				
 				return {
@@ -247,6 +259,138 @@ export const useAppStore = create<AppState>()(
 					
 					setSyncError: (error: string | null): void => {
 						set({ syncError: error })
+					},
+
+					setWorker: async () => {
+						set({ worker: { isLoading: true, isEditor: get().worker.isEditor } });
+						try {
+							const storage: any = localStorage.getItem("private");
+							if (!storage) throw new Error("Not authenticated");
+							const storageJSON = JSON.parse(storage);
+
+							const response = await fetch(storageJSON.raw.info.api, {
+								method: "POST",
+								headers: {
+									"Content-Type": "application/json",
+									"Stels-Session": get().token as string,
+								},
+								body: JSON.stringify({
+									webfix: "1.0",
+									method: "setWorker",
+									params: [],
+								}),
+							});
+
+							if (!response.ok) throw new Error("Network response was not ok");
+							const result = await response.json();
+
+							if (result && result.key && result.value && result.value.raw && result.value.raw.sid) {
+								set((state) => ({
+									workers: [...state.workers, result],
+								}));
+							}
+
+							set({ worker: { isLoading: false, isEditor: get().worker.isEditor } });
+							return result;
+						} catch (err: any) {
+							console.error("Error creating worker:", err);
+							set({
+								worker: { isLoading: false, isEditor: get().worker.isEditor },
+							});
+							return null;
+						}
+					},
+
+
+					updateWorker: async (workerData: any) => {
+						set({ worker: { isLoading: true, isEditor: get().worker.isEditor } });
+						try {
+							const storage: any = localStorage.getItem("private");
+							if (!storage) throw new Error("Not authenticated");
+							const storageJSON = JSON.parse(storage);
+
+							const response = await fetch(storageJSON.raw.info.api, {
+								method: "POST",
+								headers: {
+									"Content-Type": "application/json",
+									"Stels-Session": get().token as string,
+								},
+								body: JSON.stringify({
+									webfix: "1.0",
+									method: "updateWorker",
+									params: [],
+									body: workerData,
+								}),
+							});
+
+							if (!response.ok) throw new Error("Network response was not ok");
+							const result = await response.json();
+
+							// result — это новый объект воркера, который прислал сервер (если поддерживается)
+							if (result && result.value && result.value.raw && result.value.raw.sid) {
+								const sid = result.value.raw.sid;
+								set((state) => ({
+									workers: state.workers.map((w: any) =>
+										w.value.raw.sid === sid ? result : w
+									),
+								}));
+							}
+							set((state) => ({
+								worker: { isLoading: false, isEditor: get().worker.isEditor },
+							}));
+							return result;
+						} catch (err: any) {
+							console.error("Error updating worker:", err);
+							set({
+								worker: { isLoading: false, isEditor: get().worker.isEditor },
+							});
+							return null;
+						}
+					},
+
+
+					listWorkers: async () => {
+						set({ workersLoading: true, workersError: null });
+						try {
+							// Получаем api endpoint из хранилища авторизации
+							const storage: any = localStorage.getItem("private");
+							if (!storage) {
+								throw new Error("Not authenticated");
+							}
+							const storageJSON = JSON.parse(storage);
+
+							console.log(storageJSON);
+
+							const response = await fetch(storageJSON.raw.info.api, {
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json',
+									'Stels-Session': get().token as string,
+								},
+								body: JSON.stringify({
+									webfix: "1.0",
+									method: "listWorkers",
+									params: []
+								}),
+							});
+
+							if (!response.ok) {
+								throw new Error('Network response was not ok');
+							}
+							const data = await response.json();
+
+							set({
+								workers: data,
+								workersLoading: false,
+								workersError: null
+							});
+						} catch (err: any) {
+							set({
+								workers: [],
+								workersLoading: false,
+								workersError: err?.message || 'Unknown error'
+							});
+						}
 					},
 				}
 			},

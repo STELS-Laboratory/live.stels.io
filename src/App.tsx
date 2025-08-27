@@ -14,6 +14,7 @@ import GliesereumWallet from "@/routes/wallet/Wallet";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/routes/Layout";
 import Fred from "@/routes/main/Fred";
+import {AMIEditor} from "@/routes/editor/AMIEditor.tsx";
 
 /**
  * Professional Dashboard component with fixed layout structure
@@ -50,6 +51,8 @@ export default function Dashboard(): React.ReactElement {
 				return <MarketDataViewer />;
 			case "network":
 				return <HeterogenComponent />;
+			case "editor":
+				return <AMIEditor />;
 			case "wallet":
 				return <GliesereumWallet />;
 			case "canvas":
