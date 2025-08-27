@@ -296,10 +296,21 @@ export const useAppStore = create<AppState>()(
 						set({ syncError: error })
 					},
 
-					setWorker: async () => {
+					// Worker management state
+					workers: [],
+					workersLoading: false,
+					workersError: null,
+					worker: {
+						isLoading: false,
+						isEditor: false,
+					},
+					token: null,
+
+					// Worker management actions
+					setWorker: async (): Promise<Worker | null> => {
 						set({ worker: { isLoading: true, isEditor: get().worker.isEditor } });
 						try {
-							const storage: any = localStorage.getItem("private");
+							const storage = localStorage.getItem("private");
 							if (!storage) throw new Error("Not authenticated");
 							const storageJSON = JSON.parse(storage);
 
@@ -327,8 +338,8 @@ export const useAppStore = create<AppState>()(
 
 							set({ worker: { isLoading: false, isEditor: get().worker.isEditor } });
 							return result;
-						} catch (err: any) {
-							console.error("Error creating worker:", err);
+						} catch (error) {
+							console.error("Error creating worker:", error);
 							set({
 								worker: { isLoading: false, isEditor: get().worker.isEditor },
 							});
@@ -336,11 +347,10 @@ export const useAppStore = create<AppState>()(
 						}
 					},
 
-
-					updateWorker: async (workerData: any) => {
+					updateWorker: async (workerData: Worker): Promise<Worker | null> => {
 						set({ worker: { isLoading: true, isEditor: get().worker.isEditor } });
 						try {
-							const storage: any = localStorage.getItem("private");
+							const storage = localStorage.getItem("private");
 							if (!storage) throw new Error("Not authenticated");
 							const storageJSON = JSON.parse(storage);
 
@@ -361,21 +371,19 @@ export const useAppStore = create<AppState>()(
 							if (!response.ok) throw new Error("Network response was not ok");
 							const result = await response.json();
 
-							// result — это новый объект воркера, который прислал сервер (если поддерживается)
+							// Update worker in state if server returns updated data
 							if (result && result.value && result.value.raw && result.value.raw.sid) {
 								const sid = result.value.raw.sid;
 								set((state) => ({
-									workers: state.workers.map((w: any) =>
+									workers: state.workers.map((w) =>
 										w.value.raw.sid === sid ? result : w
 									),
 								}));
 							}
-							set((state) => ({
-								worker: { isLoading: false, isEditor: get().worker.isEditor },
-							}));
+							set({ worker: { isLoading: false, isEditor: get().worker.isEditor } });
 							return result;
-						} catch (err: any) {
-							console.error("Error updating worker:", err);
+						} catch (error) {
+							console.error("Error updating worker:", error);
 							set({
 								worker: { isLoading: false, isEditor: get().worker.isEditor },
 							});
@@ -383,18 +391,14 @@ export const useAppStore = create<AppState>()(
 						}
 					},
 
-
-					listWorkers: async () => {
+					listWorkers: async (): Promise<void> => {
 						set({ workersLoading: true, workersError: null });
 						try {
-							// Получаем api endpoint из хранилища авторизации
-							const storage: any = localStorage.getItem("private");
+							const storage = localStorage.getItem("private");
 							if (!storage) {
 								throw new Error("Not authenticated");
 							}
 							const storageJSON = JSON.parse(storage);
-
-							console.log(storageJSON);
 
 							const response = await fetch(storageJSON.raw.info.api, {
 								method: 'POST',
@@ -419,13 +423,17 @@ export const useAppStore = create<AppState>()(
 								workersLoading: false,
 								workersError: null
 							});
-						} catch (err: any) {
+						} catch (error) {
 							set({
 								workers: [],
 								workersLoading: false,
-								workersError: err?.message || 'Unknown error'
+								workersError: error instanceof Error ? error.message : 'Unknown error'
 							});
 						}
+					},
+
+					setLocked: (locked: boolean): void => {
+						set({ token: locked ? null : get().token });
 					},
 				}
 			},

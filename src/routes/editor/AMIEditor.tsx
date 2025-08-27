@@ -32,7 +32,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import EditorComponent from "@/components/editor/EditorComponent";
-import useAppStore from "@/stores/modules/app.store";
+import { useAppStore } from "@/stores/modules/app.store";
 import { useMobile } from "@/hooks/useMobile";
 import type { JSX } from "react/jsx-runtime";
 import { Input } from "@/components/ui/input";
@@ -44,22 +44,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
-interface Worker {
-	key: string[];
-	value: {
-		raw: {
-			sid: string;
-			nid: string;
-			active: boolean;
-			note: string;
-			script: string;
-			dependencies: string[];
-			version: string;
-			timestamp: number;
-		};
-		channel: string;
-	};
-}
+import type { Worker } from "@/stores/modules/app.store";
 
 export function AMIEditor(): JSX.Element {
 	const mobile = useMobile();
@@ -159,9 +144,12 @@ export function AMIEditor(): JSX.Element {
 				active: !selectedWorker.value.raw.active,
 				timestamp: Date.now(),
 			};
-			const workerBody = {
-				...selectedWorker.value,
-				raw: updatedRaw,
+			const workerBody: Worker = {
+				...selectedWorker,
+				value: {
+					...selectedWorker.value,
+					raw: updatedRaw,
+				},
 			};
 			const result = await updateWorker(workerBody);
 			if (result) {
@@ -195,9 +183,12 @@ export function AMIEditor(): JSX.Element {
 				note: currentNote,
 				timestamp: Date.now(),
 			};
-			const workerBody = {
-				...selectedWorker.value,
-				raw: updatedRaw,
+			const workerBody: Worker = {
+				...selectedWorker,
+				value: {
+					...selectedWorker.value,
+					raw: updatedRaw,
+				},
 			};
 			const result = await updateWorker(workerBody);
 			if (result) {
@@ -233,9 +224,12 @@ export function AMIEditor(): JSX.Element {
 				note: currentNote,
 				timestamp: Date.now(),
 			};
-			const workerBody = {
-				...selectedWorker.value,
-				raw: updatedRaw,
+			const workerBody: Worker = {
+				...selectedWorker,
+				value: {
+					...selectedWorker.value,
+					raw: updatedRaw,
+				},
 			};
 			const result = await updateWorker(workerBody);
 			if (result) {

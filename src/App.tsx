@@ -14,7 +14,7 @@ import GliesereumWallet from "@/routes/wallet/Wallet";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/routes/Layout";
 import Fred from "@/routes/main/Fred";
-import {AMIEditor} from "@/routes/editor/AMIEditor.tsx";
+import { AMIEditor } from "@/routes/editor/AMIEditor";
 
 /**
  * Professional Dashboard component with fixed layout structure

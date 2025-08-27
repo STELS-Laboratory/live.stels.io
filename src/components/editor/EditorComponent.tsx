@@ -1,14 +1,19 @@
 import MonacoEditor from "@monaco-editor/react";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import type * as monaco from "monaco-editor";
+import type { ReactElement } from "react";
 
-export default function EditorComponent({ script, handleEditorChange }: {
+interface EditorComponentProps {
 	script: string | undefined;
 	handleEditorChange: (value: string | undefined) => void;
-}) {
+}
+
+export default function EditorComponent(
+	{ script, handleEditorChange }: EditorComponentProps,
+): ReactElement {
 	const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
-	const handleEditorDidMount = (
+	const handleEditorDidMount = useCallback((
 		editor: monaco.editor.IStandaloneCodeEditor,
 		monaco: typeof import("monaco-editor"),
 	) => {
@@ -166,7 +171,7 @@ export default function EditorComponent({ script, handleEditorChange }: {
 			// Trigger run action
 			console.log("Run shortcut triggered");
 		});
-	};
+	}, []);
 
 	// @ts-ignore
 	return (
