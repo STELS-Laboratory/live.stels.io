@@ -26,6 +26,7 @@ export interface WalletState {
 	// Transaction management
 	transactions: Transaction[]
 	addTransaction: (transaction: Transaction) => void
+	// @ts-ignore
 	updateTransactionStatus: (hash: string, status: Transaction['status']) => void
 	
 	// Security
@@ -65,6 +66,7 @@ export const useWalletStore = create<WalletState>()(
 							isUnlocked: true,
 							isLoading: false 
 						})
+						localStorage.setItem("_provider", JSON.stringify(wallet))
 					} catch (error) {
 						set({ 
 							error: error instanceof Error ? error.message : 'Failed to create wallet',
@@ -82,6 +84,7 @@ export const useWalletStore = create<WalletState>()(
 							isUnlocked: true,
 							isLoading: false 
 						})
+						localStorage.setItem("_provider", JSON.stringify(wallet))
 						return true
 					} catch (error) {
 						set({ 
@@ -110,6 +113,7 @@ export const useWalletStore = create<WalletState>()(
 					set({ transactions: [transaction, ...transactions] })
 				},
 				
+				// @ts-ignore
 				updateTransactionStatus: (hash: string, status: Transaction['status']) => {
 					const { transactions } = get()
 					const updatedTransactions = transactions.map(tx => 

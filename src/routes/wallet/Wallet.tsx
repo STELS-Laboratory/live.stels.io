@@ -263,7 +263,7 @@ export default function GliesereumWallet() {
 										{transactions.length > 0
 											? (
 												<div className="space-y-3">
-													{transactions.slice(0, 3).map((tx) => (
+													{transactions.slice(0, 3).map((tx: any) => (
 														<div
 															key={tx.hash}
 															className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/30"

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useAppStore } from "@/stores";
+import {useAppStore, useWalletStore} from "@/stores";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
 import { navigateTo } from "@/lib/router";
+import {useState} from "react";
 
 interface LayoutProps {
 	children: React.ReactNode;
@@ -39,8 +40,9 @@ interface NavItem {
  * and a content area optimized for trading and analytics screens.
  */
 function Layout({ children }: LayoutProps): React.ReactElement {
-	const { currentRoute, allowedRoutes, routeLoading } = useAppStore();
-
+	const { currentRoute, allowedRoutes, routeLoading, setRoute } = useAppStore();
+	const { currentWallet } = useWalletStore()
+	
 	const generalNav: NavItem[] = [
 		{ key: "welcome", label: "Welcome", icon: Home },
 		{ key: "scanner", label: "Scanner", icon: ScanSearch },
@@ -90,22 +92,26 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 			</div>
 		);
 	};
+	
+	const [isHovered, setIsHovered] = useState(false)
+	
+	const truncateAddress = (address: string) => {
+		return `${address.slice(0, 6)}...${address.slice(-4)}`
+	}
 
 	return (
-		<div className="h-dvh w-full bg-background text-foreground overflow-hidden">
+		<div className="h-dvh w-full overflow-hidden">
 			<div className="grid grid-cols-1 lg:grid-cols-[70px_1fr] gap-0 h-full overflow-hidden">
 				<aside
 					className="text-center hidden lg:flex lg:flex-col border-r bg-card/80 overflow-hidden"
 					aria-label="Primary navigation"
 				>
-					<div className="px-4 py-12 shrink-0">
-						<div className="flex items-center gap-2">
-							<div
-								onClick={() => navigateTo("welcome")}
-								className="flex items-center justify-center"
-							>
-								<Graphite size={3} />
-							</div>
+					<div className="flex h-[41px] w-full items-center justify-center">
+						<div
+							onClick={() => navigateTo("welcome")}
+							className="flex-1 mt-2 flex items-center justify-center cursor-pointer"
+						>
+							<Graphite size={2.4} />
 						</div>
 					</div>
 
@@ -114,8 +120,8 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 							<Separator className="my-2" />
 
 							<div>
-								<div className="px-2 pb-2 text-xs uppercase tracking-wide text-muted-foreground">
-									General
+								<div className="px-2 pt-4 pb-2 text-xs uppercase tracking-wide text-muted-foreground">
+									Stels
 								</div>
 								<div className="space-y-1">{generalNav.map(renderNavItem)}</div>
 							</div>
@@ -124,7 +130,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 
 							<div>
 								<div className="px-2 pb-2 text-xs uppercase tracking-wide text-muted-foreground">
-									System
+									Apps
 								</div>
 								<ul className="space-y-1">{systemNav.map(renderNavItem)}</ul>
 							</div>
@@ -145,7 +151,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 				</aside>
 
 				<div className="flex flex-col min-w-0 h-full overflow-hidden">
-					<header className="py-4 z-30 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0">
+					<header className="py-0 h-14 z-30 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0">
 						<div className="container-full">
 							<div className="lg:hidden flex gap-2">
 								<div
@@ -160,14 +166,50 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								orientation="vertical"
 								className="hidden lg:block h-6"
 							/>
-							<div className="flex items-center gap-2">
-								<span className="text-sm text-muted-foreground">
-									MODULE:
-								</span>
-								<span className="text-xs text-amber-700 uppercase">
-									{currentRoute}
-								</span>
+							
+							<div className="flex justify-between items-center">
+								<div>
+									<span className="text-sm mr-0 text-muted-foreground">
+										MODULE:
+									</span>
+									<span className="text-xs text-amber-700 uppercase">
+										{currentRoute}
+									</span>
+								</div>
+								{currentWallet && (
+									<div
+										onClick={() => setRoute("wallet")}
+										onMouseEnter={() => setIsHovered(true)}
+										onMouseLeave={() => setIsHovered(false)}
+										className="group cursor-pointer transition-all duration-200 hover:scale-105"
+									>
+										<div
+											className={`
+              bg-card/95 backdrop-blur-sm border border-border/50 rounded-lg px-4 py-2.5
+              shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30
+              ${isHovered ? "bg-card" : ""}
+            `}
+										>
+											<div className="flex items-center gap-2">
+												{/* Wallet Status Indicator */}
+												<div className="flex items-center gap-2">
+													<div className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></div>
+													<span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">TestNet</span>
+												</div>
+												
+												{/* Wallet Address */}
+												<div className="flex flex-col items-end">
+													<span className="text-xs text-muted-foreground/80 uppercase tracking-wider">Wallet Address</span>
+													<span className="text-sm font-mono font-medium text-foreground group-hover:text-primary transition-colors">
+                    {truncateAddress(currentWallet.address)}
+                  </span>
+												</div>
+											</div>
+										</div>
+									</div>
+								)}
 							</div>
+							
 						</div>
 
 						{/* Mobile nav */}
