@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useAppStore, useWalletStore} from "@/stores";
+import { useAppStore, useWalletStore } from "@/stores";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -23,7 +23,8 @@ import {
 } from "lucide-react";
 import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
 import { navigateTo } from "@/lib/router";
-import {useState} from "react";
+import { useState } from "react";
+//import { PulsingBorder } from "@paper-design/shaders-react"
 
 interface LayoutProps {
 	children: React.ReactNode;
@@ -41,8 +42,8 @@ interface NavItem {
  */
 function Layout({ children }: LayoutProps): React.ReactElement {
 	const { currentRoute, allowedRoutes, routeLoading, setRoute } = useAppStore();
-	const { currentWallet } = useWalletStore()
-	
+	const { currentWallet } = useWalletStore();
+
 	const generalNav: NavItem[] = [
 		{ key: "welcome", label: "Welcome", icon: Home },
 		{ key: "scanner", label: "Scanner", icon: ScanSearch },
@@ -92,15 +93,40 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 			</div>
 		);
 	};
-	
-	const [isHovered, setIsHovered] = useState(false)
-	
+
+	const [isHovered, setIsHovered] = useState(false);
+
 	const truncateAddress = (address: string) => {
-		return `${address.slice(0, 6)}...${address.slice(-4)}`
-	}
+		return `${address.slice(0, 6)}...${address.slice(-4)}`;
+	};
 
 	return (
 		<div className="h-dvh w-full overflow-hidden">
+			{/*<div className="fixed right-4 bottom-4 z-50">*/}
+			{/*	<PulsingBorder*/}
+			{/*		colors={["#ff9102", "#222222", "#104eb9", "#ff9102", "#FFD700", "#FF6B35", "#8A2BE2"]}*/}
+			{/*		colorBack="transparent"*/}
+			{/*		speed={1.5}*/}
+			{/*		roundness={1}*/}
+			{/*		thickness={0.1}*/}
+			{/*		softness={0.2}*/}
+			{/*		intensity={1}*/}
+			{/*		spotSize={0.1}*/}
+			{/*		pulse={0.1}*/}
+			{/*		smoke={0.5}*/}
+			{/*		smokeSize={2}*/}
+			{/*		scale={0.5}*/}
+			{/*		rotation={0}*/}
+			{/*		frame={10}*/}
+			{/*		style={{*/}
+			{/*			width: "40px",*/}
+			{/*			height: "40px",*/}
+			{/*			borderRadius: "50%",*/}
+			{/*			padding: "10px",*/}
+			{/*			background: "orange"*/}
+			{/*		}}*/}
+			{/*	/>*/}
+			{/*</div>*/}
 			<div className="grid grid-cols-1 lg:grid-cols-[70px_1fr] gap-0 h-full overflow-hidden">
 				<aside
 					className="text-center hidden lg:flex lg:flex-col border-r bg-card/80 overflow-hidden"
@@ -166,7 +192,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								orientation="vertical"
 								className="hidden lg:block h-6"
 							/>
-							
+
 							<div className="flex justify-between items-center">
 								<div>
 									<span className="text-sm mr-0 text-muted-foreground">
@@ -193,23 +219,27 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 											<div className="flex items-center gap-2">
 												{/* Wallet Status Indicator */}
 												<div className="flex items-center gap-2">
-													<div className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></div>
-													<span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">TestNet</span>
+													<div className="w-1 h-1 bg-green-500 rounded-full animate-pulse">
+													</div>
+													<span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+														TestNet
+													</span>
 												</div>
-												
+
 												{/* Wallet Address */}
 												<div className="flex flex-col items-end">
-													<span className="text-xs text-muted-foreground/80 uppercase tracking-wider">Wallet Address</span>
+													<span className="text-xs text-muted-foreground/80 uppercase tracking-wider">
+														Wallet Address
+													</span>
 													<span className="text-sm font-mono font-medium text-foreground group-hover:text-primary transition-colors">
-                    {truncateAddress(currentWallet.address)}
-                  </span>
+														{truncateAddress(currentWallet.address)}
+													</span>
 												</div>
 											</div>
 										</div>
 									</div>
 								)}
 							</div>
-							
 						</div>
 
 						{/* Mobile nav */}
