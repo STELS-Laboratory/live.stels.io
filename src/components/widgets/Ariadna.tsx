@@ -6,18 +6,9 @@ function Ariadna({ data }: { data: any }) {
 	const [isAnimating, setIsAnimating] = useState(false)
 	const [pulseActive, setPulseActive] = useState(false)
 	
-	const strategyData = data?.raw || {
-		nid: "ariadna",
-		status: "stopped",
-		name: "Anna Ariadna",
-		description: "Anna Ariadna AI Collective control",
-		info: "This group controls the tasks",
-		plugins: ["arbitrage", "liquidity", "market-maker"],
-		accounts: ["account.balance.ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv.bybit.g-fullip"],
-		timestamp: 1753230478399,
-	}
+	const strategyData = data.raw;
 	
-	const isActive = strategyData.status === "running"
+	const isActive = strategyData.status === "training"
 	
 	useEffect(() => {
 		const interval = setInterval(() => {
@@ -75,13 +66,13 @@ function Ariadna({ data }: { data: any }) {
 					</div>
 					
 					<div
-						className={`px-4 py-2 text-sm font-semibold transition-all duration-300 ${
+						className={`px-4 py-2 text-sm uppercase font-semibold transition-all duration-300 ${
 							isActive
 								? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
 								: "bg-red-500/20 text-red-300 border border-red-500/30"
 						}`}
 					>
-						{isActive ? "● ACTIVE" : "● STOPPED"}
+						{isActive ? "● " + strategyData.status : "● " + strategyData.status}
 					</div>
 				</div>
 				
