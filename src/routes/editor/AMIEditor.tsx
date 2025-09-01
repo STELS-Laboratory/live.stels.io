@@ -13,7 +13,7 @@ import {
 	HardDrive,
 	Hash,
 	Layers,
-	LogOut,
+	//LogOut,
 	Network,
 	Play,
 	Plus,
@@ -98,10 +98,10 @@ export function AMIEditor(): JSX.Element {
 		}
 	}, [newlyCreatedWorker]);
 
-	const handleSelectWorker = (worker: Worker) => {
-		setSelectedWorker(worker);
-		setCurrentScript(worker.value.raw.script);
-		setCurrentNote(worker.value.raw.note);
+	const handleSelectWorker = (protocol: Worker) => {
+		setSelectedWorker(protocol);
+		setCurrentScript(protocol.value.raw.script);
+		setCurrentNote(protocol.value.raw.note);
 		setIsEditing(false);
 		setIsEditingNote(false);
 	};
@@ -169,7 +169,7 @@ export function AMIEditor(): JSX.Element {
 				);
 			}
 		} catch (error) {
-			console.error("Failed to update worker status:", error);
+			console.error("Failed to update protocol status:", error);
 		} finally {
 			setUpdating(false);
 		}
@@ -209,7 +209,7 @@ export function AMIEditor(): JSX.Element {
 				setIsEditingNote(false);
 			}
 		} catch (error) {
-			console.error("Failed to save worker note:", error);
+			console.error("Failed to save protocol note:", error);
 		} finally {
 			setUpdating(false);
 		}
@@ -251,18 +251,18 @@ export function AMIEditor(): JSX.Element {
 				setIsEditingNote(false);
 			}
 		} catch (error) {
-			console.error("Failed to save worker changes:", error);
+			console.error("Failed to save protocol changes:", error);
 		} finally {
 			setUpdating(false);
 		}
 	};
 
-	const filteredWorkers = workers.filter((worker) => {
+	const filteredWorkers = workers.filter((protocol) => {
 		const matchesSearch =
-			worker.value.raw.note.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			worker.value.raw.sid.toLowerCase().includes(searchTerm.toLowerCase());
+			protocol.value.raw.note.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			protocol.value.raw.sid.toLowerCase().includes(searchTerm.toLowerCase());
 		const matchesFilter = filterActive === null ||
-			worker.value.raw.active === filterActive;
+			protocol.value.raw.active === filterActive;
 		return matchesSearch && matchesFilter;
 	});
 
@@ -313,7 +313,7 @@ export function AMIEditor(): JSX.Element {
 						<Cpu className="w-6 h-6 text-amber-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
 					</div>
 					<div className="text-amber-400 font-mono text-sm font-bold">
-						LOADING WORKER REGISTRY
+						LOADING PROTOCOL REGISTRY
 					</div>
 				</div>
 			</div>
@@ -344,7 +344,7 @@ export function AMIEditor(): JSX.Element {
 							</div>
 							<div>
 								<h2 className="text-amber-400 font-mono text-sm font-bold">
-									WORKER REGISTRY
+									PROTOCOL REGISTRY
 								</h2>
 								<p className="text-zinc-500 text-xs font-mono">
 									Distributed execution platform
@@ -352,14 +352,14 @@ export function AMIEditor(): JSX.Element {
 							</div>
 						</div>
 						<div className="flex items-center gap-2">
-							<Button
-								size="sm"
-								variant="outline"
-								className="bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700 hover:text-white font-mono text-xs h-8"
-							>
-								<LogOut className="w-3 h-3 mr-1" />
-								EXIT
-							</Button>
+							{/*<Button*/}
+							{/*	size="sm"*/}
+							{/*	variant="outline"*/}
+							{/*	className="bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700 hover:text-white font-mono text-xs h-8"*/}
+							{/*>*/}
+							{/*	<LogOut className="w-3 h-3 mr-1" />*/}
+							{/*	EXIT*/}
+							{/*</Button>*/}
 							<Button
 								size="sm"
 								onClick={async () => {
@@ -377,7 +377,7 @@ export function AMIEditor(): JSX.Element {
 											setNewlyCreatedWorker(newWorker.value.raw.sid);
 										}
 									} catch (error) {
-										console.error("Failed to create worker:", error);
+										console.error("Failed to create protocol:", error);
 									} finally {
 										setCreatingWorker(false);
 									}
@@ -395,7 +395,7 @@ export function AMIEditor(): JSX.Element {
 									: (
 										<>
 											<Plus className="w-3 h-3 mr-1" />
-											NEW WORKER
+											NEW PROTOCOL
 										</>
 									)}
 							</Button>
@@ -484,16 +484,16 @@ export function AMIEditor(): JSX.Element {
 				{/* Workers List */}
 				<ScrollArea className="flex-1 px-2 py-2">
 					<div className="space-y-2">
-						{filteredWorkers.map((worker) => {
+						{filteredWorkers.map((protocol) => {
 							const isNewlyCreated =
-								newlyCreatedWorker === worker.value.raw.sid;
+								newlyCreatedWorker === protocol.value.raw.sid;
 							const isSelected =
-								selectedWorker?.value.raw.sid === worker.value.raw.sid;
+								selectedWorker?.value.raw.sid === protocol.value.raw.sid;
 							
 							return (
 								<div
-									key={worker.value.raw.sid}
-									onClick={() => handleSelectWorker(worker)}
+									key={protocol.value.raw.sid}
+									onClick={() => handleSelectWorker(protocol)}
 									className={`group relative p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
 										isSelected
 											? "border-amber-400 bg-amber-400/10 shadow-lg shadow-amber-400/20"
@@ -521,7 +521,7 @@ export function AMIEditor(): JSX.Element {
 														}`}
 													/>
 												</div>
-												{worker.value.raw.active && (
+												{protocol.value.raw.active && (
 													<div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse border-2 border-zinc-800" />
 												)}
 											</div>
@@ -535,7 +535,7 @@ export function AMIEditor(): JSX.Element {
 																: "text-zinc-200"
 													}`}
 												>
-													{worker.value.raw.sid}
+													{protocol.value.raw.sid}
 												</div>
 												{isNewlyCreated && (
 													<Badge className="text-xs bg-green-400/20 text-green-400 border-green-400">
@@ -547,20 +547,20 @@ export function AMIEditor(): JSX.Element {
 										<Badge
 											variant="outline"
 											className={`text-xs ${
-												worker.value.raw.active
+												protocol.value.raw.active
 													? "border-green-400 text-green-400 bg-green-400/10"
 													: "border-red-400 text-red-400 bg-red-400/10"
 											}`}
 										>
-											{worker.value.raw.active ? "ACTIVE" : "INACTIVE"}
+											{protocol.value.raw.active ? "ACTIVE" : "INACTIVE"}
 										</Badge>
 									</div>
 									
 									{/* Note */}
-									{worker.value.raw.note && (
+									{protocol.value.raw.note && (
 										<div className="mb-3 p-2 bg-zinc-900/50 rounded border border-zinc-700/50">
 											<p className="text-xs text-blue-300 line-clamp-2">
-												{worker.value.raw.note}
+												{protocol.value.raw.note}
 											</p>
 										</div>
 									)}
@@ -570,25 +570,25 @@ export function AMIEditor(): JSX.Element {
 										<div className="flex items-center gap-1">
 											<Network className="w-3 h-3 text-blue-400" />
 											<span className="text-zinc-400 truncate">
-													{worker.value.raw.nid}
+													{protocol.value.raw.nid}
 												</span>
 										</div>
 										<div className="flex items-center gap-1">
 											<Hash className="w-3 h-3 text-amber-400" />
 											<span className="text-amber-400">
-													{worker.value.raw.version}
+													{protocol.value.raw.version}
 												</span>
 										</div>
 										<div className="flex items-center gap-1">
 											<Layers className="w-3 h-3 text-purple-400" />
 											<span className="text-purple-300 truncate">
-													{worker.value.channel.split(".").pop()}
+													{protocol.value.channel.split(".").pop()}
 												</span>
 										</div>
 										<div className="flex items-center gap-1">
 											<Clock className="w-3 h-3 text-zinc-400" />
 											<span className="text-zinc-400">
-													{getTimeAgo(worker.value.raw.timestamp)}
+													{getTimeAgo(protocol.value.raw.timestamp)}
 												</span>
 										</div>
 									</div>
@@ -596,7 +596,7 @@ export function AMIEditor(): JSX.Element {
 									{/* Script Preview */}
 									<div className="mt-3 p-2 bg-zinc-900/50 rounded border border-zinc-700/50">
 										<code className="text-xs text-zinc-400 line-clamp-1">
-											{worker.value.raw.script.replace(/\s+/g, " ").trim() ||
+											{protocol.value.raw.script.replace(/\s+/g, " ").trim() ||
 												"// Empty script"}
 										</code>
 									</div>
@@ -774,7 +774,7 @@ export function AMIEditor(): JSX.Element {
 								<Textarea
 									value={currentNote}
 									onChange={(e) => handleNoteChange(e.target.value)}
-									placeholder="Add notes about this worker..."
+									placeholder="Add notes about this protocol..."
 									className="bg-zinc-800 border-zinc-700 text-zinc-300 placeholder-zinc-500 text-sm resize-none h-20 focus:border-blue-400 focus:ring-blue-400/20"
 								/>
 							</div>
@@ -840,7 +840,7 @@ export function AMIEditor(): JSX.Element {
 									CODE EDITOR
 								</h3>
 								<p className="text-zinc-400 text-sm mb-6">
-									Select a worker from the registry to start editing
+									Select a protocol from the registry to start editing
 								</p>
 								<div className="px-4 py-2 bg-zinc-800 rounded-lg inline-block">
 									<div className="text-xs text-zinc-500 font-mono flex items-center gap-2">
@@ -864,7 +864,7 @@ export function AMIEditor(): JSX.Element {
 							<div className="absolute inset-0 rounded-xl border-2 border-amber-400/30 animate-ping" />
 						</div>
 						<h3 className="text-amber-400 font-mono text-xl font-bold mb-2">
-							CREATING WORKER
+							CREATING PROTOCOL
 						</h3>
 						<p className="text-zinc-400 text-sm mb-6">
 							Initializing new execution instance...

@@ -129,19 +129,19 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 			{/*</div>*/}
 			<div className="grid grid-cols-1 lg:grid-cols-[70px_1fr] gap-0 h-full overflow-hidden">
 				<aside
-					className="text-center hidden lg:flex lg:flex-col border-r bg-card/80 overflow-hidden"
+					className="text-center hidden items-center justify-center lg:flex lg:flex-col border-r h-full bg-card/80 overflow-hidden"
 					aria-label="Primary navigation"
 				>
-					<div className="flex h-[41px] w-full items-center justify-center">
+					<div className="flex h-[100px] w-full items-center justify-center">
 						<div
 							onClick={() => navigateTo("welcome")}
 							className="flex-1 mt-2 flex items-center justify-center cursor-pointer"
 						>
-							<Graphite size={2.4} />
+							<Graphite size={3} />
 						</div>
 					</div>
 
-					<div className="flex-1 overflow-hidden">
+					<div className="flex-1 overflow-y-scroll">
 						<nav className="space-y-6">
 							<Separator className="my-2" />
 
