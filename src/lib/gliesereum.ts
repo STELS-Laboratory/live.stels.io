@@ -141,6 +141,7 @@ export type Transaction = {
 	fee: number;
 	timestamp: number;
 	hash: string;
+	status?: "pending" | "confirmed" | "failed";
 	verified?: boolean;
 	validators: string[];
 	signature?: string;
