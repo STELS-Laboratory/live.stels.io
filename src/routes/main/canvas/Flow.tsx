@@ -6251,9 +6251,9 @@ function Flow(): React.ReactElement | null {
         <Background className="stels-canvas" color={"#222222"} gap={10} size={1}/>
         <div className="absolute z-1 flex justify-center items-center flex-col w-60 h-60 bottom-0 right-0">
           <div>
-            <Graphite size={4} primary="orange" />
+            <Graphite size={3} primary="gray" />
           </div>
-          <div className="mt-4 text-2xl font-semibold text-zinc-800/60">
+          <div className="mt-4 text-xl font-semibold text-zinc-800/60">
             STELS
           </div>
           <div className="mt-0 text-sm text-zinc-600/30">
