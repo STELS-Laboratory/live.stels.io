@@ -386,8 +386,8 @@ export function AMIEditor(): JSX.Element {
 												setCreatingWorker(false);
 											}
 										}}
-										disabled={creatingWorker}
-										className="bg-amber-500 hover:bg-amber-600 text-black font-mono text-xs h-8 px-3 shadow-lg"
+										disabled={true}
+										className={`bg-amber-500 hover:bg-amber-600 text-black font-mono text-xs h-8 px-3`}
 									>
 										{creatingWorker
 											? (
@@ -399,7 +399,7 @@ export function AMIEditor(): JSX.Element {
 											: (
 												<>
 													<Plus className="w-3 h-3 mr-1" />
-													NEW PROTOCOL
+													AI PROTOCOL
 												</>
 											)}
 									</Button>
