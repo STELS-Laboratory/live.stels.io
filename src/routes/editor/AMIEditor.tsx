@@ -259,10 +259,9 @@ export function AMIEditor(): JSX.Element {
 	};
 
 	const filteredWorkers = workers.filter((protocol) => {
-		const matchesSearch =
-			protocol.value.raw.note.toLowerCase().includes(
-				searchTerm.toLowerCase(),
-			) ||
+		const matchesSearch = protocol.value.raw.note.toLowerCase().includes(
+			searchTerm.toLowerCase(),
+		) ||
 			protocol.value.raw.sid.toLowerCase().includes(searchTerm.toLowerCase());
 		const matchesFilter = filterActive === null ||
 			protocol.value.raw.active === filterActive;
@@ -888,7 +887,7 @@ export function AMIEditor(): JSX.Element {
 				<div className="text-center max-w-md mx-auto p-8">
 					<div className="w-24 h-24 flex items-center justify-center mb-8 mx-auto relative">
 						<div className="w-16 h-16 rounded-xl flex items-center justify-center">
-							<Graphite size={6} primary="gray"/>
+							<Graphite size={6} primary="gray" />
 						</div>
 						<div className="absolute inset-0" />
 					</div>

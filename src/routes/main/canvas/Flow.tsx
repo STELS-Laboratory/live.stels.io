@@ -267,7 +267,7 @@ const defaultNodes: any[] = [
 		},
 		"dragHandle": ".drag-handle",
 		"width": 522,
-		"height": 264,
+		"height": 267,
 		"selected": false,
 		"positionAbsolute": {
 			"x": -3045,
@@ -428,7 +428,7 @@ const defaultNodes: any[] = [
 		},
 		"dragHandle": ".drag-handle",
 		"width": 522,
-		"height": 264,
+		"height": 267,
 		"selected": false,
 		"positionAbsolute": {
 			"x": -3570,
@@ -468,7 +468,7 @@ const defaultNodes: any[] = [
 		},
 		"dragHandle": ".drag-handle",
 		"width": 522,
-		"height": 264,
+		"height": 267,
 		"selected": false,
 		"positionAbsolute": {
 			"x": -2520,
@@ -5545,6 +5545,517 @@ const defaultNodes: any[] = [
 		"positionAbsolute": {
 			"x": -4620,
 			"y": 3225
+		},
+		"dragging": false
+	},
+	{
+		"id": "node-1756788449549",
+		"type": "custom",
+		"position": {
+			"x": -1995,
+			"y": 3225
+		},
+		"data": {
+			"channel": "testnet.runtime.news.finance",
+			"label": "testnet.runtime.news.finance",
+			"sessionData": {
+				"channel": "testnet.runtime.news.finance",
+				"widget": "widget.testnet.runtime.news.finance",
+				"module": "news",
+				"raw": [
+					{
+						"title": "Bitcoin News Today: Bitcoin Dominance, Solana Surge, and the Crypto Market's Evolving Power Struggle - AInvest",
+						"link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxNT0s5akJlN0NfdnBUN25vV0dGdWlDSGRtTHQzMDVfbmJmSXQ5OGYzanFPMHVRcnlQWWxMUHNiU1EzeVlRMm9yOWFXdHFUVzl3RUFZM3IwaEZjcFJWMV9CWjV6b1FWdkRYVVRWVTJGc3I2eHFicmtwb0swd0RNUkZJYVJCRllSa0prUmhyRXlXN1JiYTZUZkxmYmxyQnoxZVpsd1ZnVTRsZnNpemM1N0c2aTBMRlZOWFRmSVlFN3laUQ?oc=5",
+						"pubDate": "Tue, 02 Sep 2025 03:17:38 GMT",
+						"ts": 1756783058000,
+						"ageMs": 5114602,
+						"score": 33,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMivwFBVV95cUxNT0s5akJlN0NfdnBUN25vV0dGdWlDSGRtTHQzMDVfbmJmSXQ5OGYzanFPMHVRcnlQWWxMUHNiU1EzeVlRMm9yOWFXdHFUVzl3RUFZM3IwaEZjcFJWMV9CWjV6b1FWdkRYVVRWVTJGc3I2eHFicmtwb0swd0RNUkZJYVJCRllSa0prUmhyRXlXN1JiYTZUZkxmYmxyQnoxZVpsd1ZnVTRsZnNpemM1N0c2aTBMRlZOWFRmSVlFN3laUQ?oc=5\" target=\"_blank\"&gt;Bitcoin News Today: Bitcoin Dominance, Solana Surge, and the Crypto Market's Evolving Power Struggle&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;AInvest&lt;/font&gt;"
+					},
+					{
+						"title": "Bitcoin, Dogecoin, Solana Rise — Ethereum Falls: BTC Correcting, But Potential For Growth Intact If Demand Holds, Says Analyst - Benzinga",
+						"link": "https://news.google.com/rss/articles/CBMijgJBVV95cUxORXRkX1FvRk92ZFI5YjJ2SnZaV1l1U1BiOU1Lb3d4T2libjU3SkV4ZXhnUllKLW16NDZKRTh0TjZ4ZnppLXo3NVZfT1lLenpfTEo4c2hwVUx5R2tkSXlvYTRWY2tFbFlpUVZRdV9yQU4tNmN2ZTV0TmZUR1dhYnlnRDU0TGllTVU5NHdhdENlbVVrOFFFOEZKVDdyUHY5U2RpM3lIc2RUYS0tRUtxaVZpRzlWbDF0b2c4TlNrQkFhTnRtVmVoYUU3ZzFBRFFBU3h4TXJIT0lXRWg5LXZmZHlUREJaQkpJSWxiY29vVU9iWVBwZ3llRXc2UFRwWUJTd2hkZ1RRRWxzeVExWlRtcmc?oc=5",
+						"pubDate": "Tue, 02 Sep 2025 03:20:21 GMT",
+						"ts": 1756783221000,
+						"ageMs": 4951602,
+						"score": 24,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMijgJBVV95cUxORXRkX1FvRk92ZFI5YjJ2SnZaV1l1U1BiOU1Lb3d4T2libjU3SkV4ZXhnUllKLW16NDZKRTh0TjZ4ZnppLXo3NVZfT1lLenpfTEo4c2hwVUx5R2tkSXlvYTRWY2tFbFlpUVZRdV9yQU4tNmN2ZTV0TmZUR1dhYnlnRDU0TGllTVU5NHdhdENlbVVrOFFFOEZKVDdyUHY5U2RpM3lIc2RUYS0tRUtxaVZpRzlWbDF0b2c4TlNrQkFhTnRtVmVoYUU3ZzFBRFFBU3h4TXJIT0lXRWg5LXZmZHlUREJaQkpJSWxiY29vVU9iWVBwZ3llRXc2UFRwWUJTd2hkZ1RRRWxzeVExWlRtcmc?oc=5\" target=\"_blank\"&gt;Bitcoin, Dogecoin, Solana Rise — Ethereum Falls: BTC Correcting, But Potential For Growth Intact If Demand Holds, Says Analyst&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;Benzinga&lt;/font&gt;"
+					},
+					{
+						"title": "Bitcoin News Today: Metaplanet's Bitcoin Bet: A Corporate Gambit Against Inflation and Dilution - AInvest",
+						"link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxNRWtuYVY3VDFJbTJpNGFvSmxfa0ZHTFpheXlvSVRqdmJQQ2QwN1VTSE5qNlQ1bWdHMllsOHpaWTlYUkFnaGR0ZG93NVdUbzI1Q0xlMVFEbExsOWJudmNqLVJDNXg2LXMxYXBHSnItU0dqYXVFZnVVWl9NNG03bncyWnVTVHlRWVRwbGQzU1dsTTA2U2dIOWNlUUVFSVlmcnBTUnc0Ri1qS2FRWFg2SWtodlNR?oc=5",
+						"pubDate": "Tue, 02 Sep 2025 03:56:24 GMT",
+						"ts": 1756785384000,
+						"ageMs": 2788602,
+						"score": 23,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMisgFBVV95cUxNRWtuYVY3VDFJbTJpNGFvSmxfa0ZHTFpheXlvSVRqdmJQQ2QwN1VTSE5qNlQ1bWdHMllsOHpaWTlYUkFnaGR0ZG93NVdUbzI1Q0xlMVFEbExsOWJudmNqLVJDNXg2LXMxYXBHSnItU0dqYXVFZnVVWl9NNG03bncyWnVTVHlRWVRwbGQzU1dsTTA2U2dIOWNlUUVFSVlmcnBTUnc0Ri1qS2FRWFg2SWtodlNR?oc=5\" target=\"_blank\"&gt;Bitcoin News Today: Metaplanet's Bitcoin Bet: A Corporate Gambit Against Inflation and Dilution&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;AInvest&lt;/font&gt;"
+					},
+					{
+						"title": "Coinbase, OKX Target Australia’s $2.8T Pension Market With Crypto Offerings - Live Bitcoin News",
+						"link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxNdmJyZW5JU0gzSFJOS0ZwTjdzRW5tQWVqaGZjU3VUYVlMcGxTZlB4ZW9DeVhjN3poSDhLbHNfVVlZY0xrdGVmM0h4UVNnVWhabm9McEQ2b0tpazNfYmI3LTNZUS1YSy1oNVB3cVU5MXpUYXgxY1hKdmdtM0M4OVJTcHdqdjJwejdVWEtQWjUtU2t1MzVDNHh3VkNWclhrNmtEX1BNNnE0UUw?oc=5",
+						"pubDate": "Tue, 02 Sep 2025 04:00:53 GMT",
+						"ts": 1756785653000,
+						"ageMs": 2519602,
+						"score": 21,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMiqAFBVV95cUxNdmJyZW5JU0gzSFJOS0ZwTjdzRW5tQWVqaGZjU3VUYVlMcGxTZlB4ZW9DeVhjN3poSDhLbHNfVVlZY0xrdGVmM0h4UVNnVWhabm9McEQ2b0tpazNfYmI3LTNZUS1YSy1oNVB3cVU5MXpUYXgxY1hKdmdtM0M4OVJTcHdqdjJwejdVWEtQWjUtU2t1MzVDNHh3VkNWclhrNmtEX1BNNnE0UUw?oc=5\" target=\"_blank\"&gt;Coinbase, OKX Target Australia’s $2.8T Pension Market With Crypto Offerings&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;Live Bitcoin News&lt;/font&gt;"
+					},
+					{
+						"title": "Bitcoin, Ethereum, XRP Fall. Why a Crypto Correction May Be Coming. - Barron's",
+						"link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxNSXczYmtZOHdJVk5OVTd4bm8tWEVueEhPOTUtaHlOeno3bmhFYUJjMzRaSlh3T1JhV1MybHd4enQ5bTBlWXpPaFdLdlYxcFdTZ0FveUhIa29tQ3lsLUZhLVVvSGpnWXo2M3Fic3c3RF9KSmNOQ0NYaXdKY1loTlZFcE43SC1fTVE?oc=5",
+						"pubDate": "Mon, 01 Sep 2025 08:20:00 GMT",
+						"ts": 1756714800000,
+						"ageMs": 73372602,
+						"score": 20,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMihwFBVV95cUxNSXczYmtZOHdJVk5OVTd4bm8tWEVueEhPOTUtaHlOeno3bmhFYUJjMzRaSlh3T1JhV1MybHd4enQ5bTBlWXpPaFdLdlYxcFdTZ0FveUhIa29tQ3lsLUZhLVVvSGpnWXo2M3Fic3c3RF9KSmNOQ0NYaXdKY1loTlZFcE43SC1fTVE?oc=5\" target=\"_blank\"&gt;Bitcoin, Ethereum, XRP Fall. Why a Crypto Correction May Be Coming.&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;Barron's&lt;/font&gt;"
+					},
+					{
+						"title": "Navigating the Risks of Exchange-Specific Liquidity in a Regulated Crypto Market - AInvest",
+						"link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxOcVNzWkQ4eXdwNGkwQlVFRERWR3hKcmJEcXpvUFFXZ25YS1FMYjdZQlVKOWJ1SGxuRkFRQXJxNWNWZkx4LTRnb01BM1RXTDhjWDlNaG1wVmhqaHRKQ2ozZTlhWU8zZDFQc0ZhNzJUc2RJWUlCVnV3UlFHWEpYNmlzOXRzbHNLY1l0RE1FMTdudDN1NmotZlZCeEVlc0RsU2habWhYN3J3?oc=5",
+						"pubDate": "Tue, 02 Sep 2025 02:46:35 GMT",
+						"ts": 1756781195000,
+						"ageMs": 6977602,
+						"score": 19,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMipgFBVV95cUxOcVNzWkQ4eXdwNGkwQlVFRERWR3hKcmJEcXpvUFFXZ25YS1FMYjdZQlVKOWJ1SGxuRkFRQXJxNWNWZkx4LTRnb01BM1RXTDhjWDlNaG1wVmhqaHRKQ2ozZTlhWU8zZDFQc0ZhNzJUc2RJWUlCVnV3UlFHWEpYNmlzOXRzbHNLY1l0RE1FMTdudDN1NmotZlZCeEVlc0RsU2habWhYN3J3?oc=5\" target=\"_blank\"&gt;Navigating the Risks of Exchange-Specific Liquidity in a Regulated Crypto Market&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;AInvest&lt;/font&gt;"
+					},
+					{
+						"title": "Ethereum News Today: Whales and Institutions Shift Billions to Ethereum, Raising Market Questions - AInvest",
+						"link": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxOS2VKb3RwYUZ6WlBoMVdFdTFqczgtTmpZa1JoaVhSTTl5XzdseUVrS1pqdmpUUklPV1N6dmJKS0dUdEtvY044LVNHcVlJVklWT3AxOUhNS3B3SVdqYURsV09DWDg1bnR1ZmxsN2k3OGFLdjNVQTc3R2xWc1ZuOThfOHJmS1RQM1daNHcySFFMUXB4MGZLNm42MjVYcEphamdVY21JbWROT0JQc2xlbDI0Z2FUMFFPbEJmcDBwNkRLSmE?oc=5",
+						"pubDate": "Tue, 02 Sep 2025 01:06:20 GMT",
+						"ts": 1756775180000,
+						"ageMs": 12992602,
+						"score": 19,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMiwAFBVV95cUxOS2VKb3RwYUZ6WlBoMVdFdTFqczgtTmpZa1JoaVhSTTl5XzdseUVrS1pqdmpUUklPV1N6dmJKS0dUdEtvY044LVNHcVlJVklWT3AxOUhNS3B3SVdqYURsV09DWDg1bnR1ZmxsN2k3OGFLdjNVQTc3R2xWc1ZuOThfOHJmS1RQM1daNHcySFFMUXB4MGZLNm42MjVYcEphamdVY21JbWROT0JQc2xlbDI0Z2FUMFFPbEJmcDBwNkRLSmE?oc=5\" target=\"_blank\"&gt;Ethereum News Today: Whales and Institutions Shift Billions to Ethereum, Raising Market Questions&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;AInvest&lt;/font&gt;"
+					},
+					{
+						"title": "Bitcoin’s September 2025 Catalyst: Trump Family Endorsements, Treasury Refinancing, and Market Timing Opportunities - AInvest",
+						"link": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxQZEgtdEZwUUFvdURsZWJua2E4LVNqSTROUTJrREkzbFFiVzJmR011MVVpZmFlbzN3QXZ6WmxaazVZZXN0dU1LYlVJek5mUnF0SENub0d6RFZHUDVKSFVtMS0zakxabFVpVXBmakVPSU8tclk1SnJady11VHBmUW9vWjdBMU51SVVXSnVxWFAxZl9QQnpFWEgxTVBMM29FZDY1ZXE4TG9CcEUxQnJ5ZmluazhlT2J1NnJkc0tVQ2hyUG9ndVRWUzZISGpPUlJCTEVsaEdXaGZTSFk?oc=5",
+						"pubDate": "Tue, 02 Sep 2025 01:52:13 GMT",
+						"ts": 1756777933000,
+						"ageMs": 10239602,
+						"score": 19,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMi2AFBVV95cUxQZEgtdEZwUUFvdURsZWJua2E4LVNqSTROUTJrREkzbFFiVzJmR011MVVpZmFlbzN3QXZ6WmxaazVZZXN0dU1LYlVJek5mUnF0SENub0d6RFZHUDVKSFVtMS0zakxabFVpVXBmakVPSU8tclk1SnJady11VHBmUW9vWjdBMU51SVVXSnVxWFAxZl9QQnpFWEgxTVBMM29FZDY1ZXE4TG9CcEUxQnJ5ZmluazhlT2J1NnJkc0tVQ2hyUG9ndVRWUzZISGpPUlJCTEVsaEdXaGZTSFk?oc=5\" target=\"_blank\"&gt;Bitcoin’s September 2025 Catalyst: Trump Family Endorsements, Treasury Refinancing, and Market Timing Opportunities&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;AInvest&lt;/font&gt;"
+					},
+					{
+						"title": "Ethereum’s 14,000x Returns: Could MAGACOIN FINANCE Be the Best Crypto Presale to Buy in 2025? - Crypto Economy",
+						"link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxPS09BY0Q5T3gwNk9VMzVpLUlDX3B1LXc1UTRmQVBBN0MzM2RIZ0g1UUhGU05HTGM0RnR6YV9QWXkwM0Z6c0pGWXlnN1ExQmptNFdEQ3JkWnEtNExhSVh5b240eXdDSHpra2lwVGJlRnN4WUFla24zU216OXlsMjBEZ3ZlVlhYTzQ2c3V4TUtRRjZEV3UxSnJRUUwwZHNzNjgxYUZLVXhvbWR5RklHMEo2T2lwZC1YSlFBeTlhSVRRMHEyWU0?oc=5",
+						"pubDate": "Tue, 02 Sep 2025 02:41:38 GMT",
+						"ts": 1756780898000,
+						"ageMs": 7274602,
+						"score": 18,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMiwwFBVV95cUxPS09BY0Q5T3gwNk9VMzVpLUlDX3B1LXc1UTRmQVBBN0MzM2RIZ0g1UUhGU05HTGM0RnR6YV9QWXkwM0Z6c0pGWXlnN1ExQmptNFdEQ3JkWnEtNExhSVh5b240eXdDSHpra2lwVGJlRnN4WUFla24zU216OXlsMjBEZ3ZlVlhYTzQ2c3V4TUtRRjZEV3UxSnJRUUwwZHNzNjgxYUZLVXhvbWR5RklHMEo2T2lwZC1YSlFBeTlhSVRRMHEyWU0?oc=5\" target=\"_blank\"&gt;Ethereum’s 14,000x Returns: Could MAGACOIN FINANCE Be the Best Crypto Presale to Buy in 2025?&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;Crypto Economy&lt;/font&gt;"
+					},
+					{
+						"title": "Ethereum Outflows vs. Bitcoin: Why Investors Are Shifting Toward ETH Despite Price Drops - AInvest",
+						"link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxQckJBYlFjRnc4MlEzSm5sQldaUi1nY00xMlZBZFF2RnpzT0gxbDBZRVJqNHFxZkNmeE55dUpVQmtIVmhPVFRsZ0x5cC1KeGxQNXo1cmdfckVTQW01SVJ6b2xEOWNDa0t1TElKMDlHb0ZVLUo5LWpBV05NdlNESTY1NzNuc3hyQUp3MFpiVFZiUlpDTi1jUEY4bmxrTQ?oc=5",
+						"pubDate": "Tue, 02 Sep 2025 01:30:43 GMT",
+						"ts": 1756776643000,
+						"ageMs": 11529602,
+						"score": 18,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMimwFBVV95cUxQckJBYlFjRnc4MlEzSm5sQldaUi1nY00xMlZBZFF2RnpzT0gxbDBZRVJqNHFxZkNmeE55dUpVQmtIVmhPVFRsZ0x5cC1KeGxQNXo1cmdfckVTQW01SVJ6b2xEOWNDa0t1TElKMDlHb0ZVLUo5LWpBV05NdlNESTY1NzNuc3hyQUp3MFpiVFZiUlpDTi1jUEY4bmxrTQ?oc=5\" target=\"_blank\"&gt;Ethereum Outflows vs. Bitcoin: Why Investors Are Shifting Toward ETH Despite Price Drops&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;AInvest&lt;/font&gt;"
+					},
+					{
+						"title": "Why Institutional Inflows Signal a New Crypto Bull Market Despite Volatility - AInvest",
+						"link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxOZ1ZhcUpndXEySS04MU9qbHAxLW9aNjB5RXJqSjA0b2tSdnVHMXJaakdOYmIzSXBqbFowc0M1NjBXNUpBSXVOaTloWE9ISE5uWHNUdlZHZFZHOFVfRDU5UHVqa2stZ2pIMzkyUWhjVHF6VWpYVzNSSjhNZFIzdHBJa2RhOFk2ZHVqSVlLWTF0UWZoU2ZFeUR2Nw?oc=5",
+						"pubDate": "Tue, 02 Sep 2025 03:30:05 GMT",
+						"ts": 1756783805000,
+						"ageMs": 4367602,
+						"score": 17,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMimAFBVV95cUxOZ1ZhcUpndXEySS04MU9qbHAxLW9aNjB5RXJqSjA0b2tSdnVHMXJaakdOYmIzSXBqbFowc0M1NjBXNUpBSXVOaTloWE9ISE5uWHNUdlZHZFZHOFVfRDU5UHVqa2stZ2pIMzkyUWhjVHF6VWpYVzNSSjhNZFIzdHBJa2RhOFk2ZHVqSVlLWTF0UWZoU2ZFeUR2Nw?oc=5\" target=\"_blank\"&gt;Why Institutional Inflows Signal a New Crypto Bull Market Despite Volatility&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;AInvest&lt;/font&gt;"
+					},
+					{
+						"title": "Decoding Behavioral Biases in FBTC: How the Reflection Effect Shapes Crypto Market Volatility - AInvest",
+						"link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPTzN1OVlXNElzRmlHMzJ6QVlVMWs5U1czRUJ0aTcxcDVLUGpHd2t0dlZxQUVmcGMxWXJ2anh6Q25qaU1CbWk0V20xV1p3Yk5wX1VxdkF6cTFLTnFhaWRkamwtQmZhOWVjdW5nRHNqRW1RWEYzM1dRREQ5NC1iRk5PSFFlZ3FyeWtBeEliTzUwZFJ3cXkxdjdJdFNzcFMwVFVuUFoxOGhTYmYyTnMzMGc2TVdTOEw4UmlYcmI0?oc=5",
+						"pubDate": "Tue, 02 Sep 2025 00:56:36 GMT",
+						"ts": 1756774596000,
+						"ageMs": 13576602,
+						"score": 17,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMiuwFBVV95cUxPTzN1OVlXNElzRmlHMzJ6QVlVMWs5U1czRUJ0aTcxcDVLUGpHd2t0dlZxQUVmcGMxWXJ2anh6Q25qaU1CbWk0V20xV1p3Yk5wX1VxdkF6cTFLTnFhaWRkamwtQmZhOWVjdW5nRHNqRW1RWEYzM1dRREQ5NC1iRk5PSFFlZ3FyeWtBeEliTzUwZFJ3cXkxdjdJdFNzcFMwVFVuUFoxOGhTYmYyTnMzMGc2TVdTOEw4UmlYcmI0?oc=5\" target=\"_blank\"&gt;Decoding Behavioral Biases in FBTC: How the Reflection Effect Shapes Crypto Market Volatility&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;AInvest&lt;/font&gt;"
+					},
+					{
+						"title": "Ethereum News Today: Could a Mysterious ETH Whale Be Plotting the Next Market Move? - AInvest",
+						"link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxOdU5SQUVCOTRieHVRXzVXaXd3LXB1OFVFeE9XTHZGbW54UC1UQkVwY21PbXMwUlB1Vjg2ZE5sZU5iRUxFYkZCMkRtOVI1QTYzaHMwam1EUmc3SklTd3NlOUo3M19ETzlaeDZueV96RVo3N0lfVDNaVDBrY2IyMjM3RV95MU1nOFVCVU9OTk9YbEtRUWc4ZHRTLVZxWnc?oc=5",
+						"pubDate": "Tue, 02 Sep 2025 03:36:12 GMT",
+						"ts": 1756784172000,
+						"ageMs": 4000602,
+						"score": 17,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMinAFBVV95cUxOdU5SQUVCOTRieHVRXzVXaXd3LXB1OFVFeE9XTHZGbW54UC1UQkVwY21PbXMwUlB1Vjg2ZE5sZU5iRUxFYkZCMkRtOVI1QTYzaHMwam1EUmc3SklTd3NlOUo3M19ETzlaeDZueV96RVo3N0lfVDNaVDBrY2IyMjM3RV95MU1nOFVCVU9OTk9YbEtRUWc4ZHRTLVZxWnc?oc=5\" target=\"_blank\"&gt;Ethereum News Today: Could a Mysterious ETH Whale Be Plotting the Next Market Move?&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;AInvest&lt;/font&gt;"
+					},
+					{
+						"title": "Navigating Crypto Volatility: Positioning for Fed Policy Shifts in Q3 2025 - AInvest",
+						"link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxNSGo1ODc0NHJMT1YwYnRIdW5mN2xXRnJ1SUtIcWZFOUVUQUZMV3h2UzRSS3d0WWlobkxucDA4VTIxcjdydld0WVR3VlJ0MnVzVXliRkNjSEVQeHFMWUR5ZkRpMnV1NktZcUhTcE9VOU9LRldjNnJyeXZkb3FnV09RaFk5azdGT1o2c3d4SjF0RDBMOWNEOWRXZXhTUmJoemZ5V200?oc=5",
+						"pubDate": "Mon, 01 Sep 2025 17:11:09 GMT",
+						"ts": 1756746669000,
+						"ageMs": 41503602,
+						"score": 17,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMiowFBVV95cUxNSGo1ODc0NHJMT1YwYnRIdW5mN2xXRnJ1SUtIcWZFOUVUQUZMV3h2UzRSS3d0WWlobkxucDA4VTIxcjdydld0WVR3VlJ0MnVzVXliRkNjSEVQeHFMWUR5ZkRpMnV1NktZcUhTcE9VOU9LRldjNnJyeXZkb3FnV09RaFk5azdGT1o2c3d4SjF0RDBMOWNEOWRXZXhTUmJoemZ5V200?oc=5\" target=\"_blank\"&gt;Navigating Crypto Volatility: Positioning for Fed Policy Shifts in Q3 2025&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;AInvest&lt;/font&gt;"
+					},
+					{
+						"title": "XRP News Today: Token Slides as ETF Catalysts Remain on Hold; BTC Eyes $110k - FXEmpire",
+						"link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxNOFVaVHhSUWJBTkl3MUZWellJaUZ5eTNqNjJkLVlxQlZrU3pRVG5vcnR0eHBNM2RRb25CbTgySVh4QmZ1RjlpWC1uSnlVRGM0cnRncGk4b2xMMlVsZ3pmSmVwYkR5clZCM0pGTkswU1Bwei1tSzZmdjlIWWFKdW9qMXpPNi1QV2xSZ0VxcnJJZUZLVlpkN0owc3NienZSZnhONFlGMWxtZXBQb1ZUWXF1bHl1dXdZbG8yb3VNU1V4NDNfUQ?oc=5",
+						"pubDate": "Tue, 02 Sep 2025 02:04:00 GMT",
+						"ts": 1756778640000,
+						"ageMs": 9532602,
+						"score": 17,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMiwgFBVV95cUxNOFVaVHhSUWJBTkl3MUZWellJaUZ5eTNqNjJkLVlxQlZrU3pRVG5vcnR0eHBNM2RRb25CbTgySVh4QmZ1RjlpWC1uSnlVRGM0cnRncGk4b2xMMlVsZ3pmSmVwYkR5clZCM0pGTkswU1Bwei1tSzZmdjlIWWFKdW9qMXpPNi1QV2xSZ0VxcnJJZUZLVlpkN0owc3NienZSZnhONFlGMWxtZXBQb1ZUWXF1bHl1dXdZbG8yb3VNU1V4NDNfUQ?oc=5\" target=\"_blank\"&gt;XRP News Today: Token Slides as ETF Catalysts Remain on Hold; BTC Eyes $110k&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;FXEmpire&lt;/font&gt;"
+					},
+					{
+						"title": "Ethereum (ETH) Price Prediction: Ethereum Eyes $7,000 Breakout as Institutional Demand and Bullish Accumulation Align - Brave New Coin",
+						"link": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxOUU9SRGJEOXk1MWd5bC1Fd1dXak43OHhWc21MLVJmY0hnQ2FqR2R3WGdFNWJiUk9Mcnc0bkJKUVBVdUg0U1lhb1FUTnpMOEJhZU0xZGk0dTFwMWdtcHE0aWdVQTlHVHBraTREcUZocVphNFJtcDhCUGx2dnBzMXcyWWx0V2FTVEQtREdGQnhXS2wyOFQ4RC1CLXdTOTd1TGEwSVRaLU14QXpvY244M01IOXZqMVN2Tk9NV0lhTXNHckR0Qm1kbTlHR0lmSDdUdVFWX2h3Wlg3TWY2OXNZZnlJ?oc=5",
+						"pubDate": "Mon, 01 Sep 2025 20:27:26 GMT",
+						"ts": 1756758446000,
+						"ageMs": 29726602,
+						"score": 16,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMi3wFBVV95cUxOUU9SRGJEOXk1MWd5bC1Fd1dXak43OHhWc21MLVJmY0hnQ2FqR2R3WGdFNWJiUk9Mcnc0bkJKUVBVdUg0U1lhb1FUTnpMOEJhZU0xZGk0dTFwMWdtcHE0aWdVQTlHVHBraTREcUZocVphNFJtcDhCUGx2dnBzMXcyWWx0V2FTVEQtREdGQnhXS2wyOFQ4RC1CLXdTOTd1TGEwSVRaLU14QXpvY244M01IOXZqMVN2Tk9NV0lhTXNHckR0Qm1kbTlHR0lmSDdUdVFWX2h3Wlg3TWY2OXNZZnlJ?oc=5\" target=\"_blank\"&gt;Ethereum (ETH) Price Prediction: Ethereum Eyes $7,000 Breakout as Institutional Demand and Bullish Accumulation Align&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;Brave New Coin&lt;/font&gt;"
+					},
+					{
+						"title": "Bitcoin News Today: Bitcoin's STHs Near Capitulation as LTHs Dig In for the Long Haul - AInvest",
+						"link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxPWjd4TVppc3YtOGxsM2tEU2hrUHM1SmdpWjFkQTVaeHhVeWY5VXZiNkZYOG0ycnJnbGRyN0kwM0luZ1BKSU1tVGtCWVQ5UEdpVGFyekk5WTBPVU05bjZYZnlySkxDOUVWVmZrSm1YaFZrZUZ5MHNXQ2RUVmxXTkpOdWs0eWsycW9sQXNKVmxTYzlLTkRNaHBQQldvYThzSU0?oc=5",
+						"pubDate": "Tue, 02 Sep 2025 03:19:58 GMT",
+						"ts": 1756783198000,
+						"ageMs": 4974602,
+						"score": 16,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMinwFBVV95cUxPWjd4TVppc3YtOGxsM2tEU2hrUHM1SmdpWjFkQTVaeHhVeWY5VXZiNkZYOG0ycnJnbGRyN0kwM0luZ1BKSU1tVGtCWVQ5UEdpVGFyekk5WTBPVU05bjZYZnlySkxDOUVWVmZrSm1YaFZrZUZ5MHNXQ2RUVmxXTkpOdWs0eWsycW9sQXNKVmxTYzlLTkRNaHBQQldvYThzSU0?oc=5\" target=\"_blank\"&gt;Bitcoin News Today: Bitcoin's STHs Near Capitulation as LTHs Dig In for the Long Haul&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;AInvest&lt;/font&gt;"
+					},
+					{
+						"title": "Bitcoin News Today: Whales Shift $4B Into Ether as Bitcoin Faces Strategic Sell-Off - AInvest",
+						"link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPTl93SXNmZThMcFd0X2ltXzByNUxTMW9wZmhTTFFZMGdmQ29oVV9NQnZINXlqMTBjY3hlR09ucGgzTVgzaVZ3ZVRDR3JBSVZfV3huZk0yOEQ3MzIzQUxJcnZtdDFhMlpsUHdUM1N6eXdTSHZLLVR5WHlsN0xoaEVNUHdlcUxYT2FwWEhfeFhCT0toZ0RIcW4zLXlxYzAwX2JCVTdCNWRSOA?oc=5",
+						"pubDate": "Tue, 02 Sep 2025 03:56:30 GMT",
+						"ts": 1756785390000,
+						"ageMs": 2782602,
+						"score": 16,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMipwFBVV95cUxPTl93SXNmZThMcFd0X2ltXzByNUxTMW9wZmhTTFFZMGdmQ29oVV9NQnZINXlqMTBjY3hlR09ucGgzTVgzaVZ3ZVRDR3JBSVZfV3huZk0yOEQ3MzIzQUxJcnZtdDFhMlpsUHdUM1N6eXdTSHZLLVR5WHlsN0xoaEVNUHdlcUxYT2FwWEhfeFhCT0toZ0RIcW4zLXlxYzAwX2JCVTdCNWRSOA?oc=5\" target=\"_blank\"&gt;Bitcoin News Today: Whales Shift $4B Into Ether as Bitcoin Faces Strategic Sell-Off&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;AInvest&lt;/font&gt;"
+					},
+					{
+						"title": "Bitcoin News Today: Short-Term Holders Could Determine Bitcoin’s Next Move - AInvest",
+						"link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxQeEhPV1ByelhPUXU3ZmlDeldickxnSUtjQ05jbDVMaW1UMG1WWUQ0R19sajh5bjVUMktEMXE2T2ZVSzlXX2d2VnEyWkttZGdzSHBmYTZLLWJYSWQ3bTh1aE4tdjZmWGEtRUF4c0VzbWJYRHZnaVdmRi05V05Qa3lHc1pHUWlscXNkOTJ0SkxybEVrYjh4enJtNTVMcw?oc=5",
+						"pubDate": "Tue, 02 Sep 2025 03:14:37 GMT",
+						"ts": 1756782877000,
+						"ageMs": 5295602,
+						"score": 16,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMimwFBVV95cUxQeEhPV1ByelhPUXU3ZmlDeldickxnSUtjQ05jbDVMaW1UMG1WWUQ0R19sajh5bjVUMktEMXE2T2ZVSzlXX2d2VnEyWkttZGdzSHBmYTZLLWJYSWQ3bTh1aE4tdjZmWGEtRUF4c0VzbWJYRHZnaVdmRi05V05Qa3lHc1pHUWlscXNkOTJ0SkxybEVrYjh4enJtNTVMcw?oc=5\" target=\"_blank\"&gt;Bitcoin News Today: Short-Term Holders Could Determine Bitcoin’s Next Move&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;AInvest&lt;/font&gt;"
+					},
+					{
+						"title": "Bitcoin News Today: Bitcoin's Rise as Corporate Reserve Hits a Crossroads with Metaplanet's $2 Billion Gamble - AInvest",
+						"link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOQjdPNV9BbkJ0RUwxMDR6SWhVaWRGamRQdHVKdS1MQVRCWWFZSElEbnEzRDFWaTFIZkRhX2Jncmdzc3JkZkgxNHBXczBlcktOQzIzVWRBV3ItRnlOZ2RxUl96aGhSeUk3TlNQZVhpdzN2d2pHaTJFWlY1eVhrSmtraVVIbEkwWVgwWUhWNXNleWR6QW9lc1NXNjVMc0tncjRKOU5CZzdVM3VzeTk1MTdjQlJ3OURSVXpHcnFVN0FtRVZjTUQzeWZv?oc=5",
+						"pubDate": "Mon, 01 Sep 2025 18:16:07 GMT",
+						"ts": 1756750567000,
+						"ageMs": 37605602,
+						"score": 16,
+						"source": "https://news.google.com/rss/search?q=(finance%20OR%20stock%20OR%20market%20OR%20economy%20OR%20inflation%20OR%20fed)%20(crypto%20OR%20bitcoin%20OR%20ethereum%20OR%20blockchain%20OR%20solana%20OR%20xrp)&hl=en-US&gl=US&ceid=US:en",
+						"description": "&lt;a href=\"https://news.google.com/rss/articles/CBMixwFBVV95cUxOQjdPNV9BbkJ0RUwxMDR6SWhVaWRGamRQdHVKdS1MQVRCWWFZSElEbnEzRDFWaTFIZkRhX2Jncmdzc3JkZkgxNHBXczBlcktOQzIzVWRBV3ItRnlOZ2RxUl96aGhSeUk3TlNQZVhpdzN2d2pHaTJFWlY1eVhrSmtraVVIbEkwWVgwWUhWNXNleWR6QW9lc1NXNjVMc0tncjRKOU5CZzdVM3VzeTk1MTdjQlJ3OURSVXpHcnFVN0FtRVZjTUQzeWZv?oc=5\" target=\"_blank\"&gt;Bitcoin News Today: Bitcoin's Rise as Corporate Reserve Hits a Crossroads with Metaplanet's $2 Billion Gamble&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color=\"#6f6f6f\"&gt;AInvest&lt;/font&gt;"
+					}
+				],
+				"sinceMs": 86400000,
+				"sinceAt": "2025-09-01T04:42:52.602Z",
+				"timestamp": 1756788172602
+			}
+		},
+		"dragHandle": ".drag-handle",
+		"width": 1046,
+		"height": 1284,
+		"selected": false,
+		"positionAbsolute": {
+			"x": -1995,
+			"y": 3225
+		},
+		"dragging": false
+	},
+	{
+		"id": "node-1756790199146",
+		"type": "custom",
+		"position": {
+			"x": -4620,
+			"y": 2955
+		},
+		"data": {
+			"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.BTC/USDT.ticker",
+			"label": "testnet.runtime.connector.exchange.crypto.bybit.spot.BTC/USDT.ticker",
+			"sessionData": {
+				"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.BTC/USDT.ticker",
+				"module": "ticker",
+				"widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.spot.BTC/USDT.ticker",
+				"raw": {
+					"exchange": "bybit",
+					"market": "BTC/USDT",
+					"last": 110137,
+					"bid": 110137,
+					"ask": 110137.1,
+					"change": 2796.9,
+					"percentage": 2.61,
+					"baseVolume": 8192.861539,
+					"quoteVolume": 893300524.1496797,
+					"timestamp": 1756790197725,
+					"latency": 539
+				},
+				"timestamp": 1756790197725
+			}
+		},
+		"dragHandle": ".drag-handle",
+		"width": 522,
+		"height": 267,
+		"selected": false,
+		"positionAbsolute": {
+			"x": -4620,
+			"y": 2955
+		},
+		"dragging": false
+	},
+	{
+		"id": "node-1756790206163",
+		"type": "custom",
+		"position": {
+			"x": -4095,
+			"y": 2955
+		},
+		"data": {
+			"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.ETH/USDT.ticker",
+			"label": "testnet.runtime.connector.exchange.crypto.bybit.spot.ETH/USDT.ticker",
+			"sessionData": {
+				"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.ETH/USDT.ticker",
+				"module": "ticker",
+				"widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.spot.ETH/USDT.ticker",
+				"raw": {
+					"exchange": "bybit",
+					"market": "ETH/USDT",
+					"last": 4378.04,
+					"bid": 4378.04,
+					"ask": 4378.05,
+					"change": 5.96,
+					"percentage": 0.14,
+					"baseVolume": 173304.20217,
+					"quoteVolume": 755934899.6158468,
+					"timestamp": 1756790201179,
+					"latency": 1771
+				},
+				"timestamp": 1756790201179
+			}
+		},
+		"dragHandle": ".drag-handle",
+		"width": 522,
+		"height": 267,
+		"selected": false,
+		"positionAbsolute": {
+			"x": -4095,
+			"y": 2955
+		},
+		"dragging": false
+	},
+	{
+		"id": "node-1756790218966",
+		"type": "custom",
+		"position": {
+			"x": -3570,
+			"y": 2955
+		},
+		"data": {
+			"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.BNB/USDT.ticker",
+			"label": "testnet.runtime.connector.exchange.crypto.bybit.spot.BNB/USDT.ticker",
+			"sessionData": {
+				"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.BNB/USDT.ticker",
+				"module": "ticker",
+				"widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.spot.BNB/USDT.ticker",
+				"raw": {
+					"exchange": "bybit",
+					"market": "BNB/USDT",
+					"last": 851.6,
+					"bid": 851.7,
+					"ask": 851.8,
+					"change": 1.6,
+					"percentage": 0.19,
+					"baseVolume": 14074.48041,
+					"quoteVolume": 12012132.7059872,
+					"timestamp": 1756790217198,
+					"latency": 899
+				},
+				"timestamp": 1756790217198
+			}
+		},
+		"dragHandle": ".drag-handle",
+		"width": 522,
+		"height": 267,
+		"selected": false,
+		"positionAbsolute": {
+			"x": -3570,
+			"y": 2955
+		},
+		"dragging": false
+	},
+	{
+		"id": "node-1756790226984",
+		"type": "custom",
+		"position": {
+			"x": -3045,
+			"y": 2955
+		},
+		"data": {
+			"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.SOL/USDT.ticker",
+			"label": "testnet.runtime.connector.exchange.crypto.bybit.spot.SOL/USDT.ticker",
+			"sessionData": {
+				"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.SOL/USDT.ticker",
+				"module": "ticker",
+				"widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.spot.SOL/USDT.ticker",
+				"raw": {
+					"exchange": "bybit",
+					"market": "SOL/USDT",
+					"last": 202.51,
+					"bid": 202.5,
+					"ask": 202.51,
+					"change": 5.4,
+					"percentage": 2.74,
+					"baseVolume": 1009525.708,
+					"quoteVolume": 201016456.81135,
+					"timestamp": 1756790219117,
+					"latency": 2247
+				},
+				"timestamp": 1756790219117
+			}
+		},
+		"dragHandle": ".drag-handle",
+		"width": 522,
+		"height": 267,
+		"selected": false,
+		"positionAbsolute": {
+			"x": -3045,
+			"y": 2955
+		},
+		"dragging": false
+	},
+	{
+		"id": "node-1756790234489",
+		"type": "custom",
+		"position": {
+			"x": -2520,
+			"y": 2955
+		},
+		"data": {
+			"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.XRP/USDT.ticker",
+			"label": "testnet.runtime.connector.exchange.crypto.bybit.spot.XRP/USDT.ticker",
+			"sessionData": {
+				"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.XRP/USDT.ticker",
+				"module": "ticker",
+				"widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.spot.XRP/USDT.ticker",
+				"raw": {
+					"exchange": "bybit",
+					"market": "XRP/USDT",
+					"last": 2.8005,
+					"bid": 2.8004,
+					"ask": 2.8005,
+					"change": 0.0927,
+					"percentage": 3.42,
+					"baseVolume": 54009384.01,
+					"quoteVolume": 149561764.981343,
+					"timestamp": 1756790230904,
+					"latency": 997
+				},
+				"timestamp": 1756790230904
+			}
+		},
+		"dragHandle": ".drag-handle",
+		"width": 522,
+		"height": 267,
+		"selected": false,
+		"positionAbsolute": {
+			"x": -2520,
+			"y": 2955
+		},
+		"dragging": false
+	},
+	{
+		"id": "node-1756790248253",
+		"type": "custom",
+		"position": {
+			"x": -1470,
+			"y": 2955
+		},
+		"data": {
+			"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.JASMY/USDT.ticker",
+			"label": "testnet.runtime.connector.exchange.crypto.bybit.spot.JASMY/USDT.ticker",
+			"sessionData": {
+				"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.JASMY/USDT.ticker",
+				"module": "ticker",
+				"widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.spot.JASMY/USDT.ticker",
+				"raw": {
+					"exchange": "bybit",
+					"market": "JASMY/USDT",
+					"last": 0.01457,
+					"bid": 0.01457,
+					"ask": 0.01458,
+					"change": 0.00056,
+					"percentage": 4,
+					"baseVolume": 113925063.12,
+					"quoteVolume": 1609187.8721502,
+					"timestamp": 1756790246250,
+					"latency": 967
+				},
+				"timestamp": 1756790246250
+			}
+		},
+		"dragHandle": ".drag-handle",
+		"width": 522,
+		"height": 267,
+		"selected": false,
+		"positionAbsolute": {
+			"x": -1470,
+			"y": 2955
+		},
+		"dragging": false
+	},
+	{
+		"id": "node-1756790256510",
+		"type": "custom",
+		"position": {
+			"x": -1995,
+			"y": 2955
+		},
+		"data": {
+			"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.TRX/USDT.ticker",
+			"label": "testnet.runtime.connector.exchange.crypto.bybit.spot.TRX/USDT.ticker",
+			"sessionData": {
+				"channel": "testnet.runtime.connector.exchange.crypto.bybit.spot.TRX/USDT.ticker",
+				"module": "ticker",
+				"widget": "widget.testnet.runtime.connector.exchange.crypto.bybit.spot.TRX/USDT.ticker",
+				"raw": {
+					"exchange": "bybit",
+					"market": "TRX/USDT",
+					"last": 0.3391,
+					"bid": 0.339,
+					"ask": 0.3391,
+					"change": 0.0022,
+					"percentage": 0.65,
+					"baseVolume": 20839369.71,
+					"quoteVolume": 7040870.2981013,
+					"timestamp": 1756790246643,
+					"latency": 2448
+				},
+				"timestamp": 1756790246643
+			}
+		},
+		"dragHandle": ".drag-handle",
+		"width": 522,
+		"height": 267,
+		"selected": false,
+		"positionAbsolute": {
+			"x": -1995,
+			"y": 2955
 		},
 		"dragging": false
 	}

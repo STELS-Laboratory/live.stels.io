@@ -20,6 +20,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import TickerTape from "@/components/widgets/TickerTape.tsx";
 
 interface CandleData {
 	timestamp: number;
@@ -233,6 +234,7 @@ function Markets(): React.ReactElement {
 
 	return (
 		<div className="container m-auto">
+			<TickerTape entries={spotTickers}/>
 			<Card>
 				<CardHeader>
 					<CardTitle>Connection Markets</CardTitle>
