@@ -258,7 +258,7 @@ export const useAppStore = create<AppState>()(
 				}
 			},
 			{
-				name: 'live_app_genesis_04.1'
+				name: 'live_app_genesis_04.3'
 			}
 		)
 	)
