@@ -30,7 +30,7 @@ function Ariadna({ data }: { data: any }) {
 	}
 	
 	return (
-		<div className="w-[1044px] h-[330px] bg-zinc-950 ">
+		<div className="relative w-[1044px] h-[330px] bg-zinc-950 ">
 			{/* Animated background grid */}
 			<div className="absolute inset-0 opacity-10">
 				<div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_24px,rgba(255,255,255,0.05)_25px,rgba(255,255,255,0.05)_26px,transparent_27px,transparent_49px,rgba(255,255,255,0.05)_50px,rgba(255,255,255,0.05)_51px,transparent_52px),linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[50px_50px]"></div>

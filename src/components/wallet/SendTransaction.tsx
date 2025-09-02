@@ -167,7 +167,7 @@ export function SendTransaction({ onTransactionSent }: SendTransactionProps) {
         {/* Amount */}
         <div className="space-y-2">
           <Label htmlFor="amount" className="text-zinc-300">
-            Amount (GLM)
+            Amount (TST)
           </Label>
           <Input
             id="amount"
@@ -184,7 +184,7 @@ export function SendTransaction({ onTransactionSent }: SendTransactionProps) {
         {/* Fee */}
         <div className="space-y-2">
           <Label htmlFor="fee" className="text-zinc-300">
-            Transaction Fee (GRH)
+            Transaction Fee (TST)
           </Label>
           <Input
             id="fee"
@@ -227,7 +227,7 @@ export function SendTransaction({ onTransactionSent }: SendTransactionProps) {
             </div>
             <div className="flex justify-between">
               <span>Available:</span>
-              <span>∞ GRH (TestNet)</span>
+              <span>∞ TST (TestNet)</span>
             </div>
           </div>
         </div>

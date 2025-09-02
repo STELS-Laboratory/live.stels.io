@@ -70,7 +70,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-2 h-2 rounded-full bg-amber-400" />
                 <span className="text-sm text-zinc-300 font-medium">
-                  {formatAmount(tx.amount)} GRH
+                  {formatAmount(tx.amount)} TST
                 </span>
                 <Badge
                   variant="secondary"
@@ -93,7 +93,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <span>Fee:</span>
-                  <span>{formatAmount(tx.fee)} GRH</span>
+                  <span>{formatAmount(tx.fee)} TST</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span>Hash:</span>
