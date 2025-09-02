@@ -119,7 +119,7 @@ function SonarPortfolio() {
 
 			// Get asset price and determine source
 			const price = ASSET_PRICES[symbol] || 1;
-			const majorPairs = ["BTC", "ETH", "SOL", "BNB", "TON", "GRT"];
+			const majorPairs = ["BTC", "ETH", "SOL", "BNB", "TON"];
 			const priceSource: "realtime" | "fallback" =
 				majorPairs.includes(symbol) &&
 					session[
@@ -146,7 +146,7 @@ function SonarPortfolio() {
 
 	// Filter assets by liquidity threshold
 	const assets = useMemo(() => {
-		const minLiquidityThreshold = 100; // $100 minimum
+		const minLiquidityThreshold = 2000; // $100 minimum
 		return allAssets.filter((asset) => asset.value >= minLiquidityThreshold);
 	}, [allAssets]);
 
@@ -186,7 +186,7 @@ function SonarPortfolio() {
 			filteredStats: {
 				displayedCount: assets.length,
 				totalAssetsCount: allAssets.length,
-				minLiquidityThreshold: 100,
+				minLiquidityThreshold: 1000,
 			},
 		};
 	}, [assets, allAssets, runtime]);
@@ -219,13 +219,13 @@ function SonarPortfolio() {
 		if (symbol === "USDT") {
 			return formatCurrency(amount);
 		}
-		if (["BTC", "ETH", "SOL", "BNB"].includes(symbol)) {
-			return `${formatNumber(amount, 8)} ${symbol}`;
+		if (["BTC", "ETH", "BNB"].includes(symbol)) {
+			return `${formatNumber(amount, 3)} ${symbol}`;
 		}
 		if (amount >= 1000) {
 			return `${formatNumber(amount, 2)} ${symbol}`;
 		}
-		return `${formatNumber(amount, 6)} ${symbol}`;
+		return `${formatNumber(amount, 2)} ${symbol}`;
 	};
 
 	const getChangeIcon = (change: number) => {
@@ -241,7 +241,7 @@ function SonarPortfolio() {
 	};
 
 	return (
-		<div className="w-[1044px] h-[907px] overflow-y-scroll space-y-5 p-4">
+		<div className="w-[1044px] h-[907px] overflow-y-scroll space-y-5 p-4 bg-zinc-950">
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
@@ -494,7 +494,7 @@ function SonarPortfolio() {
 															}`}
 														>
 															({asset.changePercent > 0 ? "+" : ""}
-															{asset.changePercent.toFixed(2)}%)
+															{Number(asset.changePercent).toFixed(2)}%)
 														</span>
 													)}
 												</div>

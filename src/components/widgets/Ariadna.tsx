@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { PulsingBorder } from "@paper-design/shaders-react"
 
 function Ariadna({ data }: { data: any }) {
 	const [isAnimating, setIsAnimating] = useState(false)
@@ -37,27 +38,44 @@ function Ariadna({ data }: { data: any }) {
 			</div>
 			
 			{/* Status indicator glow */}
-			<div
-				className={`absolute top-12 left-6 w-6 h-6 rounded-full transition-all duration-1000 ${
-					isActive
-						? "bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.6)]"
-						: "bg-red-400 shadow-[0_0_20px_rgba(248,113,113,0.6)]"
-				} ${pulseActive ? "scale-125" : "scale-100"}`}
-			></div>
+			{/*<div*/}
+			{/*	className={`absolute top-12 left-6 w-6 h-6 rounded-full transition-all duration-1000 ${*/}
+			{/*		isActive*/}
+			{/*			? "bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.6)]"*/}
+			{/*			: "bg-red-400 shadow-[0_0_20px_rgba(248,113,113,0.6)]"*/}
+			{/*	} ${pulseActive ? "scale-125" : "scale-100"}`}*/}
+			{/*></div>*/}
 			
 			{/* Main content */}
 			<div className="relative z-10 p-8 h-full flex flex-col">
 				{/* Header */}
 				<div className="flex items-start justify-between mb-6">
 					<div className="flex items-center space-x-4">
-						<div
-							className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500 ${
-								isActive
-									? "bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/25"
-									: "bg-gradient-to-br from-zinc-600"
-							} ${isAnimating ? "scale-110 rotate-3" : "scale-100 rotate-0"}`}
-						>
-							<div className="text-2xl font-bold text-white">AI</div>
+						<div>
+							<div>
+								<PulsingBorder
+									colors={["#ff9102", "#104eb9"]}
+									colorBack="#272727a"
+									speed={1.5}
+									roundness={18}
+									thickness={1.1}
+									softness={0.2}
+									intensity={3}
+									spotSize={2.1}
+									pulse={1.1}
+									smoke={1.1}
+									smokeSize={2}
+									scale={0.5}
+									rotation={2}
+									frame={10}
+									style={{
+										width: "50px",
+										height: "50px",
+										borderRadius: "50%",
+										padding: "0px",
+									}}
+								/>
+							</div>
 						</div>
 						<div>
 							<h1 className="text-2xl font-bold text-white mb-1">{strategyData.name}</h1>
