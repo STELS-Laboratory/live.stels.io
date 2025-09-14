@@ -84,7 +84,7 @@ function Welcome(): React.ReactElement | null {
 											variant="outline"
 											className="border-amber-500/50 bg-amber-500/20 text-amber-400 px-3 py-1"
 										>
-											September 13
+											September 13-15
 										</Badge>
 									</div>
 									<div className="flex-1 min-w-0">
