@@ -20,6 +20,7 @@ import { UrlRouterDemo } from "@/components/main/UrlRouterDemo";
 import { RouterDebug } from "@/components/main/RouterDebug";
 import NetworkReport from "@/components/main/NetworkReport";
 import { navigateTo } from "@/lib/router";
+import CriticalNotification from "@/components/main/CriticalNotification.tsx";
 
 /**
  * Welcome dashboard component with professional Web3 trading platform introduction
@@ -67,6 +68,8 @@ function Welcome(): React.ReactElement | null {
 				{/*		</Button>*/}
 				{/*	</div>*/}
 				{/*</div>*/}
+				
+				<CriticalNotification />
 
 				{/* User Notifications Block */}
 				<Card className="border-amber-500/30 bg-amber-500/5">
@@ -85,7 +88,7 @@ function Welcome(): React.ReactElement | null {
 											variant="outline"
 											className="border-amber-500/50 bg-amber-500/20 text-amber-400 px-3 py-1"
 										>
-											September 15
+											September 15-16
 										</Badge>
 									</div>
 									<div className="flex-1 min-w-0">

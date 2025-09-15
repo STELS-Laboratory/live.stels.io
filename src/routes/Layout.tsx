@@ -28,7 +28,6 @@ import {
 import Graphite from "@/components/ui/vectors/logos/Graphite";
 import { navigateTo } from "@/lib/router";
 import { useState } from "react";
-import CriticalNotification from "@/components/main/CriticalNotification";
 
 interface LayoutProps {
 	children: React.ReactNode;
@@ -347,7 +346,6 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						data-route-container
 					>
 						<div className="container mx-auto px-4 py-6">
-							<CriticalNotification />
 							{children}
 						</div>
 
