@@ -1,26 +1,43 @@
-"use client"
+"use client";
 
-import type * as React from "react"
-import { useAppStore, useWalletStore } from "@/stores"
-import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Boxes, CandlestickChart, Code, Globe, Home, Layers, ScanSearch, Wallet, Menu, X } from "lucide-react"
-import Graphite from "@/components/ui/vectors/logos/Graphite"
-import { navigateTo } from "@/lib/router"
-import { useState } from "react"
+import type * as React from "react";
+import { useAppStore, useWalletStore } from "@/stores";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import {
+	Boxes,
+	CandlestickChart,
+	Code,
+	Globe,
+	Home,
+	Layers,
+	Menu,
+	ScanSearch,
+	Wallet,
+	X,
+} from "lucide-react";
+import Graphite from "@/components/ui/vectors/logos/Graphite";
+import { navigateTo } from "@/lib/router";
+import { useState } from "react";
+import CriticalNotification from "@/components/main/CriticalNotification";
 
 interface LayoutProps {
-	children: React.ReactNode
+	children: React.ReactNode;
 }
 
 interface NavItem {
-	key: string
-	label: string
-	icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
+	key: string;
+	label: string;
+	icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 }
 
 /**
@@ -28,28 +45,31 @@ interface NavItem {
  * and a content area optimized for trading and analytics screens.
  */
 function Layout({ children }: LayoutProps): React.ReactElement {
-	const { currentRoute, allowedRoutes, routeLoading, setRoute } = useAppStore()
-	const { currentWallet } = useWalletStore()
-	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-	
+	const { currentRoute, allowedRoutes, routeLoading, setRoute } = useAppStore();
+	const { currentWallet } = useWalletStore();
+	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
 	const generalNav: NavItem[] = [
 		{ key: "welcome", label: "Welcome", icon: Home },
 		{ key: "scanner", label: "Scanner", icon: ScanSearch },
 		{ key: "markets", label: "Markets", icon: CandlestickChart },
 		{ key: "fred", label: "Indicators", icon: Layers },
-	].filter((i) => allowedRoutes.includes(i.key))
-	
+	].filter((i) => allowedRoutes.includes(i.key));
+
 	const systemNav: NavItem[] = [
 		{ key: "network", label: "Network", icon: Globe },
 		{ key: "wallet", label: "Wallet", icon: Wallet },
 		{ key: "canvas", label: "Canvas", icon: Boxes },
 		{ key: "editor", label: "Editor", icon: Code },
-	].filter((i) => allowedRoutes.includes(i.key))
-	
-	const renderNavItem = (item: NavItem, isMobile = false): React.ReactElement => {
-		const Icon = item.icon
-		const isActive = currentRoute === item.key
-		
+	].filter((i) => allowedRoutes.includes(i.key));
+
+	const renderNavItem = (
+		item: NavItem,
+		isMobile = false,
+	): React.ReactElement => {
+		const Icon = item.icon;
+		const isActive = currentRoute === item.key;
+
 		if (isMobile) {
 			return (
 				<Button
@@ -63,17 +83,17 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 							: "text-muted-foreground hover:text-foreground hover:bg-muted/50",
 					)}
 					onClick={() => {
-						navigateTo(item.key)
-						setIsMobileMenuOpen(false)
+						navigateTo(item.key);
+						setIsMobileMenuOpen(false);
 					}}
 					aria-current={isActive ? "page" : undefined}
 				>
 					<Icon className="size-4 shrink-0" />
 					<span className="text-sm">{item.label}</span>
 				</Button>
-			)
+			);
 		}
-		
+
 		return (
 			<div className="w-full flex" key={item.key}>
 				<TooltipProvider>
@@ -91,7 +111,12 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								)}
 								aria-current={isActive ? "page" : undefined}
 							>
-								<Icon className={cn("size-5 shrink-0 transition-colors", isActive ? "text-amber-400" : "")} />
+								<Icon
+									className={cn(
+										"size-5 shrink-0 transition-colors",
+										isActive ? "text-amber-400" : "",
+									)}
+								/>
 							</button>
 						</TooltipTrigger>
 						<TooltipContent side="right" className="font-medium">
@@ -100,15 +125,15 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 					</Tooltip>
 				</TooltipProvider>
 			</div>
-		)
-	}
-	
-	const [isWalletHovered, setIsWalletHovered] = useState(false)
-	
+		);
+	};
+
+	const [isWalletHovered, setIsWalletHovered] = useState(false);
+
 	const truncateAddress = (address: string) => {
-		return `${address.slice(0, 6)}...${address.slice(-4)}`
-	}
-	
+		return `${address.slice(0, 6)}...${address.slice(-4)}`;
+	};
+
 	return (
 		<div className="flex flex-col absolute w-[100%] h-[100%] overflow-hidden">
 			<div className="grid grid-cols-1 lg:grid-cols-[80px_1fr] gap-0 h-full overflow-hidden">
@@ -126,27 +151,31 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 							<Graphite size={3} />
 						</button>
 					</div>
-					
+
 					<div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
 						<nav className="p-2 space-y-6">
 							<div>
 								<div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
 									Stels
 								</div>
-								<div className="space-y-1">{generalNav.map((item) => renderNavItem(item))}</div>
+								<div className="space-y-1">
+									{generalNav.map((item) => renderNavItem(item))}
+								</div>
 							</div>
-							
+
 							<Separator className="mx-2" />
-							
+
 							<div>
 								<div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
 									Apps
 								</div>
-								<div className="space-y-1">{systemNav.map((item) => renderNavItem(item))}</div>
+								<div className="space-y-1">
+									{systemNav.map((item) => renderNavItem(item))}
+								</div>
 							</div>
 						</nav>
 					</div>
-					
+
 					<div className="p-4 border-t border-border/50">
 						<Badge
 							variant="outline"
@@ -157,7 +186,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						</Badge>
 					</div>
 				</aside>
-				
+
 				{/* Main Content Area */}
 				<div className="flex flex-col min-w-0 h-[100%] overflow-hidden">
 					<header className="shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -170,44 +199,52 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 										className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
 										aria-label="Toggle mobile menu"
 									>
-										{isMobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+										{isMobileMenuOpen
+											? <X className="size-5" />
+											: <Menu className="size-5" />}
 									</button>
 									<div className="flex items-center gap-2">
 										<Graphite size={1.5} />
 										<span className="text-sm font-semibold">STELS</span>
 									</div>
 								</div>
-								
+
 								{currentWallet && (
 									<button
 										onClick={() => setRoute("wallet")}
 										className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card/50 border border-border/50 hover:bg-card transition-colors"
 									>
 										<div className="size-2 bg-green-500 rounded-full animate-pulse" />
-										<span className="text-xs font-mono">{truncateAddress(currentWallet.address)}</span>
+										<span className="text-xs font-mono">
+											{truncateAddress(currentWallet.address)}
+										</span>
 									</button>
 								)}
 							</div>
-							
+
 							{/* Route indicator */}
 							<div className="px-4 pb-3">
 								<div className="flex items-center gap-2 text-xs">
 									<span className="text-muted-foreground">ROUTE:</span>
-									<span className="text-amber-400 font-medium uppercase">{currentRoute}</span>
+									<span className="text-amber-400 font-medium uppercase">
+										{currentRoute}
+									</span>
 								</div>
 							</div>
 						</div>
-						
+
 						{/* Desktop Header */}
 						<div className="hidden lg:block">
 							<div className="flex items-center justify-between px-6 h-16">
 								<div className="flex items-center gap-4">
 									<div className="flex items-center gap-2 text-sm">
 										<span className="text-muted-foreground">ROUTE:</span>
-										<span className="text-amber-400 font-medium uppercase">{currentRoute}</span>
+										<span className="text-amber-400 font-medium uppercase">
+											{currentRoute}
+										</span>
 									</div>
 								</div>
-								
+
 								{currentWallet && (
 									<button
 										onClick={() => setRoute("wallet")}
@@ -226,12 +263,14 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 												<div className="flex items-center gap-2">
 													<div className="size-2 bg-green-500 rounded-full animate-pulse" />
 													<span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                            TestNet
-                          </span>
+														TestNet
+													</span>
 												</div>
-												
+
 												<div className="text-right">
-													<div className="text-xs text-muted-foreground/80 uppercase tracking-wider">Wallet</div>
+													<div className="text-xs text-muted-foreground/80 uppercase tracking-wider">
+														Wallet
+													</div>
 													<div className="text-sm font-mono font-medium text-foreground group-hover:text-amber-400 transition-colors">
 														{truncateAddress(currentWallet.address)}
 													</div>
@@ -243,7 +282,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 							</div>
 						</div>
 					</header>
-					
+
 					{isMobileMenuOpen && (
 						<div className="lg:hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-sm">
 							<div className="flex flex-col h-full">
@@ -259,27 +298,31 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 										<X className="size-5" />
 									</button>
 								</div>
-								
+
 								<div className="flex-1 overflow-y-auto p-4">
 									<nav className="space-y-6">
 										<div>
 											<div className="px-2 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 mb-3">
 												Stels
 											</div>
-											<div className="space-y-2">{generalNav.map((item) => renderNavItem(item, true))}</div>
+											<div className="space-y-2">
+												{generalNav.map((item) => renderNavItem(item, true))}
+											</div>
 										</div>
-										
+
 										<Separator />
-										
+
 										<div>
 											<div className="px-2 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 mb-3">
 												Apps
 											</div>
-											<div className="space-y-2">{systemNav.map((item) => renderNavItem(item, true))}</div>
+											<div className="space-y-2">
+												{systemNav.map((item) => renderNavItem(item, true))}
+											</div>
 										</div>
 									</nav>
 								</div>
-								
+
 								<div className="p-4 border-t">
 									<Badge
 										variant="outline"
@@ -292,28 +335,36 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 							</div>
 						</div>
 					)}
-					
+
 					{routeLoading && (
 						<div className="w-full border-b">
 							<Progress value={60} className="h-1" />
 						</div>
 					)}
-					
-					<main className="flex flex-1 overflow-y-auto overflow-x-hidden bg-background" data-route-container>
-						<div className="container mx-auto px-4 py-6">{children}</div>
-						
+
+					<main
+						className="flex flex-1 overflow-y-auto overflow-x-hidden bg-background"
+						data-route-container
+					>
+						<div className="container mx-auto px-4 py-6">
+							<CriticalNotification />
+							{children}
+						</div>
+
 						{routeLoading && (
 							<div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
 								<div className="bg-card/90 backdrop-blur-sm rounded-lg p-4 border shadow-lg">
 									<div className="flex items-center gap-3">
 										<div className="size-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
-										<span className="text-sm text-muted-foreground">Loading…</span>
+										<span className="text-sm text-muted-foreground">
+											Loading…
+										</span>
 									</div>
 								</div>
 							</div>
 						)}
 					</main>
-					
+
 					<footer className="border-t bg-card/30 backdrop-blur-sm shrink-0">
 						<div className="container mx-auto px-4 py-4 max-w-7xl">
 							<div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
@@ -332,7 +383,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }
 
-export default Layout
+export default Layout;
