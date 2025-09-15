@@ -124,51 +124,7 @@ export const UrlRouterDemo: React.FC = () => {
             ))}
           </div>
         </div>
-
-        <div className="border-t pt-4">
-          <h4 className="font-medium text-sm text-muted-foreground mb-2">
-            Direct Link Testing
-          </h4>
-          <div className="space-y-2 text-xs">
-            <div className="flex items-center gap-2">
-              <code className="bg-muted px-2 py-1 rounded flex-1">
-                {window.location.origin}?router=markets
-              </code>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  const url = new URL(window.location.href);
-                  url.searchParams.set("router", "markets");
-                  window.open(url.toString(), "_blank");
-                }}
-                className="text-xs"
-              >
-                Test Direct
-              </Button>
-            </div>
-            <div className="flex items-center gap-2">
-              <code className="bg-muted px-2 py-1 rounded flex-1">
-                {window.location.origin}?router=scanner
-              </code>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  const url = new URL(window.location.href);
-                  url.searchParams.set("router", "scanner");
-                  window.open(url.toString(), "_blank");
-                }}
-                className="text-xs"
-              >
-                Test Direct
-              </Button>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            These should open directly to the specified route
-          </p>
-        </div>
+	      
 
         <div className="border-t pt-4">
           <h4 className="font-medium text-sm text-muted-foreground mb-2">
