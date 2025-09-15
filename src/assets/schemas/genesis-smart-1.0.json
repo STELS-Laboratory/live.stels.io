@@ -1,0 +1,1037 @@
+{
+  "$schema": "https://stels.io/schemas/genesis-smart-1.0.json",
+  "version": "1.0.0-testnet.smart-1",
+  "network": {
+    "id": "testnet",
+    "name": "STELS Test Network",
+    "environment": "runtime",
+    "chain_id": 2
+  },
+  "genesis": {
+    "id": "genesis:sha256:4c24259b08c7e4c0afab7950fe0dff6b125c82f88e247583776913bc507875e5",
+    "created_at": "2025-08-21T18:30:00Z",
+    "activation_time": "2025-08-21T18:45:00Z",
+    "previous_genesis_id": null,
+    "issuer": {
+      "org": "STELS Laboratory",
+      "contact": "labs@stels.io"
+    },
+    "upgrade_policy": {
+      "allowed": true,
+      "requires_threshold": {
+        "type": "k-of-n",
+        "k": 2,
+        "n": 3
+      },
+      "envelope_domain": [
+        "STELS-GENESIS",
+        2,
+        "v1",
+        "chain:2"
+      ]
+    }
+  },
+  "content": {
+    "hash_alg": "sha256",
+    "hash": "sha256:4c24259b08c7e4c0afab7950fe0dff6b125c82f88e247583776913bc507875e5",
+    "size": 14858
+  },
+  "protocol": {
+    "tx_version": "smart-1.0",
+    "vm_version": "intrinsics-1",
+    "canonicalization": "gls-det-1",
+    "encoding": "utf-8",
+    "canon_specs": {
+      "gls-det-1": {
+        "objects": "sort keys lexicographically (byte-wise), omit undefined, serialize values recursively; for missing keys use absence, for undefined use null iff explicitly present",
+        "arrays": "keep order",
+        "numbers": "JSON.stringify semantics",
+        "strings": "JSON UTF-8, no normalization",
+        "booleans_null": "JSON",
+        "note": "This is a formalization of the provided deterministicStringify()"
+      }
+    },
+    "sign_domains": {
+      "tx": [
+        "STELS-TX",
+        2,
+        "smart-1.0",
+        "chain:2"
+      ],
+      "cosign": [
+        "STELS-COSIGN",
+        2,
+        "chain:2"
+      ],
+      "notary": [
+        "STELS-NOTARY",
+        2,
+        "v2",
+        "chain:2"
+      ],
+      "genesis": [
+        "STELS-GENESIS",
+        2,
+        "v1",
+        "chain:2"
+      ],
+      "crl": [
+        "STELS-CRL",
+        2,
+        "v1",
+        "chain:2"
+      ]
+    }
+  },
+  "wallet_protocol": {
+    "name": "gliesereum-core",
+    "version": "1.0",
+    "sign_alg": "ecdsa-secp256k1",
+    "hash_alg": "sha256",
+    "sig_encoding": "der-hex(lowS,canonical)",
+    "ecdsa_nonce": "rfc6979",
+    "message_canon": "gls-det-1",
+    "pubkey_format": "secp256k1-compressed-hex"
+  },
+  "addressing": {
+    "version_byte": 98,
+    "pubkey_format": "secp256k1-compressed-hex",
+    "address_encoding": [
+      "base58"
+    ],
+    "preferred_encoding": "base58",
+    "payload": "version_byte || RIPEMD160(SHA256(pubkey_compressed))",
+    "checksum": "SHA256(version_byte||h160)[0..4]"
+  },
+  "consensus": {
+    "type": "blockless-quorum",
+    "description": "Event stream with notarized finality via epoch committees.",
+    "window_ms": 3000,
+    "max_skew_ms": 3000,
+    "time_source": {
+      "mode": "notary-median",
+      "fallback": "system-ntp",
+      "skew_enforcement_ms": 3000
+    },
+    "committee": {
+      "mode": "dynamic-stake-weighted",
+      "epoch_ms": 100,
+      "committee_size": 128000,
+      "quorum_rule": {
+        "type": "fraction",
+        "num": 2,
+        "den": 3,
+        "round_up": true
+      },
+      "selection": {
+        "rng": "vrf",
+        "vrf_alg": "ed25519-vrf",
+        "seed_source": "prev_epoch_beacon",
+        "weight": "stake"
+      },
+      "activation_delay_epochs": 2,
+      "churn_limit": {
+        "enter_frac": 0.04,
+        "exit_frac": 0.04
+      }
+    },
+    "notary_registry": {
+      "min_stake": "10000",
+      "bonding_ms": 604800000,
+      "unbonding_ms": 1209600000,
+      "slash": {
+        "double_sign": "0.05",
+        "surround_vote": "0.02"
+      },
+      "key_rotation": {
+        "min_interval_ms": 86400000
+      }
+    },
+    "finality_certificate": {
+      "hash_alg": "sha256",
+      "alg": [
+        "bls12-381-agg",
+        "ecdsa-secp256k1-multi"
+      ],
+      "encoding": {
+        "bls12-381-agg": {
+          "sig": "hex",
+          "bitmap": "base64"
+        },
+        "ecdsa-secp256k1-multi": {
+          "max_signers": 256
+        }
+      }
+    },
+    "notary_envelope": {
+      "schema_ref": "stels://schemas/notary-certificate-v2.json",
+      "sign_domain": [
+        "STELS-NOTARY",
+        2,
+        "v2",
+        "chain:2"
+      ],
+      "equivocation_policy": {
+        "action": "ban",
+        "ban_ms": 86400000
+      }
+    }
+  },
+  "intrinsics": {
+    "determinism": {
+      "profile": "pure-deterministic",
+      "io": {
+        "network": "denied",
+        "filesystem": "denied",
+        "clock": "logical-only"
+      },
+      "state_access": [
+        "accounts",
+        "tx_index",
+        "kv"
+      ]
+    },
+    "registry": [
+      {
+        "name": "smart.exec",
+        "version": "1.0.0",
+        "abi": {
+          "args": [
+            {
+              "name": "ops",
+              "type": "array<smart_op>",
+              "maxItems": 16,
+              "maxBytes": 4096
+            },
+            {
+              "name": "memo",
+              "type": "string",
+              "maxBytes": 256,
+              "optional": true
+            }
+          ],
+          "returns": {
+            "type": "void"
+          }
+        },
+        "preconditions": [
+          "fee >= fee_min(size(tx), ops)",
+          "timestamp within tx_rules.timestamp_rule",
+          "accounts[from].last_tx_hash == prev_hash OR (prev_hash == null AND accounts[from].last_tx_hash == null)",
+          "all asserts in ops hold (time/balance/compare)"
+        ],
+        "state_transition": [
+          "apply transfers in order; each reduces accounts[from] and increases accounts[to]",
+          "collect fee to parameters.treasury_address",
+          "append events (emit) to tx_index (bounded)",
+          "accounts[from].last_tx_hash = tx_hash"
+        ],
+        "fee_policy": {
+          "base": "0.00005",
+          "per_byte": "0.0000001",
+          "raw_per_byte": "0.0000003",
+          "per_op": {
+            "assert.time": "0.000002",
+            "assert.balance": "0.000003",
+            "assert.compare": "0.000003",
+            "transfer": "0.000010",
+            "emit.event": "0.000004"
+          },
+          "currency": "TST"
+        },
+        "capabilities": [
+          "debit",
+          "credit",
+          "fee_treasury",
+          "events"
+        ],
+        "invariants": [
+          "sum_balances + treasury_collected == constant (testnet relaxed)"
+        ]
+      },
+      {
+        "name": "notary.registry",
+        "version": "1.0.0",
+        "abi": {
+          "args": [
+            {
+              "name": "op",
+              "type": "enum(register,stake,unstake,rotate,exit)"
+            },
+            {
+              "name": "pubkey",
+              "type": "string",
+              "optional": true
+            },
+            {
+              "name": "amount",
+              "type": "string",
+              "optional": true
+            }
+          ],
+          "returns": {
+            "type": "void"
+          }
+        }
+      }
+    ],
+    "dispatch": {
+      "resolver": "max-satisfying",
+      "policy": "prefer_latest_minor",
+      "semver": {
+        "allow": [
+          "~1.0"
+        ],
+        "deny": []
+      },
+      "unknown_method": "reject"
+    }
+  },
+  "smart_ops_spec": {
+    "types": [
+      {
+        "op": "assert.time",
+        "schema": {
+          "before_ms?": "integer>=0",
+          "after_ms?": "integer>=0"
+        },
+        "semantics": "require now<=before_ms and/or now>=after_ms relative to tx.timestamp"
+      },
+      {
+        "op": "assert.balance",
+        "schema": {
+          "address": "address",
+          "gte": "decimal(6)"
+        },
+        "semantics": "require balance[address] >= gte"
+      },
+      {
+        "op": "assert.compare",
+        "schema": {
+          "left": "decimal(6)",
+          "cmp": "enum(<,<=,==,>=,>)",
+          "right": "decimal(6)"
+        },
+        "semantics": "pure arithmetic compare"
+      },
+      {
+        "op": "transfer",
+        "schema": {
+          "to": "address",
+          "amount": "decimal(6)",
+          "memo?": "string<=256B"
+        },
+        "semantics": "move funds from tx.from to to"
+      },
+      {
+        "op": "emit.event",
+        "schema": {
+          "kind": "string<=32",
+          "data?": "object<=1024B"
+        },
+        "semantics": "append small, indexable event; no external effects"
+      }
+    ],
+    "limits": {
+      "max_ops": 16,
+      "max_ops_bytes": 4096,
+      "max_event_data_bytes": 1024
+    }
+  },
+  "parameters": {
+    "fees": {
+      "base": "0.00005",
+      "per_byte": "0.0000001",
+      "raw_per_byte": "0.0000003",
+      "currency": "TST"
+    },
+    "currency": {
+      "symbol": "TST",
+      "decimals": 6,
+      "fee_unit": "10^-6 TST"
+    },
+    "limits": {
+      "max_tx_size": 65536,
+      "max_signatures": 8
+    },
+    "treasury_address": "gohgoWbJK7dMf5MUKKtthRJdCAMmoVqDMo",
+    "kv_limits": {
+      "value_max_bytes": 65536,
+      "raw_soft_cap_bytes": 60000,
+      "tx_raw_ttl_ms": 259200000
+    },
+    "mempool": {
+      "max_pending_per_address": 64,
+      "max_pending_bytes_per_address": 2000000,
+      "reject_siblings_on_prev_hash": true,
+      "reject_duplicate_prev_hash": true,
+      "priority": "fee_per_weighted_byte",
+      "ttl_ms": 900000
+    },
+    "gate": {
+      "ttl_ms": 86400000,
+      "max_per_address": 128,
+      "max_total": 500000,
+      "eviction": "lru",
+      "on_expire": "reject"
+    }
+  },
+  "tx_rules": {
+    "tx_hash": "hex(SHA256(gls-det-1(signing_view)))",
+    "signing_view_exclude": [
+      "signature",
+      "signatures",
+      "cosigs",
+      "verified",
+      "status",
+      "validators",
+      "hash"
+    ],
+    "time_window_ms": 300000,
+    "timestamp_rule": "abs(tx.timestamp - now) <= 295000",
+    "max_tx_size": 65536,
+    "min_fee": "0.00005",
+    "fees_currency": "TST",
+    "require_prev_hash": true,
+    "fee_policy_composition": "effective_min_fee = max(global_min_fee, method_min_fee) + Σ per_op(ops)",
+    "fee_calculation": {
+      "canon": "gls-det-1(signing_view) encoded as UTF-8",
+      "tx_bytes": "byteLength(UTF8(gls-det-1(signing_view)))",
+      "raw_bytes": "tx.raw ? byteLength(UTF8(tx.raw)) : 0",
+      "formula_linear": "fee_min = fees.base + fees.per_byte * (tx_bytes - raw_bytes) + fees.raw_per_byte * raw_bytes + Σ per_op(ops)",
+      "rounding": "compare as decimals with 6 fraction digits (no binary rounding)"
+    },
+    "mempool_priority": {
+      "raw_weight": "fees.raw_per_byte / fees.per_byte",
+      "weighted_size": "(tx_bytes - raw_bytes) + raw_weight * raw_bytes",
+      "score": "fee / weighted_size",
+      "tie_breaker": "lower tx_bytes first"
+    },
+    "raw_policy": {
+      "allowed": true,
+      "encoding": [
+        "utf8"
+      ],
+      "max_raw_bytes": "min(parameters.kv_limits.raw_soft_cap_bytes, tx_free_space)",
+      "require_hash": true,
+      "bind_in_signature": true,
+      "mime_allowed": [
+        "text/plain"
+      ],
+      "pii_allowed": false,
+      "encryption": [
+        "none"
+      ],
+      "tx_raw_ttl_ms": 259200000
+    },
+    "methods_policy": {
+      "max_methods": 4,
+      "max_methods_bytes": 2048,
+      "types": [
+        "cosign"
+      ],
+      "cosign": {
+        "sig_encoding": "der-hex(lowS)",
+        "kid_format": "secp256k1-compressed-hex",
+        "deadline_required": false,
+        "require_approver_address_match": true,
+        "rate_limit": {
+          "per_approver_per_minute": 15
+        },
+        "action_fee": {
+          "enabled": true,
+          "amount": "0.000005",
+          "currency": "TST"
+        },
+        "sign_domain": [
+          "STELS-COSIGN",
+          2,
+          "chain:2"
+        ]
+      },
+      "binding": "methods MUST be part of signing_view"
+    },
+    "signature_binding": "require any(sig in signatures: AddressOf(sig.kid) == tx.from)"
+  },
+  "tx_schema": {
+    "smart": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "stels://schemas/tx-smart-1.0.json",
+      "title": "STELS Smart TX v1.0",
+      "type": "object",
+      "required": [
+        "type",
+        "method",
+        "args",
+        "from",
+        "fee",
+        "currency",
+        "prev_hash",
+        "timestamp",
+        "signatures"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ]
+        }
+      },
+      "properties": {
+        "type": {
+          "const": "smart"
+        },
+        "method": {
+          "const": "smart.exec"
+        },
+        "args": {
+          "type": "object",
+          "required": [
+            "ops"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "ops": {
+              "type": "array",
+              "maxItems": 16,
+              "items": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "op",
+                      "to",
+                      "amount"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "op": {
+                        "const": "transfer"
+                      },
+                      "to": {
+                        "type": "string",
+                        "minLength": 24,
+                        "maxLength": 128,
+                        "pattern": "^[1-9A-HJ-NP-Za-km-z]+$"
+                      },
+                      "amount": {
+                        "type": "string",
+                        "pattern": "^\\d+(?:\\.\\d{1,6})?$"
+                      },
+                      "memo": {
+                        "type": "string",
+                        "maxLength": 256
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "op"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "op": {
+                        "const": "assert.time"
+                      },
+                      "before_ms": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "after_ms": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "op",
+                      "address",
+                      "gte"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "op": {
+                        "const": "assert.balance"
+                      },
+                      "address": {
+                        "type": "string",
+                        "minLength": 24,
+                        "maxLength": 128,
+                        "pattern": "^[1-9A-HJ-NP-Za-km-z]+$"
+                      },
+                      "gte": {
+                        "type": "string",
+                        "pattern": "^\\d+(?:\\.\\d{1,6})?$"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "op",
+                      "left",
+                      "cmp",
+                      "right"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "op": {
+                        "const": "assert.compare"
+                      },
+                      "left": {
+                        "type": "string",
+                        "pattern": "^\\d+(?:\\.\\d{1,6})?$"
+                      },
+                      "cmp": {
+                        "enum": [
+                          "<",
+                          "<=",
+                          "==",
+                          ">=",
+                          ">"
+                        ]
+                      },
+                      "right": {
+                        "type": "string",
+                        "pattern": "^\\d+(?:\\.\\d{1,6})?$"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "op",
+                      "kind"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "op": {
+                        "const": "emit.event"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "maxLength": 32
+                      },
+                      "data": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "memo": {
+              "type": "string",
+              "maxLength": 256
+            }
+          }
+        },
+        "from": {
+          "type": "string",
+          "minLength": 24,
+          "maxLength": 128,
+          "pattern": "^[1-9A-HJ-NP-Za-km-z]+$",
+          "description": "base58 (version=98, single SHA256 checksum)"
+        },
+        "fee": {
+          "type": "string",
+          "pattern": "^\\d+(?:\\.\\d{1,6})?$"
+        },
+        "currency": {
+          "const": "TST"
+        },
+        "prev_hash": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{64}$"
+            }
+          ]
+        },
+        "timestamp": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "raw": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "raw_encoding": {
+          "type": "string",
+          "const": "utf8"
+        },
+        "raw_sha256": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[0-9a-fA-F]{64}$"
+        },
+        "methods": {
+          "type": "array",
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "type"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[a-z0-9._-]{1,64}$"
+              },
+              "type": {
+                "const": "cosign"
+              },
+              "threshold": {
+                "type": "object",
+                "required": [
+                  "k",
+                  "n"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "k": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              },
+              "approvers": {
+                "type": "array",
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 66,
+                  "maxLength": 66,
+                  "pattern": "^(02|03)[0-9a-fA-F]{64}$"
+                }
+              },
+              "deadline_ms": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "cosigs": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "required": [
+              "method_id",
+              "kid",
+              "alg",
+              "sig"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "method_id": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[a-z0-9._-]{1,64}$"
+              },
+              "kid": {
+                "type": "string",
+                "minLength": 66,
+                "maxLength": 66,
+                "pattern": "^(02|03)[0-9a-fA-F]{64}$",
+                "description": "secp256k1-compressed-hex"
+              },
+              "alg": {
+                "enum": [
+                  "ecdsa-secp256k1"
+                ]
+              },
+              "sig": {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]+$",
+                "maxLength": 144,
+                "description": "DER hex (lowS)"
+              }
+            }
+          }
+        },
+        "signatures": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "required": [
+              "kid",
+              "alg",
+              "sig"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "kid": {
+                "type": "string",
+                "minLength": 66,
+                "maxLength": 66,
+                "pattern": "^(02|03)[0-9a-fA-F]{64}$",
+                "description": "secp256k1-compressed-hex public key; at least one MUST map to tx.from address"
+              },
+              "alg": {
+                "enum": [
+                  "ecdsa-secp256k1"
+                ]
+              },
+              "sig": {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]+$",
+                "maxLength": 144
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "schemas": {
+    "notary_certificate_v2": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "stels://schemas/notary-certificate-v2.json",
+      "type": "object",
+      "required": [
+        "tx_hash",
+        "chain_id",
+        "committee_epoch",
+        "committee_root",
+        "alg"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "tx_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        },
+        "chain_id": {
+          "type": "integer"
+        },
+        "committee_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "committee_root": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        },
+        "alg": {
+          "enum": [
+            "bls12-381-agg",
+            "ecdsa-secp256k1-multi"
+          ]
+        },
+        "bitmap": {
+          "type": "string",
+          "contentEncoding": "base64"
+        },
+        "sig": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]+$"
+        },
+        "sigs": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "type": "object",
+            "required": [
+              "kid",
+              "sig"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "kid": {
+                "type": "string",
+                "minLength": 66,
+                "maxLength": 66,
+                "pattern": "^(02|03)[0-9a-fA-F]{64}$"
+              },
+              "sig": {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]+$",
+                "maxLength": 144
+              }
+            }
+          }
+        },
+        "membership_proof": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{64}$"
+          }
+        }
+      }
+    }
+  },
+  "state": {
+    "accounts": [
+      {
+        "address": "gYjDnckjrKCw3CYVerH1LMbgTWv3dmg6Hu",
+        "balance": "1000000000",
+        "last_tx_hash": null
+      },
+      {
+        "address": "gohgoWbJK7dMf5MUKKtthRJdCAMmoVqDMo",
+        "balance": "5000000000",
+        "last_tx_hash": null
+      }
+    ],
+    "aliases": {
+      "treasury": "gohgoWbJK7dMf5MUKKtthRJdCAMmoVqDMo"
+    },
+    "registries": {
+      "intrinsics": [
+        "smart.exec@1.0.0",
+        "notary.registry@1.0.0"
+      ],
+      "notary": {
+        "registry_root": "0000000000000000000000000000000000000000000000000000000000000000",
+        "total_stake": "0",
+        "epoch": 0,
+        "committee_root": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    }
+  },
+  "monetary": {
+    "supply_cap": "testnet-unbounded",
+    "minting": "disabled",
+    "faucet": {
+      "rate_per_request": "1000",
+      "cooldown_ms": 60000
+    }
+  },
+  "security": {
+    "der_requirements": {
+      "lowS": true,
+      "canonical_DER": true
+    }
+  },
+  "governance": {
+    "upgrade_envelope": {
+      "schema": {
+        "fields": [
+          "upgrade_id",
+          "new_genesis_hash",
+          "chain_id",
+          "timestamp"
+        ]
+      },
+      "sign_domain": [
+        "STELS-GENESIS",
+        2,
+        "v1",
+        "chain:2"
+      ],
+      "threshold": {
+        "type": "k-of-n",
+        "k": 2,
+        "n": 3
+      }
+    },
+    "revocation": {
+      "crl": {
+        "seq": 1,
+        "revoked": []
+      },
+      "sign_domain": [
+        "STELS-CRL",
+        2,
+        "v1",
+        "chain:2"
+      ]
+    },
+    "emergency_pause": {
+      "allowed": true,
+      "trigger_threshold": {
+        "k": 2,
+        "n": 3
+      },
+      "max_duration_ms": 3600000
+    }
+  },
+  "signing_keys": [
+    {
+      "kid": "stels-testnet-key-1",
+      "alg": "ecdsa-secp256k1",
+      "public_key": "03892f1c484b14f551c61fa997bb647fdfe84fabb48bc868696b07813e700ab631",
+      "not_before": "2025-08-01T00:00:00Z",
+      "not_after": "2028-08-01T00:00:00Z",
+      "purpose": [
+        "genesis-sign",
+        "upgrade-sign"
+      ]
+    },
+    {
+      "kid": "stels-testnet-key-2",
+      "alg": "ecdsa-secp256k1",
+      "public_key": "02e31a62f24c3c29499a5f9ffc4c3360752da222d5a1479ecbbb17745b267f4e17",
+      "not_before": "2025-08-01T00:00:00Z",
+      "not_after": "2028-08-01T00:00:00Z",
+      "purpose": [
+        "genesis-sign",
+        "upgrade-sign"
+      ]
+    },
+    {
+      "kid": "stels-testnet-key-3",
+      "alg": "ecdsa-secp256k1",
+      "public_key": "02ecb4e9e30ed9c8aaf4ec3c58e9bed14a617d871ed5ac15596a7a024990dd1521",
+      "not_before": "2025-08-01T00:00:00Z",
+      "not_after": "2028-08-01T00:00:00Z",
+      "purpose": [
+        "genesis-sign",
+        "upgrade-sign"
+      ]
+    }
+  ],
+  "signatures": {
+    "threshold": {
+      "type": "k-of-n",
+      "k": 2,
+      "n": 3
+    },
+    "signers": [
+      {
+        "kid": "stels-testnet-key-1",
+        "sig": "3044022049416cf8db90825380286b9664e833f5d1acba7c935ef982ca5ee54f7b0a34cd0220478d248eece7426c2588eec5a96e27770c4edef75e2b66535a0a0339dc73b860",
+        "alg": "ecdsa-secp256k1"
+      },
+      {
+        "kid": "stels-testnet-key-2",
+        "sig": "3045022100e231c8b1312c4bc072c93252fbb74e57d126c544a9cff7304cdea770905c1dec02200e84aac18ae0208fa26324a31b01a3de05bf9c7ff9c74afa7b4936b6e5a9279c",
+        "alg": "ecdsa-secp256k1"
+      },
+      {
+        "kid": "stels-testnet-key-3",
+        "sig": "30440220183b004fa0768698df8a7fd459d390c5a7c4fd43a742d7b04bfbad4b7a87ac3b02200ffacea75b107c15a4b597d241ed4b75cf319ade9f21cefa4f169502ffa2c7f1",
+        "alg": "ecdsa-secp256k1"
+      }
+    ]
+  }
+}
