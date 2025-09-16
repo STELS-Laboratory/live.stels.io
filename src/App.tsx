@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "@/stores";
 import { ReactFlowProvider } from "reactflow";
 import SessionProvider from "@/components/main/Provider";
@@ -15,12 +15,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/routes/Layout";
 import Fred from "@/routes/main/Fred";
 import { AMIEditor } from "@/routes/editor/AMIEditor";
+import SplashScreen from "./components/main/SplashScreen";
 
 /**
  * Professional Dashboard component with fixed layout structure
  */
 export default function Dashboard(): React.ReactElement {
 	const { currentRoute, setRouteLoading } = useAppStore();
+	const [showSplash, setShowSplash] = useState(true);
 
 	// Initialize URL-based routing
 	useUrlRouter();
@@ -38,6 +40,10 @@ export default function Dashboard(): React.ReactElement {
 			setRouteLoading(false);
 		}
 	}, [isHeavyRoute, setRouteLoading]);
+
+	const handleSplashComplete = (): void => {
+		setShowSplash(false);
+	};
 
 	const renderMainContent = (): React.ReactElement => {
 		switch (currentRoute) {
@@ -69,11 +75,15 @@ export default function Dashboard(): React.ReactElement {
 	return (
 		<SessionProvider>
 			<TooltipProvider>
-				<RouteLoader>
-					<Layout>
-						{renderMainContent()}
-					</Layout>
-				</RouteLoader>
+				{showSplash
+					? <SplashScreen onComplete={handleSplashComplete} duration={4000} />
+					: (
+						<RouteLoader>
+							<Layout>
+								{renderMainContent()}
+							</Layout>
+						</RouteLoader>
+					)}
 			</TooltipProvider>
 		</SessionProvider>
 	);

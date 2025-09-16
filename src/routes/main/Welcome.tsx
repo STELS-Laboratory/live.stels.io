@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	ArrowRight,
@@ -28,40 +27,6 @@ function Welcome(): React.ReactElement | null {
 	return (
 		<>
 			<div className="container m-auto gap-6 space-y-8">
-				
-				{/*<CriticalNotification />*/}
-
-				{/* User Notifications Block */}
-				<Card className="border-amber-500/30 bg-amber-500/5">
-					<CardHeader>
-						<CardTitle className="flex items-center text-amber-400">
-							<Shield className="w-5 h-5 mr-2" />
-							IMPORTANT ANNOUNCEMENT
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-4">
-							<div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
-								<div className="flex items-start space-x-3">
-									<div className="flex-shrink-0">
-										<Badge
-											variant="outline"
-											className="border-amber-500/50 bg-amber-500/20 text-amber-400 px-3 py-1"
-										>
-											September 16
-										</Badge>
-									</div>
-									<div className="flex-1 min-w-0">
-										<h3 className="text-lg font-semibold text-amber-400 mb-2">
-											Launch Testnet Blockless
-										</h3>
-									</div>
-								</div>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-
 				{/* Network Report */}
 				<NetworkReport />
 

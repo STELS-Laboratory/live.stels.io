@@ -1300,7 +1300,7 @@ export default function WalletWidget(): React.ReactElement {
 	);
 	
 	return (
-		<div className="container mx-auto max-w-7xl p-4">
+		<div className="container m-auto gap-6 space-y-8">
 			<Card className="mb-6">
 				<CardHeader>
 					<div className="flex items-center gap-3">
@@ -1456,7 +1456,7 @@ export default function WalletWidget(): React.ReactElement {
 				</CardContent>
 			</Card>
 			
-			<div className="container mt-4 m-auto gap-4 space-y-4">
+			<div className="container m-auto gap-6 space-y-8">
 				{/* Key Performance Metrics */}
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 min-w-0">
 					{/* Total Liquidity */}

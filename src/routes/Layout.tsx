@@ -151,8 +151,8 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						</button>
 					</div>
 
-					<div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-						<nav className="p-2 space-y-6">
+					<div className="flex-1 text-center overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+						<nav className="p-2 space-y-8">
 							<div>
 								<div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
 									Stels
@@ -161,8 +161,6 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 									{generalNav.map((item) => renderNavItem(item))}
 								</div>
 							</div>
-
-							<Separator className="mx-2" />
 
 							<div>
 								<div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
@@ -175,13 +173,12 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						</nav>
 					</div>
 
-					<div className="p-4 border-t border-border/50">
+					<div className="p-4 h-16">
 						<Badge
 							variant="outline"
 							className="w-full justify-center text-amber-400 border-amber-500/30 bg-amber-500/5"
 						>
-							<span className="size-2 rounded-full bg-amber-400 animate-pulse mr-2" />
-							<span className="font-medium">LIVE</span>
+							<span className="font-medium">TEST</span>
 						</Badge>
 					</div>
 				</aside>
@@ -237,7 +234,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 							<div className="flex items-center justify-between px-6 h-16">
 								<div className="flex items-center gap-4">
 									<div className="flex items-center gap-2 text-sm">
-										<span className="text-muted-foreground">ROUTE:</span>
+										<span className="text-muted-foreground">:</span>
 										<span className="text-amber-400 font-medium uppercase">
 											{currentRoute}
 										</span>
@@ -345,7 +342,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						className="flex flex-1 overflow-y-auto overflow-x-hidden bg-background"
 						data-route-container
 					>
-						<div className="container mx-auto px-4 py-6">
+						<div className="w-full mx-auto px-4 py-6">
 							{children}
 						</div>
 
@@ -363,8 +360,8 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						)}
 					</main>
 
-					<footer className="border-t bg-card/30 backdrop-blur-sm shrink-0">
-						<div className="container mx-auto px-4 py-4 max-w-7xl">
+					<footer className="h-16 border-t">
+						<div className="container mx-auto px-4 py-5">
 							<div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
 								<span>© 2024 Gliesereum Ukraine. All rights reserved.</span>
 								<a
