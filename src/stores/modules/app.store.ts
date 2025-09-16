@@ -142,7 +142,7 @@ export const useAppStore = create<AppState>()(
 					}
 				}
 				
-				const allowedRoutes = ['welcome', 'scanner', 'canvas', 'network'];
+				const allowedRoutes = ['welcome', 'scanner', 'canvas', 'network', 'wallet'];
 				//const allowedRoutes = ['welcome', 'scanner', 'markets', 'canvas', 'fred', 'wallet', 'network', 'editor'];
 				console.log('[Store] Initializing with allowedRoutes:', allowedRoutes);
 				
@@ -259,7 +259,7 @@ export const useAppStore = create<AppState>()(
 				}
 			},
 			{
-				name: 'live_app_genesis_04.6'
+				name: 'live_app_genesis_04.8'
 			}
 		)
 	)

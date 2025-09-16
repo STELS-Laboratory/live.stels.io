@@ -234,7 +234,7 @@ function Markets(): React.ReactElement {
 
 	return (
 		<div className="container m-auto">
-			<TickerTape entries={spotTickers}/>
+			<TickerTape entries={spotTickers} />
 			<Card>
 				<CardHeader>
 					<CardTitle>Connection Markets</CardTitle>

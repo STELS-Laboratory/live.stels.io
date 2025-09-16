@@ -68,7 +68,7 @@ export default function GliesereumWallet() {
 	if (!currentWallet) {
 		return (
 			<div className="p-4">
-				<div className="container mx-auto max-w-4xl">
+				<div className="container mx-auto">
 					{/* Header */}
 					<div className="text-center mb-8">
 						<h1 className="text-3xl font-bold text-zinc-100 mb-2">
@@ -88,9 +88,9 @@ export default function GliesereumWallet() {
 
 	return (
 		<div className="p-4">
-			<div className="container mx-auto max-w-6xl">
+			<div className="container mx-auto">
 				{/* Header */}
-				<div className="text-center mb-8">
+				<div className="mb-8">
 					<h1 className="text-3xl font-bold text-zinc-100 mb-2">
 						Gliesereum Wallet
 					</h1>
