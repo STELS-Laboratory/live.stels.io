@@ -18,7 +18,7 @@ function SessionProvider(
 						protocols: ["webfix"],
 					},
 					network: "testnet",
-					title: "SONAR Trading Platform",
+					title: "AI Trading Platform",
 					pid: "sonar",
 				},
 			},

@@ -18,6 +18,7 @@ import React from "react";
 import { UrlRouterDemo } from "@/components/main/UrlRouterDemo";
 import { RouterDebug } from "@/components/main/RouterDebug";
 import NetworkReport from "@/components/main/NetworkReport";
+import SystemUpdateNotification from "@/components/main/SystemUpdateNotification";
 import { navigateTo } from "@/lib/router";
 
 /**
@@ -27,6 +28,9 @@ function Welcome(): React.ReactElement | null {
 	return (
 		<>
 			<div className="container m-auto gap-6 space-y-8">
+				{/* System Update Notification */}
+				<SystemUpdateNotification />
+
 				{/* Network Report */}
 				<NetworkReport />
 
