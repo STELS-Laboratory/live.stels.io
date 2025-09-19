@@ -26,7 +26,7 @@ function SystemUpdateNotification(): React.ReactElement {
             </p>
             <div className="flex items-center space-x-1 mt-2 text-xs text-orange-200">
               <Clock className="h-3 w-3" />
-              <span>Estimated completion: TBD</span>
+              <span>Estimated completion: 20 September</span>
             </div>
           </div>
         </div>
