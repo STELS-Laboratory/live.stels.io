@@ -10,10 +10,12 @@ interface MacOSNodeProps extends NodeProps {
 
 const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
   const { setNodes } = useReactFlow();
-  const [nodeState, setNodeState] = useState<NodeState>({
-    minimized: false,
-    maximized: false,
-  });
+  const [nodeState, setNodeState] = useState<NodeState>(
+    props.data.nodeState || {
+      minimized: false,
+      maximized: false,
+    },
+  );
 
   const handleClose = useCallback(() => {
     if (props.data.onDelete) {
@@ -22,17 +24,40 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
   }, [props.data.onDelete, props.id]);
 
   const handleMinimize = useCallback(() => {
-    setNodeState((prev) => ({
-      ...prev,
-      minimized: !prev.minimized,
-    }));
-  }, []);
+    setNodeState((prev) => {
+      const newState = {
+        ...prev,
+        minimized: !prev.minimized,
+      };
+
+      // Update node data with new state
+      setNodes((nds) =>
+        nds.map((node) =>
+          node.id === props.id
+            ? {
+              ...node,
+              data: {
+                ...node.data,
+                nodeState: newState,
+              },
+            }
+            : node
+        )
+      );
+
+      return newState;
+    });
+  }, [setNodes, props.id]);
 
   const handleMaximize = useCallback(() => {
     setNodeState((prev) => {
       const newMaximized = !prev.maximized;
+      const newState = {
+        ...prev,
+        maximized: newMaximized,
+      };
 
-      // Update node size in ReactFlow
+      // Update node size and state in ReactFlow
       setNodes((nds) =>
         nds.map((node) =>
           node.id === props.id
@@ -45,15 +70,16 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
                 zIndex: newMaximized ? 1000 : 1,
               },
               position: newMaximized ? { x: 0, y: 0 } : node.position,
+              data: {
+                ...node.data,
+                nodeState: newState,
+              },
             }
             : node
         )
       );
 
-      return {
-        ...prev,
-        maximized: newMaximized,
-      };
+      return newState;
     });
   }, [setNodes, props.id]);
 

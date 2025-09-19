@@ -74,6 +74,8 @@ export interface FlowNodeData {
   label: string;
   onDelete: (nodeId: string) => void;
   sessionData?: SessionWidgetData;
+  // Node state for persistence
+  nodeState?: NodeState;
 }
 
 /**

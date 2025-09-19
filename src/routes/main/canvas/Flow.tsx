@@ -14,6 +14,7 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
+import { useFlowPersistence } from "@/hooks/useFlowPersistence.ts";
 import MacOSNode from "@/routes/main/canvas/MacOSNode.tsx";
 import { ChevronDown, ChevronRight, Filter, ShoppingBag } from "lucide-react";
 import { cleanBrands, cn } from "@/lib/utils";
@@ -26,9 +27,7 @@ import {
 	type WidgetCategories,
 } from "@/lib/canvas-types";
 import { useCanvasUIStore } from "@/stores/modules/canvas-ui.store";
-
-const NODES_STORAGE_KEY = "stels-canvas-nodes";
-const EDGES_STORAGE_KEY = "stels-canvas-edges";
+import { PersistenceDebug } from "@/components/debug/PersistenceDebug";
 
 const defaultNodes: FlowNode[] = [];
 
@@ -294,68 +293,59 @@ function Flow(): React.ReactElement | null {
 	const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
 	const { screenToFlowPosition } = useReactFlow();
 
+	// Flow persistence hook
+	const {
+		loadNodes,
+		loadEdges,
+		loadViewport,
+		handleNodeChanges,
+		handleEdgeChanges,
+		handleViewportChange,
+	} = useFlowPersistence();
+
+	// Load initial data from localStorage
 	useEffect(() => {
 		try {
-			const savedNodes = localStorage.getItem(NODES_STORAGE_KEY);
-			const savedEdges = localStorage.getItem(EDGES_STORAGE_KEY);
+			// Load nodes and add delete handler
+			const loadedNodes = loadNodes();
+			const nodesWithFunctions = loadedNodes.map((node: FlowNode) => ({
+				...node,
+				data: {
+					...node.data,
+					onDelete: handleDeleteNode,
+				},
+			}));
+			setNodes(nodesWithFunctions);
 
-			if (savedNodes) {
-				const parsedNodes = JSON.parse(savedNodes);
-				const nodesWithFunctions = parsedNodes.map((node: FlowNode) => ({
-					...node,
-					data: {
-						...node.data,
-						onDelete: handleDeleteNode,
-					},
-				}));
-				setNodes(nodesWithFunctions);
-			} else {
-				localStorage.setItem(NODES_STORAGE_KEY, JSON.stringify(defaultNodes));
-				const parsedNodes = defaultNodes;
-				const nodesWithFunctions = parsedNodes.map((node: FlowNode) => ({
-					...node,
-					data: {
-						...node.data,
-						onDelete: handleDeleteNode,
-					},
-				}));
-				setNodes(nodesWithFunctions);
-			}
+			// Load edges
+			const loadedEdges = loadEdges();
+			setEdges(loadedEdges);
 
-			if (savedEdges) {
-				setEdges(JSON.parse(savedEdges));
-			}
+			// Viewport will be restored in onInit callback
 		} catch (error) {
-			console.error("Error loading flow data from localStorage:", error);
+			console.error("Error loading flow data:", error);
+			// Fallback to default nodes
+			setNodes(defaultNodes.map((node: FlowNode) => ({
+				...node,
+				data: {
+					...node.data,
+					onDelete: handleDeleteNode,
+				},
+			})));
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
+	// Clean brands on mount
 	useEffect(() => {
-		if (nodes.length > 0) {
-			const nodesToSave = nodes.map((node) => ({
-				...node,
-				data: {
-					...node.data,
-					onDelete: undefined,
-				},
-			}));
-			localStorage.setItem(NODES_STORAGE_KEY, JSON.stringify(nodesToSave));
-		}
 		cleanBrands();
-	}, [nodes]);
-
-	useEffect(() => {
-		if (edges.length > 0) {
-			localStorage.setItem(EDGES_STORAGE_KEY, JSON.stringify(edges));
-		}
-	}, [edges]);
+	}, []);
 
 	const onConnect = useCallback(
 		(params: Edge | Connection) => {
 			setEdges((eds) => {
 				const newEdges = addEdge(params, eds);
-				localStorage.setItem(EDGES_STORAGE_KEY, JSON.stringify(newEdges));
+				// Edges will be auto-saved by handleEdgeChanges
 				return newEdges;
 			});
 		},
@@ -366,26 +356,16 @@ function Flow(): React.ReactElement | null {
 		(nodeId: string) => {
 			setNodes((nds) => {
 				const updatedNodes = nds.filter((node) => node.id !== nodeId);
+				// Auto-save will handle saving the updated nodes
+
+				// Also remove connected edges
 				setEdges((edges) => {
 					const updatedEdges = edges.filter((edge) =>
 						edge.source !== nodeId && edge.target !== nodeId
 					);
-					localStorage.setItem(EDGES_STORAGE_KEY, JSON.stringify(updatedEdges));
+					// Auto-save will handle saving the updated edges
 					return updatedEdges;
 				});
-
-				if (updatedNodes.length === 0) {
-					localStorage.removeItem(NODES_STORAGE_KEY);
-				} else {
-					const nodesToSave = updatedNodes.map((node) => ({
-						...node,
-						data: {
-							...node.data,
-							onDelete: undefined,
-						},
-					}));
-					localStorage.setItem(NODES_STORAGE_KEY, JSON.stringify(nodesToSave));
-				}
 
 				return updatedNodes;
 			});
@@ -430,15 +410,7 @@ function Flow(): React.ReactElement | null {
 
 		setNodes((prevNodes) => {
 			const updatedNodes = [...prevNodes, newNode];
-			const nodesToSave = updatedNodes.map((node) => ({
-				...node,
-				data: {
-					...node.data,
-					onDelete: undefined,
-				},
-			}));
-			localStorage.setItem(NODES_STORAGE_KEY, JSON.stringify(nodesToSave));
-
+			// Auto-save will handle saving the new nodes
 			return updatedNodes;
 		});
 	};
@@ -658,14 +630,33 @@ function Flow(): React.ReactElement | null {
 			<ReactFlow
 				nodes={nodes}
 				edges={edges}
-				onNodesChange={onNodesChange}
-				onEdgesChange={onEdgesChange}
+				onNodesChange={(changes) => {
+					handleNodeChanges(changes, nodes);
+					onNodesChange(changes);
+				}}
+				onEdgesChange={(changes) => {
+					handleEdgeChanges(changes, edges);
+					onEdgesChange(changes);
+				}}
 				onConnect={onConnect}
 				nodeTypes={nodeTypes}
 				snapToGrid={true}
 				fitView
 				onInit={(instance) => {
 					reactFlowInstance.current = instance;
+					// Restore viewport after ReactFlow is ready
+					const savedViewport = loadViewport();
+					if (savedViewport) {
+						setTimeout(() => {
+							instance.setViewport(savedViewport, { duration: 0 });
+						}, 100);
+					}
+				}}
+				onMove={(_, viewport) => {
+					handleViewportChange(viewport);
+				}}
+				onMoveEnd={(_, viewport) => {
+					handleViewportChange(viewport);
 				}}
 				onDrop={onDrop}
 				onDragOver={onDragOver}
@@ -694,6 +685,9 @@ function Flow(): React.ReactElement | null {
 				onOpenWidgetStore={toggleWidgetStore}
 				isWidgetStoreOpen={isWidgetStoreOpen}
 			/>
+
+			{/* Debug component for testing persistence */}
+			<PersistenceDebug />
 
 			<div
 				className={cn(
