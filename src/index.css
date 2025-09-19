@@ -1,6 +1,11 @@
 @import 'tailwindcss';
 @plugin 'tailwindcss-animate';
 
+/* Custom utility classes for panel animations */
+.hover\:scale-102:hover {
+  transform: scale(1.02);
+}
+
 :root {
     --font-size: 14px;
     --font-family: 'Saira', sans-serif;

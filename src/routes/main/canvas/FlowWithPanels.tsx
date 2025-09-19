@@ -34,7 +34,6 @@ import {
 } from "@/lib/canvas-types";
 import { useCanvasUIStore } from "@/stores/modules/canvas-ui.store";
 import { usePanelStore } from "@/stores/modules/panel.store";
-import { PersistenceDebug } from "@/components/debug/PersistenceDebug";
 import { PanelTabs } from "@/components/panels/PanelTabs";
 import { PanelManager } from "@/components/panels/PanelManager";
 
@@ -324,6 +323,7 @@ function FlowWithPanels(): React.ReactElement | null {
   } = usePanelStore();
 
   const [isPanelManagerOpen, setIsPanelManagerOpen] = useState(false);
+  const [isPanelTransitioning, setIsPanelTransitioning] = useState(false);
 
   const session = useSessionStoreSync() as SessionStore | null;
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
@@ -405,39 +405,81 @@ function FlowWithPanels(): React.ReactElement | null {
     }
   }, [panels.length, createPanel]);
 
-  // Load panel data when active panel changes
+  // Load panel data when active panel changes with smooth transition
   useEffect(() => {
     if (activePanelId) {
-      const panelData = getPanelData(activePanelId);
-      if (panelData) {
-        // Load nodes and add delete handler
-        const nodesWithFunctions = panelData.nodes.map((node: FlowNode) => ({
-          ...node,
-          data: {
-            ...node.data,
-            onDelete: handleDeleteNode,
-          },
-        }));
-        setNodes(nodesWithFunctions);
-        setEdges(panelData.edges);
+      setIsPanelTransitioning(true);
 
-        // Restore viewport for this panel
-        if (panelData.viewport && reactFlowInstance.current) {
+      // Add a small delay for smooth transition
+      const transitionTimeout = setTimeout(() => {
+        const panelData = getPanelData(activePanelId);
+        if (panelData) {
+          // Load nodes and add delete handler with fade-in animation
+          const nodesWithFunctions = panelData.nodes.map((
+            node: FlowNode,
+            index,
+          ) => ({
+            ...node,
+            style: {
+              ...node.style,
+              opacity: 0,
+              transition: `opacity 0.3s ease-in-out ${index * 0.05}s`,
+            },
+            data: {
+              ...node.data,
+              onDelete: handleDeleteNode,
+            },
+          }));
+          setNodes(nodesWithFunctions);
+          setEdges(panelData.edges);
+
+          // Animate nodes fade-in
           setTimeout(() => {
-            reactFlowInstance.current?.setViewport(panelData.viewport, {
-              duration: 0,
-            });
+            setNodes((currentNodes) =>
+              currentNodes.map((node) => ({
+                ...node,
+                style: {
+                  ...node.style,
+                  opacity: 1,
+                },
+              }))
+            );
           }, 100);
+
+          // Restore viewport for this panel with smooth animation
+          if (panelData.viewport && reactFlowInstance.current) {
+            setTimeout(() => {
+              reactFlowInstance.current?.setViewport(panelData.viewport, {
+                duration: 600, // Smooth animation
+              });
+              // Complete transition after viewport animation
+              setTimeout(() => {
+                setIsPanelTransitioning(false);
+              }, 650);
+            }, 100);
+          } else {
+            // Complete transition after nodes animation
+            setTimeout(() => {
+              setIsPanelTransitioning(false);
+            }, 400);
+          }
+        } else {
+          // No data for this panel, start with empty state
+          setNodes([]);
+          setEdges([]);
+          // Quick transition for empty panel
+          setTimeout(() => {
+            setIsPanelTransitioning(false);
+          }, 200);
         }
-      } else {
-        // No data for this panel, start with empty state
-        setNodes([]);
-        setEdges([]);
-      }
+      }, 150); // Small delay for transition
+
+      return () => clearTimeout(transitionTimeout);
     } else {
       // No active panel, start with empty state
       setNodes([]);
       setEdges([]);
+      setIsPanelTransitioning(false);
     }
   }, [activePanelId, getPanelData]);
 
@@ -737,12 +779,32 @@ function FlowWithPanels(): React.ReactElement | null {
   const activePanel = getActivePanel();
 
   return (
-    <div className="absolute w-[100%] h-[100%] top-0 left-0 flex flex-col">
+    <div className="absolute w-[100%] h-[100%] top-0 left-0 flex flex-col transition-all duration-300 ease-in-out">
       {/* Panel tabs */}
       <PanelTabs className="flex-shrink-0" />
 
       {/* Main canvas area */}
-      <div className="flex-1 relative">
+      <div
+        className={cn(
+          "flex-1 relative transition-all duration-300 ease-in-out",
+          isPanelTransitioning ? "opacity-60" : "opacity-100",
+        )}
+      >
+        {/* Panel transition overlay */}
+        {isPanelTransitioning && (
+          <div className="absolute inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center">
+            <div className="bg-white/90 dark:bg-zinc-800/90 rounded-lg px-6 py-4 shadow-lg">
+              <div className="flex items-center space-x-3">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-500">
+                </div>
+                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  Loading panel...
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -820,9 +882,6 @@ function FlowWithPanels(): React.ReactElement | null {
           onOpenPanelManager={() => setIsPanelManagerOpen(true)}
           isPanelManagerOpen={isPanelManagerOpen}
         />
-
-        {/* Debug component for testing persistence */}
-        <PersistenceDebug />
       </div>
 
       {/* Panel Manager */}

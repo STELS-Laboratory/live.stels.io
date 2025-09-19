@@ -45,10 +45,10 @@ const PanelTab: React.FC<PanelTabProps> = ({
     <div
       className={cn(
         "group relative flex items-center min-w-0 cursor-pointer",
-        "border-b-2 transition-all duration-200",
+        "border-b-2 transition-all duration-300 ease-in-out",
         isActive
-          ? "border-amber-500 bg-amber-500/10"
-          : "border-transparent hover:border-zinc-400/50 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50",
+          ? "border-amber-500 bg-amber-500/10 scale-105 shadow-sm"
+          : "border-transparent hover:border-zinc-400/50 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50 hover:scale-102",
       )}
       onClick={onClick}
     >
@@ -221,7 +221,7 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({ className }) => {
   return (
     <div
       className={cn(
-        "flex items-center bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800",
+        "flex items-center bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 transition-all duration-300 ease-in-out",
         className,
       )}
     >
