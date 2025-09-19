@@ -3,8 +3,6 @@ import {
   ArrowDown,
   ArrowUp,
   Copy,
-  Eye,
-  EyeOff,
   Grid3X3,
   List,
   Plus,
@@ -28,7 +26,6 @@ interface PanelManagerProps {
 
 interface PanelCardProps {
   panel: Panel;
-  onSelect: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
@@ -43,7 +40,6 @@ interface PanelCardProps {
  */
 const PanelCard: React.FC<PanelCardProps> = ({
   panel,
-  onSelect,
   onEdit,
   onDuplicate,
   onDelete,
@@ -52,8 +48,7 @@ const PanelCard: React.FC<PanelCardProps> = ({
   canMoveUp,
   canMoveDown,
 }) => {
-  const { activePanelId } = usePanelStore();
-  const isActive = panel.id === activePanelId;
+  const isActive = panel.isActive;
 
   return (
     <Card
@@ -173,12 +168,10 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 ) => {
   const {
     panels,
-    activePanelId,
     createPanel,
     updatePanel,
     duplicatePanel,
     deletePanel,
-    setActivePanel,
     clearAllPanels,
   } = usePanelStore();
 
@@ -380,7 +373,6 @@ export const PanelManager: React.FC<PanelManagerProps> = (
                   <PanelCard
                     key={panel.id}
                     panel={panel}
-                    onSelect={() => setActivePanel(panel.id)}
                     onEdit={() => handleEditPanel(panel)}
                     onDuplicate={() => handleDuplicatePanel(panel.id)}
                     onDelete={() => handleDeletePanel(panel.id)}

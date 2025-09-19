@@ -1,4 +1,10 @@
-import React, { useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import ReactFlow, {
   addEdge,
@@ -12,9 +18,7 @@ import ReactFlow, {
   useReactFlow,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { useCallback, useEffect, useMemo, useRef } from "react";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
-import { useFlowPersistence } from "@/hooks/useFlowPersistence.ts";
 import MacOSNode from "@/routes/main/canvas/MacOSNode.tsx";
 import {
   ChevronDown,
@@ -36,8 +40,6 @@ import { useCanvasUIStore } from "@/stores/modules/canvas-ui.store";
 import { usePanelStore } from "@/stores/modules/panel.store";
 import { PanelTabs } from "@/components/panels/PanelTabs";
 import { PanelManager } from "@/components/panels/PanelManager";
-
-const defaultNodes: FlowNode[] = [];
 
 /**
  * Props for the DockItem component
@@ -328,9 +330,9 @@ function FlowWithPanels(): React.ReactElement | null {
   const session = useSessionStoreSync() as SessionStore | null;
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
   const { screenToFlowPosition } = useReactFlow();
-  const viewportSaveTimeoutRef = useRef<NodeJS.Timeout>();
-  const nodesSaveTimeoutRef = useRef<NodeJS.Timeout>();
-  const edgesSaveTimeoutRef = useRef<NodeJS.Timeout>();
+  const viewportSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const nodesSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const edgesSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Debounced save functions
   const debouncedSaveViewport = useCallback(
@@ -349,7 +351,7 @@ function FlowWithPanels(): React.ReactElement | null {
   );
 
   const debouncedSaveNodes = useCallback(
-    (currentNodes: Node<FlowNodeData>[]) => {
+    (currentNodes: FlowNode[]) => {
       if (nodesSaveTimeoutRef.current) {
         clearTimeout(nodesSaveTimeoutRef.current);
       }
@@ -361,7 +363,7 @@ function FlowWithPanels(): React.ReactElement | null {
               ...node,
               data: {
                 ...node.data,
-                onDelete: undefined,
+                onDelete: undefined as any,
               },
             })),
           });

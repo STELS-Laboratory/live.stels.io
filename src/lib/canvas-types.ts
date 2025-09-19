@@ -1,18 +1,20 @@
-import type { Node, Edge } from "reactflow";
+import type { Node } from "reactflow";
 
 /**
  * Widget types enum for better type safety
  */
-export enum WidgetType {
-  INDICATOR = "indicator",
-  TRADES = "trades",
-  BOOK = "book",
-  ARIADNA = "ariadna",
-  FINANCE = "finance",
-  CANDLES = "candles",
-  SONAR = "sonar",
-  TICKER = "ticker",
-}
+export const WidgetType = {
+  INDICATOR: "indicator",
+  TRADES: "trades",
+  BOOK: "book",
+  ARIADNA: "ariadna",
+  FINANCE: "finance",
+  CANDLES: "candles",
+  SONAR: "sonar",
+  TICKER: "ticker",
+} as const;
+
+export type WidgetType = typeof WidgetType[keyof typeof WidgetType];
 
 /**
  * Raw data structure for different widget types

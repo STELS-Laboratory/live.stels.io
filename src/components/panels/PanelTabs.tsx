@@ -165,7 +165,6 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({ className }) => {
     deletePanel,
   } = usePanelStore();
 
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingPanel, setEditingPanel] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
 
