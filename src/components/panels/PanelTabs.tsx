@@ -1,12 +1,4 @@
 import React, { useState } from "react";
-import {
-  Copy,
-  Edit2,
-  MoreVertical,
-  Plus,
-  Settings,
-  Trash2,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,10 +13,6 @@ interface PanelTabProps {
   panel: Panel;
   isActive: boolean;
   onClick: () => void;
-  onEdit: () => void;
-  onDuplicate: () => void;
-  onDelete: () => void;
-  onSettings: () => void;
 }
 
 /**
@@ -34,13 +22,7 @@ const PanelTab: React.FC<PanelTabProps> = ({
   panel,
   isActive,
   onClick,
-  onEdit,
-  onDuplicate,
-  onDelete,
-  onSettings,
 }) => {
-  const [showMenu, setShowMenu] = useState(false);
-
   return (
     <div
       className={cn(
@@ -85,26 +67,11 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({ className }) => {
     panels,
     activePanelId,
     setActivePanel,
-    createPanel,
     updatePanel,
-    duplicatePanel,
-    deletePanel,
   } = usePanelStore();
 
   const [editingPanel, setEditingPanel] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
-
-  const handleCreatePanel = () => {
-    const name = prompt("Enter panel name:");
-    if (name && name.trim()) {
-      createPanel(name.trim());
-    }
-  };
-
-  const handleEditPanel = (panel: Panel) => {
-    setEditingPanel(panel.id);
-    setEditName(panel.name);
-  };
 
   const handleSaveEdit = () => {
     if (editingPanel && editName.trim()) {
@@ -117,30 +84,6 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({ className }) => {
   const handleCancelEdit = () => {
     setEditingPanel(null);
     setEditName("");
-  };
-
-  const handleDuplicatePanel = (panelId: string) => {
-    duplicatePanel(panelId);
-  };
-
-  const handleDeletePanel = (panelId: string) => {
-    if (panels.length <= 1) {
-      alert("Cannot delete the last panel. Create another panel first.");
-      return;
-    }
-
-    if (
-      confirm(
-        "Are you sure you want to delete this panel? This action cannot be undone.",
-      )
-    ) {
-      deletePanel(panelId);
-    }
-  };
-
-  const handlePanelSettings = (panel: Panel) => {
-    // TODO: Implement panel settings dialog
-    console.log("Panel settings for:", panel.name);
   };
 
   return (
@@ -158,10 +101,6 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({ className }) => {
             panel={panel}
             isActive={panel.id === activePanelId}
             onClick={() => setActivePanel(panel.id)}
-            onEdit={() => handleEditPanel(panel)}
-            onDuplicate={() => handleDuplicatePanel(panel.id)}
-            onDelete={() => handleDeletePanel(panel.id)}
-            onSettings={() => handlePanelSettings(panel)}
           />
         ))}
       </div>
