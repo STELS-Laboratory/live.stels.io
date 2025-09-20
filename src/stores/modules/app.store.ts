@@ -69,7 +69,9 @@ export interface SyncActions {
  */
 export interface AppState extends NetworkStatus, SyncState, SyncActions {
 	version: string
+	upgrade: boolean
 	setVersion: (v: string) => void
+	setUpgrade: (value: boolean) => void
 	
 	allowedRoutes: string[]
 	currentRoute: string
@@ -147,8 +149,10 @@ export const useAppStore = create<AppState>()(
 				console.log('[Store] Initializing with allowedRoutes:', allowedRoutes);
 				
 				return {
-					version: '1.0.4',
+					version: '1.0.5',
+					upgrade: true,
 					setVersion: (v: string) => set({ version: v }),
+					setUpgrade: (value: boolean) => set({ upgrade: value }),
 					...initialNetwork,
 					updateStatus: () => set(getNetworkInfo()),
 					

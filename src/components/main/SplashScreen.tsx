@@ -5,9 +5,12 @@ import Graphite from "@/components/ui/vectors/logos/Graphite";
 interface SplashScreenProps {
   onComplete?: () => void;
   duration?: number;
+  updateApp?: boolean;
 }
 
-const SplashScreen = ({ onComplete, duration = 3000 }: SplashScreenProps) => {
+const SplashScreen = (
+  { updateApp, onComplete, duration = 3000 }: SplashScreenProps,
+) => {
   const [progress, setProgress] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
 
@@ -144,7 +147,7 @@ const SplashScreen = ({ onComplete, duration = 3000 }: SplashScreenProps) => {
           transition={{ delay: 2.5, duration: 0.6 }}
           className="text-center text-xs text-zinc-600 space-y-1"
         >
-          <p>Initializing node...</p>
+          <p>{updateApp ? "Updating network..." : "Initializing node..."}</p>
         </motion.div>
       </div>
 

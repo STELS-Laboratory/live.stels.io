@@ -16,13 +16,42 @@ import Layout from "@/routes/Layout";
 import Fred from "@/routes/main/Fred";
 import { AMIEditor } from "@/routes/editor/AMIEditor";
 import SplashScreen from "./components/main/SplashScreen";
+import UpgradeScreen from "./components/main/UpgradeScreen";
 
 /**
  * Professional Dashboard component with fixed layout structure
  */
 export default function Dashboard(): React.ReactElement {
-	const { currentRoute, setRouteLoading } = useAppStore();
+	const { currentRoute, setRouteLoading, upgrade, setUpgrade } = useAppStore();
 	const [showSplash, setShowSplash] = useState(true);
+
+	// Set upgrade end date - you can modify this date as needed
+	const upgradeEndDate = useMemo(() => {
+		// Set to complete tomorrow at 9 PM New York time
+		const tomorrow = new Date();
+		tomorrow.setDate(tomorrow.getDate() + 1);
+
+		// Format: YYYY-MM-DDTHH:MM:SS-04:00 (EDT) or -05:00 (EST)
+		const year = tomorrow.getFullYear();
+		const month = (tomorrow.getMonth() + 1).toString().padStart(2, "0");
+		const day = tomorrow.getDate().toString().padStart(2, "0");
+
+		// Use EDT timezone offset (-04:00) - adjust to EST (-05:00) if needed
+		const nyDateTime = `${year}-${month}-${day}T21:00:00-04:00`;
+
+		return new Date(nyDateTime);
+
+		// Previous examples:
+		// Example 1: Set upgrade to complete in 2 hours from now
+		// const endDate = new Date();
+		// endDate.setHours(endDate.getHours() + 2);
+		// return endDate;
+
+		// Example 2: Set upgrade to complete in 30 minutes from now
+		// const endDate = new Date();
+		// endDate.setMinutes(endDate.getMinutes() + 30);
+		// return endDate;
+	}, []);
 
 	// Initialize URL-based routing
 	useUrlRouter();
@@ -37,12 +66,17 @@ export default function Dashboard(): React.ReactElement {
 			const timeout = setTimeout(() => setRouteLoading(false), 2500);
 			return () => clearTimeout(timeout);
 		} else {
-			setRouteLoading(false);
+			setRouteLoading(true);
 		}
 	}, [isHeavyRoute, setRouteLoading]);
 
 	const handleSplashComplete = (): void => {
 		setShowSplash(false);
+	};
+
+	const handleUpgradeComplete = (): void => {
+		// Set upgrade to false in store when upgrade is complete
+		setUpgrade(false);
 	};
 
 	const renderMainContent = (): React.ReactElement => {
@@ -74,17 +108,31 @@ export default function Dashboard(): React.ReactElement {
 
 	return (
 		<SessionProvider>
-			<TooltipProvider>
-				{showSplash
-					? <SplashScreen onComplete={handleSplashComplete} duration={4000} />
-					: (
-						<RouteLoader>
-							<Layout>
-								{renderMainContent()}
-							</Layout>
-						</RouteLoader>
-					)}
-			</TooltipProvider>
+			{upgrade
+				? (
+					<UpgradeScreen
+						onComplete={handleUpgradeComplete}
+						endDate={upgradeEndDate}
+					/>
+				)
+				: (
+					<TooltipProvider>
+						{showSplash
+							? (
+								<SplashScreen
+									onComplete={handleSplashComplete}
+									duration={4000}
+								/>
+							)
+							: (
+								<RouteLoader>
+									<Layout>
+										{renderMainContent()}
+									</Layout>
+								</RouteLoader>
+							)}
+					</TooltipProvider>
+				)}
 		</SessionProvider>
 	);
 }
