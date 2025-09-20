@@ -73,80 +73,6 @@ const PanelTab: React.FC<PanelTabProps> = ({
           </Badge>
         )}
       </div>
-
-      {/* Panel actions menu */}
-      <div className="relative">
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(
-            "opacity-0 group-hover:opacity-100 transition-opacity",
-            "h-6 w-6 p-0 hover:bg-zinc-200 dark:hover:bg-zinc-700",
-          )}
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowMenu(!showMenu);
-          }}
-        >
-          <MoreVertical className="h-3 w-3" />
-        </Button>
-
-        {showMenu && (
-          <div className="absolute right-0 top-full z-50 mt-1 w-48 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md shadow-lg">
-            <div className="py-1">
-              <button
-                className="flex items-center w-full px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit();
-                  setShowMenu(false);
-                }}
-              >
-                <Edit2 className="h-3 w-3 mr-2" />
-                Rename
-              </button>
-
-              <button
-                className="flex items-center w-full px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDuplicate();
-                  setShowMenu(false);
-                }}
-              >
-                <Copy className="h-3 w-3 mr-2" />
-                Duplicate
-              </button>
-
-              <button
-                className="flex items-center w-full px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSettings();
-                  setShowMenu(false);
-                }}
-              >
-                <Settings className="h-3 w-3 mr-2" />
-                Settings
-              </button>
-
-              <div className="border-t border-zinc-200 dark:border-zinc-700 my-1" />
-
-              <button
-                className="flex items-center w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete();
-                  setShowMenu(false);
-                }}
-              >
-                <Trash2 className="h-3 w-3 mr-2" />
-                Delete
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 };
@@ -238,19 +164,6 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({ className }) => {
             onSettings={() => handlePanelSettings(panel)}
           />
         ))}
-      </div>
-
-      {/* Create new panel button */}
-      <div className="flex items-center px-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleCreatePanel}
-          className="h-8 w-8 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          title="Create new panel"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
       </div>
 
       {/* Inline edit dialog */}
