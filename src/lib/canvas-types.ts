@@ -12,6 +12,7 @@ export const WidgetType = {
   CANDLES: "candles",
   SONAR: "sonar",
   TICKER: "ticker",
+  TIMEZONE: "timezone",
 } as const;
 
 export type WidgetType = typeof WidgetType[keyof typeof WidgetType];

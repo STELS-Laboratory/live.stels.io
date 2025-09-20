@@ -114,7 +114,7 @@ const UpgradeScreen = ({onComplete, endDate}: UpgradeScreenProps) => {
 						transition={{delay: 1, duration: 0.5}}
 						className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-500 to-orange-500 text-black text-xs font-bold px-2 py-1 rounded-full"
 					>
-						TESNET
+						TESTNET
 					</motion.div>
 				</motion.div>
 				

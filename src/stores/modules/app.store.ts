@@ -263,7 +263,7 @@ export const useAppStore = create<AppState>()(
 				}
 			},
 			{
-				name: 'live_app_genesis_04.8'
+				name: 'live_app_genesis_04.9'
 			}
 		)
 	)

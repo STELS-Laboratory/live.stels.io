@@ -9,6 +9,7 @@ import { FredIndicatorWidget } from "@/components/widgets/FredIndicatorWidget.ts
 import SonarPortfolio from "@/components/widgets/SonarPortfolio.tsx";
 import Ariadna from "@/components/widgets/Ariadna.tsx";
 import NewsBox from "@/components/widgets/NewsBox.tsx";
+import TimeZone from "@/components/widgets/TimeZone.tsx";
 import {
   type SessionStore,
   type SessionWidgetData,
@@ -52,6 +53,9 @@ const Widget = ({ widget, raw, data }: WidgetProps): React.ReactElement => {
 
       case WidgetType.BOOK:
         return <OrderBook book={raw as any} />;
+
+      case WidgetType.TIMEZONE:
+        return <TimeZone data={data} />;
 
       case WidgetType.ARIADNA:
         return <Ariadna data={data} />;

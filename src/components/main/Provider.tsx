@@ -14,7 +14,7 @@ function SessionProvider(
 			raw: {
 				info: {
 					connector: {
-						socket: "wss://live.stels.dev",
+						socket: "ws://10.0.0.238:8088",
 						protocols: ["webfix"],
 					},
 					network: "testnet",

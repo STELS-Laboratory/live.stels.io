@@ -30,27 +30,12 @@ export default function Dashboard(): React.ReactElement {
 		// Set to complete tomorrow at 9 PM New York time
 		const tomorrow = new Date();
 		tomorrow.setDate(tomorrow.getDate() + 1);
-
-		// Format: YYYY-MM-DDTHH:MM:SS-04:00 (EDT) or -05:00 (EST)
 		const year = tomorrow.getFullYear();
 		const month = (tomorrow.getMonth() + 1).toString().padStart(2, "0");
 		const day = tomorrow.getDate().toString().padStart(2, "0");
-
-		// Use EDT timezone offset (-04:00) - adjust to EST (-05:00) if needed
 		const nyDateTime = `${year}-${month}-${day}T21:00:00-04:00`;
 
 		return new Date(nyDateTime);
-
-		// Previous examples:
-		// Example 1: Set upgrade to complete in 2 hours from now
-		// const endDate = new Date();
-		// endDate.setHours(endDate.getHours() + 2);
-		// return endDate;
-
-		// Example 2: Set upgrade to complete in 30 minutes from now
-		// const endDate = new Date();
-		// endDate.setMinutes(endDate.getMinutes() + 30);
-		// return endDate;
 	}, []);
 
 	// Initialize URL-based routing
@@ -66,7 +51,7 @@ export default function Dashboard(): React.ReactElement {
 			const timeout = setTimeout(() => setRouteLoading(false), 2500);
 			return () => clearTimeout(timeout);
 		} else {
-			setRouteLoading(true);
+			setRouteLoading(false);
 		}
 	}, [isHeavyRoute, setRouteLoading]);
 
