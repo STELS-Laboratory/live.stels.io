@@ -3,24 +3,24 @@ import React, { useMemo, useState } from "react";
 /**
  * Interface for timezone data structure
  */
-interface TimezoneData {
-	location: string;
-	time: string;
-	date: string;
-	offset: string;
-	city: string;
-	country: string;
-}
+// interface TimezoneData {
+// 	location: string;
+// 	time: string;
+// 	date: string;
+// 	offset: string;
+// 	city: string;
+// 	country: string;
+// }
 
-interface TimezoneWidgetData {
-	channel: string;
-	module: string;
-	widget: string;
-	raw: {
-		timezone: TimezoneData[];
-	};
-	timestamp: number;
-}
+// interface TimezoneWidgetData {
+// 	channel: string;
+// 	module: string;
+// 	widget: string;
+// 	raw: {
+// 		timezone: TimezoneData[];
+// 	};
+// 	timestamp: number;
+// }
 
 /**
  * Analog clock component with SVG graphics
@@ -64,7 +64,7 @@ const AnalogClock: React.FC<AnalogClockProps> = (
 
 	return (
 		<div
-			className={`flex flex-col items-center p-4 ${themeColors.background} rounded-xl border ${themeColors.border} transition-all duration-500 group`}
+			className={`flex flex-col items-center p-4 ${themeColors.background} rounded-xl transition-all duration-500 group`}
 		>
 			{/* Clock Face */}
 			<div className="relative w-26 h-26 mb-3">
@@ -194,22 +194,22 @@ const AnalogClock: React.FC<AnalogClockProps> = (
 /**
  * Main TimeZone widget component
  */
-const TimeZone: React.FC<{ data: TimezoneWidgetData }> = ({ data }) => {
+const TimeZone: React.FC<{ data: any }> = ({ data }) => {
 	const [searchTerm, setSearchTerm] = useState<string>("");
 	const [selectedRegion, setSelectedRegion] = useState<string>("all");
 
 	// Extract timezones from data
 	const timezones = data?.raw?.timezone || [];
 
-	// Get unique regions for filter
-	const regions = useMemo(() => {
-		const regionSet = new Set(timezones.map((tz) => tz.country));
-		return ["all", ...Array.from(regionSet).sort()];
-	}, [timezones]);
+	// // Get unique regions for filter
+	// const regions = useMemo(() => {
+	// 	const regionSet = new Set(timezones.map((tz: any) => tz.country));
+	// 	return ["all", ...Array.from(regionSet).sort()];
+	// }, [timezones]);
 
 	// Filter timezones based on search and region
 	const filteredTimezones = useMemo(() => {
-		return timezones.filter((tz) => {
+		return timezones.filter((tz: any) => {
 			const matchesSearch =
 				tz.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
 				tz.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -244,11 +244,11 @@ const TimeZone: React.FC<{ data: TimezoneWidgetData }> = ({ data }) => {
 						onChange={(e) => setSelectedRegion(e.target.value)}
 						className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-100 focus:border-amber-500 focus:outline-none transition-colors"
 					>
-						{regions.map((region) => (
-							<option key={region} value={region}>
-								{region === "all" ? "All Regions" : region}
-							</option>
-						))}
+						{/*{regions.map((region) => (*/}
+						{/*	<option key={region} value={region}>*/}
+						{/*		{region === "all" ? "All Regions" : region}*/}
+						{/*	</option>*/}
+						{/*))}*/}
 					</select>
 				</div>
 			</div>
@@ -265,7 +265,7 @@ const TimeZone: React.FC<{ data: TimezoneWidgetData }> = ({ data }) => {
 
 			{/* Clocks Horizontal Grid */}
 			<div className="grid grid-cols-4 gap-4 overflow-y-auto pr-2">
-				{filteredTimezones.map((timezone, index) => (
+				{filteredTimezones.map((timezone: any, index: any) => (
 					<AnalogClock
 						key={`${timezone.city}-${timezone.country}-${index}`}
 						time={timezone.time}
