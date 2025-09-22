@@ -478,6 +478,7 @@ export const useAuthStore = create<AuthStore>()(
 					availableNetworks: state.availableNetworks,
 					connectionSession: state.connectionSession,
 					isConnected: state.isConnected,
+					isAuthenticated: state.isAuthenticated,
 					developerMode: state.developerMode
 				}),
 				onRehydrateStorage: () => (state) => {

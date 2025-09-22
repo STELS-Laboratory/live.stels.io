@@ -188,9 +188,23 @@ export default function Dashboard(): React.ReactElement {
 					if (upgrade) {
 						const delay = getTransitionDelay("checking_session", "upgrading");
 						await transitionToState("upgrading", delay, false);
+					} else if (isAuthenticated && isConnected && hasValidSession) {
+						// Best case: both store and localStorage confirm authentication
+						console.log(
+							"[App] Authenticated and connected with valid session, loading app",
+						);
+						const delay = getTransitionDelay("checking_session", "loading_app");
+						await transitionToState("loading_app", delay);
+					} else if (authStoreData && hasValidSession && !isAuthenticated) {
+						// Store has data and valid session exists, but not marked as authenticated
+						// This happens on page reload - give auth restoration a chance
+						console.log(
+							"[App] Store data and session found but not authenticated - allowing auth restoration",
+						);
+						const delay = getTransitionDelay("checking_session", "loading_app");
+						await transitionToState("loading_app", delay);
 					} else if (!isAuthenticated || !isConnected) {
-						// Priority check: if auth store says not authenticated/connected,
-						// always show auth flow regardless of localStorage data
+						// No authentication or connection - show auth flow
 						console.log(
 							"[App] Not authenticated or not connected, showing auth flow",
 						);
@@ -199,13 +213,6 @@ export default function Dashboard(): React.ReactElement {
 							"authenticating",
 						);
 						await transitionToState("authenticating", delay);
-					} else if (hasValidSession && isAuthenticated && isConnected) {
-						// Only proceed to app if both localStorage AND auth store confirm authentication
-						console.log(
-							"[App] Found valid session and authenticated, loading app",
-						);
-						const delay = getTransitionDelay("checking_session", "loading_app");
-						await transitionToState("loading_app", delay);
 					} else if (authStoreData && !hasValidSession) {
 						console.log(
 							"[App] Auth store found but no session, need to reconnect",

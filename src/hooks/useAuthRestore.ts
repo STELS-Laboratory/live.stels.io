@@ -9,29 +9,39 @@ export const useAuthRestore = (): void => {
 		wallet, 
 		selectedNetwork, 
 		isConnected, 
+		isAuthenticated,
 		connectionSession,
+		_hasHydrated,
 		restoreConnection 
 	} = useAuthStore();
 
 	useEffect(() => {
+		// Wait for store to be hydrated before attempting restoration
+		if (!_hasHydrated) {
+			console.log('[AuthRestore] Store not yet hydrated, waiting...');
+			return;
+		}
+
 		console.log('[AuthRestore] Effect triggered:', {
 			wallet: !!wallet,
 			selectedNetwork: !!selectedNetwork,
 			isConnected,
-			connectionSession: !!connectionSession
+			isAuthenticated,
+			connectionSession: !!connectionSession,
+			_hasHydrated
 		});
 		
 		// Check if we already have a valid connection
-		if (wallet && selectedNetwork && isConnected && connectionSession) {
-			console.log('[AuthRestore] Already connected, no need to restore');
+		if (wallet && selectedNetwork && isConnected && isAuthenticated && connectionSession) {
+			console.log('[AuthRestore] Already fully authenticated, no need to restore');
 			return;
 		}
 		
-		// Only attempt to restore if we have wallet and network but no active connection
-		if (wallet && selectedNetwork && !isConnected && !connectionSession) {
-			console.log('[AuthRestore] Attempting to restore authentication...');
+		// Case 1: We have wallet and network but missing connection/authentication
+		if (wallet && selectedNetwork && (!isConnected || !isAuthenticated || !connectionSession)) {
+			console.log('[AuthRestore] Have wallet/network but missing connection/auth, attempting restore...');
 			
-			// Small delay to ensure store is fully hydrated
+			// Small delay to ensure all state is stable
 			const timer = setTimeout(() => {
 				restoreConnection().then((success) => {
 					if (success) {
@@ -42,27 +52,26 @@ export const useAuthRestore = (): void => {
 				}).catch((error) => {
 					console.error('[AuthRestore] Error during restore:', error);
 				});
-			}, 100);
+			}, 150);
 
 			return () => clearTimeout(timer);
 		}
 		
-		// If we have no wallet/network, check if there's data in localStorage
-		if (!wallet && !selectedNetwork) {
+		// Case 2: No wallet/network in store but data exists in localStorage
+		if (!wallet || !selectedNetwork) {
 			const authStoreData = localStorage.getItem('auth-store');
 			const privateStoreData = localStorage.getItem('private-store');
 			const hasValidSession = privateStoreData && JSON.parse(privateStoreData)?.raw?.session;
 			
-			console.log('[AuthRestore] No wallet/network in store, checking localStorage:', {
+			console.log('[AuthRestore] Missing wallet/network in store, checking localStorage:', {
 				hasAuthStore: !!authStoreData,
 				hasPrivateStore: !!privateStoreData,
 				hasValidSession: !!hasValidSession
 			});
 
-			// If we have a valid session but no wallet/network in store, try to restore
-			if (hasValidSession) {
-				console.log('[AuthRestore] Found valid session in localStorage, attempting restore...');
-				console.log('[AuthRestore] Session data:', JSON.parse(privateStoreData));
+			// If we have a valid session but incomplete store data, try to restore
+			if (hasValidSession && authStoreData) {
+				console.log('[AuthRestore] Found session and auth data in localStorage, attempting restore...');
 				
 				const timer = setTimeout(() => {
 					restoreConnection().then((success) => {
@@ -74,10 +83,10 @@ export const useAuthRestore = (): void => {
 					}).catch((error) => {
 						console.error('[AuthRestore] Error restoring session:', error);
 					});
-				}, 100);
+				}, 150);
 
 				return () => clearTimeout(timer);
 			}
 		}
-	}, [wallet, selectedNetwork, isConnected, connectionSession, restoreConnection]);
+	}, [wallet, selectedNetwork, isConnected, isAuthenticated, connectionSession, _hasHydrated, restoreConnection]);
 };

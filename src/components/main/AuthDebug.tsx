@@ -77,6 +77,27 @@ export const AuthDebug: React.FC = () => {
                 </Badge>
               </div>
               <div>
+                <span className="text-muted-foreground">Store vs LS Auth:</span>
+                <div className="flex gap-1 mt-1">
+                  <Badge
+                    variant={isAuthenticated ? "default" : "destructive"}
+                    className="text-xs"
+                  >
+                    Store: {isAuthenticated ? "✓" : "✗"}
+                  </Badge>
+                  <Badge
+                    variant={debugInfo.localStorageAuth?.state?.isAuthenticated
+                      ? "default"
+                      : "destructive"}
+                    className="text-xs"
+                  >
+                    LS: {debugInfo.localStorageAuth?.state?.isAuthenticated
+                      ? "✓"
+                      : "✗"}
+                  </Badge>
+                </div>
+              </div>
+              <div>
                 <span className="text-muted-foreground">Authenticated:</span>
                 <Badge
                   variant={isAuthenticated ? "default" : "destructive"}
@@ -208,6 +229,14 @@ export const AuthDebug: React.FC = () => {
             className="bg-yellow-500/10 border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/20"
           >
             Reset Auth
+          </Button>
+          <Button
+            onClick={() => window.location.reload()}
+            variant="outline"
+            size="sm"
+            className="bg-blue-500/10 border-blue-500/30 text-blue-300 hover:bg-blue-500/20"
+          >
+            Reload Page
           </Button>
           <div className="text-xs text-muted-foreground self-center ml-auto">
             Last updated: {new Date(debugInfo.timestamp).toLocaleTimeString()}
