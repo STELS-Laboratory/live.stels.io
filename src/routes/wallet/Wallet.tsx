@@ -1,15 +1,15 @@
-import {useEffect, useState} from "react";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Button} from "@/components/ui/button";
-import {Badge} from "@/components/ui/badge";
-import {Separator} from "@/components/ui/separator";
-import {WalletCard} from "@/components/wallet/WalletCard";
-import {WalletSetup} from "@/components/wallet/WalletSetup";
-import {SendTransaction} from "@/components/wallet/SendTransaction";
-import {TransactionList} from "@/components/wallet/TransactionList";
-import {WalletAccounts} from "@/components/wallet/WalletAccounts";
-import {useWalletStore} from "@/stores/modules/wallet.store";
-import {type Transaction} from "@/lib/gliesereum";
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { WalletCard } from "@/components/wallet/WalletCard";
+import { WalletSetup } from "@/components/wallet/WalletSetup";
+import { SendTransaction } from "@/components/wallet/SendTransaction";
+import { TransactionList } from "@/components/wallet/TransactionList";
+import { WalletAccounts } from "@/components/wallet/WalletAccounts";
+import { useWalletStore } from "@/stores/modules/wallet.store";
+import { type Transaction } from "@/lib/gliesereum";
 
 /**
  * GliesereumWallet component for creating and managing cryptocurrency wallets
@@ -26,18 +26,18 @@ export default function GliesereumWallet() {
 		transactions,
 		clearError,
 	} = useWalletStore();
-	
+
 	const [showPrivateKey, setShowPrivateKey] = useState(false);
 	const [privateKey, setPrivateKey] = useState<string | null>(null);
 	const [activeTab, setActiveTab] = useState<
 		"overview" | "send" | "transactions" | "accounts"
 	>("overview");
-	
+
 	// Clear errors on component mount
 	useEffect(() => {
 		clearError();
 	}, [clearError]);
-	
+
 	const handleExportPrivateKey = () => {
 		const key = exportPrivateKey();
 		if (key) {
@@ -45,12 +45,12 @@ export default function GliesereumWallet() {
 			setShowPrivateKey(true);
 		}
 	};
-	
+
 	const handleClosePrivateKey = () => {
 		setShowPrivateKey(false);
 		setPrivateKey(null);
 	};
-	
+
 	const handleTransactionSent = (transaction: Transaction) => {
 		// Simulate transaction confirmation after 3 seconds
 		setTimeout(() => {
@@ -58,12 +58,12 @@ export default function GliesereumWallet() {
 			console.log("Transaction confirmed:", transaction.hash);
 		}, 3000);
 	};
-	
+
 	const handleWalletCreated = () => {
 		// Auto-unlock the wallet when created
 		unlockWallet();
 	};
-	
+
 	// If no wallet exists, show setup
 	if (!currentWallet) {
 		return (
@@ -78,14 +78,14 @@ export default function GliesereumWallet() {
 							Secure cryptocurrency wallet with beautiful card design
 						</p>
 					</div>
-					
+
 					{/* Setup Component */}
-					<WalletSetup onWalletCreated={handleWalletCreated}/>
+					<WalletSetup onWalletCreated={handleWalletCreated} />
 				</div>
 			</div>
 		);
 	}
-	
+
 	return (
 		<div className="p-4">
 			<div className="container mx-auto">
@@ -98,7 +98,7 @@ export default function GliesereumWallet() {
 						Your secure cryptocurrency wallet
 					</p>
 				</div>
-				
+
 				{/* Main Content Grid */}
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 					{/* Left Column - Wallet Card (Main Focus) */}
@@ -109,7 +109,7 @@ export default function GliesereumWallet() {
 								onExport={handleExportPrivateKey}
 								onLock={isUnlocked ? lockWallet : unlockWallet}
 							/>
-							
+
 							{/* Quick Stats */}
 							<Card className="mt-6 bg-zinc-900/80 border-zinc-700/50">
 								<CardHeader className="pb-3">
@@ -143,7 +143,7 @@ export default function GliesereumWallet() {
 									</div>
 								</CardContent>
 							</Card>
-							
+
 							{/* Logout Button */}
 							<Card className="mt-6 bg-zinc-900/80 border-zinc-700/50">
 								<CardContent className="p-4">
@@ -158,7 +158,7 @@ export default function GliesereumWallet() {
 							</Card>
 						</div>
 					</div>
-					
+
 					{/* Right Column - Actions and Transactions */}
 					<div className="lg:col-span-2 space-y-6">
 						{/* Tab Navigation */}
@@ -208,7 +208,7 @@ export default function GliesereumWallet() {
 								</div>
 							</CardContent>
 						</Card>
-						
+
 						{/* Tab Content */}
 						{activeTab === "overview" && (
 							<div className="space-y-6">
@@ -225,8 +225,7 @@ export default function GliesereumWallet() {
 												<label className="text-xs text-zinc-400 uppercase tracking-wider">
 													Address
 												</label>
-												<div
-													className="font-mono text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/50 break-all">
+												<div className="font-mono text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/50 break-all">
 													{currentWallet.address}
 												</div>
 											</div>
@@ -234,27 +233,25 @@ export default function GliesereumWallet() {
 												<label className="text-xs text-zinc-400 uppercase tracking-wider">
 													Card Number
 												</label>
-												<div
-													className="font-mono text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/50">
+												<div className="font-mono text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/50">
 													{currentWallet.number}
 												</div>
 											</div>
 										</div>
-										
-										<Separator className="bg-zinc-700/50"/>
-										
+
+										<Separator className="bg-zinc-700/50" />
+
 										<div className="space-y-2">
 											<label className="text-xs text-zinc-400 uppercase tracking-wider">
 												Public Key
 											</label>
-											<div
-												className="font-mono text-xs text-zinc-400 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/50 break-all">
+											<div className="font-mono text-xs text-zinc-400 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/50 break-all">
 												{currentWallet.publicKey}
 											</div>
 										</div>
 									</CardContent>
 								</Card>
-								
+
 								{/* Recent Transactions Preview */}
 								<Card className="bg-zinc-900/80 border-zinc-700/50">
 									<CardHeader>
@@ -272,7 +269,7 @@ export default function GliesereumWallet() {
 															className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/30"
 														>
 															<div className="flex items-center gap-3">
-																<div className="w-2 h-2 rounded-full bg-amber-400"/>
+																<div className="w-2 h-2 rounded-full bg-amber-400" />
 																<div>
 																	<div className="text-sm text-zinc-300">
 																		{tx.amount.toFixed(8)} TST
@@ -288,8 +285,8 @@ export default function GliesereumWallet() {
 																className={tx.status === "confirmed"
 																	? "bg-green-500/20 text-green-300 border-green-500/30"
 																	: tx.status === "pending"
-																		? "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
-																		: "bg-red-500/20 text-red-300 border-red-500/30"}
+																	? "bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
+																	: "bg-red-500/20 text-red-300 border-red-500/30"}
 															>
 																{tx.status}
 															</Badge>
@@ -316,20 +313,20 @@ export default function GliesereumWallet() {
 								</Card>
 							</div>
 						)}
-						
+
 						{activeTab === "send" && (
-							<SendTransaction onTransactionSent={handleTransactionSent}/>
+							<SendTransaction onTransactionSent={handleTransactionSent} />
 						)}
-						
+
 						{activeTab === "transactions" && (
-							<TransactionList transactions={transactions}/>
+							<TransactionList transactions={transactions} />
 						)}
-						
-						{activeTab === "accounts" && <WalletAccounts/>}
+
+						{activeTab === "accounts" && <WalletAccounts />}
 					</div>
 				</div>
 			</div>
-			
+
 			{/* Private Key Modal */}
 			{showPrivateKey && privateKey && (
 				<div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
@@ -350,17 +347,16 @@ export default function GliesereumWallet() {
 									</div>
 								</div>
 							</div>
-							
+
 							<div className="space-y-2">
 								<label className="text-xs text-zinc-400 uppercase tracking-wider">
 									Private Key
 								</label>
-								<div
-									className="font-mono text-xs text-zinc-300 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/50 break-all">
+								<div className="font-mono text-xs text-zinc-300 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/50 break-all">
 									{privateKey}
 								</div>
 							</div>
-							
+
 							<div className="flex gap-3">
 								<Button
 									onClick={() => navigator.clipboard.writeText(privateKey)}

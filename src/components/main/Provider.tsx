@@ -1,34 +1,39 @@
-import {type ReactNode, useEffect} from "react";
+import { type ReactNode, useEffect } from "react";
 import useWebSocketStore from "@/hooks/useWebSocketStore.ts";
-import {useAppStore} from "@/stores";
+import { useAppStore, useAuthStore } from "@/stores";
 import Loader from "@/components/ui/loader";
 
 function SessionProvider(
-	{children}: { children: ReactNode },
+	{ children }: { children: ReactNode },
 ) {
-	const {connectNode, connection} = useWebSocketStore();
-	const {online} = useAppStore();
-	
+	const { connectNode, connection } = useWebSocketStore();
+	const { online } = useAppStore();
+	const { connectionSession, isConnected } = useAuthStore();
+
 	useEffect(() => {
-		const config = {
-			raw: {
-				info: {
-					connector: {
-						socket: "ws://10.0.0.238:8088",
-						//socket: "wss://live.stels.dev",
-						protocols: ["webfix"],
+		// Only connect if user is authenticated and has a connection session
+		if (isConnected && connectionSession) {
+			const config = {
+				raw: {
+					info: {
+						connector: {
+							socket: connectionSession.socket,
+							protocols: ["webfix"],
+						},
+						network: connectionSession.network,
+						title: connectionSession.title,
+						pid: "sonar",
 					},
-					network: "testnet",
-					title: "AI Trading Platform",
-					pid: "sonar",
 				},
-			},
-		};
-		
-		connectNode(config);
-	}, [connectNode]);
-	
-	return connection || online ? children : <Loader>Init System....</Loader>;
+			};
+
+			connectNode(config);
+		}
+	}, [connectNode, isConnected, connectionSession]);
+
+	return connection || online
+		? children
+		: <Loader>Connecting to network...</Loader>;
 }
 
 export default SessionProvider;

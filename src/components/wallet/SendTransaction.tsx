@@ -1,11 +1,15 @@
-import {useState} from "react";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
-import {Badge} from "@/components/ui/badge";
-import {useWalletStore} from "@/stores/modules/wallet.store";
-import {deterministicStringify, sign, type Transaction,} from "@/lib/gliesereum";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { useWalletStore } from "@/stores/modules/wallet.store";
+import {
+	deterministicStringify,
+	sign,
+	type Transaction,
+} from "@/lib/gliesereum";
 
 interface SendTransactionProps {
 	onTransactionSent?: (transaction: Transaction) => void;
@@ -14,47 +18,47 @@ interface SendTransactionProps {
 /**
  * Send transaction component for creating and signing transactions
  */
-export function SendTransaction({onTransactionSent}: SendTransactionProps) {
-	const {currentWallet, isUnlocked, validateWalletAddress, addTransaction} =
+export function SendTransaction({ onTransactionSent }: SendTransactionProps) {
+	const { currentWallet, isUnlocked, validateWalletAddress, addTransaction } =
 		useWalletStore();
-	
+
 	const [toAddress, setToAddress] = useState("");
 	const [amount, setAmount] = useState("");
 	const [fee, setFee] = useState("0.001");
 	const [isSending, setIsSending] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	
+
 	const handleSend = async () => {
 		if (!currentWallet || !isUnlocked) {
 			setError("Wallet is locked or not available");
 			return;
 		}
-		
+
 		if (!toAddress.trim()) {
 			setError("Recipient address is required");
 			return;
 		}
-		
+
 		if (!validateWalletAddress(toAddress.trim())) {
 			setError("Invalid recipient address");
 			return;
 		}
-		
+
 		const amountNum = parseFloat(amount);
 		if (isNaN(amountNum) || amountNum <= 0) {
 			setError("Invalid amount");
 			return;
 		}
-		
+
 		const feeNum = parseFloat(fee);
 		if (isNaN(feeNum) || feeNum < 0) {
 			setError("Invalid fee");
 			return;
 		}
-		
+
 		setIsSending(true);
 		setError(null);
-		
+
 		try {
 			// Create transaction object
 			const transaction: Omit<Transaction, "hash" | "signature"> = {
@@ -71,13 +75,13 @@ export function SendTransaction({onTransactionSent}: SendTransactionProps) {
 				validators: [],
 				data: "",
 			};
-			
+
 			// Create deterministic string for signing
 			const transactionString = deterministicStringify(transaction);
-			
+
 			// Sign the transaction
 			const signature = sign(transactionString, currentWallet.privateKey);
-			
+
 			// Create final transaction with hash and signature
 			const finalTransaction: Transaction = {
 				...transaction,
@@ -85,15 +89,15 @@ export function SendTransaction({onTransactionSent}: SendTransactionProps) {
 				signature,
 				verified: false,
 			};
-			
+
 			// Add to transaction list
 			addTransaction(finalTransaction);
-			
+
 			// Reset form
 			setToAddress("");
 			setAmount("");
 			setFee("0.001");
-			
+
 			// Notify parent component
 			onTransactionSent?.(finalTransaction);
 		} catch (error) {
@@ -104,7 +108,7 @@ export function SendTransaction({onTransactionSent}: SendTransactionProps) {
 			setIsSending(false);
 		}
 	};
-	
+
 	const handleAddressValidation = (address: string) => {
 		setToAddress(address);
 		if (address && !validateWalletAddress(address)) {
@@ -113,7 +117,7 @@ export function SendTransaction({onTransactionSent}: SendTransactionProps) {
 			setError(null);
 		}
 	};
-	
+
 	if (!currentWallet) {
 		return (
 			<Card className="bg-zinc-900/80 border-zinc-700/50">
@@ -129,7 +133,7 @@ export function SendTransaction({onTransactionSent}: SendTransactionProps) {
 			</Card>
 		);
 	}
-	
+
 	return (
 		<Card className="bg-zinc-900/80 border-zinc-700/50">
 			<CardHeader>
@@ -159,7 +163,7 @@ export function SendTransaction({onTransactionSent}: SendTransactionProps) {
 						disabled={!isUnlocked || isSending}
 					/>
 				</div>
-				
+
 				{/* Amount */}
 				<div className="space-y-2">
 					<Label htmlFor="amount" className="text-zinc-300">
@@ -176,7 +180,7 @@ export function SendTransaction({onTransactionSent}: SendTransactionProps) {
 						disabled={!isUnlocked || isSending}
 					/>
 				</div>
-				
+
 				{/* Fee */}
 				<div className="space-y-2">
 					<Label htmlFor="fee" className="text-zinc-300">
@@ -193,14 +197,14 @@ export function SendTransaction({onTransactionSent}: SendTransactionProps) {
 						disabled={!isUnlocked || isSending}
 					/>
 				</div>
-				
+
 				{/* Error Display */}
 				{error && (
 					<div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
 						<p className="text-red-300 text-sm">{error}</p>
 					</div>
 				)}
-				
+
 				{/* Send Button */}
 				<Button
 					onClick={handleSend}
@@ -210,16 +214,16 @@ export function SendTransaction({onTransactionSent}: SendTransactionProps) {
 				>
 					{isSending ? "Sending..." : "Send Transaction"}
 				</Button>
-				
+
 				{/* Transaction Info */}
 				<div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/30">
 					<div className="text-xs text-zinc-400 space-y-1">
 						<div className="flex justify-between">
 							<span>From:</span>
 							<span className="font-mono">
-                {currentWallet.address.slice(0, 12)}...{currentWallet.address
-								.slice(-8)}
-              </span>
+								{currentWallet.address.slice(0, 12)}...{currentWallet.address
+									.slice(-8)}
+							</span>
 						</div>
 						<div className="flex justify-between">
 							<span>Available:</span>

@@ -39,7 +39,8 @@ function createWebSocket(
 	}
 	
 	if (!session) {
-		session = info.pid;
+		console.warn('No session found in localStorage, WebSocket connection may fail');
+		return null;
 	}
 	
 	const wsUrl = `${info.connector.socket}?session=${session}`;
