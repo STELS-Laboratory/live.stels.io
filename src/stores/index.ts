@@ -1,5 +1,5 @@
-export {useAppStore} from '@/stores/modules/app.store.ts'
-export {useWorkerStore} from '@/stores/modules/worker.store.ts'
+export {useAppStore} from '@/stores/modules/app.store'
+export {useWorkerStore} from '@/stores/modules/worker.store'
 export {usePanelStore} from './modules/panel.store'
 export {useCanvasUIStore} from './modules/canvas-ui.store'
 export {useAuthStore} from './modules/auth.store'

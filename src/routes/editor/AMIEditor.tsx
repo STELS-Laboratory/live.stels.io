@@ -34,7 +34,7 @@ import EditorComponent from "@/components/editor/EditorComponent";
 import type { Worker } from "@/stores/modules/worker.store";
 import { useWorkerStore } from "@/stores/modules/worker.store";
 import { useAuthStore } from "@/stores/modules/auth.store";
-import { useAppStore } from "@/stores/modules/app.store.ts";
+import { useAppStore } from "@/stores/modules/app.store";
 import { useMobile } from "@/hooks/useMobile";
 import type { JSX } from "react/jsx-runtime";
 import { Input } from "@/components/ui/input";
@@ -45,7 +45,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
+import Graphite from "@/components/ui/vectors/logos/Graphite";
 
 export function AMIEditor(): JSX.Element {
 	const mobile = useMobile();

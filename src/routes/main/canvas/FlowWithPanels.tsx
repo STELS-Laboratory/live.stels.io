@@ -1,4 +1,10 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState,} from "react";
+import React, {
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 
 import ReactFlow, {
 	addEdge,
@@ -12,11 +18,17 @@ import ReactFlow, {
 	useReactFlow,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
-import MacOSNode from "@/routes/main/canvas/MacOSNode.tsx";
-import {ChevronDown, ChevronRight, Filter, Settings, ShoppingBag,} from "lucide-react";
-import {cleanBrands, cn} from "@/lib/utils";
-import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
+import useSessionStoreSync from "@/hooks/useSessionStoreSync";
+import MacOSNode from "@/routes/main/canvas/MacOSNode";
+import {
+	ChevronDown,
+	ChevronRight,
+	Filter,
+	Settings,
+	ShoppingBag,
+} from "lucide-react";
+import { cleanBrands, cn } from "@/lib/utils";
+import Graphite from "@/components/ui/vectors/logos/Graphite";
 import {
 	type FlowNode,
 	type FlowNodeData,
@@ -24,10 +36,10 @@ import {
 	type SessionStore,
 	type WidgetCategories,
 } from "@/lib/canvas-types";
-import {useCanvasUIStore} from "@/stores/modules/canvas-ui.store";
-import {usePanelStore} from "@/stores/modules/panel.store";
-import {PanelTabs} from "@/components/panels/PanelTabs";
-import {PanelManager} from "@/components/panels/PanelManager";
+import { useCanvasUIStore } from "@/stores/modules/canvas-ui.store";
+import { usePanelStore } from "@/stores/modules/panel.store";
+import { PanelTabs } from "@/components/panels/PanelTabs";
+import { PanelManager } from "@/components/panels/PanelManager";
 
 /**
  * Props for the DockItem component
@@ -114,10 +126,10 @@ function extractNetwork(key: string): string {
  * Dock Item Component
  */
 function DockItem(
-	{icon, label, isActive = false, onClick}: DockItemProps,
+	{ icon, label, isActive = false, onClick }: DockItemProps,
 ): React.ReactElement {
 	const [isHovered, setIsHovered] = React.useState<boolean>(false);
-	
+
 	return (
 		<div className="group relative flex flex-col items-center">
 			<div
@@ -128,7 +140,7 @@ function DockItem(
 			>
 				{label}
 			</div>
-			
+
 			<button
 				onClick={onClick}
 				onMouseEnter={() => setIsHovered(true)}
@@ -140,7 +152,7 @@ function DockItem(
 			>
 				{icon}
 			</button>
-			{isActive && <div className="mt-1 h-1 w-1 rounded-full bg-white"/>}
+			{isActive && <div className="mt-1 h-1 w-1 rounded-full bg-white" />}
 		</div>
 	);
 }
@@ -160,13 +172,13 @@ function MacOSDock(
 		<div className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-2xl bg-black/20 p-2 backdrop-blur-lg">
 			<div className="flex items-center space-x-2">
 				<DockItem
-					icon={<ShoppingBag className="h-6 w-6"/>}
+					icon={<ShoppingBag className="h-6 w-6" />}
 					label="Widget Store"
 					isActive={isWidgetStoreOpen}
 					onClick={onOpenWidgetStore}
 				/>
 				<DockItem
-					icon={<Settings className="h-6 w-6"/>}
+					icon={<Settings className="h-6 w-6" />}
 					label="Panel Manager"
 					isActive={isPanelManagerOpen}
 					onClick={onOpenPanelManager}
@@ -180,7 +192,7 @@ function MacOSDock(
  * Group Header Component
  */
 function GroupHeader(
-	{title, count, isOpen, onToggle, level = 0}: GroupHeaderProps,
+	{ title, count, isOpen, onToggle, level = 0 }: GroupHeaderProps,
 ): React.ReactElement {
 	return (
 		<div
@@ -192,21 +204,21 @@ function GroupHeader(
 					: "bg-zinc-100/50 dark:bg-zinc-800/50",
 				level === 0 ? "sticky top-0" : "",
 			)}
-			style={{paddingLeft: `${level * 8 + 8}px`}}
+			style={{ paddingLeft: `${level * 8 + 8}px` }}
 		>
 			<div className="flex items-center">
 				{isOpen
-					? <ChevronDown className="h-4 w-4 mr-1 text-zinc-500"/>
-					: <ChevronRight className="h-4 w-4 mr-1 text-zinc-500"/>}
+					? <ChevronDown className="h-4 w-4 mr-1 text-zinc-500" />
+					: <ChevronRight className="h-4 w-4 mr-1 text-zinc-500" />}
 				<span
 					className={cn("font-medium", level === 0 ? "text-sm" : "text-xs")}
 				>
-          {title}
-        </span>
+					{title}
+				</span>
 			</div>
 			<span className="text-xs px-1.5 py-0.5 rounded-full bg-zinc-200 dark:bg-zinc-700">
-        {count}
-      </span>
+				{count}
+			</span>
 		</div>
 	);
 }
@@ -215,18 +227,18 @@ function GroupHeader(
  * Item Store Component
  */
 function ItemStore(
-	{keyStore, onDragStart, indentLevel = 0}: ItemStoreProps,
+	{ keyStore, onDragStart, indentLevel = 0 }: ItemStoreProps,
 ): React.ReactElement {
 	const session = useSessionStoreSync() as SessionStore | null;
-	
+
 	if (!session) return <div>Loading Session....</div> as React.ReactElement;
-	
+
 	const widget = session[keyStore];
-	
+
 	if (!widget || !widget.module) {
 		return <div>Invalid widget data</div> as React.ReactElement;
 	}
-	
+
 	return (
 		<div
 			draggable
@@ -238,7 +250,7 @@ function ItemStore(
 				);
 			}}
 			className="flex bg-amber-600 text-black touch-auto text-sm justify-between items-center p-2 border-b cursor-grab"
-			style={{paddingLeft: `${indentLevel * 8 + 8}px`}}
+			style={{ paddingLeft: `${indentLevel * 8 + 8}px` }}
 		>
 			<div>
 				<div>
@@ -257,7 +269,7 @@ function ItemStore(
  * Tab Component
  */
 function Tab(
-	{label, isActive, onClick, count}: TabProps,
+	{ label, isActive, onClick, count }: TabProps,
 ): React.ReactElement {
 	return (
 		<button
@@ -272,8 +284,8 @@ function Tab(
 			{label}{" "}
 			{count > 0 && (
 				<span className="ml-1 rounded-full px-2 py-0.5 text-xs dark:bg-zinc-700">
-          {count}
-        </span>
+					{count}
+				</span>
 			)}
 		</button>
 	);
@@ -285,7 +297,7 @@ function Tab(
 function FlowWithPanels(): React.ReactElement | null {
 	const [nodes, setNodes, onNodesChange] = useNodesState<FlowNodeData>([]);
 	const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
-	
+
 	// Use UI store for widget store state
 	const {
 		isOpen: isWidgetStoreOpen,
@@ -301,7 +313,7 @@ function FlowWithPanels(): React.ReactElement | null {
 		toggleAsset,
 		setGroupingMode,
 	} = useCanvasUIStore();
-	
+
 	// Use panel store for panel management
 	const {
 		panels,
@@ -311,39 +323,39 @@ function FlowWithPanels(): React.ReactElement | null {
 		updatePanelData,
 		createPanel,
 	} = usePanelStore();
-	
+
 	const [isPanelManagerOpen, setIsPanelManagerOpen] = useState(false);
 	const [isPanelTransitioning, setIsPanelTransitioning] = useState(false);
-	
+
 	const session = useSessionStoreSync() as SessionStore | null;
 	const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
-	const {screenToFlowPosition} = useReactFlow();
+	const { screenToFlowPosition } = useReactFlow();
 	const viewportSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 	const nodesSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 	const edgesSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-	
+
 	// Debounced save functions
 	const debouncedSaveViewport = useCallback(
 		(viewport: { x: number; y: number; zoom: number }) => {
 			if (viewportSaveTimeoutRef.current) {
 				clearTimeout(viewportSaveTimeoutRef.current);
 			}
-			
+
 			viewportSaveTimeoutRef.current = setTimeout(() => {
 				if (activePanelId) {
-					updatePanelData(activePanelId, {viewport});
+					updatePanelData(activePanelId, { viewport });
 				}
 			}, 300);
 		},
 		[activePanelId, updatePanelData],
 	);
-	
+
 	const debouncedSaveNodes = useCallback(
 		(currentNodes: FlowNode[]) => {
 			if (nodesSaveTimeoutRef.current) {
 				clearTimeout(nodesSaveTimeoutRef.current);
 			}
-			
+
 			nodesSaveTimeoutRef.current = setTimeout(() => {
 				if (activePanelId) {
 					updatePanelData(activePanelId, {
@@ -360,19 +372,19 @@ function FlowWithPanels(): React.ReactElement | null {
 		},
 		[activePanelId, updatePanelData],
 	);
-	
+
 	const debouncedSaveEdges = useCallback((currentEdges: Edge[]) => {
 		if (edgesSaveTimeoutRef.current) {
 			clearTimeout(edgesSaveTimeoutRef.current);
 		}
-		
+
 		edgesSaveTimeoutRef.current = setTimeout(() => {
 			if (activePanelId) {
-				updatePanelData(activePanelId, {edges: currentEdges});
+				updatePanelData(activePanelId, { edges: currentEdges });
 			}
 		}, 300);
 	}, [activePanelId, updatePanelData]);
-	
+
 	// Cleanup timeouts on unmount
 	useEffect(() => {
 		return () => {
@@ -387,19 +399,19 @@ function FlowWithPanels(): React.ReactElement | null {
 			}
 		};
 	}, []);
-	
+
 	// Initialize default panel if none exist
 	useEffect(() => {
 		if (panels.length === 0) {
 			createPanel("Default Panel", "Main workspace panel");
 		}
 	}, [panels.length, createPanel]);
-	
+
 	// Load panel data when active panel changes with smooth transition
 	useEffect(() => {
 		if (activePanelId) {
 			setIsPanelTransitioning(true);
-			
+
 			// Add a small delay for smooth transition
 			const transitionTimeout = setTimeout(() => {
 				const panelData = getPanelData(activePanelId);
@@ -422,7 +434,7 @@ function FlowWithPanels(): React.ReactElement | null {
 					}));
 					setNodes(nodesWithFunctions);
 					setEdges(panelData.edges);
-					
+
 					// Animate nodes fade-in
 					setTimeout(() => {
 						setNodes((currentNodes) =>
@@ -435,7 +447,7 @@ function FlowWithPanels(): React.ReactElement | null {
 							}))
 						);
 					}, 100);
-					
+
 					// Restore viewport for this panel with smooth animation
 					if (panelData.viewport && reactFlowInstance.current) {
 						setTimeout(() => {
@@ -463,7 +475,7 @@ function FlowWithPanels(): React.ReactElement | null {
 					}, 200);
 				}
 			}, 150); // Small delay for transition
-			
+
 			return () => clearTimeout(transitionTimeout);
 		} else {
 			// No active panel, start with empty state
@@ -472,12 +484,12 @@ function FlowWithPanels(): React.ReactElement | null {
 			setIsPanelTransitioning(false);
 		}
 	}, [activePanelId, getPanelData]);
-	
+
 	// Clean brands on mount
 	useEffect(() => {
 		cleanBrands();
 	}, []);
-	
+
 	const onConnect = useCallback(
 		(params: Edge | Connection) => {
 			setEdges((eds) => {
@@ -489,14 +501,14 @@ function FlowWithPanels(): React.ReactElement | null {
 		},
 		[setEdges, debouncedSaveEdges],
 	);
-	
+
 	const handleDeleteNode = useCallback(
 		(nodeId: string) => {
 			setNodes((nds) => {
 				const updatedNodes = nds.filter((node) => node.id !== nodeId);
 				// Save updated nodes to panel data
 				debouncedSaveNodes(updatedNodes);
-				
+
 				// Also remove connected edges
 				setEdges((edges) => {
 					const updatedEdges = edges.filter((edge) =>
@@ -506,13 +518,13 @@ function FlowWithPanels(): React.ReactElement | null {
 					debouncedSaveEdges(updatedEdges);
 					return updatedEdges;
 				});
-				
+
 				return updatedNodes;
 			});
 		},
 		[setNodes, setEdges, debouncedSaveNodes, debouncedSaveEdges],
 	);
-	
+
 	const onDragStart = (
 		event: React.DragEvent<HTMLDivElement>,
 		key: string,
@@ -520,21 +532,21 @@ function FlowWithPanels(): React.ReactElement | null {
 		event.dataTransfer.setData("application/reactflow", key);
 		event.dataTransfer.effectAllowed = "move";
 	};
-	
+
 	const onDrop = (event: React.DragEvent<HTMLDivElement>): void => {
 		event.preventDefault();
-		
+
 		const key = event.dataTransfer.getData("application/reactflow");
 		const sessionData = sessionStorage.getItem(key);
 		if (!sessionData) return;
-		
+
 		const position = screenToFlowPosition({
 			x: event.clientX,
 			y: event.clientY,
 		});
-		
+
 		const newNodeId = `node-${Date.now()}`;
-		
+
 		const newNode = {
 			id: newNodeId,
 			type: "custom",
@@ -547,7 +559,7 @@ function FlowWithPanels(): React.ReactElement | null {
 			},
 			dragHandle: ".drag-handle",
 		};
-		
+
 		setNodes((prevNodes) => {
 			const updatedNodes = [...prevNodes, newNode];
 			// Save new nodes to panel data
@@ -555,31 +567,31 @@ function FlowWithPanels(): React.ReactElement | null {
 			return updatedNodes;
 		});
 	};
-	
+
 	const onDragOver = (event: React.DragEvent<HTMLDivElement>): void => {
 		event.preventDefault();
 		event.dataTransfer.dropEffect = "move";
 	};
-	
+
 	const nodeTypes = useMemo<NodeTypes>(
 		() => ({
 			custom: MacOSNode,
 		}),
 		[],
 	);
-	
+
 	const keys = Object.keys(sessionStorage);
-	
+
 	const widgetsByCategory = useMemo<WidgetCategories>(() => {
-		const categorized: WidgetCategories = {All: []};
-		
+		const categorized: WidgetCategories = { All: [] };
+
 		if (session) {
 			keys.forEach((key) => {
 				const widget = session[key];
 				if (widget && widget.module) {
 					// Add to "All" category
 					categorized.All.push(key);
-					
+
 					// Add to specific category
 					const category = extractNetwork(key);
 					if (!categorized[category]) {
@@ -589,10 +601,10 @@ function FlowWithPanels(): React.ReactElement | null {
 				}
 			});
 		}
-		
+
 		return categorized;
 	}, [keys, session]);
-	
+
 	const categories = useMemo<string[]>(() => {
 		return Object.keys(widgetsByCategory).sort((a, b) => {
 			if (a === "All") return -1;
@@ -600,49 +612,49 @@ function FlowWithPanels(): React.ReactElement | null {
 			return a.localeCompare(b);
 		});
 	}, [widgetsByCategory]);
-	
+
 	const filteredWidgets = useMemo<string[]>(() => {
 		const categoryWidgets = widgetsByCategory[activeCategory] || [];
-		
+
 		if (!searchTerm) {
 			return categoryWidgets;
 		}
-		
+
 		return categoryWidgets.filter((key) => {
 			if (!session) return false;
 			const widget = session[key];
 			const searchLower = searchTerm.toLowerCase();
-			
+
 			return widget.module.toLowerCase().includes(searchLower) ||
 				widget.channel.toLowerCase().includes(searchLower);
 		});
 	}, [activeCategory, searchTerm, widgetsByCategory, session]);
-	
+
 	const groupedWidgets = useMemo<GroupedWidgets>(() => {
 		const grouped: GroupedWidgets = {};
-		
+
 		filteredWidgets.forEach((key) => {
 			const exchange = extractNetwork(key);
 			const asset = extractNetwork(key);
-			
+
 			if (!grouped[exchange]) {
 				grouped[exchange] = {};
 			}
-			
+
 			if (!grouped[exchange][asset]) {
 				grouped[exchange][asset] = [];
 			}
-			
+
 			grouped[exchange][asset].push(key);
 		});
-		
+
 		return grouped;
 	}, [filteredWidgets]);
-	
+
 	const toggleGroupingMode = (): void => {
 		setGroupingMode(groupingMode === "exchange" ? "asset" : "exchange");
 	};
-	
+
 	const renderGroupedWidgets = (): React.ReactNode => {
 		if (filteredWidgets.length === 0) {
 			return (
@@ -653,12 +665,12 @@ function FlowWithPanels(): React.ReactElement | null {
 				</div>
 			);
 		}
-		
+
 		if (groupingMode === "exchange") {
 			return Object.entries(groupedWidgets).map(([exchange, assets]) => {
 				const isExchangeOpen = expandedExchanges[exchange] || false;
 				const exchangeWidgetCount = Object.values(assets).flat().length;
-				
+
 				return (
 					<div key={exchange} className="border-b last:border-b-0">
 						<GroupHeader
@@ -668,12 +680,12 @@ function FlowWithPanels(): React.ReactElement | null {
 							onToggle={() => toggleExchange(exchange)}
 							level={0}
 						/>
-						
+
 						{isExchangeOpen &&
 							Object.entries(assets).map(([asset, assetWidgets]) => {
 								const assetKey = `${exchange}:${asset}`;
 								const isAssetOpen = expandedAssets[assetKey] || false;
-								
+
 								return (
 									<div
 										key={assetKey}
@@ -686,7 +698,7 @@ function FlowWithPanels(): React.ReactElement | null {
 											onToggle={() => toggleAsset(exchange, asset)}
 											level={1}
 										/>
-										
+
 										{isAssetOpen &&
 											assetWidgets.map((keyStore) => (
 												<ItemStore
@@ -704,7 +716,7 @@ function FlowWithPanels(): React.ReactElement | null {
 			});
 		} else {
 			const assetFirst: Record<string, Record<string, string[]>> = {};
-			
+
 			Object.entries(groupedWidgets).forEach(([exchange, assets]) => {
 				Object.entries(assets).forEach(([asset, widgets]) => {
 					if (!assetFirst[asset]) {
@@ -713,11 +725,11 @@ function FlowWithPanels(): React.ReactElement | null {
 					assetFirst[asset][exchange] = widgets;
 				});
 			});
-			
+
 			return Object.entries(assetFirst).map(([asset, exchanges]) => {
 				const isAssetOpen = expandedAssets[asset] || false;
 				const assetWidgetCount = Object.values(exchanges).flat().length;
-				
+
 				return (
 					<div key={asset} className="border-b last:border-b-0">
 						<GroupHeader
@@ -727,12 +739,12 @@ function FlowWithPanels(): React.ReactElement | null {
 							onToggle={() => toggleAsset("", asset)}
 							level={0}
 						/>
-						
+
 						{isAssetOpen &&
 							Object.entries(exchanges).map(([exchange, exchangeWidgets]) => {
 								const exchangeKey = `${asset}:${exchange}`;
 								const isExchangeOpen = expandedExchanges[exchangeKey] || false;
-								
+
 								return (
 									<div
 										key={exchangeKey}
@@ -745,7 +757,7 @@ function FlowWithPanels(): React.ReactElement | null {
 											onToggle={() => toggleExchange(exchangeKey)}
 											level={1}
 										/>
-										
+
 										{isExchangeOpen &&
 											exchangeWidgets.map((keyStore) => (
 												<ItemStore
@@ -763,16 +775,16 @@ function FlowWithPanels(): React.ReactElement | null {
 			});
 		}
 	};
-	
+
 	if (!session) return null;
-	
+
 	const activePanel = getActivePanel();
-	
+
 	return (
 		<div className="absolute w-[100%] h-[100%] top-0 left-0 flex flex-col transition-all duration-300 ease-in-out">
 			{/* Panel tabs */}
-			<PanelTabs className="flex-shrink-0"/>
-			
+			<PanelTabs className="flex-shrink-0" />
+
 			{/* Main canvas area */}
 			<div
 				className={cn(
@@ -788,13 +800,13 @@ function FlowWithPanels(): React.ReactElement | null {
 								<div className="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-500">
 								</div>
 								<span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Loading panel...
-                </span>
+									Loading panel...
+								</span>
 							</div>
 						</div>
 					</div>
 				)}
-				
+
 				<ReactFlow
 					nodes={nodes}
 					edges={edges}
@@ -807,12 +819,12 @@ function FlowWithPanels(): React.ReactElement | null {
 								change.type === "select"
 							);
 						});
-						
+
 						// Debounced save nodes if there are position or size changes
 						if (hasPositionOrSizeChanges) {
 							debouncedSaveNodes(nodes);
 						}
-						
+
 						onNodesChange(changes);
 					}}
 					onEdgesChange={(changes) => {
@@ -835,7 +847,7 @@ function FlowWithPanels(): React.ReactElement | null {
 					onMoveEnd={(_, viewport) => {
 						// Save viewport immediately on move end
 						if (activePanelId) {
-							updatePanelData(activePanelId, {viewport});
+							updatePanelData(activePanelId, { viewport });
 						}
 					}}
 					onDrop={onDrop}
@@ -850,7 +862,7 @@ function FlowWithPanels(): React.ReactElement | null {
 					/>
 					<div className="absolute z-1 flex justify-center items-center flex-col w-60 h-60 bottom-0 right-0">
 						<div>
-							<Graphite size={3} primary="gray"/>
+							<Graphite size={3} primary="gray" />
 						</div>
 						<div className="mt-4 text-xl font-semibold text-zinc-800/60">
 							STELS
@@ -865,7 +877,7 @@ function FlowWithPanels(): React.ReactElement | null {
 						)}
 					</div>
 				</ReactFlow>
-				
+
 				<MacOSDock
 					onOpenWidgetStore={toggleWidgetStore}
 					isWidgetStoreOpen={isWidgetStoreOpen}
@@ -873,13 +885,13 @@ function FlowWithPanels(): React.ReactElement | null {
 					isPanelManagerOpen={isPanelManagerOpen}
 				/>
 			</div>
-			
+
 			{/* Panel Manager */}
 			<PanelManager
 				isOpen={isPanelManagerOpen}
 				onClose={() => setIsPanelManagerOpen(false)}
 			/>
-			
+
 			<div
 				className={cn(
 					"absolute top-4 bottom-20 right-4 z-50 border bg-background/90 overflow-hidden transition-all duration-300 transform backdrop-blur-md",
@@ -890,7 +902,7 @@ function FlowWithPanels(): React.ReactElement | null {
 			>
 				<div className="border-b p-3 flex justify-between items-center bg-muted/80">
 					<div className="flex items-center">
-						<ShoppingBag className="h-4 w-4 mr-2"/>
+						<ShoppingBag className="h-4 w-4 mr-2" />
 						<h3 className="font-semibold">Widget Store</h3>
 					</div>
 					<div className="flex space-x-2">
@@ -905,7 +917,7 @@ function FlowWithPanels(): React.ReactElement | null {
 						/>
 					</div>
 				</div>
-				
+
 				<div className="p-3 border-b">
 					<div className="flex gap-2">
 						<div className="relative flex-1">
@@ -916,7 +928,7 @@ function FlowWithPanels(): React.ReactElement | null {
 								onChange={(e) => setSearchTerm(e.target.value)}
 								className="w-full px-3 py-2 pl-9 bg-zinc-100 dark:bg-zinc-800 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
 							/>
-							<Filter className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400"/>
+							<Filter className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
 						</div>
 						<button
 							onClick={toggleGroupingMode}
@@ -926,7 +938,7 @@ function FlowWithPanels(): React.ReactElement | null {
 						</button>
 					</div>
 				</div>
-				
+
 				<div className="border-b overflow-x-auto">
 					<div className="flex whitespace-nowrap">
 						{categories.map((category) => (
@@ -940,7 +952,7 @@ function FlowWithPanels(): React.ReactElement | null {
 						))}
 					</div>
 				</div>
-				
+
 				<div className="h-[calc(100%-144px)] overflow-y-auto">
 					{renderGroupedWidgets()}
 				</div>

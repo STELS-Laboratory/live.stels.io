@@ -1,16 +1,21 @@
 import type React from "react";
-import {memo, useCallback} from "react";
-import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
-import TradesWidget from "@/components/widgets/TradeWidget.tsx";
-import OrderBook from "@/components/widgets/OrderBook.tsx";
+import { memo, useCallback } from "react";
+import useSessionStoreSync from "@/hooks/useSessionStoreSync";
+import TradesWidget from "@/components/widgets/TradeWidget";
+import OrderBook from "@/components/widgets/OrderBook";
 import Candles from "@/components/widgets/Candles";
 import Ticker from "@/components/widgets/Ticker";
-import {FredIndicatorWidget} from "@/components/widgets/FredIndicatorWidget.tsx";
-import SonarPortfolio from "@/components/widgets/SonarPortfolio.tsx";
-import Ariadna from "@/components/widgets/Ariadna.tsx";
-import NewsBox from "@/components/widgets/NewsBox.tsx";
-import TimeZone from "@/components/widgets/TimeZone.tsx";
-import {type SessionStore, type SessionWidgetData, type WidgetRawData, WidgetType,} from "@/lib/canvas-types";
+import { FredIndicatorWidget } from "@/components/widgets/FredIndicatorWidget";
+import SonarPortfolio from "@/components/widgets/SonarPortfolio";
+import Ariadna from "@/components/widgets/Ariadna";
+import NewsBox from "@/components/widgets/NewsBox";
+import TimeZone from "@/components/widgets/TimeZone";
+import {
+	type SessionStore,
+	type SessionWidgetData,
+	type WidgetRawData,
+	WidgetType,
+} from "@/lib/canvas-types";
 
 interface WidgetProps {
 	widget: string;
@@ -21,22 +26,22 @@ interface WidgetProps {
 /**
  * Widget component for displaying session data in various formats
  */
-const Widget = ({widget, raw, data}: WidgetProps): React.ReactElement => {
+const Widget = ({ widget, raw, data }: WidgetProps): React.ReactElement => {
 	const stopPropagation = useCallback(
 		(e: React.MouseEvent | React.WheelEvent) => {
 			e.stopPropagation();
 		},
 		[],
 	);
-	
+
 	// Extract widget type from the widget string
 	const widgetType = widget.split(".").pop() as WidgetType | string;
-	
+
 	try {
 		switch (widgetType) {
 			case WidgetType.INDICATOR:
-				return <FredIndicatorWidget data={data as any}/>;
-			
+				return <FredIndicatorWidget data={data as any} />;
+
 			case WidgetType.TRADES:
 				return (
 					<TradesWidget
@@ -45,28 +50,28 @@ const Widget = ({widget, raw, data}: WidgetProps): React.ReactElement => {
 						trades={raw.trades || []}
 					/>
 				);
-			
+
 			case WidgetType.BOOK:
-				return <OrderBook book={raw as any}/>;
-			
+				return <OrderBook book={raw as any} />;
+
 			case WidgetType.TIMEZONE:
-				return <TimeZone data={data}/>;
-			
+				return <TimeZone data={data} />;
+
 			case WidgetType.ARIADNA:
-				return <Ariadna data={data}/>;
-			
+				return <Ariadna data={data} />;
+
 			case WidgetType.FINANCE:
-				return <NewsBox data={data} type={"finance"}/>;
-			
+				return <NewsBox data={data} type={"finance"} />;
+
 			case WidgetType.CANDLES:
-				return <Candles raw={raw}/>;
-			
+				return <Candles raw={raw} />;
+
 			case WidgetType.SONAR:
-				return <SonarPortfolio/>;
-			
+				return <SonarPortfolio />;
+
 			case WidgetType.TICKER:
-				return <Ticker raw={raw}/>;
-			
+				return <Ticker raw={raw} />;
+
 			default:
 				return (
 					<div className="bg-zinc-950 flex flex-col relative min-h-32">
@@ -119,9 +124,9 @@ interface NodeFlowProps {
 /**
  * NodeFlow component for rendering session data in ReactFlow nodes
  */
-const NodeFlow = memo(({data}: NodeFlowProps): React.ReactElement => {
+const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
 	const session = useSessionStoreSync() as SessionStore | null;
-	
+
 	if (!session) {
 		return (
 			<div className="bg-zinc-900 flex items-center justify-center p-4 min-h-32">
@@ -129,9 +134,9 @@ const NodeFlow = memo(({data}: NodeFlowProps): React.ReactElement => {
 			</div>
 		);
 	}
-	
+
 	const sessionData = session[data.channel];
-	
+
 	if (!sessionData) {
 		return (
 			<div className="bg-zinc-900 flex items-center justify-center p-4 min-h-32">
@@ -141,7 +146,7 @@ const NodeFlow = memo(({data}: NodeFlowProps): React.ReactElement => {
 			</div>
 		);
 	}
-	
+
 	return (
 		<Widget
 			widget={sessionData.widget}
