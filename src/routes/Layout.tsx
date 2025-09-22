@@ -2,7 +2,7 @@
 
 import type * as React from "react";
 import { useState } from "react";
-import { useAppStore, useWalletStore } from "@/stores";
+import { useAppStore } from "@/stores";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -45,8 +45,8 @@ interface NavItem {
  * and a content area optimized for trading and analytics screens.
  */
 function Layout({ children }: LayoutProps): React.ReactElement {
-	const { currentRoute, allowedRoutes, routeLoading, setRoute } = useAppStore();
-	const { currentWallet } = useWalletStore();
+	const { currentRoute, allowedRoutes, routeLoading } = useAppStore();
+	// Wallet info is now handled by ConnectionStatusSimple component
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 	const generalNav: NavItem[] = [
@@ -128,11 +128,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 		);
 	};
 
-	const [isWalletHovered, setIsWalletHovered] = useState(false);
-
-	const truncateAddress = (address: string) => {
-		return `${address.slice(0, 6)}...${address.slice(-4)}`;
-	};
+	// Wallet info is now handled by ConnectionStatusSimple component
 
 	return (
 		<div className="flex flex-col absolute w-[100%] h-[100%] overflow-hidden">
@@ -231,41 +227,6 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 										</span>
 									</div>
 								</div>
-
-								{currentWallet && (
-									<button
-										onClick={() => setRoute("wallet")}
-										onMouseEnter={() => setIsWalletHovered(true)}
-										onMouseLeave={() => setIsWalletHovered(false)}
-										className="group transition-all duration-200 hover:scale-105"
-									>
-										<div
-											className={cn(
-												"bg-card/80 backdrop-blur-sm border border-border/50 rounded-lg px-4 py-3",
-												"shadow-sm transition-all duration-200 hover:shadow-md hover:border-amber-500/30",
-												isWalletHovered && "bg-card border-amber-500/30",
-											)}
-										>
-											<div className="flex items-center gap-3">
-												<div className="flex items-center gap-2">
-													<div className="size-2 bg-green-500 rounded-full animate-pulse" />
-													<span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-														TestNet
-													</span>
-												</div>
-
-												<div className="text-right">
-													<div className="text-xs text-muted-foreground/80 uppercase tracking-wider">
-														Wallet
-													</div>
-													<div className="text-sm font-mono font-medium text-foreground group-hover:text-amber-400 transition-colors">
-														{truncateAddress(currentWallet.address)}
-													</div>
-												</div>
-											</div>
-										</div>
-									</button>
-								)}
 							</div>
 						</div>
 					</header>

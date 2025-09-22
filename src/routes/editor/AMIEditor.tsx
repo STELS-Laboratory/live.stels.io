@@ -33,7 +33,7 @@ import { Textarea } from "@/components/ui/textarea";
 import EditorComponent from "@/components/editor/EditorComponent";
 import type { Worker } from "@/stores/modules/worker.store";
 import { useWorkerStore } from "@/stores/modules/worker.store";
-import { useWalletStore } from "@/stores/modules/wallet.store.ts";
+import { useAuthStore } from "@/stores/modules/auth.store";
 import { useAppStore } from "@/stores/modules/app.store.ts";
 import { useMobile } from "@/hooks/useMobile";
 import type { JSX } from "react/jsx-runtime";
@@ -49,7 +49,7 @@ import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
 
 export function AMIEditor(): JSX.Element {
 	const mobile = useMobile();
-	const { currentWallet } = useWalletStore();
+	const { wallet } = useAuthStore();
 	const { setRoute } = useAppStore();
 	const listWorkers = useWorkerStore((state) => state.listWorkers);
 	const updateWorker = useWorkerStore((state) => state.updateWorker);
@@ -320,7 +320,7 @@ export function AMIEditor(): JSX.Element {
 		);
 	}
 
-	return currentWallet
+	return wallet
 		? (
 			<div className="h-full bg-zinc-950">
 				<Split
