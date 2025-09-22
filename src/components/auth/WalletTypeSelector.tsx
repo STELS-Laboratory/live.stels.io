@@ -45,7 +45,7 @@ export function WalletTypeSelector(
                       Create New Wallet
                     </h3>
                     <p className="text-sm text-zinc-400 mb-4">
-                      Generate a completely new wallet with a unique private key
+                      Generate a completely new wallet
                     </p>
                   </div>
 

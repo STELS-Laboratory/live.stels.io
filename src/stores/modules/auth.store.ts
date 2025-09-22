@@ -50,6 +50,7 @@ export interface AuthState {
 	// UI state
 	isAuthenticated: boolean;
 	showNetworkSelector: boolean;
+	_hasHydrated: boolean;
 }
 
 /**
@@ -127,17 +128,18 @@ export const useAuthStore = create<AuthStore>()(
 	devtools(
 		persist(
 			(set, get) => ({
-				// Initial state
-				wallet: null,
-				isWalletCreated: false,
-				selectedNetwork: null,
-				availableNetworks: DEFAULT_NETWORKS,
-				isConnected: false,
-				isConnecting: false,
-				connectionSession: null,
-				connectionError: null,
-				isAuthenticated: false,
-				showNetworkSelector: false,
+			// Initial state
+			wallet: null,
+			isWalletCreated: false,
+			selectedNetwork: null,
+			availableNetworks: DEFAULT_NETWORKS,
+			isConnected: false,
+			isConnecting: false,
+			connectionSession: null,
+			connectionError: null,
+			isAuthenticated: false,
+			showNetworkSelector: false,
+			_hasHydrated: false,
 				
 				// Wallet operations
 				createNewWallet: () => {
@@ -380,21 +382,32 @@ export const useAuthStore = create<AuthStore>()(
 							return false;
 						}
 						
-						console.log('[Auth] Attempting to restore connection...');
-						set({ isConnecting: true, connectionError: null });
+						console.log('[Auth] Restoring connection from saved session...');
 						
-						// Try to restore the connection
-						const success = await get().connectToNode();
+						// Extract session data from saved session
+						const session: ConnectionSession = {
+							session: sessionData.raw.session,
+							token: sessionData.raw.token,
+							network: sessionData.raw.info.network,
+							title: sessionData.raw.info.title,
+							nid: sessionData.raw.info.nid,
+							api: sessionData.raw.info.api,
+							socket: sessionData.raw.info.connector.socket,
+							developer: sessionData.raw.info.developer
+						};
 						
-						if (success) {
-							console.log('[Auth] Connection restored successfully');
-							return true;
-						} else {
-							console.log('[Auth] Failed to restore connection');
-							// Clear invalid session data
-							localStorage.removeItem('private-store');
-							return false;
-						}
+						// Restore the connection state without reconnecting
+						set({
+							isConnected: true,
+							isConnecting: false,
+							connectionSession: session,
+							isAuthenticated: true,
+							connectionError: null
+						});
+						
+						console.log('[Auth] Connection restored successfully from saved session');
+						return true;
+						
 					} catch (error) {
 						console.error('[Auth] Error restoring connection:', error);
 						set({ 
@@ -451,6 +464,12 @@ export const useAuthStore = create<AuthStore>()(
 					connectionSession: state.connectionSession,
 					isConnected: state.isConnected
 				}),
+				onRehydrateStorage: () => (state) => {
+					if (state) {
+						state._hasHydrated = true;
+						console.log('[Auth] Store hydrated from localStorage');
+					}
+				},
 			}
 		),
 		{
