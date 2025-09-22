@@ -77,134 +77,186 @@ export function WalletPreview({
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="text-center">
-        <CardTitle className="flex items-center justify-center gap-2">
-          <Wallet className="h-5 w-5 text-amber-500" />
-          Your Wallet
-        </CardTitle>
-        <p className="text-sm text-zinc-400">
-          Secure Gliesereum wallet ready to use
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Wallet Status */}
-        <div className="flex items-center justify-center">
-          <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Ready
-          </Badge>
-        </div>
+    <div className="w-full max-w-lg mx-auto animate-fade-in-up">
+      <Card className="backdrop-blur-sm bg-zinc-900/80 border-zinc-700/50 shadow-2xl">
+        <CardHeader className="text-center pb-6">
+          <CardTitle className="flex items-center justify-center gap-3 text-2xl font-bold">
+            <div className="relative">
+              <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-lg" />
+              <Wallet className="relative h-6 w-6 text-amber-400" />
+            </div>
+            <span className="bg-gradient-to-r from-amber-400 via-white to-orange-400 bg-clip-text text-transparent">
+              Your Wallet
+            </span>
+          </CardTitle>
+          <p className="text-zinc-400 mt-2 leading-relaxed">
+            Secure Gliesereum wallet ready to use
+          </p>
+        </CardHeader>
 
-        {/* Address */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-zinc-400">Address</label>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleCopyAddress}
-              className="h-6 px-2 text-xs"
-            >
-              {copiedAddress
-                ? <CheckCircle className="h-3 w-3 text-green-500" />
-                : <Copy className="h-3 w-3" />}
-            </Button>
+        <CardContent className="px-6 pb-6 space-y-6">
+          {/* Enhanced Wallet Status */}
+          <div className="flex items-center justify-center">
+            <Badge className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 border-green-500/30 px-4 py-2">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Wallet Ready
+            </Badge>
           </div>
-          <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/30">
-            <div className="font-mono text-sm text-zinc-300 break-all">
-              {wallet.address}
+
+          {/* Enhanced Address */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+                <div className="w-2 h-2 bg-amber-400 rounded-full" />
+                Wallet Address
+              </label>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCopyAddress}
+                className="h-8 px-3 text-xs hover:bg-zinc-700/50 transition-all duration-200"
+              >
+                {copiedAddress
+                  ? <CheckCircle className="h-4 w-4 text-green-400" />
+                  : <Copy className="h-4 w-4 text-zinc-400" />}
+              </Button>
+            </div>
+            <div className="p-4 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-lg border border-zinc-700/30 backdrop-blur-sm">
+              <div className="font-mono text-sm text-zinc-300 break-all leading-relaxed">
+                {wallet.address}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Card Number */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-400">
-            Card Number
-          </label>
-          <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/30">
-            <div className="font-mono text-sm text-zinc-300">
-              {wallet.number}
-            </div>
-          </div>
-        </div>
-
-        {/* Public Key */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-zinc-400">
-              Public Key
+          {/* Enhanced Card Number */}
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-400 rounded-full" />
+              Card Number
             </label>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowPublicKey(!showPublicKey)}
-                className="h-6 px-2 text-xs"
-              >
-                {showPublicKey
-                  ? <EyeOff className="h-3 w-3" />
-                  : <Eye className="h-3 w-3" />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCopyPublicKey}
-                className="h-6 px-2 text-xs"
-              >
-                {copiedPublicKey
-                  ? <CheckCircle className="h-3 w-3 text-green-500" />
-                  : <Copy className="h-3 w-3" />}
-              </Button>
+            <div className="p-4 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-lg border border-zinc-700/30 backdrop-blur-sm">
+              <div className="font-mono text-lg text-zinc-200 font-bold">
+                {wallet.number}
+              </div>
             </div>
           </div>
-          <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/30">
-            {showPublicKey
-              ? (
-                <div className="font-mono text-xs text-zinc-300 break-all">
-                  {wallet.publicKey}
-                </div>
-              )
-              : (
-                <div className="font-mono text-xs text-zinc-500">
-                  ••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
-                </div>
-              )}
-          </div>
-        </div>
 
-        {/* Security Notice */}
-        <Alert className="bg-blue-500/10 border-blue-500/30">
-          <AlertCircle className="h-4 w-4 text-blue-400" />
-          <AlertDescription className="text-blue-300 text-xs">
-            Your private key is securely stored and never displayed. You can
-            export it later from wallet settings.
-          </AlertDescription>
-        </Alert>
-
-        {/* Action Buttons */}
-        {showActions && (
-          <div className="flex gap-2 pt-2">
-            <Button
-              onClick={handleResetWallet}
-              variant="outline"
-              size="sm"
-              className="flex-1"
-            >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Reset Wallet
-            </Button>
-            <Button
-              onClick={handleContinue}
-              size="sm"
-              className="flex-1"
-            >
-              Continue
-            </Button>
+          {/* Enhanced Public Key */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+                <div className="w-2 h-2 bg-purple-400 rounded-full" />
+                Public Key
+              </label>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPublicKey(!showPublicKey)}
+                  className="h-8 px-3 text-xs hover:bg-zinc-700/50 transition-all duration-200"
+                >
+                  {showPublicKey
+                    ? <EyeOff className="h-4 w-4 text-zinc-400" />
+                    : <Eye className="h-4 w-4 text-zinc-400" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCopyPublicKey}
+                  className="h-8 px-3 text-xs hover:bg-zinc-700/50 transition-all duration-200"
+                >
+                  {copiedPublicKey
+                    ? <CheckCircle className="h-4 w-4 text-green-400" />
+                    : <Copy className="h-4 w-4 text-zinc-400" />}
+                </Button>
+              </div>
+            </div>
+            <div className="p-4 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-lg border border-zinc-700/30 backdrop-blur-sm">
+              {showPublicKey
+                ? (
+                  <div className="font-mono text-xs text-zinc-300 break-all leading-relaxed">
+                    {wallet.publicKey}
+                  </div>
+                )
+                : (
+                  <div className="font-mono text-xs text-zinc-500 flex items-center gap-1">
+                    <div className="flex gap-1">
+                      {Array.from({ length: 16 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="w-1 h-3 bg-zinc-600 rounded-full"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+            </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          {/* Enhanced Security Notice */}
+          <div className="p-4 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg border border-blue-500/30 backdrop-blur-sm">
+            <div className="flex items-start gap-3">
+              <div className="p-1 bg-blue-500/20 rounded-full">
+                <AlertCircle className="h-4 w-4 text-blue-400" />
+              </div>
+              <div className="text-sm">
+                <div className="font-medium text-blue-300 mb-1">
+                  🔐 Secure Storage
+                </div>
+                <div className="text-blue-200/80 leading-relaxed">
+                  Your private key is securely stored and never displayed. You
+                  can export it later from wallet settings.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Enhanced Action Buttons */}
+          {showActions && (
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={handleResetWallet}
+                variant="outline"
+                size="sm"
+                className="flex-1 h-10 border-zinc-700/50 hover:border-zinc-600/50 bg-zinc-800/50 hover:bg-zinc-700/50 transition-all duration-300"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset Wallet
+              </Button>
+              <Button
+                onClick={handleContinue}
+                size="sm"
+                className="flex-1 h-10 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25 transition-all duration-300"
+              >
+                Continue
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Custom Animations */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+          @keyframes fade-in-up {
+            from {
+              opacity: 0;
+              transform: translateY(30px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          
+          .animate-fade-in-up {
+            animation: fade-in-up 0.8s ease-out forwards;
+            opacity: 0;
+          }
+        `,
+        }}
+      />
+    </div>
   );
 }

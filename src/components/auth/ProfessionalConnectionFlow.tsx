@@ -202,7 +202,7 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
         {/* Header */}
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold text-foreground">
-            SONAR Web3 Platform
+            Web3 Platform
           </h1>
           <p className="text-zinc-400 text-lg">
             Secure cryptocurrency wallet and trading platform

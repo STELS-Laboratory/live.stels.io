@@ -8,8 +8,11 @@ import {
   ArrowLeft,
   CheckCircle,
   Loader2,
+  Lock,
   RefreshCw,
   Shield,
+  Wifi,
+  Zap,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/modules/auth.store";
 import { WalletPreview } from "./WalletPreview";
@@ -39,29 +42,49 @@ export function ConnectionProcess(
 
   useEffect(() => {
     if (isConnecting) {
-      // Simulate connection progress
+      // Enhanced connection progress with more realistic timing
       const steps = [
-        { step: "Initializing connection...", progress: 10 },
-        { step: "Validating wallet credentials...", progress: 25 },
-        { step: "Creating authentication transaction...", progress: 40 },
-        { step: "Signing transaction...", progress: 55 },
-        { step: "Sending to network node...", progress: 70 },
-        { step: "Verifying transaction signature...", progress: 85 },
-        { step: "Establishing WebSocket connection...", progress: 95 },
-        { step: "Creating secure session...", progress: 100 },
+        { step: "Initializing secure connection...", progress: 10, icon: "🔐" },
+        { step: "Validating wallet credentials...", progress: 20, icon: "✅" },
+        {
+          step: "Creating authentication transaction...",
+          progress: 35,
+          icon: "📝",
+        },
+        {
+          step: "Signing transaction with private key...",
+          progress: 50,
+          icon: "✍️",
+        },
+        {
+          step: "Encrypting and sending to network...",
+          progress: 65,
+          icon: "🔒",
+        },
+        {
+          step: "Verifying transaction signature...",
+          progress: 80,
+          icon: "🔍",
+        },
+        {
+          step: "Establishing WebSocket connection...",
+          progress: 90,
+          icon: "🌐",
+        },
+        { step: "Creating secure session...", progress: 100, icon: "🎯" },
       ];
 
       let currentStepIndex = 0;
       const interval = setInterval(() => {
         if (currentStepIndex < steps.length) {
           const current = steps[currentStepIndex];
-          setCurrentStep(current.step);
+          setCurrentStep(`${current.icon} ${current.step}`);
           setProgress(current.progress);
           currentStepIndex++;
         } else {
           clearInterval(interval);
         }
-      }, 800);
+      }, 1000); // Slightly longer intervals for better UX
 
       return () => clearInterval(interval);
     }
@@ -121,160 +144,199 @@ export function ConnectionProcess(
   };
 
   return (
-    <div className="space-y-6">
-      {/* Wallet Preview */}
-      <WalletPreview />
+    <div className="space-y-8 animate-fade-in-up">
+      {/* Enhanced Wallet Preview */}
+      <div className="transform transition-all duration-500">
+        <WalletPreview />
+      </div>
 
-      {/* Connection Process */}
-      <Card className="w-full max-w-lg mx-auto">
-        <CardHeader className="text-center">
-          <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-            {getStatusIcon()}
+      {/* Enhanced Connection Process */}
+      <Card className="w-full max-w-2xl mx-auto backdrop-blur-sm bg-zinc-900/80 border-zinc-700/50 shadow-2xl">
+        <CardHeader className="text-center pb-6">
+          <CardTitle className="flex items-center justify-center gap-3 text-3xl font-bold">
+            <div className="relative">
+              <div
+                className={`absolute inset-0 rounded-full blur-lg ${
+                  connectionError
+                    ? "bg-red-500/20"
+                    : isConnected
+                    ? "bg-green-500/20"
+                    : "bg-amber-500/20"
+                }`}
+              />
+              <div className="relative p-3 rounded-full bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 border border-zinc-700/50 backdrop-blur-sm">
+                {getStatusIcon()}
+              </div>
+            </div>
             <span className={getStatusColor()}>
               {getStatusText()}
             </span>
           </CardTitle>
-          <p className="text-zinc-400 mt-2">
-            {selectedNetwork?.name} • {selectedNetwork?.api}
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Progress Bar */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Connection Progress</span>
-              <span>{progress}%</span>
+          <div className="flex items-center justify-center gap-2 mt-3">
+            <div className="flex items-center gap-2 px-3 py-1 bg-zinc-800/50 rounded-full border border-zinc-700/50">
+              <Wifi className="h-4 w-4 text-amber-400" />
+              <span className="text-sm text-zinc-300">
+                {selectedNetwork?.name}
+              </span>
             </div>
-            <Progress
-              value={progress}
-              className="w-full h-2"
-            />
+            <div className="text-zinc-500">•</div>
+            <div className="text-xs text-zinc-500 font-mono">
+              {selectedNetwork?.api}
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="px-8 pb-8 space-y-8">
+          {/* Enhanced Progress Bar */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium text-zinc-300">
+                Connection Progress
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-zinc-300">
+                  {progress}%
+                </span>
+                {isConnecting && (
+                  <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+                )}
+              </div>
+            </div>
+
+            <div className="relative w-full bg-zinc-800/50 rounded-full h-3 border border-zinc-700/50 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-zinc-700/50 to-zinc-600/50 rounded-full" />
+              <div
+                className={`relative h-full rounded-full transition-all duration-700 ease-out shadow-lg ${
+                  connectionError
+                    ? "bg-gradient-to-r from-red-500 to-red-400"
+                    : isConnected
+                    ? "bg-gradient-to-r from-green-500 to-emerald-400"
+                    : "bg-gradient-to-r from-amber-500 via-amber-400 to-blue-500"
+                }`}
+                style={{ width: `${progress}%` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+              </div>
+            </div>
           </div>
 
-          {/* Current Step */}
-          <div className="text-center">
-            <p className="text-sm text-zinc-300">
+          {/* Enhanced Current Step */}
+          <div className="text-center p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-zinc-700/30 backdrop-blur-sm">
+            <p className="text-lg text-zinc-200 font-medium leading-relaxed">
               {currentStep || (connectionError
-                ? "Connection failed"
-                : "Preparing connection...")}
+                ? "❌ Connection failed"
+                : "⏳ Preparing secure connection...")}
             </p>
           </div>
 
-          {/* Connection Steps */}
+          {/* Enhanced Connection Steps */}
           {!connectionError && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-sm">
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    progress >= 10 ? "bg-green-500" : "bg-zinc-600"
-                  }`}
-                />
-                <span className="text-zinc-400">Initialize connection</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    progress >= 25 ? "bg-green-500" : "bg-zinc-600"
-                  }`}
-                />
-                <span className="text-zinc-400">Validate credentials</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    progress >= 40 ? "bg-green-500" : "bg-zinc-600"
-                  }`}
-                />
-                <span className="text-zinc-400">
-                  Create authentication transaction
-                </span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    progress >= 55 ? "bg-green-500" : "bg-zinc-600"
-                  }`}
-                />
-                <span className="text-zinc-400">Sign transaction</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    progress >= 70 ? "bg-green-500" : "bg-zinc-600"
-                  }`}
-                />
-                <span className="text-zinc-400">Send to network node</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    progress >= 85 ? "bg-green-500" : "bg-zinc-600"
-                  }`}
-                />
-                <span className="text-zinc-400">Verify signature</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    progress >= 95 ? "bg-green-500" : "bg-zinc-600"
-                  }`}
-                />
-                <span className="text-zinc-400">Establish WebSocket</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    progress >= 100 ? "bg-green-500" : "bg-zinc-600"
-                  }`}
-                />
-                <span className="text-zinc-400">Create session</span>
-              </div>
+            <div className="space-y-4">
+              {[
+                { step: "Initialize connection", progress: 10, icon: "🔐" },
+                { step: "Validate credentials", progress: 20, icon: "✅" },
+                {
+                  step: "Create authentication transaction",
+                  progress: 35,
+                  icon: "📝",
+                },
+                { step: "Sign transaction", progress: 50, icon: "✍️" },
+                { step: "Send to network node", progress: 65, icon: "🔒" },
+                { step: "Verify signature", progress: 80, icon: "🔍" },
+                { step: "Establish WebSocket", progress: 90, icon: "🌐" },
+                { step: "Create session", progress: 100, icon: "🎯" },
+              ].map((item, index) => {
+                const isCompleted = progress >= item.progress;
+                const isCurrent = Math.abs(progress - item.progress) < 10;
+
+                return (
+                  <div
+                    key={index}
+                    className={`flex items-center gap-4 text-sm transition-all duration-300 ${
+                      isCompleted
+                        ? "text-green-300"
+                        : isCurrent
+                        ? "text-amber-300"
+                        : "text-zinc-500"
+                    }`}
+                  >
+                    <div className="relative">
+                      <div
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                          isCompleted
+                            ? "bg-green-500 border-green-400 text-white scale-110"
+                            : isCurrent
+                            ? "bg-amber-500 border-amber-400 text-zinc-900 scale-105"
+                            : "bg-zinc-800 border-zinc-600 text-zinc-500"
+                        }`}
+                      >
+                        {isCompleted
+                          ? <CheckCircle className="w-4 h-4" />
+                          : <span className="text-xs">{item.icon}</span>}
+                      </div>
+
+                      {/* Pulse animation for current step */}
+                      {isCurrent && !isCompleted && (
+                        <div className="absolute inset-0 rounded-full border-2 border-amber-400 animate-ping" />
+                      )}
+                    </div>
+
+                    <span className="font-medium">{item.step}</span>
+                  </div>
+                );
+              })}
             </div>
           )}
 
-          {/* Error Display */}
+          {/* Enhanced Error Display */}
           {connectionError && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
+            <Alert
+              variant="destructive"
+              className="border-red-500/50 bg-red-500/10"
+            >
+              <AlertCircle className="h-4 w-4 text-red-400" />
+              <AlertDescription className="text-red-300">
                 {connectionError}
               </AlertDescription>
             </Alert>
           )}
 
-          {/* Security Notice */}
+          {/* Enhanced Security Notice */}
           {!connectionError && (
-            <div className="p-4 bg-zinc-800/50 rounded-lg border border-zinc-700/30">
-              <div className="flex items-center gap-3">
-                <Shield className="h-5 w-5 text-green-500" />
-                <div className="text-sm">
-                  <div className="font-medium text-foreground">
-                    Secure Connection
+            <div className="p-6 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/30 backdrop-blur-sm">
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-green-500/20 rounded-full">
+                  <Shield className="h-6 w-6 text-green-400" />
+                </div>
+                <div>
+                  <div className="font-semibold text-green-300 mb-2 text-lg">
+                    🔒 Secure Connection
                   </div>
-                  <div className="text-zinc-400">
+                  <div className="text-green-200/80 text-sm leading-relaxed">
                     Your connection is encrypted and authenticated using your
-                    wallet's private key
+                    wallet's private key. All data transmission is secured with
+                    industry-standard encryption protocols.
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
+          {/* Enhanced Action Buttons */}
+          <div className="flex gap-4 pt-6">
             <Button
               onClick={onBack}
               variant="outline"
-              className="flex-1"
+              className="flex-1 h-12 border-zinc-700/50 hover:border-zinc-600/50 bg-zinc-800/50 hover:bg-zinc-700/50 transition-all duration-300"
               disabled={isConnecting}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
+              Back to Network
             </Button>
             {connectionError && (
               <Button
                 onClick={handleRetry}
-                className="flex-1 bg-amber-500 hover:bg-amber-600 text-zinc-900"
+                className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25 transition-all duration-300"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Retry Connection
@@ -283,6 +345,38 @@ export function ConnectionProcess(
           </div>
         </CardContent>
       </Card>
+
+      {/* Custom Animations */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+          @keyframes fade-in-up {
+            from {
+              opacity: 0;
+              transform: translateY(30px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          
+          @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+          }
+          
+          .animate-fade-in-up {
+            animation: fade-in-up 0.8s ease-out forwards;
+            opacity: 0;
+          }
+          
+          .animate-shimmer {
+            animation: shimmer 2s infinite;
+          }
+        `,
+        }}
+      />
     </div>
   );
 }
