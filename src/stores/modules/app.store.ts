@@ -144,12 +144,12 @@ export const useAppStore = create<AppState>()(
 					}
 				}
 				
-				const allowedRoutes = ['welcome', 'scanner', 'canvas', 'network', 'wallet'];
+				const allowedRoutes = ['welcome', 'scanner', 'canvas', 'network', 'wallet', 'editor'];
 				//const allowedRoutes = ['welcome', 'scanner', 'markets', 'canvas', 'fred', 'wallet', 'network', 'editor'];
 				console.log('[Store] Initializing with allowedRoutes:', allowedRoutes);
 				
 				return {
-					version: '1.0.5',
+					version: '1.0.6',
 					upgrade: false,
 					setVersion: (v: string) => set({version: v}),
 					setUpgrade: (value: boolean) => set({upgrade: value}),

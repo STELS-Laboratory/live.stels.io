@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import Split from "react-split";
 import {
 	Activity,
@@ -26,28 +26,34 @@ import {
 	X,
 	Zap,
 } from "lucide-react";
-import {Badge} from "@/components/ui/badge";
-import {Button} from "@/components/ui/button";
-import {ScrollArea} from "@/components/ui/scroll-area";
-import {Textarea} from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
 import EditorComponent from "@/components/editor/EditorComponent";
-import type {Worker} from "@/stores/modules/worker.store";
-import {useWorkerStore} from "@/stores/modules/worker.store";
-import {useWalletStore} from "@/stores/modules/wallet.store.ts";
-import {useAppStore} from "@/stores/modules/app.store.ts";
-import {useMobile} from "@/hooks/useMobile";
-import type {JSX} from "react/jsx-runtime";
-import {Input} from "@/components/ui/input";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
+import type { Worker } from "@/stores/modules/worker.store";
+import { useWorkerStore } from "@/stores/modules/worker.store";
+import { useWalletStore } from "@/stores/modules/wallet.store.ts";
+import { useAppStore } from "@/stores/modules/app.store.ts";
+import { useMobile } from "@/hooks/useMobile";
+import type { JSX } from "react/jsx-runtime";
+import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
 
 export function AMIEditor(): JSX.Element {
 	const mobile = useMobile();
-	const {currentWallet} = useWalletStore();
-	const {setRoute} = useAppStore();
+	const { currentWallet } = useWalletStore();
+	const { setRoute } = useAppStore();
 	const listWorkers = useWorkerStore((state) => state.listWorkers);
 	const updateWorker = useWorkerStore((state) => state.updateWorker);
-	
+
 	const [workers, setWorkers] = useState<Worker[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [updating, setUpdating] = useState(false);
@@ -63,7 +69,7 @@ export function AMIEditor(): JSX.Element {
 	const [newlyCreatedWorker, setNewlyCreatedWorker] = useState<string | null>(
 		null,
 	);
-	
+
 	// Load workers
 	const loadWorkers = async () => {
 		setLoading(true);
@@ -77,11 +83,11 @@ export function AMIEditor(): JSX.Element {
 			setLoading(false);
 		}
 	};
-	
+
 	useEffect(() => {
 		loadWorkers();
 	}, [listWorkers]);
-	
+
 	useEffect(() => {
 		if (newlyCreatedWorker) {
 			const timer = setTimeout(() => {
@@ -90,7 +96,7 @@ export function AMIEditor(): JSX.Element {
 			return () => clearTimeout(timer);
 		}
 	}, [newlyCreatedWorker]);
-	
+
 	const handleSelectWorker = (protocol: Worker) => {
 		setSelectedWorker(protocol);
 		setCurrentScript(protocol.value.raw.script);
@@ -98,7 +104,7 @@ export function AMIEditor(): JSX.Element {
 		setIsEditing(false);
 		setIsEditingNote(false);
 	};
-	
+
 	const handleEditorChange = (value: string | undefined) => {
 		if (value !== undefined) {
 			setCurrentScript(value);
@@ -107,28 +113,28 @@ export function AMIEditor(): JSX.Element {
 			);
 		}
 	};
-	
+
 	const handleNoteChange = (value: string) => {
 		setCurrentNote(value);
 		setIsEditingNote(
 			selectedWorker ? value !== selectedWorker.value.raw.note : false,
 		);
 	};
-	
+
 	const resetScript = () => {
 		if (selectedWorker) {
 			setCurrentScript(selectedWorker.value.raw.script);
 			setIsEditing(false);
 		}
 	};
-	
+
 	const resetNote = () => {
 		if (selectedWorker) {
 			setCurrentNote(selectedWorker.value.raw.note);
 			setIsEditingNote(false);
 		}
 	};
-	
+
 	const handleToggleWorkerStatus = async () => {
 		if (!selectedWorker) return;
 		setUpdating(true);
@@ -150,15 +156,15 @@ export function AMIEditor(): JSX.Element {
 				setWorkers((prev) =>
 					prev.map((w) =>
 						w.value.raw.sid === selectedWorker.value.raw.sid
-							? {...w, value: {...w.value, raw: updatedRaw}}
+							? { ...w, value: { ...w.value, raw: updatedRaw } }
 							: w
 					)
 				);
 				setSelectedWorker((
-						prev,
-					) => (prev
-						? {...prev, value: {...prev.value, raw: updatedRaw}}
-						: null)
+					prev,
+				) => (prev
+					? { ...prev, value: { ...prev.value, raw: updatedRaw } }
+					: null)
 				);
 			}
 		} catch (error) {
@@ -167,7 +173,7 @@ export function AMIEditor(): JSX.Element {
 			setUpdating(false);
 		}
 	};
-	
+
 	const handleSaveNote = async () => {
 		if (!selectedWorker || !isEditingNote) return;
 		setUpdating(true);
@@ -189,15 +195,15 @@ export function AMIEditor(): JSX.Element {
 				setWorkers((prev) =>
 					prev.map((w) =>
 						w.value.raw.sid === selectedWorker.value.raw.sid
-							? {...w, value: {...w.value, raw: updatedRaw}}
+							? { ...w, value: { ...w.value, raw: updatedRaw } }
 							: w
 					)
 				);
 				setSelectedWorker((
-						prev,
-					) => (prev
-						? {...prev, value: {...prev.value, raw: updatedRaw}}
-						: null)
+					prev,
+				) => (prev
+					? { ...prev, value: { ...prev.value, raw: updatedRaw } }
+					: null)
 				);
 				setIsEditingNote(false);
 			}
@@ -207,7 +213,7 @@ export function AMIEditor(): JSX.Element {
 			setUpdating(false);
 		}
 	};
-	
+
 	const handleSaveAll = async () => {
 		if (!selectedWorker || (!isEditing && !isEditingNote)) return;
 		setUpdating(true);
@@ -230,15 +236,15 @@ export function AMIEditor(): JSX.Element {
 				setWorkers((prev) =>
 					prev.map((w) =>
 						w.value.raw.sid === selectedWorker.value.raw.sid
-							? {...w, value: {...w.value, raw: updatedRaw}}
+							? { ...w, value: { ...w.value, raw: updatedRaw } }
 							: w
 					)
 				);
 				setSelectedWorker((
-						prev,
-					) => (prev
-						? {...prev, value: {...prev.value, raw: updatedRaw}}
-						: null)
+					prev,
+				) => (prev
+					? { ...prev, value: { ...prev.value, raw: updatedRaw } }
+					: null)
 				);
 				setIsEditing(false);
 				setIsEditingNote(false);
@@ -249,17 +255,17 @@ export function AMIEditor(): JSX.Element {
 			setUpdating(false);
 		}
 	};
-	
+
 	const filteredWorkers = workers.filter((protocol) => {
 		const matchesSearch = protocol.value.raw.note.toLowerCase().includes(
-				searchTerm.toLowerCase(),
-			) ||
+			searchTerm.toLowerCase(),
+		) ||
 			protocol.value.raw.sid.toLowerCase().includes(searchTerm.toLowerCase());
 		const matchesFilter = filterActive === null ||
 			protocol.value.raw.active === filterActive;
 		return matchesSearch && matchesFilter;
 	});
-	
+
 	const formatTimestamp = (timestamp: number) => {
 		return new Date(timestamp).toLocaleString("en-US", {
 			month: "short",
@@ -269,7 +275,7 @@ export function AMIEditor(): JSX.Element {
 			hour12: false,
 		});
 	};
-	
+
 	const getTimeAgo = (timestamp: number) => {
 		const minutes = Math.floor((Date.now() - timestamp) / 1000 / 60);
 		if (minutes < 60) return `${minutes}m`;
@@ -278,13 +284,13 @@ export function AMIEditor(): JSX.Element {
 		const days = Math.floor(hours / 24);
 		return `${days}d`;
 	};
-	
+
 	if (mobile) {
 		return (
 			<div className="h-full bg-zinc-950 p-4 flex items-center justify-center">
 				<div className="text-center max-w-sm mx-auto">
 					<div className="w-16 h-16 bg-zinc-900 rounded-xl flex items-center justify-center mb-4 mx-auto">
-						<Terminal className="w-8 h-8 text-amber-400"/>
+						<Terminal className="w-8 h-8 text-amber-400" />
 					</div>
 					<h2 className="text-amber-400 font-mono text-lg font-bold mb-2">
 						MARKET BROWSER
@@ -296,7 +302,7 @@ export function AMIEditor(): JSX.Element {
 			</div>
 		);
 	}
-	
+
 	if (loading) {
 		return (
 			<div className="h-full bg-zinc-950 flex items-center justify-center">
@@ -304,8 +310,7 @@ export function AMIEditor(): JSX.Element {
 					<div className="relative mb-6">
 						<div className="w-16 h-16 border-4 border-zinc-800 border-t-amber-400 rounded-full animate-spin mx-auto">
 						</div>
-						<Cpu
-							className="w-6 h-6 text-amber-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"/>
+						<Cpu className="w-6 h-6 text-amber-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
 					</div>
 					<div className="text-amber-400 font-mono text-sm font-bold">
 						LOADING PROTOCOL REGISTRY
@@ -314,7 +319,7 @@ export function AMIEditor(): JSX.Element {
 			</div>
 		);
 	}
-	
+
 	return currentWallet
 		? (
 			<div className="h-full bg-zinc-950">
@@ -336,7 +341,7 @@ export function AMIEditor(): JSX.Element {
 							<div className="flex items-center justify-between mb-4">
 								<div className="flex items-center gap-3">
 									<div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center">
-										<Database className="w-4 h-4 text-amber-400"/>
+										<Database className="w-4 h-4 text-amber-400" />
 									</div>
 									<div>
 										<h2 className="text-amber-400 font-mono text-sm font-bold">
@@ -384,25 +389,24 @@ export function AMIEditor(): JSX.Element {
 										{creatingWorker
 											? (
 												<>
-													<div
-														className="animate-spin mr-1 w-3 h-3 border-2 border-black border-t-transparent rounded-full"/>
+													<div className="animate-spin mr-1 w-3 h-3 border-2 border-black border-t-transparent rounded-full" />
 													CREATING
 												</>
 											)
 											: (
 												<>
-													<Plus className="w-3 h-3 mr-1"/>
+													<Plus className="w-3 h-3 mr-1" />
 													AI PROTOCOL
 												</>
 											)}
 									</Button>
 								</div>
 							</div>
-							
+
 							{/* Search and Filter */}
 							<div className="space-y-3">
 								<div className="relative">
-									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zinc-500"/>
+									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zinc-500" />
 									<Input
 										placeholder="Search workers..."
 										value={searchTerm}
@@ -416,18 +420,18 @@ export function AMIEditor(): JSX.Element {
 											className="absolute right-2 top-1/2 transform -translate-y-1/2 h-5 w-5 p-0 text-zinc-500 hover:text-zinc-300"
 											onClick={() => setSearchTerm("")}
 										>
-											<X className="w-3 h-3"/>
+											<X className="w-3 h-3" />
 										</Button>
 									)}
 								</div>
-								
+
 								<div className="flex items-center gap-2">
 									<Select
 										value={filterActive === null
 											? "all"
 											: filterActive
-												? "active"
-												: "inactive"}
+											? "active"
+											: "inactive"}
 										onValueChange={(value) => {
 											if (value === "all") setFilterActive(null);
 											else if (value === "active") setFilterActive(true);
@@ -435,7 +439,7 @@ export function AMIEditor(): JSX.Element {
 										}}
 									>
 										<SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-300 text-xs h-8">
-											<SelectValue/>
+											<SelectValue />
 										</SelectTrigger>
 										<SelectContent className="bg-zinc-800 border-zinc-700">
 											<SelectItem value="all" className="text-zinc-300 text-xs">
@@ -455,7 +459,7 @@ export function AMIEditor(): JSX.Element {
 											</SelectItem>
 										</SelectContent>
 									</Select>
-									
+
 									<div className="flex items-center gap-1 ml-auto">
 										{(searchTerm || filterActive !== null) && (
 											<Button
@@ -477,7 +481,7 @@ export function AMIEditor(): JSX.Element {
 								</div>
 							</div>
 						</div>
-						
+
 						{/* Workers List */}
 						<ScrollArea className="flex-1 px-2 py-2">
 							<div className="space-y-2">
@@ -486,7 +490,7 @@ export function AMIEditor(): JSX.Element {
 										newlyCreatedWorker === protocol.value.raw.sid;
 									const isSelected =
 										selectedWorker?.value.raw.sid === protocol.value.raw.sid;
-									
+
 									return (
 										<div
 											key={protocol.value.raw.sid}
@@ -495,8 +499,8 @@ export function AMIEditor(): JSX.Element {
 												isSelected
 													? "border-amber-400 bg-amber-400/10 shadow-lg shadow-amber-400/20"
 													: isNewlyCreated
-														? "border-green-400 bg-green-400/10 shadow-lg shadow-green-400/20 animate-pulse"
-														: "border-zinc-700 bg-zinc-800/50 hover:border-zinc-600 hover:bg-zinc-800"
+													? "border-green-400 bg-green-400/10 shadow-lg shadow-green-400/20 animate-pulse"
+													: "border-zinc-700 bg-zinc-800/50 hover:border-zinc-600 hover:bg-zinc-800"
 											}`}
 										>
 											{/* Header */}
@@ -519,8 +523,7 @@ export function AMIEditor(): JSX.Element {
 															/>
 														</div>
 														{protocol.value.raw.active && (
-															<div
-																className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse border-2 border-zinc-800"/>
+															<div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse border-2 border-zinc-800" />
 														)}
 													</div>
 													<div className="flex-1 min-w-0">
@@ -529,8 +532,8 @@ export function AMIEditor(): JSX.Element {
 																isNewlyCreated
 																	? "text-green-300"
 																	: isSelected
-																		? "text-amber-300"
-																		: "text-zinc-200"
+																	? "text-amber-300"
+																	: "text-zinc-200"
 															}`}
 														>
 															{protocol.value.raw.sid}
@@ -553,7 +556,7 @@ export function AMIEditor(): JSX.Element {
 													{protocol.value.raw.active ? "ACTIVE" : "INACTIVE"}
 												</Badge>
 											</div>
-											
+
 											{/* Note */}
 											{protocol.value.raw.note && (
 												<div className="mb-3 p-2 bg-zinc-900/50 rounded border border-zinc-700/50">
@@ -562,40 +565,40 @@ export function AMIEditor(): JSX.Element {
 													</p>
 												</div>
 											)}
-											
+
 											{/* Metadata */}
 											<div className="grid grid-cols-2 gap-2 text-xs">
 												<div className="flex items-center gap-1">
-													<Network className="w-3 h-3 text-blue-400"/>
+													<Network className="w-3 h-3 text-blue-400" />
 													<span className="text-zinc-400 truncate">
 														{protocol.value.raw.nid}
 													</span>
 												</div>
 												<div className="flex items-center gap-1">
-													<Hash className="w-3 h-3 text-amber-400"/>
+													<Hash className="w-3 h-3 text-amber-400" />
 													<span className="text-amber-400">
 														{protocol.value.raw.version}
 													</span>
 												</div>
 												<div className="flex items-center gap-1">
-													<Layers className="w-3 h-3 text-purple-400"/>
+													<Layers className="w-3 h-3 text-purple-400" />
 													<span className="text-purple-300 truncate">
 														{protocol.value.channel.split(".").pop()}
 													</span>
 												</div>
 												<div className="flex items-center gap-1">
-													<Clock className="w-3 h-3 text-zinc-400"/>
+													<Clock className="w-3 h-3 text-zinc-400" />
 													<span className="text-zinc-400">
 														{getTimeAgo(protocol.value.raw.timestamp)}
 													</span>
 												</div>
 											</div>
-											
+
 											{/* Script Preview */}
 											<div className="mt-3 p-2 bg-zinc-900/50 rounded border border-zinc-700/50">
 												<code className="text-xs text-zinc-400 line-clamp-1">
 													{protocol.value.raw.script.replace(/\s+/g, " ")
-															.trim() ||
+														.trim() ||
 														"// Empty script"}
 												</code>
 											</div>
@@ -604,7 +607,7 @@ export function AMIEditor(): JSX.Element {
 								})}
 							</div>
 						</ScrollArea>
-						
+
 						{/* Footer */}
 						<div className="p-4 border-t border-zinc-800 bg-zinc-900">
 							<div className="flex items-center justify-between text-xs">
@@ -613,13 +616,13 @@ export function AMIEditor(): JSX.Element {
 								</div>
 								<div className="flex items-center gap-3">
 									<div className="flex items-center gap-1">
-										<div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"/>
+										<div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
 										<span className="text-green-400 font-mono">
 											{workers.filter((w) => w.value.raw.active).length}
 										</span>
 									</div>
 									<div className="flex items-center gap-1">
-										<div className="w-2 h-2 bg-red-400 rounded-full"/>
+										<div className="w-2 h-2 bg-red-400 rounded-full" />
 										<span className="text-red-400 font-mono">
 											{workers.filter((w) => !w.value.raw.active).length}
 										</span>
@@ -628,7 +631,7 @@ export function AMIEditor(): JSX.Element {
 							</div>
 						</div>
 					</div>
-					
+
 					{/* Right Panel - Code Editor */}
 					<div className="flex flex-col h-full bg-zinc-900">
 						{selectedWorker
@@ -639,10 +642,9 @@ export function AMIEditor(): JSX.Element {
 										<div className="flex items-center justify-between mb-3">
 											<div className="flex items-center gap-3">
 												<div className="w-10 h-10 bg-zinc-800 rounded-lg flex items-center justify-center relative">
-													<Terminal className="w-5 h-5 text-amber-400"/>
+													<Terminal className="w-5 h-5 text-amber-400" />
 													{selectedWorker.value.raw.active && (
-														<div
-															className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse border-2 border-zinc-900"/>
+														<div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse border-2 border-zinc-900" />
 													)}
 												</div>
 												<div>
@@ -671,7 +673,7 @@ export function AMIEditor(): JSX.Element {
 													</div>
 												</div>
 											</div>
-											
+
 											<Button
 												onClick={handleToggleWorkerStatus}
 												size="sm"
@@ -685,51 +687,51 @@ export function AMIEditor(): JSX.Element {
 												{updating
 													? (
 														<>
-															<Settings className="animate-spin mr-2 w-4 h-4"/>
+															<Settings className="animate-spin mr-2 w-4 h-4" />
 															UPDATING
 														</>
 													)
 													: selectedWorker.value.raw.active
-														? (
-															<>
-																<PowerOff className="w-4 h-4 mr-2"/>
-																STOP
-															</>
-														)
-														: (
-															<>
-																<Play className="w-4 h-4 mr-2"/>
-																START
-															</>
-														)}
+													? (
+														<>
+															<PowerOff className="w-4 h-4 mr-2" />
+															STOP
+														</>
+													)
+													: (
+														<>
+															<Play className="w-4 h-4 mr-2" />
+															START
+														</>
+													)}
 											</Button>
 										</div>
-										
+
 										{/* Metadata */}
 										<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
 											<div className="flex items-center gap-2">
-												<Server className="w-3 h-3 text-blue-400"/>
+												<Server className="w-3 h-3 text-blue-400" />
 												<span className="text-zinc-400">Node:</span>
 												<span className="text-blue-300 font-mono">
 													{selectedWorker.value.raw.nid}
 												</span>
 											</div>
 											<div className="flex items-center gap-2">
-												<Network className="w-3 h-3 text-purple-400"/>
+												<Network className="w-3 h-3 text-purple-400" />
 												<span className="text-zinc-400">Channel:</span>
 												<span className="text-purple-300 font-mono truncate">
 													{selectedWorker.value.channel}
 												</span>
 											</div>
 											<div className="flex items-center gap-2">
-												<Calendar className="w-3 h-3 text-amber-400"/>
+												<Calendar className="w-3 h-3 text-amber-400" />
 												<span className="text-zinc-400">Modified:</span>
 												<span className="text-amber-400 font-mono">
 													{formatTimestamp(selectedWorker.value.raw.timestamp)}
 												</span>
 											</div>
 											<div className="flex items-center gap-2">
-												<HardDrive className="w-3 h-3 text-zinc-400"/>
+												<HardDrive className="w-3 h-3 text-zinc-400" />
 												<span className="text-zinc-400">Size:</span>
 												<span className="text-zinc-300 font-mono">
 													{selectedWorker.value.raw.script.length} chars
@@ -737,12 +739,12 @@ export function AMIEditor(): JSX.Element {
 											</div>
 										</div>
 									</div>
-									
+
 									{/* Notes Section */}
 									<div className="bg-zinc-900 border-b border-zinc-800 p-4">
 										<div className="flex items-center justify-between mb-3">
 											<div className="flex items-center gap-2">
-												<FileText className="w-4 h-4 text-blue-400"/>
+												<FileText className="w-4 h-4 text-blue-400" />
 												<span className="text-blue-300 font-mono text-sm font-bold">
 													NOTES
 												</span>
@@ -755,7 +757,7 @@ export function AMIEditor(): JSX.Element {
 														size="sm"
 														className="text-xs text-zinc-400 hover:text-zinc-200"
 													>
-														<RotateCcw className="w-3 h-3 mr-1"/>
+														<RotateCcw className="w-3 h-3 mr-1" />
 														Reset
 													</Button>
 													<Button
@@ -765,7 +767,7 @@ export function AMIEditor(): JSX.Element {
 														className="text-xs border-blue-400 bg-blue-400/10 text-blue-400 hover:bg-blue-400/20"
 														disabled={updating}
 													>
-														<Save className="w-3 h-3 mr-1"/>
+														<Save className="w-3 h-3 mr-1" />
 														Save
 													</Button>
 												</div>
@@ -778,20 +780,19 @@ export function AMIEditor(): JSX.Element {
 											className="bg-zinc-800 border-zinc-700 text-zinc-300 placeholder-zinc-500 text-sm resize-none h-20 focus:border-blue-400 focus:ring-blue-400/20"
 										/>
 									</div>
-									
+
 									{/* Unsaved Changes Warning */}
 									{(isEditing || isEditingNote) && (
-										<div
-											className="bg-amber-400/10 border-b border-amber-400/20 text-amber-400 px-4 py-3 flex justify-between items-center">
+										<div className="bg-amber-400/10 border-b border-amber-400/20 text-amber-400 px-4 py-3 flex justify-between items-center">
 											<div className="flex items-center gap-2">
-												<Activity className="w-4 h-4 animate-pulse"/>
+												<Activity className="w-4 h-4 animate-pulse" />
 												<span className="font-mono text-sm font-bold">
 													UNSAVED CHANGES
 													{isEditing && isEditingNote
 														? " (SCRIPT & NOTES)"
 														: isEditing
-															? " (SCRIPT)"
-															: " (NOTES)"}
+														? " (SCRIPT)"
+														: " (NOTES)"}
 												</span>
 											</div>
 											<div className="flex gap-2">
@@ -804,7 +805,7 @@ export function AMIEditor(): JSX.Element {
 													size="sm"
 													className="text-amber-400 hover:text-amber-300 hover:bg-amber-400/10"
 												>
-													<RotateCcw className="w-3 h-3 mr-1"/>
+													<RotateCcw className="w-3 h-3 mr-1" />
 													Revert
 												</Button>
 												<Button
@@ -814,13 +815,13 @@ export function AMIEditor(): JSX.Element {
 													className="border-amber-400 bg-amber-400/10 text-amber-400 hover:bg-amber-400/20"
 													disabled={updating}
 												>
-													<Check className="w-3 h-3 mr-1"/>
+													<Check className="w-3 h-3 mr-1" />
 													Save All
 												</Button>
 											</div>
 										</div>
 									)}
-									
+
 									{/* Code Editor */}
 									<div className="flex-1 overflow-hidden">
 										<EditorComponent
@@ -835,7 +836,7 @@ export function AMIEditor(): JSX.Element {
 								<div className="h-full flex items-center justify-center">
 									<div className="text-center max-w-md">
 										<div className="w-20 h-20 bg-zinc-800 rounded-xl flex items-center justify-center mb-6 mx-auto">
-											<Code className="w-10 h-10 text-amber-400"/>
+											<Code className="w-10 h-10 text-amber-400" />
 										</div>
 										<h3 className="text-amber-400 font-mono text-xl font-bold mb-2">
 											CODE EDITOR
@@ -845,7 +846,7 @@ export function AMIEditor(): JSX.Element {
 										</p>
 										<div className="px-4 py-2 bg-zinc-800 rounded-lg inline-block">
 											<div className="text-xs text-zinc-500 font-mono flex items-center gap-2">
-												<Terminal className="w-3 h-3"/>
+												<Terminal className="w-3 h-3" />
 												Ready for development
 											</div>
 										</div>
@@ -854,16 +855,15 @@ export function AMIEditor(): JSX.Element {
 							)}
 					</div>
 				</Split>
-				
+
 				{/* Worker Creation Modal */}
 				{creatingWorker && (
 					<div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
 						<div className="bg-zinc-900 border border-zinc-700 rounded-xl p-8 max-w-md mx-4 shadow-2xl">
 							<div className="text-center">
-								<div
-									className="w-16 h-16 bg-zinc-800 rounded-xl flex items-center justify-center mb-6 mx-auto relative">
-									<Zap className="w-8 h-8 text-amber-400"/>
-									<div className="absolute inset-0 rounded-xl border-2 border-amber-400/30 animate-ping"/>
+								<div className="w-16 h-16 bg-zinc-800 rounded-xl flex items-center justify-center mb-6 mx-auto relative">
+									<Zap className="w-8 h-8 text-amber-400" />
+									<div className="absolute inset-0 rounded-xl border-2 border-amber-400/30 animate-ping" />
 								</div>
 								<h3 className="text-amber-400 font-mono text-xl font-bold mb-2">
 									CREATING PROTOCOL
@@ -872,7 +872,7 @@ export function AMIEditor(): JSX.Element {
 									Initializing new execution instance...
 								</p>
 								<div className="bg-zinc-800 rounded-full h-2 overflow-hidden">
-									<div className="bg-amber-400 h-full animate-pulse"/>
+									<div className="bg-amber-400 h-full animate-pulse" />
 								</div>
 							</div>
 						</div>
@@ -885,24 +885,24 @@ export function AMIEditor(): JSX.Element {
 				<div className="text-center max-w-md mx-auto p-8">
 					<div className="w-24 h-24 flex items-center justify-center mb-8 mx-auto relative">
 						<div className="w-16 h-16 rounded-xl flex items-center justify-center">
-							<Graphite size={6} primary="gray"/>
+							<Graphite size={6} primary="gray" />
 						</div>
-						<div className="absolute inset-0"/>
+						<div className="absolute inset-0" />
 					</div>
-					
+
 					<h2 className="text-amber-400 font-mono text-2xl font-bold mb-3">
 						WALLET REQUIRED
 					</h2>
-					
+
 					<p className="text-zinc-400 text-sm mb-8 leading-relaxed">
 						Connect your wallet to access the protocol registry and code editor
 					</p>
-					
+
 					<div className="space-y-4">
 						<div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
 							<div className="flex items-center gap-3 mb-3">
 								<div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center">
-									<Database className="w-4 h-4 text-blue-400"/>
+									<Database className="w-4 h-4 text-blue-400" />
 								</div>
 								<span className="text-zinc-300 font-mono text-sm font-bold">
 									PROTOCOL REGISTRY
@@ -912,11 +912,11 @@ export function AMIEditor(): JSX.Element {
 								Manage distributed execution protocols
 							</p>
 						</div>
-						
+
 						<div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
 							<div className="flex items-center gap-3 mb-3">
 								<div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center">
-									<Code className="w-4 h-4 text-green-400"/>
+									<Code className="w-4 h-4 text-green-400" />
 								</div>
 								<span className="text-zinc-300 font-mono text-sm font-bold">
 									CODE EDITOR
@@ -927,18 +927,18 @@ export function AMIEditor(): JSX.Element {
 							</p>
 						</div>
 					</div>
-					
+
 					<Button
 						onClick={() => setRoute("wallet")}
 						className="mt-8 bg-amber-500 hover:bg-amber-600 text-black font-mono text-sm font-bold px-8 py-3 rounded-lg shadow-lg shadow-amber-400/20 transition-all duration-200 hover:shadow-amber-400/30"
 					>
-						<Zap className="w-4 h-4 mr-2"/>
+						<Zap className="w-4 h-4 mr-2" />
 						CONNECT WALLET
 					</Button>
-					
+
 					<div className="mt-6 px-4 py-2 bg-zinc-800/50 rounded-lg inline-block">
 						<div className="text-xs text-zinc-500 font-mono flex items-center gap-2">
-							<Server className="w-3 h-3"/>
+							<Server className="w-3 h-3" />
 							Secure Web3 connection required
 						</div>
 					</div>
