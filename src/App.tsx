@@ -183,6 +183,15 @@ export default function Dashboard(): React.ReactElement {
 		);
 	}
 
+	// If we have auth-store but no session, user needs to reconnect
+	if (authStoreData && !hasValidSession) {
+		console.log(
+			"[App] Found auth-store but no valid session, redirecting to connection flow",
+		);
+		console.log("[App] User needs to reconnect for new session");
+		return <ProfessionalConnectionFlow />;
+	}
+
 	// Show authentication flow if user is not authenticated
 	if (!isAuthenticated || !isConnected) {
 		console.log("[App] Not authenticated or not connected, showing auth flow");

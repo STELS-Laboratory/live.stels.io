@@ -37,7 +37,7 @@ interface WebfixPayload {
 }
 
 const initialAccountState: AccountRequest = {
-	nid: "nid-1234567890",
+	nid: "heterogen",
 	connection: true,
 	exchange: "binance",
 	note: "My primary trading account.",
