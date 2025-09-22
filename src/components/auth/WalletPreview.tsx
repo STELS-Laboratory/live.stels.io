@@ -2,14 +2,12 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertCircle,
   CheckCircle,
   Copy,
   Eye,
   EyeOff,
-  Network,
   RotateCcw,
   Wallet,
 } from "lucide-react";

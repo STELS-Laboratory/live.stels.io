@@ -13,7 +13,6 @@ import {
   Wifi,
 } from "lucide-react";
 import { type NetworkConfig, useAuthStore } from "@/stores/modules/auth.store";
-import { WalletPreview } from "./WalletPreview";
 import { NetworkSelectorCompact } from "./NetworkSelectorCompact";
 
 interface NetworkSetupProps {
@@ -62,11 +61,6 @@ export function NetworkSetup(
 
   return (
     <div className="space-y-8 animate-fade-in-up">
-      {/* Wallet Preview Section */}
-      <div className="transform transition-all duration-500">
-        <WalletPreview />
-      </div>
-
       {/* Network Setup Card */}
       <Card className="w-full max-w-2xl mx-auto backdrop-blur-sm bg-zinc-900/80 border-zinc-700/50 shadow-2xl">
         <CardHeader className="text-center pb-6">
