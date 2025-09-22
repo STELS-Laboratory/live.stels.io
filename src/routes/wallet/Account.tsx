@@ -1,43 +1,15 @@
-import { useEffect, useState } from "react";
-import type {
-	AccountRequest,
-	ProtocolData,
-	SignedAccountRequest,
-} from "@/lib/api-types";
-import {
-	createWallet,
-	deterministicStringify,
-	importWallet,
-	sign,
-	type Wallet,
-} from "@/lib/gliesereum";
-import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import {
-	Accordion,
-	AccordionContent,
-	AccordionItem,
-	AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {useEffect, useState} from "react";
+import type {AccountRequest, ProtocolData, SignedAccountRequest,} from "@/lib/api-types";
+import {createWallet, deterministicStringify, importWallet, sign, type Wallet,} from "@/lib/gliesereum";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
+import {Textarea} from "@/components/ui/textarea";
+import {Accordion, AccordionContent, AccordionItem, AccordionTrigger,} from "@/components/ui/accordion";
+import {Checkbox} from "@/components/ui/checkbox";
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
 import {
 	Dialog,
 	DialogContent,
@@ -135,24 +107,24 @@ export default function GliesereumWallet(): React.ReactElement {
 	const [isNewWallet, setIsNewWallet] = useState(false);
 	const [privateKeyInput, setPrivateKeyInput] = useState("");
 	const [importError, setImportError] = useState<string | null>(null);
-
+	
 	const [account, setAccount] = useState<AccountRequest>(initialAccountState);
 	const [protocol, setProtocol] = useState<ProtocolData>(initialProtocolState);
 	const [viewersStr, setViewersStr] = useState("");
-
+	
 	const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 	const [payloadToSign, setPayloadToSign] = useState<WebfixPayload | null>(
 		null,
 	);
 	const [finalResult, setFinalResult] = useState<WebfixPayload | null>(null);
-
+	
 	useEffect(() => {
 		const walletStorage = localStorage.getItem("_g");
 		if (walletStorage) {
 			setWallet(JSON.parse(walletStorage));
 		}
 	}, []);
-
+	
 	const handleCreateWallet = () => {
 		const newWallet = createWallet();
 		setWallet(newWallet);
@@ -160,7 +132,7 @@ export default function GliesereumWallet(): React.ReactElement {
 		setIsNewWallet(true);
 		setImportError(null);
 	};
-
+	
 	const handleImportWallet = () => {
 		try {
 			const importedWallet = importWallet(privateKeyInput);
@@ -174,14 +146,14 @@ export default function GliesereumWallet(): React.ReactElement {
 				: "Unknown error occurred";
 			setImportError(
 				errorMessage ||
-					"Failed to import wallet. Please check the private key.",
+				"Failed to import wallet. Please check the private key.",
 			);
 		}
 	};
-
+	
 	const handleSaveKey = () => {
 		if (!wallet) return;
-		const blob = new Blob([wallet.privateKey], { type: "text/plain" });
+		const blob = new Blob([wallet.privateKey], {type: "text/plain"});
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement("a");
 		a.href = url;
@@ -191,16 +163,16 @@ export default function GliesereumWallet(): React.ReactElement {
 		document.body.removeChild(a);
 		URL.revokeObjectURL(url);
 	};
-
+	
 	const handleReview = () => {
 		if (!wallet) return;
-
+		
 		const accountRequestData: AccountRequest = {
 			...account,
 			viewers: parseStringToArray(viewersStr),
 			protocol: protocol,
 		};
-
+		
 		// Create payload with placeholders for signing
 		const unsignedBody: SignedAccountRequest = {
 			account: accountRequestData,
@@ -208,40 +180,40 @@ export default function GliesereumWallet(): React.ReactElement {
 			address: wallet.address,
 			signature: "[SIGNATURE_WILL_BE_GENERATED_AFTER_CONFIRMATION]",
 		};
-
+		
 		const unsignedPayload: WebfixPayload = {
 			webfix: "1.0",
 			method: "setAccount",
 			params: ["gliesereum"],
 			body: unsignedBody,
 		};
-
+		
 		setPayloadToSign(unsignedPayload);
 		setIsConfirmModalOpen(true);
 	};
-
+	
 	const handleConfirmAndSign = () => {
 		if (!wallet || !payloadToSign) return;
-
+		
 		const accountToSign = payloadToSign.body.account;
 		const dataString = deterministicStringify(accountToSign);
 		const signature = sign(dataString, wallet.privateKey);
-
+		
 		const signedBody: SignedAccountRequest = {
 			...payloadToSign.body,
 			signature: signature,
 		};
-
+		
 		const finalSignedPayload: WebfixPayload = {
 			...payloadToSign,
 			body: signedBody,
 		};
-
+		
 		setFinalResult(finalSignedPayload);
 		setIsConfirmModalOpen(false);
 		setStep(4);
 	};
-
+	
 	const startOver = () => {
 		setStep(1);
 		//setWallet(null)
@@ -254,7 +226,7 @@ export default function GliesereumWallet(): React.ReactElement {
 		setPayloadToSign(null);
 		setFinalResult(null);
 	};
-
+	
 	return (
 		<div className="container mx-auto p-4 space-y-6">
 			{step === 1 && (
@@ -274,11 +246,11 @@ export default function GliesereumWallet(): React.ReactElement {
 										className="w-full"
 										size="lg"
 									>
-										<WalletCards className="mr-2 h-5 w-5" /> Create New Wallet
+										<WalletCards className="mr-2 h-5 w-5"/> Create New Wallet
 									</Button>
 									<div className="relative">
 										<div className="absolute inset-0 flex items-center">
-											<span className="w-full border-t" />
+											<span className="w-full border-t"/>
 										</div>
 										<div className="relative flex justify-center text-xs uppercase">
 											<span className="bg-card px-2 text-muted-foreground">
@@ -297,7 +269,7 @@ export default function GliesereumWallet(): React.ReactElement {
 												onChange={(e) => setPrivateKeyInput(e.target.value)}
 											/>
 											<Button onClick={handleImportWallet} variant="secondary">
-												<KeyRound className="mr-2 h-4 w-4" /> Import
+												<KeyRound className="mr-2 h-4 w-4"/> Import
 											</Button>
 										</div>
 										{importError && (
@@ -314,7 +286,7 @@ export default function GliesereumWallet(): React.ReactElement {
 										variant="default"
 										className="bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800"
 									>
-										<CheckCircle2 className="h-4 w-4 text-green-600" />
+										<CheckCircle2 className="h-4 w-4 text-green-600"/>
 										<AlertTitle className="text-green-800 dark:text-green-300">
 											Wallet Ready
 										</AlertTitle>
@@ -325,7 +297,7 @@ export default function GliesereumWallet(): React.ReactElement {
 									{isNewWallet && (
 										<>
 											<Alert variant="destructive">
-												<AlertTriangle className="h-4 w-4" />
+												<AlertTriangle className="h-4 w-4"/>
 												<AlertTitle>
 													Action Required: Secure Your Private Key
 												</AlertTitle>
@@ -336,7 +308,7 @@ export default function GliesereumWallet(): React.ReactElement {
 												</AlertDescription>
 											</Alert>
 											<Button onClick={handleSaveKey} className="w-full">
-												<Download className="mr-2 h-4 w-4" /> Save Private Key
+												<Download className="mr-2 h-4 w-4"/> Save Private Key
 											</Button>
 										</>
 									)}
@@ -345,12 +317,12 @@ export default function GliesereumWallet(): React.ReactElement {
 					</CardContent>
 					<CardFooter className="flex justify-end">
 						<Button onClick={() => setStep(2)} disabled={!wallet}>
-							Next <ArrowRight className="ml-2 h-4 w-4" />
+							Next <ArrowRight className="ml-2 h-4 w-4"/>
 						</Button>
 					</CardFooter>
 				</Card>
 			)}
-
+			
 			{step === 2 && (
 				<Card>
 					<CardHeader>
@@ -367,7 +339,7 @@ export default function GliesereumWallet(): React.ReactElement {
 								name="nid"
 								value={account.nid}
 								onChange={(e) =>
-									setAccount((p) => ({ ...p, nid: e.target.value }))}
+									setAccount((p) => ({...p, nid: e.target.value}))}
 								required
 							/>
 						</div>
@@ -377,10 +349,10 @@ export default function GliesereumWallet(): React.ReactElement {
 								name="exchange"
 								value={account.exchange}
 								onValueChange={(value) =>
-									setAccount((p) => ({ ...p, exchange: value }))}
+									setAccount((p) => ({...p, exchange: value}))}
 							>
 								<SelectTrigger id="exchange">
-									<SelectValue placeholder="Select exchange" />
+									<SelectValue placeholder="Select exchange"/>
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem value="binance">Binance</SelectItem>
@@ -398,7 +370,7 @@ export default function GliesereumWallet(): React.ReactElement {
 								type="password"
 								value={account.apiKey}
 								onChange={(e) =>
-									setAccount((p) => ({ ...p, apiKey: e.target.value }))}
+									setAccount((p) => ({...p, apiKey: e.target.value}))}
 								required
 							/>
 						</div>
@@ -410,7 +382,7 @@ export default function GliesereumWallet(): React.ReactElement {
 								type="password"
 								value={account.secret}
 								onChange={(e) =>
-									setAccount((p) => ({ ...p, secret: e.target.value }))}
+									setAccount((p) => ({...p, secret: e.target.value}))}
 								required
 							/>
 						</div>
@@ -422,7 +394,7 @@ export default function GliesereumWallet(): React.ReactElement {
 								type="password"
 								value={account.password || ""}
 								onChange={(e) =>
-									setAccount((p) => ({ ...p, password: e.target.value }))}
+									setAccount((p) => ({...p, password: e.target.value}))}
 							/>
 						</div>
 						<div className="space-y-2">
@@ -431,10 +403,10 @@ export default function GliesereumWallet(): React.ReactElement {
 								name="status"
 								value={account.status}
 								onValueChange={(value: "active" | "learn" | "stopped") =>
-									setAccount((p) => ({ ...p, status: value }))}
+									setAccount((p) => ({...p, status: value}))}
 							>
 								<SelectTrigger id="status">
-									<SelectValue placeholder="Select status" />
+									<SelectValue placeholder="Select status"/>
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem value="active">Active</SelectItem>
@@ -450,7 +422,7 @@ export default function GliesereumWallet(): React.ReactElement {
 								name="note"
 								value={account.note}
 								onChange={(e) =>
-									setAccount((p) => ({ ...p, note: e.target.value }))}
+									setAccount((p) => ({...p, note: e.target.value}))}
 							/>
 						</div>
 						<div className="space-y-2 md:col-span-2">
@@ -468,15 +440,15 @@ export default function GliesereumWallet(): React.ReactElement {
 					</CardContent>
 					<CardFooter className="flex justify-between">
 						<Button variant="outline" onClick={() => setStep(1)}>
-							<ArrowLeft className="mr-2 h-4 w-4" /> Back
+							<ArrowLeft className="mr-2 h-4 w-4"/> Back
 						</Button>
 						<Button onClick={() => setStep(3)}>
-							Next <ArrowRight className="ml-2 h-4 w-4" />
+							Next <ArrowRight className="ml-2 h-4 w-4"/>
 						</Button>
 					</CardFooter>
 				</Card>
 			)}
-
+			
 			{step === 3 && (
 				<Card>
 					<CardHeader>
@@ -492,7 +464,7 @@ export default function GliesereumWallet(): React.ReactElement {
 								variant="outline"
 								onClick={() => setProtocol(annaAriadnaStrategy)}
 							>
-								<Sparkles className="mr-2 h-4 w-4 text-yellow-500" />
+								<Sparkles className="mr-2 h-4 w-4 text-yellow-500"/>
 								Load 'Anna Ariadna' Strategy
 							</Button>
 						</div>
@@ -572,13 +544,13 @@ export default function GliesereumWallet(): React.ReactElement {
 					</CardContent>
 					<CardFooter className="flex justify-between">
 						<Button variant="outline" onClick={() => setStep(2)}>
-							<ArrowLeft className="mr-2 h-4 w-4" /> Back
+							<ArrowLeft className="mr-2 h-4 w-4"/> Back
 						</Button>
 						<Button onClick={handleReview}>Review & Sign</Button>
 					</CardFooter>
 				</Card>
 			)}
-
+			
 			{step === 4 && finalResult && (
 				<Card>
 					<CardHeader>
@@ -597,7 +569,7 @@ export default function GliesereumWallet(): React.ReactElement {
 					</CardFooter>
 				</Card>
 			)}
-
+			
 			<Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
 				<DialogContent className="max-w-3xl">
 					<DialogHeader>

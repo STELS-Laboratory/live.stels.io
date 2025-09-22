@@ -1,15 +1,10 @@
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
 import Loader from "@/components/ui/loader.tsx";
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card.tsx";
-import { Badge } from "@/components/ui/badge.tsx";
-import { Separator } from "@/components/ui/separator.tsx";
-import { ArrowDownIcon, ArrowUpIcon, MinusIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import {Card, CardContent, CardHeader, CardTitle,} from "@/components/ui/card.tsx";
+import {Badge} from "@/components/ui/badge.tsx";
+import {Separator} from "@/components/ui/separator.tsx";
+import {ArrowDownIcon, ArrowUpIcon, MinusIcon} from "lucide-react";
+import {useMemo, useState} from "react";
 
 interface AssetData {
 	symbol: string;
@@ -46,35 +41,35 @@ interface PortfolioMetrics {
 function SonarPortfolio() {
 	const session = useSessionStoreSync() as any;
 	const [selectedAsset, setSelectedAsset] = useState<string | null>(null);
-
+	
 	if (
 		!session || !session["testnet.snapshot.sonar"] ||
 		!session["testnet.runtime.sonar"]
 	) {
 		return <Loader>Scanning connection Testnet</Loader>;
 	}
-
+	
 	const ASSET_PRICES: Record<string, number> = useMemo(() => {
 		const prices: Record<string, number> = {
 			USDT: 1, // Stablecoin always 1:1
 		};
-
+		
 		// Major cryptocurrencies with real-time prices
 		const majorPairs = [
-			{ symbol: "BTC", pair: "BTC/USDT:USDT" },
-			{ symbol: "ETH", pair: "ETH/USDT:USDT" },
-			{ symbol: "SOL", pair: "SOL/USDT:USDT" },
-			{ symbol: "BNB", pair: "BNB/USDT:USDT" },
-			{ symbol: "TRX", pair: "TRX/USDT:USDT" },
-			{ symbol: "JASMY", pair: "JASMY/USDT:USDT" },
+			{symbol: "BTC", pair: "BTC/USDT:USDT"},
+			{symbol: "ETH", pair: "ETH/USDT:USDT"},
+			{symbol: "SOL", pair: "SOL/USDT:USDT"},
+			{symbol: "BNB", pair: "BNB/USDT:USDT"},
+			{symbol: "TRX", pair: "TRX/USDT:USDT"},
+			{symbol: "JASMY", pair: "JASMY/USDT:USDT"},
 		];
-
-		majorPairs.forEach(({ symbol, pair }) => {
+		
+		majorPairs.forEach(({symbol, pair}) => {
 			try {
 				const tickerKey =
 					`testnet.runtime.connector.exchange.crypto.bybit.futures.${pair}.ticker`;
 				const tickerData = session[tickerKey];
-
+				
 				if (tickerData?.raw?.last) {
 					prices[symbol] = tickerData.raw.last;
 				} else {
@@ -89,26 +84,26 @@ function SonarPortfolio() {
 				prices[symbol] = fallbackPrices[symbol] || 1;
 			}
 		});
-
+		
 		// Minor tokens with estimated prices (could be fetched from other sources)
 		const minorTokens: Record<string, number> = {};
-
+		
 		// Add minor tokens, using fallback if not in session
 		Object.entries(minorTokens).forEach(([symbol, fallbackPrice]) => {
 			prices[symbol] = fallbackPrice;
 		});
-
+		
 		return prices;
 	}, [session]);
-
+	
 	const snapshot = session["testnet.snapshot.sonar"];
 	const runtime = session["testnet.runtime.sonar"];
-
+	
 	// Process assets with accurate value calculations
 	const allAssets: AssetData[] = useMemo(() => {
 		const snapshotCoins = snapshot.raw.coins;
 		const runtimeCoins = runtime.raw.coins;
-
+		
 		return Object.keys(runtimeCoins).map((symbol) => {
 			const currentAmount = runtimeCoins[symbol];
 			const previousAmount = snapshotCoins[symbol] || 0;
@@ -116,21 +111,21 @@ function SonarPortfolio() {
 			const changePercent = previousAmount > 0
 				? (change / previousAmount) * 100
 				: 0;
-
+			
 			// Get asset price and determine source
 			const price = ASSET_PRICES[symbol] || 1;
 			const majorPairs = ["BTC", "ETH", "SOL", "BNB", "TON"];
 			const priceSource: "realtime" | "fallback" =
 				majorPairs.includes(symbol) &&
-					session[
-						`testnet.runtime.connector.exchange.crypto.bybit.futures.${symbol}/USDT:USDT.ticker`
+				session[
+					`testnet.runtime.connector.exchange.crypto.bybit.futures.${symbol}/USDT:USDT.ticker`
 					]?.raw?.last
 					? "realtime"
 					: "fallback";
-
+			
 			const value = currentAmount * price;
 			const changeValue = change * price;
-
+			
 			return {
 				symbol,
 				amount: currentAmount,
@@ -143,13 +138,13 @@ function SonarPortfolio() {
 			};
 		}).filter((asset) => asset.amount > 0).sort((a, b) => b.value - a.value);
 	}, [snapshot, runtime, ASSET_PRICES, session]);
-
+	
 	// Filter assets by liquidity threshold
 	const assets = useMemo(() => {
 		const minLiquidityThreshold = 2000; // $100 minimum
 		return allAssets.filter((asset) => asset.value >= minLiquidityThreshold);
 	}, [allAssets]);
-
+	
 	// Calculate portfolio metrics with accurate totals
 	const metrics: PortfolioMetrics = useMemo(() => {
 		const totalPortfolioValue = assets.reduce(
@@ -163,12 +158,12 @@ function SonarPortfolio() {
 		const totalChangePercent = totalPortfolioValue > 0
 			? (totalChange / (totalPortfolioValue - totalChange)) * 100
 			: 0;
-
+		
 		const realtimeCount = assets.filter((asset) =>
 			asset.priceSource === "realtime"
 		).length;
 		const totalCount = assets.length;
-
+		
 		return {
 			totalLiquidity: runtime.raw.liquidity,
 			available: runtime.raw.available,
@@ -190,7 +185,7 @@ function SonarPortfolio() {
 			},
 		};
 	}, [assets, allAssets, runtime]);
-
+	
 	// Generate pie chart data
 	const pieData = useMemo(() =>
 		assets.map((asset) => ({
@@ -198,13 +193,13 @@ function SonarPortfolio() {
 			value: asset.value,
 			percentage: (asset.value / metrics.totalPortfolioValue) * 100,
 		})), [assets, metrics.totalPortfolioValue]);
-
+	
 	const formatNumber = (num: number, decimals: number = 2): string => {
 		if (num === 0) return "0";
 		if (Math.abs(num) < 0.000001) return num.toExponential(2);
 		return num.toFixed(decimals);
 	};
-
+	
 	const formatCurrency = (num: number): string => {
 		return new Intl.NumberFormat("en-US", {
 			style: "currency",
@@ -213,7 +208,7 @@ function SonarPortfolio() {
 			maximumFractionDigits: 2,
 		}).format(num);
 	};
-
+	
 	const formatAssetAmount = (symbol: string, amount: number): string => {
 		// Different formatting for different asset types
 		if (symbol === "USDT") {
@@ -227,19 +222,19 @@ function SonarPortfolio() {
 		}
 		return `${formatNumber(amount, 2)} ${symbol}`;
 	};
-
+	
 	const getChangeIcon = (change: number) => {
-		if (change > 0) return <ArrowUpIcon className="w-4 h-4 text-green-500" />;
-		if (change < 0) return <ArrowDownIcon className="w-4 h-4 text-red-500" />;
-		return <MinusIcon className="w-4 h-4 text-gray-500" />;
+		if (change > 0) return <ArrowUpIcon className="w-4 h-4 text-green-500"/>;
+		if (change < 0) return <ArrowDownIcon className="w-4 h-4 text-red-500"/>;
+		return <MinusIcon className="w-4 h-4 text-gray-500"/>;
 	};
-
+	
 	const getChangeColor = (change: number) => {
 		if (change > 0) return "text-green-500";
 		if (change < 0) return "text-red-500";
 		return "text-gray-500";
 	};
-
+	
 	return (
 		<div className="w-[1044px] h-[907px] overflow-y-scroll space-y-5 p-4 bg-zinc-950">
 			{/* Header */}
@@ -253,9 +248,9 @@ function SonarPortfolio() {
 					</p>
 					<p className="text-xs text-zinc-500 mt-1">
 						Showing assets with liquidity ≥ ${metrics.filteredStats
-							.minLiquidityThreshold}
+						.minLiquidityThreshold}
 						({metrics.filteredStats.displayedCount}/{metrics.filteredStats
-							.totalAssetsCount} assets)
+						.totalAssetsCount} assets)
 					</p>
 				</div>
 				<div className="flex items-center space-x-2">
@@ -269,7 +264,7 @@ function SonarPortfolio() {
 						variant="outline"
 						className={`${
 							metrics.priceStatus.realtimeCount ===
-									metrics.priceStatus.totalCount
+							metrics.priceStatus.totalCount
 								? "bg-green-500/10 text-green-500 border-green-500/20"
 								: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
 						}`}
@@ -280,7 +275,7 @@ function SonarPortfolio() {
 					</Badge>
 				</div>
 			</div>
-
+			
 			{/* Key Metrics */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
 				<Card className="bg-zinc-900/50 border-zinc-800">
@@ -319,7 +314,7 @@ function SonarPortfolio() {
 						</div>
 					</CardContent>
 				</Card>
-
+				
 				<Card className="bg-zinc-900/50 border-zinc-800">
 					<CardContent className="p-4">
 						<div className="flex items-center justify-between">
@@ -335,7 +330,7 @@ function SonarPortfolio() {
 						</div>
 					</CardContent>
 				</Card>
-
+				
 				<Card className="bg-zinc-900/50 border-zinc-800">
 					<CardContent className="p-4">
 						<div className="flex items-center justify-between">
@@ -351,7 +346,7 @@ function SonarPortfolio() {
 						</div>
 					</CardContent>
 				</Card>
-
+				
 				<Card className="bg-zinc-900/50 border-zinc-800">
 					<CardContent className="p-4">
 						<div className="flex items-center justify-between">
@@ -368,7 +363,7 @@ function SonarPortfolio() {
 					</CardContent>
 				</Card>
 			</div>
-
+			
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
 				{/* Pie Chart */}
 				<Card className="lg:col-span-1 bg-zinc-900/50 border-zinc-800">
@@ -408,7 +403,7 @@ function SonarPortfolio() {
 							))}
 							{pieData.length > 8 && (
 								<div className="pt-2">
-									<Separator className="bg-zinc-800" />
+									<Separator className="bg-zinc-800"/>
 									<p className="text-xs text-zinc-500 mt-2">
 										+{pieData.length - 8} more assets
 									</p>
@@ -417,7 +412,7 @@ function SonarPortfolio() {
 						</div>
 					</CardContent>
 				</Card>
-
+				
 				{/* Asset List */}
 				<Card className="lg:col-span-2 bg-zinc-900/50 border-zinc-800">
 					<CardHeader>
@@ -471,7 +466,7 @@ function SonarPortfolio() {
 												)}
 											</div>
 										</div>
-
+										
 										<div className="text-right">
 											<p className="font-medium text-zinc-100">
 												{formatCurrency(asset.value)}
@@ -507,7 +502,7 @@ function SonarPortfolio() {
 					</CardContent>
 				</Card>
 			</div>
-
+			
 			{/* Summary */}
 			<Card className="bg-zinc-900/50 border-zinc-800">
 				<CardContent className="p-6">

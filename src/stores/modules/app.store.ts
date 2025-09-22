@@ -1,6 +1,6 @@
-import { create } from 'zustand'
-import { devtools, persist } from 'zustand/middleware'
-import { generateDataHash } from '@/lib/utils'
+import {create} from 'zustand'
+import {devtools, persist} from 'zustand/middleware'
+import {generateDataHash} from '@/lib/utils'
 
 /**
  * Network connection interface extending Navigator
@@ -76,10 +76,10 @@ export interface AppState extends NetworkStatus, SyncState, SyncActions {
 	allowedRoutes: string[]
 	currentRoute: string
 	setRoute: (route: string) => void
-
-  /** Indicates that a route (screen) is being loaded via Suspense/lazy. */
-  routeLoading: boolean
-  setRouteLoading: (value: boolean) => void
+	
+	/** Indicates that a route (screen) is being loaded via Suspense/lazy. */
+	routeLoading: boolean
+	setRouteLoading: (value: boolean) => void
 }
 
 /**
@@ -150,28 +150,28 @@ export const useAppStore = create<AppState>()(
 				
 				return {
 					version: '1.0.5',
-					upgrade: true,
-					setVersion: (v: string) => set({ version: v }),
-					setUpgrade: (value: boolean) => set({ upgrade: value }),
+					upgrade: false,
+					setVersion: (v: string) => set({version: v}),
+					setUpgrade: (value: boolean) => set({upgrade: value}),
 					...initialNetwork,
 					updateStatus: () => set(getNetworkInfo()),
 					
 					allowedRoutes,
 					currentRoute: 'welcome',
 					setRoute: (route: string) => {
-						const { allowedRoutes } = get()
-						console.log('[Store] setRoute called:', { route, allowedRoutes });
+						const {allowedRoutes} = get()
+						console.log('[Store] setRoute called:', {route, allowedRoutes});
 						if (allowedRoutes.includes(route)) {
 							console.log('[Store] Setting route to:', route);
-							set({ currentRoute: route })
+							set({currentRoute: route})
 						} else {
 							console.warn(`[Store] Route "${route}" is not allowed!`)
 						}
 					},
-                  
-                  // Route loading state
-                  routeLoading: false,
-                  setRouteLoading: (value: boolean): void => set({ routeLoading: value }),
+					
+					// Route loading state
+					routeLoading: false,
+					setRouteLoading: (value: boolean): void => set({routeLoading: value}),
 					
 					// Sync state
 					hasUpdates: false,
@@ -185,7 +185,7 @@ export const useAppStore = create<AppState>()(
 					checkForUpdates: async (): Promise<boolean> => {
 						try {
 							const currentHash = getCurrentDataHash()
-							const { remoteDataVersion } = get()
+							const {remoteDataVersion} = get()
 							
 							// If we have a remote version and it differs from local
 							if (remoteDataVersion && remoteDataVersion !== currentHash) {
@@ -200,7 +200,7 @@ export const useAppStore = create<AppState>()(
 							return false
 						} catch (error) {
 							console.error('Error checking for updates:', error)
-							set({ 
+							set({
 								syncError: error instanceof Error ? error.message : 'Unknown error',
 							})
 							return false
@@ -209,13 +209,13 @@ export const useAppStore = create<AppState>()(
 					
 					syncData: async (): Promise<void> => {
 						try {
-							set({ isSyncing: true, syncError: null })
+							set({isSyncing: true, syncError: null})
 							
 							// Simulate sync delay for UX
 							await new Promise(resolve => setTimeout(resolve, 1000))
 							
 							const newDataHash = getCurrentDataHash()
-							const { remoteDataVersion } = get()
+							const {remoteDataVersion} = get()
 							
 							localStorage.clear()
 							
@@ -256,14 +256,14 @@ export const useAppStore = create<AppState>()(
 					},
 					
 					setSyncError: (error: string | null): void => {
-						set({ syncError: error })
+						set({syncError: error})
 					},
-
-
+					
+					
 				}
 			},
 			{
-				name: 'live_app_genesis_04.9'
+				name: 'live_app_genesis_04.8'
 			}
 		)
 	)

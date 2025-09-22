@@ -1,6 +1,6 @@
-import { useEffect, useCallback, useRef } from "react";
-import { useAppStore } from "@/stores";
-import { generateDataHash } from "@/lib/utils";
+import {useCallback, useEffect, useRef} from "react";
+import {useAppStore} from "@/stores";
+import {generateDataHash} from "@/lib/utils";
 
 /**
  * Custom hook for managing data synchronization with WebSocket updates
@@ -17,10 +17,10 @@ export const useDataSync = (): {
 		syncData,
 		markDataAsUpdated,
 	} = useAppStore();
-
+	
 	const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
 	const lastLocalStorageStateRef = useRef<string>("");
-
+	
 	/**
 	 * Generate hash from current localStorage state
 	 */
@@ -48,7 +48,7 @@ export const useDataSync = (): {
 			return Date.now().toString(16);
 		}
 	}, []);
-
+	
 	/**
 	 * Monitor localStorage changes for data updates
 	 */
@@ -63,7 +63,7 @@ export const useDataSync = (): {
 		
 		lastLocalStorageStateRef.current = currentHash;
 	}, [generateLocalStorageHash, markDataAsUpdated]);
-
+	
 	/**
 	 * Start periodic monitoring of localStorage
 	 */
@@ -71,13 +71,13 @@ export const useDataSync = (): {
 		if (syncIntervalRef.current) {
 			clearInterval(syncIntervalRef.current);
 		}
-
+		
 		// Initialize with current state
 		lastLocalStorageStateRef.current = generateLocalStorageHash();
-
+		
 		// Monitor every 10 seconds for localStorage changes (less frequent than sessionStorage)
 	}, []);
-
+	
 	/**
 	 * Stop sync monitoring
 	 */
@@ -94,15 +94,15 @@ export const useDataSync = (): {
 				monitorLocalStorageChanges();
 			}
 		};
-
+		
 		// Listen for localStorage changes from other tabs/windows
 		window.addEventListener("storage", handleStorageChange);
-
+		
 		return (): void => {
 			window.removeEventListener("storage", handleStorageChange);
 		};
 	}, [monitorLocalStorageChanges]);
-
+	
 	/**
 	 * Start/stop monitoring based on online status
 	 */
@@ -112,12 +112,12 @@ export const useDataSync = (): {
 		} else {
 			stopSyncMonitoring();
 		}
-
+		
 		return (): void => {
 			stopSyncMonitoring();
 		};
 	}, [online, startSyncMonitoring, stopSyncMonitoring]);
-
+	
 	/**
 	 * Cleanup on unmount
 	 */
@@ -126,7 +126,7 @@ export const useDataSync = (): {
 			stopSyncMonitoring();
 		};
 	}, [stopSyncMonitoring]);
-
+	
 	return {
 		checkForUpdates,
 		syncData,
@@ -151,7 +151,7 @@ export const useSyncActions = (): {
 		syncData,
 		checkForUpdates,
 	} = useAppStore();
-
+	
 	return {
 		syncData,
 		checkForUpdates,

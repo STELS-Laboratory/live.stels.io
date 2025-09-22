@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Button} from "@/components/ui/button";
 import {
 	ArrowRight,
 	BarChart3,
@@ -12,14 +12,13 @@ import {
 	TrendingUp,
 	Users,
 	Wallet,
-	//Zap,
 } from "lucide-react";
 import React from "react";
-import { UrlRouterDemo } from "@/components/main/UrlRouterDemo";
-import { RouterDebug } from "@/components/main/RouterDebug";
+import {UrlRouterDemo} from "@/components/main/UrlRouterDemo";
+import {RouterDebug} from "@/components/main/RouterDebug";
 import NetworkReport from "@/components/main/NetworkReport";
 import SystemUpdateNotification from "@/components/main/SystemUpdateNotification";
-import { navigateTo } from "@/lib/router";
+import {navigateTo} from "@/lib/router";
 
 /**
  * Welcome dashboard component with professional Web3 trading platform introduction
@@ -29,16 +28,16 @@ function Welcome(): React.ReactElement | null {
 		<>
 			<div className="container m-auto gap-6 space-y-8">
 				{/* System Update Notification */}
-				<SystemUpdateNotification />
-
+				<SystemUpdateNotification/>
+				
 				{/* Network Report */}
-				<NetworkReport />
-
+				<NetworkReport/>
+				
 				{/* What is STELS Section */}
 				<Card className="border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent">
 					<CardHeader className="text-center">
 						<CardTitle className="text-3xl font-bold text-amber-400 flex items-center justify-center">
-							<Globe className="w-8 h-8 mr-3" />
+							<Globe className="w-8 h-8 mr-3"/>
 							What is STELS?
 						</CardTitle>
 					</CardHeader>
@@ -70,12 +69,12 @@ function Welcome(): React.ReactElement | null {
 						</div>
 					</CardContent>
 				</Card>
-
+				
 				{/* Competitive Advantage Section */}
 				<Card className="border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-transparent">
 					<CardHeader className="text-center">
 						<CardTitle className="text-xl font-bold text-blue-400 flex items-center justify-center">
-							<Shield className="w-8 h-8 mr-3" />
+							<Shield className="w-8 h-8 mr-3"/>
 							The Decentralized Alternative to Aladdin
 						</CardTitle>
 					</CardHeader>
@@ -84,7 +83,7 @@ function Welcome(): React.ReactElement | null {
 							<div className="grid md:grid-cols-2 gap-8">
 								<div className="space-y-4">
 									<h3 className="text-xl font-semibold text-blue-400 flex items-center">
-										<Lock className="w-5 h-5 mr-2" />
+										<Lock className="w-5 h-5 mr-2"/>
 										Full Transparency
 									</h3>
 									<p className="text-gray-300">
@@ -96,7 +95,7 @@ function Welcome(): React.ReactElement | null {
 								</div>
 								<div className="space-y-4">
 									<h3 className="text-xl font-semibold text-blue-400 flex items-center">
-										<Users className="w-5 h-5 mr-2" />
+										<Users className="w-5 h-5 mr-2"/>
 										Community-Driven
 									</h3>
 									<p className="text-gray-300">
@@ -110,12 +109,12 @@ function Welcome(): React.ReactElement | null {
 						</div>
 					</CardContent>
 				</Card>
-
+				
 				{/* AI-Powered Features Section */}
 				<Card className="border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-transparent">
 					<CardHeader className="text-center">
 						<CardTitle className="text-xl font-bold text-emerald-400 flex items-center justify-center">
-							<Brain className="w-8 h-8 mr-3" />
+							<Brain className="w-8 h-8 mr-3"/>
 							AI-Powered Liquidity Management
 						</CardTitle>
 					</CardHeader>
@@ -123,7 +122,7 @@ function Welcome(): React.ReactElement | null {
 						<div className="grid md:grid-cols-3 gap-6">
 							<div className="text-center space-y-3">
 								<div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
-									<TrendingUp className="w-8 h-8 text-emerald-400" />
+									<TrendingUp className="w-8 h-8 text-emerald-400"/>
 								</div>
 								<h3 className="text-lg font-semibold text-white">
 									Portfolio Optimization
@@ -136,7 +135,7 @@ function Welcome(): React.ReactElement | null {
 							</div>
 							<div className="text-center space-y-3">
 								<div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
-									<Network className="w-8 h-8 text-emerald-400" />
+									<Network className="w-8 h-8 text-emerald-400"/>
 								</div>
 								<h3 className="text-lg font-semibold text-white">
 									Liquidity Pools
@@ -148,7 +147,7 @@ function Welcome(): React.ReactElement | null {
 							</div>
 							<div className="text-center space-y-3">
 								<div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
-									<BarChart3 className="w-8 h-8 text-emerald-400" />
+									<BarChart3 className="w-8 h-8 text-emerald-400"/>
 								</div>
 								<h3 className="text-lg font-semibold text-white">
 									Strategy Automation
@@ -161,13 +160,13 @@ function Welcome(): React.ReactElement | null {
 						</div>
 					</CardContent>
 				</Card>
-
+				
 				{/* Key Features Grid */}
 				<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 					<Card className="bg-zinc-900/80 border-zinc-700/50 hover:border-amber-500/30 transition-colors">
 						<CardHeader>
 							<CardTitle className="text-amber-400 flex items-center">
-								<Globe className="w-5 h-5 mr-2" />
+								<Globe className="w-5 h-5 mr-2"/>
 								Multi-Chain Support
 							</CardTitle>
 						</CardHeader>
@@ -178,11 +177,11 @@ function Welcome(): React.ReactElement | null {
 							</p>
 						</CardContent>
 					</Card>
-
+					
 					<Card className="bg-zinc-900/80 border-zinc-700/50 hover:border-amber-500/30 transition-colors">
 						<CardHeader>
 							<CardTitle className="text-amber-400 flex items-center">
-								<Eye className="w-5 h-5 mr-2" />
+								<Eye className="w-5 h-5 mr-2"/>
 								Real-Time Analytics
 							</CardTitle>
 						</CardHeader>
@@ -193,11 +192,11 @@ function Welcome(): React.ReactElement | null {
 							</p>
 						</CardContent>
 					</Card>
-
+					
 					<Card className="bg-zinc-900/80 border-zinc-700/50 hover:border-amber-500/30 transition-colors">
 						<CardHeader>
 							<CardTitle className="text-amber-400 flex items-center">
-								<Shield className="w-5 h-5 mr-2" />
+								<Shield className="w-5 h-5 mr-2"/>
 								Enterprise Security
 							</CardTitle>
 						</CardHeader>
@@ -208,11 +207,11 @@ function Welcome(): React.ReactElement | null {
 							</p>
 						</CardContent>
 					</Card>
-
+					
 					<Card className="bg-zinc-900/80 border-zinc-700/50 hover:border-amber-500/30 transition-colors">
 						<CardHeader>
 							<CardTitle className="text-amber-400 flex items-center">
-								<Brain className="w-5 h-5 mr-2" />
+								<Brain className="w-5 h-5 mr-2"/>
 								AI Strategies
 							</CardTitle>
 						</CardHeader>
@@ -223,11 +222,11 @@ function Welcome(): React.ReactElement | null {
 							</p>
 						</CardContent>
 					</Card>
-
+					
 					<Card className="bg-zinc-900/80 border-zinc-700/50 hover:border-amber-500/30 transition-colors">
 						<CardHeader>
 							<CardTitle className="text-amber-400 flex items-center">
-								<Network className="w-5 h-5 mr-2" />
+								<Network className="w-5 h-5 mr-2"/>
 								Liquidity Aggregation
 							</CardTitle>
 						</CardHeader>
@@ -238,11 +237,11 @@ function Welcome(): React.ReactElement | null {
 							</p>
 						</CardContent>
 					</Card>
-
+					
 					<Card className="bg-zinc-900/80 border-zinc-700/50 hover:border-amber-500/30 transition-colors">
 						<CardHeader>
 							<CardTitle className="text-amber-400 flex items-center">
-								<Users className="w-5 h-5 mr-2" />
+								<Users className="w-5 h-5 mr-2"/>
 								Community Governance
 							</CardTitle>
 						</CardHeader>
@@ -254,7 +253,7 @@ function Welcome(): React.ReactElement | null {
 						</CardContent>
 					</Card>
 				</div>
-
+				
 				{/* Call to Action */}
 				<Card className="border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-transparent">
 					<CardContent className="text-center py-12">
@@ -271,24 +270,24 @@ function Welcome(): React.ReactElement | null {
 								className="bg-amber-500 hover:bg-amber-600 text-zinc-900 px-8 py-3 text-lg font-semibold"
 							>
 								Start Monitoring
-								<ArrowRight className="w-5 h-5 ml-2" />
+								<ArrowRight className="w-5 h-5 ml-2"/>
 							</Button>
 							<Button
 								onClick={() => navigateTo("wallet")}
 								variant="outline"
 								className="border-amber-500/50 bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 px-8 py-3 text-lg font-semibold"
 							>
-								<Wallet className="w-5 h-5 mr-2" />
+								<Wallet className="w-5 h-5 mr-2"/>
 								Connect Your Wallet
 							</Button>
 						</div>
 					</CardContent>
 				</Card>
-
+				
 				{/* Development Tools (Optional) */}
 				<div className="space-y-4">
-					<UrlRouterDemo />
-					<RouterDebug />
+					<UrlRouterDemo/>
+					<RouterDebug/>
 				</div>
 			</div>
 		</>

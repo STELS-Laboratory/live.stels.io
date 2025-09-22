@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 
 export function useMobile(breakpoint = 768): boolean {
 	const [isMobile, setIsMobile] = useState<boolean>(false);
-
+	
 	useEffect(() => {
 		/**
 		 * Checks if the current device is mobile based on user agent
@@ -10,14 +10,14 @@ export function useMobile(breakpoint = 768): boolean {
 		function checkMobile(): void {
 			setIsMobile(window.innerWidth < breakpoint);
 		}
-
+		
 		checkMobile();
-
+		
 		window.addEventListener("resize", checkMobile);
-
+		
 		return () => window.removeEventListener("resize", checkMobile);
 	}, [breakpoint]);
-
+	
 	return isMobile;
 }
 
@@ -25,7 +25,7 @@ export function useScreenWidth(): number {
 	const [width, setWidth] = useState<number>(
 		typeof window !== "undefined" ? window.innerWidth : 0,
 	);
-
+	
 	useEffect(() => {
 		/**
 		 * Updates the window width state
@@ -33,13 +33,13 @@ export function useScreenWidth(): number {
 		function updateWidth(): void {
 			setWidth(window.innerWidth);
 		}
-
+		
 		updateWidth();
-
+		
 		window.addEventListener("resize", updateWidth);
 		return () => window.removeEventListener("resize", updateWidth);
 	}, []);
-
+	
 	return width;
 }
 
@@ -49,7 +49,7 @@ export function useOrientation(): "portrait" | "landscape" {
 			? (window.innerHeight > window.innerWidth ? "portrait" : "landscape")
 			: "portrait",
 	);
-
+	
 	useEffect(() => {
 		/**
 		 * Updates the device orientation state
@@ -59,14 +59,14 @@ export function useOrientation(): "portrait" | "landscape" {
 				window.innerHeight > window.innerWidth ? "portrait" : "landscape",
 			);
 		}
-
+		
 		updateOrientation();
-
+		
 		window.addEventListener("resize", updateOrientation);
-
+		
 		return () => window.removeEventListener("resize", updateOrientation);
 	}, []);
-
+	
 	return orientation;
 }
 
@@ -83,7 +83,7 @@ export function useDeviceType(): {
 } {
 	const width = useScreenWidth();
 	const orientation = useOrientation();
-
+	
 	return {
 		isMobile: width < 768,
 		isTablet: width >= 768 && width < 1024,

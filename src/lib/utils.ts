@@ -1,4 +1,4 @@
-import {clsx, type ClassValue} from "clsx"
+import {type ClassValue, clsx} from "clsx"
 import {twMerge} from "tailwind-merge"
 
 /**
@@ -41,7 +41,7 @@ export function parseTradingPair(pair: string): { base: string; quote: string } 
 	if (!match) return null;
 	
 	const [, base, quote] = match;
-	return { base, quote };
+	return {base, quote};
 }
 
 /**

@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useAppStore } from "@/stores";
+import {useEffect} from "react";
+import {useAppStore} from "@/stores";
 
 /**
  * NetworkInfo component displaying connection status and network information
@@ -14,11 +14,11 @@ export default function NetworkInfo(): React.ReactElement {
 		saveData,
 		updateStatus,
 	} = useAppStore();
-
+	
 	useEffect(() => {
 		updateStatus();
 	}, [updateStatus]);
-
+	
 	return (
 		<div>
 			<h2>Network: {online ? "🟢" : "🔴"}</h2>

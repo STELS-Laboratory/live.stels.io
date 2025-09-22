@@ -1,7 +1,7 @@
-import {useEffect, useState, useRef, useMemo} from "react"
-import {ArrowDownUp, Clock, Scale, TrendingDown, TrendingUp, BarChart3, RefreshCcw, Zap} from "lucide-react"
+import {useEffect, useMemo, useRef, useState} from "react"
+import {ArrowDownUp, BarChart3, Clock, RefreshCcw, Scale, TrendingDown, TrendingUp, Zap} from "lucide-react"
 import {Badge} from "@/components/ui/badge.tsx"
-import {motion, AnimatePresence} from "framer-motion"
+import {AnimatePresence, motion} from "framer-motion"
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip"
 import {parseTradingPair} from "@/lib/utils.ts";
 
@@ -47,7 +47,7 @@ interface AnimatedRow {
 }
 
 export default function OrderBook({book}: { book: OrderBookData }) {
-  const [prevBook, setPrevBook] = useState<OrderBookData | null>(null)
+	const [prevBook, setPrevBook] = useState<OrderBookData | null>(null)
 	const [metrics, setMetrics] = useState<BookMetrics>({
 		imbalance: 0,
 		depthRatio: 0,

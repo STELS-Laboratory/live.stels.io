@@ -1,4 +1,4 @@
-function NewsBox({ data, type }: { data: any; type: "finance" | "global" | "ukraine" }) {
+function NewsBox({data, type}: { data: any; type: "finance" | "global" | "ukraine" }) {
 	const getTypeColor = () => {
 		return "from-zinc-800/40 to-zinc-900/40 border-zinc-700/30"
 	}
@@ -82,14 +82,15 @@ function NewsBox({ data, type }: { data: any; type: "finance" | "global" | "ukra
 			{/* Header */}
 			<div className="flex items-center justify-between mb-6">
 				<div className="flex items-center gap-3">
-					<div className="w-3 h-3 rounded-full bg-zinc-500 shadow-sm" />
+					<div className="w-3 h-3 rounded-full bg-zinc-500 shadow-sm"/>
 					<h2 className="text-xl font-medium text-zinc-300 uppercase tracking-wide">{type} News</h2>
 				</div>
 				<div className="text-sm text-zinc-500 font-mono">{data?.raw?.length || 0} articles</div>
 			</div>
 			
 			{/* News Feed */}
-			<div className="space-y-4 max-h-323 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent">
+			<div
+				className="space-y-4 max-h-323 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent">
 				{data?.raw?.map((article: any, index: number) => {
 					const styles = getImportanceStyles(article.score)
 					const importance = getImportanceLevel(article.score)
@@ -99,7 +100,7 @@ function NewsBox({ data, type }: { data: any; type: "finance" | "global" | "ukra
 							key={index}
 							className={`${styles.bg} rounded-lg p-4 border ${styles.border} ${styles.glow} transition-all duration-300 relative`}
 						>
-							<div className={`absolute left-0 top-0 bottom-0 w-1 ${styles.indicator} rounded-l-lg`} />
+							<div className={`absolute left-0 top-0 bottom-0 w-1 ${styles.indicator} rounded-l-lg`}/>
 							
 							<div className="absolute top-2 right-2">
 								<div
@@ -156,7 +157,8 @@ function NewsBox({ data, type }: { data: any; type: "finance" | "global" | "ukra
 			
 			{/* Footer Stats */}
 			{data?.timestamp && (
-				<div className="mt-4 pt-4 border-t border-zinc-700/50 flex justify-between items-center text-xs text-zinc-500 font-mono">
+				<div
+					className="mt-4 pt-4 border-t border-zinc-700/50 flex justify-between items-center text-xs text-zinc-500 font-mono">
 					<span>Last updated: {new Date(data.timestamp).toLocaleTimeString()}</span>
 					<span>Source: {data.channel}</span>
 				</div>

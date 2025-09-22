@@ -82,7 +82,7 @@ function formatChangeAbs(value: number): string {
 
 function mapTickers(entries: SessionEntry[]): MappedTicker[] {
 	const result: MappedTicker[] = [];
-	for (const { key, value } of entries) {
+	for (const {key, value} of entries) {
 		if (!isTickerValue(value)) continue;
 		const raw = value.raw;
 		result.push({
@@ -100,7 +100,7 @@ function mapTickers(entries: SessionEntry[]): MappedTicker[] {
 }
 
 function TickerTape(
-	{ entries }: { entries: SessionEntry[] },
+	{entries}: { entries: SessionEntry[] },
 ): ReactElement | null {
 	const items = mapTickers(entries);
 	if (items.length === 0) return null;
@@ -150,9 +150,9 @@ function TickerTape(
 											className={`flex items-center gap-1 rounded border px-1.5 py-0.5 ${badgeBase}`}
 										>
 											{positive
-												? <ArrowUpRight className="h-3 w-3" />
+												? <ArrowUpRight className="h-3 w-3"/>
 												: negative
-													? <ArrowDownRight className="h-3 w-3" />
+													? <ArrowDownRight className="h-3 w-3"/>
 													: null}
 											<span className="font-mono">
 												{formatPercent(t.percentage)}

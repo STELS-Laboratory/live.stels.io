@@ -1,25 +1,12 @@
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
-import { filterSession } from "@/lib/utils.ts";
+import {filterSession} from "@/lib/utils.ts";
 
-import { useMemo } from "react";
-import { ArrowDown, ArrowUp } from "lucide-react";
+import {useMemo} from "react";
+import {ArrowDown, ArrowUp} from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
+import {Badge} from "@/components/ui/badge";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle,} from "@/components/ui/card";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
 import TickerTape from "@/components/widgets/TickerTape.tsx";
 
 interface CandleData {
@@ -41,40 +28,40 @@ interface MiniCandlestickChartProps {
  * Mini candlestick chart component for market data visualization
  */
 function MiniCandlestickChart(
-	{ candles, width = 120, height = 40 }: MiniCandlestickChartProps,
+	{candles, width = 120, height = 40}: MiniCandlestickChartProps,
 ): React.ReactElement {
 	if (!candles || candles.length === 0) {
 		return (
 			<div
 				className="flex items-center justify-center text-xs text-muted-foreground"
-				style={{ width, height }}
+				style={{width, height}}
 			>
 				No data
 			</div>
 		);
 	}
-
+	
 	const recentCandles = candles;
-
+	
 	// Calculate price range
 	const prices = recentCandles.flatMap((c) => [c.high, c.low]);
 	const maxPrice = Math.max(...prices);
 	const minPrice = Math.min(...prices);
 	const priceRange = maxPrice - minPrice;
-
+	
 	if (priceRange === 0) {
 		return (
 			<div
 				className="flex items-center justify-center text-xs text-muted-foreground"
-				style={{ width, height }}
+				style={{width, height}}
 			>
 				No range
 			</div>
 		);
 	}
-
+	
 	const candleWidth = (width - 10) / recentCandles.length;
-
+	
 	return (
 		<svg width={width} height={height} className="overflow-visible">
 			{recentCandles.map((candle, index) => {
@@ -86,11 +73,11 @@ function MiniCandlestickChart(
 					((maxPrice - candle.open) / priceRange) * (height - 10);
 				const closeY = 5 +
 					((maxPrice - candle.close) / priceRange) * (height - 10);
-
+				
 				const isGreen = candle.close >= candle.open;
 				const bodyTop = Math.min(openY, closeY);
 				const bodyHeight = Math.abs(closeY - openY);
-
+				
 				return (
 					<g key={index}>
 						{/* Wick */}
@@ -125,7 +112,7 @@ function Markets(): React.ReactElement {
 	const session = useSessionStoreSync() as Record<string, unknown> | null;
 	const spotTickers = filterSession(session || {}, /\.futures\..*\.ticker$/);
 	const spotCandles = filterSession(session || {}, /\.futures\..*\.candles$/);
-
+	
 	const formattedTickers = useMemo(() => {
 		return spotTickers.map(
 			(tickerItem) => {
@@ -148,7 +135,7 @@ function Markets(): React.ReactElement {
 				const raw = ticker.value.raw;
 				const symbol = raw.market.split("/")[0];
 				const baseSymbol = raw.market.split("/")[1].split(":")[0];
-
+				
 				// Find corresponding candles
 				const candleData = spotCandles.find((candleItem) => {
 					const candle = candleItem as {
@@ -156,7 +143,7 @@ function Markets(): React.ReactElement {
 					};
 					return candle.value.raw.market === raw.market;
 				});
-
+				
 				const candles = candleData
 					? (candleData as any).value.raw.candles.map((c: number[]) => ({
 						timestamp: c[0],
@@ -167,7 +154,7 @@ function Markets(): React.ReactElement {
 						volume: c[5],
 					}))
 					: [];
-
+				
 				return {
 					symbol,
 					market: `${symbol}/${baseSymbol}`,
@@ -184,7 +171,7 @@ function Markets(): React.ReactElement {
 			},
 		);
 	}, [spotTickers, spotCandles]);
-
+	
 	const formatPrice = (price: number, symbol: string) => {
 		if (symbol === "BTC" && price > 1000) {
 			return `$${
@@ -202,7 +189,7 @@ function Markets(): React.ReactElement {
 		}
 		return `$${price.toFixed(2)}`;
 	};
-
+	
 	const formatVolume = (volume: number) => {
 		if (volume >= 1e9) {
 			return `${(volume / 1e9).toFixed(2)}B`;
@@ -215,7 +202,7 @@ function Markets(): React.ReactElement {
 		}
 		return volume.toFixed(2);
 	};
-
+	
 	const formatPercentage = (percentage: number) => {
 		const isPositive = percentage >= 0;
 		return (
@@ -225,16 +212,16 @@ function Markets(): React.ReactElement {
 				}`}
 			>
 				{isPositive
-					? <ArrowUp className="h-3 w-3" />
-					: <ArrowDown className="h-3 w-3" />}
+					? <ArrowUp className="h-3 w-3"/>
+					: <ArrowDown className="h-3 w-3"/>}
 				{Math.abs(percentage).toFixed(2)}%
 			</div>
 		);
 	};
-
+	
 	return (
 		<div className="container m-auto">
-			<TickerTape entries={spotTickers} />
+			<TickerTape entries={spotTickers}/>
 			<Card>
 				<CardHeader>
 					<CardTitle>Connection Markets</CardTitle>
@@ -284,7 +271,8 @@ function Markets(): React.ReactElement {
 									<TableRow key={ticker.market}>
 										<TableCell className="font-medium">
 											<div className="flex items-center gap-2">
-												<div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+												<div
+													className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
 													{ticker.symbol.slice(0, 2)}
 												</div>
 												<div>

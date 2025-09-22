@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { PulsingBorder } from "@paper-design/shaders-react"
+import {useEffect, useState} from "react"
+import {PulsingBorder} from "@paper-design/shaders-react"
 
-function Ariadna({ data }: { data: any }) {
+function Ariadna({data}: { data: any }) {
 	const [isAnimating, setIsAnimating] = useState(false)
 	const [pulseActive, setPulseActive] = useState(false)
 	
@@ -34,7 +34,8 @@ function Ariadna({ data }: { data: any }) {
 		<div className="relative w-[1044px] h-[330px] bg-zinc-950 ">
 			{/* Animated background grid */}
 			<div className="absolute inset-0 opacity-10">
-				<div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_24px,rgba(255,255,255,0.05)_25px,rgba(255,255,255,0.05)_26px,transparent_27px,transparent_49px,rgba(255,255,255,0.05)_50px,rgba(255,255,255,0.05)_51px,transparent_52px),linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[50px_50px]"></div>
+				<div
+					className="absolute inset-0 bg-[linear-gradient(90deg,transparent_24px,rgba(255,255,255,0.05)_25px,rgba(255,255,255,0.05)_26px,transparent_27px,transparent_49px,rgba(255,255,255,0.05)_50px,rgba(255,255,255,0.05)_51px,transparent_52px),linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[50px_50px]"></div>
 			</div>
 			
 			{/* Status indicator glow */}
@@ -109,7 +110,7 @@ function Ariadna({ data }: { data: any }) {
 								className={`bg-zinc-800/50 border border-zinc-700/50 rounded-xl p-4 transition-all duration-500 hover:bg-zinc-700/50 hover:border-zinc-600/50 ${
 									isAnimating ? "translate-y-[-2px] shadow-lg" : "translate-y-0"
 								}`}
-								style={{ transitionDelay: `${index * 100}ms` }}
+								style={{transitionDelay: `${index * 100}ms`}}
 							>
 								<div className="flex items-center space-x-3">
 									<div
@@ -139,8 +140,8 @@ function Ariadna({ data }: { data: any }) {
 					
 					<div className="flex items-center space-x-2">
 						<div className="w-2 h-2 bg-zinc-600 rounded-full animate-pulse"></div>
-						<div className="w-2 h-2 bg-zinc-600 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }}></div>
-						<div className="w-2 h-2 bg-zinc-600 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }}></div>
+						<div className="w-2 h-2 bg-zinc-600 rounded-full animate-pulse" style={{animationDelay: "0.2s"}}></div>
+						<div className="w-2 h-2 bg-zinc-600 rounded-full animate-pulse" style={{animationDelay: "0.4s"}}></div>
 					</div>
 				</div>
 			</div>
@@ -151,11 +152,11 @@ function Ariadna({ data }: { data: any }) {
 					<div className="absolute top-1/4 left-1/4 w-1 h-1 bg-emerald-400 rounded-full animate-ping opacity-75"></div>
 					<div
 						className="absolute top-3/4 right-1/3 w-1 h-1 bg-teal-400 rounded-full animate-ping opacity-50"
-						style={{ animationDelay: "1s" }}
+						style={{animationDelay: "1s"}}
 					></div>
 					<div
 						className="absolute bottom-1/4 left-2/3 w-1 h-1 bg-emerald-300 rounded-full animate-ping opacity-60"
-						style={{ animationDelay: "2s" }}
+						style={{animationDelay: "2s"}}
 					></div>
 				</div>
 			)}

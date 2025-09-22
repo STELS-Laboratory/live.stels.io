@@ -1,21 +1,21 @@
-import { type ReactNode, useEffect } from "react";
+import {type ReactNode, useEffect} from "react";
 import useWebSocketStore from "@/hooks/useWebSocketStore.ts";
-import { useAppStore } from "@/stores";
+import {useAppStore} from "@/stores";
 import Loader from "@/components/ui/loader";
 
 function SessionProvider(
-	{ children }: { children: ReactNode },
+	{children}: { children: ReactNode },
 ) {
-	const { connectNode, connection } = useWebSocketStore();
-	const { online } = useAppStore();
-
+	const {connectNode, connection} = useWebSocketStore();
+	const {online} = useAppStore();
+	
 	useEffect(() => {
 		const config = {
 			raw: {
 				info: {
 					connector: {
-						//socket: "ws://10.0.0.238:8088",
-						socket: "wss://live.stels.dev",
+						socket: "ws://10.0.0.238:8088",
+						//socket: "wss://live.stels.dev",
 						protocols: ["webfix"],
 					},
 					network: "testnet",
@@ -24,10 +24,10 @@ function SessionProvider(
 				},
 			},
 		};
-
+		
 		connectNode(config);
 	}, [connectNode]);
-
+	
 	return connection || online ? children : <Loader>Init System....</Loader>;
 }
 

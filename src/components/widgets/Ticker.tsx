@@ -1,12 +1,12 @@
 "use client"
 
-import { memo, useMemo } from "react"
-import type { ReactElement } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { TrendingDown, TrendingUp } from "lucide-react"
-import { cn, parseTradingPair } from "@/lib/utils"
+import type {ReactElement} from "react"
+import {memo, useMemo} from "react"
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card"
+import {Separator} from "@/components/ui/separator"
+import {Badge} from "@/components/ui/badge"
+import {TrendingDown, TrendingUp} from "lucide-react"
+import {cn, parseTradingPair} from "@/lib/utils"
 
 interface RawTicker {
 	exchange: string
@@ -44,7 +44,7 @@ function formatPrice(value: number, quoteSymbol: string): string {
 function toTime(valueMs: number): string {
 	try {
 		const d = new Date(valueMs)
-		return d.toLocaleTimeString([], { hour12: false })
+		return d.toLocaleTimeString([], {hour12: false})
 	} catch {
 		return "-"
 	}
@@ -54,7 +54,7 @@ function toTime(valueMs: number): string {
  * Bloomberg-style market ticker tile.
  * Displays instrument, last price, change, bid/ask, volumes, and timing.
  */
-function TickerComponent({ raw, compact = false, className }: TickerProps): ReactElement {
+function TickerComponent({raw, compact = false, className}: TickerProps): ReactElement {
 	const parsed: RawTicker | null = useMemo((): RawTicker | null => {
 		if (!raw || typeof raw !== "object") return null
 		const r = raw as Record<string, unknown>
@@ -118,7 +118,7 @@ function TickerComponent({ raw, compact = false, className }: TickerProps): Reac
 				<div className="flex items-center justify-between gap-3">
 					<div className="min-w-0">
 						<CardTitle className="text-sm flex items-center gap-2">
-							<div className={cn("h-4 w-1 rounded", isUp ? "bg-green-400" : "bg-red-400")} />
+							<div className={cn("h-4 w-1 rounded", isUp ? "bg-green-400" : "bg-red-400")}/>
 							<span className="inline-flex items-center gap-2">
                 <span
 	                className={cn(
@@ -132,11 +132,13 @@ function TickerComponent({ raw, compact = false, className }: TickerProps): Reac
 	                {quote ? `/${quote}` : ""}
                 </span>
 								{parsed?.exchange && (
-									<span className="rounded-sm border border-zinc-600/60 bg-zinc-800/60 px-2 py-[1px] text-[10px] uppercase text-zinc-300">
+									<span
+										className="rounded-sm border border-zinc-600/60 bg-zinc-800/60 px-2 py-[1px] text-[10px] uppercase text-zinc-300">
                     {parsed.exchange}
                   </span>
 								)}
-								<span className="rounded-sm border border-green-500/50 bg-green-500/20 px-1.5 py-[1px] text-[10px] font-medium text-green-300">
+								<span
+									className="rounded-sm border border-green-500/50 bg-green-500/20 px-1.5 py-[1px] text-[10px] font-medium text-green-300">
                   RT
                 </span>
               </span>
@@ -167,9 +169,9 @@ function TickerComponent({ raw, compact = false, className }: TickerProps): Reac
 	              aria-label={parsed ? `Change ${parsed.percentage.toFixed(2)} percent` : "No change"}
               >
                 {isUp ? (
-	                <TrendingUp className="h-3 w-3" aria-hidden />
+	                <TrendingUp className="h-3 w-3" aria-hidden/>
                 ) : (
-	                <TrendingDown className="h-3 w-3" aria-hidden />
+	                <TrendingDown className="h-3 w-3" aria-hidden/>
                 )}
 	              <span>{parsed ? `${parsed.percentage >= 0 ? "+" : ""}${parsed.percentage.toFixed(2)}%` : "-"}</span>
                 <span className="text-zinc-400">/</span>
@@ -204,7 +206,7 @@ function TickerComponent({ raw, compact = false, className }: TickerProps): Reac
 					</div>
 				</div>
 				
-				<Separator className={cn("my-3", isUp ? "bg-green-500/30" : "bg-red-500/30")} />
+				<Separator className={cn("my-3", isUp ? "bg-green-500/30" : "bg-red-500/30")}/>
 				
 				<div className={cn("grid gap-2", compact ? "grid-cols-2" : "grid-cols-3")}>
 					<div className="flex items-center justify-between">

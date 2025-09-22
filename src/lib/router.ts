@@ -1,11 +1,11 @@
-import { useAppStore } from '@/stores';
+import {useAppStore} from '@/stores';
 
 /**
  * Navigate to a specific route and update URL
  * @param route - The route to navigate to
  */
 export const navigateTo = (route: string): void => {
-	const { setRoute, allowedRoutes } = useAppStore.getState();
+	const {setRoute, allowedRoutes} = useAppStore.getState();
 	
 	if (allowedRoutes.includes(route)) {
 		console.log(`[Router] Navigating to: ${route}`);
@@ -33,7 +33,7 @@ export const getCurrentRouteFromUrl = (): string | null => {
  * @returns True if route is valid, false otherwise
  */
 export const isValidRoute = (route: string): boolean => {
-	const { allowedRoutes } = useAppStore.getState();
+	const {allowedRoutes} = useAppStore.getState();
 	return allowedRoutes.includes(route);
 };
 
@@ -42,7 +42,7 @@ export const isValidRoute = (route: string): boolean => {
  * Useful for direct link navigation scenarios
  */
 export const syncUrlWithStore = (): void => {
-	const { currentRoute } = useAppStore.getState();
+	const {currentRoute} = useAppStore.getState();
 	const urlRoute = getCurrentRouteFromUrl();
 	
 	if (urlRoute !== currentRoute) {
@@ -59,7 +59,7 @@ export const syncUrlWithStore = (): void => {
  */
 export const initializeFromUrl = (): void => {
 	const urlRoute = getCurrentRouteFromUrl();
-	const { setRoute, allowedRoutes } = useAppStore.getState();
+	const {setRoute, allowedRoutes} = useAppStore.getState();
 	
 	console.log(`[Router] Initializing from URL: ${urlRoute}, allowedRoutes:`, allowedRoutes);
 	

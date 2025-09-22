@@ -1,28 +1,16 @@
 "use client";
 
 import type React from "react";
-import { useMemo, useState } from "react";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {useMemo, useState} from "react";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle,} from "@/components/ui/card";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {Badge} from "@/components/ui/badge";
+import {Separator} from "@/components/ui/separator";
+import {Alert, AlertDescription} from "@/components/ui/alert";
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,} from "@/components/ui/dialog";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {
 	Activity,
 	AlertCircle,
@@ -43,8 +31,8 @@ import {
 	Wallet,
 	XCircle,
 } from "lucide-react";
-import { cn, filterSession } from "@/lib/utils.ts";
-import { Progress } from "@/components/ui/progress.tsx";
+import {cn, filterSession} from "@/lib/utils.ts";
+import {Progress} from "@/components/ui/progress.tsx";
 import Markets from "@/routes/main/Markets.tsx";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
 import Loader from "@/components/ui/loader.tsx";
@@ -232,7 +220,7 @@ interface WalletResponse {
 const formatCurrency = (value: string | number): string => {
 	const num = typeof value === "string" ? Number.parseFloat(value) : value;
 	if (isNaN(num)) return "$0.00";
-
+	
 	return new Intl.NumberFormat("en-US", {
 		style: "currency",
 		currency: "USD",
@@ -243,29 +231,29 @@ const formatCurrency = (value: string | number): string => {
 
 const formatCurrencyWithColor = (value: string | number) => {
 	const num = typeof value === "string" ? Number.parseFloat(value) : value;
-	if (isNaN(num)) return { value: "$0.00", color: "text-muted-foreground" };
-
+	if (isNaN(num)) return {value: "$0.00", color: "text-muted-foreground"};
+	
 	const formatted = new Intl.NumberFormat("en-US", {
 		style: "currency",
 		currency: "USD",
 		minimumFractionDigits: 2,
 		maximumFractionDigits: 2,
 	}).format(num);
-
-	if (num > 0) return { value: formatted, color: "text-emerald-600" };
-	if (num < 0) return { value: formatted, color: "text-red-500" };
-	return { value: formatted, color: "text-muted-foreground" };
+	
+	if (num > 0) return {value: formatted, color: "text-emerald-600"};
+	if (num < 0) return {value: formatted, color: "text-red-500"};
+	return {value: formatted, color: "text-muted-foreground"};
 };
 
 const formatPercentageWithColor = (value: string | number) => {
 	const num = typeof value === "string" ? Number.parseFloat(value) : value;
-	if (isNaN(num)) return { value: "0%", color: "text-muted-foreground" };
-
+	if (isNaN(num)) return {value: "0%", color: "text-muted-foreground"};
+	
 	const formatted = `${(num * 100).toFixed(2)}%`;
-
-	if (num > 0) return { value: formatted, color: "text-emerald-600" };
-	if (num < 0) return { value: formatted, color: "text-red-500" };
-	return { value: formatted, color: "text-muted-foreground" };
+	
+	if (num > 0) return {value: formatted, color: "text-emerald-600"};
+	if (num < 0) return {value: formatted, color: "text-red-500"};
+	return {value: formatted, color: "text-muted-foreground"};
 };
 
 const formatROIWithColor = (
@@ -276,16 +264,16 @@ const formatROIWithColor = (
 	const roi = ((currentPrice - entryPrice) / entryPrice) * 100 *
 		(side.toLowerCase() === "sell" ? -1 : 1);
 	const formatted = `${roi.toFixed(2)}%`;
-
-	if (roi > 0) return { value: formatted, color: "text-emerald-600" };
-	if (roi < 0) return { value: formatted, color: "text-red-500" };
-	return { value: formatted, color: "text-muted-foreground" };
+	
+	if (roi > 0) return {value: formatted, color: "text-emerald-600"};
+	if (roi < 0) return {value: formatted, color: "text-red-500"};
+	return {value: formatted, color: "text-muted-foreground"};
 };
 
 const formatNumber = (value: string | number, decimals = 4): string => {
 	const num = typeof value === "string" ? Number.parseFloat(value) : value;
 	if (isNaN(num)) return "0";
-
+	
 	return new Intl.NumberFormat("en-US", {
 		minimumFractionDigits: 2,
 		maximumFractionDigits: decimals,
@@ -314,7 +302,7 @@ interface MetricCardProps {
 }
 
 const MetricCard: React.FC<MetricCardProps> = (
-	{ label, value, color = "text-foreground", icon, size = "md" },
+	{label, value, color = "text-foreground", icon, size = "md"},
 ) => (
 	<div className="space-y-1">
 		<div className="flex items-center gap-1">
@@ -335,18 +323,18 @@ interface AccountOverviewProps {
 	walletData: WalletResponse;
 }
 
-const AccountOverview: React.FC<AccountOverviewProps> = ({ walletData }) => {
+const AccountOverview: React.FC<AccountOverviewProps> = ({walletData}) => {
 	const accountData = walletData.wallet.info.result.list[0];
 	const pnlData = formatCurrencyWithColor(accountData.totalPerpUPL);
 	const marginData = formatPercentageWithColor(accountData.accountLTV || "0");
-
+	
 	return (
 		<Card className="border-2">
 			<CardHeader className="pb-4">
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 					<div className="flex items-center gap-3 min-w-0">
 						<div className="p-2 bg-primary/10 rounded-lg">
-							<DollarSign className="h-5 w-5 text-primary" />
+							<DollarSign className="h-5 w-5 text-primary"/>
 						</div>
 						<div>
 							<CardTitle className="text-lg">Account Overview</CardTitle>
@@ -377,7 +365,7 @@ const AccountOverview: React.FC<AccountOverviewProps> = ({ walletData }) => {
 						label="Total Equity"
 						value={formatCurrency(accountData.totalEquity)}
 						size="lg"
-						icon={<BarChart3 className="h-3 w-3 text-primary" />}
+						icon={<BarChart3 className="h-3 w-3 text-primary"/>}
 					/>
 					<MetricCard
 						label="Wallet Balance"
@@ -392,8 +380,8 @@ const AccountOverview: React.FC<AccountOverviewProps> = ({ walletData }) => {
 					<div className="space-y-1">
 						<div className="flex items-center gap-1">
 							{Number.parseFloat(accountData.totalPerpUPL) >= 0
-								? <TrendingUp className="h-3 w-3 text-emerald-600" />
-								: <TrendingDown className="h-3 w-3 text-red-500" />}
+								? <TrendingUp className="h-3 w-3 text-emerald-600"/>
+								: <TrendingDown className="h-3 w-3 text-red-500"/>}
 							<p className="text-xs text-muted-foreground font-medium">
 								Unrealized P&L
 							</p>
@@ -403,9 +391,9 @@ const AccountOverview: React.FC<AccountOverviewProps> = ({ walletData }) => {
 						</p>
 					</div>
 				</div>
-
-				<Separator />
-
+				
+				<Separator/>
+				
 				{/* Secondary Metrics */}
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 					<div className="space-y-2">
@@ -422,13 +410,13 @@ const AccountOverview: React.FC<AccountOverviewProps> = ({ walletData }) => {
 						label="Initial Margin"
 						value={formatCurrency(accountData.totalInitialMargin || "0")}
 						color="text-blue-600"
-						icon={<Shield className="h-3 w-3 text-blue-600" />}
+						icon={<Shield className="h-3 w-3 text-blue-600"/>}
 					/>
 					<MetricCard
 						label="Maintenance Margin"
 						value={formatCurrency(accountData.totalMaintenanceMargin || "0")}
 						color="text-purple-600"
-						icon={<Target className="h-3 w-3 text-purple-600" />}
+						icon={<Target className="h-3 w-3 text-purple-600"/>}
 					/>
 					<MetricCard
 						label="Margin Level"
@@ -445,12 +433,12 @@ interface AssetBalancesProps {
 	coins: CoinInfo[];
 }
 
-const AssetBalances: React.FC<AssetBalancesProps> = ({ coins }) => (
+const AssetBalances: React.FC<AssetBalancesProps> = ({coins}) => (
 	<Card>
 		<CardHeader className="pb-4">
 			<div className="flex items-center gap-3">
 				<div className="p-2 bg-emerald-500/10 rounded-lg">
-					<Wallet className="h-5 w-5 text-emerald-600" />
+					<Wallet className="h-5 w-5 text-emerald-600"/>
 				</div>
 				<div>
 					<CardTitle className="text-lg">Asset Portfolio</CardTitle>
@@ -467,7 +455,7 @@ const AssetBalances: React.FC<AssetBalancesProps> = ({ coins }) => (
 					const hasLocked = Number.parseFloat(coin.locked) > 0;
 					const unrealizedPnl = formatCurrencyWithColor(coin.unrealisedPnl);
 					const realizedPnl = formatCurrencyWithColor(coin.cumRealisedPnl);
-
+					
 					return (
 						<Card
 							key={index}
@@ -503,7 +491,7 @@ const AssetBalances: React.FC<AssetBalancesProps> = ({ coins }) => (
 										</Badge>
 									</div>
 								</div>
-
+								
 								<div className="space-y-2">
 									<div className="flex justify-between items-center">
 										<span className="text-sm text-muted-foreground">
@@ -513,7 +501,7 @@ const AssetBalances: React.FC<AssetBalancesProps> = ({ coins }) => (
 											{formatNumber(coin.walletBalance)} {coin.coin}
 										</span>
 									</div>
-
+									
 									<div className="flex justify-between items-center">
 										<span className="text-sm text-muted-foreground">
 											Equity
@@ -522,7 +510,7 @@ const AssetBalances: React.FC<AssetBalancesProps> = ({ coins }) => (
 											{formatNumber(coin.equity)} {coin.coin}
 										</span>
 									</div>
-
+									
 									<div className="flex justify-between items-center">
 										<span className="text-sm text-muted-foreground">
 											USD Value
@@ -531,7 +519,7 @@ const AssetBalances: React.FC<AssetBalancesProps> = ({ coins }) => (
 											{formatCurrency(coin.usdValue)}
 										</span>
 									</div>
-
+									
 									{Number.parseFloat(coin.unrealisedPnl) !== 0 && (
 										<div className="flex justify-between items-center">
 											<span className="text-sm text-muted-foreground">
@@ -544,7 +532,7 @@ const AssetBalances: React.FC<AssetBalancesProps> = ({ coins }) => (
 											</span>
 										</div>
 									)}
-
+									
 									{Number.parseFloat(coin.borrowAmount) > 0 && (
 										<div className="flex justify-between items-center">
 											<span className="text-sm text-muted-foreground">
@@ -555,7 +543,7 @@ const AssetBalances: React.FC<AssetBalancesProps> = ({ coins }) => (
 											</span>
 										</div>
 									)}
-
+									
 									{Number.parseFloat(coin.cumRealisedPnl) !== 0 && (
 										<div className="flex justify-between items-center">
 											<span className="text-sm text-muted-foreground">
@@ -583,7 +571,7 @@ const AssetBalances: React.FC<AssetBalancesProps> = ({ coins }) => (
  * Enhanced AccountCard component with improved organization and styling
  */
 function AccountCard(
-	{ walletData }: { walletData: WalletResponse },
+	{walletData}: { walletData: WalletResponse },
 ): React.ReactElement {
 	// Get positions for this account
 	const positions = useMemo(() => {
@@ -593,7 +581,7 @@ function AccountCard(
 		});
 		return allPositions;
 	}, [walletData.positions]);
-
+	
 	// Get orders for this account
 	const allOrders = useMemo(() => {
 		const orders = {
@@ -601,7 +589,7 @@ function AccountCard(
 			closed: [] as OrderInfo[],
 			canceled: [] as OrderInfo[],
 		};
-
+		
 		const combineOrders = (
 			orderData: Record<
 				string,
@@ -614,7 +602,7 @@ function AccountCard(
 				orders.canceled.push(...(symbolOrders.canceled || []));
 			});
 		};
-
+		
 		walletData.orders?.spot?.forEach((spotData) => {
 			combineOrders(
 				spotData.value.raw.orders as Record<
@@ -623,7 +611,7 @@ function AccountCard(
 				>,
 			);
 		});
-
+		
 		walletData.orders?.futures?.forEach((futuresData) => {
 			combineOrders(
 				futuresData.value.raw.orders as Record<
@@ -632,25 +620,25 @@ function AccountCard(
 				>,
 			);
 		});
-
+		
 		return orders;
 	}, [walletData.orders]);
-
+	
 	return (
 		<div className="space-y-6">
 			{/* Account Overview */}
-			<AccountOverview walletData={walletData} />
-
+			<AccountOverview walletData={walletData}/>
+			
 			{/* Asset Balances */}
-			<AssetBalances coins={walletData.wallet.info.result.list[0].coin} />
-
+			<AssetBalances coins={walletData.wallet.info.result.list[0].coin}/>
+			
 			{/* Trading Positions */}
 			{positions.length > 0 && (
 				<Card>
 					<CardHeader className="pb-4">
 						<div className="flex items-center gap-3">
 							<div className="p-2 bg-blue-500/10 rounded-lg">
-								<Activity className="h-5 w-5 text-blue-600" />
+								<Activity className="h-5 w-5 text-blue-600"/>
 							</div>
 							<div>
 								<CardTitle className="text-lg">Open Positions</CardTitle>
@@ -669,7 +657,7 @@ function AccountCard(
 									position.markPrice,
 									position.side,
 								);
-
+								
 								return (
 									<Card
 										key={index}
@@ -698,8 +686,8 @@ function AccountCard(
 																position.leverage >= 10
 																	? "border-red-500 text-red-500"
 																	: position.leverage >= 5
-																	? "border-orange-500 text-orange-500"
-																	: "border-emerald-500 text-emerald-500"
+																		? "border-orange-500 text-orange-500"
+																		: "border-emerald-500 text-emerald-500"
 															}`}
 														>
 															{position.leverage}x
@@ -708,12 +696,12 @@ function AccountCard(
 												</div>
 												<div className="flex items-center gap-2 flex-shrink-0">
 													{Number.parseFloat(
-															position.unrealizedPnl.toString(),
-														) >= 0
+														position.unrealizedPnl.toString(),
+													) >= 0
 														? (
-															<TrendingUp className="h-4 w-4 text-emerald-600" />
+															<TrendingUp className="h-4 w-4 text-emerald-600"/>
 														)
-														: <TrendingDown className="h-4 w-4 text-red-500" />}
+														: <TrendingDown className="h-4 w-4 text-red-500"/>}
 													<span
 														className={`text-lg font-semibold ${pnlData.color}`}
 													>
@@ -721,7 +709,7 @@ function AccountCard(
 													</span>
 												</div>
 											</div>
-
+											
 											<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-sm">
 												<MetricCard
 													label="Size"
@@ -764,7 +752,7 @@ function AccountCard(
 					</CardContent>
 				</Card>
 			)}
-
+			
 			{/* Orders */}
 			{(allOrders.open.length > 0 || allOrders.closed.length > 0 ||
 				allOrders.canceled.length > 0) && (
@@ -772,7 +760,7 @@ function AccountCard(
 					<CardHeader className="pb-4">
 						<div className="flex items-center gap-3">
 							<div className="p-2 bg-purple-500/10 rounded-lg">
-								<ShoppingCart className="h-5 w-5 text-purple-600" />
+								<ShoppingCart className="h-5 w-5 text-purple-600"/>
 							</div>
 							<div>
 								<CardTitle className="text-lg">Order Management</CardTitle>
@@ -789,7 +777,7 @@ function AccountCard(
 									value="open"
 									className="flex items-center gap-2 px-4 py-3 text-sm font-medium"
 								>
-									<Clock className="h-4 w-4" />
+									<Clock className="h-4 w-4"/>
 									<span>Open Orders</span>
 									<Badge variant="secondary" className="text-xs">
 										{allOrders.open.length}
@@ -799,7 +787,7 @@ function AccountCard(
 									value="closed"
 									className="flex items-center gap-2 px-4 py-3 text-sm font-medium"
 								>
-									<CheckCircle className="h-4 w-4" />
+									<CheckCircle className="h-4 w-4"/>
 									<span>Executed</span>
 									<Badge variant="secondary" className="text-xs">
 										{allOrders.closed.length}
@@ -809,20 +797,20 @@ function AccountCard(
 									value="canceled"
 									className="flex items-center gap-2 px-4 py-3 text-sm font-medium"
 								>
-									<XCircle className="h-4 w-4" />
+									<XCircle className="h-4 w-4"/>
 									<span>Canceled</span>
 									<Badge variant="secondary" className="text-xs">
 										{allOrders.canceled.length}
 									</Badge>
 								</TabsTrigger>
 							</TabsList>
-
+							
 							<TabsContent value="open" className="space-y-3 p-4">
 								{allOrders.open.length === 0
 									? (
 										<div className="text-center py-12">
 											<div className="p-4 bg-muted/50 rounded-full w-fit mx-auto mb-4">
-												<Clock className="h-8 w-8 text-muted-foreground" />
+												<Clock className="h-8 w-8 text-muted-foreground"/>
 											</div>
 											<p className="text-muted-foreground font-medium">
 												No open orders
@@ -902,13 +890,13 @@ function AccountCard(
 										))
 									)}
 							</TabsContent>
-
+							
 							<TabsContent value="closed" className="space-y-3 p-4">
 								{allOrders.closed.length === 0
 									? (
 										<div className="text-center py-12">
 											<div className="p-4 bg-muted/50 rounded-full w-fit mx-auto mb-4">
-												<CheckCircle className="h-8 w-8 text-muted-foreground" />
+												<CheckCircle className="h-8 w-8 text-muted-foreground"/>
 											</div>
 											<p className="text-muted-foreground font-medium">
 												No executed orders
@@ -990,13 +978,13 @@ function AccountCard(
 										))
 									)}
 							</TabsContent>
-
+							
 							<TabsContent value="canceled" className="space-y-3 p-4">
 								{allOrders.canceled.length === 0
 									? (
 										<div className="text-center py-12">
 											<div className="p-4 bg-muted/50 rounded-full w-fit mx-auto mb-4">
-												<XCircle className="h-8 w-8 text-muted-foreground" />
+												<XCircle className="h-8 w-8 text-muted-foreground"/>
 											</div>
 											<p className="text-muted-foreground font-medium">
 												No canceled orders
@@ -1076,14 +1064,14 @@ function AccountCard(
 					</CardContent>
 				</Card>
 			)}
-
+			
 			{/* Trading Protocol */}
 			{walletData.protocol && (
 				<Card>
 					<CardHeader className="pb-4">
 						<div className="flex items-center gap-3">
 							<div className="p-2 bg-orange-500/10 rounded-lg">
-								<Shield className="h-5 w-5 text-orange-600" />
+								<Shield className="h-5 w-5 text-orange-600"/>
 							</div>
 							<div>
 								<CardTitle className="text-lg">Trading Protocol</CardTitle>
@@ -1111,8 +1099,8 @@ function AccountCard(
 								color={walletData.protocol.maxRiskPerTrade > 5
 									? "text-red-500"
 									: walletData.protocol.maxRiskPerTrade > 2
-									? "text-orange-500"
-									: "text-emerald-600"}
+										? "text-orange-500"
+										: "text-emerald-600"}
 								size="sm"
 							/>
 							<MetricCard
@@ -1121,8 +1109,8 @@ function AccountCard(
 								color={walletData.protocol.maxLeverage >= 10
 									? "text-red-500"
 									: walletData.protocol.maxLeverage >= 5
-									? "text-orange-500"
-									: "text-emerald-600"}
+										? "text-orange-500"
+										: "text-emerald-600"}
 								size="sm"
 							/>
 							<MetricCard
@@ -1131,8 +1119,8 @@ function AccountCard(
 								color={walletData.protocol.maxDrawdown > 20
 									? "text-red-500"
 									: walletData.protocol.maxDrawdown > 10
-									? "text-orange-500"
-									: "text-emerald-600"}
+										? "text-orange-500"
+										: "text-emerald-600"}
 								size="sm"
 							/>
 							<MetricCard
@@ -1153,14 +1141,14 @@ function AccountCard(
 								color={walletData.protocol.riskRewardRatio >= 3
 									? "text-emerald-600"
 									: walletData.protocol.riskRewardRatio >= 2
-									? "text-yellow-600"
-									: "text-red-500"}
+										? "text-yellow-600"
+										: "text-red-500"}
 								size="sm"
 							/>
 						</div>
-
-						<Separator />
-
+						
+						<Separator/>
+						
 						<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 							<div className="space-y-3">
 								<p className="text-sm font-medium text-muted-foreground">
@@ -1210,18 +1198,18 @@ class ProfessionalCalculations {
 		}).format(absValue);
 		return isNegative ? `-${formatted}` : formatted;
 	}
-
+	
 	static formatNumber(value: number, precision = 8): string {
 		return new Intl.NumberFormat("en-US", {
 			minimumFractionDigits: Math.min(2, precision),
 			maximumFractionDigits: precision,
 		}).format(value);
 	}
-
+	
 	static formatPercentage(value: number, precision = 2): string {
 		return `${value >= 0 ? "+" : ""}${value.toFixed(precision)}%`;
 	}
-
+	
 	static calculatePnL(
 		current: number,
 		previous: number,
@@ -1240,7 +1228,7 @@ class ProfessionalCalculations {
 			isProfit: absolute >= 0,
 		};
 	}
-
+	
 	static calculateMarginRatio(
 		balance: number,
 		initial: number,
@@ -1252,15 +1240,15 @@ class ProfessionalCalculations {
 	} {
 		const utilizationRatio = (initial / balance) * 100;
 		const marginLevel = balance / maintenance;
-
+		
 		let riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" = "LOW";
 		if (marginLevel < 1.5) riskLevel = "CRITICAL";
 		else if (marginLevel < 2.5) riskLevel = "HIGH";
 		else if (marginLevel < 5) riskLevel = "MEDIUM";
-
-		return { utilizationRatio, marginLevel, riskLevel };
+		
+		return {utilizationRatio, marginLevel, riskLevel};
 	}
-
+	
 	static calculateWorkerEfficiency(
 		workers: { active: number; stopped: number; total: number },
 	): {
@@ -1270,15 +1258,15 @@ class ProfessionalCalculations {
 		const efficiency = workers.total > 0
 			? (workers.active / workers.total) * 100
 			: 0;
-
+		
 		let status: "OPTIMAL" | "GOOD" | "WARNING" | "CRITICAL" = "CRITICAL";
 		if (efficiency >= 95) status = "OPTIMAL";
 		else if (efficiency >= 80) status = "GOOD";
 		else if (efficiency >= 60) status = "WARNING";
-
-		return { efficiency, status };
+		
+		return {efficiency, status};
 	}
-
+	
 	static formatTimestamp(timestamp: number): string {
 		const date = new Date(timestamp);
 		return date.toLocaleString("en-US", {
@@ -1290,18 +1278,18 @@ class ProfessionalCalculations {
 			hour12: false,
 		});
 	}
-
+	
 	static getTimeDifference(timestamp1: number, timestamp2: number): string {
 		const diff = Math.abs(timestamp1 - timestamp2);
 		const seconds = Math.floor(diff / 1000);
 		const minutes = Math.floor(seconds / 60);
 		const hours = Math.floor(minutes / 60);
-
+		
 		if (hours > 0) return `${hours}h ${minutes % 60}m ago`;
 		if (minutes > 0) return `${minutes}m ${seconds % 60}s ago`;
 		return `${seconds}s ago`;
 	}
-
+	
 	static analyzeNetworkNodes(nodeMap: Record<string, any>): {
 		totalNodes: number;
 		activeNodes: number;
@@ -1313,13 +1301,13 @@ class ProfessionalCalculations {
 	} {
 		const nodes = Object.values(nodeMap);
 		const totalNodes = nodes.length;
-
+		
 		const currentTime = Date.now();
 		const activeNodes = nodes.filter((node) => {
 			const nodeTime = node.value?.timestamp || 0;
 			return (currentTime - nodeTime) < 300000; // 5 minutes threshold
 		}).length;
-
+		
 		const regions = nodes.reduce((acc, node) => {
 			const location = node.value?.raw?.location;
 			if (location?.country_name) {
@@ -1327,27 +1315,27 @@ class ProfessionalCalculations {
 			}
 			return acc;
 		}, {} as Record<string, number>);
-
+		
 		const cpuUsages = nodes.map((node) => {
 			const cpu = node.value?.raw?.cpu || [0, 0, 0];
 			return cpu.reduce((sum: number, val: number) => sum + val, 0) /
 				cpu.length;
 		}).filter((usage) => usage > 0);
-
+		
 		const memoryUsages = nodes.map((node) => {
 			const memory = node.value?.raw?.memory;
 			if (!memory) return 0;
 			return (memory.heapUsed / memory.heapTotal) * 100;
 		}).filter((usage) => usage > 0);
-
+		
 		const avgCpuUsage = cpuUsages.length > 0
 			? cpuUsages.reduce((sum, val) => sum + val, 0) / cpuUsages.length
 			: 0;
-
+		
 		const avgMemoryUsage = memoryUsages.length > 0
 			? memoryUsages.reduce((sum, val) => sum + val, 0) / memoryUsages.length
 			: 0;
-
+		
 		const healthPercentage = totalNodes > 0
 			? (activeNodes / totalNodes) * 100
 			: 0;
@@ -1355,11 +1343,11 @@ class ProfessionalCalculations {
 		if (healthPercentage >= 95) healthStatus = "EXCELLENT";
 		else if (healthPercentage >= 40) healthStatus = "GOOD";
 		else if (healthPercentage >= 10) healthStatus = "STABLE";
-
+		
 		const lastUpdate = Math.max(
 			...nodes.map((node) => node.value?.timestamp || 0),
 		);
-
+		
 		return {
 			totalNodes,
 			activeNodes,
@@ -1378,27 +1366,27 @@ export default function WalletWidget(): React.ReactElement {
 	const [response, setResponse] = useState<WalletResponse[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [isResultsOpen, setIsResultsOpen] = useState(false);
-
+	
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-
+		
 		if (!address.trim()) {
 			setError("Please enter a wallet address");
 			return;
 		}
-
+		
 		if (!validateAddress(address.trim())) {
 			setError(
 				"Invalid wallet address format. Please check your address and try again.",
 			);
 			return;
 		}
-
+		
 		setLoading(true);
 		setError(null);
 		setResponse(null);
 		setIsResultsOpen(false);
-
+		
 		try {
 			const requestBody = {
 				webfix: "1.0",
@@ -1408,7 +1396,7 @@ export default function WalletWidget(): React.ReactElement {
 					address: address.trim(),
 				},
 			};
-
+			
 			const res = await fetch("https://live.stels.dev", {
 				method: "POST",
 				headers: {
@@ -1416,20 +1404,20 @@ export default function WalletWidget(): React.ReactElement {
 				},
 				body: JSON.stringify(requestBody),
 			});
-
+			
 			if (!res.ok) {
 				throw new Error(`HTTP error! status: ${res.status}`);
 			}
-
+			
 			const data = await res.json();
-
+			
 			if (!data || data.length === 0) {
 				setError(
 					"This wallet is not connected to the network or has not performed any actions yet. Please check the address or try again later.",
 				);
 				return;
 			}
-
+			
 			setResponse(data);
 			setIsResultsOpen(true);
 		} catch (err) {
@@ -1442,18 +1430,18 @@ export default function WalletWidget(): React.ReactElement {
 			setLoading(false);
 		}
 	};
-
+	
 	// Calculate overall statistics for all accounts
 	const totalStats = useMemo(() => {
 		if (!response) return null;
-
+		
 		let totalEquity = 0;
 		let totalWalletBalance = 0;
 		let totalAvailableBalance = 0;
 		let totalPerpUPL = 0;
 		let totalPositions = 0;
 		let totalOpenOrders = 0;
-
+		
 		response.forEach((account) => {
 			totalEquity += Number.parseFloat(
 				account.wallet.info.result.list[0].totalEquity,
@@ -1467,11 +1455,11 @@ export default function WalletWidget(): React.ReactElement {
 			totalPerpUPL += Number.parseFloat(
 				account.wallet.info.result.list[0].totalPerpUPL,
 			);
-
+			
 			account.positions?.forEach((positionData) => {
 				totalPositions += positionData.value.raw.positions.length;
 			});
-
+			
 			account.orders?.spot?.forEach((spotData) => {
 				Object.values(spotData.value.raw.orders).forEach((symbolOrders) => {
 					const typedOrders = symbolOrders as {
@@ -1493,7 +1481,7 @@ export default function WalletWidget(): React.ReactElement {
 				});
 			});
 		});
-
+		
 		return {
 			totalEquity,
 			totalWalletBalance,
@@ -1504,7 +1492,7 @@ export default function WalletWidget(): React.ReactElement {
 			accountsCount: response.length,
 		};
 	}, [response]);
-
+	
 	interface WelcomeSessionData {
 		[key: string]: {
 			raw: {
@@ -1529,23 +1517,23 @@ export default function WalletWidget(): React.ReactElement {
 			};
 		};
 	}
-
+	
 	const session = useSessionStoreSync() as WelcomeSessionData | null;
-
+	
 	if (
 		!session || !session["testnet.snapshot.sonar"] ||
 		!session["testnet.runtime.sonar"]
 	) {
 		return <Loader>Scanning connection Testnet</Loader>;
 	}
-
+	
 	const netMap = filterSession(session || {}, /\.heterogen\..*\.setting$/);
-
+	
 	const snapshot = session["testnet.snapshot.sonar"];
 	const runtime = session["testnet.runtime.sonar"];
-
+	
 	const calc = ProfessionalCalculations;
-
+	
 	const liquidityPnL = calc.calculatePnL(
 		runtime.raw.liquidity,
 		snapshot.raw.liquidity,
@@ -1562,7 +1550,7 @@ export default function WalletWidget(): React.ReactElement {
 		runtime.raw.protection,
 		snapshot.raw.protection,
 	);
-
+	
 	const marginAnalysis = calc.calculateMarginRatio(
 		runtime.raw.margin.balance,
 		runtime.raw.margin.initial,
@@ -1570,19 +1558,19 @@ export default function WalletWidget(): React.ReactElement {
 	);
 	const workerAnalysis = calc.calculateWorkerEfficiency(runtime.raw.workers);
 	const networkAnalysis = calc.analyzeNetworkNodes(netMap);
-
+	
 	const totalROI = calc.calculatePnL(
 		runtime.raw.liquidity,
 		snapshot.raw.liquidity,
 	);
-
+	
 	return (
 		<div className="container m-auto gap-6 space-y-8">
 			<Card className="mb-6">
 				<CardHeader>
 					<div className="flex items-center gap-3">
 						<div className="p-3 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl">
-							<Wallet className="h-6 w-6 text-amber-600" />
+							<Wallet className="h-6 w-6 text-amber-600"/>
 						</div>
 						<div>
 							<CardTitle className="text-xl flex items-center gap-2">
@@ -1625,13 +1613,13 @@ export default function WalletWidget(): React.ReactElement {
 									{loading
 										? (
 											<>
-												<Loader2 className="h-4 w-4 animate-spin mr-2" />
+												<Loader2 className="h-4 w-4 animate-spin mr-2"/>
 												Analyzing...
 											</>
 										)
 										: (
 											<>
-												<BarChart3 className="h-4 w-4 mr-2" />
+												<BarChart3 className="h-4 w-4 mr-2"/>
 												Analyze
 											</>
 										)}
@@ -1641,11 +1629,11 @@ export default function WalletWidget(): React.ReactElement {
 					</form>
 				</CardContent>
 			</Card>
-
+			
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center text-white">
-						<Globe className="w-5 h-5 mr-2" />
+						<Globe className="w-5 h-5 mr-2"/>
 						NETWORK NODES STATUS
 					</CardTitle>
 				</CardHeader>
@@ -1662,7 +1650,7 @@ export default function WalletWidget(): React.ReactElement {
 								distributed globally
 							</div>
 						</div>
-
+						
 						<div className="text-center">
 							<div className="text-xs text-gray-400 mb-2">ACTIVE NODES</div>
 							<div className="text-2xl font-bold text-emerald-400 mb-1">
@@ -1675,7 +1663,7 @@ export default function WalletWidget(): React.ReactElement {
 									: 0}% online
 							</div>
 						</div>
-
+						
 						<div className="text-center">
 							<div className="text-xs text-gray-400 mb-2">NETWORK HEALTH</div>
 							<Badge
@@ -1683,13 +1671,13 @@ export default function WalletWidget(): React.ReactElement {
 								className={cn(
 									"text-sm px-3 py-1",
 									networkAnalysis.healthStatus === "EXCELLENT" &&
-										"border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+									"border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
 									networkAnalysis.healthStatus === "GOOD" &&
-										"border-blue-500/30 bg-blue-500/10 text-blue-400",
+									"border-blue-500/30 bg-blue-500/10 text-blue-400",
 									networkAnalysis.healthStatus === "STABLE" &&
-										"border-amber-500/30 bg-amber-500/10 text-amber-400",
+									"border-amber-500/30 bg-amber-500/10 text-amber-400",
 									networkAnalysis.healthStatus === "CRITICAL" &&
-										"border-red-500/30 bg-red-500/10 text-red-400",
+									"border-red-500/30 bg-red-500/10 text-red-400",
 								)}
 							>
 								{networkAnalysis.healthStatus}
@@ -1698,7 +1686,7 @@ export default function WalletWidget(): React.ReactElement {
 								overall status
 							</div>
 						</div>
-
+						
 						<div className="text-center">
 							<div className="text-xs text-gray-400 mb-2">REGIONS</div>
 							<div className="text-sm font-medium text-blue-400">
@@ -1709,7 +1697,7 @@ export default function WalletWidget(): React.ReactElement {
 							</div>
 						</div>
 					</div>
-
+					
 					{/* Regional Distribution */}
 					<div className="mt-6 pt-4 border-t  min-w-0 overflow-hidden">
 						<div className="text-xs text-gray-400 mb-3">
@@ -1725,7 +1713,7 @@ export default function WalletWidget(): React.ReactElement {
 										className="flex items-center justify-between text-xs min-w-0"
 									>
 										<div className="flex items-center min-w-0 overflow-hidden">
-											<MapPin className="w-3 h-3 mr-1 text-gray-400" />
+											<MapPin className="w-3 h-3 mr-1 text-gray-400"/>
 											<span className="text-gray-300 truncate">
 												{country}
 											</span>
@@ -1742,7 +1730,7 @@ export default function WalletWidget(): React.ReactElement {
 					</div>
 				</CardContent>
 			</Card>
-
+			
 			<div className="container m-auto gap-6 space-y-8">
 				{/* Key Performance Metrics */}
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 min-w-0">
@@ -1750,7 +1738,7 @@ export default function WalletWidget(): React.ReactElement {
 					<Card>
 						<CardHeader className="pb-3">
 							<CardTitle className="text-sm font-medium text-gray-400 flex items-center">
-								<Wallet className="w-4 h-4 mr-2" />
+								<Wallet className="w-4 h-4 mr-2"/>
 								TOTAL LIQUIDITY
 							</CardTitle>
 						</CardHeader>
@@ -1765,8 +1753,8 @@ export default function WalletWidget(): React.ReactElement {
 								)}
 							>
 								{liquidityPnL.isProfit
-									? <TrendingUp className="w-4 h-4 mr-1" />
-									: <TrendingDown className="w-4 h-4 mr-1" />}
+									? <TrendingUp className="w-4 h-4 mr-1"/>
+									: <TrendingDown className="w-4 h-4 mr-1"/>}
 								{calc.formatCurrency(liquidityPnL.absolute)}
 								<span className="ml-1">
 									({calc.formatPercentage(liquidityPnL.percentage)})
@@ -1777,12 +1765,12 @@ export default function WalletWidget(): React.ReactElement {
 							</div>
 						</CardContent>
 					</Card>
-
+					
 					{/* Available Balance */}
 					<Card>
 						<CardHeader className="pb-3">
 							<CardTitle className="text-sm font-medium text-gray-400 flex items-center">
-								<DollarSign className="w-4 h-4 mr-2" />
+								<DollarSign className="w-4 h-4 mr-2"/>
 								AVAILABLE BALANCE
 							</CardTitle>
 						</CardHeader>
@@ -1797,8 +1785,8 @@ export default function WalletWidget(): React.ReactElement {
 								)}
 							>
 								{availablePnL.isProfit
-									? <TrendingUp className="w-4 h-4 mr-1" />
-									: <TrendingDown className="w-4 h-4 mr-1" />}
+									? <TrendingUp className="w-4 h-4 mr-1"/>
+									: <TrendingDown className="w-4 h-4 mr-1"/>}
 								{calc.formatCurrency(availablePnL.absolute)}
 								<span
 									className={cn(
@@ -1818,12 +1806,12 @@ export default function WalletWidget(): React.ReactElement {
 							</div>
 						</CardContent>
 					</Card>
-
+					
 					{/* Portfolio ROI */}
 					<Card>
 						<CardHeader className="pb-3">
 							<CardTitle className="text-sm font-medium text-gray-400 flex items-center">
-								<Target className="w-4 h-4 mr-2" />
+								<Target className="w-4 h-4 mr-2"/>
 								PORTFOLIO NAV
 							</CardTitle>
 						</CardHeader>
@@ -1843,19 +1831,19 @@ export default function WalletWidget(): React.ReactElement {
 								)}
 							>
 								{totalROI.isProfit
-									? <TrendingUp className="w-4 h-4 mr-1" />
-									: <TrendingDown className="w-4 h-4 mr-1" />}
+									? <TrendingUp className="w-4 h-4 mr-1"/>
+									: <TrendingDown className="w-4 h-4 mr-1"/>}
 								{calc.formatCurrency(totalROI.absolute)}
 							</div>
 							<div className="text-xs text-gray-500 mt-1">growth NAV</div>
 						</CardContent>
 					</Card>
-
+					
 					{/* Performance Rate */}
 					<Card>
 						<CardHeader className="pb-3">
 							<CardTitle className="text-sm font-medium text-gray-400 flex items-center">
-								<Activity className="w-4 h-4 mr-2" />
+								<Activity className="w-4 h-4 mr-2"/>
 								PERFORMANCE RATE
 							</CardTitle>
 						</CardHeader>
@@ -1872,11 +1860,11 @@ export default function WalletWidget(): React.ReactElement {
 								)}
 							>
 								{runtime.raw.rate > snapshot.raw.rate
-									? <TrendingUp className="w-4 h-4 mr-1" />
-									: <TrendingDown className="w-4 h-4 mr-1" />}
+									? <TrendingUp className="w-4 h-4 mr-1"/>
+									: <TrendingDown className="w-4 h-4 mr-1"/>}
 								{calc.formatPercentage(
 									((runtime.raw.rate - snapshot.raw.rate) / snapshot.raw.rate) *
-										100,
+									100,
 									3,
 								)}
 							</div>
@@ -1884,12 +1872,12 @@ export default function WalletWidget(): React.ReactElement {
 						</CardContent>
 					</Card>
 				</div>
-
+				
 				{/* Protection & Risk Management */}
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center text-white">
-							<Shield className="w-5 h-5 mr-2" />
+							<Shield className="w-5 h-5 mr-2"/>
 							PROTECTION & RISK MANAGEMENT
 						</CardTitle>
 					</CardHeader>
@@ -1918,12 +1906,12 @@ export default function WalletWidget(): React.ReactElement {
 									)}
 								>
 									{protectionPnL.isProfit
-										? <TrendingUp className="w-3 h-3 mr-1" />
-										: <TrendingDown className="w-3 h-3 mr-1" />}
+										? <TrendingUp className="w-3 h-3 mr-1"/>
+										: <TrendingDown className="w-3 h-3 mr-1"/>}
 									{calc.formatCurrency(protectionPnL.absolute)}
 								</div>
 							</div>
-
+							
 							<div className="text-center">
 								<div className="text-xs text-gray-400 mb-2">RISK LEVEL</div>
 								<Badge
@@ -1931,13 +1919,13 @@ export default function WalletWidget(): React.ReactElement {
 									className={cn(
 										"text-sm px-3 py-1",
 										marginAnalysis.riskLevel === "LOW" &&
-											"border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+										"border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
 										marginAnalysis.riskLevel === "MEDIUM" &&
-											"border-amber-500/30 bg-amber-500/10 text-amber-400",
+										"border-amber-500/30 bg-amber-500/10 text-amber-400",
 										marginAnalysis.riskLevel === "HIGH" &&
-											"border-orange-500/30 bg-orange-500/10 text-orange-400",
+										"border-orange-500/30 bg-orange-500/10 text-orange-400",
 										marginAnalysis.riskLevel === "CRITICAL" &&
-											"border-red-500/30 bg-red-500/10 text-red-400",
+										"border-red-500/30 bg-red-500/10 text-red-400",
 									)}
 								>
 									{marginAnalysis.riskLevel}
@@ -1946,7 +1934,7 @@ export default function WalletWidget(): React.ReactElement {
 									based on margin
 								</div>
 							</div>
-
+							
 							<div className="text-center">
 								<div className="text-xs text-gray-400 mb-2">EXCHANGE</div>
 								<div className="text-sm font-medium text-amber-400">
@@ -1956,7 +1944,7 @@ export default function WalletWidget(): React.ReactElement {
 									primary exchange
 								</div>
 							</div>
-
+							
 							<div className="text-center">
 								<div className="text-xs text-gray-400 mb-2">ACCOUNTS</div>
 								<div className="text-sm font-medium text-blue-400">
@@ -1969,14 +1957,14 @@ export default function WalletWidget(): React.ReactElement {
 						</div>
 					</CardContent>
 				</Card>
-
+				
 				{/* Advanced Analytics Section */}
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
 					{/* Margin Analysis */}
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center text-white">
-								<Calculator className="w-5 h-5 mr-2" />
+								<Calculator className="w-5 h-5 mr-2"/>
 								MARGIN ANALYSIS
 							</CardTitle>
 						</CardHeader>
@@ -2007,20 +1995,20 @@ export default function WalletWidget(): React.ReactElement {
 										className={cn(
 											"text-xs",
 											marginAnalysis.riskLevel === "LOW" &&
-												"border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+											"border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
 											marginAnalysis.riskLevel === "MEDIUM" &&
-												"border-amber-500/30 bg-amber-500/10 text-amber-400",
+											"border-amber-500/30 bg-amber-500/10 text-amber-400",
 											marginAnalysis.riskLevel === "HIGH" &&
-												"border-orange-500/30 bg-orange-500/10 text-orange-400",
+											"border-orange-500/30 bg-orange-500/10 text-orange-400",
 											marginAnalysis.riskLevel === "CRITICAL" &&
-												"border-red-500/30 bg-red-500/10 text-red-400",
+											"border-red-500/30 bg-red-500/10 text-red-400",
 										)}
 									>
 										{marginAnalysis.riskLevel}
 									</Badge>
 								</div>
 							</div>
-
+							
 							<div>
 								<div className="flex justify-between items-center mb-2">
 									<span className="text-sm text-gray-400">
@@ -2032,8 +2020,8 @@ export default function WalletWidget(): React.ReactElement {
 											marginAnalysis.utilizationRatio > 80
 												? "text-red-400"
 												: marginAnalysis.utilizationRatio > 60
-												? "text-amber-400"
-												: "text-emerald-400",
+													? "text-amber-400"
+													: "text-emerald-400",
 										)}
 									>
 										{marginAnalysis.utilizationRatio.toFixed(2)}%
@@ -2044,7 +2032,7 @@ export default function WalletWidget(): React.ReactElement {
 									className="h-2"
 								/>
 							</div>
-
+							
 							<div className="pt-2 space-y-2 text-xs">
 								<div className="flex justify-between">
 									<span className="text-gray-400">Initial Margin:</span>
@@ -2061,12 +2049,12 @@ export default function WalletWidget(): React.ReactElement {
 							</div>
 						</CardContent>
 					</Card>
-
+					
 					{/* Worker Optimization */}
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center text-white">
-								<Users className="w-5 h-5 mr-2" />
+								<Users className="w-5 h-5 mr-2"/>
 								PROTOCOL OPTIMIZATION
 							</CardTitle>
 						</CardHeader>
@@ -2091,7 +2079,7 @@ export default function WalletWidget(): React.ReactElement {
 									</div>
 								</div>
 							</div>
-
+							
 							<div>
 								<div className="flex justify-between items-center mb-2">
 									<span className="text-sm text-gray-400">EFFICIENCY</span>
@@ -2102,10 +2090,10 @@ export default function WalletWidget(): React.ReactElement {
 												workerAnalysis.efficiency >= 95
 													? "text-emerald-400"
 													: workerAnalysis.efficiency >= 80
-													? "text-blue-400"
-													: workerAnalysis.efficiency >= 60
-													? "text-amber-400"
-													: "text-red-400",
+														? "text-blue-400"
+														: workerAnalysis.efficiency >= 60
+															? "text-amber-400"
+															: "text-red-400",
 											)}
 										>
 											{workerAnalysis.efficiency.toFixed(1)}%
@@ -2115,13 +2103,13 @@ export default function WalletWidget(): React.ReactElement {
 											className={cn(
 												"text-xs",
 												workerAnalysis.status === "OPTIMAL" &&
-													"border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+												"border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
 												workerAnalysis.status === "GOOD" &&
-													"border-blue-500/30 bg-blue-500/10 text-blue-400",
+												"border-blue-500/30 bg-blue-500/10 text-blue-400",
 												workerAnalysis.status === "WARNING" &&
-													"border-amber-500/30 bg-amber-500/10 text-amber-400",
+												"border-amber-500/30 bg-amber-500/10 text-amber-400",
 												workerAnalysis.status === "CRITICAL" &&
-													"border-red-500/30 bg-red-500/10 text-red-400",
+												"border-red-500/30 bg-red-500/10 text-red-400",
 											)}
 										>
 											{workerAnalysis.status}
@@ -2133,7 +2121,7 @@ export default function WalletWidget(): React.ReactElement {
 									className="h-2 bg-gray-800"
 								/>
 							</div>
-
+							
 							<div className="pt-2">
 								<div className="text-xs text-gray-400 mb-2">
 									PERFORMANCE INSIGHTS
@@ -2157,18 +2145,18 @@ export default function WalletWidget(): React.ReactElement {
 						</CardContent>
 					</Card>
 				</div>
-
-				<Markets />
+				
+				<Markets/>
 			</div>
-
+			
 			{/* Error State */}
 			{error && (
 				<Alert variant="destructive" className="mb-6">
-					<AlertCircle className="h-4 w-4" />
+					<AlertCircle className="h-4 w-4"/>
 					<AlertDescription className="font-medium">{error}</AlertDescription>
 				</Alert>
 			)}
-
+			
 			<Dialog open={isResultsOpen} onOpenChange={setIsResultsOpen}>
 				<DialogContent className="max-w-7xl h-[90vh] flex flex-col p-0">
 					<DialogHeader className="p-6 pb-4 border-b">
@@ -2176,7 +2164,7 @@ export default function WalletWidget(): React.ReactElement {
 							<div className="flex-1 min-w-0">
 								<DialogTitle className="flex items-center gap-3 text-xl font-semibold">
 									<div className="p-2 bg-primary/10 rounded-lg">
-										<Wallet className="h-5 w-5 text-primary" />
+										<Wallet className="h-5 w-5 text-primary"/>
 									</div>
 									<span>Wallet Analysis Results</span>
 								</DialogTitle>
@@ -2188,7 +2176,7 @@ export default function WalletWidget(): React.ReactElement {
 							</div>
 						</div>
 					</DialogHeader>
-
+					
 					<div className="flex-1 overflow-y-auto p-6">
 						{response && response.length > 0 && (
 							<div className="space-y-6">
@@ -2198,7 +2186,7 @@ export default function WalletWidget(): React.ReactElement {
 										<CardHeader className="pb-4">
 											<div className="flex items-center gap-3">
 												<div className="p-2 bg-primary/20 rounded-lg">
-													<Users className="h-5 w-5 text-primary" />
+													<Users className="h-5 w-5 text-primary"/>
 												</div>
 												<div>
 													<CardTitle className="text-lg">
@@ -2216,7 +2204,7 @@ export default function WalletWidget(): React.ReactElement {
 													label="Total Equity"
 													value={formatCurrency(totalStats.totalEquity)}
 													size="lg"
-													icon={<BarChart3 className="h-4 w-4 text-primary" />}
+													icon={<BarChart3 className="h-4 w-4 text-primary"/>}
 												/>
 												<MetricCard
 													label="Total Balance"
@@ -2234,10 +2222,10 @@ export default function WalletWidget(): React.ReactElement {
 													<div className="flex items-center gap-1">
 														{totalStats.totalPerpUPL >= 0
 															? (
-																<TrendingUp className="h-4 w-4 text-emerald-600" />
+																<TrendingUp className="h-4 w-4 text-emerald-600"/>
 															)
 															: (
-																<TrendingDown className="h-4 w-4 text-red-500" />
+																<TrendingDown className="h-4 w-4 text-red-500"/>
 															)}
 														<p className="text-xs text-muted-foreground font-medium">
 															Total P&L
@@ -2257,12 +2245,12 @@ export default function WalletWidget(): React.ReactElement {
 													})()}
 												</div>
 											</div>
-
-											<Separator />
-
+											
+											<Separator/>
+											
 											<div className="flex justify-between text-sm">
 												<div className="flex items-center gap-2">
-													<Users className="h-4 w-4 text-muted-foreground" />
+													<Users className="h-4 w-4 text-muted-foreground"/>
 													<span className="text-muted-foreground">
 														Accounts:
 													</span>
@@ -2271,7 +2259,7 @@ export default function WalletWidget(): React.ReactElement {
 													</span>
 												</div>
 												<div className="flex items-center gap-2">
-													<Activity className="h-4 w-4 text-muted-foreground" />
+													<Activity className="h-4 w-4 text-muted-foreground"/>
 													<span className="text-muted-foreground">
 														Positions:
 													</span>
@@ -2280,7 +2268,7 @@ export default function WalletWidget(): React.ReactElement {
 													</span>
 												</div>
 												<div className="flex items-center gap-2">
-													<ShoppingCart className="h-4 w-4 text-muted-foreground" />
+													<ShoppingCart className="h-4 w-4 text-muted-foreground"/>
 													<span className="text-muted-foreground">
 														Open Orders:
 													</span>
@@ -2292,13 +2280,13 @@ export default function WalletWidget(): React.ReactElement {
 										</CardContent>
 									</Card>
 								)}
-
+								
 								{/* Account Tabs */}
 								<Card>
 									<CardHeader className="pb-4">
 										<div className="flex items-center gap-3">
 											<div className="p-2 bg-blue-500/10 rounded-lg">
-												<Activity className="h-5 w-5 text-blue-600" />
+												<Activity className="h-5 w-5 text-blue-600"/>
 											</div>
 											<div>
 												<CardTitle className="text-lg">
@@ -2312,14 +2300,15 @@ export default function WalletWidget(): React.ReactElement {
 									</CardHeader>
 									<CardContent>
 										<Tabs defaultValue={response[0].nid} className="w-full">
-											<TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1 h-auto p-1 bg-muted/50">
+											<TabsList
+												className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1 h-auto p-1 bg-muted/50">
 												{response.map((account) => (
 													<TabsTrigger
 														key={account.nid}
 														value={account.nid}
 														className="flex items-center gap-2 px-3 py-3 text-sm whitespace-nowrap data-[state=active]:bg-background data-[state=active]:shadow-sm"
 													>
-														<Wallet className="h-4 w-4 flex-shrink-0" />
+														<Wallet className="h-4 w-4 flex-shrink-0"/>
 														<span className="truncate max-w-[120px]">
 															{account.nid}
 														</span>
@@ -2329,14 +2318,14 @@ export default function WalletWidget(): React.ReactElement {
 													</TabsTrigger>
 												))}
 											</TabsList>
-
+											
 											{response.map((account) => (
 												<TabsContent
 													key={account.nid}
 													value={account.nid}
 													className="mt-6"
 												>
-													<AccountCard walletData={account} />
+													<AccountCard walletData={account}/>
 												</TabsContent>
 											))}
 										</Tabs>

@@ -1,5 +1,5 @@
-import { create } from 'zustand'
-import { devtools, persist } from 'zustand/middleware'
+import {create} from 'zustand'
+import {devtools, persist} from 'zustand/middleware'
 
 /**
  * Worker interface for the distributed execution platform
@@ -46,7 +46,8 @@ export interface WorkerActions {
 /**
  * Worker store interface combining state and actions
  */
-export interface WorkerStore extends WorkerState, WorkerActions {}
+export interface WorkerStore extends WorkerState, WorkerActions {
+}
 
 /**
  * Zustand store for worker management
@@ -63,15 +64,15 @@ export const useWorkerStore = create<WorkerStore>()(
 					isLoading: false,
 					isEditor: false,
 				},
-
+				
 				// Worker management actions
 				setWorker: async (): Promise<Worker | null> => {
-					set({ worker: { isLoading: true, isEditor: get().worker.isEditor } });
+					set({worker: {isLoading: true, isEditor: get().worker.isEditor}});
 					try {
 						const storage = localStorage.getItem("private");
 						if (!storage) throw new Error("Not authenticated");
 						const storageJSON = JSON.parse(storage);
-
+						
 						const response = await fetch(storageJSON.raw.info.api, {
 							method: "POST",
 							headers: {
@@ -83,34 +84,34 @@ export const useWorkerStore = create<WorkerStore>()(
 								params: [],
 							}),
 						});
-
+						
 						if (!response.ok) throw new Error("Network response was not ok");
 						const result = await response.json();
-
+						
 						if (result && result.key && result.value && result.value.raw && result.value.raw.sid) {
 							set((state) => ({
 								workers: [...state.workers, result],
 							}));
 						}
-
-						set({ worker: { isLoading: false, isEditor: get().worker.isEditor } });
+						
+						set({worker: {isLoading: false, isEditor: get().worker.isEditor}});
 						return result;
 					} catch (error) {
 						console.error("Error creating worker:", error);
 						set({
-							worker: { isLoading: false, isEditor: get().worker.isEditor },
+							worker: {isLoading: false, isEditor: get().worker.isEditor},
 						});
 						return null;
 					}
 				},
-
+				
 				updateWorker: async (workerData: Worker): Promise<Worker | null> => {
-					set({ worker: { isLoading: true, isEditor: get().worker.isEditor } });
+					set({worker: {isLoading: true, isEditor: get().worker.isEditor}});
 					try {
 						const storage = localStorage.getItem("private");
 						if (!storage) throw new Error("Not authenticated");
 						const storageJSON = JSON.parse(storage);
-
+						
 						const response = await fetch(storageJSON.raw.info.api, {
 							method: "POST",
 							headers: {
@@ -123,10 +124,10 @@ export const useWorkerStore = create<WorkerStore>()(
 								body: workerData,
 							}),
 						});
-
+						
 						if (!response.ok) throw new Error("Network response was not ok");
 						const result = await response.json();
-
+						
 						// Update worker in state if server returns updated data
 						if (result && result.value && result.value.raw && result.value.raw.sid) {
 							const sid = result.value.raw.sid;
@@ -136,26 +137,26 @@ export const useWorkerStore = create<WorkerStore>()(
 								),
 							}));
 						}
-						set({ worker: { isLoading: false, isEditor: get().worker.isEditor } });
+						set({worker: {isLoading: false, isEditor: get().worker.isEditor}});
 						return result;
 					} catch (error) {
 						console.error("Error updating worker:", error);
 						set({
-							worker: { isLoading: false, isEditor: get().worker.isEditor },
+							worker: {isLoading: false, isEditor: get().worker.isEditor},
 						});
 						return null;
 					}
 				},
-
+				
 				listWorkers: async (): Promise<void> => {
-					set({ workersLoading: true, workersError: null });
+					set({workersLoading: true, workersError: null});
 					try {
 						const storage = localStorage.getItem("private");
 						if (!storage) {
 							throw new Error("Not authenticated");
 						}
 						const storageJSON = JSON.parse(storage);
-
+						
 						const response = await fetch(storageJSON.raw.info.api, {
 							method: 'POST',
 							headers: {
@@ -167,12 +168,12 @@ export const useWorkerStore = create<WorkerStore>()(
 								params: []
 							}),
 						});
-
+						
 						if (!response.ok) {
 							throw new Error('Network response was not ok');
 						}
 						const data = await response.json();
-
+						
 						set({
 							workers: data,
 							workersLoading: false,

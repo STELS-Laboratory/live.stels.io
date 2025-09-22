@@ -1,5 +1,5 @@
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import {Card, CardContent} from "@/components/ui/card"
+import {Badge} from "@/components/ui/badge"
 
 interface WidgetData {
 	channel: string
@@ -26,8 +26,8 @@ interface MonitoringWidgetProps {
 	data: WidgetData
 }
 
-export function FredIndicatorWidget({ data }: MonitoringWidgetProps) {
-	const { raw } = data
+export function FredIndicatorWidget({data}: MonitoringWidgetProps) {
+	const {raw} = data
 	
 	const formatValue = () => {
 		let displayValue = raw.value
@@ -118,7 +118,7 @@ export function FredIndicatorWidget({ data }: MonitoringWidgetProps) {
 							{raw.countryName} • {raw.date}
 						</p>
 					</div>
-					<div className={`w-2 h-2 rounded-full ${getStatusColor()} ml-2 mt-1 flex-shrink-0`} />
+					<div className={`w-2 h-2 rounded-full ${getStatusColor()} ml-2 mt-1 flex-shrink-0`}/>
 				</div>
 				
 				{/* Value and metadata */}

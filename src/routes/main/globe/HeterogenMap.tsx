@@ -1,11 +1,11 @@
-import { type ReactElement, useEffect, useMemo, useRef, useState } from "react";
-import Globe, { type GlobeMethods } from "react-globe.gl";
+import {type ReactElement, useEffect, useMemo, useRef, useState} from "react";
+import Globe, {type GlobeMethods} from "react-globe.gl";
 
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
-import { filterSession } from "@/lib/utils.ts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import {filterSession} from "@/lib/utils.ts";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Badge} from "@/components/ui/badge";
+import {Separator} from "@/components/ui/separator";
 
 import globeImage from "@/assets/stels-ai.jpg";
 
@@ -95,21 +95,21 @@ interface SessionItem {
  */
 function parseNodeData(data: unknown[]): NodeData[] {
 	const nodeMap: Record<string, Partial<NodeData>> = {};
-
+	
 	data.forEach((item) => {
 		const sessionItem = item as SessionItem;
 		const nodeName = sessionItem.key;
-
+		
 		if (!nodeMap[nodeName]) {
-			nodeMap[nodeName] = { name: nodeName };
+			nodeMap[nodeName] = {name: nodeName};
 		}
-
+		
 		const node = nodeMap[nodeName];
-
+		
 		node.location = sessionItem.value.raw.location;
 		node.config = sessionItem.value.raw as unknown as ConfigData;
 	});
-
+	
 	return Object.values(nodeMap).filter((node) =>
 		node.location && node.config
 	) as NodeData[];
@@ -119,21 +119,21 @@ function parseNodeData(data: unknown[]): NodeData[] {
 const HeterogenComponent = (): ReactElement => {
 	const globeEl = useRef<GlobeMethods | undefined>(undefined);
 	const [nodes, setNodes] = useState<NodeData[]>([]);
-
+	
 	const session = useSessionStoreSync() as
 		| Record<string, { value: { raw: { nodes: unknown[] } } }>
 		| null;
-
+	
 	const netMap = useMemo(
 		() => filterSession(session || {}, /\.heterogen\..*\.setting$/),
 		[session],
 	);
-
+	
 	useEffect(() => {
 		const parsedNodes = parseNodeData(netMap);
 		setNodes(parsedNodes);
 	}, []);
-
+	
 	useEffect(() => {
 		// Auto-rotate
 		const controls = globeEl.current?.controls();
@@ -142,10 +142,10 @@ const HeterogenComponent = (): ReactElement => {
 			controls.autoRotateSpeed = 0.1;
 		}
 	}, []);
-
+	
 	const stats: NetworkStats = useMemo(() => {
 		const totalNodes = nodes.length;
-
+		
 		const countBy = (items: string[]): CountEntry[] => {
 			const map = new Map<string, number>();
 			items.forEach((key) => {
@@ -153,14 +153,14 @@ const HeterogenComponent = (): ReactElement => {
 				map.set(key, (map.get(key) ?? 0) + 1);
 			});
 			return Array.from(map.entries())
-				.map(([name, count]) => ({ name, count }))
+				.map(([name, count]) => ({name, count}))
 				.sort((a, b) => b.count - a.count);
 		};
-
+		
 		const networks = countBy(nodes.map((n) => n.config.network));
 		const countries = countBy(nodes.map((n) => n.location.country_name));
 		const versions = countBy(nodes.map((n) => n.location.version));
-
+		
 		return {
 			totalNodes,
 			uniqueNetworks: networks.length,
@@ -170,7 +170,7 @@ const HeterogenComponent = (): ReactElement => {
 			versions: versions.slice(0, 4),
 		};
 	}, [nodes]);
-
+	
 	return (
 		<>
 			<div className="fixed w-[100%] h-[100%] left-0 top-0 bottom-0 right-0 z-0">
@@ -233,9 +233,9 @@ const HeterogenComponent = (): ReactElement => {
 								</div>
 							</div>
 						</div>
-
-						<Separator className="bg-zinc-800" />
-
+						
+						<Separator className="bg-zinc-800"/>
+						
 						<div className="space-y-2">
 							<div className="text-xs uppercase tracking-wide text-zinc-400">
 								Heterogeneous
@@ -259,7 +259,7 @@ const HeterogenComponent = (): ReactElement => {
 									)}
 							</div>
 						</div>
-
+						
 						<div className="space-y-2">
 							<div className="text-xs uppercase tracking-wide text-zinc-400">
 								Top Countries

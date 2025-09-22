@@ -1,7 +1,7 @@
 import MonacoEditor from "@monaco-editor/react";
-import { useCallback, useRef } from "react";
+import type {ReactElement} from "react";
+import {useCallback, useRef} from "react";
 import type * as monaco from "monaco-editor";
-import type { ReactElement } from "react";
 
 interface EditorComponentProps {
 	script: string | undefined;
@@ -9,36 +9,36 @@ interface EditorComponentProps {
 }
 
 export default function EditorComponent(
-	{ script, handleEditorChange }: EditorComponentProps,
+	{script, handleEditorChange}: EditorComponentProps,
 ): ReactElement {
 	const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-
+	
 	const handleEditorDidMount = useCallback((
 		editor: monaco.editor.IStandaloneCodeEditor,
 		monaco: typeof import("monaco-editor"),
 	) => {
 		editorRef.current = editor;
-
+		
 		// Define Molokai theme
 		monaco.editor.defineTheme("molokai", {
 			base: "vs-dark",
 			inherit: true,
 			rules: [
-				{ token: "comment", foreground: "75715e", fontStyle: "italic" },
-				{ token: "keyword", foreground: "f92672", fontStyle: "bold" },
-				{ token: "string", foreground: "e6db74" },
-				{ token: "number", foreground: "ae81ff" },
-				{ token: "regexp", foreground: "e6db74" },
-				{ token: "operator", foreground: "f92672" },
-				{ token: "namespace", foreground: "f8f8f2" },
-				{ token: "type", foreground: "66d9ef", fontStyle: "italic" },
-				{ token: "struct", foreground: "a6e22e" },
-				{ token: "class", foreground: "a6e22e" },
-				{ token: "interface", foreground: "a6e22e" },
-				{ token: "parameter", foreground: "fd971f", fontStyle: "italic" },
-				{ token: "variable", foreground: "f8f8f2" },
-				{ token: "function", foreground: "a6e22e" },
-				{ token: "member", foreground: "f8f8f2" },
+				{token: "comment", foreground: "75715e", fontStyle: "italic"},
+				{token: "keyword", foreground: "f92672", fontStyle: "bold"},
+				{token: "string", foreground: "e6db74"},
+				{token: "number", foreground: "ae81ff"},
+				{token: "regexp", foreground: "e6db74"},
+				{token: "operator", foreground: "f92672"},
+				{token: "namespace", foreground: "f8f8f2"},
+				{token: "type", foreground: "66d9ef", fontStyle: "italic"},
+				{token: "struct", foreground: "a6e22e"},
+				{token: "class", foreground: "a6e22e"},
+				{token: "interface", foreground: "a6e22e"},
+				{token: "parameter", foreground: "fd971f", fontStyle: "italic"},
+				{token: "variable", foreground: "f8f8f2"},
+				{token: "function", foreground: "a6e22e"},
+				{token: "member", foreground: "f8f8f2"},
 			],
 			colors: {
 				"editor.background": "#0e0e10", // zinc-900
@@ -63,10 +63,10 @@ export default function EditorComponent(
 				"scrollbarSlider.hoverBackground": "#71717a", // zinc-500
 			},
 		});
-
+		
 		// Set Molokai theme
 		monaco.editor.setTheme("molokai");
-
+		
 		// Configure JavaScript/TypeScript language features
 		monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
 			target: monaco.languages.typescript.ScriptTarget.ES2020,
@@ -80,7 +80,7 @@ export default function EditorComponent(
 			allowJs: true,
 			typeRoots: ["node_modules/@types"],
 		});
-
+		
 		// Add Stels SDK type definitions
 		const stelsSdkTypes = `
       declare global {
@@ -123,12 +123,12 @@ export default function EditorComponent(
         };
       }
     `;
-
+		
 		monaco.languages.typescript.javascriptDefaults.addExtraLib(
 			stelsSdkTypes,
 			"stels-sdk.d.ts",
 		);
-
+		
 		// Add custom completion provider for Stels SDK
 		monaco.languages.registerCompletionItemProvider("javascript", {
 			provideCompletionItems: (model, position) => {
@@ -139,7 +139,7 @@ export default function EditorComponent(
 					startColumn: word.startColumn,
 					endColumn: word.endColumn,
 				};
-
+				
 				const suggestions = [
 					{
 						label: "Stels.nid",
@@ -156,23 +156,23 @@ export default function EditorComponent(
 						documentation: "Session ID",
 					},
 				];
-
-				return { suggestions };
+				
+				return {suggestions};
 			},
 		});
-
+		
 		// Configure editor shortcuts
 		editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
 			// Trigger save action
 			console.log("Save shortcut triggered");
 		});
-
+		
 		editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
 			// Trigger run action
 			console.log("Run shortcut triggered");
 		});
 	}, []);
-
+	
 	// @ts-ignore
 	return (
 		<MonacoEditor
@@ -185,21 +185,21 @@ export default function EditorComponent(
 			onMount={handleEditorDidMount}
 			options={{
 				// Appearance
-				minimap: { enabled: true, scale: 1 },
+				minimap: {enabled: true, scale: 1},
 				fontSize: 14,
 				fontFamily: "Saira, monospace",
 				fontLigatures: true,
 				lineHeight: 1.6,
 				letterSpacing: 0.5,
-
+				
 				// Padding and spacing
-				padding: { top: 16, bottom: 16 },
+				padding: {top: 16, bottom: 16},
 				lineNumbers: "on",
 				lineNumbersMinChars: 4,
 				glyphMargin: true,
 				folding: true,
 				foldingStrategy: "indentation",
-
+				
 				// Editing behavior
 				wordWrap: "bounded",
 				wordWrapColumn: 120,
@@ -207,7 +207,7 @@ export default function EditorComponent(
 				autoIndent: "full",
 				formatOnPaste: true,
 				formatOnType: true,
-
+				
 				// Selection and cursor
 				cursorBlinking: "smooth",
 				cursorSmoothCaretAnimation: "on",
@@ -215,7 +215,7 @@ export default function EditorComponent(
 				selectOnLineNumbers: true,
 				selectionHighlight: true,
 				occurrencesHighlight: "singleFile",
-
+				
 				// Scrolling
 				smoothScrolling: true,
 				mouseWheelZoom: true,
@@ -226,7 +226,7 @@ export default function EditorComponent(
 					verticalScrollbarSize: 12,
 					horizontalScrollbarSize: 12,
 				},
-
+				
 				// IntelliSense
 				quickSuggestions: {
 					other: true,
@@ -237,22 +237,22 @@ export default function EditorComponent(
 				acceptSuggestionOnEnter: "on",
 				tabCompletion: "on",
 				wordBasedSuggestions: "matchingDocuments",
-
+				
 				// Validation and diagnostics
 				showUnused: true,
 				showDeprecated: true,
-
+				
 				// Accessibility
 				accessibilitySupport: "auto",
-
+				
 				// Performance
 				renderWhitespace: "selection",
 				renderControlCharacters: false,
-
+				
 				// Bracket matching
 				matchBrackets: "always",
-				bracketPairColorization: { enabled: true },
-
+				bracketPairColorization: {enabled: true},
+				
 				// Comments and strings
 				comments: {
 					insertSpace: true,

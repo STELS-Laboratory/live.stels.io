@@ -2,9 +2,9 @@
 
 import elliptic from "elliptic";
 import bs58 from "bs58";
-import { sha256 } from "@noble/hashes/sha256";
-import { ripemd160 } from "@noble/hashes/ripemd160";
-import { hmac } from "@noble/hashes/hmac";
+import {sha256} from "@noble/hashes/sha256";
+import {ripemd160} from "@noble/hashes/ripemd160";
+import {hmac} from "@noble/hashes/hmac";
 
 const EC = new elliptic.ec("secp256k1");
 
@@ -411,7 +411,7 @@ export function verify(
  * Validates transaction hash and signature.
  */
 export function validateTransaction(transaction: Transaction): boolean {
-	const { hash, signature, ...transactionData } = transaction;
+	const {hash, signature, ...transactionData} = transaction;
 	const transactionString = deterministicStringify(transactionData);
 	const recomputedHash = toHex(
 		sha256(new TextEncoder().encode(transactionString)),
@@ -474,7 +474,7 @@ export function createSmartTransaction(
 		method: "smart.exec" as const,
 		args: {
 			ops,
-			...(memo && { memo })
+			...(memo && {memo})
 		},
 		from: wallet.address,
 		fee,
@@ -698,7 +698,7 @@ export function signWithDomain(
 	privateKey: string,
 	domain: string[]
 ): string {
-	const domainString = deterministicStringify({ domain, data });
+	const domainString = deterministicStringify({domain, data});
 	return sign(domainString, privateKey);
 }
 
@@ -952,11 +952,14 @@ export interface Gliesereum {
 		prefix?: string,
 		secretKey?: string | Uint8Array,
 	): string;
+	
 	createWallet(): Wallet;
+	
 	importWallet(privateKey: string): Wallet;
 	
 	// Address functions
 	validateAddress(address: string): boolean;
+	
 	getAddress(bytes: Uint8Array): string;
 	
 	// Basic transaction functions
@@ -967,6 +970,7 @@ export interface Gliesereum {
 		fee: number,
 		data?: string,
 	): Transaction;
+	
 	validateTransaction(tx: Transaction): boolean;
 	
 	// Smart transaction functions
@@ -978,8 +982,11 @@ export interface Gliesereum {
 		prevHash?: string | null,
 		rawData?: string
 	): SmartTransaction;
+	
 	validateSmartTransaction(tx: SmartTransaction): boolean;
+	
 	validateSmartOperation(op: SmartOp): boolean;
+	
 	calculateSmartTransactionFee(
 		ops: SmartOp[],
 		rawBytes?: number,
@@ -993,12 +1000,14 @@ export interface Gliesereum {
 		threshold: { k: number; n: number },
 		deadlineMs?: number
 	): CosignMethod;
+	
 	createCosignSignature(
 		methodId: string,
 		publicKey: string,
 		privateKey: string,
 		transaction: SmartTransaction
 	): CosignSignature;
+	
 	signWithDomain(
 		data: string,
 		privateKey: string,
@@ -1007,19 +1016,30 @@ export interface Gliesereum {
 	
 	// Cryptographic functions
 	sign(data: string, privateKey: string): string;
+	
 	verify(data: string, signature: string, publicKey: string): boolean;
 	
 	// Validation functions
 	validateCosignMethod(method: CosignMethod): boolean;
+	
 	validateCosignSignature(cosig: CosignSignature): boolean;
+	
 	validateTransactionSignature(sig: TransactionSignature): boolean;
+	
 	validateFeeFormat(fee: string): boolean;
+	
 	validateAmountFormat(amount: string): boolean;
+	
 	validateRawData(rawData: string): boolean;
+	
 	validateMemo(memo: string): boolean;
+	
 	validateEventKind(kind: string): boolean;
+	
 	validateEventData(data: Record<string, unknown>): boolean;
+	
 	getAddressFromPublicKey(publicKey: string): string;
+	
 	verifyPublicKeyAddress(publicKey: string, address: string): boolean;
 }
 
