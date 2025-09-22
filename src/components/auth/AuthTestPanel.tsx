@@ -177,6 +177,7 @@ export function AuthTestPanel(): React.ReactElement {
               onClick={connectToNode}
               disabled={!wallet || !selectedNetwork || isConnecting}
               size="sm"
+              className="h-12"
             >
               Connect to Node
             </Button>
@@ -186,6 +187,7 @@ export function AuthTestPanel(): React.ReactElement {
               disabled={!isConnected}
               variant="outline"
               size="sm"
+              className="h-12"
             >
               Disconnect
             </Button>
@@ -195,6 +197,7 @@ export function AuthTestPanel(): React.ReactElement {
               disabled={isConnecting || !wallet || !selectedNetwork}
               variant="outline"
               size="sm"
+              className="h-12"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Test Restore
@@ -204,6 +207,7 @@ export function AuthTestPanel(): React.ReactElement {
               onClick={handleClearAllData}
               variant="destructive"
               size="sm"
+              className="h-12"
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Clear All Data
@@ -213,6 +217,7 @@ export function AuthTestPanel(): React.ReactElement {
               onClick={handleTestFullClear}
               variant="destructive"
               size="sm"
+              className="h-12"
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Test Full Clear
@@ -222,6 +227,7 @@ export function AuthTestPanel(): React.ReactElement {
               onClick={handleTestResetWallet}
               variant="outline"
               size="sm"
+              className="h-12"
             >
               <RotateCcw className="h-4 w-4 mr-2" />
               Test Reset Wallet

@@ -231,7 +231,7 @@ export function WalletCreator(
                   placeholder="Enter your 64-character hex private key..."
                   value={privateKey}
                   onChange={(e) => setPrivateKey(e.target.value)}
-                  className={`font-mono text-sm transition-all duration-300 ${
+                  className={`h-12 font-mono text-sm transition-all duration-300 ${
                     validationState.type === "error"
                       ? "border-red-500/50 focus:border-red-400 bg-red-500/5"
                       : validationState.type === "success"

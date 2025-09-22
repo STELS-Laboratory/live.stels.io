@@ -7,13 +7,14 @@ import {
   AlertCircle,
   ArrowLeft,
   ArrowRight,
-  CheckCircle,
   Network,
   Server,
   Shield,
+  Wifi,
 } from "lucide-react";
 import { type NetworkConfig, useAuthStore } from "@/stores/modules/auth.store";
 import { WalletPreview } from "./WalletPreview";
+import { NetworkSelectorCompact } from "./NetworkSelectorCompact";
 
 interface NetworkSetupProps {
   onBack: () => void;
@@ -28,18 +29,10 @@ export function NetworkSetup(
 ): React.ReactElement {
   console.log("[NetworkSetup] Component rendered");
   const {
-    availableNetworks,
     selectedNetwork,
-    selectNetwork,
     connectionError,
-    clearConnectionError,
     isConnecting,
   } = useAuthStore();
-
-  const handleNetworkSelect = (network: NetworkConfig): void => {
-    clearConnectionError();
-    selectNetwork(network);
-  };
 
   const getNetworkIcon = (network: NetworkConfig) => {
     switch (network.id) {
@@ -68,108 +61,41 @@ export function NetworkSetup(
   };
 
   return (
-    <div className="space-y-6">
-      {/* Wallet Preview */}
-      <WalletPreview />
+    <div className="space-y-8 animate-fade-in-up">
+      {/* Wallet Preview Section */}
+      <div className="transform transition-all duration-500">
+        <WalletPreview />
+      </div>
 
-      {/* Network Selection */}
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader className="text-center">
-          <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-            <Network className="h-6 w-6 text-amber-500" />
-            Select Network
+      {/* Network Setup Card */}
+      <Card className="w-full max-w-2xl mx-auto backdrop-blur-sm bg-zinc-900/80 border-zinc-700/50 shadow-2xl">
+        <CardHeader className="text-center pb-6">
+          <CardTitle className="flex items-center justify-center gap-3 text-3xl font-bold">
+            <div className="relative">
+              <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-lg" />
+              <div className="relative p-3 rounded-full bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 backdrop-blur-sm">
+                <Network className="h-6 w-6 text-amber-500" />
+              </div>
+            </div>
+            <span className="bg-gradient-to-r from-amber-400 via-white to-orange-400 bg-clip-text text-transparent">
+              Select Network
+            </span>
           </CardTitle>
-          <p className="text-zinc-400 mt-2">
-            Choose the network you want to connect to
+          <p className="text-zinc-400 text-lg mt-3 leading-relaxed">
+            Your wallet is ready. Choose a network to connect to the SONAR Web3
+            platform.
           </p>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4">
-            {availableNetworks.map((network) => (
-              <div
-                key={network.id}
-                className={`p-4 rounded-lg border cursor-pointer transition-all hover:bg-zinc-800/50 ${
-                  selectedNetwork?.id === network.id
-                    ? "border-amber-500/50 bg-amber-500/10"
-                    : "border-zinc-700/50 hover:border-zinc-600/50"
-                }`}
-                onClick={() => handleNetworkSelect(network)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {getNetworkIcon(network)}
-                    <div>
-                      <h3 className="font-medium text-foreground">
-                        {network.name}
-                      </h3>
-                      {network.description && (
-                        <p className="text-sm text-zinc-400">
-                          {network.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-2">
-                    {network.developer && (
-                      <Badge variant="outline" className="text-xs">
-                        Dev Mode
-                      </Badge>
-                    )}
-                    <Badge
-                      className={`text-xs ${getNetworkStatusColor(network)}`}
-                    >
-                      {network.id}
-                    </Badge>
-                    {selectedNetwork?.id === network.id && (
-                      <CheckCircle className="h-4 w-4 text-amber-500" />
-                    )}
-                  </div>
-                </div>
-
-                <div className="mt-3 pt-3 border-t border-zinc-700/50">
-                  <div className="grid grid-cols-2 gap-4 text-xs">
-                    <div>
-                      <span className="text-zinc-400">API:</span>
-                      <div className="font-mono text-zinc-300 break-all">
-                        {network.api}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-zinc-400">WebSocket:</span>
-                      <div className="font-mono text-zinc-300 break-all">
-                        {network.socket}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Error Display */}
-          {connectionError && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{connectionError}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* Selected Network Summary */}
-          {selectedNetwork && (
-            <div className="mt-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {getNetworkIcon(selectedNetwork)}
-                  <div>
-                    <div className="font-medium text-amber-400">
-                      Ready to connect to {selectedNetwork.name}
-                    </div>
-                    <div className="text-xs text-zinc-400">
-                      {selectedNetwork.api}
-                    </div>
-                  </div>
-                </div>
+        <CardContent className="px-8 pb-8 space-y-8">
+          {/* Network Selector Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-zinc-300 flex items-center gap-2">
+                <Wifi className="h-5 w-5 text-amber-400" />
+                Network Selection
+              </h3>
+              {selectedNetwork && (
                 <Badge
                   className={`text-xs ${
                     getNetworkStatusColor(selectedNetwork)
@@ -177,16 +103,100 @@ export function NetworkSetup(
                 >
                   {selectedNetwork.developer ? "Development" : "Production"}
                 </Badge>
+              )}
+            </div>
+
+            {/* Network Selector */}
+            <div className="p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-zinc-700/30 backdrop-blur-sm">
+              <NetworkSelectorCompact />
+            </div>
+          </div>
+
+          {/* Error Display */}
+          {connectionError && (
+            <Alert
+              variant="destructive"
+              className="border-red-500/50 bg-red-500/10"
+            >
+              <AlertCircle className="h-4 w-4 text-red-400" />
+              <AlertDescription className="text-red-300">
+                {connectionError}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Selected Network Summary */}
+          {selectedNetwork && (
+            <div className="p-6 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl border border-amber-500/30 backdrop-blur-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div
+                      className={`absolute inset-0 rounded-full blur-lg ${
+                        selectedNetwork.id === "testnet"
+                          ? "bg-blue-500/20"
+                          : selectedNetwork.id === "mainnet"
+                          ? "bg-green-500/20"
+                          : "bg-purple-500/20"
+                      }`}
+                    />
+                    <div
+                      className={`relative p-3 rounded-full ${
+                        selectedNetwork.id === "testnet"
+                          ? "bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30"
+                          : selectedNetwork.id === "mainnet"
+                          ? "bg-gradient-to-br from-green-500/20 to-green-600/20 border border-green-500/30"
+                          : "bg-gradient-to-br from-purple-500/20 to-purple-600/20 border border-purple-500/30"
+                      } backdrop-blur-sm`}
+                    >
+                      {getNetworkIcon(selectedNetwork)}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-amber-400 text-lg">
+                      Ready to connect to {selectedNetwork.name}
+                    </div>
+                    <div className="text-sm text-zinc-300 mt-1">
+                      {selectedNetwork.description}
+                    </div>
+                    <div className="text-xs font-mono text-zinc-500 mt-2">
+                      {selectedNetwork.api}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-zinc-400">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                  <span>Ready</span>
+                </div>
               </div>
             </div>
           )}
 
+          {/* Security Information */}
+          <div className="p-6 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/30 backdrop-blur-sm">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-green-500/20 rounded-full">
+                <Shield className="h-6 w-6 text-green-400" />
+              </div>
+              <div>
+                <div className="font-semibold text-green-300 mb-2 text-lg">
+                  🔒 Secure Connection
+                </div>
+                <div className="text-green-200/80 text-sm leading-relaxed">
+                  Your connection will be encrypted and authenticated using your
+                  wallet's private key. All data transmission is secured with
+                  industry-standard encryption protocols.
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Action Buttons */}
-          <div className="flex gap-3 mt-6">
+          <div className="flex gap-4 pt-6">
             <Button
               onClick={onBack}
               variant="outline"
-              className="flex-1"
+              className="flex-1 h-12 border-zinc-700/50 hover:border-zinc-600/50 bg-zinc-800/50 hover:bg-zinc-700/50 transition-all duration-300"
               disabled={isConnecting}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -200,7 +210,7 @@ export function NetworkSetup(
                 onConnect();
               }}
               disabled={!selectedNetwork || isConnecting}
-              className="flex-1 bg-amber-500 hover:bg-amber-600 text-zinc-900"
+              className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25 transition-all duration-300"
             >
               {isConnecting
                 ? (
@@ -219,6 +229,29 @@ export function NetworkSetup(
           </div>
         </CardContent>
       </Card>
+
+      {/* Custom Animations */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            @keyframes fade-in-up {
+              from {
+                opacity: 0;
+                transform: translateY(30px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+            
+            .animate-fade-in-up {
+              animation: fade-in-up 0.8s ease-out forwards;
+              opacity: 0;
+            }
+          `,
+        }}
+      />
     </div>
   );
 }

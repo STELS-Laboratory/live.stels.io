@@ -8,10 +8,10 @@ import {
   ArrowRight,
   CheckCircle,
   Copy,
-  Download,
+  //Download,
   Eye,
   EyeOff,
-  Shield,
+  //Shield,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/modules/auth.store";
 
@@ -66,17 +66,17 @@ export function WalletConfirmation({
     }
   };
 
-  const handleDownloadPrivateKey = (): void => {
-    const blob = new Blob([wallet.privateKey], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `gliesereum-private-key-${wallet.address.slice(0, 8)}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  // const handleDownloadPrivateKey = (): void => {
+  //   const blob = new Blob([wallet.privateKey], { type: "text/plain" });
+  //   const url = URL.createObjectURL(blob);
+  //   const a = document.createElement("a");
+  //   a.href = url;
+  //   a.download = `gliesereum-private-key-${wallet.address.slice(0, 8)}.txt`;
+  //   document.body.appendChild(a);
+  //   a.click();
+  //   document.body.removeChild(a);
+  //   URL.revokeObjectURL(url);
+  // };
 
   const getWalletTypeInfo = () => {
     if (walletType === "create") {
@@ -130,7 +130,7 @@ export function WalletConfirmation({
                 variant="ghost"
                 size="sm"
                 onClick={handleCopyAddress}
-                className="h-6 px-2 text-xs"
+                className="h-12 px-2 text-xs"
               >
                 {copiedAddress
                   ? <CheckCircle className="h-3 w-3 text-green-500" />
@@ -165,7 +165,7 @@ export function WalletConfirmation({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowPublicKey(!showPublicKey)}
-                  className="h-6 px-2 text-xs"
+                  className="h-12 px-2 text-xs"
                 >
                   {showPublicKey
                     ? <EyeOff className="h-3 w-3" />
@@ -175,7 +175,7 @@ export function WalletConfirmation({
                   variant="ghost"
                   size="sm"
                   onClick={handleCopyPublicKey}
-                  className="h-6 px-2 text-xs"
+                  className="h-12 px-2 text-xs"
                 >
                   {copiedPublicKey
                     ? <CheckCircle className="h-3 w-3 text-green-500" />
@@ -192,7 +192,7 @@ export function WalletConfirmation({
                 )
                 : (
                   <div className="font-mono text-xs text-zinc-500">
-                    ••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+                    •••••••••••••••••••••••••••••••
                   </div>
                 )}
             </div>
@@ -208,29 +208,6 @@ export function WalletConfirmation({
             permanently lose access to your wallet and funds.
           </AlertDescription>
         </Alert>
-
-        {/* Private Key Download */}
-        <div className="p-4 bg-zinc-800/50 rounded-lg border border-zinc-700/30">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Shield className="h-5 w-5 text-amber-500" />
-              <div>
-                <div className="font-medium text-foreground">Private Key</div>
-                <div className="text-xs text-zinc-400">
-                  Download for secure storage
-                </div>
-              </div>
-            </div>
-            <Button
-              onClick={handleDownloadPrivateKey}
-              variant="outline"
-              size="sm"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download
-            </Button>
-          </div>
-        </div>
 
         {/* Confirmation Checkbox */}
         <div className="flex items-center gap-3 p-4 bg-zinc-800/30 rounded-lg border border-zinc-700/30">

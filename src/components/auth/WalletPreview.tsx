@@ -9,10 +9,12 @@ import {
   Copy,
   Eye,
   EyeOff,
+  Network,
   RotateCcw,
   Wallet,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/modules/auth.store";
+import { NetworkSelectorCompact } from "./NetworkSelectorCompact";
 
 interface WalletPreviewProps {
   showActions?: boolean;
@@ -114,7 +116,7 @@ export function WalletPreview({
                 variant="ghost"
                 size="sm"
                 onClick={handleCopyAddress}
-                className="h-8 px-3 text-xs hover:bg-zinc-700/50 transition-all duration-200"
+                className="h-12 px-3 text-xs hover:bg-zinc-700/50 transition-all duration-200"
               >
                 {copiedAddress
                   ? <CheckCircle className="h-4 w-4 text-green-400" />
@@ -153,7 +155,7 @@ export function WalletPreview({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowPublicKey(!showPublicKey)}
-                  className="h-8 px-3 text-xs hover:bg-zinc-700/50 transition-all duration-200"
+                  className="h-12 px-3 text-xs hover:bg-zinc-700/50 transition-all duration-200"
                 >
                   {showPublicKey
                     ? <EyeOff className="h-4 w-4 text-zinc-400" />
@@ -163,7 +165,7 @@ export function WalletPreview({
                   variant="ghost"
                   size="sm"
                   onClick={handleCopyPublicKey}
-                  className="h-8 px-3 text-xs hover:bg-zinc-700/50 transition-all duration-200"
+                  className="h-12 px-3 text-xs hover:bg-zinc-700/50 transition-all duration-200"
                 >
                   {copiedPublicKey
                     ? <CheckCircle className="h-4 w-4 text-green-400" />
@@ -193,6 +195,15 @@ export function WalletPreview({
             </div>
           </div>
 
+          {/* Network Selection */}
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+              <div className="w-2 h-2 bg-amber-400 rounded-full" />
+              Network Connection
+            </label>
+            <NetworkSelectorCompact />
+          </div>
+
           {/* Enhanced Security Notice */}
           <div className="p-4 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg border border-blue-500/30 backdrop-blur-sm">
             <div className="flex items-start gap-3">
@@ -218,7 +229,7 @@ export function WalletPreview({
                 onClick={handleResetWallet}
                 variant="outline"
                 size="sm"
-                className="flex-1 h-10 border-zinc-700/50 hover:border-zinc-600/50 bg-zinc-800/50 hover:bg-zinc-700/50 transition-all duration-300"
+                className="flex-1 h-12 border-zinc-700/50 hover:border-zinc-600/50 bg-zinc-800/50 hover:bg-zinc-700/50 transition-all duration-300"
               >
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Reset Wallet
@@ -226,7 +237,7 @@ export function WalletPreview({
               <Button
                 onClick={handleContinue}
                 size="sm"
-                className="flex-1 h-10 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25 transition-all duration-300"
+                className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25 transition-all duration-300"
               >
                 Continue
               </Button>
