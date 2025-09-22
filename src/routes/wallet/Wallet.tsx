@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/stores/modules/auth.store";
 import { AuthTestPanel } from "@/components/auth/AuthTestPanel";
+import { AuthDebug } from "@/components/main/AuthDebug";
 
 /**
  * Modern wallet component using the new authentication system
@@ -459,6 +460,9 @@ export default function GliesereumWallet(): React.ReactElement {
 						</Card>
 					</div>
 				)}
+
+				{/* Authentication Debug Panel */}
+				<AuthDebug />
 			</div>
 		</div>
 	);

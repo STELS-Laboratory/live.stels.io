@@ -67,7 +67,7 @@ export default function Dashboard(): React.ReactElement {
 	 */
 	const transitionToState = useCallback(async (
 		newState: AppState,
-		delay: number = 1000,
+		delay: number = 800,
 		showProgress: boolean = true,
 	): Promise<void> => {
 		console.log(
@@ -133,6 +133,19 @@ export default function Dashboard(): React.ReactElement {
 	// Initialize automatic authentication restoration
 	useAuthRestore();
 
+	// Authentication state monitoring effect
+	// This effect specifically monitors for authentication changes and forces re-authentication
+	useEffect(() => {
+		// Only monitor auth changes when app is ready and we're not in transition states
+		if (appState === "ready" && (!isAuthenticated || !isConnected)) {
+			console.log(
+				"[App] Authentication lost while app was ready - forcing re-authentication",
+			);
+			// Force transition back to checking session to re-evaluate auth state
+			setAppState("checking_session");
+		}
+	}, [isAuthenticated, isConnected, appState]);
+
 	// Main state management effect
 	useEffect(() => {
 		const manageAppState = async () => {
@@ -175,8 +188,22 @@ export default function Dashboard(): React.ReactElement {
 					if (upgrade) {
 						const delay = getTransitionDelay("checking_session", "upgrading");
 						await transitionToState("upgrading", delay, false);
-					} else if (hasValidSession) {
-						console.log("[App] Found valid session, loading app");
+					} else if (!isAuthenticated || !isConnected) {
+						// Priority check: if auth store says not authenticated/connected,
+						// always show auth flow regardless of localStorage data
+						console.log(
+							"[App] Not authenticated or not connected, showing auth flow",
+						);
+						const delay = getTransitionDelay(
+							"checking_session",
+							"authenticating",
+						);
+						await transitionToState("authenticating", delay);
+					} else if (hasValidSession && isAuthenticated && isConnected) {
+						// Only proceed to app if both localStorage AND auth store confirm authentication
+						console.log(
+							"[App] Found valid session and authenticated, loading app",
+						);
 						const delay = getTransitionDelay("checking_session", "loading_app");
 						await transitionToState("loading_app", delay);
 					} else if (authStoreData && !hasValidSession) {
@@ -188,16 +215,16 @@ export default function Dashboard(): React.ReactElement {
 							"authenticating",
 						);
 						await transitionToState("authenticating", delay);
-					} else if (!isAuthenticated || !isConnected) {
-						console.log("[App] Not authenticated, showing auth flow");
+					} else {
+						// Fallback: if we can't determine state clearly, show auth flow
+						console.log(
+							"[App] Unable to determine auth state, showing auth flow",
+						);
 						const delay = getTransitionDelay(
 							"checking_session",
 							"authenticating",
 						);
 						await transitionToState("authenticating", delay);
-					} else {
-						const delay = getTransitionDelay("checking_session", "loading_app");
-						await transitionToState("loading_app", delay);
 					}
 					break;
 
@@ -264,7 +291,7 @@ export default function Dashboard(): React.ReactElement {
 		if (isHeavyRoute && appState === "ready") {
 			setRouteLoading(true);
 			// Fallback timeout in case component doesn't signal readiness
-			const timeout = setTimeout(() => setRouteLoading(false), 2500);
+			const timeout = setTimeout(() => setRouteLoading(false), 1500);
 			return () => clearTimeout(timeout);
 		} else {
 			setRouteLoading(false);
@@ -300,7 +327,7 @@ export default function Dashboard(): React.ReactElement {
 					{/* State Message */}
 					<div>
 						<h2 className="text-2xl font-bold text-white mb-2">
-							SONAR Web3 Platform
+							STELS
 						</h2>
 						<p className="text-zinc-400 text-lg">
 							{message}
@@ -308,20 +335,18 @@ export default function Dashboard(): React.ReactElement {
 					</div>
 
 					{/* Progress Bar */}
-					{isTransitioning && (
-						<div className="space-y-2">
-							<div className="w-full bg-zinc-800 rounded-full h-2">
-								<div
-									className="bg-gradient-to-r from-amber-500 to-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
-									style={{ width: `${transitionProgress}%` }}
-								>
-								</div>
+					<div className="space-y-2">
+						<div className="w-full bg-zinc-800 rounded-full h-2">
+							<div
+								className="bg-gradient-to-r from-amber-500 to-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
+								style={{ width: `${transitionProgress}%` }}
+							>
 							</div>
-							<p className="text-xs text-zinc-500">
-								{Math.round(transitionProgress)}% complete
-							</p>
 						</div>
-					)}
+						<p className="text-xs text-zinc-500">
+							{Math.round(transitionProgress)}% complete
+						</p>
+					</div>
 
 					{/* State Indicator */}
 					<div className="flex items-center justify-center gap-2 text-sm text-zinc-500">
@@ -431,7 +456,7 @@ export default function Dashboard(): React.ReactElement {
 							? (
 								<SplashScreen
 									onComplete={handleSplashComplete}
-									duration={2000}
+									duration={6000}
 								/>
 							)
 							: (
