@@ -47,6 +47,9 @@ export interface AuthState {
 	connectionSession: ConnectionSession | null;
 	connectionError: string | null;
 	
+	// User preferences
+	developerMode: boolean;
+	
 	// UI state
 	isAuthenticated: boolean;
 	showNetworkSelector: boolean;
@@ -70,6 +73,9 @@ export interface AuthActions {
 	connectToNode: () => Promise<boolean>;
 	disconnectFromNode: () => Promise<void>;
 	restoreConnection: () => Promise<boolean>;
+	
+	// User preferences
+	setDeveloperMode: (enabled: boolean) => void;
 	
 	// UI operations
 	setShowNetworkSelector: (show: boolean) => void;
@@ -127,19 +133,20 @@ function generateNodeId(): string {
 export const useAuthStore = create<AuthStore>()(
 	devtools(
 		persist(
-			(set, get) => ({
-			// Initial state
-			wallet: null,
-			isWalletCreated: false,
-			selectedNetwork: null,
-			availableNetworks: DEFAULT_NETWORKS,
-			isConnected: false,
-			isConnecting: false,
-			connectionSession: null,
-			connectionError: null,
-			isAuthenticated: false,
-			showNetworkSelector: false,
-			_hasHydrated: false,
+		(set, get) => ({
+		// Initial state
+		wallet: null,
+		isWalletCreated: false,
+		selectedNetwork: null,
+		availableNetworks: DEFAULT_NETWORKS,
+		isConnected: false,
+		isConnecting: false,
+		connectionSession: null,
+		connectionError: null,
+		developerMode: false,
+		isAuthenticated: false,
+		showNetworkSelector: false,
+		_hasHydrated: false,
 				
 				// Wallet operations
 				createNewWallet: () => {
@@ -187,6 +194,7 @@ export const useAuthStore = create<AuthStore>()(
 						isConnecting: false,
 						connectionSession: null,
 						connectionError: null,
+						developerMode: false,
 						isAuthenticated: false,
 						showNetworkSelector: false
 					});
@@ -420,6 +428,12 @@ export const useAuthStore = create<AuthStore>()(
 					}
 				},
 				
+				// User preferences
+				setDeveloperMode: (enabled: boolean) => {
+					set({ developerMode: enabled });
+					console.log('[Auth] Developer mode set to:', enabled);
+				},
+				
 				// UI operations
 				setShowNetworkSelector: (show: boolean) => {
 					set({ showNetworkSelector: show });
@@ -439,6 +453,7 @@ export const useAuthStore = create<AuthStore>()(
 						isConnecting: false,
 						connectionSession: null,
 						connectionError: null,
+						developerMode: false,
 						isAuthenticated: false,
 						showNetworkSelector: false
 					});
@@ -462,7 +477,8 @@ export const useAuthStore = create<AuthStore>()(
 					selectedNetwork: state.selectedNetwork,
 					availableNetworks: state.availableNetworks,
 					connectionSession: state.connectionSession,
-					isConnected: state.isConnected
+					isConnected: state.isConnected,
+					developerMode: state.developerMode
 				}),
 				onRehydrateStorage: () => (state) => {
 					if (state) {
