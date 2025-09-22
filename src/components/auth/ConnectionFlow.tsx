@@ -14,6 +14,7 @@ import {
 import { useAuthStore } from "@/stores/modules/auth.store";
 import { WalletSetup } from "./WalletSetup";
 import { NetworkSelector } from "./NetworkSelector";
+import { WalletPreview } from "./WalletPreview";
 
 /**
  * Complete authentication flow component
@@ -21,7 +22,6 @@ import { NetworkSelector } from "./NetworkSelector";
 export function ConnectionFlow(): React.ReactElement {
   const {
     isWalletCreated,
-    wallet,
     selectedNetwork,
     isConnected,
     isConnecting,
@@ -29,6 +29,7 @@ export function ConnectionFlow(): React.ReactElement {
     connectToNode,
     disconnectFromNode,
     clearConnectionError,
+    resetWallet,
   } = useAuthStore();
 
   const [currentStep, setCurrentStep] = useState<
@@ -84,6 +85,11 @@ export function ConnectionFlow(): React.ReactElement {
     setCurrentStep("wallet");
   };
 
+  const handleResetWallet = (): void => {
+    resetWallet();
+    setCurrentStep("wallet");
+  };
+
   const getStepIcon = (step: string) => {
     const isActive = currentStep === step;
     const isCompleted = (step === "wallet" && isWalletCreated) ||
@@ -106,89 +112,106 @@ export function ConnectionFlow(): React.ReactElement {
         return <WalletSetup />;
 
       case "network":
-        return <NetworkSelector />;
+        return (
+          <div className="space-y-6">
+            <WalletPreview
+              showActions={true}
+              onReset={handleResetWallet}
+              onContinue={() => setCurrentStep("connecting")}
+            />
+            <NetworkSelector />
+          </div>
+        );
 
       case "connecting":
         return (
-          <Card className="w-full max-w-md mx-auto">
-            <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2">
-                <Loader2 className="h-5 w-5 text-amber-500 animate-spin" />
-                Connecting to Node
-              </CardTitle>
-              <p className="text-sm text-zinc-400">
-                Authenticating with {selectedNetwork?.name}...
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Connection Progress</span>
-                  <span>{connectionProgress}%</span>
+          <div className="space-y-6">
+            <WalletPreview />
+            <Card className="w-full max-w-md mx-auto">
+              <CardHeader className="text-center">
+                <CardTitle className="flex items-center justify-center gap-2">
+                  <Loader2 className="h-5 w-5 text-amber-500 animate-spin" />
+                  Connecting to Node
+                </CardTitle>
+                <p className="text-sm text-zinc-400">
+                  Authenticating with {selectedNetwork?.name}...
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Connection Progress</span>
+                    <span>{connectionProgress}%</span>
+                  </div>
+                  <Progress value={connectionProgress} className="w-full" />
                 </div>
-                <Progress value={connectionProgress} className="w-full" />
-              </div>
 
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2 text-zinc-400">
-                  <Shield className="h-4 w-4" />
-                  <span>Verifying transaction signature...</span>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2 text-zinc-400">
+                    <Shield className="h-4 w-4" />
+                    <span>Verifying transaction signature...</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-400">
+                    <Network className="h-4 w-4" />
+                    <span>Establishing WebSocket connection...</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-400">
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Creating session...</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-zinc-400">
-                  <Network className="h-4 w-4" />
-                  <span>Establishing WebSocket connection...</span>
+
+                <div className="pt-4 border-t border-zinc-700/50">
+                  <Button
+                    onClick={handleResetWallet}
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  >
+                    Cancel Connection
+                  </Button>
                 </div>
-                <div className="flex items-center gap-2 text-zinc-400">
-                  <CheckCircle className="h-4 w-4" />
-                  <span>Creating session...</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         );
 
       case "connected":
         return (
-          <Card className="w-full max-w-md mx-auto">
-            <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                Connected Successfully
-              </CardTitle>
-              <p className="text-sm text-zinc-400">
-                You are now connected to {selectedNetwork?.name}
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
-                  <div className="text-sm font-medium text-green-400">
-                    Network: {selectedNetwork?.name}
-                  </div>
-                  <div className="text-xs text-zinc-400">
-                    {selectedNetwork?.api}
+          <div className="space-y-6">
+            <WalletPreview />
+            <Card className="w-full max-w-md mx-auto">
+              <CardHeader className="text-center">
+                <CardTitle className="flex items-center justify-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  Connected Successfully
+                </CardTitle>
+                <p className="text-sm text-zinc-400">
+                  You are now connected to {selectedNetwork?.name}
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                    <div className="text-sm font-medium text-green-400">
+                      Network: {selectedNetwork?.name}
+                    </div>
+                    <div className="text-xs text-zinc-400">
+                      {selectedNetwork?.api}
+                    </div>
                   </div>
                 </div>
 
-                <div className="p-3 bg-zinc-800 rounded-lg">
-                  <div className="text-sm font-medium text-foreground">
-                    Wallet Address
-                  </div>
-                  <div className="text-xs font-mono text-zinc-400 break-all">
-                    {wallet?.address}
-                  </div>
-                </div>
-              </div>
-
-              <Button
-                onClick={handleDisconnect}
-                variant="outline"
-                className="w-full"
-              >
-                Disconnect
-              </Button>
-            </CardContent>
-          </Card>
+                <Button
+                  onClick={handleDisconnect}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Disconnect
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         );
 
       default:

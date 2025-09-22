@@ -4,6 +4,7 @@ import { ReactFlowProvider } from "reactflow";
 import SessionProvider from "@/components/main/Provider";
 import { useUrlRouter } from "@/hooks/useUrlRouter";
 import { RouteLoader } from "@/components/main/RouteLoader";
+import { useAuthRestore } from "@/hooks/useAuthRestore";
 
 import Welcome from "@/routes/main/Welcome";
 import MarketDataViewer from "@/routes/main/Markets";
@@ -17,7 +18,7 @@ import Fred from "@/routes/main/Fred";
 import { AMIEditor } from "@/routes/editor/AMIEditor";
 import SplashScreen from "./components/main/SplashScreen";
 import UpgradeScreen from "./components/main/UpgradeScreen";
-import { ConnectionFlow } from "@/components/auth/ConnectionFlow";
+import { ProfessionalConnectionFlow } from "@/components/auth/ProfessionalConnectionFlow";
 
 /**
  * Professional Dashboard component with fixed layout structure
@@ -42,6 +43,9 @@ export default function Dashboard(): React.ReactElement {
 
 	// Initialize URL-based routing
 	useUrlRouter();
+
+	// Initialize automatic authentication restoration
+	useAuthRestore();
 
 	// Mark heavy routes as loading during mount and when route changes
 	const isHeavyRoute = useMemo(() => currentRoute === "canvas", [currentRoute]);
@@ -95,7 +99,7 @@ export default function Dashboard(): React.ReactElement {
 
 	// Show authentication flow if user is not authenticated
 	if (!isAuthenticated || !isConnected) {
-		return <ConnectionFlow />;
+		return <ProfessionalConnectionFlow />;
 	}
 
 	return (

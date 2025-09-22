@@ -28,12 +28,12 @@ export function ConnectionStatusSimple(): React.ReactElement {
     resetAuth,
   } = useAuthStore();
 
-  const handleDisconnect = (): void => {
-    disconnectFromNode();
+  const handleDisconnect = async (): Promise<void> => {
+    await disconnectFromNode();
   };
 
-  const handleLogout = (): void => {
-    resetAuth();
+  const handleLogout = async (): Promise<void> => {
+    await resetAuth();
   };
 
   const getNetworkIcon = () => {

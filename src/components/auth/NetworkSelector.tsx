@@ -136,11 +136,16 @@ export function NetworkSelector(
 
         {selectedNetwork && (
           <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-            <div className="flex items-center gap-2 text-amber-400">
-              <Network className="h-4 w-4" />
-              <span className="text-sm font-medium">
-                Selected: {selectedNetwork.name}
-              </span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-amber-400">
+                <Network className="h-4 w-4" />
+                <span className="text-sm font-medium">
+                  Selected: {selectedNetwork.name}
+                </span>
+              </div>
+              <div className="text-xs text-amber-300">
+                Ready to connect
+              </div>
             </div>
           </div>
         )}

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { createWallet, importWallet, createSignedTransaction, type Wallet } from '@/lib/gliesereum';
+import { clearAllStorage, clearAppStorage } from '@/lib/storage-cleaner';
 
 /**
  * Network configuration interface
@@ -58,6 +59,7 @@ export interface AuthActions {
 	// Wallet operations
 	createNewWallet: () => void;
 	importExistingWallet: (privateKey: string) => boolean;
+	resetWallet: () => void;
 	
 	// Network operations
 	setAvailableNetworks: (networks: NetworkConfig[]) => void;
@@ -65,14 +67,15 @@ export interface AuthActions {
 	
 	// Connection operations
 	connectToNode: () => Promise<boolean>;
-	disconnectFromNode: () => void;
+	disconnectFromNode: () => Promise<void>;
+	restoreConnection: () => Promise<boolean>;
 	
 	// UI operations
 	setShowNetworkSelector: (show: boolean) => void;
 	clearConnectionError: () => void;
 	
 	// Utility operations
-	resetAuth: () => void;
+	resetAuth: () => Promise<void>;
 }
 
 /**
@@ -173,6 +176,28 @@ export const useAuthStore = create<AuthStore>()(
 					}
 				},
 				
+				resetWallet: () => {
+					set({
+						wallet: null,
+						isWalletCreated: false,
+						selectedNetwork: null,
+						isConnected: false,
+						isConnecting: false,
+						connectionSession: null,
+						connectionError: null,
+						isAuthenticated: false,
+						showNetworkSelector: false
+					});
+					
+					// Clear only wallet-related data, keep other localStorage intact
+					try {
+						localStorage.removeItem('auth-store');
+						console.log('[Auth] Wallet reset successfully');
+					} catch (error) {
+						console.error('[Auth] Error resetting wallet:', error);
+					}
+				},
+				
 				// Network operations
 				setAvailableNetworks: (networks: NetworkConfig[]) => {
 					set({ availableNetworks: networks });
@@ -189,18 +214,22 @@ export const useAuthStore = create<AuthStore>()(
 				
 				// Connection operations
 				connectToNode: async (): Promise<boolean> => {
+					console.log('[Auth] connectToNode called');
 					const { wallet, selectedNetwork } = get();
 					
 					if (!wallet) {
+						console.log('[Auth] No wallet found');
 						set({ connectionError: 'Wallet not created' });
 						return false;
 					}
 					
 					if (!selectedNetwork) {
+						console.log('[Auth] No network selected');
 						set({ connectionError: 'Network not selected' });
 						return false;
 					}
 					
+					console.log('[Auth] Starting connection to:', selectedNetwork.name);
 					set({ isConnecting: true, connectionError: null });
 					
 					try {
@@ -251,6 +280,9 @@ export const useAuthStore = create<AuthStore>()(
 						};
 						
 						// Send connection request
+						console.log('[Auth] Sending connection request to:', selectedNetwork.api);
+						console.log('[Auth] Connection payload:', JSON.stringify(connectionPayload, null, 2));
+						
 						const response = await fetch(selectedNetwork.api, {
 							method: 'POST',
 							headers: {
@@ -258,6 +290,8 @@ export const useAuthStore = create<AuthStore>()(
 							},
 							body: JSON.stringify(connectionPayload)
 						});
+						
+						console.log('[Auth] Response status:', response.status);
 						
 						if (!response.ok) {
 							throw new Error(`Connection failed: ${response.status}`);
@@ -309,18 +343,68 @@ export const useAuthStore = create<AuthStore>()(
 					}
 				},
 				
-				disconnectFromNode: () => {
+				disconnectFromNode: async () => {
 					set({
 						isConnected: false,
 						connectionSession: null,
 						isAuthenticated: false,
-						connectionError: null
+						connectionError: null,
+						isConnecting: false
 					});
 					
-					// Clear session from localStorage
-					localStorage.removeItem('private-store');
+					try {
+						// Use comprehensive storage cleaner
+						await clearAllStorage();
+						console.log('[Auth] ✅ Disconnected from node and cleared ALL storage data');
+					} catch (error) {
+						console.error('[Auth] ❌ Error clearing storage during disconnect:', error);
+						// Fallback to basic clearing
+						clearAppStorage();
+					}
+				},
+				
+				restoreConnection: async (): Promise<boolean> => {
+					const { wallet, selectedNetwork } = get();
 					
-					console.log('[Auth] Disconnected from node');
+					// Check if we have saved session data
+					const savedSession = localStorage.getItem('private-store');
+					if (!savedSession || !wallet || !selectedNetwork) {
+						console.log('[Auth] No saved session or missing wallet/network');
+						return false;
+					}
+					
+					try {
+						const sessionData = JSON.parse(savedSession);
+						if (!sessionData?.raw?.session) {
+							console.log('[Auth] Invalid session data');
+							return false;
+						}
+						
+						console.log('[Auth] Attempting to restore connection...');
+						set({ isConnecting: true, connectionError: null });
+						
+						// Try to restore the connection
+						const success = await get().connectToNode();
+						
+						if (success) {
+							console.log('[Auth] Connection restored successfully');
+							return true;
+						} else {
+							console.log('[Auth] Failed to restore connection');
+							// Clear invalid session data
+							localStorage.removeItem('private-store');
+							return false;
+						}
+					} catch (error) {
+						console.error('[Auth] Error restoring connection:', error);
+						set({ 
+							connectionError: 'Failed to restore connection',
+							isConnecting: false 
+						});
+						// Clear invalid session data
+						localStorage.removeItem('private-store');
+						return false;
+					}
 				},
 				
 				// UI operations
@@ -333,7 +417,7 @@ export const useAuthStore = create<AuthStore>()(
 				},
 				
 				// Utility operations
-				resetAuth: () => {
+				resetAuth: async () => {
 					set({
 						wallet: null,
 						isWalletCreated: false,
@@ -346,10 +430,15 @@ export const useAuthStore = create<AuthStore>()(
 						showNetworkSelector: false
 					});
 					
-					// Clear all auth data
-					localStorage.removeItem('private-store');
-					
-					console.log('[Auth] Auth state reset');
+					try {
+						// Use comprehensive storage cleaner for complete reset
+						await clearAllStorage();
+						console.log('[Auth] ✅ Auth state completely reset and ALL storage data cleared');
+					} catch (error) {
+						console.error('[Auth] ❌ Error clearing storage during reset:', error);
+						// Fallback to basic clearing
+						clearAppStorage();
+					}
 				}
 			}),
 			{
@@ -358,7 +447,9 @@ export const useAuthStore = create<AuthStore>()(
 					wallet: state.wallet,
 					isWalletCreated: state.isWalletCreated,
 					selectedNetwork: state.selectedNetwork,
-					availableNetworks: state.availableNetworks
+					availableNetworks: state.availableNetworks,
+					connectionSession: state.connectionSession,
+					isConnected: state.isConnected
 				}),
 			}
 		),

@@ -18,6 +18,7 @@ import {
 	Wallet,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/modules/auth.store";
+import { AuthTestPanel } from "@/components/auth/AuthTestPanel";
 
 /**
  * Modern wallet component using the new authentication system
@@ -94,8 +95,8 @@ export default function GliesereumWallet(): React.ReactElement {
 		setPrivateKey(null);
 	};
 
-	const handleDisconnect = (): void => {
-		disconnectFromNode();
+	const handleDisconnect = async (): Promise<void> => {
+		await disconnectFromNode();
 	};
 
 	const getNetworkIcon = () => {
@@ -376,29 +377,36 @@ export default function GliesereumWallet(): React.ReactElement {
 							</TabsContent>
 
 							<TabsContent value="settings" className="mt-6">
-								<Card className="bg-zinc-900/80 border-zinc-700/50">
-									<CardHeader>
-										<CardTitle className="text-zinc-100">
-											Wallet Settings
-										</CardTitle>
-									</CardHeader>
-									<CardContent className="space-y-4">
-										<div className="space-y-4">
-											<div className="flex items-center justify-between">
-												<span className="text-zinc-400">Network</span>
-												<Badge className={`text-xs ${getNetworkColor()}`}>
-													{connectionSession.network}
-												</Badge>
+								<div className="space-y-6">
+									<Card className="bg-zinc-900/80 border-zinc-700/50">
+										<CardHeader>
+											<CardTitle className="text-zinc-100">
+												Wallet Settings
+											</CardTitle>
+										</CardHeader>
+										<CardContent className="space-y-4">
+											<div className="space-y-4">
+												<div className="flex items-center justify-between">
+													<span className="text-zinc-400">Network</span>
+													<Badge className={`text-xs ${getNetworkColor()}`}>
+														{connectionSession.network}
+													</Badge>
+												</div>
+												<div className="flex items-center justify-between">
+													<span className="text-zinc-400">Developer Mode</span>
+													<Badge variant="outline" className="text-xs">
+														{connectionSession.developer
+															? "Enabled"
+															: "Disabled"}
+													</Badge>
+												</div>
 											</div>
-											<div className="flex items-center justify-between">
-												<span className="text-zinc-400">Developer Mode</span>
-												<Badge variant="outline" className="text-xs">
-													{connectionSession.developer ? "Enabled" : "Disabled"}
-												</Badge>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
+										</CardContent>
+									</Card>
+
+									{/* Debug Panel - only show in development */}
+									{connectionSession.developer && <AuthTestPanel />}
+								</div>
 							</TabsContent>
 						</Tabs>
 					</div>
