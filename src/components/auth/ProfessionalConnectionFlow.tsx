@@ -197,7 +197,7 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
   const stepTitle = getStepTitle();
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+    <div className="bg-zinc-950 flex flex-1 justify-center p-6">
       <div className="w-full max-w-4xl space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -221,7 +221,7 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
           </div>
           <div className="w-full bg-zinc-800 rounded-full h-2">
             <div
-              className="bg-amber-500 h-2 rounded-full transition-all duration-500 ease-out"
+              className="bg-amber-500 h-2 rounded-full transition-all duration-200 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>

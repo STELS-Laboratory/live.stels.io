@@ -42,6 +42,55 @@ export default function Dashboard(): React.ReactElement {
 	const { isAuthenticated, isConnected, _hasHydrated } = useAuthStore();
 	const hasHydrated = useHydration();
 
+	// Prevent zoom and touch behaviors
+	useEffect(() => {
+		const preventZoom = (e: TouchEvent) => {
+			if (e.touches.length > 1) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
+		};
+
+		const preventGestures = (e: Event) => {
+			e.preventDefault();
+			e.stopPropagation();
+		};
+
+		const preventWheel = (e: WheelEvent) => {
+			if (e.ctrlKey || e.metaKey) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
+		};
+
+		// Add event listeners
+		document.addEventListener("touchstart", preventZoom, { passive: false });
+		document.addEventListener("touchmove", preventZoom, { passive: false });
+		document.addEventListener("gesturestart", preventGestures, {
+			passive: false,
+		});
+		document.addEventListener("gesturechange", preventGestures, {
+			passive: false,
+		});
+		document.addEventListener("gestureend", preventGestures, {
+			passive: false,
+		});
+		document.addEventListener("wheel", preventWheel, { passive: false });
+
+		// Set CSS properties programmatically
+		document.documentElement.style.touchAction = "manipulation";
+		document.body.style.touchAction = "manipulation";
+
+		return () => {
+			document.removeEventListener("touchstart", preventZoom);
+			document.removeEventListener("touchmove", preventZoom);
+			document.removeEventListener("gesturestart", preventGestures);
+			document.removeEventListener("gesturechange", preventGestures);
+			document.removeEventListener("gestureend", preventGestures);
+			document.removeEventListener("wheel", preventWheel);
+		};
+	}, []);
+
 	// State management with artificial delays
 	const [appState, setAppState] = useState<AppState>("initializing");
 	const [showSplash, setShowSplash] = useState(true);
@@ -319,7 +368,7 @@ export default function Dashboard(): React.ReactElement {
 	 */
 	const renderLoadingScreen = (message: string): React.ReactElement => {
 		return (
-			<div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+			<div className="absolute max-w-[500px] mx-auto w-[100%] h-[100%] overflow-hidden left-0 right-0 top-0 bottom-0  bg-zinc-950 flex items-center justify-center p-32">
 				<div className="w-full max-w-md space-y-6 text-center">
 					{/* Loading Animation */}
 					<div className="relative mx-auto w-20 h-20">
@@ -463,11 +512,11 @@ export default function Dashboard(): React.ReactElement {
 							? (
 								<SplashScreen
 									onComplete={handleSplashComplete}
-									duration={6000}
+									duration={3000}
 								/>
 							)
 							: (
-								<div className="transition-all duration-500 ease-in-out">
+								<div className="absolute w-[100%] h-[100%] top-0 bottom-0 overflow-hidden">
 									<RouteLoader>
 										<Layout>
 											{renderMainContent()}

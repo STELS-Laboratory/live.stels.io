@@ -8,7 +8,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
 	AlertCircle,
 	CheckCircle,
-	Download,
 	History,
 	Key,
 	Network,
@@ -19,7 +18,6 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/stores/modules/auth.store";
 import { AuthTestPanel } from "@/components/auth/AuthTestPanel";
-import { AuthDebug } from "@/components/main/AuthDebug";
 
 /**
  * Modern wallet component using the new authentication system
@@ -70,21 +68,7 @@ export default function GliesereumWallet(): React.ReactElement {
 			</div>
 		);
 	}
-
-	const handleExportPrivateKey = (): void => {
-		if (!wallet) return;
-
-		const blob = new Blob([wallet.privateKey], { type: "text/plain" });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = `gliesereum-private-key-${wallet.address.slice(0, 8)}.txt`;
-		document.body.appendChild(a);
-		a.click();
-		document.body.removeChild(a);
-		URL.revokeObjectURL(url);
-	};
-
+	
 	const handleShowPrivateKey = (): void => {
 		if (!wallet) return;
 		setPrivateKey(wallet.privateKey);
@@ -189,15 +173,6 @@ export default function GliesereumWallet(): React.ReactElement {
 								<Separator className="bg-zinc-700/50" />
 
 								<div className="flex gap-2">
-									<Button
-										onClick={handleExportPrivateKey}
-										variant="outline"
-										size="sm"
-										className="flex-1"
-									>
-										<Download className="h-4 w-4 mr-2" />
-										Export Key
-									</Button>
 									<Button
 										onClick={handleShowPrivateKey}
 										variant="outline"
@@ -460,9 +435,6 @@ export default function GliesereumWallet(): React.ReactElement {
 						</Card>
 					</div>
 				)}
-
-				{/* Authentication Debug Panel */}
-				<AuthDebug />
 			</div>
 		</div>
 	);

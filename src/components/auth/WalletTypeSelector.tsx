@@ -21,7 +21,7 @@ export function WalletTypeSelector(
   { onSelectType }: WalletTypeSelectorProps,
 ): React.ReactElement {
   return (
-    <div className="w-full max-w-4xl mx-auto animate-fade-in-up">
+    <div className="w-full max-w-4xl mx-auto">
       <Card className="backdrop-blur-sm bg-zinc-900/80 border-zinc-700/50 shadow-2xl">
         <CardHeader className="text-center pb-8">
           <CardTitle className="flex items-center justify-center gap-3 text-3xl font-bold">
