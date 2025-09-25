@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+//import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertCircle,
   ArrowLeft,
   CheckCircle,
   Loader2,
-  Lock,
+  //Lock,
   RefreshCw,
   Shield,
   Wifi,
-  Zap,
+  //Zap,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/modules/auth.store";
 import { WalletPreview } from "./WalletPreview";
