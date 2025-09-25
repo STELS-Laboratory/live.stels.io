@@ -12,7 +12,7 @@ import {
   CheckCircle,
   ChevronDown,
   Network,
-  Server,
+  //Server,
   Shield,
 } from "lucide-react";
 import { type NetworkConfig, useAuthStore } from "@/stores/modules/auth.store";
@@ -43,8 +43,6 @@ export function NetworkSelectorCompact(
     switch (network.id) {
       case "testnet":
         return <Shield className="h-4 w-4 text-blue-500" />;
-      case "mainnet":
-        return <Server className="h-4 w-4 text-green-500" />;
       case "localnet":
         return <Network className="h-4 w-4 text-purple-500" />;
       default:
@@ -56,8 +54,6 @@ export function NetworkSelectorCompact(
     switch (network.id) {
       case "testnet":
         return "text-blue-400";
-      case "mainnet":
-        return "text-green-400";
       case "localnet":
         return "text-purple-400";
       default:
@@ -89,7 +85,7 @@ export function NetworkSelectorCompact(
                       <div className="text-xs text-zinc-500">
                         {selectedNetwork.developer
                           ? "Development"
-                          : "Production"}
+                          : "Test Network"}
                       </div>
                     </div>
                   </>

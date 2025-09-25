@@ -201,7 +201,7 @@ export function WalletConfirmation({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-zinc-400">
-                    Public Key
+                    Private Key
                   </label>
                   <div className="flex items-center gap-1">
                     <Button
@@ -230,7 +230,7 @@ export function WalletConfirmation({
                   {showPublicKey
                     ? (
                       <div className="font-mono text-xs text-zinc-300 break-all">
-                        {wallet.publicKey}
+                        {wallet.privateKey}
                       </div>
                     )
                     : (

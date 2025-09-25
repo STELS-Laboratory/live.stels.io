@@ -144,7 +144,7 @@ export const useAppStore = create<AppState>()(
 					}
 				}
 				
-				const allowedRoutes = ['welcome', 'scanner', 'canvas', 'network', 'wallet', 'editor'];
+				const allowedRoutes = ['scanner', 'canvas', 'network', 'wallet'];
 				//const allowedRoutes = ['welcome', 'scanner', 'markets', 'canvas', 'fred', 'wallet', 'network', 'editor'];
 				console.log('[Store] Initializing with allowedRoutes:', allowedRoutes);
 				
@@ -157,7 +157,7 @@ export const useAppStore = create<AppState>()(
 					updateStatus: () => set(getNetworkInfo()),
 					
 					allowedRoutes,
-					currentRoute: 'welcome',
+					currentRoute: 'scanner',
 					setRoute: (route: string) => {
 						const {allowedRoutes} = get()
 						console.log('[Store] setRoute called:', {route, allowedRoutes});
@@ -263,7 +263,7 @@ export const useAppStore = create<AppState>()(
 				}
 			},
 			{
-				name: 'live_app_genesis_04.8'
+				name: 'testnet_app_store_01',
 			}
 		)
 	)

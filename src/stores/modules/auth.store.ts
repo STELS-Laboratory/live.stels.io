@@ -95,28 +95,20 @@ export type AuthStore = AuthState & AuthActions;
  */
 const DEFAULT_NETWORKS: NetworkConfig[] = [
 	{
-		id: 'testnet',
-		name: 'Testnet',
+		id: 'localnet',
+		name: 'Localnet',
 		api: 'http://10.0.0.238:8088',
 		socket: 'ws://10.0.0.238:8088',
 		developer: true,
 		description: 'Development and testing network'
 	},
 	{
-		id: 'mainnet',
-		name: 'Mainnet',
+		id: 'testnet',
+		name: 'Testnet',
 		api: 'https://live.stels.dev',
 		socket: 'wss://live.stels.dev',
 		developer: false,
-		description: 'Production network'
-	},
-	{
-		id: 'localnet',
-		name: 'Local Network',
-		api: 'http://localhost:8088',
-		socket: 'ws://localhost:8088',
-		developer: true,
-		description: 'Local development network'
+		description: 'Testnet network'
 	}
 ];
 
@@ -490,7 +482,7 @@ export const useAuthStore = create<AuthStore>()(
 			}
 		),
 		{
-			name: 'auth-store',
+			name: 'auth_store_01',
 		}
 	)
 );
