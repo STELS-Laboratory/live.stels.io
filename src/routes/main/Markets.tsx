@@ -4,7 +4,6 @@ import { filterSession } from "@/lib/utils";
 import { useMemo } from "react";
 import { ArrowDown, ArrowUp } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import {
 	Card,
 	CardContent,
@@ -29,6 +28,44 @@ interface CandleData {
 	low: number;
 	close: number;
 	volume: number;
+}
+
+interface TickerData {
+	key: string;
+	value: {
+		channel: string;
+		module: string;
+		widget: string;
+		raw: {
+			exchange: string;
+			market: string;
+			last: number;
+			bid?: number;
+			ask?: number;
+			change?: number;
+			percentage?: number;
+			baseVolume?: number;
+			quoteVolume?: number;
+			timestamp: number;
+			latency: number;
+		};
+		timestamp: number;
+	};
+}
+
+interface CandleDataRaw {
+	key: string;
+	value: {
+		channel: string;
+		module: string;
+		widget: string;
+		raw: {
+			exchange: string;
+			market: string;
+			timeframe: string;
+			candles: number[][];
+		};
+	};
 }
 
 interface MiniCandlestickChartProps {
@@ -119,70 +156,57 @@ function MiniCandlestickChart(
 }
 
 /**
- * Markets component displaying live cryptocurrency futures data
+ * Markets component displaying live cryptocurrency spot data
  */
 function Markets(): React.ReactElement {
 	const session = useSessionStoreSync() as Record<string, unknown> | null;
-	const spotTickers = filterSession(session || {}, /\.futures\..*\.ticker$/);
-	const spotCandles = filterSession(session || {}, /\.futures\..*\.candles$/);
+	const spotTickers = filterSession(
+		session || {},
+		/\.spot\..*\.ticker$/,
+	) as TickerData[];
+	const spotCandles = filterSession(
+		session || {},
+		/\.spot\..*\.candles$/,
+	) as CandleDataRaw[];
 
 	const formattedTickers = useMemo(() => {
-		return spotTickers.map(
-			(tickerItem) => {
-				const ticker = tickerItem as {
-					key: string;
-					value: {
-						raw: {
-							market: string;
-							last: number;
-							change: number;
-							percentage: number;
-							baseVolume: number;
-							quoteVolume: number;
-							bid: number;
-							ask: number;
-							latency: number;
-						};
-					};
-				};
-				const raw = ticker.value.raw;
-				const symbol = raw.market.split("/")[0];
-				const baseSymbol = raw.market.split("/")[1].split(":")[0];
+		return spotTickers.map((tickerItem) => {
+			const raw = tickerItem.value.raw;
+			const symbol = raw.market.split("/")[0];
+			const baseSymbol = raw.market.split("/")[1].split(":")[0];
 
-				// Find corresponding candles
-				const candleData = spotCandles.find((candleItem) => {
-					const candle = candleItem as {
-						value: { raw: { market: string; candles: number[][] } };
-					};
-					return candle.value.raw.market === raw.market;
-				});
+			// Find corresponding candles for the same exchange and market
+			const candleData = spotCandles.find((candleItem) => {
+				return candleItem.value.raw.exchange === raw.exchange &&
+					candleItem.value.raw.market === raw.market;
+			});
 
-				const candles = candleData
-					? (candleData as any).value.raw.candles.map((c: number[]) => ({
-						timestamp: c[0],
-						open: c[1],
-						high: c[2],
-						low: c[3],
-						close: c[4],
-						volume: c[5],
-					}))
-					: [];
+			const candles: CandleData[] = candleData
+				? candleData.value.raw.candles.map((c: number[]) => ({
+					timestamp: c[0],
+					open: c[1],
+					high: c[2],
+					low: c[3],
+					close: c[4],
+					volume: c[5],
+				}))
+				: [];
 
-				return {
-					symbol,
-					market: `${symbol}/${baseSymbol}`,
-					price: raw.last,
-					change: raw.change,
-					percentage: raw.percentage,
-					volume: raw.baseVolume,
-					quoteVolume: raw.quoteVolume,
-					bid: raw.bid,
-					ask: raw.ask,
-					latency: raw.latency,
-					candles,
-				};
-			},
-		);
+			return {
+				exchange: raw.exchange,
+				symbol,
+				market: `${symbol}/${baseSymbol}`,
+				price: raw.last,
+				change: raw.change || 0,
+				percentage: raw.percentage || 0,
+				volume: raw.baseVolume || 0,
+				quoteVolume: raw.quoteVolume || 0,
+				bid: raw.bid || 0,
+				ask: raw.ask || 0,
+				latency: raw.latency,
+				candles,
+			};
+		});
 	}, [spotTickers, spotCandles]);
 
 	const formatPrice = (price: number, symbol: string) => {
@@ -237,51 +261,29 @@ function Markets(): React.ReactElement {
 			<TickerTape entries={spotTickers} />
 			<Card>
 				<CardHeader>
-					<CardTitle>Connection Markets</CardTitle>
+					<CardTitle>Spot Markets</CardTitle>
 					<CardDescription>
-						Real-time cryptocurrency futures prices and market data
+						Real-time cryptocurrency spot prices and market data from multiple
+						exchanges
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="min-w-0">
 					<div className="rounded-md border overflow-x-auto">
-						<Table className="min-w-[720px]">
+						<Table className="min-w-[800px]">
 							<TableHeader>
 								<TableRow>
-									<TableHead>Market</TableHead>
+									<TableHead>Exchange & Market</TableHead>
 									<TableHead>Chart</TableHead>
 									<TableHead className="text-right">Price</TableHead>
 									<TableHead className="text-right">24h Change</TableHead>
 									<TableHead className="text-right">Volume</TableHead>
 									<TableHead className="text-right">Bid/Ask</TableHead>
-									<TableHead className="text-right">Energy</TableHead>
+									<TableHead className="text-right">Latency</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{formattedTickers.map((
-									ticker: {
-										symbol: string;
-										market: string;
-										price: number;
-										change: number;
-										percentage: number;
-										volume: number;
-										quoteVolume: number;
-										bid: number;
-										ask: number;
-										latency: number;
-										candles: Array<
-											{
-												timestamp: number;
-												open: number;
-												high: number;
-												low: number;
-												close: number;
-												volume: number;
-											}
-										>;
-									},
-								) => (
-									<TableRow key={ticker.market}>
+								{formattedTickers.map((ticker) => (
+									<TableRow key={`${ticker.exchange}-${ticker.market}`}>
 										<TableCell className="font-medium">
 											<div className="flex items-center gap-2">
 												<div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
@@ -290,7 +292,7 @@ function Markets(): React.ReactElement {
 												<div>
 													<div className="font-semibold">{ticker.symbol}</div>
 													<div className="text-xs text-muted-foreground">
-														{ticker.market}
+														{ticker.exchange} • {ticker.market}
 													</div>
 												</div>
 											</div>
@@ -342,15 +344,8 @@ function Markets(): React.ReactElement {
 												</div>
 											</div>
 										</TableCell>
-										<TableCell className="text-right">
-											<Badge
-												variant={ticker.latency < 3000
-													? "default"
-													: "secondary"}
-												className="text-xs w-18"
-											>
-												{Number(ticker.latency / 500).toFixed(2)}
-											</Badge>
+										<TableCell className="text-right text-xs text-muted-foreground">
+											{ticker.latency}ms
 										</TableCell>
 									</TableRow>
 								))}
