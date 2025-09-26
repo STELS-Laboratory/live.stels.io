@@ -316,14 +316,6 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						<div className="container mx-auto px-4 py-5">
 							<div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
 								<span>© 2024 Gliesereum Ukraine. All rights reserved.</span>
-								<a
-									href="https://doc.stels.io"
-									target="_blank"
-									rel="noopener noreferrer"
-									className="text-amber-400 hover:text-amber-300 hover:underline focus:outline-none focus:ring-2 focus:ring-amber-500/50 rounded-sm px-1 py-0.5 transition-colors"
-								>
-									Documentation
-								</a>
 							</div>
 						</div>
 					</footer>
