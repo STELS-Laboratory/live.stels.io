@@ -19,6 +19,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import TickerTape from "@/components/widgets/TickerTape";
 
 interface CandleData {
@@ -66,6 +67,21 @@ interface CandleDataRaw {
 			candles: number[][];
 		};
 	};
+}
+
+interface FormattedTicker {
+	exchange: string;
+	symbol: string;
+	market: string;
+	price: number;
+	change: number;
+	percentage: number;
+	volume: number;
+	quoteVolume: number;
+	bid: number;
+	ask: number;
+	latency: number;
+	candles: CandleData[];
 }
 
 interface MiniCandlestickChartProps {
@@ -209,6 +225,25 @@ function Markets(): React.ReactElement {
 		});
 	}, [spotTickers, spotCandles]);
 
+	const exchangeGroups = useMemo(() => {
+		const groups = new Map<string, FormattedTicker[]>();
+
+		formattedTickers.forEach((ticker) => {
+			if (!groups.has(ticker.exchange)) {
+				groups.set(ticker.exchange, []);
+			}
+			groups.get(ticker.exchange)!.push(ticker);
+		});
+
+		return Array.from(groups.entries()).map(([exchange, markets]) => ({
+			exchange,
+			markets,
+			totalMarkets: markets.length,
+			avgLatency: markets.reduce((sum, m) => sum + m.latency, 0) /
+				markets.length,
+		}));
+	}, [formattedTickers]);
+
 	const formatPrice = (price: number, symbol: string) => {
 		if (symbol === "BTC" && price > 1000) {
 			return `$${
@@ -256,98 +291,186 @@ function Markets(): React.ReactElement {
 		);
 	};
 
+	const getExchangeColor = (exchange: string): string => {
+		const colors: Record<string, string> = {
+			binance: "from-yellow-400 to-yellow-600",
+			bybit: "from-blue-400 to-blue-600",
+			okx: "from-purple-400 to-purple-600",
+			coinbase: "from-indigo-400 to-indigo-600",
+			bitstamp: "from-green-400 to-green-600",
+			htx: "from-orange-400 to-orange-600",
+			kucoin: "from-cyan-400 to-cyan-600",
+			gate: "from-pink-400 to-pink-600",
+			upbit: "from-emerald-400 to-emerald-600",
+			bitget: "from-red-400 to-red-600",
+		};
+		return colors[exchange] || "from-gray-400 to-gray-600";
+	};
+
+	const getExchangeIcon = (exchange: string): string => {
+		return exchange.charAt(0).toUpperCase();
+	};
+
 	return (
-		<div className="container m-auto">
+		<div className="container m-auto space-y-4">
 			<TickerTape entries={spotTickers} />
+
 			<Card>
 				<CardHeader>
-					<CardTitle>Spot Markets</CardTitle>
+					<CardTitle className="flex items-center justify-between">
+						<span>Spot Markets</span>
+						<div className="text-sm font-normal text-muted-foreground">
+							{exchangeGroups.length} exchanges • {formattedTickers.length}{" "}
+							markets
+						</div>
+					</CardTitle>
 					<CardDescription>
 						Real-time cryptocurrency spot prices and market data from multiple
 						exchanges
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="min-w-0">
+				<CardContent className="p-0">
 					<div className="rounded-md border overflow-x-auto">
-						<Table className="min-w-[800px]">
+						<Table>
 							<TableHeader>
-								<TableRow>
-									<TableHead>Exchange & Market</TableHead>
-									<TableHead>Chart</TableHead>
-									<TableHead className="text-right">Price</TableHead>
-									<TableHead className="text-right">24h Change</TableHead>
-									<TableHead className="text-right">Volume</TableHead>
-									<TableHead className="text-right">Bid/Ask</TableHead>
-									<TableHead className="text-right">Latency</TableHead>
+								<TableRow className="bg-muted/50">
+									<TableHead className="w-[200px]">Exchange & Market</TableHead>
+									<TableHead className="w-[120px]">Chart</TableHead>
+									<TableHead className="text-right w-[120px]">Price</TableHead>
+									<TableHead className="text-right w-[120px]">
+										24h Change
+									</TableHead>
+									<TableHead className="text-right w-[100px]">Volume</TableHead>
+									<TableHead className="text-right w-[120px]">
+										Bid/Ask
+									</TableHead>
+									<TableHead className="text-right w-[80px]">Latency</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{formattedTickers.map((ticker) => (
-									<TableRow key={`${ticker.exchange}-${ticker.market}`}>
-										<TableCell className="font-medium">
-											<div className="flex items-center gap-2">
-												<div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-													{ticker.symbol.slice(0, 2)}
-												</div>
-												<div>
-													<div className="font-semibold">{ticker.symbol}</div>
-													<div className="text-xs text-muted-foreground">
-														{ticker.exchange} • {ticker.market}
+								{exchangeGroups.map((group) => (
+									<>
+										{/* Exchange Header Row */}
+										<TableRow
+											key={`header-${group.exchange}`}
+											className="bg-muted/30 border-b-2"
+										>
+											<TableCell colSpan={7} className="py-3">
+												<div className="flex items-center gap-3">
+													<div
+														className={`w-8 h-8 bg-gradient-to-br ${
+															getExchangeColor(group.exchange)
+														} rounded-lg flex items-center justify-center text-white text-sm font-bold`}
+													>
+														{getExchangeIcon(group.exchange)}
 													</div>
+													<div>
+														<div className="font-semibold text-lg capitalize">
+															{group.exchange}
+														</div>
+														<div className="text-sm text-muted-foreground">
+															{group.totalMarkets} markets •{" "}
+															{Math.round(group.avgLatency)}ms avg latency
+														</div>
+													</div>
+													<Badge variant="secondary" className="ml-auto">
+														{group.totalMarkets} Active
+													</Badge>
 												</div>
-											</div>
-										</TableCell>
-										<TableCell className="min-w-[130px]">
-											<div className="flex items-center justify-center overflow-hidden">
-												<MiniCandlestickChart
-													candles={ticker.candles}
-													width={120}
-													height={40}
-												/>
-											</div>
-										</TableCell>
-										<TableCell className="text-right font-mono">
-											{formatPrice(ticker.price, ticker.symbol)}
-										</TableCell>
-										<TableCell className="text-right">
-											<div className="space-y-1">
-												{formatPercentage(ticker.percentage)}
-												<div
-													className={`text-xs font-mono ${
-														ticker.change >= 0
-															? "text-green-600"
-															: "text-red-600"
-													}`}
-												>
-													{ticker.change >= 0 ? "+" : ""}
-													{ticker.change.toFixed(4)}
-												</div>
-											</div>
-										</TableCell>
-										<TableCell className="text-right">
-											<div className="space-y-1">
-												<div className="font-mono text-sm">
-													{formatVolume(ticker.volume)}
-												</div>
-												<div className="text-xs text-muted-foreground">
-													${formatVolume(ticker.quoteVolume)}
-												</div>
-											</div>
-										</TableCell>
-										<TableCell className="text-right font-mono text-xs">
-											<div className="space-y-1">
-												<div className="text-green-600">
-													{formatPrice(ticker.bid, ticker.symbol)}
-												</div>
-												<div className="text-red-600">
-													{formatPrice(ticker.ask, ticker.symbol)}
-												</div>
-											</div>
-										</TableCell>
-										<TableCell className="text-right text-xs text-muted-foreground">
-											{ticker.latency}ms
-										</TableCell>
-									</TableRow>
+											</TableCell>
+										</TableRow>
+
+										{/* Market Rows */}
+										{group.markets.map((ticker, tickerIndex) => (
+											<TableRow
+												key={`${ticker.exchange}-${ticker.market}`}
+												className={`hover:bg-muted/20 transition-colors ${
+													tickerIndex === group.markets.length - 1
+														? "border-b-2"
+														: ""
+												}`}
+											>
+												<TableCell className="font-medium">
+													<div className="flex items-center gap-3">
+														<div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+															{ticker.symbol.slice(0, 2)}
+														</div>
+														<div>
+															<div className="font-semibold">
+																{ticker.symbol}
+															</div>
+															<div className="text-sm text-muted-foreground">
+																{ticker.market}
+															</div>
+														</div>
+													</div>
+												</TableCell>
+												<TableCell>
+													<div className="flex items-center justify-center">
+														<MiniCandlestickChart
+															candles={ticker.candles}
+															width={100}
+															height={40}
+														/>
+													</div>
+												</TableCell>
+												<TableCell className="text-right font-mono text-lg">
+													{formatPrice(ticker.price, ticker.symbol)}
+												</TableCell>
+												<TableCell className="text-right">
+													<div className="space-y-1">
+														{formatPercentage(ticker.percentage)}
+														<div
+															className={`text-sm font-mono ${
+																ticker.change >= 0
+																	? "text-green-600"
+																	: "text-red-600"
+															}`}
+														>
+															{ticker.change >= 0 ? "+" : ""}
+															{ticker.change.toFixed(4)}
+														</div>
+													</div>
+												</TableCell>
+												<TableCell className="text-right">
+													<div className="space-y-1">
+														<div className="font-mono text-sm">
+															{formatVolume(ticker.volume)}
+														</div>
+														<div className="text-xs text-muted-foreground">
+															${formatVolume(ticker.quoteVolume)}
+														</div>
+													</div>
+												</TableCell>
+												<TableCell className="text-right font-mono text-sm">
+													{ticker.bid > 0 && ticker.ask > 0
+														? (
+															<div className="space-y-1">
+																<div className="text-green-600">
+																	{formatPrice(ticker.bid, ticker.symbol)}
+																</div>
+																<div className="text-red-600">
+																	{formatPrice(ticker.ask, ticker.symbol)}
+																</div>
+															</div>
+														)
+														: <span className="text-muted-foreground">-</span>}
+												</TableCell>
+												<TableCell className="text-right">
+													<Badge
+														variant={ticker.latency < 1000
+															? "default"
+															: ticker.latency < 2000
+															? "secondary"
+															: "destructive"}
+														className="text-xs"
+													>
+														{ticker.latency}ms
+													</Badge>
+												</TableCell>
+											</TableRow>
+										))}
+									</>
 								))}
 							</TableBody>
 						</Table>
