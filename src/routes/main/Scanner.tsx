@@ -45,7 +45,6 @@ import {
 } from "lucide-react";
 import { cn, filterSession } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
-import Markets from "@/routes/main/Markets";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync";
 import Loader from "@/components/ui/loader";
 
@@ -1541,8 +1540,19 @@ export default function WalletWidget(): React.ReactElement {
 
 	const netMap = filterSession(session || {}, /\.heterogen\..*\.setting$/);
 
+	console.log(netMap);
+
 	const snapshot = session["testnet.snapshot.sonar"];
 	const runtime = session["testnet.runtime.sonar"];
+	const lastTransaction = session["testnet.runtime.transactions"];
+	const timezone = session["testnet.runtime.timezone"];
+	const news = session["testnet.runtime.news.finance"];
+
+	console.log(snapshot);
+	console.log(runtime);
+	console.log(lastTransaction);
+	console.log(timezone);
+	console.log(news);
 
 	const calc = ProfessionalCalculations;
 
@@ -1578,70 +1588,6 @@ export default function WalletWidget(): React.ReactElement {
 
 	return (
 		<div className="container m-auto gap-6 space-y-8">
-			<Card className="mb-6">
-				<CardHeader>
-					<div className="flex items-center gap-3">
-						<div className="p-3 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl">
-							<Wallet className="h-6 w-6 text-amber-600" />
-						</div>
-						<div>
-							<CardTitle className="text-xl flex items-center gap-2">
-								Sonar Scanner
-								<Badge
-									variant="outline"
-									className="text-xs font-mono bg-amber-50 text-amber-700 border-amber-200"
-								>
-									TestNet
-								</Badge>
-							</CardTitle>
-							<CardDescription className="text-base">
-								Advanced wallet analysis and portfolio insights for Gliesereum
-								network
-							</CardDescription>
-						</div>
-					</div>
-				</CardHeader>
-				<CardContent>
-					<form onSubmit={handleSubmit} className="space-y-4">
-						<div className="space-y-2">
-							<Label htmlFor="address" className="text-sm font-medium">
-								Wallet Address
-							</Label>
-							<div className="flex gap-3">
-								<Input
-									id="address"
-									type="text"
-									placeholder="Enter Gliesereum wallet address..."
-									value={address}
-									onChange={(e) => setAddress(e.target.value)}
-									disabled={loading}
-									className="flex-1 h-11"
-								/>
-								<Button
-									type="submit"
-									disabled={loading || !address.trim()}
-									className="h-11 px-6"
-								>
-									{loading
-										? (
-											<>
-												<Loader2 className="h-4 w-4 animate-spin mr-2" />
-												Analyzing...
-											</>
-										)
-										: (
-											<>
-												<BarChart3 className="h-4 w-4 mr-2" />
-												Analyze
-											</>
-										)}
-								</Button>
-							</div>
-						</div>
-					</form>
-				</CardContent>
-			</Card>
-
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center text-white">
@@ -1740,6 +1686,70 @@ export default function WalletWidget(): React.ReactElement {
 								))}
 						</div>
 					</div>
+				</CardContent>
+			</Card>
+
+			<Card className="mb-6">
+				<CardHeader>
+					<div className="flex items-center gap-3">
+						<div className="p-3 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl">
+							<Wallet className="h-6 w-6 text-amber-600" />
+						</div>
+						<div>
+							<CardTitle className="text-xl flex items-center gap-2">
+								Sonar Scanner
+								<Badge
+									variant="outline"
+									className="text-xs font-mono bg-amber-50 text-amber-700 border-amber-200"
+								>
+									TestNet
+								</Badge>
+							</CardTitle>
+							<CardDescription className="text-base">
+								Advanced wallet analysis and portfolio insights for Gliesereum
+								network
+							</CardDescription>
+						</div>
+					</div>
+				</CardHeader>
+				<CardContent>
+					<form onSubmit={handleSubmit} className="space-y-4">
+						<div className="space-y-2">
+							<Label htmlFor="address" className="text-sm font-medium">
+								Wallet Address
+							</Label>
+							<div className="flex gap-3">
+								<Input
+									id="address"
+									type="text"
+									placeholder="Enter Gliesereum wallet address..."
+									value={address}
+									onChange={(e) => setAddress(e.target.value)}
+									disabled={loading}
+									className="flex-1 h-11"
+								/>
+								<Button
+									type="submit"
+									disabled={loading || !address.trim()}
+									className="h-11 px-6"
+								>
+									{loading
+										? (
+											<>
+												<Loader2 className="h-4 w-4 animate-spin mr-2" />
+												Analyzing...
+											</>
+										)
+										: (
+											<>
+												<BarChart3 className="h-4 w-4 mr-2" />
+												Analyze
+											</>
+										)}
+								</Button>
+							</div>
+						</div>
+					</form>
 				</CardContent>
 			</Card>
 
@@ -2157,8 +2167,6 @@ export default function WalletWidget(): React.ReactElement {
 						</CardContent>
 					</Card>
 				</div>
-
-				<Markets />
 			</div>
 
 			{/* Error State */}

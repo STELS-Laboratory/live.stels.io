@@ -144,7 +144,7 @@ export const useAppStore = create<AppState>()(
 					}
 				}
 				
-				const allowedRoutes = ['scanner', 'canvas', 'network', 'wallet'];
+				const allowedRoutes = ['scanner', 'canvas', 'markets', 'network', 'wallet'];
 				//const allowedRoutes = ['welcome', 'scanner', 'markets', 'canvas', 'fred', 'wallet', 'network', 'editor'];
 				console.log('[Store] Initializing with allowedRoutes:', allowedRoutes);
 				
@@ -263,7 +263,7 @@ export const useAppStore = create<AppState>()(
 				}
 			},
 			{
-				name: 'testnet_app_store_01',
+				name: 'testnet_app_store_02',
 			}
 		)
 	)
