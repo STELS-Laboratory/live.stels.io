@@ -30,7 +30,7 @@ export function WalletTypeSelector(
               <Wallet className="relative h-8 w-8 text-amber-400" />
             </div>
             <span className="bg-gradient-to-r from-amber-400 via-white to-blue-400 bg-clip-text text-transparent">
-              Choose Wallet Setup Method
+              Choose Setup Method
             </span>
           </CardTitle>
           <p className="text-zinc-400 text-lg mt-3 max-w-2xl mx-auto leading-relaxed">
