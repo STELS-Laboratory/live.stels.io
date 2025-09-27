@@ -237,7 +237,7 @@ function Markets(): React.ReactElement {
 
 		return Array.from(groups.entries()).map(([exchange, markets]) => ({
 			exchange,
-			markets,
+			markets: markets.sort((a, b) => b.price - a.price), // Sort by price descending
 			totalMarkets: markets.length,
 			avgLatency: markets.reduce((sum, m) => sum + m.latency, 0) /
 				markets.length,
