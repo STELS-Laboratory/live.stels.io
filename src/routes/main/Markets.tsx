@@ -1,8 +1,8 @@
 import useSessionStoreSync from "@/hooks/useSessionStoreSync";
 import { filterSession } from "@/lib/utils";
 
-import { useMemo } from "react";
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ArrowDown, ArrowUp, Filter, Search, X } from "lucide-react";
 
 // Import currency icons
 import BTCIcon from "@/assets/icons/coins/BTC.png";
@@ -41,6 +41,8 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import TickerTape from "@/components/widgets/TickerTape";
 
 interface CandleData {
@@ -206,6 +208,11 @@ function Markets(): React.ReactElement {
 		/\.spot\..*\.candles$/,
 	) as CandleDataRaw[];
 
+	// Filter states
+	const [searchTerm, setSearchTerm] = useState("");
+	const [selectedExchanges, setSelectedExchanges] = useState<string[]>([]);
+	const [selectedSymbols, setSelectedSymbols] = useState<string[]>([]);
+
 	const formattedTickers = useMemo(() => {
 		return spotTickers.map((tickerItem) => {
 			const raw = tickerItem.value.raw;
@@ -246,10 +253,50 @@ function Markets(): React.ReactElement {
 		});
 	}, [spotTickers, spotCandles]);
 
+	// Get unique exchanges and symbols for filters
+	const availableExchanges = useMemo(() => {
+		return Array.from(new Set(formattedTickers.map((t) => t.exchange))).sort();
+	}, [formattedTickers]);
+
+	const availableSymbols = useMemo(() => {
+		return Array.from(new Set(formattedTickers.map((t) => t.symbol))).sort();
+	}, [formattedTickers]);
+
+	// Filtered tickers
+	const filteredTickers = useMemo(() => {
+		return formattedTickers.filter((ticker) => {
+			// Search filter
+			if (
+				searchTerm &&
+				!ticker.symbol.toLowerCase().includes(searchTerm.toLowerCase()) &&
+				!ticker.market.toLowerCase().includes(searchTerm.toLowerCase())
+			) {
+				return false;
+			}
+
+			// Exchange filter
+			if (
+				selectedExchanges.length > 0 &&
+				!selectedExchanges.includes(ticker.exchange)
+			) {
+				return false;
+			}
+
+			// Symbol filter
+			if (
+				selectedSymbols.length > 0 && !selectedSymbols.includes(ticker.symbol)
+			) {
+				return false;
+			}
+
+			return true;
+		});
+	}, [formattedTickers, searchTerm, selectedExchanges, selectedSymbols]);
+
 	const exchangeGroups = useMemo(() => {
 		const groups = new Map<string, FormattedTicker[]>();
 
-		formattedTickers.forEach((ticker) => {
+		filteredTickers.forEach((ticker) => {
 			if (!groups.has(ticker.exchange)) {
 				groups.set(ticker.exchange, []);
 			}
@@ -263,7 +310,7 @@ function Markets(): React.ReactElement {
 			avgLatency: markets.reduce((sum, m) => sum + m.latency, 0) /
 				markets.length,
 		}));
-	}, [formattedTickers]);
+	}, [filteredTickers]);
 
 	const formatPrice = (price: number, symbol: string) => {
 		if (symbol === "BTC" && price > 1000) {
@@ -357,6 +404,29 @@ function Markets(): React.ReactElement {
 		return iconMap[symbol] || null;
 	};
 
+	// Filter functions
+	const toggleExchange = (exchange: string) => {
+		setSelectedExchanges((prev) =>
+			prev.includes(exchange)
+				? prev.filter((e) => e !== exchange)
+				: [...prev, exchange]
+		);
+	};
+
+	const toggleSymbol = (symbol: string) => {
+		setSelectedSymbols((prev) =>
+			prev.includes(symbol)
+				? prev.filter((s) => s !== symbol)
+				: [...prev, symbol]
+		);
+	};
+
+	const clearFilters = () => {
+		setSearchTerm("");
+		setSelectedExchanges([]);
+		setSelectedSymbols([]);
+	};
+
 	return (
 		<div className="container m-auto space-y-4">
 			<TickerTape entries={spotTickers} />
@@ -366,7 +436,7 @@ function Markets(): React.ReactElement {
 					<CardTitle className="flex items-center justify-between">
 						<span>Spot Markets</span>
 						<div className="text-sm font-normal text-muted-foreground">
-							{exchangeGroups.length} exchanges • {formattedTickers.length}{" "}
+							{exchangeGroups.length} exchanges • {filteredTickers.length}{" "}
 							markets
 						</div>
 					</CardTitle>
@@ -375,6 +445,110 @@ function Markets(): React.ReactElement {
 						exchanges
 					</CardDescription>
 				</CardHeader>
+
+				{/* Filters */}
+				<CardContent className="pt-0">
+					<div className="space-y-4">
+						{/* Search */}
+						<div className="relative">
+							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+							<Input
+								placeholder="Search by symbol or market..."
+								value={searchTerm}
+								onChange={(e) => setSearchTerm(e.target.value)}
+								className="pl-10"
+							/>
+						</div>
+
+						{/* Exchange Filters */}
+						<div className="space-y-2">
+							<div className="flex items-center gap-2">
+								<Filter className="h-4 w-4 text-muted-foreground" />
+								<span className="text-sm font-medium">Exchanges</span>
+							</div>
+							<div className="flex flex-wrap gap-2">
+								{availableExchanges.map((exchange) => (
+									<Button
+										key={exchange}
+										variant={selectedExchanges.includes(exchange)
+											? "default"
+											: "outline"}
+										size="sm"
+										onClick={() => toggleExchange(exchange)}
+										className="h-8"
+									>
+										{getExchangeIcon(exchange)
+											? (
+												<img
+													src={getExchangeIcon(exchange)!}
+													alt={exchange}
+													className="w-4 h-4 rounded-full mr-2"
+												/>
+											)
+											: (
+												<div className="w-4 h-4 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mr-2 flex items-center justify-center text-white text-xs font-bold">
+													{exchange.charAt(0).toUpperCase()}
+												</div>
+											)}
+										{exchange}
+									</Button>
+								))}
+							</div>
+						</div>
+
+						{/* Symbol Filters */}
+						<div className="space-y-2">
+							<div className="flex items-center gap-2">
+								<Filter className="h-4 w-4 text-muted-foreground" />
+								<span className="text-sm font-medium">Symbols</span>
+							</div>
+							<div className="flex flex-wrap gap-2">
+								{availableSymbols.map((symbol) => (
+									<Button
+										key={symbol}
+										variant={selectedSymbols.includes(symbol)
+											? "default"
+											: "outline"}
+										size="sm"
+										onClick={() => toggleSymbol(symbol)}
+										className="h-8"
+									>
+										{getCurrencyIcon(symbol)
+											? (
+												<img
+													src={getCurrencyIcon(symbol)!}
+													alt={symbol}
+													className="w-4 h-4 rounded-full mr-2"
+												/>
+											)
+											: (
+												<div className="w-4 h-4 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mr-2 flex items-center justify-center text-white text-xs font-bold">
+													{symbol.slice(0, 2)}
+												</div>
+											)}
+										{symbol}
+									</Button>
+								))}
+							</div>
+						</div>
+
+						{/* Clear Filters */}
+						{(searchTerm || selectedExchanges.length > 0 ||
+							selectedSymbols.length > 0) && (
+							<div className="flex justify-end">
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={clearFilters}
+									className="text-muted-foreground hover:text-foreground"
+								>
+									<X className="h-4 w-4 mr-2" />
+									Clear Filters
+								</Button>
+							</div>
+						)}
+					</div>
+				</CardContent>
 				<CardContent className="p-0">
 					<div className="rounded-md border overflow-x-auto">
 						<Table>
@@ -414,7 +588,7 @@ function Markets(): React.ReactElement {
 															<div
 																className={`w-12 h-12 bg-gradient-to-br ${
 																	getExchangeColor(group.exchange)
-																} rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md border-2 border-white/20`}
+																} rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md`}
 															>
 																{group.exchange.charAt(0).toUpperCase()}
 															</div>
@@ -453,11 +627,11 @@ function Markets(): React.ReactElement {
 																<img
 																	src={getCurrencyIcon(ticker.symbol)!}
 																	alt={ticker.symbol}
-																	className="w-8 h-8 rounded-full shadow-sm"
+																	className="w-8 h-8 rounded-full shadow-md"
 																/>
 															)
 															: (
-																<div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">
+																<div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md">
 																	{ticker.symbol.slice(0, 2)}
 																</div>
 															)}
