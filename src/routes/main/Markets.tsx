@@ -574,14 +574,14 @@ function Markets(): React.ReactElement {
 										<TableRow
 											key={`header-${group.exchange}`}
 										>
-											<TableCell colSpan={7} className="py-4 px-6">
+											<TableCell colSpan={7} className="py-4 px-6 bg-muted/50">
 												<div className="flex items-center gap-3">
 													{getExchangeIcon(group.exchange)
 														? (
 															<img
 																src={getExchangeIcon(group.exchange)!}
 																alt={group.exchange}
-																className="w-12 h-12 rounded-full shadow-md"
+																className="w-12 h-12 p-1 rounded-full"
 															/>
 														)
 														: (
@@ -627,11 +627,11 @@ function Markets(): React.ReactElement {
 																<img
 																	src={getCurrencyIcon(ticker.symbol)!}
 																	alt={ticker.symbol}
-																	className="w-8 h-8 rounded-full shadow-md"
+																	className="w-8 h-8 rounded-full"
 																/>
 															)
 															: (
-																<div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md">
+																<div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
 																	{ticker.symbol.slice(0, 2)}
 																</div>
 															)}
