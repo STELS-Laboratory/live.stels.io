@@ -4,6 +4,15 @@ import { filterSession } from "@/lib/utils";
 import { useMemo } from "react";
 import { ArrowDown, ArrowUp } from "lucide-react";
 
+// Import currency icons
+import BTCIcon from "@/assets/icons/BTC.png";
+import ETHIcon from "@/assets/icons/ETH.png";
+import SOLIcon from "@/assets/icons/SOL.png";
+import TRXIcon from "@/assets/icons/TRX.png";
+import XRPIcon from "@/assets/icons/XRP.png";
+import BNBIcon from "@/assets/icons/BNB.png";
+import JASMYIcon from "@/assets/icons/JASMY.png";
+
 import {
 	Card,
 	CardContent,
@@ -311,6 +320,19 @@ function Markets(): React.ReactElement {
 		return exchange.charAt(0).toUpperCase();
 	};
 
+	const getCurrencyIcon = (symbol: string): string | null => {
+		const iconMap: Record<string, string> = {
+			BTC: BTCIcon,
+			ETH: ETHIcon,
+			SOL: SOLIcon,
+			TRX: TRXIcon,
+			XRP: XRPIcon,
+			BNB: BNBIcon,
+			JASMY: JASMYIcon,
+		};
+		return iconMap[symbol] || null;
+	};
+
 	return (
 		<div className="container m-auto space-y-4">
 			<TickerTape entries={spotTickers} />
@@ -392,9 +414,19 @@ function Markets(): React.ReactElement {
 											>
 												<TableCell className="font-medium">
 													<div className="flex items-center gap-3">
-														<div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-															{ticker.symbol.slice(0, 2)}
-														</div>
+														{getCurrencyIcon(ticker.symbol)
+															? (
+																<img
+																	src={getCurrencyIcon(ticker.symbol)!}
+																	alt={ticker.symbol}
+																	className="w-8 h-8 rounded-full"
+																/>
+															)
+															: (
+																<div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+																	{ticker.symbol.slice(0, 2)}
+																</div>
+															)}
 														<div>
 															<div className="font-semibold">
 																{ticker.symbol}
