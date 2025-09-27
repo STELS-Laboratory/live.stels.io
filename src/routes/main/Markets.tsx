@@ -5,13 +5,25 @@ import { useMemo } from "react";
 import { ArrowDown, ArrowUp } from "lucide-react";
 
 // Import currency icons
-import BTCIcon from "@/assets/icons/BTC.png";
-import ETHIcon from "@/assets/icons/ETH.png";
-import SOLIcon from "@/assets/icons/SOL.png";
-import TRXIcon from "@/assets/icons/TRX.png";
-import XRPIcon from "@/assets/icons/XRP.png";
-import BNBIcon from "@/assets/icons/BNB.png";
-import JASMYIcon from "@/assets/icons/JASMY.png";
+import BTCIcon from "@/assets/icons/coins/BTC.png";
+import ETHIcon from "@/assets/icons/coins/ETH.png";
+import SOLIcon from "@/assets/icons/coins/SOL.png";
+import TRXIcon from "@/assets/icons/coins/TRX.png";
+import XRPIcon from "@/assets/icons/coins/XRP.png";
+import BNBIcon from "@/assets/icons/coins/BNB.png";
+import JASMYIcon from "@/assets/icons/coins/JASMY.png";
+
+// Import exchange icons
+import BinanceIcon from "@/assets/icons/exchanges/BINANCE.png";
+import BybitIcon from "@/assets/icons/exchanges/BYBIT.png";
+import OkxIcon from "@/assets/icons/exchanges/OKX.png";
+import CoinbaseIcon from "@/assets/icons/exchanges/COINBASE.png";
+import HtxIcon from "@/assets/icons/exchanges/HTX.png";
+import KucoinIcon from "@/assets/icons/exchanges/KUCOIN.png";
+import GateIcon from "@/assets/icons/exchanges/GATE.png";
+import BitgetIcon from "@/assets/icons/exchanges/BITGET.png";
+import UpbitIcon from "@/assets/icons/exchanges/UPBIT.png";
+import BitstampIcon from "@/assets/icons/exchanges/BITSTAMP.png";
 
 import {
 	Card,
@@ -316,8 +328,20 @@ function Markets(): React.ReactElement {
 		return colors[exchange] || "from-gray-400 to-gray-600";
 	};
 
-	const getExchangeIcon = (exchange: string): string => {
-		return exchange.charAt(0).toUpperCase();
+	const getExchangeIcon = (exchange: string): string | null => {
+		const exchangeIconMap: Record<string, string> = {
+			binance: BinanceIcon,
+			bybit: BybitIcon,
+			okx: OkxIcon,
+			coinbase: CoinbaseIcon,
+			htx: HtxIcon,
+			kucoin: KucoinIcon,
+			gate: GateIcon,
+			bitget: BitgetIcon,
+			upbit: UpbitIcon,
+			bitstamp: BitstampIcon,
+		};
+		return exchangeIconMap[exchange] || null;
 	};
 
 	const getCurrencyIcon = (symbol: string): string | null => {
@@ -375,17 +399,26 @@ function Markets(): React.ReactElement {
 										{/* Exchange Header Row */}
 										<TableRow
 											key={`header-${group.exchange}`}
-											className="bg-muted/30 border-b-2"
 										>
-											<TableCell colSpan={7} className="py-3">
+											<TableCell colSpan={7} className="py-4 px-6">
 												<div className="flex items-center gap-3">
-													<div
-														className={`w-8 h-8 bg-gradient-to-br ${
-															getExchangeColor(group.exchange)
-														} rounded-lg flex items-center justify-center text-white text-sm font-bold`}
-													>
-														{getExchangeIcon(group.exchange)}
-													</div>
+													{getExchangeIcon(group.exchange)
+														? (
+															<img
+																src={getExchangeIcon(group.exchange)!}
+																alt={group.exchange}
+																className="w-12 h-12 rounded-full shadow-md"
+															/>
+														)
+														: (
+															<div
+																className={`w-12 h-12 bg-gradient-to-br ${
+																	getExchangeColor(group.exchange)
+																} rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md border-2 border-white/20`}
+															>
+																{group.exchange.charAt(0).toUpperCase()}
+															</div>
+														)}
 													<div>
 														<div className="font-semibold text-lg capitalize">
 															{group.exchange}
@@ -395,7 +428,10 @@ function Markets(): React.ReactElement {
 															{Math.round(group.avgLatency)}ms avg latency
 														</div>
 													</div>
-													<Badge variant="secondary" className="ml-auto">
+													<Badge
+														variant="secondary"
+														className="ml-auto bg-orange-400/20 text-orange-600 border-orange-400/30"
+													>
 														{group.totalMarkets} Active
 													</Badge>
 												</div>
@@ -406,10 +442,8 @@ function Markets(): React.ReactElement {
 										{group.markets.map((ticker, tickerIndex) => (
 											<TableRow
 												key={`${ticker.exchange}-${ticker.market}`}
-												className={`hover:bg-muted/20 transition-colors ${
-													tickerIndex === group.markets.length - 1
-														? "border-b-2"
-														: ""
+												className={`hover:bg-muted/10 transition-colors ${
+													tickerIndex === group.markets.length - 1 ? "" : ""
 												}`}
 											>
 												<TableCell className="font-medium">
@@ -419,11 +453,11 @@ function Markets(): React.ReactElement {
 																<img
 																	src={getCurrencyIcon(ticker.symbol)!}
 																	alt={ticker.symbol}
-																	className="w-8 h-8 rounded-full"
+																	className="w-8 h-8 rounded-full shadow-sm"
 																/>
 															)
 															: (
-																<div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+																<div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">
 																	{ticker.symbol.slice(0, 2)}
 																</div>
 															)}
