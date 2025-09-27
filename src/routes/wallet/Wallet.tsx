@@ -126,11 +126,12 @@ export default function GliesereumWallet(): React.ReactElement {
 				</div>
 				
 				<div className="mb-8 bg-zinc-900 p-6 border">
-					<div className="text-zinc-400">
+					<div className="text-zinc-500 text-xl">
 						Balance
 					</div>
-					<div className="text-6xl font-bold font-mono text-amber-600">0.00<span className="ml-2 text-xl text-amber-800">TST</span></div>
-					<div className="text-green-500">
+					<div className="text-right font-bold ml-2 text-xl text-amber-800">TST</div>
+					<div className="text-6xl text-right font-bold font-mono text-zinc-700">0.0000</div>
+					<div className="text-green-500 text-right">
 						Price: 0.00$
 					</div>
 				</div>
