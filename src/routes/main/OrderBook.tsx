@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import OrderBookWidget from "@/components/widgets/OrderBook";
-import AggregatedCandles from "@/components/widgets/AggregatedCandles";
+//import AggregatedCandles from "@/components/widgets/AggregatedCandles";
 import {
   Activity,
   ArrowDownUp,
@@ -213,15 +213,6 @@ const OrderBook: React.FC = () => {
         market: raw.market, // Add market info
       }));
     });
-
-    // Debug logging
-    console.log(`[OrderBook] Total candles: ${result.length}`);
-    console.log(`[OrderBook] Available markets:`, [
-      ...new Set(result.map((c) => c.market)),
-    ]);
-    console.log(`[OrderBook] Available exchanges:`, [
-      ...new Set(result.map((c) => c.exchange)),
-    ]);
 
     return result;
   }, [spotCandlesRaw]);
@@ -461,19 +452,10 @@ const OrderBook: React.FC = () => {
       : 0; // Ограничиваем максимальное значение
 
     // VWAP calculation - защита от деления на ноль
-    const bidVwap = bidVolume > 0
-      ? currentOrderBook.aggregatedBids.reduce(
-        (sum, [price, vol]) => sum + price * vol,
-        0,
-      ) / bidVolume
+    const totalVwap = totalVolume > 0
+      ? [...currentOrderBook.aggregatedBids, ...currentOrderBook.aggregatedAsks]
+        .reduce((sum, [price, vol]) => sum + price * vol, 0) / totalVolume
       : 0;
-    const askVwap = askVolume > 0
-      ? currentOrderBook.aggregatedAsks.reduce(
-        (sum, [price, vol]) => sum + price * vol,
-        0,
-      ) / askVolume
-      : 0;
-    const vwap = (bidVwap + askVwap) / 2;
 
     // Large orders detection - защита от пустых массивов
     const bidVolumes = currentOrderBook.aggregatedBids.map(([, vol]) => vol);
@@ -490,7 +472,7 @@ const OrderBook: React.FC = () => {
     return {
       imbalance,
       depthRatio,
-      vwap,
+      vwap: totalVwap,
       priceVelocity: 0, // Would need previous data to calculate
       volatility: 0, // Would need previous data to calculate
       largeOrders,
@@ -854,7 +836,8 @@ const OrderBook: React.FC = () => {
             </Card>
 
             {/* Aggregated Candles Chart */}
-            <Card className="bg-zinc-900 border mb-6">
+            {
+              /* <Card className="bg-zinc-900 border mb-6">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-amber-500" />
@@ -873,7 +856,8 @@ const OrderBook: React.FC = () => {
                   height={400}
                 />
               </CardContent>
-            </Card>
+            </Card> */
+            }
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Compact Exchange Ranking */}

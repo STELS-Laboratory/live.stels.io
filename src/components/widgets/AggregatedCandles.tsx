@@ -155,13 +155,10 @@ const calculateExchangeLiquidity = (
       ? (ex.liquidity / totalLiquidity) * 100
       : 0;
 
-    // Dominance calculation: liquidity + depth factor + spread factor
-    const depthFactor = Math.min(ex.depth / 20, 1); // Normalize depth
-    const spreadFactor = ex.spread > 0
-      ? Math.max(0, 1 - (ex.spread / (ex.liquidity / 1000000)))
-      : 0;
-    const dominance = marketShare *
-      (1 + depthFactor * 0.3 + spreadFactor * 0.2);
+    // Dominance calculation: based on market share and liquidity depth
+    const depthFactor = Math.min(ex.depth / 20, 1); // Normalize depth to 20 levels
+    // Simplified dominance calculation without arbitrary weights
+    const dominance = marketShare * (1 + depthFactor * 0.1);
 
     return {
       ...ex,
@@ -208,14 +205,6 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
       candle.market === selectedMarket
     );
 
-    // Debug logging
-    console.log(`[AggregatedCandles] Selected market: ${selectedMarket}`);
-    console.log(`[AggregatedCandles] Total candles: ${candlesData.length}`);
-    console.log(`[AggregatedCandles] Market candles: ${marketCandles.length}`);
-    console.log(`[AggregatedCandles] Available markets:`, [
-      ...new Set(candlesData.map((c) => c.market)),
-    ]);
-
     return marketExchanges.map((exchange) => {
       const exchangeMetrics = liquidityData.find((l) =>
         l.exchange === exchange
@@ -244,32 +233,12 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
         Math.min(100, exchangeSpecificCandles.length),
       );
 
-      // Create exchange-specific candle data with dominance-based variations
-      const exchangeCandles = baseCandles.map((candle, index) => {
-        // Dominance-based price influence: dominant exchanges have less variation
-        const dominanceFactor = Math.min(dominance / 50, 1); // Normalize dominance
-        const exchangeIndex = marketExchanges.indexOf(exchange);
-
-        // Dominant exchanges lead price movements, others follow with variations
-        const baseVariation = Math.sin(index * 0.05 + exchangeIndex * 0.3) *
-          0.002;
-        const dominanceInfluence = 1 - (dominanceFactor * 0.7); // Less variation for dominant exchanges
-        const variation = baseVariation * dominanceInfluence;
-
-        // Volume scaling based on market share
-        const volumeMultiplier = 0.5 + (marketShare / 100) * 1.5;
-
-        return {
-          ...candle,
-          exchange,
-          market: selectedMarket,
-          open: candle.open * (1 + variation),
-          high: candle.high * (1 + variation * 1.1),
-          low: candle.low * (1 + variation * 0.9),
-          close: candle.close * (1 + variation),
-          volume: candle.volume * volumeMultiplier,
-        };
-      });
+      // Use actual candle data without artificial variations
+      const exchangeCandles = baseCandles.map((candle) => ({
+        ...candle,
+        exchange,
+        market: selectedMarket,
+      }));
 
       return {
         exchange,
@@ -291,8 +260,9 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
       [timestamp: number]: { candle: CandleData; weight: number }[];
     } = {};
 
-    exchangeData.forEach(({ candles, dominance, marketShare }) => {
-      const weight = (dominance || 0) * ((marketShare || 0) / 100); // Combined dominance and market share weight
+    exchangeData.forEach(({ candles, marketShare }) => {
+      // Use market share as the primary weight (more reliable than dominance)
+      const weight = (marketShare || 0) / 100;
 
       candles.forEach((candle) => {
         const timestamp = Math.floor(candle.timestamp / 60000) * 60000; // Round to minute
@@ -361,8 +331,9 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
       [timestamp: number]: { candle: CandleData; weight: number }[];
     } = {};
 
-    exchangeData.forEach(({ candles, dominance, marketShare }) => {
-      const weight = (dominance || 0) * ((marketShare || 0) / 100);
+    exchangeData.forEach(({ candles, marketShare }) => {
+      // Use market share as the primary weight for volume calculation
+      const weight = (marketShare || 0) / 100;
 
       candles.forEach((candle) => {
         const timestamp = Math.floor(candle.timestamp / 60000) * 60000;
@@ -626,10 +597,9 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
     );
     if (totalLiquidity === 0) return lastCandle.close;
 
-    // Weight by both liquidity and dominance
+    // Weight by liquidity only (more reliable than dominance)
     const weightedPrice = marketExchangeData.reduce((sum, ex) => {
-      const weight = (ex.liquidity / totalLiquidity) *
-        ((ex as any).dominance || 1);
+      const weight = ex.liquidity / totalLiquidity;
       const exchangePrice = ex.candles.length > 0
         ? ex.candles[ex.candles.length - 1].close
         : lastCandle.close;
@@ -637,8 +607,7 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
     }, 0);
 
     const totalWeight = marketExchangeData.reduce((sum, ex) => {
-      return sum +
-        (ex.liquidity / totalLiquidity) * ((ex as any).dominance || 1);
+      return sum + (ex.liquidity / totalLiquidity);
     }, 0);
 
     return totalWeight > 0 ? weightedPrice / totalWeight : lastCandle.close;
@@ -650,7 +619,7 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
     return ((lastCandle.close - fairValuePrice) / fairValuePrice) * 100;
   }, [lastCandle, fairValuePrice]);
 
-  // Helper function to calculate Gini coefficient
+  // Helper function to calculate Gini coefficient (corrected formula)
   const calculateGiniCoefficient = (values: number[]): number => {
     if (values.length === 0) return 0;
     const sorted = [...values].sort((a, b) => a - b);
@@ -658,11 +627,12 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
     const sum = sorted.reduce((a, b) => a + b, 0);
     if (sum === 0) return 0;
 
+    // Correct Gini coefficient formula: G = (2 * Σ(i * x_i)) / (n * Σ(x_i)) - (n + 1) / n
     let gini = 0;
     for (let i = 0; i < n; i++) {
-      gini += (2 * (i + 1) - n - 1) * sorted[i];
+      gini += (i + 1) * sorted[i];
     }
-    return gini / (n * sum);
+    return (2 * gini) / (n * sum) - (n + 1) / n;
   };
 
   // Calculate market efficiency score (0-100)
@@ -677,12 +647,18 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
 
     if (marketExchangeData.length === 0) return 0;
 
-    // Factors: price convergence, liquidity distribution, dominance balance
+    // Calculate total liquidity for weighting
+    const totalLiquidity = marketExchangeData.reduce(
+      (sum, ex) => sum + ex.liquidity,
+      0,
+    );
+
+    // Calculate price convergence efficiency
     const priceVariance = marketExchangeData.reduce((sum, ex) => {
       if (ex.candles.length === 0) return sum;
       const exchangePrice = ex.candles[ex.candles.length - 1].close;
       const deviation = Math.abs(exchangePrice - (fairValuePrice || 0));
-      return sum + deviation * (ex.liquidity / 1000000); // Weight by liquidity
+      return sum + deviation * (ex.liquidity / totalLiquidity); // Weight by relative liquidity
     }, 0);
 
     const avgPrice = fairValuePrice || 0;
@@ -696,20 +672,20 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
     );
     const liquidityEfficiency = (1 - liquidityGini) * 100;
 
-    // Dominance balance (prefer more balanced markets)
-    const dominanceVariance = marketExchangeData.reduce((sum, ex) => {
-      const dominance = (ex as any).dominance || 0;
-      const avgDominance = marketExchangeData.reduce((s, e) =>
-        s + ((e as any).dominance || 0), 0) / marketExchangeData.length;
-      return sum + Math.pow(dominance - avgDominance, 2);
+    // Market concentration efficiency (prefer more balanced markets)
+    const marketShareVariance = marketExchangeData.reduce((sum, ex) => {
+      const marketShare = (ex as any).marketShare || 0;
+      const avgMarketShare = marketExchangeData.reduce((s, e) =>
+        s + ((e as any).marketShare || 0), 0) / marketExchangeData.length;
+      return sum + Math.pow(marketShare - avgMarketShare, 2);
     }, 0);
-    const dominanceEfficiency = Math.max(
+    const concentrationEfficiency = Math.max(
       0,
-      100 - Math.sqrt(dominanceVariance) * 10,
+      100 - Math.sqrt(marketShareVariance) * 2,
     );
 
-    return (priceEfficiency * 0.4 + liquidityEfficiency * 0.3 +
-      dominanceEfficiency * 0.3);
+    return (priceEfficiency * 0.5 + liquidityEfficiency * 0.3 +
+      concentrationEfficiency * 0.2);
   }, [exchangeData, fairValuePrice, calculateGiniCoefficient, selectedMarket]);
 
   // Update fair value line separately
