@@ -499,233 +499,220 @@ const OrderBook: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Optimized Professional Header */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-        <header className="border-b border-zinc-800 p-4 bg-zinc-800">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-sm flex items-center gap-2">
-                <div className="h-4 w-1 bg-amber-500 rounded-full"></div>
-                <span className="text-amber-500 font-medium tracking-widest uppercase">
-                  {selectedMarket}
-                </span>
-                <Badge
-                  variant="outline"
-                  className="text-[10px] font-normal h-5 px-2 bg-zinc-700 border-zinc-600"
-                >
-                  Aggregated
-                </Badge>
-              </h2>
-              <div className="flex items-center gap-2 text-[10px] text-zinc-600 mt-1">
-                <Clock className="h-3 w-3" />
-                <span>{new Date().toLocaleTimeString()}</span>
-                <span>|</span>
-                <span className="flex items-center">
-                  <Zap className="h-3 w-3 mr-1 text-amber-500" />
-                  {currentOrderBook
-                    ? Math.round(
-                      currentOrderBook.exchangeRanking.reduce(
-                        (sum, ex) => sum + ex.liquidity,
-                        0,
-                      ) /
-                        currentOrderBook.exchangeRanking.length,
-                    )
-                    : 0}ms
-                </span>
-                <span>|</span>
-                <span className="text-zinc-500">{timeSinceUpdate}</span>
-              </div>
-            </div>
-            <div className="text-right text-[10px]">
-              <div className="text-zinc-600 uppercase tracking-wider">
-                DATA SOURCES
-              </div>
-              <div className="font-mono text-zinc-300 mt-1">
-                {candlesData.length} C / {tickersData.length} T /{" "}
-                {orderBookData.length} B
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Technical Metrics */}
-        <div className="grid grid-cols-3 gap-2 border-b border-zinc-800 p-4 bg-zinc-800">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="bg-zinc-700 p-2 rounded-lg border border-zinc-600 cursor-help">
-                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
-                    IMBALANCE
-                  </div>
-                  <div className="font-mono flex items-center mt-1">
-                    {metrics.imbalance > 0
-                      ? <TrendingUp className="h-3 w-3 text-amber-500 mr-1" />
-                      : <TrendingDown className="h-3 w-3 text-zinc-400 mr-1" />}
-                    <span
-                      className={metrics.imbalance > 0
-                        ? "text-amber-500"
-                        : "text-zinc-400"}
-                    >
-                      {Math.abs(metrics.imbalance * 100).toFixed(2)}%
-                    </span>
-                  </div>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">
-                  Difference between buy and sell volume
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="bg-zinc-700 p-2 rounded-lg border border-zinc-600 cursor-help">
-                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
-                    DEPTH RATIO
-                  </div>
-                  <div className="font-mono text-zinc-300 mt-1">
-                    {metrics.depthRatio.toFixed(2)}
-                  </div>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">Ratio of buy volume to sell volume</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="bg-zinc-700 p-2 rounded-lg border border-zinc-600 cursor-help">
-                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
-                    VWAP
-                  </div>
-                  <div className="font-mono text-zinc-300 mt-1">
-                    {metrics.vwap.toFixed(2)}
-                  </div>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">Volume-weighted average price</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="bg-zinc-700 p-2 rounded-lg border border-zinc-600 cursor-help">
-                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
-                    LARGE ORDERS
-                  </div>
-                  <div className="font-mono text-zinc-300 mt-1">
-                    {metrics.largeOrders}
-                  </div>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">Number of large orders detected</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="bg-zinc-700 p-2 rounded-lg border border-zinc-600 cursor-help">
-                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
-                    EXCHANGES
-                  </div>
-                  <div className="font-mono text-zinc-300 mt-1">
-                    {currentOrderBook
-                      ? Object.keys(currentOrderBook.exchanges).length
-                      : 0}
-                  </div>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">Number of connected exchanges</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <div className="bg-zinc-700 p-2 rounded-lg border border-zinc-600 flex flex-col justify-between">
-            <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
-              CONTROLS
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <button
-                onClick={() => setShowScales(!showScales)}
-                className="text-zinc-500 hover:text-amber-500 transition-colors"
-                title={showScales ? "Hide scales" : "Show scales"}
-              >
-                <Scale className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setLastUpdate(Date.now())}
-                className="text-zinc-500 hover:text-amber-500 transition-colors"
-                title="Refresh data"
-              >
-                <RefreshCcw className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Optimized Market Tabs */}
-      <Card className="bg-zinc-800 border border-zinc-700">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold text-white tracking-wide">
-            Market Selection
-          </CardTitle>
-          <CardDescription className="text-zinc-400">
-            Select a market to analyze order book depth and liquidity
-            distribution
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={selectedMarket} onValueChange={setSelectedMarket}>
-            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 bg-zinc-700 border border-zinc-600 p-1 rounded-xl">
-              {availableMarkets.map((market) => {
-                const symbol = market.split("/")[0];
-                return (
-                  <TabsTrigger
-                    key={market}
-                    value={market}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors data-[state=active]:bg-amber-500 data-[state=active]:text-black"
-                  >
-                    {getCurrencyIcon(symbol)
-                      ? (
-                        <img
-                          src={getCurrencyIcon(symbol)!}
-                          alt={symbol}
-                          className="w-5 h-5 rounded-full shadow-sm"
-                        />
-                      )
-                      : (
-                        <div className="w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-black text-xs font-bold">
-                          {symbol.slice(0, 2)}
-                        </div>
-                      )}
-                    <span className="hidden sm:inline font-medium tracking-wide">
+	    <Tabs value={selectedMarket} onValueChange={setSelectedMarket}>
+		    <TabsList className="flex w-[100%] overflow-y-scroll bg-zinc-900 border  p-1 rounded-xl">
+			    {availableMarkets.map((market) => {
+				    const symbol = market.split("/")[0];
+				    return (
+					    <TabsTrigger
+						    key={market}
+						    value={market}
+						    className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors data-[state=active]:bg-amber-500 data-[state=active]:text-black"
+					    >
+						    {getCurrencyIcon(symbol)
+							    ? (
+								    <img
+									    src={getCurrencyIcon(symbol)!}
+									    alt={symbol}
+									    className="w-5 h-5 rounded-full shadow-sm"
+								    />
+							    )
+							    : (
+								    <div className="w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-black text-xs font-bold">
+									    {symbol.slice(0, 2)}
+								    </div>
+							    )}
+						    <span className="hidden sm:inline font-medium tracking-wide">
                       {market}
                     </span>
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
-          </Tabs>
-        </CardContent>
-      </Card>
+					    </TabsTrigger>
+				    );
+			    })}
+		    </TabsList>
+	    </Tabs>
+	    
+	    {/* Optimized Professional Header */}
+	    <div className="bg-zinc-950 border  overflow-hidden">
+		    <header className="border-b p-4 bg-zinc-950">
+			    <div className="flex justify-between items-center">
+				    <div>
+					    <h2 className="text-sm flex items-center gap-2">
+						    <div className="h-4 w-1 bg-amber-500 rounded-full"></div>
+						    <span className="text-amber-500 font-medium tracking-widest uppercase">
+                  {selectedMarket}
+                </span>
+						    <Badge
+							    variant="outline"
+							    className="text-[10px] font-normal h-5 px-2 bg-zinc-800 border-amber-500"
+						    >
+							    Stels AI Controlled
+						    </Badge>
+					    </h2>
+					    <div className="flex items-center gap-2 text-[10px] text-zinc-600 mt-1">
+						    <Clock className="h-3 w-3" />
+						    <span>{new Date().toLocaleTimeString()}</span>
+						    <span>|</span>
+						    <span className="flex items-center">
+                  <Zap className="h-3 w-3 mr-1 text-amber-500" />
+							    {currentOrderBook
+								    ? Math.round(
+									    currentOrderBook.exchangeRanking.reduce(
+										    (sum, ex) => sum + ex.liquidity,
+										    0,
+									    ) /
+									    currentOrderBook.exchangeRanking.length,
+								    )
+								    : 0}ms
+                </span>
+						    <span>|</span>
+						    <span className="text-zinc-500">{timeSinceUpdate}</span>
+					    </div>
+				    </div>
+				    <div className="text-right text-[10px]">
+					    <div className="text-zinc-600 uppercase tracking-wider">
+						    DATA SOURCES
+					    </div>
+					    <div className="font-mono text-zinc-300 mt-1">
+						    {candlesData.length} C / {tickersData.length} T /{" "}
+						    {orderBookData.length} B
+					    </div>
+				    </div>
+			    </div>
+		    </header>
+		    
+		    {/* Technical Metrics */}
+		    <div className="grid grid-cols-3 gap-1 border-b p-2 bg-zinc-900">
+			    <TooltipProvider>
+				    <Tooltip>
+					    <TooltipTrigger asChild>
+						    <div className="bg-zinc-950 p-2 border cursor-help">
+							    <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+								    IMBALANCE
+							    </div>
+							    <div className="font-mono flex items-center mt-1">
+								    {metrics.imbalance > 0
+									    ? <TrendingUp className="h-3 w-3 text-amber-500 mr-1" />
+									    : <TrendingDown className="h-3 w-3 text-zinc-400 mr-1" />}
+								    <span
+									    className={metrics.imbalance > 0
+										    ? "text-amber-500"
+										    : "text-zinc-400"}
+								    >
+                      {Math.abs(metrics.imbalance * 100).toFixed(2)}%
+                    </span>
+							    </div>
+						    </div>
+					    </TooltipTrigger>
+					    <TooltipContent>
+						    <p className="text-xs">
+							    Difference between buy and sell volume
+						    </p>
+					    </TooltipContent>
+				    </Tooltip>
+			    </TooltipProvider>
+			    
+			    <TooltipProvider>
+				    <Tooltip>
+					    <TooltipTrigger asChild>
+						    <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
+							    <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+								    DEPTH RATIO
+							    </div>
+							    <div className="font-mono text-zinc-300 mt-1">
+								    {metrics.depthRatio.toFixed(2)}
+							    </div>
+						    </div>
+					    </TooltipTrigger>
+					    <TooltipContent>
+						    <p className="text-xs">Ratio of buy volume to sell volume</p>
+					    </TooltipContent>
+				    </Tooltip>
+			    </TooltipProvider>
+			    
+			    <TooltipProvider>
+				    <Tooltip>
+					    <TooltipTrigger asChild>
+						    <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
+							    <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+								    VWAP
+							    </div>
+							    <div className="font-mono text-zinc-300 mt-1">
+								    {metrics.vwap.toFixed(2)}
+							    </div>
+						    </div>
+					    </TooltipTrigger>
+					    <TooltipContent>
+						    <p className="text-xs">Volume-weighted average price</p>
+					    </TooltipContent>
+				    </Tooltip>
+			    </TooltipProvider>
+			    
+			    <TooltipProvider>
+				    <Tooltip>
+					    <TooltipTrigger asChild>
+						    <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
+							    <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+								    LARGE ORDERS
+							    </div>
+							    <div className="font-mono text-zinc-300 mt-1">
+								    {metrics.largeOrders}
+							    </div>
+						    </div>
+					    </TooltipTrigger>
+					    <TooltipContent>
+						    <p className="text-xs">Number of large orders detected</p>
+					    </TooltipContent>
+				    </Tooltip>
+			    </TooltipProvider>
+			    
+			    <TooltipProvider>
+				    <Tooltip>
+					    <TooltipTrigger asChild>
+						    <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
+							    <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+								    EXCHANGES
+							    </div>
+							    <div className="font-mono text-zinc-300 mt-1">
+								    {currentOrderBook
+									    ? Object.keys(currentOrderBook.exchanges).length
+									    : 0}
+							    </div>
+						    </div>
+					    </TooltipTrigger>
+					    <TooltipContent>
+						    <p className="text-xs">Number of connected exchanges</p>
+					    </TooltipContent>
+				    </Tooltip>
+			    </TooltipProvider>
+			    
+			    <div className="bg-zinc-950 p-2 rounded-lg border flex flex-col justify-between">
+				    <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+					    CONTROLS
+				    </div>
+				    <div className="flex items-center justify-between gap-2">
+					    <button
+						    onClick={() => setShowScales(!showScales)}
+						    className="text-zinc-500 hover:text-amber-500 transition-colors"
+						    title={showScales ? "Hide scales" : "Show scales"}
+					    >
+						    <Scale className="h-4 w-4" />
+					    </button>
+					    <button
+						    onClick={() => setLastUpdate(Date.now())}
+						    className="text-zinc-500 hover:text-amber-500 transition-colors"
+						    title="Refresh data"
+					    >
+						    <RefreshCcw className="h-4 w-4" />
+					    </button>
+				    </div>
+			    </div>
+		    </div>
+	    </div>
 
       {orderBookData.length === 0
         ? (
-          <Card className="bg-zinc-800 border border-zinc-700">
+          <Card className="bg-zinc-900 border ">
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
                 <Activity className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -743,7 +730,7 @@ const OrderBook: React.FC = () => {
         ? (
           <>
             {/* Market Overview */}
-            <Card className="bg-zinc-800 border border-zinc-700">
+            <Card className="bg-zinc-950 border">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   {getCurrencyIcon(selectedMarket.split("/")[0])
@@ -831,7 +818,7 @@ const OrderBook: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Compact Exchange Ranking */}
-              <Card className="bg-zinc-800 border border-zinc-700">
+              <Card className="bg-zinc-990 border ">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BarChart3 className="w-5 h-5 text-amber-500" />
@@ -842,7 +829,7 @@ const OrderBook: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-row-2 gap-0">
                     {currentOrderBook.exchangeRanking.slice(0, 6).map((
                       item,
                       index,
@@ -851,7 +838,7 @@ const OrderBook: React.FC = () => {
                         <DialogTrigger asChild>
                           <Button
                             variant="ghost"
-                            className="h-auto p-3 hover:bg-zinc-700/50 transition-colors"
+                            className="bg-zinc-900 h-auto mb-1 p-2 hover:bg-zinc-950 transition-colors border"
                             onClick={() => openExchangeDetails(item.exchange)}
                           >
                             <div className="flex items-center gap-3 w-full">
@@ -901,9 +888,9 @@ const OrderBook: React.FC = () => {
               </Card>
 
               {/* Optimized Order Book */}
-              <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+              <div className="bg-zinc-900 border  overflow-hidden">
                 {/* Spread Information */}
-                <div className="flex items-center justify-center gap-2 py-3 border-b border-zinc-800 bg-zinc-800">
+                <div className="flex items-center justify-center gap-2 py-3 border-b border-zinc-800 bg-zinc-950">
                   <ArrowDownUp className="h-4 w-4 text-zinc-500" />
                   <span className="text-xs text-zinc-500 uppercase tracking-wider">
                     SPREAD:
@@ -934,7 +921,7 @@ const OrderBook: React.FC = () => {
                 </div>
 
                 {/* Column Headers */}
-                <div className="grid grid-cols-6 text-[10px] text-zinc-400 uppercase tracking-wider py-2 px-4 bg-zinc-800">
+                <div className="grid grid-cols-6 text-[10px] text-zinc-400 uppercase tracking-wider py-2 px-4 bg-zinc-900 border-b">
                   <div className="text-left">AMOUNT</div>
                   <div className="text-right col-span-2">PRICE</div>
                   <div className="text-left col-span-2">PRICE</div>
@@ -942,7 +929,7 @@ const OrderBook: React.FC = () => {
                 </div>
 
                 {/* Combined Bids and Asks */}
-                <div className="px-2 py-1 bg-zinc-900 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800">
+                <div className="px-2 py-1 bg-zinc-950 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800">
                   {currentOrderBook &&
                     Array.from({
                       length: Math.max(
@@ -1000,7 +987,7 @@ const OrderBook: React.FC = () => {
                             {/* Bid side */}
                             {bidData && (
                               <>
-                                <div className="relative font-mono text-zinc-500 text-[9px] text-left pl-2 flex items-center z-10">
+                                <div className="relative font-mono text-zinc-400 text-[9px] text-left pl-2 flex items-center z-10">
                                   {bidData[1].toFixed(3)}
                                   {showScales && (
                                     <span className="ml-1 text-[7px] text-green-700">
@@ -1072,7 +1059,7 @@ const OrderBook: React.FC = () => {
                                       {askData[0].toFixed(2)}
                                     </div>
                                   )}
-                                <div className="relative font-mono text-zinc-500 text-[9px] text-right pr-2 flex items-center justify-end z-10">
+                                <div className="relative font-mono text-zinc-400 text-[9px] text-right pr-2 flex items-center justify-end z-10">
                                   {showScales && (
                                     <span className="mr-1 text-[7px] text-red-700">
                                       Σ{formatVolume(askTotalVolume)}
@@ -1100,7 +1087,7 @@ const OrderBook: React.FC = () => {
                 </div>
 
                 {/* Market Dominance Footer */}
-                <div className="border-t border-zinc-800 p-4 bg-zinc-800">
+                <div className="border-t  p-4 bg-zinc-900">
                   <div className="flex flex-col items-center">
                     <div className="text-xs text-zinc-400 uppercase tracking-wider mb-2">
                       MARKET DOMINANCE
@@ -1123,10 +1110,10 @@ const OrderBook: React.FC = () => {
                           : 50}% BUYERS
                       </div>
                     </div>
-                    <div className="w-full h-6 bg-zinc-700 rounded-full overflow-hidden relative border border-zinc-600">
+                    <div className="w-full h-4 overflow-hidden relative border">
                       <div className="absolute inset-0 flex">
                         <div
-                          className="h-full bg-red-500/30 flex items-center justify-center"
+                          className="h-full bg-red-500/40 flex items-center justify-center"
                           style={{
                             width: `${
                               currentOrderBook
@@ -1139,7 +1126,7 @@ const OrderBook: React.FC = () => {
                         />
                         <div className="h-full w-[2px] bg-zinc-300 z-10" />
                         <div
-                          className="h-full bg-green-500/30 flex items-center justify-center"
+                          className="h-full bg-green-500/40 flex items-center justify-center"
                           style={{
                             width: `${
                               currentOrderBook
@@ -1166,7 +1153,7 @@ const OrderBook: React.FC = () => {
           </>
         )
         : (
-          <Card className="bg-zinc-800 border border-zinc-700">
+          <Card className="bg-zinc-900 border border-zinc-700">
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
                 <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />

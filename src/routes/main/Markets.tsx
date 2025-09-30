@@ -428,9 +428,9 @@ function Markets(): React.ReactElement {
 	return (
 		<div className="container m-auto space-y-6">
 			{/* Order Book Analysis - First Block */}
-			<OrderBook />
-
 			<TickerTape entries={spotTickers} />
+			
+			<OrderBook />
 
 			<Card>
 				<CardHeader>
