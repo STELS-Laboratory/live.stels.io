@@ -263,7 +263,7 @@ export const useAppStore = create<AppState>()(
 				}
 			},
 			{
-				name: 'testnet_app_store_02',
+				name: 'testnet_app_store_03',
 			}
 		)
 	)
