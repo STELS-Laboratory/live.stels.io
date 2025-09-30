@@ -544,7 +544,7 @@ const OrderBook: React.FC = () => {
                 </span>
 						    <Badge
 							    variant="outline"
-							    className="text-[10px] font-normal h-5 px-2 bg-zinc-800 border-amber-500"
+							    className="text-[10px] font-normal h-5 px-2 bg-zinc-900"
 						    >
 							    Stels AI Controlled
 						    </Badge>
