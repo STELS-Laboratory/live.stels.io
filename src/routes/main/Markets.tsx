@@ -1,7 +1,7 @@
 import useSessionStoreSync from "@/hooks/useSessionStoreSync";
 import { filterSession } from "@/lib/utils";
 
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, Filter, Search, X } from "lucide-react";
 
 // Import currency icons
@@ -135,8 +135,8 @@ function MiniCandlestickChart(
 
 	// Calculate price range
 	const prices = recentCandles.flatMap((c) => [c.high, c.low]);
-	const maxPrice = Math.max(...prices);
-	const minPrice = Math.min(...prices);
+	const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+	const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
 	const priceRange = maxPrice - minPrice;
 
 	if (priceRange === 0) {
@@ -209,12 +209,12 @@ function Markets(): React.ReactElement {
 		/\.spot\..*\.candles$/,
 	) as CandleDataRaw[];
 
-	const spotBooks = filterSession(
-		session || {},
-		/\.spot\..*\.book$/,
-	) as CandleDataRaw[];
+	// const spotBooks = filterSession(
+	// 	session || {},
+	// 	/\.spot\..*\.book$/,
+	// ) as CandleDataRaw[];
 
-	console.log(spotBooks);
+	//console.log(spotBooks);
 
 	// Filter states
 	const [searchTerm, setSearchTerm] = useState("");
@@ -315,8 +315,9 @@ function Markets(): React.ReactElement {
 			exchange,
 			markets: markets.sort((a, b) => b.price - a.price), // Sort by price descending
 			totalMarkets: markets.length,
-			avgLatency: markets.reduce((sum, m) => sum + m.latency, 0) /
-				markets.length,
+			avgLatency: markets.length > 0
+				? markets.reduce((sum, m) => sum + m.latency, 0) / markets.length
+				: 0,
 		}));
 	}, [filteredTickers]);
 
@@ -356,7 +357,7 @@ function Markets(): React.ReactElement {
 		return (
 			<div
 				className={`flex items-center gap-1 ${
-					isPositive ? "text-green-600" : "text-red-600"
+					isPositive ? "text-amber-500" : "text-zinc-400"
 				}`}
 			>
 				{isPositive
@@ -367,20 +368,9 @@ function Markets(): React.ReactElement {
 		);
 	};
 
-	const getExchangeColor = (exchange: string): string => {
-		const colors: Record<string, string> = {
-			binance: "from-yellow-400 to-yellow-600",
-			bybit: "from-blue-400 to-blue-600",
-			okx: "from-purple-400 to-purple-600",
-			coinbase: "from-indigo-400 to-indigo-600",
-			bitstamp: "from-green-400 to-green-600",
-			htx: "from-orange-400 to-orange-600",
-			kucoin: "from-cyan-400 to-cyan-600",
-			gate: "from-pink-400 to-pink-600",
-			upbit: "from-emerald-400 to-emerald-600",
-			bitget: "from-red-400 to-red-600",
-		};
-		return colors[exchange] || "from-gray-400 to-gray-600";
+	const getExchangeColor = (_exchange: string): string => {
+		// Используем единую цветовую схему приложения - zinc/amber
+		return "from-amber-400 to-amber-600";
 	};
 
 	const getExchangeIcon = (exchange: string): string | null => {
@@ -580,11 +570,9 @@ function Markets(): React.ReactElement {
 							</TableHeader>
 							<TableBody>
 								{exchangeGroups.map((group) => (
-									<>
+									<React.Fragment key={group.exchange}>
 										{/* Exchange Header Row */}
-										<TableRow
-											key={`header-${group.exchange}`}
-										>
+										<TableRow>
 											<TableCell colSpan={7} className="py-4 px-6 bg-muted/50">
 												<div className="flex items-center gap-3">
 													{getExchangeIcon(group.exchange)
@@ -615,7 +603,7 @@ function Markets(): React.ReactElement {
 													</div>
 													<Badge
 														variant="secondary"
-														className="ml-auto bg-orange-400/20 text-orange-600 border-orange-400/30"
+														className="ml-auto bg-amber-400/20 text-amber-600 border-amber-400/30"
 													>
 														{group.totalMarkets} Active
 													</Badge>
@@ -642,7 +630,7 @@ function Markets(): React.ReactElement {
 																/>
 															)
 															: (
-																<div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+																<div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
 																	{ticker.symbol.slice(0, 2)}
 																</div>
 															)}
@@ -674,8 +662,8 @@ function Markets(): React.ReactElement {
 														<div
 															className={`text-sm font-mono ${
 																ticker.change >= 0
-																	? "text-green-600"
-																	: "text-red-600"
+																	? "text-amber-500"
+																	: "text-zinc-400"
 															}`}
 														>
 															{ticker.change >= 0 ? "+" : ""}
@@ -697,10 +685,10 @@ function Markets(): React.ReactElement {
 													{ticker.bid > 0 && ticker.ask > 0
 														? (
 															<div className="space-y-1">
-																<div className="text-green-600">
+																<div className="text-amber-500">
 																	{formatPrice(ticker.bid, ticker.symbol)}
 																</div>
-																<div className="text-red-600">
+																<div className="text-zinc-400">
 																	{formatPrice(ticker.ask, ticker.symbol)}
 																</div>
 															</div>
@@ -714,14 +702,20 @@ function Markets(): React.ReactElement {
 															: ticker.latency < 2000
 															? "secondary"
 															: "destructive"}
-														className="text-xs"
+														className={`text-xs ${
+															ticker.latency < 1000
+																? "bg-amber-500/20 text-amber-600 border-amber-400/30"
+																: ticker.latency < 2000
+																? "bg-zinc-500/20 text-zinc-400 border-zinc-400/30"
+																: "bg-red-500/20 text-red-400 border-red-400/30"
+														}`}
 													>
 														{ticker.latency}ms
 													</Badge>
 												</TableCell>
 											</TableRow>
 										))}
-									</>
+									</React.Fragment>
 								))}
 							</TableBody>
 						</Table>
