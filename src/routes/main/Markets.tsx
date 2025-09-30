@@ -44,6 +44,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import TickerTape from "@/components/widgets/TickerTape";
+import OrderBook from "./OrderBook";
 
 interface CandleData {
 	timestamp: number;
@@ -207,6 +208,13 @@ function Markets(): React.ReactElement {
 		session || {},
 		/\.spot\..*\.candles$/,
 	) as CandleDataRaw[];
+
+	const spotBooks = filterSession(
+		session || {},
+		/\.spot\..*\.book$/,
+	) as CandleDataRaw[];
+
+	console.log(spotBooks);
 
 	// Filter states
 	const [searchTerm, setSearchTerm] = useState("");
@@ -428,7 +436,10 @@ function Markets(): React.ReactElement {
 	};
 
 	return (
-		<div className="container m-auto space-y-4">
+		<div className="container m-auto space-y-6">
+			{/* Order Book Analysis - First Block */}
+			<OrderBook />
+
 			<TickerTape entries={spotTickers} />
 
 			<Card>
