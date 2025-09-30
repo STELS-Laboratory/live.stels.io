@@ -97,6 +97,8 @@ interface CandleData {
   low: number;
   close: number;
   volume: number;
+  exchange: string;
+  market: string;
 }
 
 interface TickerData {
@@ -198,7 +200,7 @@ const OrderBook: React.FC = () => {
   }, [spotBooksRaw]);
 
   const candlesData: CandleData[] = useMemo(() => {
-    return spotCandlesRaw.flatMap((item) => {
+    const result = spotCandlesRaw.flatMap((item) => {
       const raw = item.value.raw;
       return raw.candles.map((c: number[]) => ({
         timestamp: c[0],
@@ -207,8 +209,21 @@ const OrderBook: React.FC = () => {
         low: c[3],
         close: c[4],
         volume: c[5],
+        exchange: raw.exchange, // Add exchange info
+        market: raw.market, // Add market info
       }));
     });
+
+    // Debug logging
+    console.log(`[OrderBook] Total candles: ${result.length}`);
+    console.log(`[OrderBook] Available markets:`, [
+      ...new Set(result.map((c) => c.market)),
+    ]);
+    console.log(`[OrderBook] Available exchanges:`, [
+      ...new Set(result.map((c) => c.exchange)),
+    ]);
+
+    return result;
   }, [spotCandlesRaw]);
 
   const tickersData: TickerData[] = useMemo(() => {
@@ -568,6 +583,16 @@ const OrderBook: React.FC = () => {
                 </span>
                 <span>|</span>
                 <span className="text-amber-500">{timeSinceUpdate}</span>
+                {currentOrderBook &&
+                  currentOrderBook.exchangeRanking.length > 0 &&
+                  currentOrderBook.exchangeRanking[0].percentage > 40 && (
+                  <>
+                    <span>|</span>
+                    <span className="text-red-500 font-semibold">
+                      ⚠️ High Concentration
+                    </span>
+                  </>
+                )}
               </div>
             </div>
             <div className="text-right text-[10px]">
@@ -672,17 +697,20 @@ const OrderBook: React.FC = () => {
               <TooltipTrigger asChild>
                 <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
-                    EXCHANGES
+                    MARKET CONC.
                   </div>
                   <div className="font-mono text-amber-500 mt-1">
-                    {currentOrderBook
-                      ? Object.keys(currentOrderBook.exchanges).length
-                      : 0}
+                    {currentOrderBook &&
+                        currentOrderBook.exchangeRanking.length > 0
+                      ? currentOrderBook.exchangeRanking[0].percentage.toFixed(
+                        1,
+                      ) + "%"
+                      : "0%"}
                   </div>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p className="text-xs">Number of connected exchanges</p>
+                <p className="text-xs">Market concentration by top exchange</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -750,8 +778,16 @@ const OrderBook: React.FC = () => {
                   {selectedMarket} Market Analysis
                 </CardTitle>
                 <CardDescription>
-                  Aggregated order book across{" "}
+                  Liquidity-weighted aggregation across{" "}
                   {Object.keys(currentOrderBook.exchanges).length} exchanges
+                  {currentOrderBook.dominantExchange && (
+                    <>
+                      <br />
+                      <span className="text-amber-500 font-semibold">
+                        Market Leader: {currentOrderBook.dominantExchange}
+                      </span>
+                    </>
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -822,11 +858,11 @@ const OrderBook: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-amber-500" />
-                  Aggregated Price Chart
+                  Professional Price Analysis
                 </CardTitle>
                 <CardDescription>
-                  Multi-exchange candlestick chart with liquidity-weighted
-                  colors
+                  Liquidity-weighted aggregation with fair value calculation and
+                  market efficiency metrics
                 </CardDescription>
               </CardHeader>
               <CardContent>
