@@ -17,6 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import OrderBookWidget from "@/components/widgets/OrderBook";
+import AggregatedCandles from "@/components/widgets/AggregatedCandles";
 import {
   Activity,
   ArrowDownUp,
@@ -500,215 +501,215 @@ const OrderBook: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Optimized Market Tabs */}
-	    <Tabs value={selectedMarket} onValueChange={setSelectedMarket}>
-		    <TabsList className="flex w-[100%] overflow-y-scroll bg-zinc-900 border  p-1 rounded-xl">
-			    {availableMarkets.map((market) => {
-				    const symbol = market.split("/")[0];
-				    return (
-					    <TabsTrigger
-						    key={market}
-						    value={market}
-						    className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors data-[state=active]:bg-amber-500 data-[state=active]:text-black"
-					    >
-						    {getCurrencyIcon(symbol)
-							    ? (
-								    <img
-									    src={getCurrencyIcon(symbol)!}
-									    alt={symbol}
-									    className="w-5 h-5 rounded-full shadow-sm"
-								    />
-							    )
-							    : (
-								    <div className="w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-black text-xs font-bold">
-									    {symbol.slice(0, 2)}
-								    </div>
-							    )}
-						    <span className="hidden sm:inline font-medium tracking-wide">
-                      {market}
-                    </span>
-					    </TabsTrigger>
-				    );
-			    })}
-		    </TabsList>
-	    </Tabs>
-	    
-	    {/* Optimized Professional Header */}
-	    <div className="bg-zinc-950 border  overflow-hidden">
-		    <header className="border-b p-4 bg-zinc-950">
-			    <div className="flex justify-between items-center">
-				    <div>
-					    <h2 className="text-sm flex items-center gap-2">
-						    <div className="h-4 w-1 bg-amber-500 rounded-full"></div>
-						    <span className="text-amber-500 font-medium tracking-widest uppercase">
+      <Tabs value={selectedMarket} onValueChange={setSelectedMarket}>
+        <TabsList className="flex w-[100%] overflow-y-scroll bg-zinc-900 border  p-1 rounded-xl">
+          {availableMarkets.map((market) => {
+            const symbol = market.split("/")[0];
+            return (
+              <TabsTrigger
+                key={market}
+                value={market}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors data-[state=active]:bg-amber-500 data-[state=active]:text-black"
+              >
+                {getCurrencyIcon(symbol)
+                  ? (
+                    <img
+                      src={getCurrencyIcon(symbol)!}
+                      alt={symbol}
+                      className="w-5 h-5 rounded-full shadow-sm"
+                    />
+                  )
+                  : (
+                    <div className="w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-black text-xs font-bold">
+                      {symbol.slice(0, 2)}
+                    </div>
+                  )}
+                <span className="hidden sm:inline font-medium tracking-wide">
+                  {market}
+                </span>
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+      </Tabs>
+
+      {/* Optimized Professional Header */}
+      <div className="bg-zinc-950 border  overflow-hidden">
+        <header className="border-b p-4 bg-zinc-950">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-sm flex items-center gap-2">
+                <div className="h-4 w-1 bg-amber-500 rounded-full"></div>
+                <span className="text-amber-500 font-medium tracking-widest uppercase">
                   {selectedMarket}
                 </span>
-						    <Badge
-							    variant="outline"
-							    className="text-[10px] font-normal h-5 px-2 bg-zinc-900"
-						    >
-							    Stels AI Controlled
-						    </Badge>
-					    </h2>
-					    <div className="flex items-center gap-2 text-[10px] text-zinc-600 mt-1">
-						    <Clock className="h-3 w-3" />
-						    <span>{new Date().toLocaleTimeString()}</span>
-						    <span>|</span>
-						    <span className="flex items-center">
+                <Badge
+                  variant="outline"
+                  className="text-[10px] font-normal h-5 px-2 bg-zinc-900"
+                >
+                  Stels AI Controlled
+                </Badge>
+              </h2>
+              <div className="flex items-center gap-2 text-[10px] text-zinc-600 mt-1">
+                <Clock className="h-3 w-3" />
+                <span>{new Date().toLocaleTimeString()}</span>
+                <span>|</span>
+                <span className="flex items-center">
                   <Zap className="h-3 w-3 mr-1 text-amber-500" />
-							    {currentOrderBook
-								    ? Math.round(
-									    currentOrderBook.exchangeRanking.reduce(
-										    (sum, ex) => sum + ex.liquidity,
-										    0,
-									    ) /
-									    currentOrderBook.exchangeRanking.length,
-								    )
-								    : 0}ms
+                  {currentOrderBook
+                    ? Math.round(
+                      Object.values(currentOrderBook.exchanges).reduce(
+                        (sum, ex) => sum + ex.latency,
+                        0,
+                      ) /
+                        Object.keys(currentOrderBook.exchanges).length,
+                    )
+                    : 0}ms
                 </span>
-						    <span>|</span>
-						    <span className="text-zinc-500">{timeSinceUpdate}</span>
-					    </div>
-				    </div>
-				    <div className="text-right text-[10px]">
-					    <div className="text-zinc-600 uppercase tracking-wider">
-						    DATA SOURCES
-					    </div>
-					    <div className="font-mono text-zinc-300 mt-1">
-						    {candlesData.length} C / {tickersData.length} T /{" "}
-						    {orderBookData.length} B
-					    </div>
-				    </div>
-			    </div>
-		    </header>
-		    
-		    {/* Technical Metrics */}
-		    <div className="grid grid-cols-3 gap-1 border-b p-2 bg-zinc-900">
-			    <TooltipProvider>
-				    <Tooltip>
-					    <TooltipTrigger asChild>
-						    <div className="bg-zinc-950 p-2 border cursor-help">
-							    <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
-								    IMBALANCE
-							    </div>
-							    <div className="font-mono flex items-center mt-1">
-								    {metrics.imbalance > 0
-									    ? <TrendingUp className="h-3 w-3 text-amber-500 mr-1" />
-									    : <TrendingDown className="h-3 w-3 text-zinc-400 mr-1" />}
-								    <span
-									    className={metrics.imbalance > 0
-										    ? "text-amber-500"
-										    : "text-zinc-400"}
-								    >
+                <span>|</span>
+                <span className="text-amber-500">{timeSinceUpdate}</span>
+              </div>
+            </div>
+            <div className="text-right text-[10px]">
+              <div className="text-zinc-600 uppercase tracking-wider">
+                DATA SOURCES
+              </div>
+              <div className="font-mono text-amber-500 mt-1">
+                {candlesData.length} C / {tickersData.length} T /{" "}
+                {orderBookData.length} B
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Technical Metrics */}
+        <div className="grid grid-cols-3 gap-1 border-b p-2 bg-zinc-900">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="bg-zinc-950 p-2 border cursor-help">
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+                    IMBALANCE
+                  </div>
+                  <div className="font-mono flex items-center mt-1">
+                    {metrics.imbalance > 0
+                      ? <TrendingUp className="h-3 w-3 text-amber-500 mr-1" />
+                      : <TrendingDown className="h-3 w-3 text-zinc-400 mr-1" />}
+                    <span
+                      className={metrics.imbalance > 0
+                        ? "text-amber-500"
+                        : "text-zinc-400"}
+                    >
                       {Math.abs(metrics.imbalance * 100).toFixed(2)}%
                     </span>
-							    </div>
-						    </div>
-					    </TooltipTrigger>
-					    <TooltipContent>
-						    <p className="text-xs">
-							    Difference between buy and sell volume
-						    </p>
-					    </TooltipContent>
-				    </Tooltip>
-			    </TooltipProvider>
-			    
-			    <TooltipProvider>
-				    <Tooltip>
-					    <TooltipTrigger asChild>
-						    <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
-							    <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
-								    DEPTH RATIO
-							    </div>
-							    <div className="font-mono text-zinc-300 mt-1">
-								    {metrics.depthRatio.toFixed(2)}
-							    </div>
-						    </div>
-					    </TooltipTrigger>
-					    <TooltipContent>
-						    <p className="text-xs">Ratio of buy volume to sell volume</p>
-					    </TooltipContent>
-				    </Tooltip>
-			    </TooltipProvider>
-			    
-			    <TooltipProvider>
-				    <Tooltip>
-					    <TooltipTrigger asChild>
-						    <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
-							    <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
-								    VWAP
-							    </div>
-							    <div className="font-mono text-zinc-300 mt-1">
-								    {metrics.vwap.toFixed(2)}
-							    </div>
-						    </div>
-					    </TooltipTrigger>
-					    <TooltipContent>
-						    <p className="text-xs">Volume-weighted average price</p>
-					    </TooltipContent>
-				    </Tooltip>
-			    </TooltipProvider>
-			    
-			    <TooltipProvider>
-				    <Tooltip>
-					    <TooltipTrigger asChild>
-						    <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
-							    <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
-								    LARGE ORDERS
-							    </div>
-							    <div className="font-mono text-zinc-300 mt-1">
-								    {metrics.largeOrders}
-							    </div>
-						    </div>
-					    </TooltipTrigger>
-					    <TooltipContent>
-						    <p className="text-xs">Number of large orders detected</p>
-					    </TooltipContent>
-				    </Tooltip>
-			    </TooltipProvider>
-			    
-			    <TooltipProvider>
-				    <Tooltip>
-					    <TooltipTrigger asChild>
-						    <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
-							    <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
-								    EXCHANGES
-							    </div>
-							    <div className="font-mono text-zinc-300 mt-1">
-								    {currentOrderBook
-									    ? Object.keys(currentOrderBook.exchanges).length
-									    : 0}
-							    </div>
-						    </div>
-					    </TooltipTrigger>
-					    <TooltipContent>
-						    <p className="text-xs">Number of connected exchanges</p>
-					    </TooltipContent>
-				    </Tooltip>
-			    </TooltipProvider>
-			    
-			    <div className="bg-zinc-950 p-2 rounded-lg border flex flex-col justify-between">
-				    <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
-					    CONTROLS
-				    </div>
-				    <div className="flex items-center justify-between gap-2">
-					    <button
-						    onClick={() => setShowScales(!showScales)}
-						    className="text-zinc-500 hover:text-amber-500 transition-colors"
-						    title={showScales ? "Hide scales" : "Show scales"}
-					    >
-						    <Scale className="h-4 w-4" />
-					    </button>
-					    <button
-						    onClick={() => setLastUpdate(Date.now())}
-						    className="text-zinc-500 hover:text-amber-500 transition-colors"
-						    title="Refresh data"
-					    >
-						    <RefreshCcw className="h-4 w-4" />
-					    </button>
-				    </div>
-			    </div>
-		    </div>
-	    </div>
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">
+                  Difference between buy and sell volume
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+                    DEPTH RATIO
+                  </div>
+                  <div className="font-mono text-amber-500 mt-1">
+                    {metrics.depthRatio.toFixed(2)}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">Ratio of buy volume to sell volume</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+                    VWAP
+                  </div>
+                  <div className="font-mono text-amber-500 mt-1">
+                    {metrics.vwap.toFixed(2)}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">Volume-weighted average price</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+                    LARGE ORDERS
+                  </div>
+                  <div className="font-mono text-amber-500 mt-1">
+                    {metrics.largeOrders}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">Number of large orders detected</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+                    EXCHANGES
+                  </div>
+                  <div className="font-mono text-amber-500 mt-1">
+                    {currentOrderBook
+                      ? Object.keys(currentOrderBook.exchanges).length
+                      : 0}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">Number of connected exchanges</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <div className="bg-zinc-950 p-2 rounded-lg border flex flex-col justify-between">
+            <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+              CONTROLS
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <button
+                onClick={() => setShowScales(!showScales)}
+                className="text-zinc-500 hover:text-amber-500 transition-colors"
+                title={showScales ? "Hide scales" : "Show scales"}
+              >
+                <Scale className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setLastUpdate(Date.now())}
+                className="text-zinc-500 hover:text-amber-500 transition-colors"
+                title="Refresh data"
+              >
+                <RefreshCcw className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {orderBookData.length === 0
         ? (
@@ -773,7 +774,7 @@ const OrderBook: React.FC = () => {
                         Total Ask Liquidity
                       </span>
                     </div>
-                    <div className="text-2xl font-bold text-zinc-400">
+                    <div className="text-2xl font-bold text-red-500">
                       ${formatVolume(currentOrderBook.totalAskLiquidity)}
                     </div>
                   </div>
@@ -816,9 +817,31 @@ const OrderBook: React.FC = () => {
               </CardContent>
             </Card>
 
+            {/* Aggregated Candles Chart */}
+            <Card className="bg-zinc-900 border mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-amber-500" />
+                  Aggregated Price Chart
+                </CardTitle>
+                <CardDescription>
+                  Multi-exchange candlestick chart with liquidity-weighted
+                  colors
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AggregatedCandles
+                  candlesData={candlesData}
+                  orderBookData={orderBookData}
+                  selectedMarket={selectedMarket}
+                  height={400}
+                />
+              </CardContent>
+            </Card>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Compact Exchange Ranking */}
-              <Card className="bg-zinc-990 border ">
+              <Card className="bg-zinc-900 border ">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BarChart3 className="w-5 h-5 text-amber-500" />
@@ -869,12 +892,12 @@ const OrderBook: React.FC = () => {
                                 <div className="font-medium capitalize text-sm">
                                   {item.exchange}
                                 </div>
-                                <div className="text-xs text-muted-foreground">
+                                <div className="text-xs text-amber-500">
                                   {item.percentage.toFixed(1)}%
                                 </div>
                               </div>
                               <div className="text-right">
-                                <div className="font-bold text-xs">
+                                <div className="font-bold text-xs text-amber-500">
                                   ${formatVolume(item.liquidity)}
                                 </div>
                               </div>
@@ -987,10 +1010,10 @@ const OrderBook: React.FC = () => {
                             {/* Bid side */}
                             {bidData && (
                               <>
-                                <div className="relative font-mono text-zinc-400 text-[9px] text-left pl-2 flex items-center z-10">
+                                <div className="relative font-mono text-green-400 text-[9px] text-left pl-2 flex items-center z-10">
                                   {bidData[1].toFixed(3)}
                                   {showScales && (
-                                    <span className="ml-1 text-[7px] text-green-700">
+                                    <span className="ml-1 text-[7px] text-green-600">
                                       Σ{formatVolume(bidTotalVolume)}
                                     </span>
                                   )}
@@ -999,10 +1022,10 @@ const OrderBook: React.FC = () => {
                                   ? (
                                     <div className="col-span-2 flex items-center justify-end z-10">
                                       <div className="bg-zinc-800 border border-green-600 rounded-md px-2 mr-2 h-5 flex items-center">
-                                        <span className="text-[7px] font-semibold text-pink-500 mr-1">
+                                        <span className="text-[7px] font-semibold text-amber-500 mr-1">
                                           W
                                         </span>
-                                        <span className="text-[7px] text-green-400">
+                                        <span className="text-[7px] text-green-500">
                                           {formatVolume(
                                             bidData[0] * bidData[1],
                                           )}
@@ -1043,10 +1066,10 @@ const OrderBook: React.FC = () => {
                                         {askData[0].toFixed(2)}
                                       </div>
                                       <div className="bg-zinc-800 border border-red-600 rounded-md px-2 ml-2 h-5 flex items-center">
-                                        <span className="text-[7px] font-semibold text-lime-500 mr-1">
+                                        <span className="text-[7px] font-semibold text-amber-500 mr-1">
                                           W
                                         </span>
-                                        <span className="text-[7px] text-red-400">
+                                        <span className="text-[7px] text-red-500">
                                           {formatVolume(
                                             askData[0] * askData[1],
                                           )}
@@ -1059,9 +1082,9 @@ const OrderBook: React.FC = () => {
                                       {askData[0].toFixed(2)}
                                     </div>
                                   )}
-                                <div className="relative font-mono text-zinc-400 text-[9px] text-right pr-2 flex items-center justify-end z-10">
+                                <div className="relative font-mono text-red-400 text-[9px] text-right pr-2 flex items-center justify-end z-10">
                                   {showScales && (
-                                    <span className="mr-1 text-[7px] text-red-700">
+                                    <span className="mr-1 text-[7px] text-red-600">
                                       Σ{formatVolume(askTotalVolume)}
                                     </span>
                                   )}
@@ -1142,7 +1165,9 @@ const OrderBook: React.FC = () => {
                     <div className="w-full flex justify-center mt-2">
                       <div className="flex items-center gap-1 text-[10px] text-zinc-500">
                         <span>LAST UPDATE:</span>
-                        <span className="font-mono">{timeSinceUpdate}</span>
+                        <span className="font-mono text-amber-500">
+                          {timeSinceUpdate}
+                        </span>
                         <div className="w-2 h-2 rounded-full bg-amber-500" />
                       </div>
                     </div>
@@ -1213,7 +1238,7 @@ const OrderBook: React.FC = () => {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-lg font-bold text-zinc-400">
+                  <div className="text-lg font-bold text-red-500">
                     ${formatVolume(
                       currentOrderBook.exchanges[selectedExchange]
                         .askLiquidity,
