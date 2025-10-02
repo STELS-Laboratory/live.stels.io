@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
 	Card,
 	CardContent,
@@ -31,9 +31,11 @@ import {
 	CheckCircle,
 	Clock,
 	DollarSign,
+	Eye,
 	Globe,
 	Loader2,
 	MapPin,
+	RefreshCw,
 	Shield,
 	ShoppingCart,
 	Target,
@@ -53,6 +55,47 @@ const validateAddress = (address: string): boolean => {
 	const trimmedAddress = address.trim();
 	return trimmedAddress.length >= 20 && /^[a-zA-Z0-9]+$/.test(trimmedAddress);
 };
+
+// Enhanced Error Component
+interface ErrorStateProps {
+	error: string;
+	onRetry?: () => void;
+	onDismiss?: () => void;
+}
+
+const ErrorState: React.FC<ErrorStateProps> = (
+	{ error, onRetry, onDismiss },
+) => (
+	<Alert variant="destructive" className="mb-6">
+		<AlertCircle className="h-4 w-4" />
+		<AlertDescription className="font-medium flex items-center justify-between">
+			<span className="flex-1">{error}</span>
+			<div className="flex gap-2 ml-4">
+				{onRetry && (
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={onRetry}
+						className="h-6 px-2 text-xs"
+					>
+						<RefreshCw className="w-3 h-3 mr-1" />
+						Retry
+					</Button>
+				)}
+				{onDismiss && (
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={onDismiss}
+						className="h-6 px-2 text-xs"
+					>
+						<XCircle className="w-3 h-3" />
+					</Button>
+				)}
+			</div>
+		</AlertDescription>
+	</Alert>
+);
 
 interface CoinInfo {
 	coin: string;
@@ -310,23 +353,63 @@ interface MetricCardProps {
 	color?: string;
 	icon?: React.ReactNode;
 	size?: "sm" | "md" | "lg";
+	trend?: {
+		value: number;
+		isPositive: boolean;
+	};
+	onClick?: () => void;
+	className?: string;
 }
 
-const MetricCard: React.FC<MetricCardProps> = (
-	{ label, value, color = "text-foreground", icon, size = "md" },
-) => (
-	<div className="space-y-1">
-		<div className="flex items-center gap-1">
-			{icon}
-			<p className="text-xs text-muted-foreground font-medium">{label}</p>
+const MetricCard: React.FC<MetricCardProps> = ({
+	label,
+	value,
+	color = "text-foreground",
+	icon,
+	size = "md",
+	trend,
+	onClick,
+	className,
+}) => (
+	<div
+		className={cn(
+			"space-y-1 p-3 rounded-lg transition-all duration-200",
+			onClick &&
+				"cursor-pointer hover:bg-muted/50 hover:scale-[1.02] active:scale-[0.98]",
+			className,
+		)}
+		onClick={onClick}
+	>
+		<div className="flex items-center gap-1.5">
+			{icon && <div className="flex-shrink-0">{icon}</div>}
+			<p className="text-xs text-muted-foreground font-medium truncate">
+				{label}
+			</p>
 		</div>
-		<p
-			className={`font-semibold ${
-				size === "lg" ? "text-xl" : size === "md" ? "text-base" : "text-sm"
-			} ${color} font-mono`}
-		>
-			{value}
-		</p>
+		<div className="flex items-center gap-2">
+			<p
+				className={cn(
+					"font-semibold font-mono transition-colors duration-200",
+					size === "lg" ? "text-xl" : size === "md" ? "text-base" : "text-sm",
+					color,
+				)}
+			>
+				{value}
+			</p>
+			{trend && (
+				<div
+					className={cn(
+						"flex items-center gap-0.5 text-xs font-medium",
+						trend.isPositive ? "text-emerald-600" : "text-red-500",
+					)}
+				>
+					{trend.isPositive
+						? <TrendingUp className="w-3 h-3" />
+						: <TrendingDown className="w-3 h-3" />}
+					<span>{Math.abs(trend.value).toFixed(1)}%</span>
+				</div>
+			)}
+		</div>
 	</div>
 );
 
@@ -1378,8 +1461,9 @@ export default function WalletWidget(): React.ReactElement {
 	const [error, setError] = useState<string | null>(null);
 	const [isResultsOpen, setIsResultsOpen] = useState(false);
 	const [activeTab, setActiveTab] = useState("overview");
+	const [isRefreshing, setIsRefreshing] = useState(false);
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = useCallback(async (e: React.FormEvent) => {
 		e.preventDefault();
 
 		if (!address.trim()) {
@@ -1418,7 +1502,18 @@ export default function WalletWidget(): React.ReactElement {
 			});
 
 			if (!res.ok) {
-				throw new Error(`HTTP error! status: ${res.status}`);
+				if (res.status === 404) {
+					throw new Error(
+						"Wallet not found. Please verify the address and try again.",
+					);
+				} else if (res.status === 429) {
+					throw new Error(
+						"Too many requests. Please wait a moment and try again.",
+					);
+				} else if (res.status >= 500) {
+					throw new Error("Server error. Please try again later.");
+				}
+				throw new Error(`Request failed with status ${res.status}`);
 			}
 
 			const data = await res.json();
@@ -1433,15 +1528,31 @@ export default function WalletWidget(): React.ReactElement {
 			setResponse(data);
 			setIsResultsOpen(true);
 		} catch (err) {
-			setError(
-				err instanceof Error
-					? err.message
-					: "An error occurred while executing the request",
-			);
+			const errorMessage = err instanceof Error
+				? err.message
+				: "An unexpected error occurred. Please try again.";
+			setError(errorMessage);
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [address]);
+
+	const handleRetry = useCallback(() => {
+		if (address.trim()) {
+			handleSubmit(new Event("submit") as any);
+		}
+	}, [address, handleSubmit]);
+
+	const handleRefresh = useCallback(async () => {
+		if (!response || response.length === 0) return;
+
+		setIsRefreshing(true);
+		try {
+			await handleSubmit(new Event("submit") as any);
+		} finally {
+			setIsRefreshing(false);
+		}
+	}, [response, handleSubmit]);
 
 	// Calculate overall statistics for all accounts
 	const totalStats = useMemo(() => {
@@ -1505,6 +1616,26 @@ export default function WalletWidget(): React.ReactElement {
 		};
 	}, [response]);
 
+	interface NetworkConnectionData {
+		channel: string;
+		module: string;
+		widget: string;
+		raw: {
+			network: string;
+			totalClients: number;
+			anonymousClients: number;
+			authenticatedClients: number;
+			sessionCount: number;
+			maxConnectionsPerSession: number;
+			streamingActive: boolean;
+			dataTransmissionInterval: number;
+			heartbeatInterval: number;
+			cleanupRunning: boolean;
+			timestamp: number;
+		};
+		timestamp: number;
+	}
+
 	interface WelcomeSessionData {
 		[key: string]: {
 			raw: {
@@ -1540,8 +1671,13 @@ export default function WalletWidget(): React.ReactElement {
 	}
 
 	const netMap = filterSession(session || {}, /\.heterogen\..*\.setting$/);
+	const networkConnections =
+		session["testnet.network.connections"] as unknown as
+			| NetworkConnectionData
+			| null;
 
 	console.log(netMap);
+	console.log("Network Connections:", networkConnections);
 
 	const snapshot = session["testnet.snapshot.sonar"];
 	const runtime = session["testnet.runtime.sonar"];
@@ -1634,7 +1770,7 @@ export default function WalletWidget(): React.ReactElement {
 	return (
 		<div className="container m-auto">
 			{/* Navigation Tabs */}
-			<Card className="p-0 bg-zinc-950">
+			<Card className="p-0 bg-zinc-950 border-2">
 				<CardContent className="p-0">
 					<Tabs
 						value={activeTab}
@@ -1644,7 +1780,7 @@ export default function WalletWidget(): React.ReactElement {
 						<TabsList className="w-full h-auto p-1 bg-muted/50 border-b rounded-none grid grid-cols-5">
 							<TabsTrigger
 								value="overview"
-								className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium"
+								className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 hover:bg-muted/70 data-[state=active]:bg-background data-[state=active]:shadow-sm"
 							>
 								<BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
 								<span className="hidden sm:inline">Overview</span>
@@ -1652,7 +1788,7 @@ export default function WalletWidget(): React.ReactElement {
 							</TabsTrigger>
 							<TabsTrigger
 								value="network"
-								className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium"
+								className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 hover:bg-muted/70 data-[state=active]:bg-background data-[state=active]:shadow-sm"
 							>
 								<Globe className="h-3 w-3 sm:h-4 sm:w-4" />
 								<span className="hidden sm:inline">Network</span>
@@ -1660,7 +1796,7 @@ export default function WalletWidget(): React.ReactElement {
 							</TabsTrigger>
 							<TabsTrigger
 								value="portfolio"
-								className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium"
+								className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 hover:bg-muted/70 data-[state=active]:bg-background data-[state=active]:shadow-sm"
 							>
 								<Wallet className="h-3 w-3 sm:h-4 sm:w-4" />
 								<span className="hidden sm:inline">Portfolio</span>
@@ -1668,7 +1804,7 @@ export default function WalletWidget(): React.ReactElement {
 							</TabsTrigger>
 							<TabsTrigger
 								value="news"
-								className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium"
+								className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 hover:bg-muted/70 data-[state=active]:bg-background data-[state=active]:shadow-sm"
 							>
 								<Activity className="h-3 w-3 sm:h-4 sm:w-4" />
 								<span className="hidden sm:inline">Market News</span>
@@ -1676,7 +1812,7 @@ export default function WalletWidget(): React.ReactElement {
 							</TabsTrigger>
 							<TabsTrigger
 								value="scanner"
-								className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium"
+								className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 hover:bg-muted/70 data-[state=active]:bg-background data-[state=active]:shadow-sm"
 							>
 								<Target className="h-3 w-3 sm:h-4 sm:w-4" />
 								<span className="hidden sm:inline">Scanner</span>
@@ -1689,18 +1825,42 @@ export default function WalletWidget(): React.ReactElement {
 							value="overview"
 							className="p-2 sm:p-4 space-y-3 sm:space-y-4"
 						>
+							{/* Header with Refresh Button */}
+							<div className="flex items-center justify-between">
+								<div>
+									<h2 className="text-lg font-semibold text-white">
+										Portfolio Overview
+									</h2>
+									<p className="text-sm text-muted-foreground">
+										Real-time performance metrics
+									</p>
+								</div>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={handleRefresh}
+									disabled={isRefreshing}
+									className="flex items-center gap-2"
+								>
+									<RefreshCw
+										className={cn("w-4 h-4", isRefreshing && "animate-spin")}
+									/>
+									<span className="hidden sm:inline">Refresh</span>
+								</Button>
+							</div>
+
 							{/* Key Performance Metrics */}
 							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 min-w-0">
 								{/* Total Liquidity */}
-								<Card>
+								<Card className="hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer group">
 									<CardHeader className="pb-3">
 										<CardTitle className="text-sm font-medium text-gray-400 flex items-center">
-											<Wallet className="w-4 h-4 mr-2" />
+											<Wallet className="w-4 h-4 mr-2 group-hover:text-primary transition-colors" />
 											TOTAL LIQUIDITY
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<div className="text-2xl font-bold text-white mb-2">
+										<div className="text-2xl font-bold text-white mb-2 group-hover:text-primary transition-colors">
 											${runtime.raw.liquidity.toLocaleString("en-US", {
 												minimumFractionDigits: 2,
 												maximumFractionDigits: 2,
@@ -1708,7 +1868,7 @@ export default function WalletWidget(): React.ReactElement {
 										</div>
 										<div
 											className={cn(
-												"flex items-center text-sm",
+												"flex items-center text-sm transition-colors",
 												liquidityPnL.isProfit
 													? "text-emerald-400"
 													: "text-red-400",
@@ -2156,7 +2316,158 @@ export default function WalletWidget(): React.ReactElement {
 						</TabsContent>
 
 						{/* Network Tab */}
-						<TabsContent value="network" className="p-4">
+						<TabsContent value="network" className="p-4 space-y-4">
+							{/* Network Connections Status */}
+							{networkConnections && (
+								<Card>
+									<CardHeader>
+										<CardTitle className="flex items-center text-white">
+											<Globe className="w-5 h-5 mr-2" />
+											NETWORK CONNECTIONS STATUS
+										</CardTitle>
+									</CardHeader>
+									<CardContent>
+										<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 min-w-0 overflow-hidden">
+											{/* Total Clients */}
+											<div className="text-center">
+												<div className="text-xs text-gray-400 mb-2">
+													TOTAL CLIENTS
+												</div>
+												<div className="text-2xl font-bold text-amber-400 mb-1">
+													{networkConnections.raw.totalClients}
+												</div>
+												<div className="text-xs text-gray-400">
+													active connections
+												</div>
+											</div>
+
+											{/* Authenticated Clients */}
+											<div className="text-center">
+												<div className="text-xs text-gray-400 mb-2">
+													AUTHENTICATED CLIENTS
+												</div>
+												<div className="text-2xl font-bold text-amber-400 mb-1">
+													{networkConnections.raw.authenticatedClients}
+												</div>
+												<div className="text-xs text-gray-400">
+													verified credentials
+												</div>
+											</div>
+
+											{/* Anonymous Clients */}
+											<div className="text-center">
+												<div className="text-xs text-gray-400 mb-2">
+													ANONYMOUS CLIENTS
+												</div>
+												<div className="text-2xl font-bold text-white mb-1">
+													{networkConnections.raw.anonymousClients}
+												</div>
+												<div className="text-xs text-gray-400">
+													unauthenticated access
+												</div>
+											</div>
+
+											{/* Session Count */}
+											<div className="text-center">
+												<div className="text-xs text-gray-400 mb-2">
+													ACTIVE SESSIONS
+												</div>
+												<div className="text-2xl font-bold text-amber-400 mb-1">
+													{networkConnections.raw.sessionCount}
+												</div>
+												<div className="text-xs text-gray-400">
+													communication sessions
+												</div>
+											</div>
+
+											{/* Max Connections Per Session */}
+											<div className="text-center">
+												<div className="text-xs text-gray-400 mb-2">
+													MAX CONNECTIONS/SESSION
+												</div>
+												<div className="text-2xl font-bold text-white mb-1">
+													{networkConnections.raw.maxConnectionsPerSession}
+												</div>
+												<div className="text-xs text-gray-400">
+													concurrent limit
+												</div>
+											</div>
+
+											{/* Data Transmission Interval */}
+											<div className="text-center">
+												<div className="text-xs text-gray-400 mb-2">
+													DATA TRANSMISSION INTERVAL
+												</div>
+												<div className="text-2xl font-bold text-white mb-1">
+													{networkConnections.raw.dataTransmissionInterval}ms
+												</div>
+												<div className="text-xs text-gray-400">
+													transmission cycle
+												</div>
+											</div>
+										</div>
+
+										{/* Network Status Indicators */}
+										<div className="mt-6 pt-4 border-t border-gray-700">
+											<div className="grid grid-cols-1 md:grid-cols-4 gap-4 min-w-0 overflow-hidden">
+												<div className="text-center">
+													<div className="text-xs text-gray-400 mb-2">
+														STREAMING STATUS
+													</div>
+													<div className="text-2xl font-bold text-amber-400 mb-1">
+														{networkConnections.raw.streamingActive
+															? "ONLINE"
+															: "OFFLINE"}
+													</div>
+													<div className="text-xs text-gray-400">
+														data streaming
+													</div>
+												</div>
+
+												<div className="text-center">
+													<div className="text-xs text-gray-400 mb-2">
+														CLEANUP PROCESS
+													</div>
+													<div className="text-2xl font-bold text-amber-400 mb-1">
+														{networkConnections.raw.cleanupRunning
+															? "RUNNING"
+															: "STOPPED"}
+													</div>
+													<div className="text-xs text-gray-400">
+														background cleanup
+													</div>
+												</div>
+
+												<div className="text-center">
+													<div className="text-xs text-gray-400 mb-2">
+														HEARTBEAT INTERVAL
+													</div>
+													<div className="text-2xl font-bold text-white mb-1">
+														{networkConnections.raw.heartbeatInterval}ms
+													</div>
+													<div className="text-xs text-gray-400">
+														connection health
+													</div>
+												</div>
+
+												<div className="text-center">
+													<div className="text-xs text-gray-400 mb-2">
+														NETWORK ENVIRONMENT
+													</div>
+													<div className="text-2xl font-bold text-white mb-1">
+														{networkConnections.raw.network.toUpperCase()}
+													</div>
+													<div className="text-xs text-gray-400">
+														environment type
+													</div>
+												</div>
+											</div>
+										</div>
+									</CardContent>
+								</Card>
+							)}
+
+							{/* Network Nodes Status */}
 							<Card>
 								<CardHeader>
 									<CardTitle className="flex items-center text-white">
@@ -2869,30 +3180,43 @@ export default function WalletWidget(): React.ReactElement {
 
 						{/* Scanner Tab */}
 						<TabsContent value="scanner" className="p-4 space-y-4">
-							<Card>
+							<Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
 								<CardHeader className="pb-3">
-									<div className="flex items-center gap-3">
-										<div className="p-2 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-lg">
-											<Target className="h-5 w-5 text-amber-600" />
+									<div className="flex items-center justify-between">
+										<div className="flex items-center gap-3">
+											<div className="p-2 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-lg">
+												<Target className="h-5 w-5 text-amber-600" />
+											</div>
+											<div>
+												<CardTitle className="text-lg flex items-center gap-2">
+													Sonar Scanner
+													<Badge
+														variant="outline"
+														className="text-xs font-mono bg-amber-50 text-amber-700 border-amber-200"
+													>
+														TestNet
+													</Badge>
+												</CardTitle>
+												<CardDescription className="text-sm">
+													Advanced wallet analysis and portfolio insights
+												</CardDescription>
+											</div>
 										</div>
-										<div>
-											<CardTitle className="text-lg flex items-center gap-2">
-												Sonar Scanner
-												<Badge
-													variant="outline"
-													className="text-xs font-mono bg-amber-50 text-amber-700 border-amber-200"
-												>
-													TestNet
-												</Badge>
-											</CardTitle>
-											<CardDescription className="text-sm">
-												Advanced wallet analysis and portfolio insights
-											</CardDescription>
-										</div>
+										{response && response.length > 0 && (
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() => setIsResultsOpen(true)}
+												className="flex items-center gap-2"
+											>
+												<Eye className="w-4 h-4" />
+												View Results
+											</Button>
+										)}
 									</div>
 								</CardHeader>
 								<CardContent>
-									<form onSubmit={handleSubmit} className="space-y-3">
+									<form onSubmit={handleSubmit} className="space-y-4">
 										<div className="space-y-2">
 											<Label htmlFor="address" className="text-sm font-medium">
 												Wallet Address
@@ -2905,32 +3229,106 @@ export default function WalletWidget(): React.ReactElement {
 													value={address}
 													onChange={(e) => setAddress(e.target.value)}
 													disabled={loading}
-													className="flex-1 h-10"
+													className="flex-1 h-10 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
 												/>
 												<Button
 													type="submit"
 													disabled={loading || !address.trim()}
-													className="h-10 px-4"
+													className="h-10 px-6 transition-all duration-200 hover:scale-105 active:scale-95"
 												>
 													{loading
 														? (
 															<>
 																<Loader2 className="h-4 w-4 animate-spin mr-2" />
-																Analyzing...
+																<span className="hidden sm:inline">
+																	Analyzing...
+																</span>
+																<span className="sm:hidden">Scan</span>
 															</>
 														)
 														: (
 															<>
 																<BarChart3 className="h-4 w-4 mr-2" />
-																Analyze
+																<span className="hidden sm:inline">
+																	Analyze
+																</span>
+																<span className="sm:hidden">Scan</span>
 															</>
 														)}
 												</Button>
 											</div>
+											{address && !validateAddress(address) && (
+												<p className="text-xs text-red-500 flex items-center gap-1">
+													<AlertCircle className="w-3 h-3" />
+													Invalid wallet address format
+												</p>
+											)}
+										</div>
+
+										{/* Quick Actions */}
+										<div className="flex flex-wrap gap-2">
+											<Button
+												type="button"
+												variant="outline"
+												size="sm"
+												onClick={() => setAddress("")}
+												className="text-xs"
+											>
+												Clear
+											</Button>
+											<Button
+												type="button"
+												variant="outline"
+												size="sm"
+												onClick={() =>
+													navigator.clipboard.readText().then(setAddress)}
+												className="text-xs"
+											>
+												Paste
+											</Button>
 										</div>
 									</form>
 								</CardContent>
 							</Card>
+
+							{/* Recent Scans */}
+							{response && response.length > 0 && (
+								<Card>
+									<CardHeader>
+										<CardTitle className="text-sm flex items-center gap-2">
+											<Clock className="w-4 h-4" />
+											Recent Analysis
+										</CardTitle>
+									</CardHeader>
+									<CardContent>
+										<div className="space-y-2">
+											<div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+												<div className="flex items-center gap-3">
+													<div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
+														<Wallet className="w-4 h-4 text-primary" />
+													</div>
+													<div>
+														<p className="text-sm font-medium">
+															{address.slice(0, 8)}...{address.slice(-8)}
+														</p>
+														<p className="text-xs text-muted-foreground">
+															{response.length}{" "}
+															account{response.length > 1 ? "s" : ""} found
+														</p>
+													</div>
+												</div>
+												<Button
+													variant="outline"
+													size="sm"
+													onClick={() => setIsResultsOpen(true)}
+												>
+													View Details
+												</Button>
+											</div>
+										</div>
+									</CardContent>
+								</Card>
+							)}
 						</TabsContent>
 					</Tabs>
 				</CardContent>
@@ -2938,10 +3336,11 @@ export default function WalletWidget(): React.ReactElement {
 
 			{/* Error State */}
 			{error && (
-				<Alert variant="destructive" className="mb-6">
-					<AlertCircle className="h-4 w-4" />
-					<AlertDescription className="font-medium">{error}</AlertDescription>
-				</Alert>
+				<ErrorState
+					error={error}
+					onRetry={handleRetry}
+					onDismiss={() => setError(null)}
+				/>
 			)}
 
 			<Dialog open={isResultsOpen} onOpenChange={setIsResultsOpen}>
@@ -2954,12 +3353,37 @@ export default function WalletWidget(): React.ReactElement {
 										<Wallet className="h-5 w-5 text-primary" />
 									</div>
 									<span>Wallet Analysis Results</span>
+									<Badge variant="outline" className="ml-2">
+										{response?.length}{" "}
+										account{response?.length !== 1 ? "s" : ""}
+									</Badge>
 								</DialogTitle>
 								<DialogDescription className="text-base mt-2">
 									{response?.length === 1
 										? "Comprehensive account analysis and trading insights"
 										: `Portfolio analysis across ${response?.length} connected accounts`}
 								</DialogDescription>
+							</div>
+							<div className="flex items-center gap-2">
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={handleRefresh}
+									disabled={isRefreshing}
+									className="flex items-center gap-2"
+								>
+									<RefreshCw
+										className={cn("w-4 h-4", isRefreshing && "animate-spin")}
+									/>
+									Refresh
+								</Button>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setIsResultsOpen(false)}
+								>
+									<XCircle className="w-4 h-4" />
+								</Button>
 							</div>
 						</div>
 					</DialogHeader>
