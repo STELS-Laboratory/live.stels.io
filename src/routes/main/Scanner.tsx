@@ -1770,14 +1770,14 @@ export default function WalletWidget(): React.ReactElement {
 	return (
 		<div className="container m-auto">
 			{/* Navigation Tabs */}
-			<Card className="p-0 bg-zinc-950 border-2">
+			<Card className="p-0 bg-zinc-950 border-0">
 				<CardContent className="p-0">
 					<Tabs
 						value={activeTab}
 						onValueChange={setActiveTab}
 						className="w-full"
 					>
-						<TabsList className="w-full h-auto p-1 bg-muted/50 border-b rounded-none grid grid-cols-5">
+						<TabsList className="w-full h-auto p-1 mb-2 bg-muted/50 border rounded-none grid grid-cols-5">
 							<TabsTrigger
 								value="overview"
 								className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 hover:bg-muted/70 data-[state=active]:bg-background data-[state=active]:shadow-sm"
@@ -1823,31 +1823,8 @@ export default function WalletWidget(): React.ReactElement {
 						{/* Overview Tab */}
 						<TabsContent
 							value="overview"
-							className="p-2 sm:p-4 space-y-3 sm:space-y-4"
+							className="p-0 space-y-3 sm:space-y-4"
 						>
-							{/* Header with Refresh Button */}
-							<div className="flex items-center justify-between">
-								<div>
-									<h2 className="text-lg font-semibold text-white">
-										Portfolio Overview
-									</h2>
-									<p className="text-sm text-muted-foreground">
-										Real-time performance metrics
-									</p>
-								</div>
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={handleRefresh}
-									disabled={isRefreshing}
-									className="flex items-center gap-2"
-								>
-									<RefreshCw
-										className={cn("w-4 h-4", isRefreshing && "animate-spin")}
-									/>
-									<span className="hidden sm:inline">Refresh</span>
-								</Button>
-							</div>
 
 							{/* Key Performance Metrics */}
 							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 min-w-0">
@@ -2316,7 +2293,7 @@ export default function WalletWidget(): React.ReactElement {
 						</TabsContent>
 
 						{/* Network Tab */}
-						<TabsContent value="network" className="p-4 space-y-4">
+						<TabsContent value="network" className="p-0 space-y-4">
 							{/* Network Connections Status */}
 							{networkConnections && (
 								<Card>
@@ -2575,7 +2552,7 @@ export default function WalletWidget(): React.ReactElement {
 						</TabsContent>
 
 						{/* Portfolio Tab */}
-						<TabsContent value="portfolio" className="p-3 space-y-3">
+						<TabsContent value="portfolio" className="p-0 space-y-3">
 							{/* Portfolio Overview with Enhanced Visualization */}
 							<div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
 								{/* Enhanced Pie Chart with Visual Representation */}
@@ -2985,7 +2962,7 @@ export default function WalletWidget(): React.ReactElement {
 						</TabsContent>
 
 						{/* News Tab */}
-						<TabsContent value="news" className="p-3 space-y-3">
+						<TabsContent value="news" className="p-0 space-y-3">
 							{/* Top News - Enhanced */}
 							{(news.raw as unknown as any[]).length > 0 && (
 								<Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 relative overflow-hidden">
@@ -3179,7 +3156,7 @@ export default function WalletWidget(): React.ReactElement {
 						</TabsContent>
 
 						{/* Scanner Tab */}
-						<TabsContent value="scanner" className="p-4 space-y-4">
+						<TabsContent value="scanner" className="p-0 space-y-4">
 							<Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
 								<CardHeader className="pb-3">
 									<div className="flex items-center justify-between">

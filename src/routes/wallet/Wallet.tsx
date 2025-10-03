@@ -22,8 +22,9 @@ export default function GliesereumWallet(): React.ReactElement {
 		wallet,
 		connectionSession,
 		isConnected,
-		disconnectFromNode,
+		//disconnectFromNode,
 		resetAuth,
+		setShowSecurityWarning,
 	} = useAuthStore();
 
 	const [showPrivateKey, setShowPrivateKey] = useState(false);
@@ -62,7 +63,7 @@ export default function GliesereumWallet(): React.ReactElement {
 			</div>
 		);
 	}
-	
+
 	const handleShowPrivateKey = (): void => {
 		if (!wallet) return;
 		setPrivateKey(wallet.privateKey);
@@ -74,8 +75,9 @@ export default function GliesereumWallet(): React.ReactElement {
 		setPrivateKey(null);
 	};
 
-	const handleDisconnect = async (): Promise<void> => {
-		await disconnectFromNode();
+	const handleDisconnect = (): void => {
+		// Show security warning before disconnecting
+		setShowSecurityWarning(true);
 	};
 
 	const getNetworkIcon = () => {
@@ -124,18 +126,22 @@ export default function GliesereumWallet(): React.ReactElement {
 						Your secure cryptocurrency wallet on {connectionSession.title}
 					</p>
 				</div>
-				
+
 				<div className="mb-8 bg-zinc-900 p-6 border">
 					<div className="text-zinc-500 text-xl">
 						Balance
 					</div>
-					<div className="text-right font-bold ml-2 text-xl text-amber-800">TST</div>
-					<div className="text-6xl text-right font-bold font-mono text-zinc-700">0.0000</div>
+					<div className="text-right font-bold ml-2 text-xl text-amber-800">
+						TST
+					</div>
+					<div className="text-6xl text-right font-bold font-mono text-zinc-700">
+						0.0000
+					</div>
 					<div className="text-green-500 text-right">
 						Price: 0.00$
 					</div>
 				</div>
-				
+
 				<div className="space-y-6">
 					{/* Wallet Card */}
 					<Card className="bg-zinc-900/80 border-zinc-700/50">
@@ -154,7 +160,7 @@ export default function GliesereumWallet(): React.ReactElement {
 									{wallet.address}
 								</div>
 							</div>
-							
+
 							<div className="space-y-2">
 								<label className="text-xs text-zinc-400 uppercase tracking-wider">
 									Card Number
@@ -163,7 +169,7 @@ export default function GliesereumWallet(): React.ReactElement {
 									{wallet.number}
 								</div>
 							</div>
-							
+
 							<div className="space-y-2">
 								<label className="text-xs text-zinc-400 uppercase tracking-wider">
 									Public Key
@@ -172,9 +178,9 @@ export default function GliesereumWallet(): React.ReactElement {
 									{wallet.publicKey}
 								</div>
 							</div>
-							
+
 							<Separator className="bg-zinc-700/50" />
-							
+
 							<div className="flex gap-2">
 								<Button
 									onClick={handleShowPrivateKey}
@@ -188,7 +194,7 @@ export default function GliesereumWallet(): React.ReactElement {
 							</div>
 						</CardContent>
 					</Card>
-					
+
 					{/* Network Status */}
 					<Card className="bg-zinc-900/80 border-zinc-700/50">
 						<CardHeader>
@@ -214,8 +220,8 @@ export default function GliesereumWallet(): React.ReactElement {
 							<div className="flex items-center justify-between">
 								<span className="text-zinc-400">API</span>
 								<span className="text-xs text-zinc-400 font-mono">
-										{connectionSession.api}
-									</span>
+									{connectionSession.api}
+								</span>
 							</div>
 							{connectionSession.developer && (
 								<div className="flex items-center justify-between">
@@ -227,7 +233,7 @@ export default function GliesereumWallet(): React.ReactElement {
 							)}
 						</CardContent>
 					</Card>
-					
+
 					{/* Disconnect Button */}
 					<Card className="bg-zinc-900/80 border-zinc-700/50">
 						<CardContent className="p-4">

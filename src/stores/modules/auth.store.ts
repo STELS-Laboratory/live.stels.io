@@ -53,6 +53,8 @@ export interface AuthState {
 	// UI state
 	isAuthenticated: boolean;
 	showNetworkSelector: boolean;
+	showSecurityWarning: boolean;
+	showSessionExpiredModal: boolean;
 	_hasHydrated: boolean;
 }
 
@@ -79,6 +81,8 @@ export interface AuthActions {
 	
 	// UI operations
 	setShowNetworkSelector: (show: boolean) => void;
+	setShowSecurityWarning: (show: boolean) => void;
+	setShowSessionExpiredModal: (show: boolean) => void;
 	clearConnectionError: () => void;
 	
 	// Utility operations
@@ -138,6 +142,8 @@ export const useAuthStore = create<AuthStore>()(
 		developerMode: false,
 		isAuthenticated: false,
 		showNetworkSelector: false,
+		showSecurityWarning: false,
+		showSessionExpiredModal: false,
 		_hasHydrated: false,
 				
 				// Wallet operations
@@ -429,6 +435,14 @@ export const useAuthStore = create<AuthStore>()(
 				// UI operations
 				setShowNetworkSelector: (show: boolean) => {
 					set({ showNetworkSelector: show });
+				},
+				
+				setShowSecurityWarning: (show: boolean) => {
+					set({ showSecurityWarning: show });
+				},
+				
+				setShowSessionExpiredModal: (show: boolean) => {
+					set({ showSessionExpiredModal: show });
 				},
 				
 				clearConnectionError: () => {

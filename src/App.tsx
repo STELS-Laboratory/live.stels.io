@@ -20,6 +20,9 @@ import { AMIEditor } from "@/routes/editor/AMIEditor";
 import SplashScreen from "./components/main/SplashScreen";
 import UpgradeScreen from "./components/main/UpgradeScreen";
 import { ProfessionalConnectionFlow } from "@/components/auth/ProfessionalConnectionFlow";
+// import { SessionExpiredNotification } from "@/components/auth/SessionExpiredNotification";
+import { SecurityWarningDialog } from "@/components/auth/SecurityWarningDialog";
+import { SessionExpiredModal } from "@/components/auth/SessionExpiredModal";
 
 /**
  * App states for managing transitions
@@ -524,6 +527,12 @@ export default function Dashboard(): React.ReactElement {
 									</RouteLoader>
 								</div>
 							)}
+						{/* Session expired notification overlay */}
+						{/*<SessionExpiredNotification />*/}
+						{/* Security warning dialog */}
+						<SecurityWarningDialog />
+						{/* Session expired blocking modal */}
+						<SessionExpiredModal />
 					</TooltipProvider>
 				</SessionProvider>
 			);
