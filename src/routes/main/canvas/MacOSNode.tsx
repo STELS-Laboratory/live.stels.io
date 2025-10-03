@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { type NodeProps, useReactFlow } from "reactflow";
+import { Handle, type NodeProps, Position, useReactFlow } from "reactflow";
 import { Minus, Square, X } from "lucide-react";
 import NodeFlow from "@/routes/main/canvas/NodeFlow";
 import type { FlowNodeData, NodeState } from "@/lib/canvas-types";
@@ -89,6 +89,19 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
         ${nodeState.maximized ? "w-full h-full" : "w-auto h-auto"} 
         ${nodeState.minimized ? "h-8" : ""}`}
 		>
+			{/* Auto connection handles */}
+			<Handle
+				type="source"
+				position={Position.Right}
+				id="auto-source"
+				className="opacity-0 w-0 h-0"
+			/>
+			<Handle
+				type="target"
+				position={Position.Left}
+				id="auto-target"
+				className="opacity-0 w-0 h-0"
+			/>
 			<div className="flex relative items-center border-b bg-zinc-900 justify-between px-2 py-1 cursor-move drag-handle">
 				<div className="flex items-center space-x-1">
 					<span className="text-xs text-zinc-400 truncate max-w-32">

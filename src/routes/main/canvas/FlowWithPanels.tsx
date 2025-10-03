@@ -20,26 +20,33 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync";
 import MacOSNode from "@/routes/main/canvas/MacOSNode";
-import {
-	ChevronDown,
-	ChevronRight,
-	Filter,
-	Settings,
-	ShoppingBag,
-} from "lucide-react";
+import { Network, Settings, ShoppingBag } from "lucide-react";
 import { cleanBrands, cn } from "@/lib/utils";
 import Graphite from "@/components/ui/vectors/logos/Graphite";
 import {
 	type FlowNode,
 	type FlowNodeData,
-	type GroupedWidgets,
 	type SessionStore,
-	type WidgetCategories,
 } from "@/lib/canvas-types";
 import { useCanvasUIStore } from "@/stores/modules/canvas-ui.store";
 import { usePanelStore } from "@/stores/modules/panel.store";
 import { PanelTabs } from "@/components/panels/PanelTabs";
 import { PanelManager } from "@/components/panels/PanelManager";
+import { WidgetStore } from "@/components/widgets/WidgetStore";
+import { useDragAndDrop } from "@/hooks/useDragAndDrop";
+import { DropZoneIndicator } from "@/components/widgets/DragPreview";
+import { useAutoConnections } from "@/hooks/useAutoConnections";
+import GroupedEdge from "@/components/widgets/GroupedEdge";
+import AutoConnectionsSettings from "@/components/widgets/AutoConnectionsSettings";
+
+// Define nodeTypes and edgeTypes outside component to avoid React Flow warnings
+const nodeTypes: NodeTypes = {
+	custom: MacOSNode,
+};
+
+const edgeTypes = {
+	grouped: GroupedEdge,
+};
 
 /**
  * Props for the DockItem component
@@ -67,59 +74,14 @@ interface MacOSDockProps {
 	onOpenPanelManager: () => void;
 	/** Whether panel manager is open */
 	isPanelManagerOpen: boolean;
-}
-
-/**
- * Props for the GroupHeader component
- */
-interface GroupHeaderProps {
-	/** Title of the group */
-	title: string;
-	/** Number of items in the group */
-	count: number;
-	/** Whether the group is currently expanded */
-	isOpen: boolean;
-	/** Callback when the group is toggled */
-	onToggle: () => void;
-	/** Indentation level (0 for top level) */
-	level?: number;
-}
-
-/**
- * Props for the ItemStore component
- */
-interface ItemStoreProps {
-	/** Key of the widget in session storage */
-	keyStore: string;
-	/** Callback when drag starts */
-	onDragStart: (
-		event: React.DragEvent<HTMLDivElement>,
-		keyStore: string,
-	) => void;
-	/** Indentation level for nested items */
-	indentLevel?: number;
-}
-
-/**
- * Props for the Tab component
- */
-interface TabProps {
-	/** Label to display in the tab */
-	label: string;
-	/** Whether the tab is currently active */
-	isActive: boolean;
-	/** Callback when the tab is clicked */
-	onClick: () => void;
-	/** Number of items in the tab */
-	count: number;
-}
-
-/**
- * Helper function to extract category from widget key
- */
-function extractNetwork(key: string): string {
-	const parts = key.split(".");
-	return parts[1];
+	/** Callback to toggle auto connections */
+	onToggleAutoConnections?: () => void;
+	/** Whether auto connections are enabled */
+	isAutoConnectionsEnabled: boolean;
+	/** Callback to toggle auto connections settings */
+	onToggleAutoConnectionsSettings: () => void;
+	/** Whether auto connections settings are open */
+	isAutoConnectionsSettingsOpen: boolean;
 }
 
 /**
@@ -166,6 +128,9 @@ function MacOSDock(
 		isWidgetStoreOpen,
 		onOpenPanelManager,
 		isPanelManagerOpen,
+		isAutoConnectionsEnabled,
+		onToggleAutoConnectionsSettings,
+		isAutoConnectionsSettingsOpen,
 	}: MacOSDockProps,
 ): React.ReactElement {
 	return (
@@ -176,6 +141,12 @@ function MacOSDock(
 					label="Widget Store"
 					isActive={isWidgetStoreOpen}
 					onClick={onOpenWidgetStore}
+				/>
+				<DockItem
+					icon={<Network className="h-6 w-6" />}
+					label="Auto Connections"
+					isActive={isAutoConnectionsEnabled || isAutoConnectionsSettingsOpen}
+					onClick={onToggleAutoConnectionsSettings}
 				/>
 				<DockItem
 					icon={<Settings className="h-6 w-6" />}
@@ -189,109 +160,6 @@ function MacOSDock(
 }
 
 /**
- * Group Header Component
- */
-function GroupHeader(
-	{ title, count, isOpen, onToggle, level = 0 }: GroupHeaderProps,
-): React.ReactElement {
-	return (
-		<div
-			onClick={onToggle}
-			className={cn(
-				"flex items-center justify-between p-2 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors",
-				level === 0
-					? "bg-zinc-200/50 dark:bg-zinc-700/50"
-					: "bg-zinc-100/50 dark:bg-zinc-800/50",
-				level === 0 ? "sticky top-0" : "",
-			)}
-			style={{ paddingLeft: `${level * 8 + 8}px` }}
-		>
-			<div className="flex items-center">
-				{isOpen
-					? <ChevronDown className="h-4 w-4 mr-1 text-zinc-500" />
-					: <ChevronRight className="h-4 w-4 mr-1 text-zinc-500" />}
-				<span
-					className={cn("font-medium", level === 0 ? "text-sm" : "text-xs")}
-				>
-					{title}
-				</span>
-			</div>
-			<span className="text-xs px-1.5 py-0.5 rounded-full bg-zinc-200 dark:bg-zinc-700">
-				{count}
-			</span>
-		</div>
-	);
-}
-
-/**
- * Item Store Component
- */
-function ItemStore(
-	{ keyStore, onDragStart, indentLevel = 0 }: ItemStoreProps,
-): React.ReactElement {
-	const session = useSessionStoreSync() as SessionStore | null;
-
-	if (!session) return <div>Loading Session....</div> as React.ReactElement;
-
-	const widget = session[keyStore];
-
-	if (!widget || !widget.module) {
-		return <div>Invalid widget data</div> as React.ReactElement;
-	}
-
-	return (
-		<div
-			draggable
-			onDragStart={(event) => onDragStart(event, keyStore)}
-			onTouchStart={(event: React.TouchEvent<HTMLDivElement>) => {
-				onDragStart(
-					event as unknown as React.DragEvent<HTMLDivElement>,
-					keyStore,
-				);
-			}}
-			className="flex bg-amber-600 text-black touch-auto text-sm justify-between items-center p-2 border-b cursor-grab"
-			style={{ paddingLeft: `${indentLevel * 8 + 8}px` }}
-		>
-			<div>
-				<div>
-					<div>Module: {widget.module}</div>
-					<div className="text-[10px]">Channel: {widget.channel}</div>
-				</div>
-				<code>
-					<pre>{JSON.stringify(widget.timestamp, null, 2)}</pre>
-				</code>
-			</div>
-		</div>
-	);
-}
-
-/**
- * Tab Component
- */
-function Tab(
-	{ label, isActive, onClick, count }: TabProps,
-): React.ReactElement {
-	return (
-		<button
-			onClick={onClick}
-			className={cn(
-				"px-4 py-2 text-sm font-medium transition-colors",
-				isActive
-					? "border-b-2 border-amber-500 text-amber-500"
-					: "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300",
-			)}
-		>
-			{label}{" "}
-			{count > 0 && (
-				<span className="ml-1 rounded-full px-2 py-0.5 text-xs dark:bg-zinc-700">
-					{count}
-				</span>
-			)}
-		</button>
-	);
-}
-
-/**
  * Main Flow Component with Panels
  */
 function FlowWithPanels(): React.ReactElement | null {
@@ -301,17 +169,7 @@ function FlowWithPanels(): React.ReactElement | null {
 	// Use UI store for widget store state
 	const {
 		isOpen: isWidgetStoreOpen,
-		activeCategory,
-		searchTerm,
-		expandedExchanges,
-		expandedAssets,
-		groupingMode,
 		toggleWidgetStore,
-		setActiveCategory,
-		setSearchTerm,
-		toggleExchange,
-		toggleAsset,
-		setGroupingMode,
 	} = useCanvasUIStore();
 
 	// Use panel store for panel management
@@ -326,6 +184,21 @@ function FlowWithPanels(): React.ReactElement | null {
 
 	const [isPanelManagerOpen, setIsPanelManagerOpen] = useState(false);
 	const [isPanelTransitioning, setIsPanelTransitioning] = useState(false);
+	const [isAutoConnectionsSettingsOpen, setIsAutoConnectionsSettingsOpen] =
+		useState(false);
+
+	// Enhanced drag and drop
+	const { dragState, handleDragOver, handleDragLeave } = useDragAndDrop();
+
+	// Auto connections hook
+	const {
+		isEnabled: isAutoConnectionsEnabled,
+		toggleAutoConnections,
+		allEdges,
+		stats: connectionStats,
+		config: autoConnectionsConfig,
+		updateConfig: updateAutoConnectionsConfig,
+	} = useAutoConnections(nodes, edges);
 
 	const session = useSessionStoreSync() as SessionStore | null;
 	const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
@@ -380,7 +253,11 @@ function FlowWithPanels(): React.ReactElement | null {
 
 		edgesSaveTimeoutRef.current = setTimeout(() => {
 			if (activePanelId) {
-				updatePanelData(activePanelId, { edges: currentEdges });
+				// Save only manual edges, auto edges are generated dynamically
+				const manualEdges = currentEdges.filter((edge) =>
+					!edge.id.startsWith("auto-")
+				);
+				updatePanelData(activePanelId, { edges: manualEdges });
 			}
 		}, 300);
 	}, [activePanelId, updatePanelData]);
@@ -430,6 +307,9 @@ function FlowWithPanels(): React.ReactElement | null {
 						data: {
 							...node.data,
 							onDelete: handleDeleteNode,
+							// Restore session data from current session
+							sessionData: session?.[node.data.channel] ||
+								node.data.sessionData,
 						},
 					}));
 					setNodes(nodesWithFunctions);
@@ -490,6 +370,28 @@ function FlowWithPanels(): React.ReactElement | null {
 		cleanBrands();
 	}, []);
 
+	// Update nodes with fresh session data when session changes
+	useEffect(() => {
+		if (session && nodes.length > 0) {
+			setNodes((currentNodes) =>
+				currentNodes.map((node) => {
+					const newSessionData = session[node.data.channel];
+					// Only update if session data actually changed
+					if (newSessionData && newSessionData !== node.data.sessionData) {
+						return {
+							...node,
+							data: {
+								...node.data,
+								sessionData: newSessionData,
+							},
+						};
+					}
+					return node;
+				})
+			);
+		}
+	}, [session]);
+
 	const onConnect = useCallback(
 		(params: Edge | Connection) => {
 			setEdges((eds) => {
@@ -509,7 +411,7 @@ function FlowWithPanels(): React.ReactElement | null {
 				// Save updated nodes to panel data
 				debouncedSaveNodes(updatedNodes);
 
-				// Also remove connected edges
+				// Also remove connected edges (only manual edges)
 				setEdges((edges) => {
 					const updatedEdges = edges.filter((edge) =>
 						edge.source !== nodeId && edge.target !== nodeId
@@ -533,248 +435,96 @@ function FlowWithPanels(): React.ReactElement | null {
 		event.dataTransfer.effectAllowed = "move";
 	};
 
+	const onTouchStart = (
+		_event: React.TouchEvent<HTMLDivElement>,
+		key: string,
+	): void => {
+		// For mobile devices, we'll handle touch events differently
+		// This could trigger a modal or different interaction pattern
+		console.log("Touch start for widget:", key);
+	};
+
 	const onDrop = (event: React.DragEvent<HTMLDivElement>): void => {
 		event.preventDefault();
 
-		const key = event.dataTransfer.getData("application/reactflow");
-		const sessionData = sessionStorage.getItem(key);
-		if (!sessionData) return;
+		try {
+			// Try to get widget data from enhanced drag
+			const widgetData = JSON.parse(
+				event.dataTransfer.getData("application/reactflow"),
+			);
 
-		const position = screenToFlowPosition({
-			x: event.clientX,
-			y: event.clientY,
-		});
+			const position = screenToFlowPosition({
+				x: event.clientX,
+				y: event.clientY,
+			});
 
-		const newNodeId = `node-${Date.now()}`;
+			const newNodeId = `node-${Date.now()}`;
 
-		const newNode = {
-			id: newNodeId,
-			type: "custom",
-			position,
-			data: {
-				channel: key,
-				label: key,
-				onDelete: handleDeleteNode,
-				sessionData: JSON.parse(sessionData),
-			},
-			dragHandle: ".drag-handle",
-		};
+			const newNode = {
+				id: newNodeId,
+				type: "custom",
+				position,
+				data: {
+					channel: widgetData.channel || widgetData.widget,
+					label: widgetData.module || widgetData.channel,
+					onDelete: handleDeleteNode,
+					sessionData: session?.[widgetData.channel || widgetData.widget] ||
+						widgetData,
+				},
+				dragHandle: ".drag-handle",
+			};
 
-		setNodes((prevNodes) => {
-			const updatedNodes = [...prevNodes, newNode];
-			// Save new nodes to panel data
-			debouncedSaveNodes(updatedNodes);
-			return updatedNodes;
-		});
+			setNodes((prevNodes) => {
+				const updatedNodes = [...prevNodes, newNode];
+				// Save new nodes to panel data
+				debouncedSaveNodes(updatedNodes);
+				return updatedNodes;
+			});
+		} catch (error) {
+			// Fallback to old method
+			const key = event.dataTransfer.getData("application/reactflow");
+			const sessionData = sessionStorage.getItem(key);
+			if (!sessionData) return;
+
+			const position = screenToFlowPosition({
+				x: event.clientX,
+				y: event.clientY,
+			});
+
+			const newNodeId = `node-${Date.now()}`;
+
+			const newNode = {
+				id: newNodeId,
+				type: "custom",
+				position,
+				data: {
+					channel: key,
+					label: key,
+					onDelete: handleDeleteNode,
+					sessionData: session?.[key] || JSON.parse(sessionData),
+				},
+				dragHandle: ".drag-handle",
+			};
+
+			setNodes((prevNodes) => {
+				const updatedNodes = [...prevNodes, newNode];
+				// Save new nodes to panel data
+				debouncedSaveNodes(updatedNodes);
+				return updatedNodes;
+			});
+		}
 	};
 
-	const onDragOver = (event: React.DragEvent<HTMLDivElement>): void => {
+	const onDragOverEnhanced = (event: React.DragEvent<HTMLDivElement>): void => {
 		event.preventDefault();
 		event.dataTransfer.dropEffect = "move";
+		handleDragOver(event);
 	};
 
-	const nodeTypes = useMemo<NodeTypes>(
-		() => ({
-			custom: MacOSNode,
-		}),
-		[],
-	);
-
-	const keys = Object.keys(sessionStorage);
-
-	const widgetsByCategory = useMemo<WidgetCategories>(() => {
-		const categorized: WidgetCategories = { All: [] };
-
-		if (session) {
-			keys.forEach((key) => {
-				const widget = session[key];
-				if (widget && widget.module) {
-					// Add to "All" category
-					categorized.All.push(key);
-
-					// Add to specific category
-					const category = extractNetwork(key);
-					if (!categorized[category]) {
-						categorized[category] = [];
-					}
-					categorized[category].push(key);
-				}
-			});
-		}
-
-		return categorized;
-	}, [keys, session]);
-
-	const categories = useMemo<string[]>(() => {
-		return Object.keys(widgetsByCategory).sort((a, b) => {
-			if (a === "All") return -1;
-			if (b === "All") return 1;
-			return a.localeCompare(b);
-		});
-	}, [widgetsByCategory]);
-
-	const filteredWidgets = useMemo<string[]>(() => {
-		const categoryWidgets = widgetsByCategory[activeCategory] || [];
-
-		if (!searchTerm) {
-			return categoryWidgets;
-		}
-
-		return categoryWidgets.filter((key) => {
-			if (!session) return false;
-			const widget = session[key];
-			const searchLower = searchTerm.toLowerCase();
-
-			return widget.module.toLowerCase().includes(searchLower) ||
-				widget.channel.toLowerCase().includes(searchLower);
-		});
-	}, [activeCategory, searchTerm, widgetsByCategory, session]);
-
-	const groupedWidgets = useMemo<GroupedWidgets>(() => {
-		const grouped: GroupedWidgets = {};
-
-		filteredWidgets.forEach((key) => {
-			const exchange = extractNetwork(key);
-			const asset = extractNetwork(key);
-
-			if (!grouped[exchange]) {
-				grouped[exchange] = {};
-			}
-
-			if (!grouped[exchange][asset]) {
-				grouped[exchange][asset] = [];
-			}
-
-			grouped[exchange][asset].push(key);
-		});
-
-		return grouped;
-	}, [filteredWidgets]);
-
-	const toggleGroupingMode = (): void => {
-		setGroupingMode(groupingMode === "exchange" ? "asset" : "exchange");
-	};
-
-	const renderGroupedWidgets = (): React.ReactNode => {
-		if (filteredWidgets.length === 0) {
-			return (
-				<div className="p-4 text-center text-muted-foreground">
-					{searchTerm
-						? "No widgets match your search"
-						: "No widgets available in this category"}
-				</div>
-			);
-		}
-
-		if (groupingMode === "exchange") {
-			return Object.entries(groupedWidgets).map(([exchange, assets]) => {
-				const isExchangeOpen = expandedExchanges[exchange] || false;
-				const exchangeWidgetCount = Object.values(assets).flat().length;
-
-				return (
-					<div key={exchange} className="border-b last:border-b-0">
-						<GroupHeader
-							title={`Exchange: ${exchange}`}
-							count={exchangeWidgetCount}
-							isOpen={isExchangeOpen}
-							onToggle={() => toggleExchange(exchange)}
-							level={0}
-						/>
-
-						{isExchangeOpen &&
-							Object.entries(assets).map(([asset, assetWidgets]) => {
-								const assetKey = `${exchange}:${asset}`;
-								const isAssetOpen = expandedAssets[assetKey] || false;
-
-								return (
-									<div
-										key={assetKey}
-										className="border-t border-zinc-100 dark:border-zinc-800"
-									>
-										<GroupHeader
-											title={`${asset}`}
-											count={assetWidgets.length}
-											isOpen={isAssetOpen}
-											onToggle={() => toggleAsset(exchange, asset)}
-											level={1}
-										/>
-
-										{isAssetOpen &&
-											assetWidgets.map((keyStore) => (
-												<ItemStore
-													key={keyStore}
-													keyStore={keyStore}
-													onDragStart={(event) => onDragStart(event, keyStore)}
-													indentLevel={2}
-												/>
-											))}
-									</div>
-								);
-							})}
-					</div>
-				);
-			});
-		} else {
-			const assetFirst: Record<string, Record<string, string[]>> = {};
-
-			Object.entries(groupedWidgets).forEach(([exchange, assets]) => {
-				Object.entries(assets).forEach(([asset, widgets]) => {
-					if (!assetFirst[asset]) {
-						assetFirst[asset] = {};
-					}
-					assetFirst[asset][exchange] = widgets;
-				});
-			});
-
-			return Object.entries(assetFirst).map(([asset, exchanges]) => {
-				const isAssetOpen = expandedAssets[asset] || false;
-				const assetWidgetCount = Object.values(exchanges).flat().length;
-
-				return (
-					<div key={asset} className="border-b last:border-b-0">
-						<GroupHeader
-							title={`${asset}`}
-							count={assetWidgetCount}
-							isOpen={isAssetOpen}
-							onToggle={() => toggleAsset("", asset)}
-							level={0}
-						/>
-
-						{isAssetOpen &&
-							Object.entries(exchanges).map(([exchange, exchangeWidgets]) => {
-								const exchangeKey = `${asset}:${exchange}`;
-								const isExchangeOpen = expandedExchanges[exchangeKey] || false;
-
-								return (
-									<div
-										key={exchangeKey}
-										className="border-t border-zinc-100 dark:border-zinc-800"
-									>
-										<GroupHeader
-											title={`${exchange}`}
-											count={exchangeWidgets.length}
-											isOpen={isExchangeOpen}
-											onToggle={() => toggleExchange(exchangeKey)}
-											level={1}
-										/>
-
-										{isExchangeOpen &&
-											exchangeWidgets.map((keyStore) => (
-												<ItemStore
-													key={keyStore}
-													keyStore={keyStore}
-													onDragStart={(event) => onDragStart(event, keyStore)}
-													indentLevel={2}
-												/>
-											))}
-									</div>
-								);
-							})}
-					</div>
-				);
-			});
-		}
-	};
+	// Get existing widget keys from current panel
+	const existingWidgets = useMemo<string[]>(() => {
+		return nodes.map((node) => node.data.channel).filter(Boolean);
+	}, [nodes]);
 
 	if (!session) return null;
 
@@ -809,7 +559,7 @@ function FlowWithPanels(): React.ReactElement | null {
 
 				<ReactFlow
 					nodes={nodes}
-					edges={edges}
+					edges={allEdges}
 					onNodesChange={(changes) => {
 						// Check if changes affect position or size
 						const hasPositionOrSizeChanges = changes.some((change) => {
@@ -828,12 +578,23 @@ function FlowWithPanels(): React.ReactElement | null {
 						onNodesChange(changes);
 					}}
 					onEdgesChange={(changes) => {
-						// Debounced save edges on any change
-						debouncedSaveEdges(edges);
-						onEdgesChange(changes);
+						// Filter out auto-generated edges from changes
+						const manualChanges = changes.filter((change) => {
+							if ("id" in change) {
+								return !change.id.startsWith("auto-");
+							}
+							return true;
+						});
+
+						if (manualChanges.length > 0) {
+							// Debounced save edges on any manual change
+							debouncedSaveEdges(edges);
+							onEdgesChange(manualChanges);
+						}
 					}}
 					onConnect={onConnect}
 					nodeTypes={nodeTypes}
+					edgeTypes={edgeTypes}
 					snapToGrid={true}
 					fitView
 					onInit={(instance) => {
@@ -851,7 +612,8 @@ function FlowWithPanels(): React.ReactElement | null {
 						}
 					}}
 					onDrop={onDrop}
-					onDragOver={onDragOver}
+					onDragOver={onDragOverEnhanced}
+					onDragLeave={handleDragLeave}
 					minZoom={0.4}
 				>
 					<Background
@@ -875,14 +637,50 @@ function FlowWithPanels(): React.ReactElement | null {
 								Panel: {activePanel.name}
 							</div>
 						)}
+						{isAutoConnectionsEnabled && connectionStats && (
+							<div className="mt-2 text-xs text-zinc-500/50">
+								Connections: {connectionStats.edgeCount} total,{" "}
+								{connectionStats.groupCount} groups
+							</div>
+						)}
+						{/* Debug info */}
+						<div className="mt-1 text-xs text-zinc-500/30">
+							Nodes: {nodes.length}, Auto edges:{" "}
+							{allEdges.length - edges.length}
+						</div>
+						{/* Session debug */}
+						<div className="mt-1 text-xs text-zinc-500/30">
+							Session keys: {session ? Object.keys(session).length : 0}
+						</div>
+						{/* Auto connections debug */}
+						<div className="mt-1 text-xs text-zinc-500/30">
+							Auto enabled: {isAutoConnectionsEnabled ? "Yes" : "No"}
+						</div>
 					</div>
 				</ReactFlow>
+
+				{/* Drop Zone Indicator */}
+				<DropZoneIndicator
+					isActive={dragState.dropZoneActive && dragState.isDragging}
+					position={dragState.mousePosition
+						? {
+							x: dragState.mousePosition.x - 50,
+							y: dragState.mousePosition.y - 25,
+							width: 100,
+							height: 50,
+						}
+						: undefined}
+				/>
 
 				<MacOSDock
 					onOpenWidgetStore={toggleWidgetStore}
 					isWidgetStoreOpen={isWidgetStoreOpen}
 					onOpenPanelManager={() => setIsPanelManagerOpen(true)}
 					isPanelManagerOpen={isPanelManagerOpen}
+					isAutoConnectionsEnabled={isAutoConnectionsEnabled}
+					onToggleAutoConnectionsSettings={() =>
+						setIsAutoConnectionsSettingsOpen(!isAutoConnectionsSettingsOpen)}
+					isAutoConnectionsSettingsOpen={isAutoConnectionsSettingsOpen}
 				/>
 			</div>
 
@@ -892,71 +690,36 @@ function FlowWithPanels(): React.ReactElement | null {
 				onClose={() => setIsPanelManagerOpen(false)}
 			/>
 
-			<div
-				className={cn(
-					"absolute top-4 bottom-20 right-4 z-50 border bg-background/90 overflow-hidden transition-all duration-300 transform backdrop-blur-md",
-					isWidgetStoreOpen
-						? "translate-x-0 opacity-100"
-						: "translate-x-full opacity-0",
-				)}
-			>
-				<div className="border-b p-3 flex justify-between items-center bg-muted/80">
-					<div className="flex items-center">
-						<ShoppingBag className="h-4 w-4 mr-2" />
-						<h3 className="font-semibold">Widget Store</h3>
-					</div>
-					<div className="flex space-x-2">
-						<button
-							className="h-3 w-3 rounded-full bg-[#febc2e]"
-							onClick={() => {
-							}}
-						/>
-						<button
-							className="h-3 w-3 rounded-full bg-[#ff5f57]"
-							onClick={toggleWidgetStore}
-						/>
-					</div>
-				</div>
+			{/* Widget Store */}
+			<WidgetStore
+				isOpen={isWidgetStoreOpen}
+				onClose={toggleWidgetStore}
+				onDragStart={onDragStart}
+				onTouchStart={onTouchStart}
+				existingWidgets={existingWidgets}
+			/>
 
-				<div className="p-3 border-b">
-					<div className="flex gap-2">
-						<div className="relative flex-1">
-							<input
-								type="text"
-								placeholder="Search widgets..."
-								value={searchTerm}
-								onChange={(e) => setSearchTerm(e.target.value)}
-								className="w-full px-3 py-2 pl-9 bg-zinc-100 dark:bg-zinc-800 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
-							/>
-							<Filter className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
-						</div>
-						<button
-							onClick={toggleGroupingMode}
-							className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-md text-xs font-medium"
-						>
-							Group by: {groupingMode === "exchange" ? "Exchange" : "Asset"}
-						</button>
-					</div>
+			{/* Auto Connections Settings */}
+			{isAutoConnectionsSettingsOpen && (
+				<div className="absolute top-4 right-4 z-30 space-y-4">
+					<AutoConnectionsSettings
+						config={autoConnectionsConfig}
+						isEnabled={isAutoConnectionsEnabled}
+						onToggle={toggleAutoConnections}
+						onUpdateConfig={updateAutoConnectionsConfig}
+						stats={connectionStats}
+						availableKeys={[
+							"exchange",
+							"market",
+							"asset",
+							"base",
+							"quote",
+							"type",
+							"module",
+						] as any}
+					/>
 				</div>
-
-				<div className="border-b overflow-x-auto">
-					<div className="flex whitespace-nowrap">
-						{categories.map((category) => (
-							<Tab
-								key={category}
-								label={category}
-								isActive={activeCategory === category}
-								onClick={() => setActiveCategory(category)}
-								count={widgetsByCategory[category]?.length || 0}
-							/>
-						))}
-					</div>
-				</div>
-
-				<div className="h-[calc(100%-144px)] overflow-y-auto">
-					{renderGroupedWidgets()}
-				</div>
-			</div>
+			)}
 		</div>
 	);
 }

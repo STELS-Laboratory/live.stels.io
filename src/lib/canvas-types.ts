@@ -126,3 +126,52 @@ export interface NodeState {
 	minimized: boolean;
 	maximized: boolean;
 }
+
+/**
+ * Connection group keys for automatic node linking
+ */
+export interface ConnectionKeys {
+	exchange?: string;
+	market?: string;
+	asset?: string;
+	base?: string;
+	quote?: string;
+	type?: string;
+	module?: string;
+}
+
+/**
+ * Auto connection configuration
+ */
+export interface AutoConnectionConfig {
+	enabled: boolean;
+	groupByKeys: (keyof ConnectionKeys)[];
+	showLabels: boolean;
+	edgeStyles: {
+		exchange: string;
+		market: string;
+		asset: string;
+		type: string;
+	};
+}
+
+/**
+ * Custom edge data for grouped connections
+ */
+export interface GroupedEdgeData {
+	groupKey: string;
+	groupType: keyof ConnectionKeys;
+	connectionCount: number;
+	relatedNodes: string[];
+}
+
+/**
+ * Edge grouping information
+ */
+export interface EdgeGroup {
+	key: string;
+	type: keyof ConnectionKeys;
+	nodes: string[];
+	color: string;
+	label?: string;
+}

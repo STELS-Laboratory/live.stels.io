@@ -836,28 +836,26 @@ const OrderBook: React.FC = () => {
             </Card>
 
             {/* Aggregated Candles Chart */}
-            {
-              /* <Card className="bg-zinc-900 border mb-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-amber-500" />
-                  Professional Price Analysis
-                </CardTitle>
-                <CardDescription>
-                  Liquidity-weighted aggregation with fair value calculation and
-                  market efficiency metrics
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AggregatedCandles
-                  candlesData={candlesData}
-                  orderBookData={orderBookData}
-                  selectedMarket={selectedMarket}
-                  height={400}
-                />
-              </CardContent>
-            </Card> */
-            }
+            {/*<Card className="bg-zinc-900 border mb-6">*/}
+            {/*  <CardHeader>*/}
+            {/*    <CardTitle className="flex items-center gap-2">*/}
+            {/*      <BarChart3 className="w-5 h-5 text-amber-500" />*/}
+            {/*      Professional Price Analysis*/}
+            {/*    </CardTitle>*/}
+            {/*    <CardDescription>*/}
+            {/*      Liquidity-weighted aggregation with fair value calculation and*/}
+            {/*      market efficiency metrics*/}
+            {/*    </CardDescription>*/}
+            {/*  </CardHeader>*/}
+            {/*  <CardContent>*/}
+            {/*    <AggregatedCandles*/}
+            {/*      candlesData={candlesData}*/}
+            {/*      orderBookData={orderBookData}*/}
+            {/*      selectedMarket={selectedMarket}*/}
+            {/*      height={400}*/}
+            {/*    />*/}
+            {/*  </CardContent>*/}
+            {/*</Card>*/}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Compact Exchange Ranking */}
