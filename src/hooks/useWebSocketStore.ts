@@ -197,7 +197,7 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 	},
 	
 	handleSessionExpired: () => {
-		console.log('[WebSocket] Session expired, showing blocking modal');
+		console.log('[WebSocket] Session expired, cleaning up and resetting auth state');
 		
 		// Close current WebSocket connection
 		const { ws } = get();
@@ -220,10 +220,13 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 			console.error('[WebSocket] Error clearing private-store:', error);
 		}
 		
-		// Show blocking modal instead of automatically resetting auth
+		// Reset auth state to force re-authentication
 		const authStore = useAuthStore.getState();
-		authStore.setShowSessionExpiredModal(true);
-		console.log('[WebSocket] Session expired modal shown, application blocked until user acknowledgment');
+		authStore.resetAuth().then(() => {
+			console.log('[WebSocket] Auth state reset, user will need to re-authenticate');
+		}).catch((error) => {
+			console.error('[WebSocket] Error resetting auth state:', error);
+		});
 	},
 }));
 

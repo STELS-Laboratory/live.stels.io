@@ -130,14 +130,14 @@ function TickerTape(
 					return (
 						<div
 							key={t.id}
-							className="min-w-[240px] px-3 py-3 border"
+							className="bg-zinc-900 min-w-[240px] px-2 py-1 border border-dashed"
 						>
 							<div className="flex items-center justify-between">
 								<div>
-									<div className="text-xs text-zinc-400">
+									<div className="text-xs text-amber-600">
 										{t.exchange.toUpperCase()}
 									</div>
-									<div className="text-sm font-medium text-white">
+									<div className="text-lg font-medium text-zinc-400">
 										{t.symbol}
 									</div>
 								</div>

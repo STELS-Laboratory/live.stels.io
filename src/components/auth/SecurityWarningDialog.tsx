@@ -110,3 +110,4 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
     </div>
   );
 };
+

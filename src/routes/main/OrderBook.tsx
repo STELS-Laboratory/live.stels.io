@@ -277,7 +277,7 @@ const OrderBook: React.FC = () => {
   };
 
   const availableMarkets = useMemo(() => {
-    if (orderBookData.length === 0) return ["BTC/USDT"]; // Default fallback
+    if (orderBookData.length === 0) return ["SOL/USDT"]; // Default fallback
     const markets = [...new Set(orderBookData.map((item) => item.market))];
     return markets.sort();
   }, [orderBookData]);
@@ -499,14 +499,14 @@ const OrderBook: React.FC = () => {
     <div className="space-y-6">
       {/* Optimized Market Tabs */}
       <Tabs value={selectedMarket} onValueChange={setSelectedMarket}>
-        <TabsList className="flex w-[100%] overflow-y-scroll bg-zinc-900 border  p-1 rounded-xl">
+        <TabsList className="flex w-[100%] overflow-y-scroll bg-zinc-900 border p-1">
           {availableMarkets.map((market) => {
             const symbol = market.split("/")[0];
             return (
               <TabsTrigger
                 key={market}
                 value={market}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors data-[state=active]:bg-amber-500 data-[state=active]:text-black"
+                className="flex items-center gap-2 px-2 py-2 data-[state=active]:bg-amber-100 data-[state=active]:text-black"
               >
                 {getCurrencyIcon(symbol)
                   ? (

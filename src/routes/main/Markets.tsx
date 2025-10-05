@@ -356,8 +356,8 @@ function Markets(): React.ReactElement {
 		const isPositive = percentage >= 0;
 		return (
 			<div
-				className={`flex items-center gap-1 ${
-					isPositive ? "text-amber-500" : "text-zinc-400"
+				className={`flex w-auto items-center gap-1 ${
+					isPositive ? "text-green-600" : "text-red-600"
 				}`}
 			>
 				{isPositive
@@ -369,7 +369,6 @@ function Markets(): React.ReactElement {
 	};
 
 	const getExchangeColor = (_exchange: string): string => {
-		// Используем единую цветовую схему приложения - zinc/amber
 		return "from-amber-400 to-amber-600";
 	};
 
@@ -649,21 +648,25 @@ function Markets(): React.ReactElement {
 														<MiniCandlestickChart
 															candles={ticker.candles}
 															width={100}
-															height={40}
+															height={30}
 														/>
 													</div>
 												</TableCell>
-												<TableCell className="text-right font-mono text-lg">
-													{formatPrice(ticker.price, ticker.symbol)}
+												<TableCell className="text-right text-zinc-300 font-mono">
+													<div>
+														{formatPrice(ticker.price, ticker.symbol)}
+													</div>
 												</TableCell>
 												<TableCell className="text-right">
-													<div className="space-y-1">
-														{formatPercentage(ticker.percentage)}
+													<div className="space-y-1 flex flex-col text-right">
+														<div className="flex w-auto ml-auto">
+															{formatPercentage(ticker.percentage)}
+														</div>
 														<div
 															className={`text-sm font-mono ${
 																ticker.change >= 0
-																	? "text-amber-500"
-																	: "text-zinc-400"
+																	? "text-green-600/80"
+																	: "text-red-600/80"
 															}`}
 														>
 															{ticker.change >= 0 ? "+" : ""}
@@ -673,10 +676,10 @@ function Markets(): React.ReactElement {
 												</TableCell>
 												<TableCell className="text-right">
 													<div className="space-y-1">
-														<div className="font-mono text-sm">
+														<div className="font-mono text-sm text-amber-700">
 															{formatVolume(ticker.volume)}
 														</div>
-														<div className="text-xs text-muted-foreground">
+														<div className="text-xs text-zinc-500">
 															${formatVolume(ticker.quoteVolume)}
 														</div>
 													</div>
@@ -685,10 +688,10 @@ function Markets(): React.ReactElement {
 													{ticker.bid > 0 && ticker.ask > 0
 														? (
 															<div className="space-y-1">
-																<div className="text-amber-500">
+																<div className="text-green-600/70">
 																	{formatPrice(ticker.bid, ticker.symbol)}
 																</div>
-																<div className="text-zinc-400">
+																<div className="text-red-600/70">
 																	{formatPrice(ticker.ask, ticker.symbol)}
 																</div>
 															</div>
