@@ -213,7 +213,7 @@ export const usePanelStore = create<PanelStore>()(
 			},
 		),
 		{
-			name: "panel_store_01",
+			name: "panel_store_02",
 		},
 	),
 );

@@ -77,7 +77,7 @@ export const useCanvasUIStore = create<CanvasUIStore>()(
 			},
 		),
 		{
-			name: "canvas_ui_store_01",
+			name: "canvas_ui_store_02",
 		},
 	),
 );

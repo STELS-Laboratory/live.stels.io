@@ -496,7 +496,7 @@ export const useAuthStore = create<AuthStore>()(
 			}
 		),
 		{
-			name: 'auth_store_02',
+			name: 'auth_store_03',
 		}
 	)
 );

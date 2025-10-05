@@ -122,8 +122,12 @@ interface WebSocketState {
 	connection: boolean;
 	locked: boolean;
 	sessionExpired: boolean;
+	reconnectAttempts: number;
+	maxReconnectAttempts: number;
+	isCleaningUp: boolean;
 	connectNode: (config: WebSocketConfig) => void;
 	handleSessionExpired: () => void;
+	resetReconnectAttempts: () => void;
 }
 
 const useWebSocketStore = create<WebSocketState>((set, get) => ({
@@ -131,9 +135,31 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 	connection: false,
 	locked: true,
 	sessionExpired: false,
+	reconnectAttempts: 0,
+	maxReconnectAttempts: 5,
+	isCleaningUp: false,
 	
 	connectNode: (config: WebSocketConfig) => {
 		const connectWebSocket = () => {
+			// Закрываем предыдущее соединение перед созданием нового
+			const { ws: currentWs, sessionExpired } = get();
+			
+			// Если сессия уже истекла, не пытаемся подключаться
+			if (sessionExpired) {
+				console.log('Session expired, skipping WebSocket connection');
+				return;
+			}
+			
+			if (currentWs && currentWs.readyState !== WebSocket.CLOSED) {
+				console.log('Closing previous WebSocket connection...');
+				// Не закрываем соединение, если оно уже открыто или подключается
+				if (currentWs.readyState === WebSocket.OPEN || currentWs.readyState === WebSocket.CONNECTING) {
+					console.log('Previous connection is active, aborting new connection attempt');
+					return;
+				}
+				currentWs.close(1000, 'Replacing with new connection');
+			}
+			
 			const ws = createWebSocket(
 				config.raw.info,
 				(event: MessageEvent) => {
@@ -157,7 +183,7 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 						
 						if (json.value) {
 							sessionStorage.setItem(json.value.channel, JSON.stringify(json.value));
-							set({connection: true});
+							set({connection: true, reconnectAttempts: 0}); // Сбрасываем счетчик при успешном подключении
 							
 							// Only notify sync system about significant data changes
 							// Skip frequent sessionStorage updates, focus on important state changes
@@ -174,9 +200,17 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 					}
 				},
 				() => {
-					console.log("WebSocket connection closed. Reconnecting...");
+					const { reconnectAttempts, maxReconnectAttempts } = get();
+					console.log(`WebSocket connection closed. Reconnecting... (attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`);
 					set({connection: false});
-					setTimeout(connectWebSocket, 3000);
+					
+					if (reconnectAttempts < maxReconnectAttempts) {
+						set({reconnectAttempts: reconnectAttempts + 1});
+						setTimeout(connectWebSocket, 3000);
+					} else {
+						console.error('Maximum reconnection attempts reached. Stopping reconnection.');
+						set({sessionExpired: true});
+					}
 				},
 				() => {
 					console.error("WebSocket encountered an error. Connection lost.");
@@ -196,8 +230,21 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 		connectWebSocket();
 	},
 	
+	resetReconnectAttempts: () => {
+		set({reconnectAttempts: 0});
+	},
+	
 	handleSessionExpired: () => {
+		const { isCleaningUp } = get();
+		
+		// Предотвращаем множественные вызовы
+		if (isCleaningUp) {
+			console.log('[WebSocket] Cleanup already in progress, skipping');
+			return;
+		}
+		
 		console.log('[WebSocket] Session expired, cleaning up and resetting auth state');
+		set({ isCleaningUp: true });
 		
 		// Close current WebSocket connection
 		const { ws } = get();
@@ -209,7 +256,8 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 		set({
 			ws: null,
 			connection: false,
-			sessionExpired: true
+			sessionExpired: true,
+			reconnectAttempts: 0
 		});
 		
 		// Clear session data from localStorage
@@ -226,6 +274,11 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 			console.log('[WebSocket] Auth state reset, user will need to re-authenticate');
 		}).catch((error) => {
 			console.error('[WebSocket] Error resetting auth state:', error);
+		}).finally(() => {
+			// Сбрасываем флаг очистки после завершения
+			setTimeout(() => {
+				set({ isCleaningUp: false });
+			}, 1000);
 		});
 	},
 }));
