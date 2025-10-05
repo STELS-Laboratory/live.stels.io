@@ -150,7 +150,7 @@ interface BookMetrics {
 }
 
 const OrderBook: React.FC = () => {
-  const [selectedMarket, setSelectedMarket] = useState<string>("BTC/USDT");
+  const [selectedMarket, setSelectedMarket] = useState<string>("");
   const [metrics, setMetrics] = useState<BookMetrics>({
     imbalance: 0,
     depthRatio: 0,
@@ -279,17 +279,30 @@ const OrderBook: React.FC = () => {
   const availableMarkets = useMemo(() => {
     if (orderBookData.length === 0) return ["SOL/USDT"]; // Default fallback
     const markets = [...new Set(orderBookData.map((item) => item.market))];
-    return markets.sort();
+    const sortedMarkets = markets.sort();
+
+    // Убеждаемся что SOL/USDT всегда первый, если он есть
+    if (sortedMarkets.includes("SOL/USDT")) {
+      return [
+        "SOL/USDT",
+        ...sortedMarkets.filter((market) => market !== "SOL/USDT"),
+      ];
+    }
+
+    return sortedMarkets;
   }, [orderBookData]);
 
-  // Update selected market if it's not available
+  // Update selected market - устанавливаем SOL/USDT как приоритетную вкладку
   React.useEffect(() => {
-    if (
-      availableMarkets.length > 0 && !availableMarkets.includes(selectedMarket)
-    ) {
-      setSelectedMarket(availableMarkets[0]);
+    if (availableMarkets.length > 0 && !selectedMarket) {
+      // Приоритет SOL/USDT, если доступен
+      const defaultMarket = availableMarkets.includes("SOL/USDT")
+        ? "SOL/USDT"
+        : availableMarkets[0];
+
+      setSelectedMarket(defaultMarket);
     }
-  }, [availableMarkets]); // Removed selectedMarket from dependencies to prevent infinite loop
+  }, [availableMarkets, selectedMarket]);
 
   const aggregatedOrderBooks = useMemo(() => {
     const result: { [market: string]: AggregatedOrderBook } = {};
@@ -402,6 +415,26 @@ const OrderBook: React.FC = () => {
     return volume.toFixed(2);
   }, []);
 
+  // Получение цены актива для конкретного рынка
+  const getMarketPrice = React.useCallback((market: string): number | null => {
+    const marketTicker = tickersData.find((ticker) => ticker.market === market);
+    return marketTicker ? marketTicker.last : null;
+  }, [tickersData]);
+
+  // Получение средней задержки для конкретного рынка
+  const getMarketLatency = React.useCallback((market: string): number => {
+    const marketOrderBooks = orderBookData.filter((item) =>
+      item.market === market
+    );
+    if (marketOrderBooks.length === 0) return 0;
+
+    const totalLatency = marketOrderBooks.reduce(
+      (sum, item) => sum + item.latency,
+      0,
+    );
+    return Math.round(totalLatency / marketOrderBooks.length);
+  }, [orderBookData]);
+
   // Function to open exchange details modal
   const openExchangeDetails = (exchange: string) => {
     setSelectedExchange(exchange);
@@ -497,38 +530,77 @@ const OrderBook: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Optimized Market Tabs */}
-      <Tabs value={selectedMarket} onValueChange={setSelectedMarket}>
-        <TabsList className="flex w-[100%] overflow-y-scroll bg-zinc-900 border p-1">
-          {availableMarkets.map((market) => {
-            const symbol = market.split("/")[0];
-            return (
-              <TabsTrigger
-                key={market}
-                value={market}
-                className="flex items-center gap-2 px-2 py-2 data-[state=active]:bg-amber-100 data-[state=active]:text-black"
-              >
-                {getCurrencyIcon(symbol)
-                  ? (
-                    <img
-                      src={getCurrencyIcon(symbol)!}
-                      alt={symbol}
-                      className="w-5 h-5 rounded-full shadow-sm"
-                    />
-                  )
-                  : (
-                    <div className="w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-black text-xs font-bold">
-                      {symbol.slice(0, 2)}
+      {/* Optimized Market Tabs with Price and Latency */}
+      {availableMarkets.length > 0
+        ? (
+          <Tabs
+            value={selectedMarket}
+            onValueChange={setSelectedMarket}
+          >
+            <TabsList className="flex w-[100%] bg-zinc-900 border p-0 overflow-y-hidden overflow-x-scroll">
+              {availableMarkets.map((market) => {
+                const symbol = market.split("/")[0];
+                const price = getMarketPrice(market);
+                const latency = getMarketLatency(market);
+
+                return (
+                  <TabsTrigger
+                    key={market}
+                    value={market}
+                    className="flex gap-4 px-4 py-4 data-[state=active]:bg-amber-100 data-[state=active]:text-black min-w-fit"
+                  >
+                    {getCurrencyIcon(symbol)
+                      ? (
+                        <img
+                          src={getCurrencyIcon(symbol)!}
+                          alt={symbol}
+                          className="w-5 h-5 rounded-full shadow-sm"
+                        />
+                      )
+                      : (
+                        <div className="w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-black text-xs font-bold">
+                          {symbol.slice(0, 2)}
+                        </div>
+                      )}
+                    <div className="flex flex-col items-start">
+                      <span className="font-medium tracking-wide text-sm">
+                        {market}
+                      </span>
+                      <div className="flex items-center gap-2 text-xs">
+                        {price && (
+                          <span className="font-mono data-[state=active]:text-black">
+                            ${formatPrice(price)}
+                          </span>
+                        )}
+                        {latency > 0 && (
+                          <>
+                            <span className="text-zinc-400">•</span>
+                            <span
+                              className={`font-mono w-8 ${
+                                latency < 1000
+                                  ? "text-green-500"
+                                  : latency < 3000
+                                  ? "text-amber-600"
+                                  : "text-red-500"
+                              }`}
+                            >
+                              live
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  )}
-                <span className="hidden sm:inline font-medium tracking-wide">
-                  {market}
-                </span>
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
-      </Tabs>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </Tabs>
+        )
+        : (
+          <div className="text-center py-8 text-zinc-400">
+            <p>Загрузка данных о рынках...</p>
+          </div>
+        )}
 
       {/* Optimized Professional Header */}
       <div className="bg-zinc-950 border  overflow-hidden">
@@ -563,15 +635,13 @@ const OrderBook: React.FC = () => {
                     )
                     : 0}ms
                 </span>
-                <span>|</span>
-                <span className="text-amber-500">{timeSinceUpdate}</span>
                 {currentOrderBook &&
                   currentOrderBook.exchangeRanking.length > 0 &&
                   currentOrderBook.exchangeRanking[0].percentage > 40 && (
                   <>
                     <span>|</span>
                     <span className="text-red-500 font-semibold">
-                      ⚠️ High Concentration
+                      ⚠️
                     </span>
                   </>
                 )}
