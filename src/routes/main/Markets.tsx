@@ -699,18 +699,17 @@ function Markets(): React.ReactElement {
 													<Badge
 														variant={ticker.latency < 1000
 															? "default"
-															: ticker.latency < 2000
+															: ticker.latency < 3000
 															? "secondary"
 															: "destructive"}
-														className={`text-xs ${
+														className={`text-xs w-[16px] h-[16px] rounded-full ${
 															ticker.latency < 1000
-																? "bg-amber-500/20 text-amber-600 border-amber-400/30"
+																? "bg-green-600/80"
 																: ticker.latency < 2000
-																? "bg-zinc-500/20 text-zinc-400 border-zinc-400/30"
-																: "bg-red-500/20 text-red-400 border-red-400/30"
+																? "bg-green-600/30"
+																: "bg-amber-600/40"
 														}`}
 													>
-														{ticker.latency}ms
 													</Badge>
 												</TableCell>
 											</TableRow>

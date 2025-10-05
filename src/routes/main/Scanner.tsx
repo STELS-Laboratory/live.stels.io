@@ -2073,7 +2073,7 @@ export default function WalletWidget(): React.ReactElement {
 										<div className="text-center">
 											<div className="text-xs text-gray-400 mb-2">EXCHANGE</div>
 											<div className="text-sm font-medium text-amber-400">
-												{runtime.raw.exchanges[0].toUpperCase()}
+												{runtime.raw.exchanges.length > 0 ? runtime.raw.exchanges[0].toUpperCase() : "N/A"}
 											</div>
 											<div className="text-xs text-gray-400 mt-1">
 												primary exchange
