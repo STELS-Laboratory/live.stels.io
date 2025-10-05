@@ -598,7 +598,7 @@ const OrderBook: React.FC = () => {
         )
         : (
           <div className="text-center py-8 text-zinc-400">
-            <p>Загрузка данных о рынках...</p>
+            <p>Loading markets...</p>
           </div>
         )}
 
@@ -660,7 +660,7 @@ const OrderBook: React.FC = () => {
         </header>
 
         {/* Technical Metrics */}
-        <div className="grid grid-cols-3 gap-1 border-b p-2 bg-zinc-900">
+        <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 border-b p-2 bg-zinc-900">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -668,14 +668,18 @@ const OrderBook: React.FC = () => {
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
                     IMBALANCE
                   </div>
-                  <div className="font-mono flex items-center mt-1">
+                  <div className="font-mono flex items-center mt-1 w-full justify-end">
                     {metrics.imbalance > 0
-                      ? <TrendingUp className="h-3 w-3 text-amber-500 mr-1" />
-                      : <TrendingDown className="h-3 w-3 text-zinc-400 mr-1" />}
+                      ? (
+                        <TrendingUp className="h-3 w-3 text-green-400/80 mr-1" />
+                      )
+                      : (
+                        <TrendingDown className="h-3 w-3 text-red-400/80 mr-1" />
+                      )}
                     <span
                       className={metrics.imbalance > 0
-                        ? "text-amber-500"
-                        : "text-zinc-400"}
+                        ? "text-green-400/80"
+                        : "text-red-400/80"}
                     >
                       {Math.abs(metrics.imbalance * 100).toFixed(2)}%
                     </span>
@@ -697,7 +701,7 @@ const OrderBook: React.FC = () => {
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
                     DEPTH RATIO
                   </div>
-                  <div className="font-mono text-amber-500 mt-1">
+                  <div className="flex items-center font-mono text-amber-500 mt-1 w-full justify-end">
                     {metrics.depthRatio.toFixed(2)}
                   </div>
                 </div>
@@ -715,7 +719,7 @@ const OrderBook: React.FC = () => {
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
                     VWAP
                   </div>
-                  <div className="font-mono text-amber-500 mt-1">
+                  <div className="flex items-center font-mono text-amber-500 mt-1 w-full justify-end">
                     {metrics.vwap.toFixed(2)}
                   </div>
                 </div>
@@ -733,7 +737,7 @@ const OrderBook: React.FC = () => {
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
                     LARGE ORDERS
                   </div>
-                  <div className="font-mono text-amber-500 mt-1">
+                  <div className="flex items-center font-mono text-amber-500 mt-1 w-full justify-end">
                     {metrics.largeOrders}
                   </div>
                 </div>
@@ -751,7 +755,7 @@ const OrderBook: React.FC = () => {
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
                     MARKET CONC.
                   </div>
-                  <div className="font-mono text-amber-500 mt-1">
+                  <div className="flex items-center font-mono text-amber-500 mt-1 w-full justify-end">
                     {currentOrderBook &&
                         currentOrderBook.exchangeRanking.length > 0
                       ? currentOrderBook.exchangeRanking[0].percentage.toFixed(
