@@ -907,8 +907,8 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 					{/* Update indicator */}
 					<div className="w-full flex justify-center mt-2">
 						<div className="flex items-center gap-1 text-[10px] text-zinc-500">
-							<span>LAST UPDATE:</span>
-							<span className="font-mono">{timeSinceUpdate}</span>
+							{/*<span>LAST UPDATE:</span>*/}
+							{/*<span className="font-mono">{timeSinceUpdate}</span>*/}
 							<motion.div
 								className="w-2 h-2 rounded-full bg-amber-500/70"
 								initial={{ opacity: 0.3 }}

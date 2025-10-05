@@ -541,7 +541,7 @@ const OrderBook: React.FC = React.memo(() => {
   }, [lastUpdate]);
 
   // Дебаунс для обновления времени - обновляем каждые 5 секунд
-  const [displayTime, setDisplayTime] = useState(timeSinceUpdate);
+  const [_, setDisplayTime] = useState(timeSinceUpdate);
   React.useEffect(() => {
     const interval = setInterval(() => {
       const seconds = Math.floor((Date.now() - lastUpdate) / 1000);
@@ -874,7 +874,7 @@ const OrderBook: React.FC = React.memo(() => {
         </header>
 
         {/* Technical Metrics */}
-        <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 border-b p-2 bg-zinc-900">
+        <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 p-2 bg-zinc-900">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -1260,96 +1260,96 @@ const OrderBook: React.FC = React.memo(() => {
                   />
                 </div>
               </div>
-              <div className="w-full flex justify-center mt-2">
-                <div className="flex items-center gap-1 text-[10px] text-zinc-500">
-                  <span>LAST UPDATE:</span>
-                  <span className="font-mono text-amber-500">
-                    {displayTime}
-                  </span>
-                  <div className="w-2 h-2 rounded-full bg-amber-500" />
-                </div>
-              </div>
+              {/*<div className="w-full flex justify-center mt-2">*/}
+              {/*  <div className="flex items-center gap-1 text-[10px] text-zinc-500">*/}
+              {/*    <span>LAST UPDATE:</span>*/}
+              {/*    <span className="font-mono text-amber-500">*/}
+              {/*      {displayTime}*/}
+              {/*    </span>*/}
+              {/*    <div className="w-2 h-2 rounded-full bg-amber-500" />*/}
+              {/*  </div>*/}
+              {/*</div>*/}
             </div>
           </div>
         </div>
-	      
-	      {/* Compact Exchange Ranking */}
-	      <Card className="bg-zinc-900 border">
-		      <CardHeader>
-			      <CardTitle className="flex items-center gap-2">
-				      <BarChart3 className="w-5 h-5 text-amber-500" />
-				      Exchange Liquidity Ranking
-			      </CardTitle>
-			      <CardDescription>
-				      Click on exchange for detailed order book
-			      </CardDescription>
-		      </CardHeader>
-		      <CardContent>
-			      <div className="grid grid-row-2 gap-0">
-				      {currentOrderBook?.exchangeRanking?.length > 0
-					      ? (
-						      currentOrderBook.exchangeRanking.slice(0, 6).map((
-							      item,
-							      index,
-						      ) => (
-							      <Dialog key={item.exchange}>
-								      <DialogTrigger asChild>
-									      <Button
-										      variant="ghost"
-										      className="bg-zinc-950 h-auto mb-1 p-2 hover:bg-zinc-950 transition-colors border"
-										      onClick={() => openExchangeDetails(item.exchange)}
-									      >
-										      <div className="flex items-center gap-3 w-full">
-											      <Badge
-												      variant="outline"
-												      className="w-6 h-6 rounded-full flex items-center justify-center text-xs bg-amber-500/20 text-amber-500 border-amber-400/30"
-											      >
-												      {index + 1}
-											      </Badge>
-											      {getExchangeIcon(item.exchange)
-												      ? (
-													      <img
-														      src={getExchangeIcon(item.exchange)!}
-														      alt={item.exchange}
-														      className="w-6 h-6 rounded-full"
-													      />
-												      )
-												      : (
-													      <div
-														      className={`w-6 h-6 bg-gradient-to-br ${
-															      getExchangeColor(item.exchange)
-														      } rounded-full flex items-center justify-center text-white text-xs font-bold`}
-													      >
-														      {item.exchange.charAt(0).toUpperCase()}
-													      </div>
-												      )}
-											      <div className="flex-1 text-left">
-												      <div className="font-medium capitalize text-sm">
-													      {item.exchange}
-												      </div>
-												      <div className="text-xs text-amber-500">
-													      {item.percentage.toFixed(1)}%
-												      </div>
-											      </div>
-											      <div className="text-right">
-												      <div className="font-bold text-xs text-amber-500">
-													      ${formatVolume(item.liquidity)}
-												      </div>
-											      </div>
-										      </div>
-									      </Button>
-								      </DialogTrigger>
-							      </Dialog>
-						      ))
-					      )
-					      : (
-						      <div className="text-center py-8 text-zinc-400">
-							      <p>No exchange data available</p>
-						      </div>
-					      )}
-			      </div>
-		      </CardContent>
-	      </Card>
+
+        {/* Compact Exchange Ranking */}
+        <Card className="bg-zinc-900 border">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-amber-500" />
+              Exchange Liquidity Ranking
+            </CardTitle>
+            <CardDescription>
+              Click on exchange for detailed order book
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-row-2 gap-0">
+              {currentOrderBook?.exchangeRanking?.length > 0
+                ? (
+                  currentOrderBook.exchangeRanking.slice(0, 6).map((
+                    item,
+                    index,
+                  ) => (
+                    <Dialog key={item.exchange}>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="bg-zinc-950 h-auto mb-1 p-2 hover:bg-zinc-950 transition-colors border"
+                          onClick={() => openExchangeDetails(item.exchange)}
+                        >
+                          <div className="flex items-center gap-3 w-full">
+                            <Badge
+                              variant="outline"
+                              className="w-6 h-6 rounded-full flex items-center justify-center text-xs bg-amber-500/20 text-amber-500 border-amber-400/30"
+                            >
+                              {index + 1}
+                            </Badge>
+                            {getExchangeIcon(item.exchange)
+                              ? (
+                                <img
+                                  src={getExchangeIcon(item.exchange)!}
+                                  alt={item.exchange}
+                                  className="w-6 h-6 rounded-full"
+                                />
+                              )
+                              : (
+                                <div
+                                  className={`w-6 h-6 bg-gradient-to-br ${
+                                    getExchangeColor(item.exchange)
+                                  } rounded-full flex items-center justify-center text-white text-xs font-bold`}
+                                >
+                                  {item.exchange.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                            <div className="flex-1 text-left">
+                              <div className="font-medium capitalize text-sm">
+                                {item.exchange}
+                              </div>
+                              <div className="text-xs text-amber-500">
+                                {item.percentage.toFixed(1)}%
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-bold text-xs text-amber-500">
+                                ${formatVolume(item.liquidity)}
+                              </div>
+                            </div>
+                          </div>
+                        </Button>
+                      </DialogTrigger>
+                    </Dialog>
+                  ))
+                )
+                : (
+                  <div className="text-center py-8 text-zinc-400">
+                    <p>No exchange data available</p>
+                  </div>
+                )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Exchange Details Modal */}
