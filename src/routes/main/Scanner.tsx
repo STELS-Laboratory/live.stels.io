@@ -49,6 +49,7 @@ import { cn, filterSession } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync";
 import Loader from "@/components/ui/loader";
+import TestnetStatusAlert from "@/components/notifications/TestnetStatusAlert";
 
 const validateAddress = (address: string): boolean => {
 	if (!address || typeof address !== "string") return false;
@@ -1769,6 +1770,9 @@ export default function WalletWidget(): React.ReactElement {
 
 	return (
 		<div className="container m-auto">
+			{/* Notify Users */}
+			<TestnetStatusAlert variant="compact" className="mb-6" />
+
 			{/* Navigation Tabs */}
 			<Card className="p-0 bg-zinc-950 border-0">
 				<CardContent className="p-0">
@@ -1825,7 +1829,6 @@ export default function WalletWidget(): React.ReactElement {
 							value="overview"
 							className="p-0 space-y-3 sm:space-y-4"
 						>
-
 							{/* Key Performance Metrics */}
 							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 min-w-0">
 								{/* Total Liquidity */}
@@ -2073,7 +2076,9 @@ export default function WalletWidget(): React.ReactElement {
 										<div className="text-center">
 											<div className="text-xs text-gray-400 mb-2">EXCHANGE</div>
 											<div className="text-sm font-medium text-amber-400">
-												{runtime.raw.exchanges.length > 0 ? runtime.raw.exchanges[0].toUpperCase() : "N/A"}
+												{runtime.raw.exchanges.length > 0
+													? runtime.raw.exchanges[0].toUpperCase()
+													: "N/A"}
 											</div>
 											<div className="text-xs text-gray-400 mt-1">
 												primary exchange
