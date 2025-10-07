@@ -11,8 +11,17 @@ function SessionProvider(
 	const { connectionSession, isConnected } = useAuthStore();
 
 	useEffect(() => {
+		console.log("[Provider] WebSocket connection effect triggered:", {
+			isConnected,
+			hasConnectionSession: !!connectionSession,
+			socket: connectionSession?.socket,
+			network: connectionSession?.network,
+		});
+
 		// Only connect if user is authenticated and has a connection session
-		if (isConnected && connectionSession) {
+		if (isConnected && connectionSession && connectionSession.socket) {
+			console.log("[Provider] Initiating WebSocket connection...");
+
 			const config = {
 				raw: {
 					info: {
@@ -28,6 +37,16 @@ function SessionProvider(
 			};
 
 			connectNode(config);
+		} else {
+			console.log("[Provider] WebSocket connection skipped:", {
+				reason: !isConnected
+					? "not connected"
+					: !connectionSession
+					? "no session"
+					: !connectionSession.socket
+					? "no socket URL"
+					: "unknown",
+			});
 		}
 	}, [connectNode, isConnected, connectionSession]);
 

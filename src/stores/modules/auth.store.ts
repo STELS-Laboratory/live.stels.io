@@ -328,10 +328,21 @@ export const useAuthStore = create<AuthStore>()(
 								connectionError: null
 							});
 							
-							// Store session in localStorage for WebSocket
+							// Store complete session data in localStorage for WebSocket
 							localStorage.setItem('private-store', JSON.stringify({
 								raw: {
-									session: session.session
+									session: session.session,
+									token: session.token,
+									info: {
+										network: session.network,
+										title: session.title,
+										nid: session.nid,
+										api: session.api,
+										connector: {
+											socket: session.socket
+										},
+										developer: session.developer
+									}
 								}
 							}));
 							
@@ -393,13 +404,13 @@ export const useAuthStore = create<AuthStore>()(
 						// Extract session data from saved session
 						const session: ConnectionSession = {
 							session: sessionData.raw.session,
-							token: sessionData.raw.token,
-							network: sessionData.raw.info.network,
-							title: sessionData.raw.info.title,
-							nid: sessionData.raw.info.nid,
-							api: sessionData.raw.info.api,
-							socket: sessionData.raw.info.connector.socket,
-							developer: sessionData.raw.info.developer
+							token: sessionData.raw.token || '',
+							network: sessionData.raw.info?.network || '',
+							title: sessionData.raw.info?.title || '',
+							nid: sessionData.raw.info?.nid || '',
+							api: sessionData.raw.info?.api || '',
+							socket: sessionData.raw.info?.connector?.socket || '',
+							developer: sessionData.raw.info?.developer || false
 						};
 						
 						// Restore the connection state without reconnecting

@@ -49,6 +49,15 @@ function createWebSocket(
 		return null;
 	}
 	
+	// Validate session format
+	if (typeof session !== 'string' || session.length === 0) {
+		console.warn('Invalid session format in localStorage:', session);
+		setTimeout(() => {
+			onSessionExpired();
+		}, 1000);
+		return null;
+	}
+	
 	const wsUrl = `${info.connector.socket}?session=${session}`;
 	const protocols = info.connector.protocols || [];
 	const ws = new WebSocket(wsUrl, protocols);
@@ -140,13 +149,21 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 	isCleaningUp: false,
 	
 	connectNode: (config: WebSocketConfig) => {
+		console.log('[WebSocketStore] connectNode called with config:', config);
+		
 		const connectWebSocket = () => {
 			// Закрываем предыдущее соединение перед созданием нового
 			const { ws: currentWs, sessionExpired } = get();
 			
+			console.log('[WebSocketStore] connectWebSocket called:', {
+				hasCurrentWs: !!currentWs,
+				currentWsState: currentWs?.readyState,
+				sessionExpired
+			});
+			
 			// Если сессия уже истекла, не пытаемся подключаться
 			if (sessionExpired) {
-				console.log('Session expired, skipping WebSocket connection');
+				console.log('[WebSocketStore] Session expired, skipping WebSocket connection');
 				return;
 			}
 			
