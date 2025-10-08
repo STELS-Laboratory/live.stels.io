@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface DropdownProps {
   children: React.ReactNode;
@@ -29,49 +31,95 @@ export function SimpleDropdown({
 }: DropdownProps): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        !dropdownRef.current.contains(event.target as Node) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
       }
     };
 
+    const handleScroll = () => {
+      setIsOpen(false);
+    };
+
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
+      window.addEventListener("scroll", handleScroll, true);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll, true);
     };
   }, [isOpen]);
 
-  const alignmentClasses = {
-    start: "left-0",
-    center: "left-1/2 -translate-x-1/2",
-    end: "right-0",
+  useEffect(() => {
+    if (isOpen && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+  }, [isOpen]);
+
+  const handleToggle = (): void => {
+    setIsOpen(!isOpen);
+  };
+
+  const getAlignmentStyle = (): React.CSSProperties => {
+    if (align === "end") {
+      return {
+        right: `${window.innerWidth - position.left - position.width}px`,
+      };
+    } else if (align === "center") {
+      return {
+        left: `${position.left + position.width / 2}px`,
+        transform: "translateX(-50%)",
+      };
+    }
+    return { left: `${position.left}px` };
   };
 
   return (
-    <div ref={dropdownRef} className="relative">
-      <div onClick={() => setIsOpen(!isOpen)}>
+    <div ref={triggerRef} className="relative">
+      <div onClick={handleToggle}>
         {trigger}
       </div>
 
-      {isOpen && (
-        <div
-          className={cn(
-            "absolute z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95",
-            "top-full mt-1",
-            alignmentClasses[align],
-            className,
-          )}
-        >
-          {children}
-        </div>
+      {isOpen && createPortal(
+        <AnimatePresence>
+          <motion.div
+            ref={dropdownRef}
+            className={cn(
+              "fixed z-[9999] min-w-[8rem] overflow-hidden rounded-md border bg-popover/95 backdrop-blur-md p-1 text-popover-foreground shadow-xl",
+              className,
+            )}
+            style={{
+              top: `${position.top}px`,
+              ...getAlignmentStyle(),
+            }}
+            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            transition={{
+              duration: 0.2,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>,
+        document.body,
       )}
     </div>
   );

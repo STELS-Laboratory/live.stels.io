@@ -124,20 +124,20 @@ function AppCard({ app, onLaunch, index }: AppCardProps): React.ReactElement {
 		// Delay navigation for animation
 		setTimeout(() => {
 			onLaunch(app.route);
-		}, 400);
+		}, 700);
 	};
 
 	return (
 		<motion.button
-			initial={{ opacity: 0, y: 20, scale: 0.9 }}
+			initial={{ opacity: 0, y: 30, scale: 0.88 }}
 			animate={{ opacity: 1, y: 0, scale: 1 }}
 			transition={{
-				duration: 0.5,
-				delay: index * 0.1,
-				ease: [0.25, 0.46, 0.45, 0.94],
+				duration: 0.8,
+				delay: index * 0.15,
+				ease: [0.16, 1, 0.3, 1],
 			}}
-			whileHover={{ scale: 1.02, y: -4 }}
-			whileTap={{ scale: 0.98 }}
+			whileHover={{ scale: 1.03, y: -6 }}
+			whileTap={{ scale: 0.97 }}
 			onClick={handleClick}
 			className={`
         group relative overflow-hidden rounded-2xl
@@ -155,14 +155,40 @@ function AppCard({ app, onLaunch, index }: AppCardProps): React.ReactElement {
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
+						transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
 						className="absolute inset-0 bg-gradient-to-br from-amber-500/30 to-orange-500/30 backdrop-blur-sm z-10 flex items-center justify-center"
 					>
 						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1, rotate: 360 }}
-							transition={{ duration: 0.4 }}
-							className="w-16 h-16 rounded-full border-4 border-amber-500 border-t-transparent animate-spin"
-						/>
+							initial={{ scale: 0, rotate: -180 }}
+							animate={{ scale: 1, rotate: 0 }}
+							transition={{
+								duration: 0.6,
+								ease: [0.34, 1.56, 0.64, 1],
+							}}
+							className="relative"
+						>
+							<motion.div
+								className="w-16 h-16 rounded-full border-4 border-amber-500 border-t-transparent"
+								animate={{ rotate: 360 }}
+								transition={{
+									duration: 1.5,
+									repeat: Infinity,
+									ease: "linear",
+								}}
+							/>
+							<motion.div
+								className="absolute inset-0 bg-amber-500/20 rounded-full"
+								animate={{
+									scale: [1, 1.3, 1],
+									opacity: [0.5, 0, 0.5],
+								}}
+								transition={{
+									duration: 2,
+									repeat: Infinity,
+									ease: "easeInOut",
+								}}
+							/>
+						</motion.div>
 					</motion.div>
 				)}
 			</AnimatePresence>
@@ -172,22 +198,37 @@ function AppCard({ app, onLaunch, index }: AppCardProps): React.ReactElement {
 				<motion.div
 					initial={{ scale: 0, rotate: -180 }}
 					animate={{ scale: 1, rotate: 0 }}
-					transition={{ delay: index * 0.1 + 0.3, duration: 0.5 }}
+					transition={{
+						delay: index * 0.15 + 0.5,
+						duration: 0.8,
+						ease: [0.34, 1.56, 0.64, 1],
+					}}
 					className="absolute top-4 right-4"
 				>
-					<div className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/20 border border-amber-500/30">
+					<motion.div
+						className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/20 border border-amber-500/30"
+						animate={{
+							scale: [1, 1.05, 1],
+						}}
+						transition={{
+							duration: 3,
+							repeat: Infinity,
+							ease: "easeInOut",
+						}}
+					>
 						<motion.div
 							animate={{ rotate: [0, 20, -20, 0] }}
 							transition={{
-								duration: 2,
+								duration: 3,
 								repeat: Infinity,
-								repeatDelay: 3,
+								repeatDelay: 4,
+								ease: "easeInOut",
 							}}
 						>
 							<Sparkles className="w-3 h-3 text-amber-500" />
 						</motion.div>
 						<span className="text-xs font-medium text-amber-500">Featured</span>
-					</div>
+					</motion.div>
 				</motion.div>
 			)}
 
@@ -195,10 +236,14 @@ function AppCard({ app, onLaunch, index }: AppCardProps): React.ReactElement {
 			<motion.div
 				className="mb-4 text-amber-500"
 				animate={isLaunching
-					? { scale: [1, 1.2, 1], rotate: [0, 5, -5, 0] }
+					? { scale: [1, 1.3, 1], rotate: [0, 10, -10, 0] }
 					: { scale: 1 }}
-				transition={{ duration: 0.3 }}
-				whileHover={{ scale: 1.1, rotate: 5 }}
+				transition={{ duration: 0.6, ease: "easeInOut" }}
+				whileHover={{
+					scale: 1.15,
+					rotate: 8,
+					transition: { duration: 0.4, ease: [0.34, 1.56, 0.64, 1] },
+				}}
 			>
 				{app.icon}
 			</motion.div>
@@ -227,7 +272,7 @@ function AppCard({ app, onLaunch, index }: AppCardProps): React.ReactElement {
 				className="absolute inset-0 bg-gradient-to-t from-zinc-900/50 to-transparent pointer-events-none"
 				initial={{ opacity: 0 }}
 				whileHover={{ opacity: 1 }}
-				transition={{ duration: 0.3 }}
+				transition={{ duration: 0.5, ease: "easeOut" }}
 			/>
 
 			{/* Animated border */}
@@ -235,7 +280,7 @@ function AppCard({ app, onLaunch, index }: AppCardProps): React.ReactElement {
 				className="absolute inset-0 rounded-2xl pointer-events-none"
 				initial={{ opacity: 0 }}
 				whileHover={{ opacity: 1 }}
-				transition={{ duration: 0.3 }}
+				transition={{ duration: 0.5, ease: "easeOut" }}
 			>
 				<motion.div
 					className="absolute inset-0 rounded-2xl"
@@ -248,9 +293,9 @@ function AppCard({ app, onLaunch, index }: AppCardProps): React.ReactElement {
 						x: ["-200%", "200%"],
 					}}
 					transition={{
-						duration: 2,
+						duration: 3,
 						repeat: Infinity,
-						ease: "linear",
+						ease: "easeInOut",
 					}}
 				/>
 			</motion.div>
@@ -271,7 +316,7 @@ function Welcome(): React.ReactElement {
 		// Give time for exit animation
 		setTimeout(() => {
 			setRoute(route);
-		}, 600);
+		}, 900);
 	};
 
 	const featuredApps = applications.filter((app) => app.featured);
@@ -282,26 +327,27 @@ function Welcome(): React.ReactElement {
 			className="h-full w-full overflow-y-auto"
 			initial={{ opacity: 0 }}
 			animate={{ opacity: isExiting ? 0 : 1 }}
-			transition={{ duration: 0.5 }}
+			transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
 		>
 			<div className="container mx-auto px-6 py-12 max-w-7xl">
 				{/* Header */}
 				<div className="mb-12 text-center space-y-4">
 					<motion.div
-						initial={{ opacity: 0, y: -20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.6, delay: 0.2 }}
+						initial={{ opacity: 0, y: -30, scale: 0.9 }}
+						animate={{ opacity: 1, y: 0, scale: 1 }}
+						transition={{ duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
 						className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-4"
 					>
 						<motion.div
 							animate={{
-								rotate: [0, 20, -20, 0],
-								scale: [1, 1.1, 1],
+								rotate: [0, 25, -25, 0],
+								scale: [1, 1.15, 1],
 							}}
 							transition={{
-								duration: 2,
+								duration: 3.5,
 								repeat: Infinity,
-								repeatDelay: 3,
+								repeatDelay: 4,
+								ease: "easeInOut",
 							}}
 						>
 							<Sparkles className="w-4 h-4 text-amber-500" />
@@ -312,18 +358,18 @@ function Welcome(): React.ReactElement {
 					</motion.div>
 
 					<motion.h1
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.6, delay: 0.3 }}
+						initial={{ opacity: 0, y: 30, scale: 0.95 }}
+						animate={{ opacity: 1, y: 0, scale: 1 }}
+						transition={{ duration: 0.9, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
 						className="text-5xl font-bold text-white mb-4"
 					>
 						Welcome, <span className="text-amber-500">STELS</span>
 					</motion.h1>
 
 					<motion.p
-						initial={{ opacity: 0, y: 20 }}
+						initial={{ opacity: 0, y: 30 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.6, delay: 0.4 }}
+						transition={{ duration: 0.9, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
 						className="text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed"
 					>
 						Professional trading and analytics suite for cryptocurrency markets.
@@ -335,24 +381,30 @@ function Welcome(): React.ReactElement {
 				{featuredApps.length > 0 && (
 					<motion.div
 						className="mb-12"
-						initial={{ opacity: 0, y: 20 }}
+						initial={{ opacity: 0, y: 30 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.6, delay: 0.5 }}
+						transition={{ duration: 0.8, delay: 0.9, ease: [0.16, 1, 0.3, 1] }}
 					>
 						<motion.div
 							className="flex items-center gap-3 mb-6"
-							initial={{ opacity: 0, x: -20 }}
+							initial={{ opacity: 0, x: -30 }}
 							animate={{ opacity: 1, x: 0 }}
-							transition={{ duration: 0.5, delay: 0.6 }}
+							transition={{
+								duration: 0.7,
+								delay: 1.1,
+								ease: [0.16, 1, 0.3, 1],
+							}}
 						>
 							<motion.div
 								animate={{
-									rotate: [0, 20, -20, 0],
+									rotate: [0, 25, -25, 0],
+									scale: [1, 1.1, 1],
 								}}
 								transition={{
-									duration: 2,
+									duration: 3.5,
 									repeat: Infinity,
-									repeatDelay: 2,
+									repeatDelay: 3,
+									ease: "easeInOut",
 								}}
 							>
 								<Sparkles className="w-5 h-5 text-amber-500" />
@@ -376,17 +428,36 @@ function Welcome(): React.ReactElement {
 				{/* Other Apps */}
 				{otherApps.length > 0 && (
 					<motion.div
-						initial={{ opacity: 0, y: 20 }}
+						initial={{ opacity: 0, y: 30 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.6, delay: 0.8 }}
+						transition={{
+							duration: 0.8,
+							delay: 1.3,
+							ease: [0.16, 1, 0.3, 1],
+						}}
 					>
 						<motion.div
 							className="flex items-center gap-3 mb-6"
-							initial={{ opacity: 0, x: -20 }}
+							initial={{ opacity: 0, x: -30 }}
 							animate={{ opacity: 1, x: 0 }}
-							transition={{ duration: 0.5, delay: 0.9 }}
+							transition={{
+								duration: 0.7,
+								delay: 1.5,
+								ease: [0.16, 1, 0.3, 1],
+							}}
 						>
-							<Activity className="w-5 h-5 text-zinc-400" />
+							<motion.div
+								animate={{
+									scale: [1, 1.1, 1],
+								}}
+								transition={{
+									duration: 3,
+									repeat: Infinity,
+									ease: "easeInOut",
+								}}
+							>
+								<Activity className="w-5 h-5 text-zinc-400" />
+							</motion.div>
 							<h2 className="text-2xl font-bold text-white">All Apps</h2>
 						</motion.div>
 
@@ -406,14 +477,24 @@ function Welcome(): React.ReactElement {
 				{/* Footer info */}
 				<motion.div
 					className="mt-16 pt-8 border-t border-zinc-800/50 text-center"
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					transition={{ duration: 0.6, delay: 1.2 }}
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.8, delay: 1.8, ease: [0.16, 1, 0.3, 1] }}
 				>
-					<p className="text-sm text-zinc-500">
+					<motion.p
+						className="text-sm text-zinc-500"
+						animate={{
+							opacity: [0.7, 1, 0.7],
+						}}
+						transition={{
+							duration: 4,
+							repeat: Infinity,
+							ease: "easeInOut",
+						}}
+					>
 						{applications.length}{" "}
 						applications available • Built with SONAR Protocol
-					</p>
+					</motion.p>
 				</motion.div>
 			</div>
 		</motion.div>

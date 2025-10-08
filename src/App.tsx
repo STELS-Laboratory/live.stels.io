@@ -232,7 +232,7 @@ export default function Dashboard(): React.ReactElement {
 					}
 					break;
 
-				case "checking_session":
+				case "checking_session": {
 					const authStoreData = localStorage.getItem("auth-store");
 					const privateStoreData = localStorage.getItem("private-store");
 					const hasValidSession = privateStoreData &&
@@ -287,6 +287,7 @@ export default function Dashboard(): React.ReactElement {
 						await transitionToState("authenticating", delay);
 					}
 					break;
+				}
 
 				case "authenticating":
 					// This state is handled by the auth flow component
@@ -304,11 +305,12 @@ export default function Dashboard(): React.ReactElement {
 					}
 					break;
 
-				case "loading_app":
+				case "loading_app": {
 					// Handle splash screen and final app loading
 					const delay = getTransitionDelay("loading_app", "ready");
 					await transitionToState("ready", delay);
 					break;
+				}
 
 				case "upgrading":
 					if (!upgrade) {
@@ -377,28 +379,46 @@ export default function Dashboard(): React.ReactElement {
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
 				exit={{ opacity: 0 }}
-				transition={{ duration: 0.4 }}
+				transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
 			>
 				<motion.div
 					className="w-full max-w-md space-y-6 text-center"
-					initial={{ scale: 0.9, y: 20 }}
+					initial={{ scale: 0.92, y: 30 }}
 					animate={{ scale: 1, y: 0 }}
-					transition={{ duration: 0.5, delay: 0.1 }}
+					transition={{
+						duration: 0.8,
+						delay: 0.2,
+						ease: [0.16, 1, 0.3, 1],
+					}}
 				>
 					{/* Loading Animation */}
 					<motion.div
 						className="relative mx-auto w-20 h-20"
 						initial={{ scale: 0, rotate: -180 }}
 						animate={{ scale: 1, rotate: 0 }}
-						transition={{ duration: 0.6, delay: 0.2 }}
+						transition={{
+							duration: 1,
+							delay: 0.3,
+							ease: [0.34, 1.56, 0.64, 1],
+						}}
 					>
-						<div className="absolute inset-0 border-4 border-amber-500/20 rounded-full">
-						</div>
+						<motion.div
+							className="absolute inset-0 border-4 border-amber-500/20 rounded-full"
+							animate={{
+								scale: [1, 1.05, 1],
+								opacity: [0.2, 0.3, 0.2],
+							}}
+							transition={{
+								duration: 3,
+								repeat: Infinity,
+								ease: "easeInOut",
+							}}
+						/>
 						<motion.div
 							className="absolute inset-0 border-4 border-transparent border-t-amber-500 rounded-full"
 							animate={{ rotate: 360 }}
 							transition={{
-								duration: 1,
+								duration: 2,
 								repeat: Infinity,
 								ease: "linear",
 							}}
@@ -407,7 +427,7 @@ export default function Dashboard(): React.ReactElement {
 							className="absolute inset-2 border-2 border-transparent border-t-blue-400 rounded-full"
 							animate={{ rotate: 360 }}
 							transition={{
-								duration: 0.7,
+								duration: 1.4,
 								repeat: Infinity,
 								ease: "linear",
 							}}
@@ -416,17 +436,29 @@ export default function Dashboard(): React.ReactElement {
 
 					{/* State Message */}
 					<motion.div
-						initial={{ opacity: 0, y: 10 }}
+						initial={{ opacity: 0, y: 15 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.4, delay: 0.3 }}
+						transition={{ duration: 0.6, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
 					>
-						<h2 className="text-2xl font-bold text-white mb-2">STELS</h2>
+						<motion.h2
+							className="text-2xl font-bold text-white mb-2"
+							animate={{
+								opacity: [1, 0.95, 1],
+							}}
+							transition={{
+								duration: 3,
+								repeat: Infinity,
+								ease: "easeInOut",
+							}}
+						>
+							STELS
+						</motion.h2>
 						<motion.p
 							className="text-zinc-400 text-lg"
 							key={message}
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							transition={{ duration: 0.3 }}
+							initial={{ opacity: 0, y: 5 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
 						>
 							{message}
 						</motion.p>
@@ -435,24 +467,24 @@ export default function Dashboard(): React.ReactElement {
 					{/* Progress Bar */}
 					<motion.div
 						className="space-y-2"
-						initial={{ opacity: 0, scale: 0.95 }}
+						initial={{ opacity: 0, scale: 0.93 }}
 						animate={{ opacity: 1, scale: 1 }}
-						transition={{ duration: 0.4, delay: 0.4 }}
+						transition={{ duration: 0.7, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
 					>
 						<div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
 							<motion.div
 								className="bg-gradient-to-r from-amber-500 to-blue-500 h-2 rounded-full"
 								initial={{ width: "0%" }}
 								animate={{ width: `${transitionProgress}%` }}
-								transition={{ duration: 0.3, ease: "easeOut" }}
+								transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
 							>
 								<motion.div
 									className="h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent"
 									animate={{ x: ["-100%", "100%"] }}
 									transition={{
-										duration: 1.5,
+										duration: 2.5,
 										repeat: Infinity,
-										ease: "linear",
+										ease: "easeInOut",
 									}}
 								/>
 							</motion.div>
@@ -460,9 +492,9 @@ export default function Dashboard(): React.ReactElement {
 						<motion.p
 							className="text-xs text-zinc-500"
 							key={Math.round(transitionProgress)}
-							initial={{ scale: 1.1 }}
-							animate={{ scale: 1 }}
-							transition={{ duration: 0.2 }}
+							initial={{ scale: 1.15, opacity: 0 }}
+							animate={{ scale: 1, opacity: 1 }}
+							transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
 						>
 							{Math.round(transitionProgress)}% complete
 						</motion.p>
@@ -473,25 +505,25 @@ export default function Dashboard(): React.ReactElement {
 						className="flex items-center justify-center gap-2 text-sm text-zinc-500"
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
-						transition={{ duration: 0.4, delay: 0.5 }}
+						transition={{ duration: 0.6, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
 					>
 						<motion.div
 							className="w-2 h-2 bg-amber-400 rounded-full"
 							animate={{
-								scale: [1, 1.3, 1],
-								opacity: [1, 0.5, 1],
+								scale: [1, 1.4, 1],
+								opacity: [1, 0.4, 1],
 							}}
 							transition={{
-								duration: 1.5,
+								duration: 2.5,
 								repeat: Infinity,
 								ease: "easeInOut",
 							}}
 						/>
 						<motion.span
 							key={appState}
-							initial={{ opacity: 0, y: 5 }}
+							initial={{ opacity: 0, y: 8 }}
 							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.3 }}
+							transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
 						>
 							State: {appState.replace("_", " ")}
 						</motion.span>
@@ -520,12 +552,13 @@ export default function Dashboard(): React.ReactElement {
 
 	/**
 	 * Animation variants for route transitions
+	 * Smooth and organic timing for better feel
 	 */
 	const pageVariants = {
 		initial: {
 			opacity: 0,
-			scale: 0.98,
-			y: 10,
+			scale: 0.96,
+			y: 20,
 		},
 		animate: {
 			opacity: 1,
@@ -534,8 +567,8 @@ export default function Dashboard(): React.ReactElement {
 		},
 		exit: {
 			opacity: 0,
-			scale: 0.98,
-			y: -10,
+			scale: 0.96,
+			y: -20,
 		},
 	};
 
@@ -591,10 +624,10 @@ export default function Dashboard(): React.ReactElement {
 			// Show authentication flow with smooth transition
 			return (
 				<motion.div
-					initial={{ opacity: 0, scale: 0.98 }}
+					initial={{ opacity: 0, scale: 0.95 }}
 					animate={{ opacity: 1, scale: 1 }}
-					exit={{ opacity: 0, scale: 0.98 }}
-					transition={{ duration: 0.4 }}
+					exit={{ opacity: 0, scale: 0.95 }}
+					transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
 				>
 					<ProfessionalConnectionFlow />
 				</motion.div>
@@ -639,8 +672,8 @@ export default function Dashboard(): React.ReactElement {
 													animate="animate"
 													exit="exit"
 													transition={{
-														duration: 0.3,
-														ease: [0.25, 0.46, 0.45, 0.94],
+														duration: 0.6,
+														ease: [0.16, 1, 0.3, 1],
 													}}
 													className="h-full w-full"
 												>

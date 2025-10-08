@@ -17,6 +17,7 @@ import { Progress } from "@/components/ui/progress";
 import {
 	Boxes,
 	CandlestickChart,
+	ChevronLeft,
 	Code,
 	Globe,
 	Home,
@@ -50,6 +51,35 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 	// Wallet info is now handled by ConnectionStatusSimple component
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+	/**
+	 * Navigate back to welcome screen (App Store)
+	 */
+	const handleBackToWelcome = (): void => {
+		navigateTo("welcome");
+	};
+
+	/**
+	 * Check if we should show the back button
+	 */
+	const showBackButton = currentRoute !== "welcome";
+
+	/**
+	 * Get friendly app name for current route
+	 */
+	const getAppName = (route: string): string => {
+		const names: Record<string, string> = {
+			welcome: "Welcome",
+			scanner: "Liquidity Scanner",
+			markets: "Market Data",
+			fred: "Indicators",
+			network: "Network Explorer",
+			editor: "AMI Editor",
+			wallet: "Wallet",
+			canvas: "Widget Studio",
+		};
+		return names[route] || route;
+	};
+
 	const generalNav: NavItem[] = [
 		{ key: "welcome", label: "Welcome", icon: Home },
 		{ key: "scanner", label: "Scanner", icon: ScanSearch },
@@ -75,13 +105,14 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 			return (
 				<motion.div
 					key={item.key}
-					whileTap={{ scale: 0.97 }}
+					whileTap={{ scale: 0.95 }}
+					transition={{ duration: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
 				>
 					<Button
 						variant={isActive ? "default" : "ghost"}
 						size="sm"
 						className={cn(
-							"flex items-center gap-2 w-full justify-start",
+							"flex items-center gap-2 w-full justify-start transition-all duration-300",
 							isActive
 								? "bg-amber-500/20 text-amber-400 border-amber-500/30"
 								: "text-muted-foreground hover:text-foreground hover:bg-muted/50",
@@ -93,8 +124,8 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						aria-current={isActive ? "page" : undefined}
 					>
 						<motion.div
-							animate={isActive ? { rotate: [0, -5, 5, 0] } : {}}
-							transition={{ duration: 0.5 }}
+							animate={isActive ? { rotate: [0, -8, 8, 0] } : {}}
+							transition={{ duration: 0.8, ease: "easeInOut" }}
 						>
 							<Icon className="size-4 shrink-0" />
 						</motion.div>
@@ -108,9 +139,9 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 			<motion.div
 				className="w-full flex"
 				key={item.key}
-				initial={{ opacity: 0, x: -20 }}
+				initial={{ opacity: 0, x: -30 }}
 				animate={{ opacity: 1, x: 0 }}
-				transition={{ duration: 0.3, delay: 0.05 }}
+				transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
 			>
 				<TooltipProvider>
 					<Tooltip delayDuration={200}>
@@ -119,29 +150,33 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								type="button"
 								onClick={() => navigateTo(item.key)}
 								className={cn(
-									"cursor-pointer flex flex-1 items-center p-3 m-1 justify-center text-sm transition-all duration-200 outline-none rounded-lg",
+									"cursor-pointer flex flex-1 items-center p-3 m-1 justify-center text-sm transition-all duration-300 outline-none rounded-lg",
 									"hover:bg-amber-500/10 hover:text-amber-400",
 									isActive
 										? "text-amber-400 bg-amber-500/20 ring-1 ring-amber-500/30 shadow-sm"
 										: "text-muted-foreground",
 								)}
 								aria-current={isActive ? "page" : undefined}
-								whileHover={{ scale: 1.05 }}
-								whileTap={{ scale: 0.95 }}
-								animate={isActive ? { scale: [1, 1.05, 1] } : { scale: 1 }}
+								whileHover={{
+									scale: 1.08,
+									transition: { duration: 0.4, ease: [0.34, 1.56, 0.64, 1] },
+								}}
+								whileTap={{ scale: 0.92 }}
+								animate={isActive ? { scale: [1, 1.06, 1] } : { scale: 1 }}
 								transition={{
 									scale: isActive
 										? {
-											duration: 0.3,
+											duration: 0.6,
 											repeat: 0,
+											ease: [0.16, 1, 0.3, 1],
 										}
-										: { duration: 0.2 },
+										: { duration: 0.3 },
 								}}
 							>
 								<motion.div
-									animate={isActive ? { rotate: [0, -5, 5, 0] } : { rotate: 0 }}
+									animate={isActive ? { rotate: [0, -8, 8, 0] } : { rotate: 0 }}
 									transition={{
-										duration: 0.5,
+										duration: 0.8,
 										ease: "easeInOut",
 									}}
 								>
@@ -174,17 +209,32 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 					aria-label="Primary navigation"
 					initial={{ x: -80, opacity: 0 }}
 					animate={{ x: 0, opacity: 1 }}
-					transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+					transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
 				>
 					<div className="flex h-30 w-full items-center justify-center border-b border-border/50">
 						<motion.button
 							onClick={() => navigateTo("welcome")}
 							className="flex items-center justify-center p-2 cursor-pointer"
 							aria-label="Go to welcome page"
-							whileHover={{ scale: 1.05, rotate: 5 }}
-							whileTap={{ scale: 0.95 }}
+							whileHover={{
+								scale: 1.1,
+								rotate: 10,
+								transition: { duration: 0.5, ease: [0.34, 1.56, 0.64, 1] },
+							}}
+							whileTap={{ scale: 0.9 }}
 						>
-							<Graphite size={3} />
+							<motion.div
+								animate={{
+									rotate: [0, 3, -3, 0],
+								}}
+								transition={{
+									duration: 4,
+									repeat: Infinity,
+									ease: "easeInOut",
+								}}
+							>
+								<Graphite size={3} />
+							</motion.div>
 						</motion.button>
 					</div>
 
@@ -212,25 +262,38 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 
 					<motion.div
 						className="p-4 h-16"
-						initial={{ opacity: 0, y: 20 }}
+						initial={{ opacity: 0, y: 30 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5, delay: 0.3 }}
+						transition={{ duration: 0.7, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
 					>
 						<motion.div
 							animate={{
-								scale: [1, 1.02, 1],
+								scale: [1, 1.04, 1],
 							}}
 							transition={{
-								duration: 2,
+								duration: 3,
 								repeat: Infinity,
-								repeatDelay: 3,
+								repeatDelay: 4,
+								ease: "easeInOut",
 							}}
 						>
 							<Badge
 								variant="outline"
 								className="w-full justify-center text-amber-400 border-amber-500/30 bg-amber-500/5"
 							>
-								<span className="font-medium">TEST</span>
+								<motion.span
+									className="font-medium"
+									animate={{
+										opacity: [0.8, 1, 0.8],
+									}}
+									transition={{
+										duration: 2.5,
+										repeat: Infinity,
+										ease: "easeInOut",
+									}}
+								>
+									TEST
+								</motion.span>
 							</Badge>
 						</motion.div>
 					</motion.div>
@@ -243,26 +306,30 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						<div className="lg:hidden">
 							<motion.div
 								className="flex items-center justify-between p-4 h-16"
-								initial={{ y: -20, opacity: 0 }}
+								initial={{ y: -30, opacity: 0 }}
 								animate={{ y: 0, opacity: 1 }}
-								transition={{ duration: 0.4 }}
+								transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
 							>
 								<div className="flex items-center gap-3">
 									<motion.button
 										onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
 										className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
 										aria-label="Toggle mobile menu"
-										whileTap={{ scale: 0.9 }}
+										whileTap={{ scale: 0.85, rotate: 15 }}
+										transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
 									>
 										<AnimatePresence mode="wait" initial={false}>
 											{isMobileMenuOpen
 												? (
 													<motion.div
 														key="close"
-														initial={{ rotate: -90, opacity: 0 }}
-														animate={{ rotate: 0, opacity: 1 }}
-														exit={{ rotate: 90, opacity: 0 }}
-														transition={{ duration: 0.2 }}
+														initial={{ rotate: -180, opacity: 0, scale: 0.5 }}
+														animate={{ rotate: 0, opacity: 1, scale: 1 }}
+														exit={{ rotate: 180, opacity: 0, scale: 0.5 }}
+														transition={{
+															duration: 0.4,
+															ease: [0.34, 1.56, 0.64, 1],
+														}}
 													>
 														<X className="size-5" />
 													</motion.div>
@@ -270,10 +337,13 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 												: (
 													<motion.div
 														key="menu"
-														initial={{ rotate: 90, opacity: 0 }}
-														animate={{ rotate: 0, opacity: 1 }}
-														exit={{ rotate: -90, opacity: 0 }}
-														transition={{ duration: 0.2 }}
+														initial={{ rotate: 180, opacity: 0, scale: 0.5 }}
+														animate={{ rotate: 0, opacity: 1, scale: 1 }}
+														exit={{ rotate: -180, opacity: 0, scale: 0.5 }}
+														transition={{
+															duration: 0.4,
+															ease: [0.34, 1.56, 0.64, 1],
+														}}
 													>
 														<Menu className="size-5" />
 													</motion.div>
@@ -282,83 +352,241 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 									</motion.button>
 									<motion.div
 										className="flex items-center gap-2"
-										initial={{ x: -20, opacity: 0 }}
+										initial={{ x: -30, opacity: 0 }}
 										animate={{ x: 0, opacity: 1 }}
-										transition={{ duration: 0.4, delay: 0.1 }}
+										transition={{
+											duration: 0.6,
+											delay: 0.2,
+											ease: [0.16, 1, 0.3, 1],
+										}}
 									>
-										<Graphite size={1.5} />
+										<motion.div
+											animate={{
+												rotate: [0, 5, -5, 0],
+											}}
+											transition={{
+												duration: 4,
+												repeat: Infinity,
+												ease: "easeInOut",
+											}}
+										>
+											<Graphite size={1.5} />
+										</motion.div>
 										<span className="text-sm font-semibold">STELS</span>
 									</motion.div>
 								</div>
 
 								<motion.div
-									initial={{ x: 20, opacity: 0 }}
+									initial={{ x: 30, opacity: 0 }}
 									animate={{ x: 0, opacity: 1 }}
-									transition={{ duration: 0.4, delay: 0.1 }}
+									transition={{
+										duration: 0.6,
+										delay: 0.2,
+										ease: [0.16, 1, 0.3, 1],
+									}}
 								>
 									<ConnectionStatusSimple />
 								</motion.div>
 							</motion.div>
 
-							{/* Route indicator */}
+							{/* iOS-Style Navigation Bar */}
 							<motion.div
-								className="px-4 pb-3"
+								className="px-4 pb-2 flex items-center justify-between"
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
-								transition={{ duration: 0.4, delay: 0.2 }}
+								transition={{
+									duration: 0.6,
+									delay: 0.3,
+									ease: [0.16, 1, 0.3, 1],
+								}}
 							>
+								{/* iOS-Style Back button */}
+								<AnimatePresence mode="wait">
+									{showBackButton && (
+										<motion.button
+											initial={{ opacity: 0, x: -20 }}
+											animate={{ opacity: 1, x: 0 }}
+											exit={{ opacity: 0, x: -20 }}
+											transition={{
+												duration: 0.5,
+												ease: [0.16, 1, 0.3, 1],
+											}}
+											onClick={handleBackToWelcome}
+											className="relative flex items-center gap-0.5 px-1 py-1 -ml-1 rounded-lg text-amber-500 active:opacity-60 transition-opacity duration-150"
+											whileTap={{ scale: 0.96, x: -3 }}
+										>
+											<motion.div
+												animate={{ x: [0, -2, 0] }}
+												transition={{
+													duration: 2,
+													repeat: Infinity,
+													repeatDelay: 3,
+													ease: "easeInOut",
+												}}
+											>
+												<ChevronLeft className="w-7 h-7" strokeWidth={2.5} />
+											</motion.div>
+											<motion.span
+												className="text-base font-normal tracking-tight"
+												animate={{
+													opacity: [1, 0.9, 1],
+												}}
+												transition={{
+													duration: 3,
+													repeat: Infinity,
+													ease: "easeInOut",
+												}}
+											>
+												App Store
+											</motion.span>
+										</motion.button>
+									)}
+								</AnimatePresence>
+
+								{/* Center: App Title (iOS Style) */}
 								<motion.div
-									className="flex items-center gap-2 text-xs"
+									className="absolute left-1/2 transform -translate-x-1/2"
 									key={currentRoute}
-									initial={{ x: -10, opacity: 0 }}
-									animate={{ x: 0, opacity: 1 }}
-									transition={{ duration: 0.3 }}
+									initial={{ opacity: 0, y: -5 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{
+										duration: 0.5,
+										delay: 0.2,
+										ease: [0.16, 1, 0.3, 1],
+									}}
 								>
-									<span className="text-muted-foreground">ROUTE:</span>
-									<motion.span
-										className="text-amber-400 font-medium uppercase"
-										initial={{ scale: 1.1 }}
+									<motion.h1
+										className="text-base font-semibold text-white tracking-tight"
+										initial={{ scale: 1.05 }}
 										animate={{ scale: 1 }}
-										transition={{ duration: 0.2 }}
+										transition={{
+											duration: 0.5,
+											ease: [0.34, 1.56, 0.64, 1],
+										}}
 									>
-										{currentRoute}
-									</motion.span>
+										{getAppName(currentRoute)}
+									</motion.h1>
 								</motion.div>
+
+								{/* Right: empty space for balance */}
+								<div className="w-[100px]" />
 							</motion.div>
 						</div>
 
 						{/* Desktop Header */}
 						<motion.div
 							className="hidden lg:block"
-							initial={{ y: -20, opacity: 0 }}
+							initial={{ y: -30, opacity: 0 }}
 							animate={{ y: 0, opacity: 1 }}
-							transition={{ duration: 0.4, delay: 0.2 }}
+							transition={{
+								duration: 0.7,
+								delay: 0.3,
+								ease: [0.16, 1, 0.3, 1],
+							}}
 						>
 							<div className="flex items-center justify-between px-6 h-16">
-								<motion.div
-									className="flex items-center gap-4"
-									key={currentRoute}
-									initial={{ x: -10, opacity: 0 }}
-									animate={{ x: 0, opacity: 1 }}
-									transition={{ duration: 0.3 }}
-								>
-									<div className="flex items-center gap-2 text-sm">
-										<span className="text-muted-foreground">:</span>
-										<motion.span
-											className="text-amber-400 font-medium uppercase"
-											initial={{ scale: 1.1 }}
-											animate={{ scale: 1 }}
-											transition={{ duration: 0.2 }}
+								<div className="flex items-center gap-4">
+									{/* iOS-Style Back button */}
+									<AnimatePresence mode="wait">
+										{showBackButton && (
+											<motion.button
+												initial={{ opacity: 0, x: -20 }}
+												animate={{ opacity: 1, x: 0 }}
+												exit={{ opacity: 0, x: -20 }}
+												transition={{
+													duration: 0.5,
+													ease: [0.16, 1, 0.3, 1],
+												}}
+												onClick={handleBackToWelcome}
+												className="relative group flex items-center gap-1 -ml-2 px-2 py-1.5 rounded-lg text-amber-500 hover:opacity-80 active:opacity-60 transition-opacity duration-150"
+												whileHover={{
+													x: -3,
+													transition: { duration: 0.3, ease: "easeOut" },
+												}}
+												whileTap={{ scale: 0.96, x: -4 }}
+											>
+												<motion.div
+													animate={{ x: [0, -2, 0] }}
+													transition={{
+														duration: 2,
+														repeat: Infinity,
+														repeatDelay: 3,
+														ease: "easeInOut",
+													}}
+												>
+													<ChevronLeft className="w-7 h-7" strokeWidth={2.5} />
+												</motion.div>
+												<motion.span
+													className="text-base font-normal tracking-tight"
+													animate={{
+														opacity: [1, 0.9, 1],
+													}}
+													transition={{
+														duration: 3,
+														repeat: Infinity,
+														ease: "easeInOut",
+													}}
+												>
+													App Store
+												</motion.span>
+
+												{/* Subtle hover underline */}
+												<motion.div
+													className="absolute bottom-0.5 left-0 right-0 h-0.5 bg-amber-500/50 rounded-full"
+													initial={{ scaleX: 0, opacity: 0 }}
+													whileHover={{ scaleX: 0.8, opacity: 1 }}
+													transition={{ duration: 0.3, ease: "easeOut" }}
+													style={{ transformOrigin: "left" }}
+												/>
+											</motion.button>
+										)}
+									</AnimatePresence>
+
+									{/* Separator */}
+									{showBackButton && (
+										<motion.div
+											className="h-6 w-px bg-zinc-800/50"
+											initial={{ opacity: 0, scaleY: 0 }}
+											animate={{ opacity: 1, scaleY: 1 }}
+											exit={{ opacity: 0, scaleY: 0 }}
+											transition={{ duration: 0.5, delay: 0.3 }}
+										/>
+									)}
+
+									{/* iOS-Style App Title */}
+									<motion.div
+										className="flex items-center gap-2"
+										key={currentRoute}
+										initial={{ opacity: 0, y: -5 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{
+											duration: 0.5,
+											delay: 0.2,
+											ease: [0.16, 1, 0.3, 1],
+										}}
+									>
+										<motion.h1
+											className="text-lg font-semibold text-white tracking-tight"
+											initial={{ scale: 1.05, opacity: 0 }}
+											animate={{ scale: 1, opacity: 1 }}
+											transition={{
+												duration: 0.5,
+												ease: [0.34, 1.56, 0.64, 1],
+											}}
 										>
-											{currentRoute}
-										</motion.span>
-									</div>
-								</motion.div>
+											{getAppName(currentRoute)}
+										</motion.h1>
+									</motion.div>
+								</div>
 
 								<motion.div
-									initial={{ x: 20, opacity: 0 }}
+									initial={{ x: 30, opacity: 0 }}
 									animate={{ x: 0, opacity: 1 }}
-									transition={{ duration: 0.4, delay: 0.3 }}
+									transition={{
+										duration: 0.6,
+										delay: 0.4,
+										ease: [0.16, 1, 0.3, 1],
+									}}
 								>
 									<ConnectionStatusSimple />
 								</motion.div>
@@ -373,36 +601,55 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0 }}
-								transition={{ duration: 0.2 }}
+								transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
 							>
 								<motion.div
 									className="flex flex-col h-full"
-									initial={{ x: -300 }}
+									initial={{ x: -350 }}
 									animate={{ x: 0 }}
-									exit={{ x: -300 }}
+									exit={{ x: -350 }}
 									transition={{
 										type: "spring",
-										stiffness: 300,
-										damping: 30,
+										stiffness: 200,
+										damping: 25,
 									}}
 								>
 									<div className="flex items-center justify-between p-4 border-b">
 										<motion.div
 											className="flex items-center gap-2"
-											initial={{ opacity: 0 }}
-											animate={{ opacity: 1 }}
-											transition={{ delay: 0.1 }}
+											initial={{ opacity: 0, x: -20 }}
+											animate={{ opacity: 1, x: 0 }}
+											transition={{
+												delay: 0.2,
+												duration: 0.5,
+												ease: [0.16, 1, 0.3, 1],
+											}}
 										>
-											<Graphite size={1.5} />
+											<motion.div
+												animate={{
+													rotate: [0, 5, -5, 0],
+												}}
+												transition={{
+													duration: 4,
+													repeat: Infinity,
+													ease: "easeInOut",
+												}}
+											>
+												<Graphite size={1.5} />
+											</motion.div>
 											<span className="text-sm font-semibold">STELS</span>
 										</motion.div>
 										<motion.button
 											onClick={() => setIsMobileMenuOpen(false)}
 											className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-											whileTap={{ scale: 0.9 }}
-											initial={{ opacity: 0, rotate: -90 }}
-											animate={{ opacity: 1, rotate: 0 }}
-											transition={{ delay: 0.1 }}
+											whileTap={{ scale: 0.85, rotate: 90 }}
+											initial={{ opacity: 0, rotate: -180, scale: 0.5 }}
+											animate={{ opacity: 1, rotate: 0, scale: 1 }}
+											transition={{
+												delay: 0.2,
+												duration: 0.5,
+												ease: [0.34, 1.56, 0.64, 1],
+											}}
 										>
 											<X className="size-5" />
 										</motion.button>
@@ -411,9 +658,13 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 									<div className="flex-1 overflow-y-auto p-4">
 										<nav className="space-y-6">
 											<motion.div
-												initial={{ opacity: 0, y: 10 }}
+												initial={{ opacity: 0, y: 20 }}
 												animate={{ opacity: 1, y: 0 }}
-												transition={{ delay: 0.15, duration: 0.3 }}
+												transition={{
+													delay: 0.3,
+													duration: 0.6,
+													ease: [0.16, 1, 0.3, 1],
+												}}
 											>
 												<div className="px-2 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 mb-3">
 													Stels
@@ -422,11 +673,12 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 													{generalNav.map((item, index) => (
 														<motion.div
 															key={item.key}
-															initial={{ opacity: 0, x: -20 }}
+															initial={{ opacity: 0, x: -30 }}
 															animate={{ opacity: 1, x: 0 }}
 															transition={{
-																delay: 0.2 + index * 0.05,
-																duration: 0.3,
+																delay: 0.4 + index * 0.1,
+																duration: 0.5,
+																ease: [0.16, 1, 0.3, 1],
 															}}
 														>
 															{renderNavItem(item, true)}
@@ -438,9 +690,13 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 											<Separator />
 
 											<motion.div
-												initial={{ opacity: 0, y: 10 }}
+												initial={{ opacity: 0, y: 20 }}
 												animate={{ opacity: 1, y: 0 }}
-												transition={{ delay: 0.3, duration: 0.3 }}
+												transition={{
+													delay: 0.6,
+													duration: 0.6,
+													ease: [0.16, 1, 0.3, 1],
+												}}
 											>
 												<div className="px-2 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 mb-3">
 													Apps
@@ -449,11 +705,12 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 													{systemNav.map((item, index) => (
 														<motion.div
 															key={item.key}
-															initial={{ opacity: 0, x: -20 }}
+															initial={{ opacity: 0, x: -30 }}
 															animate={{ opacity: 1, x: 0 }}
 															transition={{
-																delay: 0.35 + index * 0.05,
-																duration: 0.3,
+																delay: 0.7 + index * 0.1,
+																duration: 0.5,
+																ease: [0.16, 1, 0.3, 1],
 															}}
 														>
 															{renderNavItem(item, true)}
@@ -466,17 +723,43 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 
 									<motion.div
 										className="p-4 border-t"
-										initial={{ opacity: 0, y: 20 }}
+										initial={{ opacity: 0, y: 30 }}
 										animate={{ opacity: 1, y: 0 }}
-										transition={{ delay: 0.4, duration: 0.3 }}
+										transition={{
+											delay: 1,
+											duration: 0.6,
+											ease: [0.16, 1, 0.3, 1],
+										}}
 									>
-										<Badge
-											variant="outline"
-											className="w-full justify-center text-amber-400 border-amber-500/30 bg-amber-500/5"
+										<motion.div
+											animate={{
+												scale: [1, 1.03, 1],
+											}}
+											transition={{
+												duration: 3,
+												repeat: Infinity,
+												ease: "easeInOut",
+											}}
 										>
-											<span className="size-2 rounded-full bg-amber-400 animate-pulse mr-2" />
-											<span className="font-medium">LIVE</span>
-										</Badge>
+											<Badge
+												variant="outline"
+												className="w-full justify-center text-amber-400 border-amber-500/30 bg-amber-500/5"
+											>
+												<motion.span
+													className="size-2 rounded-full bg-amber-400 mr-2"
+													animate={{
+														scale: [1, 1.4, 1],
+														opacity: [1, 0.4, 1],
+													}}
+													transition={{
+														duration: 2,
+														repeat: Infinity,
+														ease: "easeInOut",
+													}}
+												/>
+												<span className="font-medium">LIVE</span>
+											</Badge>
+										</motion.div>
 									</motion.div>
 								</motion.div>
 							</motion.div>
@@ -490,15 +773,15 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								initial={{ opacity: 0, scaleX: 0 }}
 								animate={{ opacity: 1, scaleX: 1 }}
 								exit={{ opacity: 0, scaleX: 0 }}
-								transition={{ duration: 0.3 }}
+								transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
 								style={{ transformOrigin: "left" }}
 							>
 								<motion.div
 									initial={{ width: "0%" }}
 									animate={{ width: "100%" }}
 									transition={{
-										duration: 1.5,
-										ease: "easeInOut",
+										duration: 2,
+										ease: [0.16, 1, 0.3, 1],
 									}}
 								>
 									<Progress value={100} className="h-1" />
