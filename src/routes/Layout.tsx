@@ -353,6 +353,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						>
 							<div className="flex items-center justify-between px-6 h-16">
 								<div className="flex items-center gap-4">
+									<Graphite size={2} primary="orange"/> STELS
 									{/* iOS-Style Back button */}
 									<AnimatePresence mode="wait">
 										{showBackButton && (
@@ -491,7 +492,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						className="flex flex-1 overflow-y-auto overflow-x-hidden bg-background"
 						data-route-container
 					>
-						<div className="w-full mx-auto">
+						<div className="w-full mx-auto p-4 sm:p-6 lg:p-8 flex-1 min-h-0 bg-black">
 							{children}
 						</div>
 

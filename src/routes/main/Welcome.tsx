@@ -378,7 +378,7 @@ function AppCard(
 			>
 				<div>
 					<h3
-						className={`font-bold text-zinc-200 group-hover:text-zinc-100 mb-2 tracking-tight transition-colors duration-300 ${
+						className={`font-bold text-amber-600/70 group-hover:text-zinc-100 mb-2 tracking-tight transition-colors duration-300 ${
 							app.size === "large" ? "text-3xl" : "text-2xl"
 						}`}
 					>
@@ -501,7 +501,7 @@ function Welcome(): React.ReactElement {
 
 	return (
 		<div
-			className={`relative h-full w-full overflow-y-auto bg-zinc-950 transition-all duration-300 ${
+			className={`relative h-full w-full overflow-y-auto  transition-all duration-200 ${
 				isExiting ? "opacity-0 scale-95" : "opacity-100 scale-100"
 			}`}
 		>
