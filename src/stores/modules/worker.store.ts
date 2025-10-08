@@ -189,7 +189,7 @@ export const useWorkerStore = create<WorkerStore>()(
 				},
 			}),
 			{
-				name: 'live_worker_genesis_04'
+				name: 'live_worker_genesis_04_111'
 			}
 		)
 	)
