@@ -73,7 +73,7 @@ const applications: AppMetadata[] = [
 	{
 		id: "canvas",
 		route: "canvas",
-		name: "Widget Studio",
+		name: "Canvas dashboard",
 		tagline: "Visual data composition",
 		description:
 			"Advanced widget store and canvas for building custom data visualizations. Drag and drop widgets to create your perfect trading dashboard.",
@@ -88,10 +88,10 @@ const applications: AppMetadata[] = [
 	{
 		id: "network",
 		route: "network",
-		name: "Network Explorer",
+		name: "Network",
 		tagline: "Heterogeneous network analysis",
 		description:
-			"Explore and analyze the SONAR network infrastructure. Monitor nodes, track network health, and visualize global distribution of heterogen nodes.",
+			"Explore and analyze the STELS network infrastructure. Monitor nodes, track network health, and visualize global distribution of heterogen nodes.",
 		icon: <Globe2 className="w-8 h-8" />,
 		color: "from-green-500/20 to-emerald-500/20",
 		category: "Network",
@@ -115,10 +115,10 @@ const applications: AppMetadata[] = [
 	{
 		id: "wallet",
 		route: "wallet",
-		name: "Gliesereum Wallet",
+		name: "Wallet",
 		tagline: "Secure network wallet",
 		description:
-			"Native blockchain wallet for the Gliesereum network. Manage your assets, view transactions, and interact with the SONAR ecosystem securely.",
+			"Native blockchain wallet for the Gliesereum network. Manage your assets, view transactions, and interact with the STELS ecosystem securely.",
 		icon: <Wallet className="w-8 h-8" />,
 		color: "from-amber-500/20 to-yellow-500/20",
 		category: "Trading",
@@ -155,57 +155,33 @@ function AppCard(
 			<button
 				onClick={handleClick}
 				disabled={isLaunching}
-				className={`relative flex flex-col items-center focus:outline-none active:scale-90 transition-transform duration-75 ${
-					isLaunching ? "opacity-70 scale-95" : "opacity-100"
+				className={`relative flex flex-col items-center gap-2 focus:outline-none active:scale-90 transition-all duration-100 ${
+					isLaunching ? "opacity-60" : "opacity-100"
 				}`}
 			>
-				{/* iOS-style app icon */}
+				{/* iOS 18 style app icon - Lighter than background */}
 				<div
-					className={`
-            relative w-20 h-20 rounded-[22px] overflow-hidden
-            ${
-						app.color.replace("from-", "bg-").replace("to-", "").split(" ")[0]
-					}
-            border border-zinc-800
-            flex items-center justify-center
-            mb-2
-          `}
+					className="relative w-[68px] h-[68px] rounded-[16px] overflow-hidden bg-zinc-900 flex items-center justify-center shadow-md border border-zinc-800"
+					style={{
+						boxShadow:
+							"0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)",
+					}}
 				>
-					{/* Backdrop layer */}
-					<div className="absolute inset-0 bg-zinc-900/50" />
-
 					{/* Launch overlay */}
 					{isLaunching && (
-						<div className="absolute inset-0 bg-amber-500/50 z-50 flex items-center justify-center rounded-[22px]">
-							<div className="w-10 h-10 rounded-full border-4 border-white border-t-transparent animate-spin" />
+						<div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center rounded-[16px]">
+							<div className="w-8 h-8 rounded-full border-3 border-white border-t-transparent animate-spin" />
 						</div>
 					)}
 
-					{/* Icon */}
-					<div className="relative text-amber-500 z-10">
+					{/* Icon - lighter than background */}
+					<div className="relative z-10 text-amber-500 scale-110">
 						{app.icon}
-					</div>
-
-					{/* Featured indicator */}
-					{app.featured && (
-						<div className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-amber-500 rounded-full" />
-					)}
-
-					{/* Badge indicator if present */}
-					{app.badge && !app.featured && (
-						<div className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-blue-500 rounded-full" />
-					)}
-
-					{/* Web3 badge */}
-					<div className="absolute bottom-0 left-0 right-0 bg-black/80 px-1.5 py-1">
-						<span className="text-[9px] font-black text-amber-400 tracking-wider">
-							WEB3
-						</span>
 					</div>
 				</div>
 
-				{/* App name */}
-				<span className="text-xs font-semibold text-white text-center max-w-[90px] line-clamp-2">
+				{/* App name - iOS style */}
+				<span className="text-[11px] font-medium text-white text-center max-w-[76px] line-clamp-2 leading-tight">
 					{app.name}
 				</span>
 			</button>
@@ -228,15 +204,8 @@ function AppCard(
 				isLaunching ? "opacity-80 scale-[0.98]" : "opacity-100"
 			} ${sizeClasses}`}
 		>
-			{/* Background */}
-			<div
-				className={`absolute inset-0 ${
-					app.color.replace("from-", "bg-").replace("to-", "").split(" ")[0]
-				} opacity-100`}
-			/>
-
-			{/* Backdrop layer */}
-			<div className="absolute inset-0 bg-zinc-900/50" />
+			{/* Background - lighter than bg */}
+			<div className="absolute inset-0 bg-zinc-900" />
 
 			{/* Border */}
 			<div className="absolute inset-0 rounded-3xl border border-zinc-800 group-hover:border-amber-500/50 transition-colors duration-200" />
@@ -396,7 +365,7 @@ function Welcome(): React.ReactElement {
 		>
 			{/* Loading overlay when launching app */}
 			{isExiting && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/95">
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/95 backdrop-blur-xl">
 					<div className="flex flex-col items-center gap-4">
 						{/* Spinner */}
 						<div className="relative">
@@ -420,42 +389,79 @@ function Welcome(): React.ReactElement {
 				</div>
 			)}
 
-			<div className="container mx-auto px-6 py-12 max-w-7xl">
-				{/* Header */}
-				<div className="mb-16 text-center space-y-6">
-				</div>
+			{/* iOS-style container */}
+			<div
+				className={isMobile ? "pb-8" : "container mx-auto px-6 py-12 max-w-7xl"}
+			>
+				{/* iOS-style Large Title Header - Mobile only */}
+				{isMobile && (
+					<div className="px-4 pt-4 pb-6">
+						{/* Marketing banner */}
+
+						<h1 className="text-4xl font-bold text-zinc-300 tracking-tight mb-2">
+							Web3 Applications
+						</h1>
+						<p className="text-base text-zinc-400">
+							{applications.length} professional tools for traders
+						</p>
+					</div>
+				)}
 
 				{/* Featured Apps */}
 				{featuredApps.length > 0 && (
-					<div className="mb-16">
-						<div className="flex items-center justify-between mb-8">
-							<div className="flex items-center gap-3">
-								<div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
-									<Sparkles className="w-6 h-6 text-amber-500" />
-								</div>
-								<div>
-									<h2 className="text-3xl font-black text-white tracking-tight">
-										Featured Apps
-									</h2>
-									<p className="text-sm text-zinc-500 mt-1">
-										Most popular and powerful tools
+					<div className={isMobile ? "mb-10" : "mb-16"}>
+						{/* iOS-style section header - Mobile */}
+						{isMobile
+							? (
+								<div className="px-4 mb-4">
+									<div className="flex items-center justify-between mb-3">
+										<h2 className="text-2xl font-bold text-white tracking-tight">
+											Featured
+										</h2>
+										<div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-500/40">
+											<Sparkles className="w-3 h-3 text-blue-400" />
+											<span className="text-xs font-bold text-blue-400">
+												{featuredApps.length}
+											</span>
+										</div>
+									</div>
+									<p className="text-sm text-zinc-500">
+										Most popular apps with 30K+ active users
 									</p>
 								</div>
-							</div>
+							)
+							: (
+								<div className="mb-8">
+									<div className="flex items-center justify-between mb-6">
+										<div className="flex items-center gap-3">
+											<div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
+												<Sparkles className="w-6 h-6 text-amber-500" />
+											</div>
+											<div>
+												<h2 className="text-3xl font-black text-zinc-300 tracking-tight">
+													Featured Apps
+												</h2>
+												<p className="text-sm text-zinc-500 mt-1">
+													Most popular apps with 30K+ active users
+												</p>
+											</div>
+										</div>
 
-							{/* Marketing badge */}
-							<div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20">
-								<div className="w-2 h-2 rounded-full bg-blue-500" />
-								<span className="text-sm font-semibold text-blue-400">
-									{featuredApps.length} Featured
-								</span>
-							</div>
-						</div>
+										{/* Marketing badge */}
+										<div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-blue-500/10 border border-blue-500/20">
+											<Sparkles className="w-4 h-4 text-blue-400" />
+											<span className="text-sm font-semibold text-blue-400">
+												{featuredApps.length} Featured
+											</span>
+										</div>
+									</div>
+								</div>
+							)}
 
 						{/* App Store style grid with different sizes */}
 						<div
 							className={isMobile
-								? "grid grid-cols-4 gap-6 px-4"
+								? "grid grid-cols-4 gap-4 px-4"
 								: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:auto-rows-fr"}
 						>
 							{featuredApps.map((app) => (
@@ -472,33 +478,47 @@ function Welcome(): React.ReactElement {
 
 				{/* Other Apps */}
 				{otherApps.length > 0 && (
-					<div>
-						<div className="flex items-center justify-between mb-8">
-							<div className="flex items-center gap-3">
-								<div className="w-12 h-12 rounded-2xl bg-zinc-500/10 border border-zinc-500/30 flex items-center justify-center">
-									<Activity className="w-6 h-6 text-zinc-400" />
-								</div>
-								<div>
-									<h2 className="text-3xl font-black text-white tracking-tight">
-										All Applications
+					<div className={isMobile ? "mb-8" : ""}>
+						{/* iOS-style section header - Mobile */}
+						{isMobile
+							? (
+								<div className="px-4 mb-4">
+									<h2 className="text-2xl font-bold text-zinc-300 tracking-tight mb-2">
+										More Apps
 									</h2>
-									<p className="text-sm text-zinc-500 mt-1">
-										Complete suite of professional tools
+									<p className="text-sm text-zinc-500">
+										Explore additional tools and features
 									</p>
 								</div>
-							</div>
+							)
+							: (
+								<div className="flex items-center justify-between mb-8">
+									<div className="flex items-center gap-3">
+										<div className="w-12 h-12 rounded-2xl bg-zinc-500/10 border border-zinc-500/30 flex items-center justify-center">
+											<Activity className="w-6 h-6 text-zinc-400" />
+										</div>
+										<div>
+											<h2 className="text-3xl font-black text-white tracking-tight">
+												More Applications
+											</h2>
+											<p className="text-sm text-zinc-500 mt-1">
+												Explore additional professional tools
+											</p>
+										</div>
+									</div>
 
-							{/* Stats badge */}
-							<div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-500/10 border border-zinc-500/20">
-								<span className="text-sm font-semibold text-zinc-400">
-									{applications.length} Apps Total
-								</span>
-							</div>
-						</div>
+									{/* Stats badge */}
+									<div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-zinc-500/10 border border-zinc-500/20">
+										<span className="text-sm font-semibold text-zinc-400">
+											{applications.length} Apps Total
+										</span>
+									</div>
+								</div>
+							)}
 
 						<div
 							className={isMobile
-								? "grid grid-cols-4 gap-6 px-4"
+								? "grid grid-cols-4 gap-4 px-4"
 								: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"}
 						>
 							{otherApps.map((app) => (
@@ -512,6 +532,115 @@ function Welcome(): React.ReactElement {
 						</div>
 					</div>
 				)}
+
+				{/* Footer info */}
+				{isMobile
+					? (
+						<div className="mt-12 px-4 pb-8">
+							{/* iOS-style feature highlights */}
+							<div className="space-y-3 mb-8">
+								<div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-zinc-900/50 border border-zinc-800/50">
+									<div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+										<Sparkles className="w-5 h-5 text-amber-500" />
+									</div>
+									<div className="flex-1">
+										<p className="text-sm font-semibold text-white">
+											Web3 Technology
+										</p>
+										<p className="text-xs text-zinc-500">
+											Secure, decentralized AI
+										</p>
+									</div>
+								</div>
+
+								<div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-zinc-900/50 border border-zinc-800/50">
+									<div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+										<Activity className="w-5 h-5 text-green-500" />
+									</div>
+									<div className="flex-1">
+										<p className="text-sm font-semibold text-white">
+											Real-time Analytics
+										</p>
+										<p className="text-xs text-zinc-500">
+											Live market data & indicators
+										</p>
+									</div>
+								</div>
+
+								<div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-zinc-900/50 border border-zinc-800/50">
+									<div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+										<TrendingUp className="w-5 h-5 text-blue-500" />
+									</div>
+									<div className="flex-1">
+										<p className="text-sm font-semibold text-white">
+											Professional Tools
+										</p>
+										<p className="text-xs text-zinc-500">
+											Advanced trading features
+										</p>
+									</div>
+								</div>
+							</div>
+
+							{/* iOS-style footer text */}
+							<div className="text-center space-y-3 pt-4 border-t border-zinc-800/50">
+								<p className="text-xs text-zinc-600 font-medium">
+									STELS Web3 OS v0.12.8
+								</p>
+							</div>
+						</div>
+					)
+					: (
+						<div className="mt-20 pt-10 border-t border-zinc-800/30">
+							{/* Marketing stats - Desktop */}
+
+							{/* Feature highlights - Desktop */}
+							<div className="grid grid-cols-3 gap-6 max-w-4xl mx-auto mb-10">
+								<div className="flex flex-col items-center text-center p-6 rounded-2xl bg-zinc-900 border border-zinc-800">
+									<div className="w-14 h-14 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
+										<Sparkles className="w-7 h-7 text-amber-500" />
+									</div>
+									<p className="text-base font-bold text-white mb-2">
+										Web3 Technology
+									</p>
+									<p className="text-xs text-zinc-500">
+										Secure, decentralized AI infrastructure
+									</p>
+								</div>
+
+								<div className="flex flex-col items-center text-center p-6 rounded-2xl bg-zinc-900 border border-zinc-800">
+									<div className="w-14 h-14 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
+										<Activity className="w-7 h-7 text-green-500" />
+									</div>
+									<p className="text-base font-bold text-white mb-2">
+										Real-time Analytics
+									</p>
+									<p className="text-xs text-zinc-500">
+										Live market data and professional indicators
+									</p>
+								</div>
+
+								<div className="flex flex-col items-center text-center p-6 rounded-2xl bg-zinc-900 border border-zinc-800">
+									<div className="w-14 h-14 rounded-full bg-blue-500/20 flex items-center justify-center mb-4">
+										<TrendingUp className="w-7 h-7 text-blue-500" />
+									</div>
+									<p className="text-base font-bold text-white mb-2">
+										Professional Tools
+									</p>
+									<p className="text-xs text-zinc-500">
+										Advanced trading features for professionals
+									</p>
+								</div>
+							</div>
+
+							{/* Footer text */}
+							<div className="text-center">
+								<p className="text-sm text-zinc-600 mb-2">
+									STELS Web3 OS v0.12.8
+								</p>
+							</div>
+						</div>
+					)}
 			</div>
 		</div>
 	);

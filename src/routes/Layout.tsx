@@ -2,6 +2,7 @@
 
 import type * as React from "react";
 import { useAppStore } from "@/stores";
+import { useAuthStore } from "@/stores/modules/auth.store";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,7 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import {
 	Boxes,
 	CandlestickChart,
-	ChevronLeft,
+	CircleX,
 	Code,
 	Globe,
 	Home,
@@ -44,7 +45,11 @@ interface NavItem {
  */
 function Layout({ children }: LayoutProps): React.ReactElement {
 	const { currentRoute, allowedRoutes, routeLoading } = useAppStore();
+	const { connectionSession } = useAuthStore();
 	// Wallet info is now handled by ConnectionStatusSimple component
+
+	// Show sidebar only for developers
+	const isDeveloper = connectionSession?.developer || false;
 
 	/**
 	 * Navigate back to welcome screen (App Store)
@@ -196,238 +201,143 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 
 	return (
 		<div className="flex flex-col absolute w-[100%] h-[100%] overflow-hidden">
-			<div className="grid grid-cols-1 lg:grid-cols-[80px_1fr] gap-0 h-full overflow-hidden">
-				{/* Desktop Sidebar */}
-				<motion.aside
-					className="hidden lg:flex lg:flex-col border-r h-full bg-card/50 backdrop-blur-sm overflow-hidden"
-					aria-label="Primary navigation"
-					initial={{ x: -80, opacity: 0 }}
-					animate={{ x: 0, opacity: 1 }}
-					transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-				>
-					<div className="flex h-30 w-full items-center justify-center border-b border-border/50">
-						<motion.button
-							onClick={() => navigateTo("welcome")}
-							className="flex items-center justify-center p-2 cursor-pointer"
-							aria-label="Go to welcome page"
-							whileHover={{
-								scale: 1.1,
-								rotate: 10,
-								transition: { duration: 0.25, ease: [0.34, 1.56, 0.64, 1] },
-							}}
-							whileTap={{ scale: 0.9 }}
-						>
-							<motion.div
-								animate={{
-									rotate: [0, 3, -3, 0],
-								}}
-								transition={{
-									duration: 3,
-									repeat: Infinity,
-									ease: "easeInOut",
-								}}
-							>
-								<Graphite size={3} />
-							</motion.div>
-						</motion.button>
-					</div>
-
-					<div className="flex-1 text-center overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-						<nav className="p-2 space-y-8">
-							<div>
-								<div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
-									Stels
-								</div>
-								<div className="space-y-1">
-									{generalNav.map((item) => renderNavItem(item))}
-								</div>
-							</div>
-
-							<div>
-								<div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
-									Apps
-								</div>
-								<div className="space-y-1">
-									{systemNav.map((item) => renderNavItem(item))}
-								</div>
-							</div>
-						</nav>
-					</div>
-
-					<motion.div
-						className="p-4 h-16"
-						initial={{ opacity: 0, y: 30 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.4, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+			<div
+				className={`grid grid-cols-1 ${
+					isDeveloper ? "lg:grid-cols-[80px_1fr]" : ""
+				} gap-0 h-full overflow-hidden`}
+			>
+				{/* Desktop Sidebar - Only for developers */}
+				{isDeveloper && (
+					<motion.aside
+						className="hidden lg:flex lg:flex-col border-r h-full bg-card/50 backdrop-blur-sm overflow-hidden"
+						aria-label="Primary navigation"
+						initial={{ x: -80, opacity: 0 }}
+						animate={{ x: 0, opacity: 1 }}
+						transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
 					>
-						<motion.div
-							animate={{
-								scale: [1, 1.04, 1],
-							}}
-							transition={{
-								duration: 2,
-								repeat: Infinity,
-								repeatDelay: 2,
-								ease: "easeInOut",
-							}}
-						>
-							<Badge
-								variant="outline"
-								className="w-full justify-center text-amber-400 border-amber-500/30 bg-amber-500/5"
+						<div className="flex h-30 w-full items-center justify-center border-b border-border/50">
+							<motion.button
+								onClick={() => navigateTo("welcome")}
+								className="flex items-center justify-center p-2 cursor-pointer"
+								aria-label="Go to welcome page"
+								whileHover={{
+									scale: 1.1,
+									rotate: 10,
+									transition: { duration: 0.25, ease: [0.34, 1.56, 0.64, 1] },
+								}}
+								whileTap={{ scale: 0.9 }}
 							>
-								<motion.span
-									className="font-medium"
+								<motion.div
 									animate={{
-										opacity: [0.8, 1, 0.8],
+										rotate: [0, 3, -3, 0],
 									}}
 									transition={{
-										duration: 1.8,
+										duration: 3,
 										repeat: Infinity,
 										ease: "easeInOut",
 									}}
 								>
-									TEST
-								</motion.span>
-							</Badge>
+									<Graphite size={3} />
+								</motion.div>
+							</motion.button>
+						</div>
+
+						<div className="flex-1 text-center overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+							<nav className="p-2 space-y-8">
+								<div>
+									<div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
+										Stels
+									</div>
+									<div className="space-y-1">
+										{generalNav.map((item) => renderNavItem(item))}
+									</div>
+								</div>
+
+								<div>
+									<div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
+										Apps
+									</div>
+									<div className="space-y-1">
+										{systemNav.map((item) => renderNavItem(item))}
+									</div>
+								</div>
+							</nav>
+						</div>
+
+						<motion.div
+							className="p-4 h-16"
+							initial={{ opacity: 0, y: 30 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{
+								duration: 0.4,
+								delay: 0.2,
+								ease: [0.16, 1, 0.3, 1],
+							}}
+						>
+							<motion.div
+								animate={{
+									scale: [1, 1.04, 1],
+								}}
+								transition={{
+									duration: 2,
+									repeat: Infinity,
+									repeatDelay: 2,
+									ease: "easeInOut",
+								}}
+							>
+								<Badge
+									variant="outline"
+									className="w-full justify-center text-amber-400 border-amber-500/30 bg-amber-500/5"
+								>
+									<motion.span
+										className="font-medium"
+										animate={{
+											opacity: [0.8, 1, 0.8],
+										}}
+										transition={{
+											duration: 1.8,
+											repeat: Infinity,
+											ease: "easeInOut",
+										}}
+									>
+										TEST
+									</motion.span>
+								</Badge>
+							</motion.div>
 						</motion.div>
-					</motion.div>
-				</motion.aside>
+					</motion.aside>
+				)}
 
 				{/* Main Content Area */}
 				<div className="flex flex-col min-w-0 h-[100%] overflow-hidden">
 					<header className="shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-						{/* Mobile Header */}
+						{/* Mobile Header - iOS Style */}
 						<div className="lg:hidden">
-							<motion.div
-								className="flex items-center justify-between p-4 h-16"
-								initial={{ y: -30, opacity: 0 }}
-								animate={{ y: 0, opacity: 1 }}
-								transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-							>
-								<div className="flex items-center gap-3">
-									<motion.div
-										className="flex items-center gap-2"
-										initial={{ x: -30, opacity: 0 }}
-										animate={{ x: 0, opacity: 1 }}
-										transition={{
-											duration: 0.25,
-											delay: 0.05,
-											ease: [0.16, 1, 0.3, 1],
-										}}
-									>
-										<motion.div
-											animate={{
-												rotate: [0, 5, -5, 0],
-											}}
-											transition={{
-												duration: 3,
-												repeat: Infinity,
-												ease: "easeInOut",
-											}}
-										>
-											<Graphite size={1.5} />
-										</motion.div>
-										<span className="text-sm font-semibold">STELS</span>
-									</motion.div>
+							<div className="flex items-center justify-between px-4 h-14 border-b border-zinc-800/50">
+								<div className="flex items-center gap-2">
+									<Graphite size={1.5} />
+									<span className="text-sm font-semibold text-white">
+										SONAR
+									</span>
 								</div>
 
-								<motion.div
-									initial={{ x: 30, opacity: 0 }}
-									animate={{ x: 0, opacity: 1 }}
-									transition={{
-										duration: 0.3,
-										delay: 0.1,
-										ease: [0.16, 1, 0.3, 1],
-									}}
-								>
-									<ConnectionStatusSimple />
-								</motion.div>
-							</motion.div>
+								<ConnectionStatusSimple />
+							</div>
 
-							{/* iOS-Style Navigation Bar */}
-							<motion.div
-								className="px-4 pb-2 flex items-center justify-between"
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								transition={{
-									duration: 0.3,
-									delay: 0.1,
-									ease: [0.16, 1, 0.3, 1],
-								}}
-							>
-								{/* iOS-Style Back button */}
-								<AnimatePresence mode="wait">
-									{showBackButton && (
-										<motion.button
-											initial={{ opacity: 0, x: -20 }}
-											animate={{ opacity: 1, x: 0 }}
-											exit={{ opacity: 0, x: -20 }}
-											transition={{
-												duration: 0.3,
-												ease: [0.16, 1, 0.3, 1],
-											}}
-											onClick={handleBackToWelcome}
-											className="relative flex items-center gap-0.5 px-1 py-1 -ml-1 rounded-lg text-amber-500 active:opacity-60 transition-opacity duration-150"
-											whileTap={{ scale: 0.96, x: -3 }}
-										>
-											<motion.div
-												animate={{ x: [0, -2, 0] }}
-												transition={{
-													duration: 1.5,
-													repeat: Infinity,
-													repeatDelay: 2,
-													ease: "easeInOut",
-												}}
-											>
-												<ChevronLeft className="w-7 h-7" strokeWidth={2.5} />
-											</motion.div>
-											<motion.span
-												className="text-base font-normal tracking-tight"
-												animate={{
-													opacity: [1, 0.9, 1],
-												}}
-												transition={{
-													duration: 2,
-													repeat: Infinity,
-													ease: "easeInOut",
-												}}
-											>
-												App Store
-											</motion.span>
-										</motion.button>
-									)}
-								</AnimatePresence>
-
-								{/* Center: App Title (iOS Style) - Hidden on welcome screen */}
-								{currentRoute !== "welcome" && (
-									<motion.div
-										className="absolute left-1/2 transform -translate-x-1/2"
-										key={currentRoute}
-										initial={{ opacity: 0, y: -5 }}
-										animate={{ opacity: 1, y: 0 }}
-										transition={{
-											duration: 0.3,
-											delay: 0.1,
-											ease: [0.16, 1, 0.3, 1],
-										}}
+							{/* iOS-Style Navigation Bar - Simple and clean */}
+							{showBackButton && (
+								<div className="px-4 py-2">
+									<button
+										onClick={handleBackToWelcome}
+										className="flex items-center gap-1 text-amber-500 active:opacity-60 transition-opacity duration-100"
 									>
-										<motion.h1
-											className="text-base font-semibold text-white tracking-tight"
-											initial={{ scale: 1.05 }}
-											animate={{ scale: 1 }}
-											transition={{
-												duration: 0.3,
-												ease: [0.34, 1.56, 0.64, 1],
-											}}
-										>
-											{getAppName(currentRoute)}
-										</motion.h1>
-									</motion.div>
-								)}
-
-								{/* Right: empty space for balance */}
-								<div className="w-[100px]" />
-							</motion.div>
+										<CircleX className="w-10 h-6" strokeWidth={1.5} />
+										<span className="text-base font-normal">
+											Close
+										</span>
+									</button>
+								</div>
+							)}
 						</div>
 
 						{/* Desktop Header */}
@@ -471,7 +381,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 														ease: "easeInOut",
 													}}
 												>
-													<ChevronLeft className="w-7 h-7" strokeWidth={2.5} />
+													<CircleX className="w-10 h-" strokeWidth={1.5} />
 												</motion.div>
 												<motion.span
 													className="text-base font-normal tracking-tight"
@@ -484,7 +394,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 														ease: "easeInOut",
 													}}
 												>
-													App Store
+													Close
 												</motion.span>
 
 												{/* Subtle hover underline */}

@@ -157,7 +157,7 @@ export const useAppStore = create<AppState>()(
 					updateStatus: () => set(getNetworkInfo()),
 					
 					allowedRoutes,
-					currentRoute: 'markets',
+					currentRoute: 'welcome',
 					setRoute: (route: string) => {
 						const {allowedRoutes} = get()
 						console.log('[Store] setRoute called:', {route, allowedRoutes});
@@ -263,7 +263,7 @@ export const useAppStore = create<AppState>()(
 				}
 			},
 			{
-				name: 'testnet_app_store_05',
+				name: 'testnet_app_store_07',
 			}
 		)
 	)
