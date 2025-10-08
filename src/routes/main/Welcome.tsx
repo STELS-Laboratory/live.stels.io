@@ -91,7 +91,7 @@ const applications: AppMetadata[] = [
 		name: "Network",
 		tagline: "Heterogeneous network analysis",
 		description:
-			"Explore and analyze the STELS network infrastructure. Monitor nodes, track network health, and visualize global distribution of heterogen nodes.",
+			"Explore and analyze the SONAR network infrastructure. Monitor nodes, track network health, and visualize global distribution of heterogen nodes.",
 		icon: <Globe2 className="w-8 h-8" />,
 		color: "from-green-500/20 to-emerald-500/20",
 		category: "Network",
@@ -143,45 +143,33 @@ function AppCard(
 
 	const handleClick = () => {
 		setIsLaunching(true);
-		// Quick navigation with loading indication
-		setTimeout(() => {
-			onLaunch(app.route);
-		}, 200);
+		// Immediate navigation
+		onLaunch(app.route);
 	};
 
-	// iOS-style mobile card
+	// Mobile card
 	if (isMobile) {
 		return (
 			<button
 				onClick={handleClick}
 				disabled={isLaunching}
-				className={`relative flex flex-col items-center gap-2 focus:outline-none active:scale-90 transition-all duration-100 ${
+				className={`relative flex flex-col items-center gap-2 focus:outline-none active:opacity-70 transition-opacity duration-100 ${
 					isLaunching ? "opacity-60" : "opacity-100"
 				}`}
 			>
-				{/* iOS 18 style app icon - Lighter than background */}
-				<div
-					className="relative w-[68px] h-[68px] rounded-[16px] overflow-hidden bg-zinc-900 flex items-center justify-center shadow-md border border-zinc-800"
-					style={{
-						boxShadow:
-							"0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)",
-					}}
-				>
-					{/* Launch overlay */}
-					{isLaunching && (
-						<div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center rounded-[16px]">
-							<div className="w-8 h-8 rounded-full border-3 border-white border-t-transparent animate-spin" />
+				{/* App icon */}
+				<div className="relative w-[68px] h-[68px]">
+					{/* Icon container */}
+					<div className="relative w-full h-full bg-zinc-900 flex items-center justify-center border border-zinc-700">
+						{/* Icon */}
+						<div className="relative z-10 text-zinc-400">
+							{app.icon}
 						</div>
-					)}
-
-					{/* Icon - lighter than background */}
-					<div className="relative z-10 text-amber-500 scale-110">
-						{app.icon}
 					</div>
 				</div>
 
-				{/* App name - iOS style */}
-				<span className="text-[11px] font-medium text-white text-center max-w-[76px] line-clamp-2 leading-tight">
+				{/* App name */}
+				<span className="text-[11px] font-medium text-zinc-400 text-center max-w-[76px] line-clamp-2 leading-tight">
 					{app.name}
 				</span>
 			</button>
@@ -200,50 +188,41 @@ function AppCard(
 		<button
 			onClick={handleClick}
 			disabled={isLaunching}
-			className={`group relative overflow-hidden rounded-3xl text-left transition-all duration-150 hover:scale-[1.02] active:scale-[0.96] focus:outline-none ${
-				isLaunching ? "opacity-80 scale-[0.98]" : "opacity-100"
+			className={`group relative overflow-hidden text-left transition-all duration-200 hover:bg-zinc-900/50 focus:outline-none ${
+				isLaunching ? "opacity-70" : "opacity-100"
 			} ${sizeClasses}`}
 		>
-			{/* Background - lighter than bg */}
-			<div className="absolute inset-0 bg-zinc-900" />
+			{/* Background */}
+			<div className="absolute inset-0 bg-zinc-950" />
 
 			{/* Border */}
-			<div className="absolute inset-0 rounded-3xl border border-zinc-800 group-hover:border-amber-500/50 transition-colors duration-200" />
-			{/* Launch animation overlay */}
-			{isLaunching && (
-				<div className="absolute inset-0 bg-gradient-to-br from-amber-500/40 to-orange-500/40 z-50 flex items-center justify-center rounded-3xl backdrop-blur-sm">
-					<div className="flex flex-col items-center gap-2">
-						<div className="w-16 h-16 rounded-full border-4 border-white border-t-transparent animate-spin" />
-						<span className="text-xs font-semibold text-white">Loading...</span>
-					</div>
-				</div>
-			)}
+			<div className="absolute inset-0 border border-zinc-800 group-hover:border-zinc-700 transition-colors duration-200" />
 
 			{/* Header badges */}
 			<div className="absolute top-4 right-4 flex flex-col items-end gap-2 z-20">
 				{/* Web3 badge */}
-				<div className="px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/50">
-					<span className="text-[9px] font-bold text-amber-400 tracking-widest">
+				<div className="px-3 py-1 bg-zinc-900 border border-zinc-700">
+					<span className="text-[9px] font-semibold text-zinc-400 tracking-wider">
 						WEB3
 					</span>
 				</div>
 
 				{/* Marketing badge */}
 				{app.badge && (
-					<div className="px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-500/50">
-						<span className="text-[9px] font-bold text-blue-400 tracking-wide">
+					<div className="px-3 py-1 bg-zinc-900 border border-zinc-700">
+						<span className="text-[9px] font-semibold text-zinc-400 tracking-wide">
 							{app.badge.toUpperCase()}
 						</span>
 					</div>
 				)}
 			</div>
 
-			{/* Icon - size varies by card size */}
+			{/* Icon */}
 			<div
 				className={`relative z-10 ${app.size === "large" ? "mb-8" : "mb-6"}`}
 			>
 				<div
-					className={`text-amber-500 relative z-10 transition-transform duration-200 group-hover:scale-110 ${
+					className={`text-zinc-500 transition-colors duration-200 group-hover:text-zinc-400 ${
 						app.size === "large" ? "scale-150" : ""
 					}`}
 				>
@@ -259,14 +238,14 @@ function AppCard(
 			>
 				<div>
 					<h3
-						className={`font-bold text-white mb-2 tracking-tight ${
+						className={`font-bold text-zinc-200 mb-2 tracking-tight ${
 							app.size === "large" ? "text-3xl" : "text-2xl"
 						}`}
 					>
 						{app.name}
 					</h3>
 					<p
-						className={`text-amber-400 font-semibold ${
+						className={`text-zinc-400 font-medium ${
 							app.size === "large" ? "text-base" : "text-sm"
 						}`}
 					>
@@ -274,7 +253,7 @@ function AppCard(
 					</p>
 				</div>
 				<p
-					className={`text-zinc-400 leading-relaxed ${
+					className={`text-zinc-500 leading-relaxed ${
 						app.size === "large"
 							? "text-base line-clamp-4"
 							: "text-sm line-clamp-3"
@@ -286,15 +265,15 @@ function AppCard(
 				{/* Stats for large cards */}
 				{app.size === "large" && app.stats && (
 					<div className="flex items-center gap-2 pt-2">
-						<div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
-							<TrendingUp className="w-3.5 h-3.5 text-green-400" />
-							<span className="text-xs font-semibold text-zinc-300">
+						<div className="flex items-center gap-1.5 px-3 py-2 bg-zinc-900 border border-zinc-700">
+							<TrendingUp className="w-3.5 h-3.5 text-zinc-500" />
+							<span className="text-xs font-medium text-zinc-400">
 								{app.stats}
 							</span>
 						</div>
-						<div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
-							<Activity className="w-3.5 h-3.5 text-blue-400" />
-							<span className="text-xs font-semibold text-zinc-300">
+						<div className="flex items-center gap-1.5 px-3 py-2 bg-zinc-900 border border-zinc-700">
+							<Activity className="w-3.5 h-3.5 text-zinc-500" />
+							<span className="text-xs font-medium text-zinc-400">
 								Real-time
 							</span>
 						</div>
@@ -310,14 +289,14 @@ function AppCard(
 			>
 				{/* Category and stats */}
 				<div className="flex items-center gap-2">
-					<div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-900/80 border border-zinc-800/80 backdrop-blur-sm">
+					<div className="inline-flex items-center gap-1.5 px-3 py-2 bg-zinc-900 border border-zinc-800">
 						<Activity className="w-3 h-3 text-zinc-500" />
 						<span className="text-xs font-medium text-zinc-400">
 							{app.category}
 						</span>
 					</div>
 					{app.stats && app.size !== "large" && (
-						<div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-900/80 border border-zinc-800/80 backdrop-blur-sm">
+						<div className="inline-flex items-center gap-1.5 px-3 py-2 bg-zinc-900 border border-zinc-800">
 							<span className="text-xs font-medium text-zinc-400">
 								{app.stats}
 							</span>
@@ -326,9 +305,9 @@ function AppCard(
 				</div>
 
 				{/* Launch CTA */}
-				<div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 group-hover:border-amber-500/60 transition-colors duration-200">
-					<Play className="w-3 h-3 text-amber-400 group-hover:text-amber-300 transition-colors" />
-					<span className="text-xs font-semibold text-amber-400 group-hover:text-amber-300 transition-colors">
+				<div className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-700 group-hover:bg-zinc-800 transition-colors duration-200">
+					<Play className="w-3.5 h-3.5 text-zinc-400" />
+					<span className="text-xs font-semibold text-zinc-300 tracking-wide">
 						Launch
 					</span>
 				</div>
@@ -351,7 +330,7 @@ function Welcome(): React.ReactElement {
 		// Quick transition
 		setTimeout(() => {
 			setRoute(route);
-		}, 300);
+		}, 150);
 	};
 
 	const featuredApps = applications.filter((app) => app.featured);
@@ -359,29 +338,20 @@ function Welcome(): React.ReactElement {
 
 	return (
 		<div
-			className={`relative h-full w-full overflow-y-auto bg-zinc-950 transition-opacity duration-200 ${
+			className={`relative h-full w-full overflow-y-auto bg-zinc-950 transition-opacity duration-150 ${
 				isExiting ? "opacity-0" : "opacity-100"
 			}`}
 		>
 			{/* Loading overlay when launching app */}
 			{isExiting && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/95 backdrop-blur-xl">
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/98">
 					<div className="flex flex-col items-center gap-4">
 						{/* Spinner */}
-						<div className="relative">
-							<div className="w-16 h-16 rounded-full border-4 border-zinc-800 border-t-amber-500 animate-spin" />
-							<div
-								className="absolute inset-0 w-16 h-16 rounded-full border-4 border-transparent border-b-amber-500/30 animate-spin"
-								style={{
-									animationDirection: "reverse",
-									animationDuration: "1s",
-								}}
-							/>
-						</div>
+						<div className="w-16 h-16 rounded-full border-2 border-zinc-700 border-t-zinc-500 animate-spin" />
 						{/* Loading text */}
 						<div className="text-center">
-							<p className="text-lg font-semibold text-white mb-1">
-								Launching App
+							<p className="text-lg font-semibold text-zinc-300 mb-1">
+								Loading Application
 							</p>
 							<p className="text-sm text-zinc-500">Please wait...</p>
 						</div>
@@ -389,19 +359,19 @@ function Welcome(): React.ReactElement {
 				</div>
 			)}
 
-			{/* iOS-style container */}
+			{/* Container with relative positioning */}
 			<div
-				className={isMobile ? "pb-8" : "container mx-auto px-6 py-12 max-w-7xl"}
+				className={isMobile
+					? "pb-8 relative"
+					: "container mx-auto px-6 py-12 max-w-7xl relative"}
 			>
-				{/* iOS-style Large Title Header - Mobile only */}
+				{/* Large Title Header - Mobile only */}
 				{isMobile && (
-					<div className="px-4 pt-4 pb-6">
-						{/* Marketing banner */}
-
-						<h1 className="text-4xl font-bold text-zinc-300 tracking-tight mb-2">
+					<div className="px-4 pt-6 pb-6 border-b border-zinc-800">
+						<h1 className="text-3xl font-bold text-zinc-200 mb-2">
 							Web3 Applications
 						</h1>
-						<p className="text-base text-zinc-400">
+						<p className="text-sm text-zinc-500">
 							{applications.length} professional tools for traders
 						</p>
 					</div>
@@ -410,47 +380,40 @@ function Welcome(): React.ReactElement {
 				{/* Featured Apps */}
 				{featuredApps.length > 0 && (
 					<div className={isMobile ? "mb-10" : "mb-16"}>
-						{/* iOS-style section header - Mobile */}
+						{/* Section header - Mobile */}
 						{isMobile
 							? (
-								<div className="px-4 mb-4">
-									<div className="flex items-center justify-between mb-3">
-										<h2 className="text-2xl font-bold text-white tracking-tight">
+								<div className="px-4 mb-5 pt-6">
+									<div className="flex items-center justify-between mb-2">
+										<h2 className="text-xl font-bold text-zinc-300">
 											Featured
 										</h2>
-										<div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-500/40">
-											<Sparkles className="w-3 h-3 text-blue-400" />
-											<span className="text-xs font-bold text-blue-400">
+										<div className="px-2 py-1 bg-zinc-900 border border-zinc-800">
+											<span className="text-xs font-medium text-zinc-500">
 												{featuredApps.length}
 											</span>
 										</div>
 									</div>
-									<p className="text-sm text-zinc-500">
-										Most popular apps with 30K+ active users
+									<p className="text-xs text-zinc-600">
+										Most popular applications
 									</p>
 								</div>
 							)
 							: (
-								<div className="mb-8">
-									<div className="flex items-center justify-between mb-6">
-										<div className="flex items-center gap-3">
-											<div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
-												<Sparkles className="w-6 h-6 text-amber-500" />
-											</div>
-											<div>
-												<h2 className="text-3xl font-black text-zinc-300 tracking-tight">
-													Featured Apps
-												</h2>
-												<p className="text-sm text-zinc-500 mt-1">
-													Most popular apps with 30K+ active users
-												</p>
-											</div>
+								<div className="mb-10 pb-6 border-b border-zinc-900">
+									<div className="flex items-center justify-between">
+										<div>
+											<h2 className="text-2xl font-bold text-zinc-300 mb-1">
+												Featured Apps
+											</h2>
+											<p className="text-sm text-zinc-500">
+												Most popular applications with active users
+											</p>
 										</div>
 
-										{/* Marketing badge */}
-										<div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-blue-500/10 border border-blue-500/20">
-											<Sparkles className="w-4 h-4 text-blue-400" />
-											<span className="text-sm font-semibold text-blue-400">
+										{/* Badge */}
+										<div className="px-4 py-2 bg-zinc-900 border border-zinc-800">
+											<span className="text-sm font-medium text-zinc-400">
 												{featuredApps.length} Featured
 											</span>
 										</div>
@@ -479,37 +442,32 @@ function Welcome(): React.ReactElement {
 				{/* Other Apps */}
 				{otherApps.length > 0 && (
 					<div className={isMobile ? "mb-8" : ""}>
-						{/* iOS-style section header - Mobile */}
+						{/* Section header - Mobile */}
 						{isMobile
 							? (
-								<div className="px-4 mb-4">
-									<h2 className="text-2xl font-bold text-zinc-300 tracking-tight mb-2">
+								<div className="px-4 mb-5 pt-6 border-t border-zinc-900">
+									<h2 className="text-xl font-bold text-zinc-300 mb-2">
 										More Apps
 									</h2>
-									<p className="text-sm text-zinc-500">
-										Explore additional tools and features
+									<p className="text-xs text-zinc-600">
+										Explore additional tools
 									</p>
 								</div>
 							)
 							: (
-								<div className="flex items-center justify-between mb-8">
-									<div className="flex items-center gap-3">
-										<div className="w-12 h-12 rounded-2xl bg-zinc-500/10 border border-zinc-500/30 flex items-center justify-center">
-											<Activity className="w-6 h-6 text-zinc-400" />
-										</div>
-										<div>
-											<h2 className="text-3xl font-black text-white tracking-tight">
-												More Applications
-											</h2>
-											<p className="text-sm text-zinc-500 mt-1">
-												Explore additional professional tools
-											</p>
-										</div>
+								<div className="flex items-center justify-between mb-8 pb-6 border-b border-zinc-900">
+									<div>
+										<h2 className="text-2xl font-bold text-zinc-300 mb-1">
+											More Applications
+										</h2>
+										<p className="text-sm text-zinc-500">
+											Explore additional professional tools
+										</p>
 									</div>
 
 									{/* Stats badge */}
-									<div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-zinc-500/10 border border-zinc-500/20">
-										<span className="text-sm font-semibold text-zinc-400">
+									<div className="px-4 py-2 bg-zinc-900 border border-zinc-800">
+										<span className="text-sm font-medium text-zinc-400">
 											{applications.length} Apps Total
 										</span>
 									</div>
@@ -536,107 +494,105 @@ function Welcome(): React.ReactElement {
 				{/* Footer info */}
 				{isMobile
 					? (
-						<div className="mt-12 px-4 pb-8">
-							{/* iOS-style feature highlights */}
-							<div className="space-y-3 mb-8">
-								<div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-zinc-900/50 border border-zinc-800/50">
-									<div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
-										<Sparkles className="w-5 h-5 text-amber-500" />
+						<div className="mt-12 px-4 pb-8 pt-6 border-t border-zinc-900">
+							{/* Feature highlights */}
+							<div className="space-y-2 mb-6">
+								<div className="flex items-center gap-3 px-3 py-3 bg-zinc-950 border border-zinc-900">
+									<div className="w-8 h-8 bg-zinc-900 flex items-center justify-center border border-zinc-800">
+										<Sparkles className="w-4 h-4 text-zinc-600" />
 									</div>
 									<div className="flex-1">
-										<p className="text-sm font-semibold text-white">
+										<p className="text-xs font-semibold text-zinc-400 mb-0.5">
 											Web3 Technology
 										</p>
-										<p className="text-xs text-zinc-500">
-											Secure, decentralized AI
+										<p className="text-xs text-zinc-600">
+											Secure, decentralized
 										</p>
 									</div>
 								</div>
 
-								<div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-zinc-900/50 border border-zinc-800/50">
-									<div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-										<Activity className="w-5 h-5 text-green-500" />
+								<div className="flex items-center gap-3 px-3 py-3 bg-zinc-950 border border-zinc-900">
+									<div className="w-8 h-8 bg-zinc-900 flex items-center justify-center border border-zinc-800">
+										<Activity className="w-4 h-4 text-zinc-600" />
 									</div>
 									<div className="flex-1">
-										<p className="text-sm font-semibold text-white">
+										<p className="text-xs font-semibold text-zinc-400 mb-0.5">
 											Real-time Analytics
 										</p>
-										<p className="text-xs text-zinc-500">
-											Live market data & indicators
+										<p className="text-xs text-zinc-600">
+											Live market data
 										</p>
 									</div>
 								</div>
 
-								<div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-zinc-900/50 border border-zinc-800/50">
-									<div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-										<TrendingUp className="w-5 h-5 text-blue-500" />
+								<div className="flex items-center gap-3 px-3 py-3 bg-zinc-950 border border-zinc-900">
+									<div className="w-8 h-8 bg-zinc-900 flex items-center justify-center border border-zinc-800">
+										<TrendingUp className="w-4 h-4 text-zinc-600" />
 									</div>
 									<div className="flex-1">
-										<p className="text-sm font-semibold text-white">
+										<p className="text-xs font-semibold text-zinc-400 mb-0.5">
 											Professional Tools
 										</p>
-										<p className="text-xs text-zinc-500">
-											Advanced trading features
+										<p className="text-xs text-zinc-600">
+											Advanced features
 										</p>
 									</div>
 								</div>
 							</div>
 
-							{/* iOS-style footer text */}
-							<div className="text-center space-y-3 pt-4 border-t border-zinc-800/50">
+							{/* Footer text */}
+							<div className="text-center pt-4 border-t border-zinc-900">
 								<p className="text-xs text-zinc-600 font-medium">
-									STELS Web3 OS v0.12.8
+									STELS WEB3 OS v0.12.8
 								</p>
 							</div>
 						</div>
 					)
 					: (
-						<div className="mt-20 pt-10 border-t border-zinc-800/30">
-							{/* Marketing stats - Desktop */}
-
+						<div className="mt-16 pt-8 border-t border-zinc-900">
 							{/* Feature highlights - Desktop */}
-							<div className="grid grid-cols-3 gap-6 max-w-4xl mx-auto mb-10">
-								<div className="flex flex-col items-center text-center p-6 rounded-2xl bg-zinc-900 border border-zinc-800">
-									<div className="w-14 h-14 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
-										<Sparkles className="w-7 h-7 text-amber-500" />
+							<div className="grid grid-cols-3 gap-6 max-w-4xl mx-auto mb-8">
+								<div className="flex flex-col items-center text-center p-6 bg-zinc-950 border border-zinc-900">
+									<div className="w-12 h-12 bg-zinc-900 flex items-center justify-center mb-4 border border-zinc-800">
+										<Sparkles className="w-6 h-6 text-zinc-600" />
 									</div>
-									<p className="text-base font-bold text-white mb-2">
+									<p className="text-base font-semibold text-zinc-300 mb-2">
 										Web3 Technology
 									</p>
-									<p className="text-xs text-zinc-500">
+									<p className="text-sm text-zinc-600">
 										Secure, decentralized AI infrastructure
 									</p>
 								</div>
 
-								<div className="flex flex-col items-center text-center p-6 rounded-2xl bg-zinc-900 border border-zinc-800">
-									<div className="w-14 h-14 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
-										<Activity className="w-7 h-7 text-green-500" />
+								<div className="flex flex-col items-center text-center p-6 bg-zinc-950 border border-zinc-900">
+									<div className="w-12 h-12 bg-zinc-900 flex items-center justify-center mb-4 border border-zinc-800">
+										<Activity className="w-6 h-6 text-zinc-600" />
 									</div>
-									<p className="text-base font-bold text-white mb-2">
+									<p className="text-base font-semibold text-zinc-300 mb-2">
 										Real-time Analytics
 									</p>
-									<p className="text-xs text-zinc-500">
+									<p className="text-sm text-zinc-600">
 										Live market data and professional indicators
 									</p>
 								</div>
 
-								<div className="flex flex-col items-center text-center p-6 rounded-2xl bg-zinc-900 border border-zinc-800">
-									<div className="w-14 h-14 rounded-full bg-blue-500/20 flex items-center justify-center mb-4">
-										<TrendingUp className="w-7 h-7 text-blue-500" />
+								<div className="flex flex-col items-center text-center p-6 bg-zinc-950 border border-zinc-900">
+									<div className="w-12 h-12 bg-zinc-900 flex items-center justify-center mb-4 border border-zinc-800">
+										<TrendingUp className="w-6 h-6 text-zinc-600" />
 									</div>
-									<p className="text-base font-bold text-white mb-2">
+									<p className="text-base font-semibold text-zinc-300 mb-2">
 										Professional Tools
 									</p>
-									<p className="text-xs text-zinc-500">
+									<p className="text-sm text-zinc-600">
 										Advanced trading features for professionals
 									</p>
 								</div>
 							</div>
 
-							{/* Footer text */}
-							<div className="text-center">
-								<p className="text-sm text-zinc-600 mb-2">
-									STELS Web3 OS v0.12.8
+							{/* Footer text - Desktop */}
+							<div className="text-center pt-4 border-t border-zinc-900">
+								<p className="text-xs text-zinc-600 font-medium">
+									STELS WEB3 OS v0.12.8
 								</p>
 							</div>
 						</div>

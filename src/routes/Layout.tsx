@@ -317,7 +317,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								<div className="flex items-center gap-2">
 									<Graphite size={1.5} />
 									<span className="text-sm font-semibold text-white">
-										SONAR
+										STELS
 									</span>
 								</div>
 

@@ -76,7 +76,7 @@ export function NetworkSetup(
             </span>
           </CardTitle>
           <p className="text-zinc-400 text-lg mt-3 leading-relaxed">
-            Your wallet is ready. Choose a network to connect to the SONAR Web3
+            Your wallet is ready. Choose a network to connect to the STELS Web3
             platform.
           </p>
         </CardHeader>

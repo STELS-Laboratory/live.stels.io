@@ -135,7 +135,7 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
             </div>
             <div>
               <h2 className="text-3xl font-bold text-foreground mb-2">
-                Welcome to SONAR Web3
+                Welcome to STELS Web3
               </h2>
               <p className="text-zinc-400 text-lg">
                 Your wallet is connected and ready to use
@@ -144,7 +144,7 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
             <Alert className="max-w-md mx-auto bg-green-500/10 border-green-500/30">
               <CheckCircle className="h-4 w-4 text-green-500" />
               <AlertDescription className="text-green-300">
-                You can now access all features of the SONAR Web3 platform
+                You can now access all features of the STELS Web3 platform
               </AlertDescription>
             </Alert>
           </div>

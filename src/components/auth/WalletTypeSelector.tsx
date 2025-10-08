@@ -1,9 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight,
-  CheckCircle,
   Key,
   Shield,
   Sparkles,
@@ -43,7 +41,7 @@ export function WalletTypeSelector(
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Create New Wallet */}
             <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-200" />
+              <div className="absolute inset-0 group-hover:blur-2xl transition-all duration-200" />
               <Card
                 className="relative cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:shadow-2xl border-zinc-700/50 hover:border-amber-500/50 bg-zinc-900/60 hover:bg-zinc-800/60 backdrop-blur-sm group-hover:shadow-amber-500/10"
                 onClick={() => onSelectType("create")}
@@ -78,37 +76,6 @@ export function WalletTypeSelector(
                         key
                       </p>
                     </div>
-
-                    {/* Features with enhanced styling */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3 text-sm text-zinc-300 group-hover:text-zinc-200 transition-colors">
-                        <div className="p-1 bg-green-500/20 rounded-full">
-                          <CheckCircle className="h-4 w-4 text-green-400" />
-                        </div>
-                        <span>Cryptographically secure key generation</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm text-zinc-300 group-hover:text-zinc-200 transition-colors">
-                        <div className="p-1 bg-green-500/20 rounded-full">
-                          <CheckCircle className="h-4 w-4 text-green-400" />
-                        </div>
-                        <span>Local generation - never leaves your device</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm text-zinc-300 group-hover:text-zinc-200 transition-colors">
-                        <div className="p-1 bg-green-500/20 rounded-full">
-                          <CheckCircle className="h-4 w-4 text-green-400" />
-                        </div>
-                        <span>Ready for immediate use</span>
-                      </div>
-                    </div>
-
-                    {/* Enhanced badge */}
-                    <div className="flex items-center justify-center gap-2 pt-4">
-                      <Badge className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/30 px-4 py-2">
-                        <Sparkles className="h-3 w-3 mr-1" />
-                        Recommended
-                      </Badge>
-                    </div>
-
                     {/* Hover indicator */}
                     <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-150 transform translate-x-2 group-hover:translate-x-0">
                       <ArrowRight className="h-5 w-5 text-amber-400" />
@@ -120,7 +87,7 @@ export function WalletTypeSelector(
 
             {/* Import Existing Wallet */}
             <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-200" />
+              <div className="absolute inset-0 group-hover:blur-2xl transition-all duration-200" />
               <Card
                 className="relative cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:shadow-2xl border-zinc-700/50 hover:border-blue-500/50 bg-zinc-900/60 hover:bg-zinc-800/60 backdrop-blur-sm group-hover:shadow-blue-500/10"
                 onClick={() => onSelectType("import")}
@@ -153,36 +120,6 @@ export function WalletTypeSelector(
                       <p className="text-zinc-400 mb-6 leading-relaxed">
                         Restore your wallet using your existing private key
                       </p>
-                    </div>
-
-                    {/* Features with enhanced styling */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3 text-sm text-zinc-300 group-hover:text-zinc-200 transition-colors">
-                        <div className="p-1 bg-green-500/20 rounded-full">
-                          <CheckCircle className="h-4 w-4 text-green-400" />
-                        </div>
-                        <span>Restore access to existing funds</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm text-zinc-300 group-hover:text-zinc-200 transition-colors">
-                        <div className="p-1 bg-green-500/20 rounded-full">
-                          <CheckCircle className="h-4 w-4 text-green-400" />
-                        </div>
-                        <span>Keep all your transaction history</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm text-zinc-300 group-hover:text-zinc-200 transition-colors">
-                        <div className="p-1 bg-green-500/20 rounded-full">
-                          <CheckCircle className="h-4 w-4 text-green-400" />
-                        </div>
-                        <span>Secure validation and import</span>
-                      </div>
-                    </div>
-
-                    {/* Enhanced badge */}
-                    <div className="flex items-center justify-center gap-2 pt-4">
-                      <Badge className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-400 border-blue-500/30 px-4 py-2">
-                        <Key className="h-3 w-3 mr-1" />
-                        For Existing Users
-                      </Badge>
                     </div>
 
                     {/* Hover indicator */}
