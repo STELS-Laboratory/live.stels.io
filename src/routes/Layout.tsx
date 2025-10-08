@@ -492,7 +492,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						className="flex flex-1 overflow-y-auto overflow-x-hidden bg-background"
 						data-route-container
 					>
-						<div className="w-full mx-auto p-4 sm:p-6 lg:p-8 flex-1 min-h-0 bg-black">
+						<div className="w-full mx-auto pt-2 sm:pt-2 lg:pt-2 flex-1 min-h-0 bg-black">
 							{children}
 						</div>
 
