@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { Handle, type NodeProps, Position, useReactFlow } from "reactflow";
 import { Minus, Square, X } from "lucide-react";
-import NodeFlow from "@/routes/main/canvas/NodeFlow";
+import NodeFlow from "@/routes/main/Canvas/NodeFlow";
 import type { FlowNodeData, NodeState } from "@/lib/canvas-types";
 
 interface MacOSNodeProps extends NodeProps {

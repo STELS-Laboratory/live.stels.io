@@ -1,5 +1,5 @@
 import { useAppStore } from "@/stores";
-import { useMobile } from "@/hooks/useMobile";
+import { useMobile } from "@/hooks/useMobile.ts";
 import {
 	Activity,
 	BarChart3,
@@ -76,7 +76,7 @@ const applications: AppMetadata[] = [
 		name: "Canvas dashboard",
 		tagline: "Visual data composition",
 		description:
-			"Advanced widget store and canvas for building custom data visualizations. Drag and drop widgets to create your perfect trading dashboard.",
+			"Advanced widget store and Canvas for building custom data visualizations. Drag and drop widgets to create your perfect trading dashboard.",
 		icon: <Layers3 className="w-8 h-8" />,
 		color: "from-purple-500/20 to-pink-500/20",
 		category: "Visualization",

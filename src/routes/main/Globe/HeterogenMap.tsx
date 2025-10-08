@@ -121,7 +121,7 @@ interface NetworkHealth {
 }
 
 /**
- * Parse network data into node structure for globe visualization
+ * Parse network data into node structure for Globe visualization
  */
 function parseNodeData(data: unknown[]): NodeData[] {
 	const nodeMap: Record<string, Partial<NodeData>> = {};
@@ -620,7 +620,7 @@ const HeterogenComponent = (): ReactElement => {
 					pointAltitude={0.001}
 					pointRadius={1.2}
 					onPointClick={(d) => handleNodeClick(d as NodeData)}
-					// @ts-expect-error: react-globe.gl library types are incomplete for pointLabel prop
+					// @ts-expect-error: react-Globe.gl library types are incomplete for pointLabel prop
 					pointLabel={(d: NodeData) => {
 						const health = generateNetworkHealth();
 						return (

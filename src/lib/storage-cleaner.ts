@@ -160,7 +160,7 @@ export const clearAppSpecificStorage = (): void => {
 			'wallet-store',
 			'app-store',
 			'panel-store',
-			'canvas-ui-store',
+			'Canvas-ui-store',
 			'worker-store',
 			'gliesereum-wallet',
 			'web3-session',

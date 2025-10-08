@@ -10,8 +10,8 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import Welcome from "@/routes/main/Welcome";
 import MarketDataViewer from "@/routes/main/Markets";
-import Flow from "@/routes/main/canvas/Flow";
-import HeterogenComponent from "@/routes/main/globe/HeterogenMap";
+import Flow from "@/routes/main/Canvas/Flow";
+import HeterogenComponent from "@/routes/main/Globe/HeterogenMap";
 import Scanner from "@/routes/main/Scanner";
 import GliesereumWallet from "@/routes/wallet/Wallet";
 import { TooltipProvider } from "@/components/ui/tooltip";

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
  * Props for the WidgetStatusBadge component
  */
 interface WidgetStatusBadgeProps {
-  /** Whether the widget is in canvas */
+  /** Whether the widget is in Canvas */
   isInCanvas: boolean;
   /** Size of the badge */
   size?: "sm" | "md" | "lg";

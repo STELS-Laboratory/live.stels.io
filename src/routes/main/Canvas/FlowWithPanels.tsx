@@ -19,7 +19,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync";
-import MacOSNode from "@/routes/main/canvas/MacOSNode";
+import MacOSNode from "@/routes/main/Canvas/MacOSNode";
 import { Network, Settings, ShoppingBag } from "lucide-react";
 import { cleanBrands, cn } from "@/lib/utils";
 import Graphite from "@/components/ui/vectors/logos/Graphite";
@@ -535,7 +535,7 @@ function FlowWithPanels(): React.ReactElement | null {
 			{/* Panel tabs */}
 			<PanelTabs className="flex-shrink-0" />
 
-			{/* Main canvas area */}
+			{/* Main Canvas area */}
 			<div
 				className={cn(
 					"flex-1 relative transition-all duration-300 ease-in-out",

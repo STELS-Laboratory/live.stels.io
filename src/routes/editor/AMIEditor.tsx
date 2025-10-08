@@ -35,7 +35,7 @@ import type { Worker } from "@/stores/modules/worker.store";
 import { useWorkerStore } from "@/stores/modules/worker.store";
 import { useAuthStore } from "@/stores/modules/auth.store";
 import { useAppStore } from "@/stores/modules/app.store";
-import { useMobile } from "@/hooks/useMobile";
+import { useMobile } from "@/hooks/useMobile.ts";
 import type { JSX } from "react/jsx-runtime";
 import { Input } from "@/components/ui/input";
 import {

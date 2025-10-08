@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useDeviceType } from "@/hooks/useMobile";
+import { useDeviceType } from "@/hooks/useMobile.ts";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import { DragPreview } from "./DragPreview";
 import { WidgetStatusBadge } from "./WidgetStatusBadge";
@@ -47,7 +47,7 @@ interface WidgetStoreProps {
     event: React.TouchEvent<HTMLDivElement>,
     keyStore: string,
   ) => void;
-  /** Array of widget keys that are already in the current canvas */
+  /** Array of widget keys that are already in the current Canvas */
   existingWidgets?: string[];
 }
 
@@ -73,7 +73,7 @@ interface WidgetItemProps {
   isMobile: boolean;
   /** Whether this is a compact view */
   isCompact?: boolean;
-  /** Whether this widget is already in the canvas */
+  /** Whether this widget is already in the Canvas */
   isInCanvas?: boolean;
 }
 
@@ -242,7 +242,7 @@ function WidgetItem({
           dragState.isDragging && "opacity-50 scale-95",
           isMobile && "touch-manipulation",
         )}
-        title={isInCanvas ? "Widget already in canvas" : "Drag to add widget"}
+        title={isInCanvas ? "Widget already in Canvas" : "Drag to add widget"}
       >
         <div className="flex items-center space-x-2 flex-1 min-w-0">
           {getWidgetIcon(widgetType)}
@@ -280,7 +280,7 @@ function WidgetItem({
         dragState.isDragging && "opacity-50 scale-95",
         isMobile && "touch-manipulation",
       )}
-      title={isInCanvas ? "Widget already in canvas" : "Drag to add widget"}
+      title={isInCanvas ? "Widget already in Canvas" : "Drag to add widget"}
     >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
