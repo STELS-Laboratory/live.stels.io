@@ -6,6 +6,7 @@ import { useUrlRouter } from "@/hooks/useUrlRouter";
 import { RouteLoader } from "@/components/main/RouteLoader";
 import { useAuthRestore } from "@/hooks/useAuthRestore";
 import { useHydration } from "@/hooks/useHydration";
+import { AnimatePresence, motion } from "framer-motion";
 
 import Welcome from "@/routes/main/Welcome";
 import MarketDataViewer from "@/routes/main/Markets";
@@ -371,50 +372,132 @@ export default function Dashboard(): React.ReactElement {
 	 */
 	const renderLoadingScreen = (message: string): React.ReactElement => {
 		return (
-			<div className="absolute max-w-[500px] mx-auto w-[100%] h-[100%] overflow-hidden left-0 right-0 top-0 bottom-0  bg-zinc-950 flex items-center justify-center p-32">
-				<div className="w-full max-w-md space-y-6 text-center">
+			<motion.div
+				className="absolute max-w-[500px] mx-auto w-[100%] h-[100%] overflow-hidden left-0 right-0 top-0 bottom-0  bg-zinc-950 flex items-center justify-center p-32"
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				exit={{ opacity: 0 }}
+				transition={{ duration: 0.4 }}
+			>
+				<motion.div
+					className="w-full max-w-md space-y-6 text-center"
+					initial={{ scale: 0.9, y: 20 }}
+					animate={{ scale: 1, y: 0 }}
+					transition={{ duration: 0.5, delay: 0.1 }}
+				>
 					{/* Loading Animation */}
-					<div className="relative mx-auto w-20 h-20">
+					<motion.div
+						className="relative mx-auto w-20 h-20"
+						initial={{ scale: 0, rotate: -180 }}
+						animate={{ scale: 1, rotate: 0 }}
+						transition={{ duration: 0.6, delay: 0.2 }}
+					>
 						<div className="absolute inset-0 border-4 border-amber-500/20 rounded-full">
 						</div>
-						<div className="absolute inset-0 border-4 border-transparent border-t-amber-500 rounded-full animate-spin">
-						</div>
-						<div className="absolute inset-2 border-2 border-transparent border-t-blue-400 rounded-full animate-spin animation-delay-150">
-						</div>
-					</div>
+						<motion.div
+							className="absolute inset-0 border-4 border-transparent border-t-amber-500 rounded-full"
+							animate={{ rotate: 360 }}
+							transition={{
+								duration: 1,
+								repeat: Infinity,
+								ease: "linear",
+							}}
+						/>
+						<motion.div
+							className="absolute inset-2 border-2 border-transparent border-t-blue-400 rounded-full"
+							animate={{ rotate: 360 }}
+							transition={{
+								duration: 0.7,
+								repeat: Infinity,
+								ease: "linear",
+							}}
+						/>
+					</motion.div>
 
 					{/* State Message */}
-					<div>
-						<h2 className="text-2xl font-bold text-white mb-2">
-							STELS
-						</h2>
-						<p className="text-zinc-400 text-lg">
+					<motion.div
+						initial={{ opacity: 0, y: 10 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.4, delay: 0.3 }}
+					>
+						<h2 className="text-2xl font-bold text-white mb-2">STELS</h2>
+						<motion.p
+							className="text-zinc-400 text-lg"
+							key={message}
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							transition={{ duration: 0.3 }}
+						>
 							{message}
-						</p>
-					</div>
+						</motion.p>
+					</motion.div>
 
 					{/* Progress Bar */}
-					<div className="space-y-2">
-						<div className="w-full bg-zinc-800 rounded-full h-2">
-							<div
-								className="bg-gradient-to-r from-amber-500 to-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
-								style={{ width: `${transitionProgress}%` }}
+					<motion.div
+						className="space-y-2"
+						initial={{ opacity: 0, scale: 0.95 }}
+						animate={{ opacity: 1, scale: 1 }}
+						transition={{ duration: 0.4, delay: 0.4 }}
+					>
+						<div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
+							<motion.div
+								className="bg-gradient-to-r from-amber-500 to-blue-500 h-2 rounded-full"
+								initial={{ width: "0%" }}
+								animate={{ width: `${transitionProgress}%` }}
+								transition={{ duration: 0.3, ease: "easeOut" }}
 							>
-							</div>
+								<motion.div
+									className="h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent"
+									animate={{ x: ["-100%", "100%"] }}
+									transition={{
+										duration: 1.5,
+										repeat: Infinity,
+										ease: "linear",
+									}}
+								/>
+							</motion.div>
 						</div>
-						<p className="text-xs text-zinc-500">
+						<motion.p
+							className="text-xs text-zinc-500"
+							key={Math.round(transitionProgress)}
+							initial={{ scale: 1.1 }}
+							animate={{ scale: 1 }}
+							transition={{ duration: 0.2 }}
+						>
 							{Math.round(transitionProgress)}% complete
-						</p>
-					</div>
+						</motion.p>
+					</motion.div>
 
 					{/* State Indicator */}
-					<div className="flex items-center justify-center gap-2 text-sm text-zinc-500">
-						<div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse">
-						</div>
-						<span>State: {appState.replace("_", " ")}</span>
-					</div>
-				</div>
-			</div>
+					<motion.div
+						className="flex items-center justify-center gap-2 text-sm text-zinc-500"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						transition={{ duration: 0.4, delay: 0.5 }}
+					>
+						<motion.div
+							className="w-2 h-2 bg-amber-400 rounded-full"
+							animate={{
+								scale: [1, 1.3, 1],
+								opacity: [1, 0.5, 1],
+							}}
+							transition={{
+								duration: 1.5,
+								repeat: Infinity,
+								ease: "easeInOut",
+							}}
+						/>
+						<motion.span
+							key={appState}
+							initial={{ opacity: 0, y: 5 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.3 }}
+						>
+							State: {appState.replace("_", " ")}
+						</motion.span>
+					</motion.div>
+				</motion.div>
+			</motion.div>
 		);
 	};
 
@@ -433,6 +516,27 @@ export default function Dashboard(): React.ReactElement {
 			upgrading: "System upgrade in progress...",
 		};
 		return messages[state] || "Loading...";
+	};
+
+	/**
+	 * Animation variants for route transitions
+	 */
+	const pageVariants = {
+		initial: {
+			opacity: 0,
+			scale: 0.98,
+			y: 10,
+		},
+		animate: {
+			opacity: 1,
+			scale: 1,
+			y: 0,
+		},
+		exit: {
+			opacity: 0,
+			scale: 0.98,
+			y: -10,
+		},
 	};
 
 	const renderMainContent = (): React.ReactElement => {
@@ -486,9 +590,14 @@ export default function Dashboard(): React.ReactElement {
 		case "authenticating":
 			// Show authentication flow with smooth transition
 			return (
-				<div className="transition-all duration-500 ease-in-out">
+				<motion.div
+					initial={{ opacity: 0, scale: 0.98 }}
+					animate={{ opacity: 1, scale: 1 }}
+					exit={{ opacity: 0, scale: 0.98 }}
+					transition={{ duration: 0.4 }}
+				>
 					<ProfessionalConnectionFlow />
-				</div>
+				</motion.div>
 			);
 
 		case "connecting":
@@ -522,7 +631,22 @@ export default function Dashboard(): React.ReactElement {
 								<div className="absolute w-[100%] h-[100%] top-0 bottom-0 overflow-hidden">
 									<RouteLoader>
 										<Layout>
-											{renderMainContent()}
+											<AnimatePresence mode="wait" initial={false}>
+												<motion.div
+													key={currentRoute}
+													variants={pageVariants}
+													initial="initial"
+													animate="animate"
+													exit="exit"
+													transition={{
+														duration: 0.3,
+														ease: [0.25, 0.46, 0.45, 0.94],
+													}}
+													className="h-full w-full"
+												>
+													{renderMainContent()}
+												</motion.div>
+											</AnimatePresence>
 										</Layout>
 									</RouteLoader>
 								</div>
