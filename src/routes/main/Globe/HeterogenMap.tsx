@@ -362,12 +362,12 @@ const HeterogenComponent = (): ReactElement => {
 									</span>
 									<Badge
 										variant={getStatusBadgeVariant(health.status)}
-										className="text-xs bg-white/10 border-white/20"
+										className="text-xs bg-muted/50 border-border/50"
 									>
 										{health.status.toUpperCase()}
 									</Badge>
 								</CardTitle>
-								<p className="text-xs sm:text-sm text-zinc-300">
+								<p className="text-xs sm:text-sm text-card-foreground">
 									{node.location.city}, {node.location.country_name}
 								</p>
 							</div>
@@ -377,7 +377,7 @@ const HeterogenComponent = (): ReactElement => {
 								variant="outline"
 								size="sm"
 								onClick={() => toggleNodeExpansion(node.name)}
-								className="flex items-center gap-1 bg-white/10 border-white/20 hover:bg-white/20 text-white backdrop-blur-sm"
+								className="flex items-center gap-1 bg-muted/50 border-border/50 hover:bg-accent/50 text-foreground backdrop-blur-sm"
 							>
 								{isExpanded
 									? <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -393,7 +393,7 @@ const HeterogenComponent = (): ReactElement => {
 								variant="outline"
 								size="sm"
 								onClick={() => setSelectedNode(null)}
-								className="bg-white/10 border-white/20 hover:bg-white/20 text-white backdrop-blur-sm"
+								className="bg-muted/50 border-border/50 hover:bg-accent/50 text-foreground backdrop-blur-sm"
 							>
 								<X className="w-3 h-3 sm:w-4 sm:h-4" />
 							</Button>
@@ -404,19 +404,19 @@ const HeterogenComponent = (): ReactElement => {
 					{/* Network Health */}
 					<div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
 						<div className="text-center p-2 sm:p-3 bg-white/10 rounded-lg backdrop-blur-sm">
-							<div className="text-xs text-zinc-300 mb-1">UPTIME</div>
+							<div className="text-xs text-card-foreground mb-1">UPTIME</div>
 							<div className="text-sm sm:text-lg font-bold text-emerald-400">
 								{health.uptime.toFixed(1)}%
 							</div>
 						</div>
 						<div className="text-center p-2 sm:p-3 bg-white/10 rounded-lg backdrop-blur-sm">
-							<div className="text-xs text-zinc-300 mb-1">LATENCY</div>
+							<div className="text-xs text-card-foreground mb-1">LATENCY</div>
 							<div className="text-sm sm:text-lg font-bold text-blue-400">
 								{health.latency.toFixed(0)}ms
 							</div>
 						</div>
 						<div className="text-center p-2 sm:p-3 bg-white/10 rounded-lg backdrop-blur-sm">
-							<div className="text-xs text-zinc-300 mb-1">
+							<div className="text-xs text-card-foreground mb-1">
 								CONNECTIONS
 							</div>
 							<div className="text-sm sm:text-lg font-bold text-amber-400">
@@ -424,10 +424,10 @@ const HeterogenComponent = (): ReactElement => {
 							</div>
 						</div>
 						<div className="text-center p-2 sm:p-3 bg-white/10 rounded-lg backdrop-blur-sm">
-							<div className="text-xs text-zinc-300 mb-1">STATUS</div>
+							<div className="text-xs text-card-foreground mb-1">STATUS</div>
 							<Badge
 								variant={getStatusBadgeVariant(health.status)}
-								className="text-xs bg-white/10 border-white/20"
+								className="text-xs bg-muted/50 border-border/50"
 							>
 								{health.status.toUpperCase()}
 							</Badge>
@@ -438,24 +438,24 @@ const HeterogenComponent = (): ReactElement => {
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
 						<div className="space-y-2">
 							<div className="flex items-center gap-2">
-								<MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-zinc-400" />
-								<span className="text-xs sm:text-sm font-medium text-zinc-200">
+								<MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
+								<span className="text-xs sm:text-sm font-medium text-card-foreground">
 									Location
 								</span>
 							</div>
-							<div className="text-xs sm:text-sm text-zinc-300 pl-5 sm:pl-6">
+							<div className="text-xs sm:text-sm text-card-foreground pl-5 sm:pl-6">
 								{node.location.city}, {node.location.region || "Unknown"},{" "}
 								{node.location.country_name}
 							</div>
 						</div>
 						<div className="space-y-2">
 							<div className="flex items-center gap-2">
-								<Network className="w-3 h-3 sm:w-4 sm:h-4 text-zinc-400" />
-								<span className="text-xs sm:text-sm font-medium text-zinc-200">
+								<Network className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
+								<span className="text-xs sm:text-sm font-medium text-card-foreground">
 									Network
 								</span>
 							</div>
-							<div className="text-xs sm:text-sm text-zinc-300 pl-5 sm:pl-6">
+							<div className="text-xs sm:text-sm text-card-foreground pl-5 sm:pl-6">
 								{node.config.network}
 							</div>
 						</div>
@@ -463,69 +463,69 @@ const HeterogenComponent = (): ReactElement => {
 
 					{/* Expanded Details */}
 					{isExpanded && (
-						<div className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 border-t border-white/20">
+						<div className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 border-t border-border/30">
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
 								<div className="space-y-2 sm:space-y-3">
-									<h4 className="text-xs sm:text-sm font-semibold flex items-center gap-2 text-zinc-200">
+									<h4 className="text-xs sm:text-sm font-semibold flex items-center gap-2 text-card-foreground">
 										<Shield className="w-3 h-3 sm:w-4 sm:h-4" />
 										Network Details
 									</h4>
 									<div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
 										<div className="flex justify-between">
-											<span className="text-zinc-400">IP Address:</span>
-											<span className="font-mono text-zinc-200">
+											<span className="text-muted-foreground">IP Address:</span>
+											<span className="font-mono text-card-foreground">
 												{node.location.ip || "Unknown"}
 											</span>
 										</div>
 										<div className="flex justify-between">
-											<span className="text-zinc-400">ASN:</span>
-											<span className="font-mono text-zinc-200">
+											<span className="text-muted-foreground">ASN:</span>
+											<span className="font-mono text-card-foreground">
 												{node.location.asn || "Unknown"}
 											</span>
 										</div>
 										<div className="flex justify-between">
-											<span className="text-zinc-400">
+											<span className="text-muted-foreground">
 												Organization:
 											</span>
-											<span className="font-mono text-xs text-zinc-200">
+											<span className="font-mono text-xs text-card-foreground">
 												{node.location.org || "Unknown"}
 											</span>
 										</div>
 										<div className="flex justify-between">
-											<span className="text-zinc-400">Timezone:</span>
-											<span className="text-zinc-200">
+											<span className="text-muted-foreground">Timezone:</span>
+											<span className="text-card-foreground">
 												{node.location.timezone || "Unknown"}
 											</span>
 										</div>
 									</div>
 								</div>
 								<div className="space-y-2 sm:space-y-3">
-									<h4 className="text-xs sm:text-sm font-semibold flex items-center gap-2 text-zinc-200">
+									<h4 className="text-xs sm:text-sm font-semibold flex items-center gap-2 text-card-foreground">
 										<Activity className="w-3 h-3 sm:w-4 sm:h-4" />
 										Configuration
 									</h4>
 									<div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
 										<div className="flex justify-between">
-											<span className="text-zinc-400">Type:</span>
-											<span className="text-zinc-200">
+											<span className="text-muted-foreground">Type:</span>
+											<span className="text-card-foreground">
 												{node.config.type || "Unknown"}
 											</span>
 										</div>
 										<div className="flex justify-between">
-											<span className="text-zinc-400">Brain:</span>
-											<span className="text-zinc-200">
+											<span className="text-muted-foreground">Brain:</span>
+											<span className="text-card-foreground">
 												{node.config.brain || "Unknown"}
 											</span>
 										</div>
 										<div className="flex justify-between">
-											<span className="text-zinc-400">Tick:</span>
-											<span className="text-zinc-200">
+											<span className="text-muted-foreground">Tick:</span>
+											<span className="text-card-foreground">
 												{node.config.tick || 0}ms
 											</span>
 										</div>
 										<div className="flex justify-between">
-											<span className="text-zinc-400">Connectors:</span>
-											<span className="text-zinc-200">
+											<span className="text-muted-foreground">Connectors:</span>
+											<span className="text-card-foreground">
 												{node.config.connectors?.length || 0}
 											</span>
 										</div>
@@ -542,13 +542,13 @@ const HeterogenComponent = (): ReactElement => {
 	// Show loading state if no nodes
 	if (nodes.length === 0) {
 		return (
-			<div className="relative w-full h-[100%] bg-black overflow-hidden flex items-center justify-center p-4">
-				<Card className="bg-white/5 border-white/10 backdrop-blur-xl shadow-2xl max-w-sm w-full">
+			<div className="relative w-full h-[100%] bg-background overflow-hidden flex items-center justify-center p-4">
+				<Card className="bg-card/80 border-border/30 backdrop-blur-xl shadow-2xl max-w-sm w-full">
 					<CardContent className="p-4 sm:p-6 text-center">
 						<div className="text-amber-400 mb-2 text-sm sm:text-base">
 							Loading Network Data...
 						</div>
-						<div className="text-xs sm:text-sm text-zinc-300">
+						<div className="text-xs sm:text-sm text-card-foreground">
 							Connecting to heterogen nodes
 						</div>
 					</CardContent>
@@ -558,20 +558,20 @@ const HeterogenComponent = (): ReactElement => {
 	}
 
 	return (
-		<div className="relative w-full h-[100%] bg-black overflow-hidden">
+		<div className="relative w-full h-[100%] bg-background overflow-hidden">
 			{/* Mobile Header */}
-			<div className="sm:hidden fixed top-0 left-0 right-0 z-30 bg-black/80 backdrop-blur-xl border-b border-white/10">
+			<div className="sm:hidden fixed top-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border/30">
 				<div className="flex items-center justify-between p-3">
 					<div className="flex items-center gap-2">
 						<Network className="w-5 h-5 text-amber-400" />
-						<span className="text-white font-semibold text-sm">
+						<span className="text-foreground font-semibold text-sm">
 							Heterogen Network
 						</span>
 					</div>
 					<div className="flex items-center gap-2">
 						<Badge
 							variant="outline"
-							className="text-xs bg-white/10 border-white/20 text-white"
+							className="text-xs bg-muted/50 border-border/50 text-foreground"
 						>
 							{stats.totalNodes} nodes
 						</Badge>
@@ -579,7 +579,7 @@ const HeterogenComponent = (): ReactElement => {
 							variant="outline"
 							size="sm"
 							onClick={() => setIsGlobeVisible(!isGlobeVisible)}
-							className="bg-white/10 border-white/20 hover:bg-white/20 text-white backdrop-blur-sm p-2"
+							className="bg-muted/50 border-border/50 hover:bg-accent/50 text-foreground backdrop-blur-sm p-2"
 						>
 							{isGlobeVisible
 								? <EyeOff className="w-4 h-4" />
@@ -624,9 +624,9 @@ const HeterogenComponent = (): ReactElement => {
 					pointLabel={(d: NodeData) => {
 						const health = generateNetworkHealth();
 						return (
-							<div className="p-4 bg-zinc-900/95 border border-zinc-700 rounded-lg backdrop-blur-sm max-w-xs">
+							<div className="p-4 bg-card/95 border border-border rounded-lg backdrop-blur-sm max-w-xs">
 								<div className="flex items-center gap-2 mb-2">
-									<h3 className="text-sm font-bold text-white">{d.name}</h3>
+									<h3 className="text-sm font-bold text-foreground">{d.name}</h3>
 									<Badge
 										variant={getStatusBadgeVariant(health.status)}
 										className="text-xs"
@@ -637,14 +637,14 @@ const HeterogenComponent = (): ReactElement => {
 								<p className="text-xs text-amber-400 mb-1">
 									Network: {d.config.network || "Unknown"}
 								</p>
-								<p className="text-xs text-zinc-300 mb-1">
+								<p className="text-xs text-card-foreground mb-1">
 									{d.location.city || "Unknown"},{" "}
 									{d.location.country_name || "Unknown"}
 								</p>
-								<p className="text-xs text-zinc-400 mb-1">
+								<p className="text-xs text-muted-foreground mb-1">
 									IP: {d.location.ip || "Unknown"}
 								</p>
-								<p className="text-xs text-zinc-400">
+								<p className="text-xs text-muted-foreground">
 									Uptime: {health.uptime.toFixed(1)}% | Latency:{" "}
 									{health.latency.toFixed(0)}ms
 								</p>
@@ -658,14 +658,14 @@ const HeterogenComponent = (): ReactElement => {
 
 			{/* Control Panel - Desktop */}
 			<div className="hidden sm:block absolute top-4 left-4 z-20">
-				<Card className="bg-white/5 border-white/10 backdrop-blur-xl shadow-2xl">
+				<Card className="bg-card/80 border-border/30 backdrop-blur-xl shadow-2xl">
 					<CardContent className="p-4">
 						<div className="flex items-center gap-3">
 							<Button
 								variant="outline"
 								size="sm"
 								onClick={() => setIsGlobeVisible(!isGlobeVisible)}
-								className="flex items-center gap-2 bg-white/10 border-white/20 hover:bg-white/20 text-white backdrop-blur-sm"
+								className="flex items-center gap-2 bg-muted/50 border-border/50 hover:bg-accent/50 text-foreground backdrop-blur-sm"
 							>
 								{isGlobeVisible
 									? <EyeOff className="w-4 h-4" />
@@ -676,7 +676,7 @@ const HeterogenComponent = (): ReactElement => {
 								variant="outline"
 								size="sm"
 								onClick={() => setIsAutoRotate(!isAutoRotate)}
-								className="flex items-center gap-2 bg-white/10 border-white/20 hover:bg-white/20 text-white backdrop-blur-sm"
+								className="flex items-center gap-2 bg-muted/50 border-border/50 hover:bg-accent/50 text-foreground backdrop-blur-sm"
 							>
 								<GlobeIcon className="w-4 h-4" />
 								{isAutoRotate ? "Stop" : "Start"} Rotate
@@ -686,7 +686,7 @@ const HeterogenComponent = (): ReactElement => {
 								size="sm"
 								onClick={handleRefresh}
 								disabled={isRefreshing}
-								className="flex items-center gap-2 bg-white/10 border-white/20 hover:bg-white/20 text-white backdrop-blur-sm"
+								className="flex items-center gap-2 bg-muted/50 border-border/50 hover:bg-accent/50 text-foreground backdrop-blur-sm"
 							>
 								<RefreshCw
 									className={cn("w-4 h-4", isRefreshing && "animate-spin")}
@@ -700,14 +700,14 @@ const HeterogenComponent = (): ReactElement => {
 
 			{/* Mobile Control Panel */}
 			<div className="sm:hidden fixed bottom-8 left-6 right-6 z-20">
-				<Card className="bg-white/5 border-white/10 backdrop-blur-xl shadow-2xl">
+				<Card className="bg-card/80 border-border/30 backdrop-blur-xl shadow-2xl">
 					<CardContent className="p-3">
 						<div className="flex items-center justify-between gap-2">
 							<Button
 								variant="outline"
 								size="sm"
 								onClick={() => setIsAutoRotate(!isAutoRotate)}
-								className="flex items-center gap-2 bg-white/10 border-white/20 hover:bg-white/20 text-white backdrop-blur-sm flex-1"
+								className="flex items-center gap-2 bg-muted/50 border-border/50 hover:bg-accent/50 text-foreground backdrop-blur-sm flex-1"
 							>
 								<GlobeIcon className="w-4 h-4" />
 								<span className="text-xs">
@@ -719,7 +719,7 @@ const HeterogenComponent = (): ReactElement => {
 								size="sm"
 								onClick={handleRefresh}
 								disabled={isRefreshing}
-								className="flex items-center gap-2 bg-white/10 border-white/20 hover:bg-white/20 text-white backdrop-blur-sm flex-1"
+								className="flex items-center gap-2 bg-muted/50 border-border/50 hover:bg-accent/50 text-foreground backdrop-blur-sm flex-1"
 							>
 								<RefreshCw
 									className={cn("w-4 h-4", isRefreshing && "animate-spin")}
@@ -733,7 +733,7 @@ const HeterogenComponent = (): ReactElement => {
 
 			{/* Network Stats Panel - Desktop */}
 			<div className="hidden sm:block absolute top-6 right-6 z-20 max-w-[480px]">
-				<Card className="bg-white/5 border-white/10 backdrop-blur-xl shadow-2xl">
+				<Card className="bg-card/80 border-border/30 backdrop-blur-xl shadow-2xl">
 					<CardHeader className="pb-3">
 						<div className="flex items-center justify-between">
 							<div>
@@ -741,7 +741,7 @@ const HeterogenComponent = (): ReactElement => {
 									<Network className="w-5 h-5" />
 									Heterogen Network
 								</CardTitle>
-								<p className="text-sm text-zinc-400">
+								<p className="text-sm text-muted-foreground">
 									Live overview aggregated from active nodes
 								</p>
 							</div>
@@ -776,16 +776,16 @@ const HeterogenComponent = (): ReactElement => {
 							</div>
 						</div>
 
-						<Separator className="bg-zinc-800" />
+						<Separator className="bg-muted" />
 
 						<div className="space-y-3">
-							<div className="text-xs uppercase tracking-wide text-zinc-400 flex items-center gap-2">
+							<div className="text-xs uppercase tracking-wide text-muted-foreground flex items-center gap-2">
 								<Activity className="w-3 h-3" />
 								Top Networks
 							</div>
 							<div className="flex flex-wrap gap-2">
 								{stats.topNetworks.length === 0
-									? <span className="text-xs text-zinc-500">No data</span>
+									? <span className="text-xs text-muted-foreground">No data</span>
 									: (
 										stats.topNetworks.map((n) => (
 											<Badge
@@ -805,23 +805,23 @@ const HeterogenComponent = (): ReactElement => {
 						</div>
 
 						<div className="space-y-3">
-							<div className="text-xs uppercase tracking-wide text-zinc-400 flex items-center gap-2">
+							<div className="text-xs uppercase tracking-wide text-muted-foreground flex items-center gap-2">
 								<MapPin className="w-3 h-3" />
 								Top Countries
 							</div>
 							<div className="flex flex-wrap gap-2">
 								{stats.topCountries.length === 0
-									? <span className="text-xs text-zinc-500">No data</span>
+									? <span className="text-xs text-muted-foreground">No data</span>
 									: (
 										stats.topCountries.map((c) => (
 											<Badge
 												key={c.name}
 												variant="outline"
-												className="border-zinc-700 text-zinc-200 hover:border-zinc-600 transition-colors cursor-pointer"
+												className="border-border text-card-foreground hover:border-muted transition-colors cursor-pointer"
 												onClick={() => {/* Filter by country */}}
 											>
 												{c.name}
-												<span className="ml-2 rounded bg-zinc-700/60 px-1.5 text-[10px] text-zinc-300">
+												<span className="ml-2 rounded bg-secondary/60 px-1.5 text-[10px] text-card-foreground">
 													{c.count}
 												</span>
 											</Badge>
@@ -835,23 +835,23 @@ const HeterogenComponent = (): ReactElement => {
 
 			{/* Mobile Network Stats Panel */}
 			<div className="sm:hidden fixed top-20 left-4 right-4 z-20">
-				<Card className="bg-white/5 border-white/10 backdrop-blur-xl shadow-2xl">
+				<Card className="bg-card/80 border-border/30 backdrop-blur-xl shadow-2xl">
 					<CardContent className="p-3">
 						<div className="grid grid-cols-3 gap-2">
 							<div className="text-center p-2 bg-white/10 rounded-lg backdrop-blur-sm">
-								<div className="text-xs text-zinc-300 mb-1">NODES</div>
+								<div className="text-xs text-card-foreground mb-1">NODES</div>
 								<div className="text-lg font-bold text-emerald-400">
 									{stats.totalNodes}
 								</div>
 							</div>
 							<div className="text-center p-2 bg-white/10 rounded-lg backdrop-blur-sm">
-								<div className="text-xs text-zinc-300 mb-1">NETWORKS</div>
+								<div className="text-xs text-card-foreground mb-1">NETWORKS</div>
 								<div className="text-lg font-bold text-blue-400">
 									{stats.uniqueNetworks}
 								</div>
 							</div>
 							<div className="text-center p-2 bg-white/10 rounded-lg backdrop-blur-sm">
-								<div className="text-xs text-zinc-300 mb-1">COUNTRIES</div>
+								<div className="text-xs text-card-foreground mb-1">COUNTRIES</div>
 								<div className="text-lg font-bold text-amber-400">
 									{stats.uniqueCountries}
 								</div>
@@ -875,32 +875,32 @@ const HeterogenComponent = (): ReactElement => {
 
 			{/* Legend - Desktop */}
 			<div className="hidden sm:block absolute bottom-1 right-4 z-20">
-				<Card className="bg-white/5 border-white/10 backdrop-blur-xl shadow-2xl">
+				<Card className="bg-card/80 border-border/30 backdrop-blur-xl shadow-2xl">
 					<CardContent className="p-4">
 						<div className="space-y-2">
-							<div className="text-xs font-medium text-zinc-200 mb-2">
+							<div className="text-xs font-medium text-card-foreground mb-2">
 								Node Status
 							</div>
 							<div className="space-y-1">
 								<div className="flex items-center gap-2 text-xs">
 									<div className="w-3 h-3 rounded-full bg-emerald-500 shadow-lg">
 									</div>
-									<span className="text-zinc-300">Excellent</span>
+									<span className="text-card-foreground">Excellent</span>
 								</div>
 								<div className="flex items-center gap-2 text-xs">
 									<div className="w-3 h-3 rounded-full bg-blue-500 shadow-lg">
 									</div>
-									<span className="text-zinc-300">Good</span>
+									<span className="text-card-foreground">Good</span>
 								</div>
 								<div className="flex items-center gap-2 text-xs">
 									<div className="w-3 h-3 rounded-full bg-amber-500 shadow-lg">
 									</div>
-									<span className="text-zinc-300">Warning</span>
+									<span className="text-card-foreground">Warning</span>
 								</div>
 								<div className="flex items-center gap-2 text-xs">
 									<div className="w-3 h-3 rounded-full bg-red-500 shadow-lg">
 									</div>
-									<span className="text-zinc-300">Critical</span>
+									<span className="text-card-foreground">Critical</span>
 								</div>
 							</div>
 						</div>

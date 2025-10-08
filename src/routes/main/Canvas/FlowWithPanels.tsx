@@ -96,7 +96,7 @@ function DockItem(
 		<div className="group relative flex flex-col items-center">
 			<div
 				className={cn(
-					"absolute bottom-full mb-2 rounded-md bg-black/80 px-2 py-1 text-xs text-white opacity-0 transition-opacity",
+					"absolute bottom-full mb-2 rounded-md bg-popover/95 px-2 py-1 text-xs text-foreground opacity-0 transition-opacity border border-border/50",
 					(isHovered || isActive) && "opacity-100",
 				)}
 			>
@@ -134,7 +134,7 @@ function MacOSDock(
 	}: MacOSDockProps,
 ): React.ReactElement {
 	return (
-		<div className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-2xl bg-black/20 p-2 backdrop-blur-lg">
+		<div className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-2xl bg-background/80 p-2 backdrop-blur-lg border border-border/30">
 			<div className="flex items-center space-x-2">
 				<DockItem
 					icon={<ShoppingBag className="h-6 w-6" />}
@@ -544,12 +544,12 @@ function FlowWithPanels(): React.ReactElement | null {
 			>
 				{/* Panel transition overlay */}
 				{isPanelTransitioning && (
-					<div className="absolute inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center">
-						<div className="bg-white/90 dark:bg-zinc-800/90 rounded-lg px-6 py-4 shadow-lg">
+					<div className="absolute inset-0 z-50 bg-background/60 backdrop-blur-sm flex items-center justify-center">
+						<div className="bg-card/95 rounded-lg px-6 py-4 shadow-lg border border-border">
 							<div className="flex items-center space-x-3">
 								<div className="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-500">
 								</div>
-								<span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+								<span className="text-sm font-medium text-card-foreground">
 									Loading panel...
 								</span>
 							</div>
@@ -629,31 +629,31 @@ function FlowWithPanels(): React.ReactElement | null {
 						<div className="mt-4 text-xl font-semibold text-zinc-800/60">
 							STELS
 						</div>
-						<div className="mt-0 text-sm text-zinc-600/30">
+						<div className="mt-0 text-sm text-muted-foreground/30">
 							Artificial Market Intelligence
 						</div>
 						{activePanel && (
-							<div className="mt-2 text-xs text-zinc-500/50">
+							<div className="mt-2 text-xs text-muted-foreground/50">
 								Panel: {activePanel.name}
 							</div>
 						)}
 						{isAutoConnectionsEnabled && connectionStats && (
-							<div className="mt-2 text-xs text-zinc-500/50">
+							<div className="mt-2 text-xs text-muted-foreground/50">
 								Connections: {connectionStats.edgeCount} total,{" "}
 								{connectionStats.groupCount} groups
 							</div>
 						)}
 						{/* Debug info */}
-						<div className="mt-1 text-xs text-zinc-500/30">
+						<div className="mt-1 text-xs text-muted-foreground/30">
 							Nodes: {nodes.length}, Auto edges:{" "}
 							{allEdges.length - edges.length}
 						</div>
 						{/* Session debug */}
-						<div className="mt-1 text-xs text-zinc-500/30">
+						<div className="mt-1 text-xs text-muted-foreground/30">
 							Session keys: {session ? Object.keys(session).length : 0}
 						</div>
 						{/* Auto connections debug */}
-						<div className="mt-1 text-xs text-zinc-500/30">
+						<div className="mt-1 text-xs text-muted-foreground/30">
 							Auto enabled: {isAutoConnectionsEnabled ? "Yes" : "No"}
 						</div>
 					</div>

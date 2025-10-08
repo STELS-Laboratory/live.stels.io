@@ -15,10 +15,10 @@ function Header(
 					<BarChart3 className="w-6 h-6 " />
 				</div>
 				<div>
-					<h1 className="text-3xl font-bold text-white">
+					<h1 className="text-3xl font-bold text-foreground">
 						{title || "Title Screen"}
 					</h1>
-					<p className="text-gray-400 text-sm">
+					<p className="text-muted-foreground text-sm">
 						{description ||
 							"Welcome to the STELS Network, a decentralized exchange platform for trading digital assets."}
 					</p>

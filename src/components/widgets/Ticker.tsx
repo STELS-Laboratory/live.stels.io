@@ -133,7 +133,7 @@ function TickerComponent({raw, compact = false, className}: TickerProps): ReactE
                 </span>
 								{parsed?.exchange && (
 									<span
-										className="rounded-sm border border-zinc-600/60 bg-zinc-800/60 px-2 py-[1px] text-[10px] uppercase text-zinc-300">
+										className="rounded-sm border border-muted/60 bg-muted/60 px-2 py-[1px] text-[10px] uppercase text-card-foreground">
                     {parsed.exchange}
                   </span>
 								)}
@@ -144,11 +144,11 @@ function TickerComponent({raw, compact = false, className}: TickerProps): ReactE
               </span>
 						</CardTitle>
 						<CardDescription className="mt-1 text-[11px]">
-							<span className="capitalize text-zinc-300">{parsed?.exchange ?? ""}</span>
-							<span className="mx-2 text-zinc-500">|</span>
-							<span className="text-zinc-400">{parsed?.latency ?? 0}ms</span>
-							<span className="mx-2 text-zinc-500">|</span>
-							<span className="text-zinc-400">{toTime(parsed?.timestamp ?? 0)}</span>
+							<span className="capitalize text-card-foreground">{parsed?.exchange ?? ""}</span>
+							<span className="mx-2 text-muted-foreground">|</span>
+							<span className="text-muted-foreground">{parsed?.latency ?? 0}ms</span>
+							<span className="mx-2 text-muted-foreground">|</span>
+							<span className="text-muted-foreground">{toTime(parsed?.timestamp ?? 0)}</span>
 						</CardDescription>
 					</div>
 					
@@ -174,7 +174,7 @@ function TickerComponent({raw, compact = false, className}: TickerProps): ReactE
 	                <TrendingDown className="h-3 w-3" aria-hidden/>
                 )}
 	              <span>{parsed ? `${parsed.percentage >= 0 ? "+" : ""}${parsed.percentage.toFixed(2)}%` : "-"}</span>
-                <span className="text-zinc-400">/</span>
+                <span className="text-muted-foreground">/</span>
                 <span>
                   {parsed ? `${parsed.change >= 0 ? "+" : ""}${formatPrice(parsed.change, quote || "USD")}` : "-"}
                 </span>
@@ -187,20 +187,20 @@ function TickerComponent({raw, compact = false, className}: TickerProps): ReactE
 			<CardContent className={cn("pt-3", compact ? "py-2" : "")}>
 				<div className={cn("grid gap-2", compact ? "grid-cols-2" : "grid-cols-3")}>
 					<div className="flex items-baseline justify-between">
-						<span className="text-[11px] text-zinc-400">Bid</span>
-						<span className="font-mono text-sm text-zinc-100 font-medium">
+						<span className="text-[11px] text-muted-foreground">Bid</span>
+						<span className="font-mono text-sm text-foreground font-medium">
               {parsed ? formatPrice(parsed.bid, quote || "USD") : "-"}
             </span>
 					</div>
 					<div className="flex items-baseline justify-between">
-						<span className="text-[11px] text-zinc-400">Ask</span>
-						<span className="font-mono text-sm text-zinc-100 font-medium">
+						<span className="text-[11px] text-muted-foreground">Ask</span>
+						<span className="font-mono text-sm text-foreground font-medium">
               {parsed ? formatPrice(parsed.ask, quote || "USD") : "-"}
             </span>
 					</div>
 					<div className="flex items-baseline justify-between">
-						<span className="text-[11px] text-zinc-400">Spread</span>
-						<span className="font-mono text-sm text-zinc-100 font-medium">
+						<span className="text-[11px] text-muted-foreground">Spread</span>
+						<span className="font-mono text-sm text-foreground font-medium">
               {parsed ? `${formatPrice(spread, quote || "USD")} (${spreadPct.toFixed(3)}%)` : "-"}
             </span>
 					</div>
@@ -210,20 +210,20 @@ function TickerComponent({raw, compact = false, className}: TickerProps): ReactE
 				
 				<div className={cn("grid gap-2", compact ? "grid-cols-2" : "grid-cols-3")}>
 					<div className="flex items-center justify-between">
-						<span className="text-[11px] text-zinc-400">Base Vol</span>
-						<span className="font-mono text-sm text-zinc-200 font-medium">
+						<span className="text-[11px] text-muted-foreground">Base Vol</span>
+						<span className="font-mono text-sm text-card-foreground font-medium">
               {parsed ? formatCompactNumber(parsed.baseVolume) : "-"}
             </span>
 					</div>
 					<div className="flex items-center justify-between">
-						<span className="text-[11px] text-zinc-400">Quote Vol</span>
-						<span className="font-mono text-sm text-zinc-200 font-medium">
+						<span className="text-[11px] text-muted-foreground">Quote Vol</span>
+						<span className="font-mono text-sm text-card-foreground font-medium">
               {parsed ? formatCompactNumber(parsed.quoteVolume) : "-"}
             </span>
 					</div>
 					<div className="flex items-center justify-between">
-						<span className="text-[11px] text-zinc-400">Status</span>
-						<Badge variant="secondary" className="bg-zinc-800/60 text-zinc-200 border-zinc-600/60 font-medium">
+						<span className="text-[11px] text-muted-foreground">Status</span>
+						<Badge variant="secondary" className="bg-muted/60 text-card-foreground border-muted/60 font-medium">
 							Live
 						</Badge>
 					</div>

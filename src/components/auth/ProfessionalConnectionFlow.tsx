@@ -137,7 +137,7 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
               <h2 className="text-3xl font-bold text-foreground mb-2">
                 Welcome to STELS Web3
               </h2>
-              <p className="text-zinc-400 text-lg">
+              <p className="text-muted-foreground text-lg">
                 Your wallet is connected and ready to use
               </p>
             </div>
@@ -197,14 +197,14 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
   const stepTitle = getStepTitle();
 
   return (
-    <div className="bg-zinc-950 flex flex-1 justify-center p-6">
+    <div className="bg-background flex flex-1 justify-center p-6">
       <div className="w-full max-w-4xl space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold text-foreground">
             Web3 Platform
           </h1>
-          <p className="text-zinc-400 text-lg">
+          <p className="text-muted-foreground text-lg">
             Secure cryptocurrency wallet and trading platform
           </p>
         </div>
@@ -212,14 +212,14 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
         {/* Progress Indicator */}
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium text-zinc-400">
+            <span className="text-sm font-medium text-muted-foreground">
               {stepTitle}
             </span>
-            <span className="text-sm font-medium text-zinc-400">
+            <span className="text-sm font-medium text-muted-foreground">
               {progress}%
             </span>
           </div>
-          <div className="w-full bg-zinc-800 rounded-full h-2">
+          <div className="w-full bg-muted rounded-full h-2">
             <div
               className="bg-amber-500 h-2 rounded-full transition-all duration-150 ease-out"
               style={{ width: `${progress}%` }}
@@ -249,7 +249,7 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
                   />
                   <span
                     className={`text-xs mt-1 transition-colors ${
-                      isActive ? "text-foreground" : "text-zinc-500"
+                      isActive ? "text-foreground" : "text-muted-foreground"
                     }`}
                   >
                     {item.label}

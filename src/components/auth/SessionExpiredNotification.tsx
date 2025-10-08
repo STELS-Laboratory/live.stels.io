@@ -83,17 +83,17 @@ export const SessionExpiredNotification: React.FC = (): React.ReactElement => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-md mx-4">
-        <Card className="border-amber-500/20 bg-zinc-900/95 backdrop-blur-md">
+        <Card className="border-amber-500/20 bg-card/95 backdrop-blur-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10">
               <Shield className="h-6 w-6 text-amber-500" />
             </div>
-            <CardTitle className="text-xl text-white">
+            <CardTitle className="text-xl text-foreground">
               Security Session Test
             </CardTitle>
-            <CardDescription className="text-zinc-400">
+            <CardDescription className="text-muted-foreground">
               Your session has been terminated for security testing
             </CardDescription>
           </CardHeader>
@@ -144,7 +144,7 @@ export const SessionExpiredNotification: React.FC = (): React.ReactElement => {
                 onClick={handleLogout}
                 disabled={isHandling}
                 variant="outline"
-                className="w-full border-zinc-700 hover:bg-zinc-800 text-zinc-300"
+                className="w-full border-border hover:bg-muted text-card-foreground"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign Out
@@ -152,10 +152,10 @@ export const SessionExpiredNotification: React.FC = (): React.ReactElement => {
             </div>
 
             <div className="text-center space-y-2">
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-muted-foreground">
                 This notification will auto-dismiss in a few seconds
               </p>
-              <p className="text-xs text-zinc-600">
+              <p className="text-xs text-muted-foreground">
                 Security testing ensures your data remains protected
               </p>
             </div>

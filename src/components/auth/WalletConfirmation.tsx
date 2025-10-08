@@ -39,10 +39,10 @@ export function WalletConfirmation({
 
   if (!wallet) {
     return (
-      <Card className="w-full max-w-2xl mx-auto backdrop-blur-sm bg-zinc-900/80 border-zinc-700/50 shadow-2xl">
+      <Card className="w-full max-w-2xl mx-auto backdrop-blur-sm bg-card/80 border-border/50 shadow-2xl">
         <CardContent className="p-6 text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <p className="text-zinc-400">No wallet data available</p>
+          <p className="text-muted-foreground">No wallet data available</p>
         </CardContent>
       </Card>
     );
@@ -115,7 +115,7 @@ export function WalletConfirmation({
   return (
     <div className="space-y-8 animate-fade-in-up">
       {/* Wallet Confirmation Card */}
-      <Card className="w-full max-w-2xl mx-auto backdrop-blur-sm bg-zinc-900/80 border-zinc-700/50 shadow-2xl">
+      <Card className="w-full max-w-2xl mx-auto backdrop-blur-sm bg-card/80 border-border/50 shadow-2xl">
         <CardHeader className="text-center pb-6">
           <CardTitle className="flex items-center justify-center gap-3 text-3xl font-bold">
             <div className="relative">
@@ -144,7 +144,7 @@ export function WalletConfirmation({
               {typeInfo.title}
             </span>
           </CardTitle>
-          <p className="text-zinc-400 text-lg mt-3 leading-relaxed">
+          <p className="text-muted-foreground text-lg mt-3 leading-relaxed">
             {typeInfo.subtitle}
           </p>
           <Badge className={`mx-auto ${typeInfo.badge.className}`}>
@@ -155,31 +155,31 @@ export function WalletConfirmation({
         <CardContent className="px-8 pb-8 space-y-8">
           {/* Wallet Information Section */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-zinc-300 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-card-foreground flex items-center gap-2">
               <Shield className="h-5 w-5 text-amber-400" />
               Wallet Details
             </h3>
 
-            <div className="p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-zinc-700/30 backdrop-blur-sm space-y-4">
+            <div className="p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-border/30 backdrop-blur-sm space-y-4">
               {/* Wallet Address */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-zinc-400">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Wallet Address
                   </label>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleCopyAddress}
-                    className="h-8 px-2 text-xs hover:bg-zinc-700/50"
+                    className="h-8 px-2 text-xs hover:bg-secondary/50"
                   >
                     {copiedAddress
                       ? <CheckCircle className="h-3 w-3 text-green-500" />
                       : <Copy className="h-3 w-3" />}
                   </Button>
                 </div>
-                <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/30">
-                  <div className="font-mono text-sm text-zinc-300 break-all">
+                <div className="p-3 bg-muted/50 rounded-lg border border-border/30">
+                  <div className="font-mono text-sm text-card-foreground break-all">
                     {wallet.address}
                   </div>
                 </div>
@@ -187,11 +187,11 @@ export function WalletConfirmation({
 
               {/* Card Number */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-400">
+                <label className="text-sm font-medium text-muted-foreground">
                   Card Number
                 </label>
-                <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/30">
-                  <div className="font-mono text-sm text-zinc-300">
+                <div className="p-3 bg-muted/50 rounded-lg border border-border/30">
+                  <div className="font-mono text-sm text-card-foreground">
                     {wallet.number}
                   </div>
                 </div>
@@ -200,7 +200,7 @@ export function WalletConfirmation({
               {/* Public Key */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-zinc-400">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Private Key
                   </label>
                   <div className="flex items-center gap-1">
@@ -208,7 +208,7 @@ export function WalletConfirmation({
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowPublicKey(!showPublicKey)}
-                      className="h-8 px-2 text-xs hover:bg-zinc-700/50"
+                      className="h-8 px-2 text-xs hover:bg-secondary/50"
                     >
                       {showPublicKey
                         ? <EyeOff className="h-3 w-3" />
@@ -218,7 +218,7 @@ export function WalletConfirmation({
                       variant="ghost"
                       size="sm"
                       onClick={handleCopyPublicKey}
-                      className="h-8 px-2 text-xs hover:bg-zinc-700/50"
+                      className="h-8 px-2 text-xs hover:bg-secondary/50"
                     >
                       {copiedPublicKey
                         ? <CheckCircle className="h-3 w-3 text-green-500" />
@@ -226,15 +226,15 @@ export function WalletConfirmation({
                     </Button>
                   </div>
                 </div>
-                <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/30">
+                <div className="p-3 bg-muted/50 rounded-lg border border-border/30">
                   {showPublicKey
                     ? (
-                      <div className="font-mono text-xs text-zinc-300 break-all">
+                      <div className="font-mono text-xs text-card-foreground break-all">
                         {wallet.privateKey}
                       </div>
                     )
                     : (
-                      <div className="font-mono text-xs text-zinc-500">
+                      <div className="font-mono text-xs text-muted-foreground">
                         •••••••••••••••••••••••••••••••
                       </div>
                     )}
@@ -245,7 +245,7 @@ export function WalletConfirmation({
 
           {/* Developer Mode Selection */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-zinc-300 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-card-foreground flex items-center gap-2">
               <Code className="h-5 w-5 text-purple-400" />
               Access Mode
             </h3>
@@ -257,30 +257,30 @@ export function WalletConfirmation({
                 className={`p-4 rounded-xl border transition-all duration-150 cursor-pointer ${
                   !isDeveloperMode
                     ? "bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/50 shadow-lg shadow-green-500/10"
-                    : "bg-zinc-800/30 border-zinc-700/30 hover:border-zinc-600/50"
+                    : "bg-muted/30 border-border/30 hover:border-muted/50"
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <div
                     className={`p-2 rounded-full ${
-                      !isDeveloperMode ? "bg-green-500/20" : "bg-zinc-700/50"
+                      !isDeveloperMode ? "bg-green-500/20" : "bg-secondary/50"
                     }`}
                   >
                     <User
                       className={`h-5 w-5 ${
-                        !isDeveloperMode ? "text-green-400" : "text-zinc-400"
+                        !isDeveloperMode ? "text-green-400" : "text-muted-foreground"
                       }`}
                     />
                   </div>
                   <div>
                     <div
                       className={`font-semibold ${
-                        !isDeveloperMode ? "text-green-300" : "text-zinc-300"
+                        !isDeveloperMode ? "text-green-300" : "text-card-foreground"
                       }`}
                     >
                       User Mode
                     </div>
-                    <div className="text-xs text-zinc-400 mt-1">
+                    <div className="text-xs text-muted-foreground mt-1">
                       Standard access with production networks
                     </div>
                   </div>
@@ -299,30 +299,30 @@ export function WalletConfirmation({
                 className={`p-4 rounded-xl border transition-all duration-150 cursor-pointer ${
                   isDeveloperMode
                     ? "bg-gradient-to-r from-purple-500/20 to-violet-500/20 border-purple-500/50 shadow-lg shadow-purple-500/10"
-                    : "bg-zinc-800/30 border-zinc-700/30 hover:border-zinc-600/50"
+                    : "bg-muted/30 border-border/30 hover:border-muted/50"
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <div
                     className={`p-2 rounded-full ${
-                      isDeveloperMode ? "bg-purple-500/20" : "bg-zinc-700/50"
+                      isDeveloperMode ? "bg-purple-500/20" : "bg-secondary/50"
                     }`}
                   >
                     <Code
                       className={`h-5 w-5 ${
-                        isDeveloperMode ? "text-purple-400" : "text-zinc-400"
+                        isDeveloperMode ? "text-purple-400" : "text-muted-foreground"
                       }`}
                     />
                   </div>
                   <div>
                     <div
                       className={`font-semibold ${
-                        isDeveloperMode ? "text-purple-300" : "text-zinc-300"
+                        isDeveloperMode ? "text-purple-300" : "text-card-foreground"
                       }`}
                     >
                       Developer Mode
                     </div>
-                    <div className="text-xs text-zinc-400 mt-1">
+                    <div className="text-xs text-muted-foreground mt-1">
                       Access to test networks and dev tools
                     </div>
                   </div>
@@ -358,17 +358,17 @@ export function WalletConfirmation({
           </div>
 
           {/* Confirmation Checkbox */}
-          <div className="flex items-start gap-3 p-4 bg-zinc-800/30 rounded-lg border border-zinc-700/30">
+          <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg border border-border/30">
             <input
               type="checkbox"
               id="confirmWallet"
               checked={isConfirmed}
               onChange={(e) => setIsConfirmed(e.target.checked)}
-              className="w-4 h-4 text-amber-500 bg-zinc-700 border-zinc-600 rounded focus:ring-amber-500 focus:ring-2 mt-0.5"
+              className="w-4 h-4 text-amber-500 bg-secondary border-muted rounded focus:ring-amber-500 focus:ring-2 mt-0.5"
             />
             <label
               htmlFor="confirmWallet"
-              className="text-sm text-zinc-300 leading-relaxed"
+              className="text-sm text-card-foreground leading-relaxed"
             >
               I have securely saved my private key and understand that losing it
               will result in permanent loss of access to my wallet and all
@@ -381,7 +381,7 @@ export function WalletConfirmation({
             <Button
               onClick={onBack}
               variant="outline"
-              className="flex-1 h-12 border-zinc-700/50 hover:border-zinc-600/50 bg-zinc-800/50 hover:bg-zinc-700/50 transition-all duration-300"
+              className="flex-1 h-12 border-border/50 hover:border-muted/50 bg-muted/50 hover:bg-secondary/50 transition-all duration-300"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back

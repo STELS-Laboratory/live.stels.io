@@ -58,7 +58,7 @@ function Loader({children}: { children: ReactNode }) {
 					</motion.g>
 				</motion.svg>
 			</div>
-			<div className="text-zinc-200 text-[10px]">
+			<div className="text-card-foreground text-[10px]">
 				{children}
 			</div>
 		</motion.div>

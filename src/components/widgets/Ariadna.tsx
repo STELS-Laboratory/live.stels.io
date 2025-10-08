@@ -31,7 +31,7 @@ function Ariadna({data}: { data: any }) {
 	}
 	
 	return (
-		<div className="relative w-[1044px] h-[330px] bg-zinc-950 ">
+		<div className="relative w-[1044px] h-[330px] bg-background ">
 			{/* Animated background grid */}
 			<div className="absolute inset-0 opacity-10">
 				<div
@@ -79,8 +79,8 @@ function Ariadna({data}: { data: any }) {
 							</div>
 						</div>
 						<div>
-							<h1 className="text-2xl font-bold text-white mb-1">{strategyData.name}</h1>
-							<p className="text-zinc-400 text-sm">{strategyData.description}</p>
+							<h1 className="text-2xl font-bold text-foreground mb-1">{strategyData.name}</h1>
+							<p className="text-muted-foreground text-sm">{strategyData.description}</p>
 						</div>
 					</div>
 					
@@ -97,7 +97,7 @@ function Ariadna({data}: { data: any }) {
 				
 				{/* Info section */}
 				<div className="mb-6">
-					<p className="text-zinc-300 text-base leading-relaxed">{strategyData.info}</p>
+					<p className="text-card-foreground text-base leading-relaxed">{strategyData.info}</p>
 				</div>
 				
 				{/* Plugins grid */}
@@ -107,7 +107,7 @@ function Ariadna({data}: { data: any }) {
 						{strategyData.plugins.map((plugin: string, index: number) => (
 							<div
 								key={plugin}
-								className={`bg-zinc-800/50 border border-zinc-700/50 rounded-xl p-4 transition-all duration-500 hover:bg-zinc-700/50 hover:border-zinc-600/50 ${
+								className={`bg-muted/50 border border-border/50 rounded-xl p-4 transition-all duration-500 hover:bg-secondary/50 hover:border-muted/50 ${
 									isAnimating ? "translate-y-[-2px] shadow-lg" : "translate-y-0"
 								}`}
 								style={{transitionDelay: `${index * 100}ms`}}
@@ -118,7 +118,7 @@ function Ariadna({data}: { data: any }) {
 											isActive ? "bg-emerald-400" : "bg-zinc-500"
 										} ${pulseActive && isActive ? "animate-pulse" : ""}`}
 									></div>
-									<span className="text-zinc-200 font-medium capitalize">{plugin.replace("-", " ")}</span>
+									<span className="text-card-foreground font-medium capitalize">{plugin.replace("-", " ")}</span>
 								</div>
 							</div>
 						))}
@@ -126,15 +126,15 @@ function Ariadna({data}: { data: any }) {
 				</div>
 				
 				{/* Footer stats */}
-				<div className="flex items-center justify-between pt-4 border-t border-zinc-700/50">
+				<div className="flex items-center justify-between pt-4 border-t border-border/50">
 					<div className="flex items-center space-x-6">
-						<div className="text-zinc-400 text-sm">
-							<span className="text-zinc-500">Accounts:</span>
-							<span className="text-zinc-300 ml-1">{strategyData.accounts.length}</span>
+						<div className="text-muted-foreground text-sm">
+							<span className="text-muted-foreground">Accounts:</span>
+							<span className="text-card-foreground ml-1">{strategyData.accounts.length}</span>
 						</div>
-						<div className="text-zinc-400 text-sm">
-							<span className="text-zinc-500">Last Update:</span>
-							<span className="text-zinc-300 ml-1">{formatTimestamp(strategyData.timestamp)}</span>
+						<div className="text-muted-foreground text-sm">
+							<span className="text-muted-foreground">Last Update:</span>
+							<span className="text-card-foreground ml-1">{formatTimestamp(strategyData.timestamp)}</span>
 						</div>
 					</div>
 					

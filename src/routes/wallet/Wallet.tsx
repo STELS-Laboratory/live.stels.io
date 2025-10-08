@@ -35,7 +35,7 @@ export default function GliesereumWallet(): React.ReactElement {
 		return (
 			<div className="p-4">
 				<div className="container mx-auto max-w-2xl">
-					<Card className="bg-zinc-900/80 border-zinc-700/50">
+					<Card className="bg-card/80 border-border/50">
 						<CardHeader className="text-center">
 							<CardTitle className="flex items-center justify-center gap-2">
 								<AlertCircle className="h-5 w-5 text-red-500" />
@@ -93,7 +93,7 @@ export default function GliesereumWallet(): React.ReactElement {
 			case "localnet":
 				return <Network className="h-4 w-4 text-purple-500" />;
 			default:
-				return <Network className="h-4 w-4 text-zinc-500" />;
+				return <Network className="h-4 w-4 text-muted-foreground" />;
 		}
 	};
 
@@ -110,7 +110,7 @@ export default function GliesereumWallet(): React.ReactElement {
 			case "localnet":
 				return "bg-purple-500/20 text-purple-400 border-purple-500/30";
 			default:
-				return "bg-zinc-500/20 text-zinc-400 border-zinc-500/30";
+				return "bg-zinc-500/20 text-muted-foreground border-zinc-500/30";
 		}
 	};
 
@@ -122,13 +122,13 @@ export default function GliesereumWallet(): React.ReactElement {
 					<h1 className="text-3xl font-bold text-foreground mb-2">
 						Gliesereum Wallet
 					</h1>
-					<p className="text-zinc-400">
+					<p className="text-muted-foreground">
 						Your secure cryptocurrency wallet on {connectionSession.title}
 					</p>
 				</div>
 
-				<div className="mb-8 bg-zinc-900 p-6 border">
-					<div className="text-zinc-500 text-xl">
+				<div className="mb-8 bg-card p-6 border">
+					<div className="text-muted-foreground text-xl">
 						Balance
 					</div>
 					<div className="text-right font-bold ml-2 text-xl text-amber-800">
@@ -144,7 +144,7 @@ export default function GliesereumWallet(): React.ReactElement {
 
 				<div className="space-y-6">
 					{/* Wallet Card */}
-					<Card className="bg-zinc-900/80 border-zinc-700/50">
+					<Card className="bg-card/80 border-border/50">
 						<CardHeader className="text-center">
 							<CardTitle className="flex items-center justify-center gap-2">
 								<Wallet className="h-5 w-5 text-amber-500" />
@@ -153,33 +153,33 @@ export default function GliesereumWallet(): React.ReactElement {
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div className="space-y-2">
-								<label className="text-xs text-zinc-400 uppercase tracking-wider">
+								<label className="text-xs text-muted-foreground uppercase tracking-wider">
 									Address
 								</label>
-								<div className="font-mono text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/50 break-all">
+								<div className="font-mono text-sm text-card-foreground bg-muted/50 rounded-lg p-3 border border-border/50 break-all">
 									{wallet.address}
 								</div>
 							</div>
 
 							<div className="space-y-2">
-								<label className="text-xs text-zinc-400 uppercase tracking-wider">
+								<label className="text-xs text-muted-foreground uppercase tracking-wider">
 									Card Number
 								</label>
-								<div className="font-mono text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/50">
+								<div className="font-mono text-sm text-card-foreground bg-muted/50 rounded-lg p-3 border border-border/50">
 									{wallet.number}
 								</div>
 							</div>
 
 							<div className="space-y-2">
-								<label className="text-xs text-zinc-400 uppercase tracking-wider">
+								<label className="text-xs text-muted-foreground uppercase tracking-wider">
 									Public Key
 								</label>
-								<div className="font-mono text-xs text-zinc-400 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/50 break-all">
+								<div className="font-mono text-xs text-muted-foreground bg-muted/50 rounded-lg p-3 border border-border/50 break-all">
 									{wallet.publicKey}
 								</div>
 							</div>
 
-							<Separator className="bg-zinc-700/50" />
+							<Separator className="bg-secondary/50" />
 
 							<div className="flex gap-2">
 								<Button
@@ -196,36 +196,36 @@ export default function GliesereumWallet(): React.ReactElement {
 					</Card>
 
 					{/* Network Status */}
-					<Card className="bg-zinc-900/80 border-zinc-700/50">
+					<Card className="bg-card/80 border-border/50">
 						<CardHeader>
-							<CardTitle className="text-zinc-100 text-lg">
+							<CardTitle className="text-foreground text-lg">
 								Network Status
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-3">
 							<div className="flex items-center justify-between">
-								<span className="text-zinc-400">Network</span>
+								<span className="text-muted-foreground">Network</span>
 								<Badge className={`text-xs ${getNetworkColor()}`}>
 									{getNetworkIcon()}
 									<span className="ml-1">{connectionSession.network}</span>
 								</Badge>
 							</div>
 							<div className="flex items-center justify-between">
-								<span className="text-zinc-400">Status</span>
+								<span className="text-muted-foreground">Status</span>
 								<Badge className="bg-green-500/20 text-green-400 border-green-500/30">
 									<CheckCircle className="h-3 w-3 mr-1" />
 									Connected
 								</Badge>
 							</div>
 							<div className="flex items-center justify-between">
-								<span className="text-zinc-400">API</span>
-								<span className="text-xs text-zinc-400 font-mono">
+								<span className="text-muted-foreground">API</span>
+								<span className="text-xs text-muted-foreground font-mono">
 									{connectionSession.api}
 								</span>
 							</div>
 							{connectionSession.developer && (
 								<div className="flex items-center justify-between">
-									<span className="text-zinc-400">Mode</span>
+									<span className="text-muted-foreground">Mode</span>
 									<Badge variant="outline" className="text-xs">
 										Developer
 									</Badge>
@@ -235,7 +235,7 @@ export default function GliesereumWallet(): React.ReactElement {
 					</Card>
 
 					{/* Disconnect Button */}
-					<Card className="bg-zinc-900/80 border-zinc-700/50">
+					<Card className="bg-card/80 border-border/50">
 						<CardContent className="p-4">
 							<Button
 								onClick={handleDisconnect}
@@ -250,10 +250,10 @@ export default function GliesereumWallet(): React.ReactElement {
 
 				{/* Private Key Modal */}
 				{showPrivateKey && privateKey && (
-					<div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-						<Card className="bg-zinc-900/80 border-zinc-700/50 max-w-md w-full">
+					<div className="fixed inset-0 bg-black/80 dark:bg-black/80 flex items-center justify-center p-4 z-50">
+						<Card className="bg-card/80 border-border/50 max-w-md w-full">
 							<CardHeader>
-								<CardTitle className="text-zinc-100 text-center">
+								<CardTitle className="text-foreground text-center">
 									Private Key
 								</CardTitle>
 							</CardHeader>
@@ -268,10 +268,10 @@ export default function GliesereumWallet(): React.ReactElement {
 								</Alert>
 
 								<div className="space-y-2">
-									<label className="text-xs text-zinc-400 uppercase tracking-wider">
+									<label className="text-xs text-muted-foreground uppercase tracking-wider">
 										Private Key
 									</label>
-									<div className="font-mono text-xs text-zinc-300 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/50 break-all">
+									<div className="font-mono text-xs text-card-foreground bg-muted/50 rounded-lg p-3 border border-border/50 break-all">
 										{privateKey}
 									</div>
 								</div>
@@ -286,7 +286,7 @@ export default function GliesereumWallet(): React.ReactElement {
 									<Button
 										variant="outline"
 										onClick={handleClosePrivateKey}
-										className="flex-1 bg-zinc-800/50 border-zinc-700/50 text-zinc-300 hover:bg-zinc-700/50"
+										className="flex-1 bg-muted/50 border-border/50 text-card-foreground hover:bg-secondary/50"
 									>
 										Close
 									</Button>

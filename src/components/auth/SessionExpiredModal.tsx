@@ -37,17 +37,17 @@ export const SessionExpiredModal: React.FC = (): React.ReactElement => {
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 dark:bg-black/80 backdrop-blur-sm">
       <div className="w-full max-w-lg mx-4">
-        <Card className="border-amber-500/20 bg-zinc-900/95 backdrop-blur-md">
+        <Card className="border-amber-500/20 bg-card/95 backdrop-blur-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10">
               <AlertTriangle className="h-8 w-8 text-amber-500" />
             </div>
-            <CardTitle className="text-2xl text-white">
+            <CardTitle className="text-2xl text-foreground">
               Session Expired
             </CardTitle>
-            <CardDescription className="text-zinc-400 text-base">
+            <CardDescription className="text-muted-foreground text-base">
               Your session has been terminated
             </CardDescription>
           </CardHeader>
@@ -83,7 +83,7 @@ export const SessionExpiredModal: React.FC = (): React.ReactElement => {
             </div>
 
             <div className="text-center">
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-muted-foreground">
                 This message will not disappear until you click OK
               </p>
             </div>
@@ -93,5 +93,3 @@ export const SessionExpiredModal: React.FC = (): React.ReactElement => {
     </div>
   );
 };
-
-

@@ -108,7 +108,7 @@ function TickerTape(
 	return (
 		<div
 			aria-label="Live market ticker"
-			className="w-full overflow-hidden bg-zinc-900/40"
+			className="w-full overflow-hidden bg-card/40"
 		>
 			<div className="flex border items-stretch gap-2 overflow-x-auto px-1 py-1 mb-2">
 				{items.map((t) => {
@@ -120,24 +120,24 @@ function TickerTape(
 						? "text-emerald-400"
 						: negative
 							? "text-red-400"
-							: "text-zinc-200";
+							: "text-card-foreground";
 					const badgeBase = positive
 						? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
 						: negative
 							? "border-red-500/30 bg-red-500/10 text-red-400"
-							: "border-zinc-700 bg-zinc-800 text-zinc-300";
+							: "border-border bg-muted text-card-foreground";
 					
 					return (
 						<div
 							key={t.id}
-							className="bg-zinc-900 min-w-[240px] px-2 py-1 border border-dashed"
+							className="bg-card min-w-[240px] px-2 py-1 border border-dashed"
 						>
 							<div className="flex items-center justify-between">
 								<div>
 									<div className="text-xs text-amber-600">
 										{t.exchange.toUpperCase()}
 									</div>
-									<div className="text-lg font-medium text-zinc-400">
+									<div className="text-lg font-medium text-muted-foreground">
 										{t.symbol}
 									</div>
 								</div>
@@ -158,7 +158,7 @@ function TickerTape(
 												{formatPercent(t.percentage)}
 											</span>
 										</div>
-										<div className="rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 text-zinc-300">
+										<div className="rounded border border-border bg-muted px-1.5 py-0.5 text-card-foreground">
 											<span className="font-mono">
 												{formatChangeAbs(t.change)}
 											</span>

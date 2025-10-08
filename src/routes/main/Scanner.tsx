@@ -564,7 +564,7 @@ const AssetBalances: React.FC<AssetBalancesProps> = ({ coins }) => (
 										<div
 											className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
 												isActive
-													? "bg-emerald-500 text-white"
+													? "bg-emerald-500 text-foreground"
 													: "bg-muted text-muted-foreground"
 											}`}
 										>
@@ -1774,7 +1774,7 @@ export default function WalletWidget(): React.ReactElement {
 			<TestnetStatusAlert variant="compact" className="mb-6" />
 
 			{/* Navigation Tabs */}
-			<Card className="p-0 bg-zinc-950 border-0">
+			<Card className="p-0 bg-background border-0">
 				<CardContent className="p-0">
 					<Tabs
 						value={activeTab}
@@ -1834,13 +1834,13 @@ export default function WalletWidget(): React.ReactElement {
 								{/* Total Liquidity */}
 								<Card className="hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer group">
 									<CardHeader className="pb-3">
-										<CardTitle className="text-sm font-medium text-gray-400 flex items-center">
+										<CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
 											<Wallet className="w-4 h-4 mr-2 group-hover:text-primary transition-colors" />
 											TOTAL LIQUIDITY
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<div className="text-2xl font-bold text-white mb-2 group-hover:text-primary transition-colors">
+										<div className="text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
 											${runtime.raw.liquidity.toLocaleString("en-US", {
 												minimumFractionDigits: 2,
 												maximumFractionDigits: 2,
@@ -1868,7 +1868,7 @@ export default function WalletWidget(): React.ReactElement {
 												})}%)
 											</span>
 										</div>
-										<div className="text-xs text-gray-500 mt-1">
+										<div className="text-xs text-muted-foreground mt-1">
 											vs previous snapshot
 										</div>
 									</CardContent>
@@ -1877,13 +1877,13 @@ export default function WalletWidget(): React.ReactElement {
 								{/* Available Balance */}
 								<Card>
 									<CardHeader className="pb-3">
-										<CardTitle className="text-sm font-medium text-gray-400 flex items-center">
+										<CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
 											<DollarSign className="w-4 h-4 mr-2" />
 											AVAILABLE BALANCE
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<div className="text-2xl font-bold text-white mb-2">
+										<div className="text-2xl font-bold text-foreground mb-2">
 											${runtime.raw.available.toLocaleString("en-US", {
 												minimumFractionDigits: 2,
 												maximumFractionDigits: 2,
@@ -1918,7 +1918,7 @@ export default function WalletWidget(): React.ReactElement {
 												})}%)
 											</span>
 										</div>
-										<div className="text-xs text-gray-500 mt-1">
+										<div className="text-xs text-muted-foreground mt-1">
 											<span className="text-blue-400 font-medium">
 												{((runtime.raw.available / runtime.raw.liquidity) * 100)
 													.toLocaleString("en-US", {
@@ -1934,7 +1934,7 @@ export default function WalletWidget(): React.ReactElement {
 								{/* Portfolio ROI */}
 								<Card>
 									<CardHeader className="pb-3">
-										<CardTitle className="text-sm font-medium text-gray-400 flex items-center">
+										<CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
 											<Target className="w-4 h-4 mr-2" />
 											PORTFOLIO NAV
 										</CardTitle>
@@ -1965,20 +1965,22 @@ export default function WalletWidget(): React.ReactElement {
 												maximumFractionDigits: 2,
 											})}
 										</div>
-										<div className="text-xs text-gray-500 mt-1">growth NAV</div>
+										<div className="text-xs text-muted-foreground mt-1">
+											growth NAV
+										</div>
 									</CardContent>
 								</Card>
 
 								{/* Performance Rate */}
 								<Card>
 									<CardHeader className="pb-3">
-										<CardTitle className="text-sm font-medium text-gray-400 flex items-center">
+										<CardTitle className="text-sm font-medium text-muted-foreground flex items-center">
 											<Activity className="w-4 h-4 mr-2" />
 											PERFORMANCE RATE
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<div className="text-2xl font-bold text-white mb-2">
+										<div className="text-2xl font-bold text-foreground mb-2">
 											{(runtime.raw.rate * 100).toLocaleString("en-US", {
 												minimumFractionDigits: 3,
 												maximumFractionDigits: 3,
@@ -2002,7 +2004,7 @@ export default function WalletWidget(): React.ReactElement {
 													maximumFractionDigits: 3,
 												})}%
 										</div>
-										<div className="text-xs text-gray-500 mt-1">
+										<div className="text-xs text-muted-foreground mt-1">
 											vs previous rate
 										</div>
 									</CardContent>
@@ -2012,7 +2014,7 @@ export default function WalletWidget(): React.ReactElement {
 							{/* Protection & Risk Management */}
 							<Card>
 								<CardHeader>
-									<CardTitle className="flex items-center text-white">
+									<CardTitle className="flex items-center text-foreground">
 										<Shield className="w-5 h-5 mr-2" />
 										PROTECTION & RISK MANAGEMENT
 									</CardTitle>
@@ -2020,7 +2022,7 @@ export default function WalletWidget(): React.ReactElement {
 								<CardContent>
 									<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 										<div className="text-center">
-											<div className="text-xs text-gray-400 mb-2">
+											<div className="text-xs text-muted-foreground mb-2">
 												PROTECTION VALUE
 											</div>
 											<div
@@ -2049,7 +2051,7 @@ export default function WalletWidget(): React.ReactElement {
 										</div>
 
 										<div className="text-center">
-											<div className="text-xs text-gray-400 mb-2">
+											<div className="text-xs text-muted-foreground mb-2">
 												RISK LEVEL
 											</div>
 											<Badge
@@ -2068,29 +2070,33 @@ export default function WalletWidget(): React.ReactElement {
 											>
 												{marginAnalysis.riskLevel}
 											</Badge>
-											<div className="text-xs text-gray-400 mt-1">
+											<div className="text-xs text-muted-foreground mt-1">
 												based on margin
 											</div>
 										</div>
 
 										<div className="text-center">
-											<div className="text-xs text-gray-400 mb-2">EXCHANGE</div>
+											<div className="text-xs text-muted-foreground mb-2">
+												EXCHANGE
+											</div>
 											<div className="text-sm font-medium text-amber-400">
 												{runtime.raw.exchanges.length > 0
 													? runtime.raw.exchanges[0].toUpperCase()
 													: "N/A"}
 											</div>
-											<div className="text-xs text-gray-400 mt-1">
+											<div className="text-xs text-muted-foreground mt-1">
 												primary exchange
 											</div>
 										</div>
 
 										<div className="text-center">
-											<div className="text-xs text-gray-400 mb-2">ACCOUNTS</div>
+											<div className="text-xs text-muted-foreground mb-2">
+												ACCOUNTS
+											</div>
 											<div className="text-sm font-medium text-blue-400">
 												{runtime.raw.accounts.length}
 											</div>
-											<div className="text-xs text-gray-400 mt-1">
+											<div className="text-xs text-muted-foreground mt-1">
 												active accounts
 											</div>
 										</div>
@@ -2103,7 +2109,7 @@ export default function WalletWidget(): React.ReactElement {
 								{/* Margin Analysis */}
 								<Card>
 									<CardHeader>
-										<CardTitle className="flex items-center text-white">
+										<CardTitle className="flex items-center text-foreground">
 											<Calculator className="w-5 h-5 mr-2" />
 											MARGIN ANALYSIS
 										</CardTitle>
@@ -2111,10 +2117,10 @@ export default function WalletWidget(): React.ReactElement {
 									<CardContent className="space-y-4">
 										<div className="grid grid-cols-2 gap-4">
 											<div>
-												<div className="text-xs text-gray-400 mb-1">
+												<div className="text-xs text-muted-foreground mb-1">
 													BALANCE
 												</div>
-												<div className="text-lg font-bold text-white">
+												<div className="text-lg font-bold text-foreground">
 													{calc.formatCurrency(runtime.raw.margin.balance)}
 												</div>
 												<div
@@ -2130,10 +2136,10 @@ export default function WalletWidget(): React.ReactElement {
 												</div>
 											</div>
 											<div>
-												<div className="text-xs text-gray-400 mb-1">
+												<div className="text-xs text-muted-foreground mb-1">
 													MARGIN LEVEL
 												</div>
-												<div className="text-lg font-bold text-white">
+												<div className="text-lg font-bold text-foreground">
 													{marginAnalysis.marginLevel.toFixed(2)}×
 												</div>
 												<Badge
@@ -2157,7 +2163,7 @@ export default function WalletWidget(): React.ReactElement {
 
 										<div>
 											<div className="flex justify-between items-center mb-2">
-												<span className="text-sm text-gray-400">
+												<span className="text-sm text-muted-foreground">
 													UTILIZATION RATIO
 												</span>
 												<span
@@ -2181,14 +2187,18 @@ export default function WalletWidget(): React.ReactElement {
 
 										<div className="pt-2 space-y-2 text-xs">
 											<div className="flex justify-between">
-												<span className="text-gray-400">Initial Margin:</span>
-												<span className="text-white font-mono">
+												<span className="text-muted-foreground">
+													Initial Margin:
+												</span>
+												<span className="text-foreground font-mono">
 													{calc.formatCurrency(runtime.raw.margin.initial)}
 												</span>
 											</div>
 											<div className="flex justify-between">
-												<span className="text-gray-400">Maintenance:</span>
-												<span className="text-white font-mono">
+												<span className="text-muted-foreground">
+													Maintenance:
+												</span>
+												<span className="text-foreground font-mono">
 													{calc.formatCurrency(runtime.raw.margin.maintenance)}
 												</span>
 											</div>
@@ -2199,7 +2209,7 @@ export default function WalletWidget(): React.ReactElement {
 								{/* Worker Optimization */}
 								<Card>
 									<CardHeader>
-										<CardTitle className="flex items-center text-white">
+										<CardTitle className="flex items-center text-foreground">
 											<Users className="w-5 h-5 mr-2" />
 											PROTOCOL OPTIMIZATION
 										</CardTitle>
@@ -2207,13 +2217,15 @@ export default function WalletWidget(): React.ReactElement {
 									<CardContent className="space-y-4">
 										<div className="grid grid-cols-3 gap-4 text-center">
 											<div>
-												<div className="text-xs text-gray-400 mb-1">ACTIVE</div>
+												<div className="text-xs text-muted-foreground mb-1">
+													ACTIVE
+												</div>
 												<div className="text-2xl font-bold text-emerald-400">
 													{runtime.raw.workers.active}
 												</div>
 											</div>
 											<div>
-												<div className="text-xs text-gray-400 mb-1">
+												<div className="text-xs text-muted-foreground mb-1">
 													STOPPED
 												</div>
 												<div className="text-2xl font-bold text-red-400">
@@ -2221,8 +2233,10 @@ export default function WalletWidget(): React.ReactElement {
 												</div>
 											</div>
 											<div>
-												<div className="text-xs text-gray-400 mb-1">TOTAL</div>
-												<div className="text-2xl font-bold text-white">
+												<div className="text-xs text-muted-foreground mb-1">
+													TOTAL
+												</div>
+												<div className="text-2xl font-bold text-foreground">
 													{runtime.raw.workers.total}
 												</div>
 											</div>
@@ -2230,7 +2244,7 @@ export default function WalletWidget(): React.ReactElement {
 
 										<div>
 											<div className="flex justify-between items-center mb-2">
-												<span className="text-sm text-gray-400">
+												<span className="text-sm text-muted-foreground">
 													EFFICIENCY
 												</span>
 												<div className="flex items-center space-x-2">
@@ -2273,19 +2287,21 @@ export default function WalletWidget(): React.ReactElement {
 										</div>
 
 										<div className="pt-2">
-											<div className="text-xs text-gray-400 mb-2">
+											<div className="text-xs text-muted-foreground mb-2">
 												PERFORMANCE INSIGHTS
 											</div>
 											<div className="space-y-1 text-xs">
 												<div className="flex justify-between">
-													<span className="text-gray-400">Uptime:</span>
-													<span className="text-white">
+													<span className="text-muted-foreground">Uptime:</span>
+													<span className="text-foreground">
 														{workerAnalysis.efficiency.toFixed(1)}%
 													</span>
 												</div>
 												<div className="flex justify-between">
-													<span className="text-gray-400">Avg. Load:</span>
-													<span className="text-white">
+													<span className="text-muted-foreground">
+														Avg. Load:
+													</span>
+													<span className="text-foreground">
 														{((runtime.raw.workers.active /
 															runtime.raw.workers.total) * 100).toFixed(1)}%
 													</span>
@@ -2303,7 +2319,7 @@ export default function WalletWidget(): React.ReactElement {
 							{networkConnections && (
 								<Card>
 									<CardHeader>
-										<CardTitle className="flex items-center text-white">
+										<CardTitle className="flex items-center text-foreground">
 											<Globe className="w-5 h-5 mr-2" />
 											NETWORK CONNECTIONS STATUS
 										</CardTitle>
@@ -2312,78 +2328,78 @@ export default function WalletWidget(): React.ReactElement {
 										<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 min-w-0 overflow-hidden">
 											{/* Total Clients */}
 											<div className="text-center">
-												<div className="text-xs text-gray-400 mb-2">
+												<div className="text-xs text-muted-foreground mb-2">
 													TOTAL CLIENTS
 												</div>
 												<div className="text-2xl font-bold text-amber-400 mb-1">
 													{networkConnections.raw.totalClients}
 												</div>
-												<div className="text-xs text-gray-400">
+												<div className="text-xs text-muted-foreground">
 													active connections
 												</div>
 											</div>
 
 											{/* Authenticated Clients */}
 											<div className="text-center">
-												<div className="text-xs text-gray-400 mb-2">
+												<div className="text-xs text-muted-foreground mb-2">
 													AUTHENTICATED CLIENTS
 												</div>
 												<div className="text-2xl font-bold text-amber-400 mb-1">
 													{networkConnections.raw.authenticatedClients}
 												</div>
-												<div className="text-xs text-gray-400">
+												<div className="text-xs text-muted-foreground">
 													verified credentials
 												</div>
 											</div>
 
 											{/* Anonymous Clients */}
 											<div className="text-center">
-												<div className="text-xs text-gray-400 mb-2">
+												<div className="text-xs text-muted-foreground mb-2">
 													ANONYMOUS CLIENTS
 												</div>
-												<div className="text-2xl font-bold text-white mb-1">
+												<div className="text-2xl font-bold text-foreground mb-1">
 													{networkConnections.raw.anonymousClients}
 												</div>
-												<div className="text-xs text-gray-400">
+												<div className="text-xs text-muted-foreground">
 													unauthenticated access
 												</div>
 											</div>
 
 											{/* Session Count */}
 											<div className="text-center">
-												<div className="text-xs text-gray-400 mb-2">
+												<div className="text-xs text-muted-foreground mb-2">
 													ACTIVE SESSIONS
 												</div>
 												<div className="text-2xl font-bold text-amber-400 mb-1">
 													{networkConnections.raw.sessionCount}
 												</div>
-												<div className="text-xs text-gray-400">
+												<div className="text-xs text-muted-foreground">
 													communication sessions
 												</div>
 											</div>
 
 											{/* Max Connections Per Session */}
 											<div className="text-center">
-												<div className="text-xs text-gray-400 mb-2">
+												<div className="text-xs text-muted-foreground mb-2">
 													MAX CONNECTIONS/SESSION
 												</div>
-												<div className="text-2xl font-bold text-white mb-1">
+												<div className="text-2xl font-bold text-foreground mb-1">
 													{networkConnections.raw.maxConnectionsPerSession}
 												</div>
-												<div className="text-xs text-gray-400">
+												<div className="text-xs text-muted-foreground">
 													concurrent limit
 												</div>
 											</div>
 
 											{/* Data Transmission Interval */}
 											<div className="text-center">
-												<div className="text-xs text-gray-400 mb-2">
+												<div className="text-xs text-muted-foreground mb-2">
 													DATA TRANSMISSION INTERVAL
 												</div>
-												<div className="text-2xl font-bold text-white mb-1">
+												<div className="text-2xl font-bold text-foreground mb-1">
 													{networkConnections.raw.dataTransmissionInterval}ms
 												</div>
-												<div className="text-xs text-gray-400">
+												<div className="text-xs text-muted-foreground">
 													transmission cycle
 												</div>
 											</div>
@@ -2393,7 +2409,7 @@ export default function WalletWidget(): React.ReactElement {
 										<div className="mt-6 pt-4 border-t border-gray-700">
 											<div className="grid grid-cols-1 md:grid-cols-4 gap-4 min-w-0 overflow-hidden">
 												<div className="text-center">
-													<div className="text-xs text-gray-400 mb-2">
+													<div className="text-xs text-muted-foreground mb-2">
 														STREAMING STATUS
 													</div>
 													<div className="text-2xl font-bold text-amber-400 mb-1">
@@ -2401,13 +2417,13 @@ export default function WalletWidget(): React.ReactElement {
 															? "ONLINE"
 															: "OFFLINE"}
 													</div>
-													<div className="text-xs text-gray-400">
+													<div className="text-xs text-muted-foreground">
 														data streaming
 													</div>
 												</div>
 
 												<div className="text-center">
-													<div className="text-xs text-gray-400 mb-2">
+													<div className="text-xs text-muted-foreground mb-2">
 														CLEANUP PROCESS
 													</div>
 													<div className="text-2xl font-bold text-amber-400 mb-1">
@@ -2415,31 +2431,31 @@ export default function WalletWidget(): React.ReactElement {
 															? "RUNNING"
 															: "STOPPED"}
 													</div>
-													<div className="text-xs text-gray-400">
+													<div className="text-xs text-muted-foreground">
 														background cleanup
 													</div>
 												</div>
 
 												<div className="text-center">
-													<div className="text-xs text-gray-400 mb-2">
+													<div className="text-xs text-muted-foreground mb-2">
 														HEARTBEAT INTERVAL
 													</div>
-													<div className="text-2xl font-bold text-white mb-1">
+													<div className="text-2xl font-bold text-foreground mb-1">
 														{networkConnections.raw.heartbeatInterval}ms
 													</div>
-													<div className="text-xs text-gray-400">
+													<div className="text-xs text-muted-foreground">
 														connection health
 													</div>
 												</div>
 
 												<div className="text-center">
-													<div className="text-xs text-gray-400 mb-2">
+													<div className="text-xs text-muted-foreground mb-2">
 														NETWORK ENVIRONMENT
 													</div>
-													<div className="text-2xl font-bold text-white mb-1">
+													<div className="text-2xl font-bold text-foreground mb-1">
 														{networkConnections.raw.network.toUpperCase()}
 													</div>
-													<div className="text-xs text-gray-400">
+													<div className="text-xs text-muted-foreground">
 														environment type
 													</div>
 												</div>
@@ -2452,7 +2468,7 @@ export default function WalletWidget(): React.ReactElement {
 							{/* Network Nodes Status */}
 							<Card>
 								<CardHeader>
-									<CardTitle className="flex items-center text-white">
+									<CardTitle className="flex items-center text-foreground">
 										<Globe className="w-5 h-5 mr-2" />
 										NETWORK NODES STATUS
 									</CardTitle>
@@ -2460,19 +2476,19 @@ export default function WalletWidget(): React.ReactElement {
 								<CardContent>
 									<div className="grid grid-cols-1 md:grid-cols-4 gap-4 min-w-0 overflow-hidden">
 										<div className="text-center">
-											<div className="text-xs text-gray-400 mb-2">
+											<div className="text-xs text-muted-foreground mb-2">
 												TOTAL HETEROGENS
 											</div>
-											<div className="text-2xl font-bold text-white mb-1">
+											<div className="text-2xl font-bold text-foreground mb-1">
 												{networkAnalysis.totalNodes}
 											</div>
-											<div className="text-xs text-gray-400">
+											<div className="text-xs text-muted-foreground">
 												distributed globally
 											</div>
 										</div>
 
 										<div className="text-center">
-											<div className="text-xs text-gray-400 mb-2">
+											<div className="text-xs text-muted-foreground mb-2">
 												ACTIVE NODES
 											</div>
 											<div className="text-2xl font-bold text-emerald-400 mb-1">
@@ -2487,7 +2503,7 @@ export default function WalletWidget(): React.ReactElement {
 										</div>
 
 										<div className="text-center">
-											<div className="text-xs text-gray-400 mb-2">
+											<div className="text-xs text-muted-foreground mb-2">
 												NETWORK HEALTH
 											</div>
 											<Badge
@@ -2506,17 +2522,19 @@ export default function WalletWidget(): React.ReactElement {
 											>
 												{networkAnalysis.healthStatus}
 											</Badge>
-											<div className="text-xs text-gray-400 mt-1">
+											<div className="text-xs text-muted-foreground mt-1">
 												overall status
 											</div>
 										</div>
 
 										<div className="text-center">
-											<div className="text-xs text-gray-400 mb-2">REGIONS</div>
+											<div className="text-xs text-muted-foreground mb-2">
+												REGIONS
+											</div>
 											<div className="text-sm font-medium text-blue-400">
 												{Object.keys(networkAnalysis.regions).length}
 											</div>
-											<div className="text-xs text-gray-400 mt-1">
+											<div className="text-xs text-muted-foreground mt-1">
 												countries
 											</div>
 										</div>
@@ -2524,7 +2542,7 @@ export default function WalletWidget(): React.ReactElement {
 
 									{/* Regional Distribution */}
 									<div className="mt-6 pt-4 border-t  min-w-0 overflow-hidden">
-										<div className="text-xs text-gray-400 mb-3">
+										<div className="text-xs text-muted-foreground mb-3">
 											REGIONAL DISTRIBUTION
 										</div>
 										<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 min-w-0 overflow-hidden">
@@ -2537,7 +2555,7 @@ export default function WalletWidget(): React.ReactElement {
 														className="flex items-center justify-between text-xs min-w-0"
 													>
 														<div className="flex items-center min-w-0 overflow-hidden">
-															<MapPin className="w-3 h-3 mr-1 text-gray-400" />
+															<MapPin className="w-3 h-3 mr-1 text-muted-foreground" />
 															<span className="text-gray-300 truncate">
 																{country}
 															</span>

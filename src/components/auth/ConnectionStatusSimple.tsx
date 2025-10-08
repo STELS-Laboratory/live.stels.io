@@ -50,7 +50,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 			case "localnet":
 				return <Network className="h-4 w-4 text-purple-500" />;
 			default:
-				return <Network className="h-4 w-4 text-zinc-500" />;
+				return <Network className="h-4 w-4 text-muted-foreground" />;
 		}
 	};
 
@@ -67,7 +67,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 			case "localnet":
 				return "bg-purple-500/20 text-purple-400 border-purple-500/30";
 			default:
-				return "bg-zinc-500/20 text-zinc-400 border-zinc-500/30";
+				return "bg-zinc-500/20 text-muted-foreground border-zinc-500/30";
 		}
 	};
 
@@ -143,10 +143,10 @@ export function ConnectionStatusSimple(): React.ReactElement {
 						{getNetworkIcon()}
 						<span className="font-medium">Network</span>
 					</div>
-					<div className="text-sm text-zinc-400">
+					<div className="text-sm text-muted-foreground">
 						{connectionSession.title} ({connectionSession.network})
 					</div>
-					<div className="text-xs font-mono text-zinc-500">
+					<div className="text-xs font-mono text-muted-foreground">
 						{connectionSession.api}
 					</div>
 				</motion.div>
@@ -161,10 +161,10 @@ export function ConnectionStatusSimple(): React.ReactElement {
 						<Shield className="h-4 w-4 text-amber-500" />
 						<span className="font-medium">Wallet</span>
 					</div>
-					<div className="text-xs font-mono text-zinc-400 break-all">
+					<div className="text-xs font-mono text-muted-foreground break-all">
 						{wallet.address}
 					</div>
-					<div className="text-xs text-zinc-500">
+					<div className="text-xs text-muted-foreground">
 						Card: {wallet.number}
 					</div>
 				</motion.div>

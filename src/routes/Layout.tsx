@@ -27,6 +27,7 @@ import {
 import Graphite from "@/components/ui/vectors/logos/Graphite";
 import { navigateTo } from "@/lib/router";
 import { ConnectionStatusSimple } from "@/components/auth/ConnectionStatusSimple";
+import { ThemeToggle, ThemeToggleCompact } from "@/components/ui/theme-toggle";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface LayoutProps {
@@ -313,15 +314,18 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 					<header className="shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
 						{/* Mobile Header - iOS Style */}
 						<div className="lg:hidden">
-							<div className="flex items-center justify-between px-4 h-14 border-b border-zinc-800/50">
+							<div className="flex items-center justify-between px-4 h-14 border-b border-border/50">
 								<div className="flex items-center gap-2">
 									<Graphite size={1.5} />
-									<span className="text-sm font-semibold text-white">
+									<span className="text-sm font-semibold text-foreground">
 										STELS
 									</span>
 								</div>
 
-								<ConnectionStatusSimple />
+								<div className="flex items-center gap-2">
+									<ThemeToggleCompact />
+									<ConnectionStatusSimple />
+								</div>
 							</div>
 
 							{/* iOS-Style Navigation Bar - Simple and clean */}
@@ -353,7 +357,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						>
 							<div className="flex items-center justify-between px-6 h-16">
 								<div className="flex items-center gap-4">
-									<Graphite size={2} primary="orange"/> STELS
+									<Graphite size={2} primary="orange" /> STELS
 									{/* iOS-Style Back button */}
 									<AnimatePresence mode="wait">
 										{showBackButton && (
@@ -413,7 +417,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 									{/* Separator */}
 									{showBackButton && (
 										<motion.div
-											className="h-6 w-px bg-zinc-800/50"
+											className="h-6 w-px bg-muted/50"
 											initial={{ opacity: 0, scaleY: 0 }}
 											animate={{ opacity: 1, scaleY: 1 }}
 											exit={{ opacity: 0, scaleY: 0 }}
@@ -435,7 +439,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 											}}
 										>
 											<motion.h1
-												className="text-lg font-semibold text-white tracking-tight"
+												className="text-lg font-semibold text-foreground tracking-tight"
 												initial={{ scale: 1.05, opacity: 0 }}
 												animate={{ scale: 1, opacity: 1 }}
 												transition={{
@@ -457,7 +461,9 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 										delay: 0.15,
 										ease: [0.16, 1, 0.3, 1],
 									}}
+									className="flex items-center gap-2"
 								>
+									<ThemeToggle />
 									<ConnectionStatusSimple />
 								</motion.div>
 							</div>
@@ -492,7 +498,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						className="flex flex-1 overflow-y-auto overflow-x-hidden bg-background"
 						data-route-container
 					>
-						<div className="w-full mx-auto pt-2 sm:pt-2 lg:pt-2 flex-1 min-h-0 bg-black">
+						<div className="w-full mx-auto pt-2 sm:pt-2 lg:pt-2 flex-1 min-h-0 bg-background">
 							{children}
 						</div>
 

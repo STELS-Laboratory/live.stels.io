@@ -43,7 +43,7 @@ export function WidgetStatusBadge({
       <Badge
         variant="secondary"
         className={cn(
-          "bg-zinc-500 text-white border-zinc-500",
+          "bg-muted text-foreground border-muted",
           sizeClasses[size],
           className,
         )}

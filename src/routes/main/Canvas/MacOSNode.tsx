@@ -85,7 +85,7 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
 
 	return (
 		<div
-			className={`border transition-all cursor-auto bg-zinc-900 rounded-lg overflow-hidden
+			className={`border transition-all cursor-auto bg-card rounded-lg overflow-hidden
         ${nodeState.maximized ? "w-full h-full" : "w-auto h-auto"} 
         ${nodeState.minimized ? "h-8" : ""}`}
 		>
@@ -102,16 +102,16 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
 				id="auto-target"
 				className="opacity-0 w-0 h-0"
 			/>
-			<div className="flex relative items-center border-b bg-zinc-900 justify-between px-2 py-1 cursor-move drag-handle">
+			<div className="flex relative items-center border-b bg-card justify-between px-2 py-1 cursor-move drag-handle">
 				<div className="flex items-center space-x-1">
-					<span className="text-xs text-zinc-400 truncate max-w-32">
+					<span className="text-xs text-muted-foreground truncate max-w-32">
 						{props.data.label}
 					</span>
 				</div>
 				<div className="flex space-x-2">
 					<button
 						onClick={handleClose}
-						className="w-3 h-3 cursor-pointer bg-zinc-950 hover:bg-red-500 rounded-full flex items-center justify-center transition-colors"
+						className="w-3 h-3 cursor-pointer bg-background hover:bg-red-500 rounded-full flex items-center justify-center transition-colors"
 						title="Close"
 					>
 						<X size={6} />
@@ -120,7 +120,7 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
 						onClick={handleMinimize}
 						className={`w-3 h-3 cursor-pointer transition-colors ${
 							!nodeState.minimized
-								? "bg-zinc-950 hover:bg-yellow-500"
+								? "bg-background hover:bg-yellow-500"
 								: "bg-amber-600"
 						} rounded-full flex items-center justify-center`}
 						title={nodeState.minimized ? "Restore" : "Minimize"}
@@ -131,7 +131,7 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
 						onClick={handleMaximize}
 						className={`w-3 h-3 cursor-pointer transition-colors ${
 							!nodeState.maximized
-								? "bg-zinc-950 hover:bg-green-500"
+								? "bg-background hover:bg-green-500"
 								: "bg-green-600"
 						} rounded-full flex items-center justify-center`}
 						title={nodeState.maximized ? "Restore" : "Maximize"}

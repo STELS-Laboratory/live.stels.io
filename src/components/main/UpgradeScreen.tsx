@@ -75,7 +75,7 @@ const UpgradeScreen = ({ onComplete, endDate }: UpgradeScreenProps) => {
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
-			className="flex items-center justify-center bg-gradient-to-br from-zinc-950 via-zinc-950 to-zinc-950"
+			className="flex items-center justify-center bg-gradient-to-br from-background via-background to-background"
 		>
 			<div className="flex flex-col items-center space-y-8 max-w-md w-full mt-60">
 				{/* Logo with Upgrade Animation */}
@@ -134,7 +134,7 @@ const UpgradeScreen = ({ onComplete, endDate }: UpgradeScreenProps) => {
 						transition={{ delay: 0.3, duration: 0.3 }}
 						className="space-y-1"
 					>
-						<p className="text-lg text-zinc-300 font-medium">
+						<p className="text-lg text-card-foreground font-medium">
 							STELS Network
 						</p>
 						<p className="text-sm text-amber-400 font-mono">
@@ -173,7 +173,7 @@ const UpgradeScreen = ({ onComplete, endDate }: UpgradeScreenProps) => {
 					initial={{ y: 10, opacity: 0 }}
 					animate={{ y: 0, opacity: 1 }}
 					transition={{ delay: 0.5, duration: 0.3 }}
-					className="text-center text-xs text-zinc-600 space-y-2 max-w-sm"
+					className="text-center text-xs text-muted-foreground space-y-2 max-w-sm"
 				>
 					<p>Please wait while we upgrade!</p>
 				</motion.div>

@@ -47,17 +47,17 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-md mx-4">
-        <Card className="border-amber-500/20 bg-zinc-900/95 backdrop-blur-md">
+        <Card className="border-amber-500/20 bg-card/95 backdrop-blur-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10">
               <AlertTriangle className="h-6 w-6 text-amber-500" />
             </div>
-            <CardTitle className="text-xl text-white">
+            <CardTitle className="text-xl text-foreground">
               Security Notice
             </CardTitle>
-            <CardDescription className="text-zinc-400">
+            <CardDescription className="text-muted-foreground">
               Important information before signing out
             </CardDescription>
           </CardHeader>
@@ -92,7 +92,7 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
               <Button
                 onClick={handleCancelLogout}
                 variant="outline"
-                className="w-full border-zinc-700 hover:bg-zinc-800 text-zinc-300"
+                className="w-full border-border hover:bg-muted text-card-foreground"
               >
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Stay Logged In
@@ -100,7 +100,7 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
             </div>
 
             <div className="text-center">
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-muted-foreground">
                 This security testing ensures your account remains protected
               </p>
             </div>
@@ -110,4 +110,3 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
     </div>
   );
 };
-

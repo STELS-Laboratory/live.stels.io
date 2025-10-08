@@ -474,7 +474,7 @@ const OrderBook: React.FC = React.memo(() => {
         className={`flex gap-6 px-4 py-2 min-w-fit flex-shrink-0 border-r ${
           isSelected
             ? "bg-amber-100 text-black"
-            : "text-zinc-300 hover:bg-zinc-800"
+            : "text-card-foreground hover:bg-muted"
         }`}
       >
         {getCurrencyIcon(symbol)
@@ -506,7 +506,7 @@ const OrderBook: React.FC = React.memo(() => {
             )}
             {latency > 0 && (
               <>
-                <span className="text-zinc-400">•</span>
+                <span className="text-muted-foreground">•</span>
                 <span
                   className={`font-mono w-8 ${
                     latency < 1000
@@ -637,7 +637,7 @@ const OrderBook: React.FC = React.memo(() => {
     <div className="space-y-1">
       {orderBookData.length === 0
         ? (
-          <Card className="bg-zinc-900 border ">
+          <Card className="bg-card border ">
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
                 <Activity className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -655,7 +655,7 @@ const OrderBook: React.FC = React.memo(() => {
         ? (
           <>
             {/* Market Overview */}
-            <Card className="bg-zinc-900 border">
+            <Card className="bg-card border">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   {getCurrencyIcon(selectedMarket.split("/")[0])
@@ -667,7 +667,7 @@ const OrderBook: React.FC = React.memo(() => {
                       />
                     )
                     : (
-                      <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                      <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-foreground text-sm font-bold">
                         {selectedMarket.split("/")[0].slice(0, 2)}
                       </div>
                     )}
@@ -701,7 +701,7 @@ const OrderBook: React.FC = React.memo(() => {
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <TrendingDown className="w-4 h-4 text-zinc-400" />
+                      <TrendingDown className="w-4 h-4 text-muted-foreground" />
                       <span className="text-sm font-medium">
                         Total Asks
                       </span>
@@ -734,7 +734,7 @@ const OrderBook: React.FC = React.memo(() => {
                               getExchangeColor(
                                 currentOrderBook.dominantExchange,
                               )
-                            } rounded-full flex items-center justify-center text-white text-xs font-bold`}
+                            } rounded-full flex items-center justify-center text-foreground text-xs font-bold`}
                           >
                             {currentOrderBook.dominantExchange.charAt(0)
                               .toUpperCase()}
@@ -750,7 +750,7 @@ const OrderBook: React.FC = React.memo(() => {
             </Card>
 
             {/* Aggregated Candles Chart */}
-            {/*<Card className="bg-zinc-900 border mb-6">*/}
+            {/*<Card className="bg-card border mb-6">*/}
             {/*  <CardHeader>*/}
             {/*    <CardTitle className="flex items-center gap-2">*/}
             {/*      <BarChart3 className="w-5 h-5 text-amber-500" />*/}
@@ -773,7 +773,7 @@ const OrderBook: React.FC = React.memo(() => {
           </>
         )
         : (
-          <Card className="bg-zinc-900 border border-zinc-700">
+          <Card className="bg-card border border-border">
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
                 <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -793,7 +793,7 @@ const OrderBook: React.FC = React.memo(() => {
           <div className="flex border">
             {/* Фиксированная первая вкладка */}
             {availableMarkets.length > 0 && (
-              <div className="flex-shrink-0 bg-zinc-800">
+              <div className="flex-shrink-0 bg-muted">
                 <TabButton
                   market={availableMarkets[0]}
                   isSelected={selectedMarket === availableMarkets[0]}
@@ -820,14 +820,14 @@ const OrderBook: React.FC = React.memo(() => {
           </div>
         )
         : (
-          <div className="text-center py-2 text-zinc-400">
+          <div className="text-center py-2 text-muted-foreground">
             <p>Loading markets...</p>
           </div>
         )}
 
       {/* Optimized Professional Header */}
-      <div className="bg-zinc-950 border  overflow-hidden">
-        <header className="border-b p-4 bg-zinc-950">
+      <div className="bg-background border  overflow-hidden">
+        <header className="border-b p-4 bg-background">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-sm flex items-center gap-2">
@@ -837,12 +837,12 @@ const OrderBook: React.FC = React.memo(() => {
                 </span>
                 <Badge
                   variant="outline"
-                  className="text-[10px] font-normal h-5 px-2 bg-zinc-900"
+                  className="text-[10px] font-normal h-5 px-2 bg-card"
                 >
                   Stels AI Controlled
                 </Badge>
               </h2>
-              <div className="flex items-center text-left gap-2 text-[10px] text-zinc-600 mt-1">
+              <div className="flex items-center text-left gap-2 text-[10px] text-muted-foreground mt-1">
                 <Clock className="h-3 w-3" />
                 <span className="w-18">{new Date().toLocaleTimeString()}</span>
                 <span>|</span>
@@ -862,7 +862,7 @@ const OrderBook: React.FC = React.memo(() => {
               </div>
             </div>
             <div className="text-right text-[10px]">
-              <div className="text-zinc-600 uppercase tracking-wider">
+              <div className="text-muted-foreground uppercase tracking-wider">
                 DATA SOURCES
               </div>
               <div className="font-mono text-amber-500 mt-1">
@@ -874,12 +874,12 @@ const OrderBook: React.FC = React.memo(() => {
         </header>
 
         {/* Technical Metrics */}
-        <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 p-2 bg-zinc-900">
+        <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 p-2 bg-card">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="bg-zinc-950 p-2 border cursor-help">
-                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+                <div className="bg-background p-2 border cursor-help">
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
                     IMBALANCE
                   </div>
                   <div className="font-mono flex items-center mt-1 w-full justify-end">
@@ -911,8 +911,8 @@ const OrderBook: React.FC = React.memo(() => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
-                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+                <div className="bg-background p-2 rounded-lg border cursor-help">
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
                     DEPTH RATIO
                   </div>
                   <div className="flex items-center font-mono text-amber-500 mt-1 w-full justify-end">
@@ -929,8 +929,8 @@ const OrderBook: React.FC = React.memo(() => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
-                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+                <div className="bg-background p-2 rounded-lg border cursor-help">
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
                     VWAP
                   </div>
                   <div className="flex items-center font-mono text-amber-500 mt-1 w-full justify-end">
@@ -947,8 +947,8 @@ const OrderBook: React.FC = React.memo(() => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
-                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+                <div className="bg-background p-2 rounded-lg border cursor-help">
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
                     LARGE ORDERS
                   </div>
                   <div className="flex items-center font-mono text-amber-500 mt-1 w-full justify-end">
@@ -965,8 +965,8 @@ const OrderBook: React.FC = React.memo(() => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="bg-zinc-950 p-2 rounded-lg border cursor-help">
-                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+                <div className="bg-background p-2 rounded-lg border cursor-help">
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
                     MARKET CONC.
                   </div>
                   <div className="flex items-center font-mono text-amber-500 mt-1 w-full justify-end">
@@ -985,21 +985,21 @@ const OrderBook: React.FC = React.memo(() => {
             </Tooltip>
           </TooltipProvider>
 
-          <div className="bg-zinc-950 p-2 flex flex-col justify-between">
-            <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+          <div className="bg-background p-2 flex flex-col justify-between">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
               CONTROLS
             </div>
             <div className="flex items-center justify-between gap-2">
               <button
                 onClick={() => setShowScales(!showScales)}
-                className="text-zinc-500 hover:text-amber-500 transition-colors"
+                className="text-muted-foreground hover:text-amber-500 transition-colors"
                 title={showScales ? "Hide scales" : "Show scales"}
               >
                 <Scale className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setLastUpdate(Date.now())}
-                className="text-zinc-500 hover:text-amber-500 transition-colors"
+                className="text-muted-foreground hover:text-amber-500 transition-colors"
                 title="Refresh data"
               >
                 <RefreshCcw className="h-4 w-4" />
@@ -1011,11 +1011,11 @@ const OrderBook: React.FC = React.memo(() => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-1">
         {/* Optimized Order Book */}
-        <div className="bg-zinc-900 border  overflow-hidden">
+        <div className="bg-card border  overflow-hidden">
           {/* Spread Information */}
-          <div className="flex items-center justify-center gap-2 py-3 border-b border-zinc-800 bg-zinc-950">
-            <ArrowDownUp className="h-4 w-4 text-zinc-500" />
-            <span className="text-xs text-zinc-500 uppercase tracking-wider">
+          <div className="flex items-center justify-center gap-2 py-3 border-b border-border bg-background">
+            <ArrowDownUp className="h-4 w-4 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground uppercase tracking-wider">
               SPREAD:
             </span>
             <span className="font-mono font-medium text-amber-500">
@@ -1027,7 +1027,7 @@ const OrderBook: React.FC = React.memo(() => {
                 )
                 : "N/A"}
             </span>
-            <span className="text-zinc-500">|</span>
+            <span className="text-muted-foreground">|</span>
             <span className="font-mono font-medium text-amber-500">
               {currentOrderBook && currentOrderBook.aggregatedAsks[0] &&
                   currentOrderBook.aggregatedBids[0]
@@ -1044,7 +1044,7 @@ const OrderBook: React.FC = React.memo(() => {
           </div>
 
           {/* Column Headers */}
-          <div className="grid grid-cols-6 text-[10px] text-zinc-400 uppercase tracking-wider py-2 px-4 bg-zinc-900 border-b">
+          <div className="grid grid-cols-6 text-[10px] text-muted-foreground uppercase tracking-wider py-2 px-4 bg-card border-b">
             <div className="text-left">AMOUNT</div>
             <div className="text-right col-span-2">PRICE</div>
             <div className="text-left col-span-2">PRICE</div>
@@ -1052,7 +1052,7 @@ const OrderBook: React.FC = React.memo(() => {
           </div>
 
           {/* Combined Bids and Asks */}
-          <div className="px-2 py-1 bg-zinc-950 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800">
+          <div className="px-2 py-1 bg-background max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800">
             {currentOrderBook &&
               Array.from({
                 length: Math.max(
@@ -1119,7 +1119,7 @@ const OrderBook: React.FC = React.memo(() => {
                           {isLargeBid
                             ? (
                               <div className="col-span-2 flex items-center justify-end z-10">
-                                <div className="bg-zinc-800 border border-green-600 rounded-md px-2 mr-2 h-5 flex items-center">
+                                <div className="bg-muted border border-green-600 rounded-md px-2 mr-2 h-5 flex items-center">
                                   <span className="text-[7px] font-semibold text-amber-500 mr-1">
                                     W
                                   </span>
@@ -1163,7 +1163,7 @@ const OrderBook: React.FC = React.memo(() => {
                                 <div className="font-mono text-[11px] text-red-500 text-left pl-2">
                                   {askData[0].toFixed(2)}
                                 </div>
-                                <div className="bg-zinc-800 border border-red-600 rounded-md px-2 ml-2 h-5 flex items-center">
+                                <div className="bg-muted border border-red-600 rounded-md px-2 ml-2 h-5 flex items-center">
                                   <span className="text-[7px] font-semibold text-amber-500 mr-1">
                                     W
                                   </span>
@@ -1208,9 +1208,9 @@ const OrderBook: React.FC = React.memo(() => {
           </div>
 
           {/* Market Dominance Footer */}
-          <div className="border-t  p-4 bg-zinc-900">
+          <div className="border-t  p-4 bg-card">
             <div className="flex flex-col items-center">
-              <div className="text-xs text-zinc-400 uppercase tracking-wider mb-2">
+              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
                 MARKET DOMINANCE
               </div>
               <div className="w-full flex items-center justify-between mb-2">
@@ -1261,7 +1261,7 @@ const OrderBook: React.FC = React.memo(() => {
                 </div>
               </div>
               {/*<div className="w-full flex justify-center mt-2">*/}
-              {/*  <div className="flex items-center gap-1 text-[10px] text-zinc-500">*/}
+              {/*  <div className="flex items-center gap-1 text-[10px] text-muted-foreground">*/}
               {/*    <span>LAST UPDATE:</span>*/}
               {/*    <span className="font-mono text-amber-500">*/}
               {/*      {displayTime}*/}
@@ -1274,7 +1274,7 @@ const OrderBook: React.FC = React.memo(() => {
         </div>
 
         {/* Compact Exchange Ranking */}
-        <Card className="bg-zinc-900 border">
+        <Card className="bg-card border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-amber-500" />
@@ -1296,7 +1296,7 @@ const OrderBook: React.FC = React.memo(() => {
                       <DialogTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="bg-zinc-950 h-auto mb-1 p-2 hover:bg-zinc-950 transition-colors border"
+                          className="bg-background h-auto mb-1 p-2 hover:bg-background transition-colors border"
                           onClick={() => openExchangeDetails(item.exchange)}
                         >
                           <div className="flex items-center gap-3 w-full">
@@ -1318,7 +1318,7 @@ const OrderBook: React.FC = React.memo(() => {
                                 <div
                                   className={`w-6 h-6 bg-gradient-to-br ${
                                     getExchangeColor(item.exchange)
-                                  } rounded-full flex items-center justify-center text-white text-xs font-bold`}
+                                  } rounded-full flex items-center justify-center text-foreground text-xs font-bold`}
                                 >
                                   {item.exchange.charAt(0).toUpperCase()}
                                 </div>
@@ -1343,7 +1343,7 @@ const OrderBook: React.FC = React.memo(() => {
                   ))
                 )
                 : (
-                  <div className="text-center py-8 text-zinc-400">
+                  <div className="text-center py-8 text-muted-foreground">
                     <p>No exchange data available</p>
                   </div>
                 )}
@@ -1369,7 +1369,7 @@ const OrderBook: React.FC = React.memo(() => {
                   <div
                     className={`w-8 h-8 bg-gradient-to-br ${
                       getExchangeColor(selectedExchange)
-                    } rounded-full flex items-center justify-center text-white text-sm font-bold`}
+                    } rounded-full flex items-center justify-center text-foreground text-sm font-bold`}
                   >
                     {selectedExchange.charAt(0).toUpperCase()}
                   </div>

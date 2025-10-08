@@ -256,7 +256,7 @@ const CategoryOverview = ({ indicators }: { indicators: FredIndicator[] }) => {
 							<div
 								className={`w-12 h-12 mx-auto mb-4 rounded-full ${categoryInfo.color} flex items-center justify-center shadow-lg`}
 							>
-								<div className="text-white">
+								<div className="text-foreground">
 									{categoryInfo.icon}
 								</div>
 							</div>
@@ -500,7 +500,7 @@ function Fred() {
 					<CardContent className="pt-8 pb-6">
 						<div className="flex items-center gap-4">
 							<div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
-								<Globe className="w-6 h-6 text-white" />
+								<Globe className="w-6 h-6 text-foreground" />
 							</div>
 							<div>
 								<p className="text-sm font-semibold text-muted-foreground mb-1">
@@ -518,7 +518,7 @@ function Fred() {
 					<CardContent className="pt-8 pb-6">
 						<div className="flex items-center gap-4">
 							<div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-								<BarChart3 className="w-6 h-6 text-white" />
+								<BarChart3 className="w-6 h-6 text-foreground" />
 							</div>
 							<div>
 								<p className="text-sm font-semibold text-muted-foreground mb-1">
@@ -536,7 +536,7 @@ function Fred() {
 					<CardContent className="pt-8 pb-6">
 						<div className="flex items-center gap-4">
 							<div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center shadow-lg">
-								<PieChart className="w-6 h-6 text-white" />
+								<PieChart className="w-6 h-6 text-foreground" />
 							</div>
 							<div>
 								<p className="text-sm font-semibold text-muted-foreground mb-1">
@@ -554,7 +554,7 @@ function Fred() {
 					<CardContent className="pt-8 pb-6">
 						<div className="flex items-center gap-4">
 							<div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center shadow-lg">
-								<Activity className="w-6 h-6 text-white" />
+								<Activity className="w-6 h-6 text-foreground" />
 							</div>
 							<div>
 								<p className="text-sm font-semibold text-muted-foreground mb-1">

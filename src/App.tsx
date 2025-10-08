@@ -6,6 +6,7 @@ import { useUrlRouter } from "@/hooks/useUrlRouter";
 import { RouteLoader } from "@/components/main/RouteLoader";
 import { useAuthRestore } from "@/hooks/useAuthRestore";
 import { useHydration } from "@/hooks/useHydration";
+import { useTheme } from "@/hooks/useTheme";
 import { AnimatePresence, motion } from "framer-motion";
 
 import Welcome from "@/routes/main/Welcome";
@@ -44,7 +45,17 @@ type AppState =
 export default function Dashboard(): React.ReactElement {
 	const { currentRoute, setRouteLoading, upgrade, setUpgrade } = useAppStore();
 	const { isAuthenticated, isConnected, _hasHydrated } = useAuthStore();
+	const { resolvedTheme } = useTheme(); // Use hook for automatic system theme detection
 	const hasHydrated = useHydration();
+
+	// Apply resolved theme to document (will update automatically when system theme changes)
+	useEffect(() => {
+		// Apply theme class to document root
+		const root = document.documentElement;
+		root.classList.remove("light", "dark");
+		root.classList.add(resolvedTheme);
+		root.setAttribute("data-theme", resolvedTheme);
+	}, [resolvedTheme]);
 
 	// Prevent zoom and touch behaviors
 	useEffect(() => {
@@ -375,7 +386,7 @@ export default function Dashboard(): React.ReactElement {
 	const renderLoadingScreen = (message: string): React.ReactElement => {
 		return (
 			<motion.div
-				className="absolute max-w-[500px] mx-auto w-[100%] h-[100%] overflow-hidden left-0 right-0 top-0 bottom-0  bg-zinc-950 flex items-center justify-center p-32"
+				className="absolute max-w-[500px] mx-auto w-[100%] h-[100%] overflow-hidden left-0 right-0 top-0 bottom-0 bg-background flex items-center justify-center p-32"
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
 				exit={{ opacity: 0 }}
@@ -441,7 +452,7 @@ export default function Dashboard(): React.ReactElement {
 						transition={{ duration: 0.6, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
 					>
 						<motion.h2
-							className="text-2xl font-bold text-white mb-2"
+							className="text-2xl font-bold text-foreground mb-2"
 							animate={{
 								opacity: [1, 0.95, 1],
 							}}
@@ -454,7 +465,7 @@ export default function Dashboard(): React.ReactElement {
 							STELS
 						</motion.h2>
 						<motion.p
-							className="text-zinc-400 text-lg"
+							className="text-muted-foreground text-lg"
 							key={message}
 							initial={{ opacity: 0, y: 5 }}
 							animate={{ opacity: 1, y: 0 }}
@@ -471,7 +482,7 @@ export default function Dashboard(): React.ReactElement {
 						animate={{ opacity: 1, scale: 1 }}
 						transition={{ duration: 0.7, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
 					>
-						<div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
+						<div className="w-full bg-muted rounded-full h-2 overflow-hidden">
 							<motion.div
 								className="bg-gradient-to-r from-amber-500 to-blue-500 h-2 rounded-full"
 								initial={{ width: "0%" }}
@@ -490,7 +501,7 @@ export default function Dashboard(): React.ReactElement {
 							</motion.div>
 						</div>
 						<motion.p
-							className="text-xs text-zinc-500"
+							className="text-xs text-muted-foreground"
 							key={Math.round(transitionProgress)}
 							initial={{ scale: 1.15, opacity: 0 }}
 							animate={{ scale: 1, opacity: 1 }}
@@ -502,7 +513,7 @@ export default function Dashboard(): React.ReactElement {
 
 					{/* State Indicator */}
 					<motion.div
-						className="flex items-center justify-center gap-2 text-sm text-zinc-500"
+						className="flex items-center justify-center gap-2 text-sm text-muted-foreground"
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						transition={{ duration: 0.6, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -624,6 +635,7 @@ export default function Dashboard(): React.ReactElement {
 			// Show authentication flow with smooth transition
 			return (
 				<motion.div
+					className="bg-background"
 					initial={{ opacity: 0, scale: 0.95 }}
 					animate={{ opacity: 1, scale: 1 }}
 					exit={{ opacity: 0, scale: 0.95 }}

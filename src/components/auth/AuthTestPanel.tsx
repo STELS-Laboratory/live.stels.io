@@ -150,21 +150,21 @@ export function AuthTestPanel(): React.ReactElement {
           <div className="space-y-2">
             <h4 className="font-medium">LocalStorage Data</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
-              <div className="p-2 bg-zinc-800 rounded border">
+              <div className="p-2 bg-muted rounded border">
                 <div className="font-medium">auth-store</div>
-                <div className="text-zinc-400">
+                <div className="text-muted-foreground">
                   {localStorageData.authStore ? "Present" : "Empty"}
                 </div>
               </div>
-              <div className="p-2 bg-zinc-800 rounded border">
+              <div className="p-2 bg-muted rounded border">
                 <div className="font-medium">private-store</div>
-                <div className="text-zinc-400">
+                <div className="text-muted-foreground">
                   {localStorageData.privateStore ? "Present" : "Empty"}
                 </div>
               </div>
-              <div className="p-2 bg-zinc-800 rounded border">
+              <div className="p-2 bg-muted rounded border">
                 <div className="font-medium">_g (old wallet)</div>
-                <div className="text-zinc-400">
+                <div className="text-muted-foreground">
                   {localStorageData.oldWallet ? "Present" : "Empty"}
                 </div>
               </div>

@@ -22,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useChartColors } from "@/hooks/useChartColors";
 
 interface CandleData {
   timestamp: number;
@@ -180,6 +181,7 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
   const volumeSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
   const lineSeriesRefs = useRef<{ [exchange: string]: ISeriesApi<"Line"> }>({});
   const fairValueLineRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const chartColors = useChartColors();
 
   const [crosshair, setCrosshair] = useState<{
     price: number | null;
@@ -406,30 +408,30 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
       width: containerRef.current.clientWidth,
       height,
       layout: {
-        textColor: "#e4e4e7",
-        background: { type: ColorType.Solid, color: "#0b0b0c" },
+        textColor: chartColors.textColor,
+        background: { type: ColorType.Solid, color: chartColors.background },
       },
       grid: {
-        vertLines: { color: "#1f1f22", style: 0 },
-        horzLines: { color: "#1f1f22", style: 0 },
+        vertLines: { color: chartColors.gridColor, style: 0 },
+        horzLines: { color: chartColors.gridColor, style: 0 },
       },
       crosshair: { mode: CrosshairMode.Normal },
       timeScale: {
-        borderColor: "#27272a",
+        borderColor: chartColors.borderColor,
         timeVisible: true,
         secondsVisible: false,
       },
       rightPriceScale: {
-        borderColor: "#27272a",
+        borderColor: chartColors.borderColor,
       },
     });
 
     // Add candlestick series
     const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: "#16a34a",
-      downColor: "#dc2626",
-      wickUpColor: "#16a34a",
-      wickDownColor: "#dc2626",
+      upColor: chartColors.upColor,
+      downColor: chartColors.downColor,
+      wickUpColor: chartColors.upColor,
+      wickDownColor: chartColors.downColor,
       borderVisible: false,
     });
 
@@ -438,7 +440,7 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
       priceFormat: { type: "volume" },
       priceScaleId: "left",
       base: 0,
-      color: "#3f3f46",
+      color: chartColors.volumeColor,
     });
 
     // Add fair value line series
@@ -505,7 +507,29 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
       fairValueLineRef.current = null;
       lineSeriesRefs.current = {};
     };
-  }, [height]);
+  }, [height, chartColors]);
+
+  // Update chart colors when theme changes
+  useEffect(() => {
+    if (!chartRef.current) return;
+
+    chartRef.current.applyOptions({
+      layout: {
+        textColor: chartColors.textColor,
+        background: { type: ColorType.Solid, color: chartColors.background },
+      },
+      grid: {
+        vertLines: { color: chartColors.gridColor, style: 0 },
+        horzLines: { color: chartColors.gridColor, style: 0 },
+      },
+      timeScale: {
+        borderColor: chartColors.borderColor,
+      },
+      rightPriceScale: {
+        borderColor: chartColors.borderColor,
+      },
+    });
+  }, [chartColors]);
 
   // Update series data
   useEffect(() => {
@@ -716,19 +740,19 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
               <span className="text-amber-500">
                 {exchangeData.length} Exchanges
               </span>
-              <span className="mx-2 text-zinc-600">|</span>
-              <span className="text-zinc-500">Dominance-weighted</span>
-              <span className="mx-2 text-zinc-600">|</span>
+              <span className="mx-2 text-muted-foreground">|</span>
+              <span className="text-muted-foreground">Dominance-weighted</span>
+              <span className="mx-2 text-muted-foreground">|</span>
               <span className="text-blue-500">
                 Filtered: {selectedMarket}
               </span>
               {exchangeData.length > 0 && (
                 <>
-                  <span className="mx-2 text-zinc-600">|</span>
+                  <span className="mx-2 text-muted-foreground">|</span>
                   <span className="text-green-500">
                     Leader: {exchangeData[0].exchange}
                   </span>
-                  <span className="mx-1 text-zinc-600">
+                  <span className="mx-1 text-muted-foreground">
                     ({(exchangeData[0] as any).marketShare?.toFixed(1)}%)
                   </span>
                 </>
@@ -739,7 +763,7 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
             <div className="grid grid-cols-2 gap-4 text-right">
               {/* Current Price */}
               <div>
-                <div className="text-[10px] text-zinc-400 uppercase tracking-wider mb-1">
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
                   CURRENT
                 </div>
                 <div
@@ -749,7 +773,7 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
                 >
                   {lastCandle ? lastCandle.close.toFixed(2) : "-"}
                 </div>
-                <div className="text-[11px] text-zinc-500">
+                <div className="text-[11px] text-muted-foreground">
                   {changePct >= 0 ? "+" : ""}
                   {changePct.toFixed(2)}%
                 </div>
@@ -757,7 +781,7 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
 
               {/* Fair Value Price */}
               <div>
-                <div className="text-[10px] text-zinc-400 uppercase tracking-wider mb-1">
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
                   FAIR VALUE
                 </div>
                 <div className="font-mono text-sm text-amber-500">
@@ -779,13 +803,13 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
             </div>
 
             {/* Market Efficiency Score */}
-            <div className="mt-3 pt-2 border-t border-zinc-800">
+            <div className="mt-3 pt-2 border-t border-border">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-zinc-400 uppercase tracking-wider">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
                   MARKET EFFICIENCY
                 </span>
                 <div className="flex items-center gap-2">
-                  <div className="w-16 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
                     <div
                       className={`h-full transition-all duration-500 ${
                         marketEfficiency >= 80
@@ -834,34 +858,34 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
                 aria-label="Aggregated candlestick chart"
                 role="img"
               />
-              <div className="w-full bg-zinc-900/50 p-3 rounded border">
+              <div className="w-full bg-card/50 p-3 rounded border">
                 <div className="grid grid-cols-2 gap-4">
                   {/* OHLC Data */}
                   <div className="space-y-1">
-                    <div className="text-[10px] text-zinc-400 uppercase tracking-wider mb-2">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">
                       OHLC DATA
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-[11px]">
                       <div className="flex justify-between">
-                        <span className="text-zinc-500">O:</span>
-                        <span className="font-mono text-zinc-300">
+                        <span className="text-muted-foreground">O:</span>
+                        <span className="font-mono text-card-foreground">
                           {lastCandle?.open.toFixed(2) ?? "-"}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-zinc-500">H:</span>
+                        <span className="text-muted-foreground">H:</span>
                         <span className="font-mono text-green-400">
                           {lastCandle?.high.toFixed(2) ?? "-"}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-zinc-500">L:</span>
+                        <span className="text-muted-foreground">L:</span>
                         <span className="font-mono text-red-400">
                           {lastCandle?.low.toFixed(2) ?? "-"}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-zinc-500">C:</span>
+                        <span className="text-muted-foreground">C:</span>
                         <span className="font-mono text-amber-500">
                           {lastCandle?.close.toFixed(2) ?? "-"}
                         </span>
@@ -871,18 +895,22 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
 
                   {/* Fair Value & Deviation */}
                   <div className="space-y-1">
-                    <div className="text-[10px] text-zinc-400 uppercase tracking-wider mb-2">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">
                       FAIR VALUE ANALYSIS
                     </div>
                     <div className="space-y-2 text-[11px]">
                       <div className="flex justify-between">
-                        <span className="text-zinc-500">Fair Value:</span>
+                        <span className="text-muted-foreground">
+                          Fair Value:
+                        </span>
                         <span className="font-mono text-amber-500">
                           {fairValuePrice?.toFixed(2) ?? "-"}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-zinc-500">Deviation:</span>
+                        <span className="text-muted-foreground">
+                          Deviation:
+                        </span>
                         <span
                           className={`font-mono ${
                             Math.abs(priceDeviation) < 1
@@ -898,8 +926,8 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
                       </div>
                       {crosshair.volume !== null && (
                         <div className="flex justify-between">
-                          <span className="text-zinc-500">Volume:</span>
-                          <span className="font-mono text-zinc-300">
+                          <span className="text-muted-foreground">Volume:</span>
+                          <span className="font-mono text-card-foreground">
                             {crosshair.volume.toFixed(2)}
                           </span>
                         </div>
@@ -910,9 +938,9 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
               </div>
 
               {/* Chart Legend */}
-              <div className="w-full mt-2 pt-2 border-t border-zinc-800">
+              <div className="w-full mt-2 pt-2 border-t border-border">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
                     Chart Legend
                   </div>
                   <div className="flex items-center gap-4 text-[10px]">
@@ -928,16 +956,16 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
                       <span className="text-green-500">Candles</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <div className="w-3 h-0.5 bg-zinc-500" />
-                      <span className="text-zinc-500">Volume</span>
+                      <div className="w-3 h-0.5 bg-muted" />
+                      <span className="text-muted-foreground">Volume</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Regulatory Exchange Dominance Legend */}
-              <div className="w-full mt-2 pt-2 border-t border-zinc-800">
-                <div className="text-[10px] text-zinc-400 uppercase tracking-wider mb-2">
+              <div className="w-full mt-2 pt-2 border-t border-border">
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">
                   Exchange Dominance Analysis (Regulatory View)
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -964,8 +992,8 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
                           isDominant
                             ? "bg-amber-500/10 border-amber-500/30"
                             : isSignificant
-                            ? "bg-zinc-800/50 border-zinc-700"
-                            : "bg-zinc-900/50 border-zinc-800"
+                            ? "bg-muted/50 border-border"
+                            : "bg-card/50 border-border"
                         }`}
                       >
                         <div className="flex items-center gap-1">
@@ -985,7 +1013,9 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
                           <div className="flex items-center gap-1">
                             <span
                               className={`text-[9px] capitalize font-medium ${
-                                isDominant ? "text-amber-500" : "text-zinc-400"
+                                isDominant
+                                  ? "text-amber-500"
+                                  : "text-muted-foreground"
                               }`}
                             >
                               {exchange}
@@ -996,7 +1026,7 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
                               </span>
                             )}
                           </div>
-                          <div className="text-[8px] text-zinc-500">
+                          <div className="text-[8px] text-muted-foreground">
                             {marketShare?.toFixed(1)}% | Dom:{" "}
                             {dominance?.toFixed(1)}
                           </div>

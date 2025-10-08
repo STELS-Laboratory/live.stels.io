@@ -236,17 +236,17 @@ function SonarPortfolio() {
 	};
 
 	return (
-		<div className="w-[1044px] h-[907px] overflow-y-scroll space-y-5 p-4 bg-zinc-950">
+		<div className="w-[1044px] h-[907px] overflow-y-scroll space-y-5 p-4 bg-background">
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h2 className="text-2xl font-bold text-zinc-100">
+					<h2 className="text-2xl font-bold text-foreground">
 						Portfolio Overview
 					</h2>
-					<p className="text-zinc-400">
+					<p className="text-muted-foreground">
 						Real-time portfolio performance and asset allocation
 					</p>
-					<p className="text-xs text-zinc-500 mt-1">
+					<p className="text-xs text-muted-foreground mt-1">
 						Showing assets with liquidity ≥ ${metrics.filteredStats
 							.minLiquidityThreshold}
 						({metrics.filteredStats.displayedCount}/{metrics.filteredStats
@@ -278,12 +278,12 @@ function SonarPortfolio() {
 
 			{/* Key Metrics */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
-				<Card className="bg-zinc-900/50 border-zinc-800">
+				<Card className="bg-card/50 border-border">
 					<CardContent className="p-4">
 						<div className="flex items-center justify-between">
 							<div>
-								<p className="text-sm text-zinc-400">Portfolio Value</p>
-								<p className="text-xl font-semibold text-zinc-100">
+								<p className="text-sm text-muted-foreground">Portfolio Value</p>
+								<p className="text-xl font-semibold text-foreground">
 									{formatCurrency(metrics.totalPortfolioValue)}
 								</p>
 								{metrics.totalChange !== 0 && (
@@ -315,12 +315,12 @@ function SonarPortfolio() {
 					</CardContent>
 				</Card>
 
-				<Card className="bg-zinc-900/50 border-zinc-800">
+				<Card className="bg-card/50 border-border">
 					<CardContent className="p-4">
 						<div className="flex items-center justify-between">
 							<div>
-								<p className="text-sm text-zinc-400">Total Liquidity</p>
-								<p className="text-xl font-semibold text-zinc-100">
+								<p className="text-sm text-muted-foreground">Total Liquidity</p>
+								<p className="text-xl font-semibold text-foreground">
 									{formatCurrency(metrics.totalLiquidity)}
 								</p>
 							</div>
@@ -331,12 +331,12 @@ function SonarPortfolio() {
 					</CardContent>
 				</Card>
 
-				<Card className="bg-zinc-900/50 border-zinc-800">
+				<Card className="bg-card/50 border-border">
 					<CardContent className="p-4">
 						<div className="flex items-center justify-between">
 							<div>
-								<p className="text-sm text-zinc-400">Available</p>
-								<p className="text-xl font-semibold text-zinc-100">
+								<p className="text-sm text-muted-foreground">Available</p>
+								<p className="text-xl font-semibold text-foreground">
 									{formatCurrency(metrics.available)}
 								</p>
 							</div>
@@ -347,12 +347,12 @@ function SonarPortfolio() {
 					</CardContent>
 				</Card>
 
-				<Card className="bg-zinc-900/50 border-zinc-800">
+				<Card className="bg-card/50 border-border">
 					<CardContent className="p-4">
 						<div className="flex items-center justify-between">
 							<div>
-								<p className="text-sm text-zinc-400">Rate</p>
-								<p className="text-xl font-semibold text-zinc-100">
+								<p className="text-sm text-muted-foreground">Rate</p>
+								<p className="text-xl font-semibold text-foreground">
 									{(metrics.rate * 100).toFixed(2)}%
 								</p>
 							</div>
@@ -366,9 +366,9 @@ function SonarPortfolio() {
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
 				{/* Pie Chart */}
-				<Card className="lg:col-span-1 bg-zinc-900/50 border-zinc-800">
+				<Card className="lg:col-span-1 bg-card/50 border-border">
 					<CardHeader>
-						<CardTitle className="text-zinc-100">Asset Allocation</CardTitle>
+						<CardTitle className="text-foreground">Asset Allocation</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-3">
@@ -382,14 +382,14 @@ function SonarPortfolio() {
 									/>
 									<div className="flex-1 min-w-0">
 										<div className="flex items-center justify-between">
-											<span className="text-sm font-medium text-zinc-100 truncate">
+											<span className="text-sm font-medium text-foreground truncate">
 												{item.symbol}
 											</span>
-											<span className="text-sm text-zinc-400">
+											<span className="text-sm text-muted-foreground">
 												{item.percentage.toFixed(1)}%
 											</span>
 										</div>
-										<div className="w-full bg-zinc-800 rounded-full h-1.5 mt-1">
+										<div className="w-full bg-muted rounded-full h-1.5 mt-1">
 											<div
 												className="h-1.5 rounded-full"
 												style={{
@@ -403,8 +403,8 @@ function SonarPortfolio() {
 							))}
 							{pieData.length > 8 && (
 								<div className="pt-2">
-									<Separator className="bg-zinc-800" />
-									<p className="text-xs text-zinc-500 mt-2">
+									<Separator className="bg-muted" />
+									<p className="text-xs text-muted-foreground mt-2">
 										+{pieData.length - 8} more assets
 									</p>
 								</div>
@@ -414,9 +414,9 @@ function SonarPortfolio() {
 				</Card>
 
 				{/* Asset List */}
-				<Card className="lg:col-span-2 bg-zinc-900/50 border-zinc-800">
+				<Card className="lg:col-span-2 bg-card/50 border-border">
 					<CardHeader>
-						<CardTitle className="text-zinc-100">Asset Performance</CardTitle>
+						<CardTitle className="text-foreground">Asset Performance</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-1">
@@ -426,7 +426,7 @@ function SonarPortfolio() {
 									className={`pl-2 pr-2 rounded-lg border transition-colors cursor-pointer ${
 										selectedAsset === asset.symbol
 											? "bg-amber-500/10 border-amber-500/30"
-											: "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-800/70"
+											: "bg-muted/50 border-border hover:bg-muted/70"
 									}`}
 									onClick={() =>
 										setSelectedAsset(
@@ -441,15 +441,15 @@ function SonarPortfolio() {
 												</span>
 											</div>
 											<div>
-												<p className="font-medium text-zinc-100">
+												<p className="font-medium text-foreground">
 													{asset.symbol}
 												</p>
-												<p className="text-sm text-zinc-400">
+												<p className="text-sm text-muted-foreground">
 													{formatAssetAmount(asset.symbol, asset.amount)}
 												</p>
 												{asset.price && asset.price !== 1 && (
 													<div className="flex items-center space-x-1">
-														<p className="text-xs text-zinc-500">
+														<p className="text-xs text-muted-foreground">
 															Price: {formatCurrency(asset.price)}
 														</p>
 														<div
@@ -468,7 +468,7 @@ function SonarPortfolio() {
 										</div>
 
 										<div className="text-right">
-											<p className="font-medium text-zinc-100">
+											<p className="font-medium text-foreground">
 												{formatCurrency(asset.value)}
 											</p>
 											{asset.change !== undefined && asset.change !== 0 && (
@@ -504,12 +504,12 @@ function SonarPortfolio() {
 			</div>
 
 			{/* Summary */}
-			<Card className="bg-zinc-900/50 border-zinc-800">
+			<Card className="bg-card/50 border-border">
 				<CardContent className="p-6">
 					<div className="flex items-center justify-between">
 						<div>
-							<p className="text-sm text-zinc-400">Portfolio Summary</p>
-							<p className="text-2xl font-bold text-zinc-100">
+							<p className="text-sm text-muted-foreground">Portfolio Summary</p>
+							<p className="text-2xl font-bold text-foreground">
 								{formatCurrency(metrics.totalPortfolioValue)}
 							</p>
 							{metrics.totalChange !== 0 && (
@@ -522,11 +522,11 @@ function SonarPortfolio() {
 							)}
 						</div>
 						<div className="text-right">
-							<p className="text-sm text-zinc-400">Total Assets</p>
-							<p className="text-lg font-semibold text-zinc-100">
+							<p className="text-sm text-muted-foreground">Total Assets</p>
+							<p className="text-lg font-semibold text-foreground">
 								{assets.length}
 							</p>
-							<p className="text-xs text-zinc-500">
+							<p className="text-xs text-muted-foreground">
 								{assets.filter((a) => a.change && a.change > 0).length} gaining
 							</p>
 						</div>

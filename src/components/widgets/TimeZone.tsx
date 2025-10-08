@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from "react";
+import React, { useMemo, useState } from "react";
 
 /**
  * Interface for timezone data structure
@@ -34,34 +34,34 @@ interface AnalogClockProps {
 }
 
 const AnalogClock: React.FC<AnalogClockProps> = (
-	{time, location, city, country, offset},
+	{ time, location, city, country, offset },
 ) => {
 	const [hours, minutes, seconds] = time.split(":").map(Number);
-	
+
 	// Calculate angles for clock hands
 	const secondAngle = (seconds * 6) - 90; // 6 degrees per second
 	const minuteAngle = (minutes * 6 + seconds * 0.1) - 90; // 6 degrees per minute + slight movement from seconds
 	const hourAngle = (hours * 30 + minutes * 0.5) - 90; // 30 degrees per hour + slight movement from minutes
-	
+
 	// Determine if it's day or night (6 AM to 6 PM = day)
 	const isDay = hours >= 6 && hours < 18;
-	
+
 	// Theme colors based on day/night
 	const themeColors = {
-		background: isDay ? "bg-zinc-900" : "bg-zinc-950",
+		background: isDay ? "bg-card" : "bg-background",
 		clockStroke: isDay ? "orange" : "#f59e0b", // Dark for day, amber for night
 		handColor: isDay ? "orange" : "#f59e0b", // Dark for day, amber for night
 		secondHand: isDay ? "green" : "#ef4444", // Red for both
 		centerDot: isDay ? "orange" : "#f59e0b", // Dark for day, amber for night
 		numbers: isDay ? "orange" : "#d1d5db", // Dark gray for day, light gray for night
-		cityText: isDay ? "text-zinc-100" : "text-zinc-100",
-		countryText: isDay ? "text-zinc-200" : "text-zinc-400",
-		timeText: isDay ? "text-zinc-300" : "text-amber-500",
-		offsetText: isDay ? "text-zinc-400" : "text-zinc-500",
+		cityText: isDay ? "text-foreground" : "text-foreground",
+		countryText: isDay ? "text-card-foreground" : "text-muted-foreground",
+		timeText: isDay ? "text-card-foreground" : "text-amber-500",
+		offsetText: isDay ? "text-muted-foreground" : "text-muted-foreground",
 		gradientStart: isDay ? "#1f2937" : "#f59e0b",
 		gradientEnd: isDay ? "#6b7280" : "#f59e0b",
 	};
-	
+
 	return (
 		<div
 			className={`flex flex-col items-center p-4 ${themeColors.background} rounded-xl transition-all duration-500 group`}
@@ -79,7 +79,7 @@ const AnalogClock: React.FC<AnalogClockProps> = (
 						strokeWidth="2"
 						className="group-hover:stroke-amber-500/40 transition-colors duration-500"
 					/>
-					
+
 					{/* Clock numbers */}
 					{[12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((num, index) => {
 						const angle = (index * 30) * (Math.PI / 180);
@@ -100,7 +100,7 @@ const AnalogClock: React.FC<AnalogClockProps> = (
 							</text>
 						);
 					})}
-					
+
 					{/* Hour hand */}
 					<line
 						x1="50"
@@ -112,7 +112,7 @@ const AnalogClock: React.FC<AnalogClockProps> = (
 						strokeLinecap="round"
 						className="drop-shadow-sm"
 					/>
-					
+
 					{/* Minute hand */}
 					<line
 						x1="50"
@@ -124,7 +124,7 @@ const AnalogClock: React.FC<AnalogClockProps> = (
 						strokeLinecap="round"
 						className="drop-shadow-sm"
 					/>
-					
+
 					{/* Second hand */}
 					<line
 						x1="50"
@@ -136,7 +136,7 @@ const AnalogClock: React.FC<AnalogClockProps> = (
 						strokeLinecap="round"
 						className="drop-shadow-sm"
 					/>
-					
+
 					{/* Center dot */}
 					<circle
 						cx="50"
@@ -145,7 +145,7 @@ const AnalogClock: React.FC<AnalogClockProps> = (
 						fill="#f59e0b"
 						className="drop-shadow-sm"
 					/>
-					
+
 					{/* Gradient definitions */}
 					<defs>
 						<linearGradient
@@ -155,13 +155,13 @@ const AnalogClock: React.FC<AnalogClockProps> = (
 							x2="100%"
 							y2="100%"
 						>
-							<stop offset="0%" stopColor="#f59e0b" stopOpacity="0.3"/>
-							<stop offset="100%" stopColor="#f59e0b" stopOpacity="0.1"/>
+							<stop offset="0%" stopColor="#f59e0b" stopOpacity="0.3" />
+							<stop offset="100%" stopColor="#f59e0b" stopOpacity="0.1" />
 						</linearGradient>
 					</defs>
 				</svg>
 			</div>
-			
+
 			{/* Location info */}
 			<div className="text-center">
 				<h3
@@ -194,19 +194,19 @@ const AnalogClock: React.FC<AnalogClockProps> = (
 /**
  * Main TimeZone widget component
  */
-const TimeZone: React.FC<{ data: any }> = ({data}) => {
+const TimeZone: React.FC<{ data: any }> = ({ data }) => {
 	const [searchTerm, setSearchTerm] = useState<string>("");
 	const [selectedRegion, setSelectedRegion] = useState<string>("all");
-	
+
 	// Extract timezones from data
 	const timezones = data?.raw?.timezone || [];
-	
+
 	// // Get unique regions for filter
 	// const regions = useMemo(() => {
 	// 	const regionSet = new Set(timezones.map((tz: any) => tz.country));
 	// 	return ["all", ...Array.from(regionSet).sort()];
 	// }, [timezones]);
-	
+
 	// Filter timezones based on search and region
 	const filteredTimezones = useMemo(() => {
 		return timezones.filter((tz: any) => {
@@ -214,16 +214,16 @@ const TimeZone: React.FC<{ data: any }> = ({data}) => {
 				tz.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
 				tz.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
 				tz.country.toLowerCase().includes(searchTerm.toLowerCase());
-			
+
 			const matchesRegion = selectedRegion === "all" ||
 				tz.country === selectedRegion;
-			
+
 			return matchesSearch && matchesRegion;
 		});
 	}, [timezones, searchTerm, selectedRegion]);
-	
+
 	return (
-		<div className="w-[1240px] h-[1270px] bg-zinc-950 p-6 overflow-hidden">
+		<div className="w-[1240px] h-[1270px] bg-background p-6 overflow-hidden">
 			{/* Controls */}
 			<div className="flex flex-col sm:flex-row gap-4 mb-6">
 				{/* Search */}
@@ -233,16 +233,16 @@ const TimeZone: React.FC<{ data: any }> = ({data}) => {
 						placeholder="Search cities or countries..."
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
-						className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none transition-colors"
+						className="w-full px-4 py-2 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-amber-500 focus:outline-none transition-colors"
 					/>
 				</div>
-				
+
 				{/* Region Filter */}
 				<div className="sm:w-48">
 					<select
 						value={selectedRegion}
 						onChange={(e) => setSelectedRegion(e.target.value)}
-						className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-100 focus:border-amber-500 focus:outline-none transition-colors"
+						className="w-full px-4 py-2 bg-card border border-border rounded-lg text-foreground focus:border-amber-500 focus:outline-none transition-colors"
 					>
 						{/*{regions.map((region) => (*/}
 						{/*	<option key={region} value={region}>*/}
@@ -252,9 +252,9 @@ const TimeZone: React.FC<{ data: any }> = ({data}) => {
 					</select>
 				</div>
 			</div>
-			
+
 			{/* Stats */}
-			<div className="flex items-center gap-4 mb-6 text-sm text-zinc-400">
+			<div className="flex items-center gap-4 mb-6 text-sm text-muted-foreground">
 				<span>
 					Showing {filteredTimezones.length} of {timezones.length} timezones
 				</span>
@@ -262,7 +262,7 @@ const TimeZone: React.FC<{ data: any }> = ({data}) => {
 					{new Date(data?.timestamp || Date.now()).toLocaleTimeString()}
 				</span>
 			</div>
-			
+
 			{/* Clocks Horizontal Grid */}
 			<div className="grid grid-cols-4 gap-4 overflow-y-auto pr-2">
 				{filteredTimezones.map((timezone: any, index: any) => (
@@ -276,10 +276,10 @@ const TimeZone: React.FC<{ data: any }> = ({data}) => {
 					/>
 				))}
 			</div>
-			
+
 			{/* Empty state */}
 			{filteredTimezones.length === 0 && (
-				<div className="flex flex-col items-center justify-center py-12 text-zinc-500">
+				<div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
 					<svg
 						className="w-16 h-16 mb-4"
 						fill="none"

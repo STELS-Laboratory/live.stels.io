@@ -42,7 +42,7 @@ const TestnetStatusAlert: React.FC<TestnetStatusAlertProps> = ({
         <Rocket className="h-4 w-4 text-amber-600 dark:text-amber-400" />
         <AlertDescription className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">
+            <span className="font-medium text-zinc-900 dark:text-foreground">
               Testnet Delays
             </span>
             <Badge
@@ -52,7 +52,7 @@ const TestnetStatusAlert: React.FC<TestnetStatusAlertProps> = ({
               <Clock className="w-3 h-3 mr-1" />
               Active Testing
             </Badge>
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+            <span className="text-sm text-muted-foreground dark:text-muted-foreground">
               STELS team is testing platform features and updating continuously
             </span>
           </div>
@@ -60,7 +60,7 @@ const TestnetStatusAlert: React.FC<TestnetStatusAlertProps> = ({
             variant="ghost"
             size="sm"
             onClick={handleDismiss}
-            className="h-6 w-6 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="h-6 w-6 p-0 hover:bg-zinc-100 dark:hover:bg-muted"
             aria-label="Dismiss notification"
           >
             <X className="w-3 h-3" />
@@ -84,7 +84,7 @@ const TestnetStatusAlert: React.FC<TestnetStatusAlertProps> = ({
       <AlertDescription className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h4 className="font-semibold text-zinc-900 dark:text-zinc-100">
+            <h4 className="font-semibold text-zinc-900 dark:text-foreground">
               Testnet Status Update
             </h4>
             <Badge
@@ -99,14 +99,14 @@ const TestnetStatusAlert: React.FC<TestnetStatusAlertProps> = ({
             variant="ghost"
             size="sm"
             onClick={handleDismiss}
-            className="h-6 w-6 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="h-6 w-6 p-0 hover:bg-zinc-100 dark:hover:bg-muted"
             aria-label="Dismiss notification"
           >
             <X className="w-3 h-3" />
           </Button>
         </div>
 
-        <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed">
+        <p className="text-zinc-700 dark:text-card-foreground leading-relaxed">
           The testnet is experiencing <strong>temporary delays</strong>{" "}
           as our development team actively tests and refines various STELS
           platform features. We're continuously updating the platform to ensure
@@ -116,26 +116,26 @@ const TestnetStatusAlert: React.FC<TestnetStatusAlertProps> = ({
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
             <Settings className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-            <span className="text-zinc-600 dark:text-zinc-400">
+            <span className="text-muted-foreground dark:text-muted-foreground">
               Active Development
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Code className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-            <span className="text-zinc-600 dark:text-zinc-400">
+            <span className="text-muted-foreground dark:text-muted-foreground">
               Quality Testing
             </span>
           </div>
         </div>
 
-        <div className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700">
+        <div className="p-3 rounded-lg bg-zinc-50 dark:bg-muted/50 border border-zinc-200 dark:border-border">
           <div className="flex items-start gap-2">
             <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+              <p className="font-medium text-zinc-900 dark:text-foreground mb-1">
                 Stay Updated
               </p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                 Follow our development team announcements for real-time status
                 updates and feature releases.
               </p>

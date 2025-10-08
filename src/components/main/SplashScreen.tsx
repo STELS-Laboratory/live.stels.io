@@ -39,7 +39,7 @@ const SplashScreen = (
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
-			className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-zinc-950 via-zinc-950 to-zinc-950"
+			className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-background via-background to-background"
 		>
 			<div className="flex flex-col items-center space-y-8">
 				{/* Logo Animation */}
@@ -78,14 +78,14 @@ const SplashScreen = (
 					transition={{ delay: 0.2, duration: 0.4 }}
 					className="text-center space-y-2"
 				>
-					<h1 className="text-4xl font-bold text-white tracking-wide">
+					<h1 className="text-4xl font-bold text-foreground tracking-wide">
 						STELS
 					</h1>
 					<motion.p
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						transition={{ delay: 0.3, duration: 0.3 }}
-						className="text-lg text-zinc-400 font-medium"
+						className="text-lg text-muted-foreground font-medium"
 					>
 						Verifying session...
 					</motion.p>
@@ -98,7 +98,7 @@ const SplashScreen = (
 					transition={{ delay: 0.4, duration: 0.3 }}
 					className="w-80 space-y-3"
 				>
-					<div className="w-full bg-zinc-700 rounded-full h-2 overflow-hidden">
+					<div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
 						<motion.div
 							className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full"
 							style={{ width: `${progress}%` }}
@@ -110,7 +110,7 @@ const SplashScreen = (
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						transition={{ delay: 0.5 }}
-						className="text-center text-sm text-zinc-500"
+						className="text-center text-sm text-muted-foreground"
 					>
 						{progress < 100 ? `${progress}%` : "Ready!"}
 					</motion.div>
@@ -146,7 +146,7 @@ const SplashScreen = (
 					initial={{ y: 10, opacity: 0 }}
 					animate={{ y: 0, opacity: 1 }}
 					transition={{ delay: 0.7, duration: 0.3 }}
-					className="text-center text-xs text-zinc-600 space-y-1"
+					className="text-center text-xs text-muted-foreground space-y-1"
 				>
 					<p>{updateApp ? "Updating network..." : "Initializing node..."}</p>
 				</motion.div>

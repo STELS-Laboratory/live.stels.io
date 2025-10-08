@@ -488,7 +488,7 @@ function Markets(): React.ReactElement {
 			{/*									/>*/}
 			{/*								)*/}
 			{/*								: (*/}
-			{/*									<div className="w-4 h-4 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mr-2 flex items-center justify-center text-white text-xs font-bold">*/}
+			{/*									<div className="w-4 h-4 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mr-2 flex items-center justify-center text-foreground text-xs font-bold">*/}
 			{/*										{exchange.charAt(0).toUpperCase()}*/}
 			{/*									</div>*/}
 			{/*								)}*/}
@@ -524,7 +524,7 @@ function Markets(): React.ReactElement {
 			{/*									/>*/}
 			{/*								)*/}
 			{/*								: (*/}
-			{/*									<div className="w-4 h-4 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mr-2 flex items-center justify-center text-white text-xs font-bold">*/}
+			{/*									<div className="w-4 h-4 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full mr-2 flex items-center justify-center text-foreground text-xs font-bold">*/}
 			{/*										{symbol.slice(0, 2)}*/}
 			{/*									</div>*/}
 			{/*								)}*/}
@@ -588,7 +588,7 @@ function Markets(): React.ReactElement {
 			{/*												<div*/}
 			{/*													className={`w-12 h-12 bg-gradient-to-br ${*/}
 			{/*														getExchangeColor(group.exchange)*/}
-			{/*													} rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md`}*/}
+			{/*													} rounded-full flex items-center justify-center text-foreground text-sm font-bold shadow-md`}*/}
 			{/*												>*/}
 			{/*													{group.exchange.charAt(0).toUpperCase()}*/}
 			{/*												</div>*/}
@@ -631,7 +631,7 @@ function Markets(): React.ReactElement {
 			{/*													/>*/}
 			{/*												)*/}
 			{/*												: (*/}
-			{/*													<div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-white text-xs font-bold">*/}
+			{/*													<div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-foreground text-xs font-bold">*/}
 			{/*														{ticker.symbol.slice(0, 2)}*/}
 			{/*													</div>*/}
 			{/*												)}*/}
@@ -654,7 +654,7 @@ function Markets(): React.ReactElement {
 			{/*											/>*/}
 			{/*										</div>*/}
 			{/*									</TableCell>*/}
-			{/*									<TableCell className="text-right text-zinc-300 font-mono">*/}
+			{/*									<TableCell className="text-right text-card-foreground font-mono">*/}
 			{/*										<div>*/}
 			{/*											{formatPrice(ticker.price, ticker.symbol)}*/}
 			{/*										</div>*/}
@@ -681,7 +681,7 @@ function Markets(): React.ReactElement {
 			{/*											<div className="font-mono text-sm text-amber-700">*/}
 			{/*												{formatVolume(ticker.volume)}*/}
 			{/*											</div>*/}
-			{/*											<div className="text-xs text-zinc-500">*/}
+			{/*											<div className="text-xs text-muted-foreground">*/}
 			{/*												${formatVolume(ticker.quoteVolume)}*/}
 			{/*											</div>*/}
 			{/*										</div>*/}

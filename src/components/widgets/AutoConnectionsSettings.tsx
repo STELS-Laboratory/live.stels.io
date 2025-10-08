@@ -97,12 +97,12 @@ function AutoConnectionsSettings({
   };
 
   return (
-    <Card className="w-full max-w-md bg-zinc-900/95 backdrop-blur-sm border-zinc-700">
+    <Card className="w-full max-w-md bg-card/95 backdrop-blur-sm border-border">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Network className="h-5 w-5 text-amber-500" />
-            <CardTitle className="text-lg text-white">
+            <CardTitle className="text-lg text-foreground">
               Auto Connections
             </CardTitle>
           </div>
@@ -114,7 +114,7 @@ function AutoConnectionsSettings({
               "transition-all duration-200",
               isEnabled
                 ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30"
-                : "bg-zinc-700/50 text-zinc-400 hover:bg-zinc-600/50",
+                : "bg-secondary/50 text-muted-foreground hover:bg-zinc-600/50",
             )}
           >
             {isEnabled
@@ -122,7 +122,7 @@ function AutoConnectionsSettings({
               : <EyeOff className="h-4 w-4" />}
           </Button>
         </div>
-        <CardDescription className="text-zinc-400">
+        <CardDescription className="text-muted-foreground">
           Automatically connect nodes based on shared properties
         </CardDescription>
       </CardHeader>
@@ -132,23 +132,23 @@ function AutoConnectionsSettings({
         {stats && isEnabled && (
           <div className="space-y-2">
             <div className="flex items-center space-x-2 text-sm">
-              <Info className="h-4 w-4 text-zinc-500" />
-              <span className="text-zinc-400">Connection Statistics</span>
+              <Info className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Connection Statistics</span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-zinc-800/50 rounded-lg p-2">
-                <div className="text-zinc-400">Nodes</div>
-                <div className="text-white font-medium">{stats.nodeCount}</div>
+              <div className="bg-muted/50 rounded-lg p-2">
+                <div className="text-muted-foreground">Nodes</div>
+                <div className="text-foreground font-medium">{stats.nodeCount}</div>
               </div>
-              <div className="bg-zinc-800/50 rounded-lg p-2">
-                <div className="text-zinc-400">Groups</div>
-                <div className="text-white font-medium">{stats.groupCount}</div>
+              <div className="bg-muted/50 rounded-lg p-2">
+                <div className="text-muted-foreground">Groups</div>
+                <div className="text-foreground font-medium">{stats.groupCount}</div>
               </div>
             </div>
 
             {Object.keys(stats.connectionsByType).length > 0 && (
               <div className="space-y-1">
-                <div className="text-xs text-zinc-500">
+                <div className="text-xs text-muted-foreground">
                   Connections by type:
                 </div>
                 <div className="flex flex-wrap gap-1">
@@ -174,8 +174,8 @@ function AutoConnectionsSettings({
         {/* Grouping Keys */}
         <div className="space-y-3">
           <div className="flex items-center space-x-2 text-sm">
-            <Filter className="h-4 w-4 text-zinc-500" />
-            <span className="text-zinc-400">Group By</span>
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Group By</span>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
@@ -189,7 +189,7 @@ function AutoConnectionsSettings({
                   "justify-start text-xs h-auto p-2 transition-all duration-200",
                   config.groupByKeys.includes(key as any)
                     ? getKeyColor(key)
-                    : "bg-zinc-800/30 text-zinc-500 hover:bg-zinc-700/50 hover:text-zinc-400",
+                    : "bg-muted/30 text-muted-foreground hover:bg-secondary/50 hover:text-muted-foreground",
                 )}
               >
                 <span className="mr-2">{getKeyIcon(key)}</span>
@@ -199,19 +199,19 @@ function AutoConnectionsSettings({
           </div>
         </div>
 
-        <Separator className="bg-zinc-700" />
+        <Separator className="bg-secondary" />
 
         {/* Display Options */}
         <div className="space-y-3">
           <div className="flex items-center space-x-2 text-sm">
-            <Settings className="h-4 w-4 text-zinc-500" />
-            <span className="text-zinc-400">Display Options</span>
+            <Settings className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Display Options</span>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Eye className="h-4 w-4 text-zinc-500" />
-              <span className="text-sm text-zinc-300">Show Labels</span>
+              <Eye className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-card-foreground">Show Labels</span>
             </div>
             <Switch
               checked={config.showLabels}
@@ -227,7 +227,7 @@ function AutoConnectionsSettings({
               "flex items-center justify-center space-x-2 p-2 rounded-lg text-xs font-medium",
               isEnabled
                 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                : "bg-zinc-800/50 text-zinc-500 border border-zinc-700/50",
+                : "bg-muted/50 text-muted-foreground border border-border/50",
             )}
           >
             <Zap className="h-3 w-3" />

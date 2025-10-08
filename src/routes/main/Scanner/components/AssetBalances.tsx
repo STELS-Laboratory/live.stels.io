@@ -61,7 +61,7 @@ export const AssetBalances: React.FC<AssetBalancesProps> = ({
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
                         isActive
-                          ? "bg-emerald-500 text-white"
+                          ? "bg-emerald-500 text-foreground"
                           : "bg-muted text-muted-foreground"
                       }`}
                     >

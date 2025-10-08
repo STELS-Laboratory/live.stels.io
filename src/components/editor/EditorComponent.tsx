@@ -1,7 +1,8 @@
 import MonacoEditor from "@monaco-editor/react";
 import type { ReactElement } from "react";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type * as monaco from "monaco-editor";
+import { useThemeStore } from "@/stores";
 
 interface EditorComponentProps {
 	script: string | undefined;
@@ -12,15 +13,18 @@ export default function EditorComponent(
 	{ script, handleEditorChange }: EditorComponentProps,
 ): ReactElement {
 	const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+	const monacoRef = useRef<typeof import("monaco-editor") | null>(null);
+	const { resolvedTheme } = useThemeStore();
 
 	const handleEditorDidMount = useCallback((
 		editor: monaco.editor.IStandaloneCodeEditor,
 		monaco: typeof import("monaco-editor"),
 	) => {
 		editorRef.current = editor;
+		monacoRef.current = monaco;
 
-		// Define Molokai theme
-		monaco.editor.defineTheme("molokai", {
+		// Define Molokai Dark theme
+		monaco.editor.defineTheme("molokai-dark", {
 			base: "vs-dark",
 			inherit: true,
 			rules: [
@@ -64,8 +68,56 @@ export default function EditorComponent(
 			},
 		});
 
-		// Set Molokai theme
-		monaco.editor.setTheme("molokai");
+		// Define Molokai Light theme
+		monaco.editor.defineTheme("molokai-light", {
+			base: "vs",
+			inherit: true,
+			rules: [
+				{ token: "comment", foreground: "75715e", fontStyle: "italic" },
+				{ token: "keyword", foreground: "c7254e", fontStyle: "bold" },
+				{ token: "string", foreground: "c5941f" },
+				{ token: "number", foreground: "7c3aed" },
+				{ token: "regexp", foreground: "c5941f" },
+				{ token: "operator", foreground: "c7254e" },
+				{ token: "namespace", foreground: "18181b" },
+				{ token: "type", foreground: "2563eb", fontStyle: "italic" },
+				{ token: "struct", foreground: "16a34a" },
+				{ token: "class", foreground: "16a34a" },
+				{ token: "interface", foreground: "16a34a" },
+				{ token: "parameter", foreground: "ea580c", fontStyle: "italic" },
+				{ token: "variable", foreground: "18181b" },
+				{ token: "function", foreground: "16a34a" },
+				{ token: "member", foreground: "18181b" },
+			],
+			colors: {
+				"editor.background": "#ffffff",
+				"editor.foreground": "#18181b",
+				"editor.lineHighlightBackground": "#f4f4f5",
+				"editor.selectionBackground": "#e4e4e7",
+				"editor.inactiveSelectionBackground": "#f4f4f5",
+				"editor.selectionHighlightBackground": "#e4e4e7",
+				"editorCursor.foreground": "#18181b",
+				"editorWhitespace.foreground": "#a1a1aa",
+				"editorIndentGuide.background": "#e4e4e7",
+				"editorIndentGuide.activeBackground": "#71717a",
+				"editorGroupHeader.tabsBackground": "#fafafa",
+				"editorGroup.border": "#e4e4e7",
+				"tab.activeBackground": "#e4e4e7",
+				"tab.activeForeground": "#18181b",
+				"tab.border": "#e4e4e7",
+				"tab.inactiveBackground": "#fafafa",
+				"tab.inactiveForeground": "#52525b",
+				"scrollbarSlider.background": "#d4d4d8",
+				"scrollbarSlider.activeBackground": "#a1a1aa",
+				"scrollbarSlider.hoverBackground": "#a1a1aa",
+			},
+		});
+
+		// Set theme based on current app theme
+		const currentTheme = document.documentElement.classList.contains("light")
+			? "molokai-light"
+			: "molokai-dark";
+		monaco.editor.setTheme(currentTheme);
 
 		// Configure JavaScript/TypeScript language features
 		monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
@@ -173,13 +225,24 @@ export default function EditorComponent(
 		});
 	}, []);
 
+	// Update Monaco theme when app theme changes
+	useEffect(() => {
+		if (!editorRef.current || !monacoRef.current) return;
+
+		const themeName = resolvedTheme === "light"
+			? "molokai-light"
+			: "molokai-dark";
+		monacoRef.current.editor.setTheme(themeName);
+		console.log("[Monaco] Theme changed to:", themeName);
+	}, [resolvedTheme]);
+
 	// @ts-ignore
 	return (
 		<MonacoEditor
 			width="100%"
 			height="100%"
 			language="javascript"
-			theme="molokai"
+			theme={resolvedTheme === "light" ? "molokai-light" : "molokai-dark"}
 			value={script}
 			onChange={handleEditorChange}
 			onMount={handleEditorDidMount}

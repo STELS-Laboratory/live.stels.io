@@ -237,7 +237,7 @@ function WidgetItem({
         className={cn(
           "flex items-center p-2 rounded-md transition-all duration-200",
           isInCanvas
-            ? "bg-zinc-400 text-zinc-600 cursor-not-allowed opacity-60"
+            ? "bg-muted text-muted-foreground cursor-not-allowed opacity-60"
             : "bg-amber-600 text-black cursor-grab active:cursor-grabbing hover:bg-amber-500 hover:scale-105",
           dragState.isDragging && "opacity-50 scale-95",
           isMobile && "touch-manipulation",
@@ -275,7 +275,7 @@ function WidgetItem({
       className={cn(
         "transition-all duration-200",
         isInCanvas
-          ? "cursor-not-allowed opacity-60 bg-zinc-100 dark:bg-zinc-800"
+          ? "cursor-not-allowed opacity-60 bg-secondary dark:bg-muted"
           : "cursor-grab active:cursor-grabbing hover:shadow-md hover:scale-105",
         dragState.isDragging && "opacity-50 scale-95",
         isMobile && "touch-manipulation",
@@ -299,10 +299,10 @@ function WidgetItem({
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-2">
-          <div className="text-xs text-zinc-500 dark:text-zinc-400">
+          <div className="text-xs text-muted-foreground dark:text-muted-foreground">
             Channel: {widget.channel}
           </div>
-          <div className="text-xs text-zinc-500 dark:text-zinc-400">
+          <div className="text-xs text-muted-foreground dark:text-muted-foreground">
             Type: {widgetType}
           </div>
           <Badge variant="secondary" className="text-xs">
@@ -330,10 +330,10 @@ function GroupHeader({
     <div
       onClick={onToggle}
       className={cn(
-        "flex items-center justify-between p-3 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors",
+        "flex items-center justify-between p-3 cursor-pointer hover:bg-secondary dark:hover:bg-muted transition-colors",
         level === 0
-          ? "bg-zinc-200/50 dark:bg-zinc-700/50"
-          : "bg-zinc-100/50 dark:bg-zinc-800/50",
+          ? "bg-secondary/50 dark:bg-secondary/50"
+          : "bg-secondary/30 dark:bg-muted/50",
         level === 0 && "sticky top-0 z-10",
         isMobile && "p-2",
         isTablet && "p-2.5",
@@ -342,8 +342,8 @@ function GroupHeader({
     >
       <div className="flex items-center">
         {isOpen
-          ? <ChevronDown className="h-4 w-4 mr-2 text-zinc-500" />
-          : <ChevronRight className="h-4 w-4 mr-2 text-zinc-500" />}
+          ? <ChevronDown className="h-4 w-4 mr-2 text-muted-foreground" />
+          : <ChevronRight className="h-4 w-4 mr-2 text-muted-foreground" />}
         <span
           className={cn(
             "font-medium",
@@ -376,16 +376,16 @@ function FilterBar({
   isTablet,
 }: FilterBarProps): React.ReactElement {
   return (
-    <div className="space-y-3 p-3 border-b bg-zinc-50 dark:bg-zinc-800/50">
+    <div className="space-y-3 p-3 border-b bg-zinc-50 dark:bg-muted/50">
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           type="text"
           placeholder="Search widgets..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9 bg-white dark:bg-zinc-700"
+          className="pl-9 bg-white dark:bg-secondary"
         />
       </div>
 
@@ -623,7 +623,7 @@ export function WidgetStore({
   const renderGroupedWidgets = (): React.ReactNode => {
     if (sortedWidgets.length === 0) {
       return (
-        <div className="p-4 text-center text-zinc-500 dark:text-zinc-400">
+        <div className="p-4 text-center text-muted-foreground dark:text-muted-foreground">
           {searchTerm
             ? "No widgets match your search"
             : "No widgets available in this category"}
@@ -656,7 +656,7 @@ export function WidgetStore({
                 return (
                   <div
                     key={assetKey}
-                    className="border-t border-zinc-100 dark:border-zinc-800"
+                    className="border-t border-border/30 dark:border-border"
                   >
                     <GroupHeader
                       title={`${asset}`}
@@ -742,7 +742,7 @@ export function WidgetStore({
                 return (
                   <div
                     key={exchangeKey}
-                    className="border-t border-zinc-100 dark:border-zinc-800"
+                    className="border-t border-border/30 dark:border-border"
                   >
                     <GroupHeader
                       title={`${exchange}`}
@@ -811,7 +811,7 @@ export function WidgetStore({
             <Grid3X3 className="h-4 w-4 mr-2" />
             <h3 className="font-semibold">Widget Store</h3>
           </div>
-          <div className="flex items-center space-x-2 text-xs text-zinc-500 dark:text-zinc-400">
+          <div className="flex items-center space-x-2 text-xs text-muted-foreground dark:text-muted-foreground">
             <Badge variant="secondary" className="text-xs">
               {widgetStats.available} available
             </Badge>

@@ -47,14 +47,14 @@ const TestnetNotification: React.FC<TestnetNotificationProps> = ({
           <div className="relative flex-shrink-0">
             <div className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping" />
             <div className="relative flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg">
-              <Rocket className="w-6 h-6 text-white" />
+              <Rocket className="w-6 h-6 text-foreground" />
             </div>
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+              <h3 className="text-lg font-semibold text-zinc-900 dark:text-foreground">
                 Testnet Status Update
               </h3>
               <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30">
@@ -65,7 +65,7 @@ const TestnetNotification: React.FC<TestnetNotificationProps> = ({
               </div>
             </div>
 
-            <div className="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
+            <div className="space-y-3 text-sm text-zinc-700 dark:text-card-foreground">
               <p className="leading-relaxed">
                 The testnet is currently experiencing{" "}
                 <strong>temporary delays</strong>{" "}
@@ -74,25 +74,25 @@ const TestnetNotification: React.FC<TestnetNotificationProps> = ({
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50">
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-zinc-50 dark:bg-muted/50">
                   <Settings className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+                    <p className="font-medium text-zinc-900 dark:text-foreground mb-1">
                       Active Development
                     </p>
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                       Continuous platform updates and feature testing
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50">
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-zinc-50 dark:bg-muted/50">
                   <Code className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-zinc-900 dark:text-zinc-100 mb-1">
+                    <p className="font-medium text-zinc-900 dark:text-foreground mb-1">
                       Quality Assurance
                     </p>
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                       Rigorous testing of new functionality
                     </p>
                   </div>
@@ -101,7 +101,7 @@ const TestnetNotification: React.FC<TestnetNotificationProps> = ({
 
               <Alert className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
                 <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                <AlertDescription className="text-zinc-700 dark:text-zinc-300">
+                <AlertDescription className="text-zinc-700 dark:text-card-foreground">
                   <strong>Stay Updated:</strong>{" "}
                   Follow our development team announcements for real-time status
                   updates and feature releases.
@@ -115,7 +115,7 @@ const TestnetNotification: React.FC<TestnetNotificationProps> = ({
             variant="ghost"
             size="sm"
             onClick={handleDismiss}
-            className="flex-shrink-0 h-8 w-8 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="flex-shrink-0 h-8 w-8 p-0 hover:bg-zinc-100 dark:hover:bg-muted"
             aria-label="Dismiss notification"
           >
             <X className="w-4 h-4" />

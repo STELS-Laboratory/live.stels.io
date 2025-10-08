@@ -77,7 +77,7 @@ export const DEFAULT_CATEGORY_COLOR = "bg-zinc-500";
 export const TREND_COLORS = {
   up: "text-green-500",
   down: "text-red-500",
-  neutral: "text-zinc-400",
+  neutral: "text-muted-foreground",
 } as const;
 
 /**

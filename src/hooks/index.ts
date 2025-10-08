@@ -5,10 +5,12 @@
 
 export { useAuthRestore } from "./useAuthRestore";
 export { useAutoConnections } from "./useAutoConnections";
+export { useChartColors } from "./useChartColors";
 export { useDragAndDrop } from "./useDragAndDrop";
 export { useHydration } from "./useHydration";
 export { useMobile, useScreenWidth, useOrientation, useDeviceType } from "./useMobile.ts";
 export { default as useSessionStoreSync } from "./useSessionStoreSync";
+export { useTheme } from "./useTheme";
 export { useUrlRouter } from "./useUrlRouter";
 export { default as useWebSocketStore } from "./useWebSocketStore";
 

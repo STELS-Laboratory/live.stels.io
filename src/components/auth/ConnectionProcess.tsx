@@ -146,7 +146,7 @@ export function ConnectionProcess(
   return (
     <div className="w-full space-y-8 animate-fade-in-up">
       {/* Enhanced Connection Process */}
-      <Card className="w-full max-w-2xl mx-auto backdrop-blur-sm bg-zinc-900/80 border-zinc-700/50 shadow-2xl">
+      <Card className="w-full max-w-2xl mx-auto backdrop-blur-sm bg-card/80 border-border/50 shadow-2xl">
         <CardHeader className="text-center pb-6">
           <CardTitle className="flex items-center justify-center gap-3 text-3xl font-bold">
             <div className="relative">
@@ -159,7 +159,7 @@ export function ConnectionProcess(
                     : "bg-amber-500/20"
                 }`}
               />
-              <div className="relative p-3 rounded-full bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 border border-zinc-700/50 backdrop-blur-sm">
+              <div className="relative p-3 rounded-full bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 border border-border/50 backdrop-blur-sm">
                 {getStatusIcon()}
               </div>
             </div>
@@ -168,14 +168,14 @@ export function ConnectionProcess(
             </span>
           </CardTitle>
           <div className="flex items-center justify-center gap-2 mt-3">
-            <div className="flex items-center gap-2 px-3 py-1 bg-zinc-800/50 rounded-full border border-zinc-700/50">
+            <div className="flex items-center gap-2 px-3 py-1 bg-muted/50 rounded-full border border-border/50">
               <Wifi className="h-4 w-4 text-amber-400" />
-              <span className="text-sm text-zinc-300">
+              <span className="text-sm text-card-foreground">
                 {selectedNetwork?.name}
               </span>
             </div>
-            <div className="text-zinc-500">•</div>
-            <div className="text-xs text-zinc-500 font-mono">
+            <div className="text-muted-foreground">•</div>
+            <div className="text-xs text-muted-foreground font-mono">
               {selectedNetwork?.api}
             </div>
           </div>
@@ -185,11 +185,11 @@ export function ConnectionProcess(
           {/* Enhanced Progress Bar */}
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-zinc-300">
+              <span className="text-sm font-medium text-card-foreground">
                 Connection Progress
               </span>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-zinc-300">
+                <span className="text-sm font-medium text-card-foreground">
                   {progress}%
                 </span>
                 {isConnecting && (
@@ -198,7 +198,7 @@ export function ConnectionProcess(
               </div>
             </div>
 
-            <div className="relative w-full bg-zinc-800/50 rounded-full h-3 border border-zinc-700/50 overflow-hidden">
+            <div className="relative w-full bg-muted/50 rounded-full h-3 border border-border/50 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-zinc-700/50 to-zinc-600/50 rounded-full" />
               <div
                 className={`relative h-full rounded-full transition-all duration-300 ease-out shadow-lg ${
@@ -216,8 +216,8 @@ export function ConnectionProcess(
           </div>
 
           {/* Enhanced Current Step */}
-          <div className="text-center p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-zinc-700/30 backdrop-blur-sm">
-            <p className="text-lg text-zinc-200 font-medium leading-relaxed">
+          <div className="text-center p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-border/30 backdrop-blur-sm">
+            <p className="text-lg text-card-foreground font-medium leading-relaxed">
               {currentStep || (connectionError
                 ? "❌ Connection failed"
                 : "⏳ Preparing secure connection...")}
@@ -252,17 +252,17 @@ export function ConnectionProcess(
                         ? "text-green-300"
                         : isCurrent
                         ? "text-amber-300"
-                        : "text-zinc-500"
+                        : "text-muted-foreground"
                     }`}
                   >
                     <div className="relative">
                       <div
                         className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-150 ${
                           isCompleted
-                            ? "bg-green-500 border-green-400 text-white scale-110"
+                            ? "bg-green-500 border-green-400 text-foreground scale-110"
                             : isCurrent
                             ? "bg-amber-500 border-amber-400 text-zinc-900 scale-105"
-                            : "bg-zinc-800 border-zinc-600 text-zinc-500"
+                            : "bg-muted border-muted text-muted-foreground"
                         }`}
                       >
                         {isCompleted
@@ -322,7 +322,7 @@ export function ConnectionProcess(
             <Button
               onClick={onBack}
               variant="outline"
-              className="flex-1 h-12 border-zinc-700/50 hover:border-zinc-600/50 bg-zinc-800/50 hover:bg-zinc-700/50 transition-all duration-150"
+              className="flex-1 h-12 border-border/50 hover:border-muted/50 bg-muted/50 hover:bg-secondary/50 transition-all duration-150"
               disabled={isConnecting}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />

@@ -1,6 +1,6 @@
 function NewsBox({data, type}: { data: any; type: "finance" | "global" | "ukraine" }) {
 	const getTypeColor = () => {
-		return "from-zinc-800/40 to-zinc-900/40 border-zinc-700/30"
+		return "from-zinc-800/40 to-zinc-900/40 border-border/30"
 	}
 	
 	const formatTimeAgo = (ageMs: number) => {
@@ -66,12 +66,12 @@ function NewsBox({data, type}: { data: any; type: "finance" | "global" | "ukrain
 				}
 			default:
 				return {
-					border: "border-zinc-700/40",
-					bg: "bg-zinc-900/30 hover:bg-zinc-900/50",
+					border: "border-border/40",
+					bg: "bg-card/30 hover:bg-card/50",
 					glow: "",
-					ratingBg: "bg-zinc-800/60 border-zinc-600/30",
-					ratingText: "text-zinc-400",
-					titleText: "text-zinc-100",
+					ratingBg: "bg-muted/60 border-muted/30",
+					ratingText: "text-muted-foreground",
+					titleText: "text-foreground",
 					indicator: "bg-zinc-500",
 				}
 		}
@@ -83,9 +83,9 @@ function NewsBox({data, type}: { data: any; type: "finance" | "global" | "ukrain
 			<div className="flex items-center justify-between mb-6">
 				<div className="flex items-center gap-3">
 					<div className="w-3 h-3 rounded-full bg-zinc-500 shadow-sm"/>
-					<h2 className="text-xl font-medium text-zinc-300 uppercase tracking-wide">{type} News</h2>
+					<h2 className="text-xl font-medium text-card-foreground uppercase tracking-wide">{type} News</h2>
 				</div>
-				<div className="text-sm text-zinc-500 font-mono">{data?.raw?.length || 0} articles</div>
+				<div className="text-sm text-muted-foreground font-mono">{data?.raw?.length || 0} articles</div>
 			</div>
 			
 			{/* News Feed */}
@@ -114,7 +114,7 @@ function NewsBox({data, type}: { data: any; type: "finance" | "global" | "ukrain
 							<div className="flex items-start justify-between gap-4 mb-3 pr-16">
 								<div className="flex-1">
 									<h3
-										className={`${styles.titleText} font-medium text-base leading-tight mb-2 hover:text-white transition-colors`}
+										className={`${styles.titleText} font-medium text-base leading-tight mb-2 hover:text-foreground transition-colors`}
 									>
 										<a href={article.link} target="_blank" rel="noopener noreferrer" className="hover:underline">
 											{cleanTitle(article.title)}
@@ -122,16 +122,16 @@ function NewsBox({data, type}: { data: any; type: "finance" | "global" | "ukrain
 									</h3>
 									
 									<div className="flex items-center gap-4 text-sm">
-										<span className="text-zinc-400 font-medium">{extractSource(article.description)}</span>
-										<span className="text-zinc-600">•</span>
-										<span className="text-zinc-500 font-mono">{formatTimeAgo(article.ageMs)}</span>
+										<span className="text-muted-foreground font-medium">{extractSource(article.description)}</span>
+										<span className="text-muted-foreground">•</span>
+										<span className="text-muted-foreground font-mono">{formatTimeAgo(article.ageMs)}</span>
 									</div>
 								</div>
 								
 								<div
 									className={`flex flex-col items-center ${styles.ratingBg} rounded-lg px-3 py-2 border ${styles.border.split(" ")[0]}`}
 								>
-									<div className="text-xs text-zinc-400 uppercase tracking-wide font-medium mb-1">Rating</div>
+									<div className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">Rating</div>
 									<div className={`text-2xl font-bold ${styles.ratingText} font-mono leading-none`}>
 										{article.score}
 									</div>
@@ -149,7 +149,7 @@ function NewsBox({data, type}: { data: any; type: "finance" | "global" | "ukrain
 							</div>
 							
 							{/* Timestamp */}
-							<div className="text-xs text-zinc-600 font-mono">{new Date(article.pubDate).toLocaleString()}</div>
+							<div className="text-xs text-muted-foreground font-mono">{new Date(article.pubDate).toLocaleString()}</div>
 						</div>
 					)
 				})}
@@ -158,7 +158,7 @@ function NewsBox({data, type}: { data: any; type: "finance" | "global" | "ukrain
 			{/* Footer Stats */}
 			{data?.timestamp && (
 				<div
-					className="mt-4 pt-4 border-t border-zinc-700/50 flex justify-between items-center text-xs text-zinc-500 font-mono">
+					className="mt-4 pt-4 border-t border-border/50 flex justify-between items-center text-xs text-muted-foreground font-mono">
 					<span>Last updated: {new Date(data.timestamp).toLocaleTimeString()}</span>
 					<span>Source: {data.channel}</span>
 				</div>

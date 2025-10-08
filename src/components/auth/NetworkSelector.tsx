@@ -38,7 +38,7 @@ export function NetworkSelector(
       case "localnet":
         return <Network className="h-5 w-5 text-purple-500" />;
       default:
-        return <Network className="h-5 w-5 text-zinc-500" />;
+        return <Network className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
@@ -51,7 +51,7 @@ export function NetworkSelector(
       case "localnet":
         return "bg-purple-500/20 text-purple-400 border-purple-500/30";
       default:
-        return "bg-zinc-500/20 text-zinc-400 border-zinc-500/30";
+        return "bg-zinc-500/20 text-muted-foreground border-zinc-500/30";
     }
   };
 
@@ -62,7 +62,7 @@ export function NetworkSelector(
           <Network className="h-5 w-5 text-amber-500" />
           Select Network
         </CardTitle>
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-muted-foreground">
           Choose the network you want to connect to
         </p>
       </CardHeader>
@@ -71,10 +71,10 @@ export function NetworkSelector(
           {availableNetworks.map((network) => (
             <div
               key={network.id}
-              className={`p-4 rounded-lg border cursor-pointer transition-all hover:bg-zinc-800/50 ${
+              className={`p-4 rounded-lg border cursor-pointer transition-all hover:bg-muted/50 ${
                 selectedNetwork?.id === network.id
                   ? "border-amber-500/50 bg-amber-500/10"
-                  : "border-zinc-700/50 hover:border-zinc-600/50"
+                  : "border-border/50 hover:border-muted/50"
               }`}
               onClick={() => handleNetworkSelect(network)}
             >
@@ -86,7 +86,7 @@ export function NetworkSelector(
                       {network.name}
                     </h3>
                     {network.description && (
-                      <p className="text-sm text-zinc-400">
+                      <p className="text-sm text-muted-foreground">
                         {network.description}
                       </p>
                     )}
@@ -107,17 +107,17 @@ export function NetworkSelector(
                 </div>
               </div>
 
-              <div className="mt-3 pt-3 border-t border-zinc-700/50">
+              <div className="mt-3 pt-3 border-t border-border/50">
                 <div className="grid grid-cols-2 gap-4 text-xs">
                   <div>
-                    <span className="text-zinc-400">API:</span>
-                    <div className="font-mono text-zinc-300 break-all">
+                    <span className="text-muted-foreground">API:</span>
+                    <div className="font-mono text-card-foreground break-all">
                       {network.api}
                     </div>
                   </div>
                   <div>
-                    <span className="text-zinc-400">Socket:</span>
-                    <div className="font-mono text-zinc-300 break-all">
+                    <span className="text-muted-foreground">Socket:</span>
+                    <div className="font-mono text-card-foreground break-all">
                       {network.socket}
                     </div>
                   </div>

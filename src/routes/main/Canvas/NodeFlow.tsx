@@ -74,12 +74,12 @@ const Widget = ({ widget, raw, data }: WidgetProps): React.ReactElement => {
 
 			default:
 				return (
-					<div className="bg-zinc-950 flex flex-col relative min-h-32">
-						<div className="text-zinc-600 text-[8px] p-1 border-b border-zinc-800">
+					<div className="bg-background flex flex-col relative min-h-32">
+						<div className="text-muted-foreground text-[8px] p-1 border-b border-border">
 							{widget} (Unknown Type)
 						</div>
 						<div
-							className="flex-1 flex bg-zinc-900 overflow-y-scroll overflow-x-hidden"
+							className="flex-1 flex bg-card overflow-y-scroll overflow-x-hidden"
 							onClick={stopPropagation}
 							onMouseDown={stopPropagation}
 							onMouseUp={stopPropagation}
@@ -90,7 +90,7 @@ const Widget = ({ widget, raw, data }: WidgetProps): React.ReactElement => {
 							onDragStart={stopPropagation}
 						>
 							<div className="p-2 overflow-y-scroll">
-								<code className="block text-[6px] whitespace-pre-wrap text-zinc-300">
+								<code className="block text-[6px] whitespace-pre-wrap text-card-foreground">
 									<pre className="p-2">{JSON.stringify(raw, null, 2)}</pre>
 								</code>
 							</div>
@@ -129,8 +129,8 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
 
 	if (!session) {
 		return (
-			<div className="bg-zinc-900 flex items-center justify-center p-4 min-h-32">
-				<div className="text-zinc-400 text-sm">Loading Session...</div>
+			<div className="bg-card flex items-center justify-center p-4 min-h-32">
+				<div className="text-muted-foreground text-sm">Loading Session...</div>
 			</div>
 		);
 	}
@@ -139,8 +139,8 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
 
 	if (!sessionData) {
 		return (
-			<div className="bg-zinc-900 flex items-center justify-center p-4 min-h-32">
-				<div className="text-zinc-400 text-sm">
+			<div className="bg-card flex items-center justify-center p-4 min-h-32">
+				<div className="text-muted-foreground text-sm">
 					Channel not found: {data.channel}
 				</div>
 			</div>

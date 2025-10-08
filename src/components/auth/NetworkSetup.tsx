@@ -42,7 +42,7 @@ export function NetworkSetup(
       case "localnet":
         return <Network className="h-5 w-5 text-purple-500" />;
       default:
-        return <Network className="h-5 w-5 text-zinc-500" />;
+        return <Network className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
@@ -55,14 +55,14 @@ export function NetworkSetup(
       case "localnet":
         return "bg-purple-500/20 text-purple-400 border-purple-500/30";
       default:
-        return "bg-zinc-500/20 text-zinc-400 border-zinc-500/30";
+        return "bg-zinc-500/20 text-muted-foreground border-zinc-500/30";
     }
   };
 
   return (
     <div className="space-y-8 animate-fade-in-up">
       {/* Network Setup Card */}
-      <Card className="w-full max-w-2xl mx-auto backdrop-blur-sm bg-zinc-900/80 border-zinc-700/50 shadow-2xl">
+      <Card className="w-full max-w-2xl mx-auto backdrop-blur-sm bg-card/80 border-border/50 shadow-2xl">
         <CardHeader className="text-center pb-6">
           <CardTitle className="flex items-center justify-center gap-3 text-3xl font-bold">
             <div className="relative">
@@ -75,7 +75,7 @@ export function NetworkSetup(
               Select Network
             </span>
           </CardTitle>
-          <p className="text-zinc-400 text-lg mt-3 leading-relaxed">
+          <p className="text-muted-foreground text-lg mt-3 leading-relaxed">
             Your wallet is ready. Choose a network to connect to the STELS Web3
             platform.
           </p>
@@ -85,7 +85,7 @@ export function NetworkSetup(
           {/* Network Selector Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-zinc-300 flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-card-foreground flex items-center gap-2">
                 <Wifi className="h-5 w-5 text-amber-400" />
                 Network Selection
               </h3>
@@ -101,7 +101,7 @@ export function NetworkSetup(
             </div>
 
             {/* Network Selector */}
-            <div className="p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-zinc-700/30 backdrop-blur-sm">
+            <div className="p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-border/30 backdrop-blur-sm">
               <NetworkSelectorCompact />
             </div>
           </div>
@@ -150,15 +150,15 @@ export function NetworkSetup(
                     <div className="font-semibold text-amber-400 text-lg">
                       Ready to connect to {selectedNetwork.name}
                     </div>
-                    <div className="text-sm text-zinc-300 mt-1">
+                    <div className="text-sm text-card-foreground mt-1">
                       {selectedNetwork.description}
                     </div>
-                    <div className="text-xs font-mono text-zinc-500 mt-2">
+                    <div className="text-xs font-mono text-muted-foreground mt-2">
                       {selectedNetwork.api}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-zinc-400">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                   <span>Ready</span>
                 </div>
@@ -190,7 +190,7 @@ export function NetworkSetup(
             <Button
               onClick={onBack}
               variant="outline"
-              className="flex-1 h-12 border-zinc-700/50 hover:border-zinc-600/50 bg-zinc-800/50 hover:bg-zinc-700/50 transition-all duration-300"
+              className="flex-1 h-12 border-border/50 hover:border-muted/50 bg-muted/50 hover:bg-secondary/50 transition-all duration-300"
               disabled={isConnecting}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />

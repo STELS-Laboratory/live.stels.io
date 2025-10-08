@@ -171,7 +171,7 @@ export function WalletCreator(
 
   return (
     <div className="w-full max-w-2xl mx-auto animate-fade-in-up">
-      <Card className="backdrop-blur-sm bg-zinc-900/80 border-zinc-700/50 shadow-2xl">
+      <Card className="backdrop-blur-sm bg-card/80 border-border/50 shadow-2xl">
         <CardHeader className="text-center pb-6">
           <CardTitle className="flex items-center justify-center gap-3 text-3xl font-bold">
             <div className="relative">
@@ -200,15 +200,15 @@ export function WalletCreator(
               {content.title}
             </span>
           </CardTitle>
-          <p className="text-zinc-400 text-lg mt-3 leading-relaxed">
+          <p className="text-muted-foreground text-lg mt-3 leading-relaxed">
             {content.subtitle}
           </p>
         </CardHeader>
 
         <CardContent className="px-8 pb-8 space-y-8">
           {/* Enhanced Description */}
-          <div className="p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-zinc-700/30 backdrop-blur-sm">
-            <p className="text-zinc-300 leading-relaxed">
+          <div className="p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-border/30 backdrop-blur-sm">
+            <p className="text-card-foreground leading-relaxed">
               {content.description}
             </p>
           </div>
@@ -218,7 +218,7 @@ export function WalletCreator(
             <div className="space-y-4">
               <Label
                 htmlFor="privateKey"
-                className="text-sm font-semibold text-zinc-300 flex items-center gap-2"
+                className="text-sm font-semibold text-card-foreground flex items-center gap-2"
               >
                 <Key className="h-4 w-4" />
                 Private Key
@@ -236,7 +236,7 @@ export function WalletCreator(
                       ? "border-red-500/50 focus:border-red-400 bg-red-500/5"
                       : validationState.type === "success"
                       ? "border-green-500/50 focus:border-green-400 bg-green-500/5"
-                      : "border-zinc-700/50 focus:border-amber-400"
+                      : "border-border/50 focus:border-amber-400"
                   }`}
                   disabled={isLoading}
                   aria-describedby="private-key-help private-key-validation"
@@ -255,8 +255,8 @@ export function WalletCreator(
                   disabled={isLoading}
                 >
                   {showPrivateKey
-                    ? <EyeOff className="h-4 w-4 text-zinc-400" />
-                    : <Eye className="h-4 w-4 text-zinc-400" />}
+                    ? <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    : <Eye className="h-4 w-4 text-muted-foreground" />}
                 </Button>
               </div>
 
@@ -279,7 +279,7 @@ export function WalletCreator(
                 </div>
               )}
 
-              <p id="private-key-help" className="text-xs text-zinc-500">
+              <p id="private-key-help" className="text-xs text-muted-foreground">
                 Your private key is 64 hexadecimal characters (0-9, a-f). It's
                 processed securely in your browser.
               </p>
@@ -324,7 +324,7 @@ export function WalletCreator(
             <Button
               onClick={onBack}
               variant="outline"
-              className="flex-1 h-12 border-zinc-700/50 hover:border-zinc-600/50 bg-zinc-800/50 hover:bg-zinc-700/50 transition-all duration-300"
+              className="flex-1 h-12 border-border/50 hover:border-muted/50 bg-muted/50 hover:bg-secondary/50 transition-all duration-300"
               disabled={isLoading}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -338,7 +338,7 @@ export function WalletCreator(
               className={`flex-1 h-12 transition-all duration-150 ${
                 walletType === "create"
                   ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25"
-                  : "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/25"
+                  : "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-foreground shadow-lg shadow-blue-500/25"
               }`}
             >
               {isLoading

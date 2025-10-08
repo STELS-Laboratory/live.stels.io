@@ -168,22 +168,22 @@ function AppCard(
 					/>
 
 					{/* Animated corner accents - top left */}
-					<div className="absolute -top-0.5 -left-0.5 w-3 h-3 border-t-2 border-l-2 border-zinc-600/60 active:border-amber-500/80 transition-all duration-200" />
+					<div className="absolute -top-0.5 -left-0.5 w-3 h-3 border-t-2 border-l-2 border-muted/60 active:border-amber-500/80 transition-all duration-200" />
 					{/* Corner accents - top right */}
-					<div className="absolute -top-0.5 -right-0.5 w-3 h-3 border-t-2 border-r-2 border-zinc-600/60 active:border-amber-500/80 transition-all duration-200" />
+					<div className="absolute -top-0.5 -right-0.5 w-3 h-3 border-t-2 border-r-2 border-muted/60 active:border-amber-500/80 transition-all duration-200" />
 					{/* Corner accents - bottom left */}
-					<div className="absolute -bottom-0.5 -left-0.5 w-3 h-3 border-b-2 border-l-2 border-zinc-600/60 active:border-amber-500/80 transition-all duration-200" />
+					<div className="absolute -bottom-0.5 -left-0.5 w-3 h-3 border-b-2 border-l-2 border-muted/60 active:border-amber-500/80 transition-all duration-200" />
 					{/* Corner accents - bottom right */}
-					<div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 border-b-2 border-r-2 border-zinc-600/60 active:border-amber-500/80 transition-all duration-200" />
+					<div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 border-b-2 border-r-2 border-muted/60 active:border-amber-500/80 transition-all duration-200" />
 
 					{/* Secondary decorative lines */}
-					<div className="absolute top-1 left-1 w-1 h-1 border-t border-l border-zinc-700/40 active:border-amber-400/60 transition-all duration-200" />
-					<div className="absolute top-1 right-1 w-1 h-1 border-t border-r border-zinc-700/40 active:border-amber-400/60 transition-all duration-200" />
-					<div className="absolute bottom-1 left-1 w-1 h-1 border-b border-l border-zinc-700/40 active:border-amber-400/60 transition-all duration-200" />
-					<div className="absolute bottom-1 right-1 w-1 h-1 border-b border-r border-zinc-700/40 active:border-amber-400/60 transition-all duration-200" />
+					<div className="absolute top-1 left-1 w-1 h-1 border-t border-l border-border/40 active:border-amber-400/60 transition-all duration-200" />
+					<div className="absolute top-1 right-1 w-1 h-1 border-t border-r border-border/40 active:border-amber-400/60 transition-all duration-200" />
+					<div className="absolute bottom-1 left-1 w-1 h-1 border-b border-l border-border/40 active:border-amber-400/60 transition-all duration-200" />
+					<div className="absolute bottom-1 right-1 w-1 h-1 border-b border-r border-border/40 active:border-amber-400/60 transition-all duration-200" />
 
 					{/* Icon container with gradient border */}
-					<div className="relative w-full h-full bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 backdrop-blur-sm flex items-center justify-center border border-zinc-700/40 active:border-amber-500/70 transition-all duration-200 overflow-hidden">
+					<div className="relative w-full h-full bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 backdrop-blur-sm flex items-center justify-center border border-border/40 active:border-amber-500/70 transition-all duration-200 overflow-hidden">
 						{/* Inner gradient highlight */}
 						<div className="absolute inset-[1px] bg-gradient-to-br from-zinc-950/80 via-zinc-900/50 to-zinc-950/80" />
 
@@ -208,7 +208,7 @@ function AppCard(
 								className={`absolute inset-0 bg-gradient-to-br ${app.color} opacity-0 active:opacity-50 blur-md transition-opacity duration-200 scale-150`}
 							/>
 
-							<div className="relative text-zinc-400 active:text-amber-300 transition-all duration-200 active:scale-125">
+							<div className="relative text-muted-foreground active:text-amber-300 transition-all duration-200 active:scale-125">
 								{app.icon}
 							</div>
 						</div>
@@ -227,7 +227,7 @@ function AppCard(
 				</div>
 
 				{/* App name with enhanced styling */}
-				<span className="text-[11px] font-bold text-zinc-400 active:text-zinc-300 text-center max-w-[76px] line-clamp-2 leading-tight tracking-tight transition-colors duration-200">
+				<span className="text-[11px] font-bold text-muted-foreground active:text-card-foreground text-center max-w-[76px] line-clamp-2 leading-tight tracking-tight transition-colors duration-200">
 					{app.name}
 				</span>
 			</button>
@@ -270,13 +270,13 @@ function AppCard(
 			</div>
 
 			{/* Default border */}
-			<div className="absolute inset-0 border border-zinc-800/50 group-hover:border-transparent transition-colors duration-300" />
+			<div className="absolute inset-0 border border-border/50 group-hover:border-transparent transition-colors duration-300" />
 
 			{/* Corner accents */}
-			<div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-zinc-700/50 group-hover:border-amber-500/60 transition-colors duration-300 z-10" />
-			<div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-zinc-700/50 group-hover:border-amber-500/60 transition-colors duration-300 z-10" />
-			<div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-zinc-700/50 group-hover:border-amber-500/60 transition-colors duration-300 z-10" />
-			<div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-zinc-700/50 group-hover:border-amber-500/60 transition-colors duration-300 z-10" />
+			<div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-border/50 group-hover:border-amber-500/60 transition-colors duration-300 z-10" />
+			<div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-border/50 group-hover:border-amber-500/60 transition-colors duration-300 z-10" />
+			<div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-border/50 group-hover:border-amber-500/60 transition-colors duration-300 z-10" />
+			<div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-border/50 group-hover:border-amber-500/60 transition-colors duration-300 z-10" />
 
 			{/* Outer glow on hover */}
 			<div
@@ -286,10 +286,10 @@ function AppCard(
 			{/* Header badges */}
 			<div className="absolute top-4 right-4 flex flex-col items-end gap-2 z-20">
 				{/* Web3 badge */}
-				<div className="relative px-3 py-1.5 bg-zinc-900/60 backdrop-blur-sm border border-zinc-700/40 group-hover:border-cyan-500/50 transition-all duration-300 overflow-hidden">
+				<div className="relative px-3 py-1.5 bg-card/60 backdrop-blur-sm border border-border/40 group-hover:border-cyan-500/50 transition-all duration-300 overflow-hidden">
 					{/* Badge glow */}
 					<div className="absolute inset-0 bg-cyan-500/0 group-hover:bg-cyan-500/10 transition-colors duration-300" />
-					<span className="relative text-[9px] font-bold text-zinc-400 group-hover:text-cyan-400 tracking-wider transition-colors duration-300">
+					<span className="relative text-[9px] font-bold text-muted-foreground group-hover:text-cyan-400 tracking-wider transition-colors duration-300">
 						WEB3
 					</span>
 				</div>
@@ -307,7 +307,7 @@ function AppCard(
 			</div>
 
 			{/* Blur overlay with launch button on hover */}
-			<div className="absolute inset-0 bg-zinc-950/0 backdrop-blur-none group-hover:bg-zinc-950/80 group-hover:backdrop-blur-md transition-all duration-300 opacity-0 group-hover:opacity-100 z-30 flex items-center justify-center">
+			<div className="absolute inset-0 bg-background/0 backdrop-blur-none group-hover:bg-background/80 group-hover:backdrop-blur-md transition-all duration-300 opacity-0 group-hover:opacity-100 z-30 flex items-center justify-center">
 				<div className="relative flex flex-col items-center gap-4">
 					{/* Launch button */}
 					<div className="relative px-6 py-3 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 border border-amber-500/40 overflow-hidden">
@@ -329,7 +329,7 @@ function AppCard(
 					</div>
 
 					{/* App name */}
-					<p className="text-base font-bold text-zinc-300 tracking-tight">
+					<p className="text-base font-bold text-card-foreground tracking-tight">
 						{app.name}
 					</p>
 				</div>
@@ -361,7 +361,7 @@ function AppCard(
 					</div>
 
 					<div
-						className={`relative text-zinc-500 transition-all duration-300 group-hover:text-zinc-200 group-hover:scale-110 ${
+						className={`relative text-muted-foreground transition-all duration-300 group-hover:text-card-foreground group-hover:scale-110 ${
 							app.size === "large" ? "scale-150" : ""
 						}`}
 					>
@@ -378,14 +378,14 @@ function AppCard(
 			>
 				<div>
 					<h3
-						className={`font-bold text-amber-600/70 group-hover:text-zinc-100 mb-2 tracking-tight transition-colors duration-300 ${
+						className={`font-bold text-amber-600/70 group-hover:text-foreground mb-2 tracking-tight transition-colors duration-300 ${
 							app.size === "large" ? "text-3xl" : "text-2xl"
 						}`}
 					>
 						{app.name}
 					</h3>
 					<p
-						className={`text-zinc-400 group-hover:text-zinc-300 font-semibold transition-colors duration-300 ${
+						className={`text-muted-foreground group-hover:text-card-foreground font-semibold transition-colors duration-300 ${
 							app.size === "large" ? "text-base" : "text-sm"
 						}`}
 					>
@@ -393,7 +393,7 @@ function AppCard(
 					</p>
 				</div>
 				<p
-					className={`text-zinc-500 group-hover:text-zinc-400 leading-relaxed transition-colors duration-300 ${
+					className={`text-muted-foreground group-hover:text-muted-foreground leading-relaxed transition-colors duration-300 ${
 						app.size === "large"
 							? "text-base line-clamp-4"
 							: "text-sm line-clamp-3"
@@ -405,21 +405,21 @@ function AppCard(
 				{/* Stats for large cards */}
 				{app.size === "large" && app.stats && (
 					<div className="flex items-center gap-2 pt-2">
-						<div className="relative flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 backdrop-blur-sm border border-zinc-700/50 group-hover:border-amber-500/40 transition-all duration-300 overflow-hidden">
+						<div className="relative flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 backdrop-blur-sm border border-border/50 group-hover:border-amber-500/40 transition-all duration-300 overflow-hidden">
 							{/* Glow effect */}
 							<div className="absolute inset-0 bg-amber-500/0 group-hover:bg-amber-500/10 transition-colors duration-300" />
-							<TrendingUp className="relative w-3.5 h-3.5 text-zinc-500 group-hover:text-amber-400 transition-colors duration-300" />
-							<span className="relative text-xs font-bold text-zinc-400 group-hover:text-zinc-300 transition-colors duration-300">
+							<TrendingUp className="relative w-3.5 h-3.5 text-muted-foreground group-hover:text-amber-400 transition-colors duration-300" />
+							<span className="relative text-xs font-bold text-muted-foreground group-hover:text-card-foreground transition-colors duration-300">
 								{app.stats}
 							</span>
 						</div>
-						<div className="relative flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 backdrop-blur-sm border border-zinc-700/50 group-hover:border-green-500/40 transition-all duration-300 overflow-hidden">
+						<div className="relative flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 backdrop-blur-sm border border-border/50 group-hover:border-green-500/40 transition-all duration-300 overflow-hidden">
 							{/* Glow effect */}
 							<div className="absolute inset-0 bg-green-500/0 group-hover:bg-green-500/10 transition-colors duration-300" />
 							{/* Pulse indicator */}
 							<div className="relative w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-							<Activity className="relative w-3.5 h-3.5 text-zinc-500 group-hover:text-green-400 transition-colors duration-300" />
-							<span className="relative text-xs font-bold text-zinc-400 group-hover:text-zinc-300 transition-colors duration-300">
+							<Activity className="relative w-3.5 h-3.5 text-muted-foreground group-hover:text-green-400 transition-colors duration-300" />
+							<span className="relative text-xs font-bold text-muted-foreground group-hover:text-card-foreground transition-colors duration-300">
 								Real-time
 							</span>
 						</div>
@@ -435,19 +435,19 @@ function AppCard(
 			>
 				{/* Category and stats */}
 				<div className="flex items-center gap-2">
-					<div className="relative inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 backdrop-blur-sm border border-zinc-800/50 group-hover:border-zinc-700 transition-all duration-300 overflow-hidden">
+					<div className="relative inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 backdrop-blur-sm border border-border/50 group-hover:border-border transition-all duration-300 overflow-hidden">
 						{/* Subtle glow */}
-						<div className="absolute inset-0 bg-zinc-700/0 group-hover:bg-zinc-700/10 transition-colors duration-300" />
-						<Activity className="relative w-3 h-3 text-zinc-500 group-hover:text-zinc-400 transition-colors duration-300" />
-						<span className="relative text-xs font-bold text-zinc-400 group-hover:text-zinc-300 transition-colors duration-300">
+						<div className="absolute inset-0 bg-secondary/0 group-hover:bg-secondary/10 transition-colors duration-300" />
+						<Activity className="relative w-3 h-3 text-muted-foreground group-hover:text-muted-foreground transition-colors duration-300" />
+						<span className="relative text-xs font-bold text-muted-foreground group-hover:text-card-foreground transition-colors duration-300">
 							{app.category}
 						</span>
 					</div>
 					{app.stats && app.size !== "large" && (
-						<div className="relative inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 backdrop-blur-sm border border-zinc-800/50 group-hover:border-zinc-700 transition-all duration-300 overflow-hidden">
+						<div className="relative inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 backdrop-blur-sm border border-border/50 group-hover:border-border transition-all duration-300 overflow-hidden">
 							{/* Subtle glow */}
-							<div className="absolute inset-0 bg-zinc-700/0 group-hover:bg-zinc-700/10 transition-colors duration-300" />
-							<span className="relative text-xs font-bold text-zinc-400 group-hover:text-zinc-300 transition-colors duration-300">
+							<div className="absolute inset-0 bg-secondary/0 group-hover:bg-secondary/10 transition-colors duration-300" />
+							<span className="relative text-xs font-bold text-muted-foreground group-hover:text-card-foreground transition-colors duration-300">
 								{app.stats}
 							</span>
 						</div>
@@ -507,7 +507,7 @@ function Welcome(): React.ReactElement {
 		>
 			{/* Loading overlay when launching app */}
 			{isExiting && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/98 backdrop-blur-md animate-in fade-in duration-200">
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-background/98 backdrop-blur-md animate-in fade-in duration-200">
 					<div className="flex flex-col items-center gap-8">
 						{/* Spinner with futuristic design */}
 						<div className="relative w-20 h-20">
@@ -515,9 +515,9 @@ function Welcome(): React.ReactElement {
 							<div className="absolute inset-0 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 opacity-30 blur-2xl rounded-full animate-pulse" />
 
 							{/* Double ring spinner */}
-							<div className="absolute inset-0 w-20 h-20 rounded-full border-2 border-zinc-800 border-t-amber-500 border-r-amber-500 animate-spin" />
+							<div className="absolute inset-0 w-20 h-20 rounded-full border-2 border-border border-t-amber-500 border-r-amber-500 animate-spin" />
 							<div
-								className="absolute inset-2 w-16 h-16 rounded-full border-2 border-zinc-800 border-b-orange-500 border-l-orange-500 animate-spin"
+								className="absolute inset-2 w-16 h-16 rounded-full border-2 border-border border-b-orange-500 border-l-orange-500 animate-spin"
 								style={{
 									animationDirection: "reverse",
 									animationDuration: "1s",
@@ -544,7 +544,7 @@ function Welcome(): React.ReactElement {
 							</p>
 							<div className="flex items-center gap-2 justify-center">
 								<div className="w-1.5 h-1.5 bg-amber-500/50 rounded-full animate-pulse" />
-								<p className="text-sm text-zinc-500 font-semibold tracking-wide">
+								<p className="text-sm text-muted-foreground font-semibold tracking-wide">
 									Please wait
 								</p>
 								<div
@@ -565,11 +565,11 @@ function Welcome(): React.ReactElement {
 			>
 				{/* Large Title Header - Mobile only */}
 				{isMobile && (
-					<div className="px-4 pt-6 pb-6 border-b border-zinc-800/50 bg-gradient-to-b from-zinc-900/20 to-transparent">
+					<div className="px-4 pt-6 pb-6 border-b border-border/50 bg-gradient-to-b from-zinc-900/20 to-transparent">
 						<h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-zinc-100 to-zinc-300 mb-2 tracking-tight">
 							Web3 Applications
 						</h1>
-						<p className="text-sm text-zinc-500 font-medium">
+						<p className="text-sm text-muted-foreground font-medium">
 							{applications.length} professional tools for traders
 						</p>
 					</div>
@@ -583,7 +583,7 @@ function Welcome(): React.ReactElement {
 							? (
 								<div className="px-4 mb-5 pt-6">
 									<div className="flex items-center justify-between mb-2">
-										<h2 className="text-xl font-bold text-zinc-200 tracking-tight">
+										<h2 className="text-xl font-bold text-card-foreground tracking-tight">
 											Featured
 										</h2>
 										<div className="px-2.5 py-1 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
@@ -592,7 +592,7 @@ function Welcome(): React.ReactElement {
 											</span>
 										</div>
 									</div>
-									<p className="text-xs text-zinc-500 font-medium">
+									<p className="text-xs text-muted-foreground font-medium">
 										Most popular applications
 									</p>
 								</div>
@@ -607,7 +607,7 @@ function Welcome(): React.ReactElement {
 											<h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-zinc-100 to-zinc-400 mb-2 tracking-tight">
 												Featured Apps
 											</h2>
-											<p className="text-sm text-zinc-500 font-medium">
+											<p className="text-sm text-muted-foreground font-medium">
 												Most popular applications with active users
 											</p>
 										</div>
@@ -647,10 +647,10 @@ function Welcome(): React.ReactElement {
 						{isMobile
 							? (
 								<div className="px-4 mb-5 pt-6 border-t border-zinc-900/50">
-									<h2 className="text-xl font-bold text-zinc-200 mb-2 tracking-tight">
+									<h2 className="text-xl font-bold text-card-foreground mb-2 tracking-tight">
 										More Apps
 									</h2>
-									<p className="text-xs text-zinc-500 font-medium">
+									<p className="text-xs text-muted-foreground font-medium">
 										Explore additional tools
 									</p>
 								</div>
@@ -664,14 +664,14 @@ function Welcome(): React.ReactElement {
 										<h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-zinc-100 to-zinc-400 mb-2 tracking-tight">
 											More Applications
 										</h2>
-										<p className="text-sm text-zinc-500 font-medium">
+										<p className="text-sm text-muted-foreground font-medium">
 											Explore additional professional tools
 										</p>
 									</div>
 
 									{/* Stats badge */}
-									<div className="px-4 py-2 bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50">
-										<span className="text-sm font-bold text-zinc-400">
+									<div className="px-4 py-2 bg-card/50 backdrop-blur-sm border border-border/50">
+										<span className="text-sm font-bold text-muted-foreground">
 											{applications.length} Apps Total
 										</span>
 									</div>
@@ -706,8 +706,8 @@ function Welcome(): React.ReactElement {
 									<div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/0 to-amber-500/0 active:from-amber-500/5 active:via-amber-500/10 active:to-amber-500/5 transition-all duration-200" />
 
 									{/* Corner accents */}
-									<div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-zinc-700/50 active:border-amber-500/70 transition-colors duration-200" />
-									<div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-zinc-700/50 active:border-amber-500/70 transition-colors duration-200" />
+									<div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-border/50 active:border-amber-500/70 transition-colors duration-200" />
+									<div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-border/50 active:border-amber-500/70 transition-colors duration-200" />
 
 									{/* Tech lines */}
 									<div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-zinc-800/50 to-transparent" />
@@ -723,10 +723,10 @@ function Welcome(): React.ReactElement {
 										<Sparkles className="relative w-4.5 h-4.5 text-amber-400/80 active:text-amber-300 active:scale-110 transition-all duration-200" />
 									</div>
 									<div className="relative flex-1">
-										<p className="text-xs font-bold text-zinc-300 active:text-zinc-200 mb-1 transition-colors duration-200">
+										<p className="text-xs font-bold text-card-foreground active:text-card-foreground mb-1 transition-colors duration-200">
 											Web3 Technology
 										</p>
-										<p className="text-[10px] text-zinc-600 active:text-zinc-500 font-semibold transition-colors duration-200">
+										<p className="text-[10px] text-muted-foreground active:text-muted-foreground font-semibold transition-colors duration-200">
 											Secure, decentralized
 										</p>
 									</div>
@@ -737,8 +737,8 @@ function Welcome(): React.ReactElement {
 									<div className="absolute inset-0 bg-gradient-to-r from-green-500/0 via-green-500/0 to-green-500/0 active:from-green-500/5 active:via-green-500/10 active:to-green-500/5 transition-all duration-200" />
 
 									{/* Corner accents */}
-									<div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-zinc-700/50 active:border-green-500/70 transition-colors duration-200" />
-									<div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-zinc-700/50 active:border-green-500/70 transition-colors duration-200" />
+									<div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-border/50 active:border-green-500/70 transition-colors duration-200" />
+									<div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-border/50 active:border-green-500/70 transition-colors duration-200" />
 
 									{/* Tech lines */}
 									<div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-zinc-800/50 to-transparent" />
@@ -756,10 +756,10 @@ function Welcome(): React.ReactElement {
 										<Activity className="relative w-4.5 h-4.5 text-green-400/80 active:text-green-300 active:scale-110 transition-all duration-200" />
 									</div>
 									<div className="relative flex-1">
-										<p className="text-xs font-bold text-zinc-300 active:text-zinc-200 mb-1 transition-colors duration-200">
+										<p className="text-xs font-bold text-card-foreground active:text-card-foreground mb-1 transition-colors duration-200">
 											Real-time Analytics
 										</p>
-										<p className="text-[10px] text-zinc-600 active:text-zinc-500 font-semibold transition-colors duration-200">
+										<p className="text-[10px] text-muted-foreground active:text-muted-foreground font-semibold transition-colors duration-200">
 											Live market data
 										</p>
 									</div>
@@ -770,8 +770,8 @@ function Welcome(): React.ReactElement {
 									<div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/0 to-blue-500/0 active:from-blue-500/5 active:via-blue-500/10 active:to-blue-500/5 transition-all duration-200" />
 
 									{/* Corner accents */}
-									<div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-zinc-700/50 active:border-blue-500/70 transition-colors duration-200" />
-									<div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-zinc-700/50 active:border-blue-500/70 transition-colors duration-200" />
+									<div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-border/50 active:border-blue-500/70 transition-colors duration-200" />
+									<div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-border/50 active:border-blue-500/70 transition-colors duration-200" />
 
 									{/* Tech lines */}
 									<div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-zinc-800/50 to-transparent" />
@@ -787,10 +787,10 @@ function Welcome(): React.ReactElement {
 										<TrendingUp className="relative w-4.5 h-4.5 text-blue-400/80 active:text-blue-300 active:scale-110 transition-all duration-200" />
 									</div>
 									<div className="relative flex-1">
-										<p className="text-xs font-bold text-zinc-300 active:text-zinc-200 mb-1 transition-colors duration-200">
+										<p className="text-xs font-bold text-card-foreground active:text-card-foreground mb-1 transition-colors duration-200">
 											Professional Tools
 										</p>
-										<p className="text-[10px] text-zinc-600 active:text-zinc-500 font-semibold transition-colors duration-200">
+										<p className="text-[10px] text-muted-foreground active:text-muted-foreground font-semibold transition-colors duration-200">
 											Advanced features
 										</p>
 									</div>
@@ -799,7 +799,7 @@ function Welcome(): React.ReactElement {
 
 							{/* Footer text */}
 							<div className="text-center pt-4 border-t border-zinc-900/50">
-								<p className="text-xs text-zinc-600 font-bold tracking-wider">
+								<p className="text-xs text-muted-foreground font-bold tracking-wider">
 									STELS WEB3 OS v0.12.8
 								</p>
 							</div>
@@ -814,10 +814,10 @@ function Welcome(): React.ReactElement {
 							<div className="grid grid-cols-3 gap-6 max-w-5xl mx-auto mb-8">
 								<div className="group relative flex flex-col items-center text-center p-8 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 backdrop-blur-sm border border-zinc-900/50 hover:border-amber-500/30 transition-all duration-300 hover:scale-105 overflow-hidden">
 									{/* Corner accents */}
-									<div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-zinc-700/50 group-hover:border-amber-500/50 transition-colors duration-300" />
-									<div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-zinc-700/50 group-hover:border-amber-500/50 transition-colors duration-300" />
-									<div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-zinc-700/50 group-hover:border-amber-500/50 transition-colors duration-300" />
-									<div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-zinc-700/50 group-hover:border-amber-500/50 transition-colors duration-300" />
+									<div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-border/50 group-hover:border-amber-500/50 transition-colors duration-300" />
+									<div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-border/50 group-hover:border-amber-500/50 transition-colors duration-300" />
+									<div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-border/50 group-hover:border-amber-500/50 transition-colors duration-300" />
+									<div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-border/50 group-hover:border-amber-500/50 transition-colors duration-300" />
 
 									{/* Outer glow */}
 									<div className="absolute -inset-[2px] bg-gradient-to-br from-amber-500 to-orange-500 opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500" />
@@ -827,26 +827,26 @@ function Welcome(): React.ReactElement {
 										<div className="absolute -inset-6 bg-gradient-to-br from-amber-500 to-orange-500 opacity-0 group-hover:opacity-30 blur-2xl transition-opacity duration-500" />
 										<div className="absolute -inset-2 bg-amber-500/0 group-hover:bg-amber-500/20 blur-md transition-colors duration-500" />
 
-										<div className="relative w-16 h-16 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center border border-zinc-800/50 group-hover:border-amber-500/50 transition-all duration-300">
+										<div className="relative w-16 h-16 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center border border-border/50 group-hover:border-amber-500/50 transition-all duration-300">
 											{/* Scan line */}
 											<div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-700/5 to-transparent" />
-											<Sparkles className="relative w-8 h-8 text-zinc-600 group-hover:text-amber-400 transition-all duration-300 group-hover:scale-110" />
+											<Sparkles className="relative w-8 h-8 text-muted-foreground group-hover:text-amber-400 transition-all duration-300 group-hover:scale-110" />
 										</div>
 									</div>
-									<p className="relative text-lg font-bold text-zinc-300 group-hover:text-zinc-100 mb-2 tracking-tight transition-colors duration-300">
+									<p className="relative text-lg font-bold text-card-foreground group-hover:text-foreground mb-2 tracking-tight transition-colors duration-300">
 										Web3 Technology
 									</p>
-									<p className="relative text-sm text-zinc-600 group-hover:text-zinc-500 font-medium transition-colors duration-300">
+									<p className="relative text-sm text-muted-foreground group-hover:text-muted-foreground font-medium transition-colors duration-300">
 										Secure, decentralized AI infrastructure
 									</p>
 								</div>
 
 								<div className="group relative flex flex-col items-center text-center p-8 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 backdrop-blur-sm border border-zinc-900/50 hover:border-green-500/30 transition-all duration-300 hover:scale-105 overflow-hidden">
 									{/* Corner accents */}
-									<div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-zinc-700/50 group-hover:border-green-500/50 transition-colors duration-300" />
-									<div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-zinc-700/50 group-hover:border-green-500/50 transition-colors duration-300" />
-									<div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-zinc-700/50 group-hover:border-green-500/50 transition-colors duration-300" />
-									<div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-zinc-700/50 group-hover:border-green-500/50 transition-colors duration-300" />
+									<div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-border/50 group-hover:border-green-500/50 transition-colors duration-300" />
+									<div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-border/50 group-hover:border-green-500/50 transition-colors duration-300" />
+									<div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-border/50 group-hover:border-green-500/50 transition-colors duration-300" />
+									<div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-border/50 group-hover:border-green-500/50 transition-colors duration-300" />
 
 									{/* Outer glow */}
 									<div className="absolute -inset-[2px] bg-gradient-to-br from-green-500 to-emerald-500 opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500" />
@@ -856,26 +856,26 @@ function Welcome(): React.ReactElement {
 										<div className="absolute -inset-6 bg-gradient-to-br from-green-500 to-emerald-500 opacity-0 group-hover:opacity-30 blur-2xl transition-opacity duration-500" />
 										<div className="absolute -inset-2 bg-green-500/0 group-hover:bg-green-500/20 blur-md transition-colors duration-500" />
 
-										<div className="relative w-16 h-16 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center border border-zinc-800/50 group-hover:border-green-500/50 transition-all duration-300">
+										<div className="relative w-16 h-16 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center border border-border/50 group-hover:border-green-500/50 transition-all duration-300">
 											{/* Scan line */}
 											<div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-700/5 to-transparent" />
-											<Activity className="relative w-8 h-8 text-zinc-600 group-hover:text-green-400 transition-all duration-300 group-hover:scale-110" />
+											<Activity className="relative w-8 h-8 text-muted-foreground group-hover:text-green-400 transition-all duration-300 group-hover:scale-110" />
 										</div>
 									</div>
-									<p className="relative text-lg font-bold text-zinc-300 group-hover:text-zinc-100 mb-2 tracking-tight transition-colors duration-300">
+									<p className="relative text-lg font-bold text-card-foreground group-hover:text-foreground mb-2 tracking-tight transition-colors duration-300">
 										Real-time Analytics
 									</p>
-									<p className="relative text-sm text-zinc-600 group-hover:text-zinc-500 font-medium transition-colors duration-300">
+									<p className="relative text-sm text-muted-foreground group-hover:text-muted-foreground font-medium transition-colors duration-300">
 										Live market data and professional indicators
 									</p>
 								</div>
 
 								<div className="group relative flex flex-col items-center text-center p-8 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 backdrop-blur-sm border border-zinc-900/50 hover:border-blue-500/30 transition-all duration-300 hover:scale-105 overflow-hidden">
 									{/* Corner accents */}
-									<div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-zinc-700/50 group-hover:border-blue-500/50 transition-colors duration-300" />
-									<div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-zinc-700/50 group-hover:border-blue-500/50 transition-colors duration-300" />
-									<div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-zinc-700/50 group-hover:border-blue-500/50 transition-colors duration-300" />
-									<div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-zinc-700/50 group-hover:border-blue-500/50 transition-colors duration-300" />
+									<div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-border/50 group-hover:border-blue-500/50 transition-colors duration-300" />
+									<div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-border/50 group-hover:border-blue-500/50 transition-colors duration-300" />
+									<div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-border/50 group-hover:border-blue-500/50 transition-colors duration-300" />
+									<div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-border/50 group-hover:border-blue-500/50 transition-colors duration-300" />
 
 									{/* Outer glow */}
 									<div className="absolute -inset-[2px] bg-gradient-to-br from-blue-500 to-cyan-500 opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500" />
@@ -885,16 +885,16 @@ function Welcome(): React.ReactElement {
 										<div className="absolute -inset-6 bg-gradient-to-br from-blue-500 to-cyan-500 opacity-0 group-hover:opacity-30 blur-2xl transition-opacity duration-500" />
 										<div className="absolute -inset-2 bg-blue-500/0 group-hover:bg-blue-500/20 blur-md transition-colors duration-500" />
 
-										<div className="relative w-16 h-16 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center border border-zinc-800/50 group-hover:border-blue-500/50 transition-all duration-300">
+										<div className="relative w-16 h-16 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center border border-border/50 group-hover:border-blue-500/50 transition-all duration-300">
 											{/* Scan line */}
 											<div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-700/5 to-transparent" />
-											<TrendingUp className="relative w-8 h-8 text-zinc-600 group-hover:text-blue-400 transition-all duration-300 group-hover:scale-110" />
+											<TrendingUp className="relative w-8 h-8 text-muted-foreground group-hover:text-blue-400 transition-all duration-300 group-hover:scale-110" />
 										</div>
 									</div>
-									<p className="relative text-lg font-bold text-zinc-300 group-hover:text-zinc-100 mb-2 tracking-tight transition-colors duration-300">
+									<p className="relative text-lg font-bold text-card-foreground group-hover:text-foreground mb-2 tracking-tight transition-colors duration-300">
 										Professional Tools
 									</p>
-									<p className="relative text-sm text-zinc-600 group-hover:text-zinc-500 font-medium transition-colors duration-300">
+									<p className="relative text-sm text-muted-foreground group-hover:text-muted-foreground font-medium transition-colors duration-300">
 										Advanced trading features for professionals
 									</p>
 								</div>
@@ -902,7 +902,7 @@ function Welcome(): React.ReactElement {
 
 							{/* Footer text - Desktop */}
 							<div className="text-center pt-4 border-t border-zinc-900/50">
-								<p className="text-xs text-zinc-600 font-bold tracking-wider">
+								<p className="text-xs text-muted-foreground font-bold tracking-wider">
 									STELS WEB3 OS v0.12.8
 								</p>
 							</div>

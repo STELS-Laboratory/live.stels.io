@@ -20,7 +20,7 @@ export function WalletTypeSelector(
 ): React.ReactElement {
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <Card className="backdrop-blur-sm bg-zinc-900/80 border-zinc-700/50 shadow-2xl">
+      <Card className="backdrop-blur-sm bg-card/80 border-border/50 shadow-2xl">
         <CardHeader className="text-center pb-8">
           <CardTitle className="flex items-center justify-center gap-3 text-3xl font-bold">
             <div className="relative">
@@ -31,7 +31,7 @@ export function WalletTypeSelector(
               Choose Setup Method
             </span>
           </CardTitle>
-          <p className="text-zinc-400 text-lg mt-3 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-muted-foreground text-lg mt-3 max-w-2xl mx-auto leading-relaxed">
             Select how you want to set up your Gliesereum wallet. Both options
             are secure and encrypted.
           </p>
@@ -43,7 +43,7 @@ export function WalletTypeSelector(
             <div className="group relative">
               <div className="absolute inset-0 group-hover:blur-2xl transition-all duration-200" />
               <Card
-                className="relative cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:shadow-2xl border-zinc-700/50 hover:border-amber-500/50 bg-zinc-900/60 hover:bg-zinc-800/60 backdrop-blur-sm group-hover:shadow-amber-500/10"
+                className="relative cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:shadow-2xl border-border/50 hover:border-amber-500/50 bg-card/60 hover:bg-muted/60 backdrop-blur-sm group-hover:shadow-amber-500/10"
                 onClick={() => onSelectType("create")}
                 role="button"
                 tabIndex={0}
@@ -71,7 +71,7 @@ export function WalletTypeSelector(
                       <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-amber-400 transition-colors">
                         Create New Wallet
                       </h3>
-                      <p className="text-zinc-400 mb-6 leading-relaxed">
+                      <p className="text-muted-foreground mb-6 leading-relaxed">
                         Generate a completely new wallet with a unique private
                         key
                       </p>
@@ -89,7 +89,7 @@ export function WalletTypeSelector(
             <div className="group relative">
               <div className="absolute inset-0 group-hover:blur-2xl transition-all duration-200" />
               <Card
-                className="relative cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:shadow-2xl border-zinc-700/50 hover:border-blue-500/50 bg-zinc-900/60 hover:bg-zinc-800/60 backdrop-blur-sm group-hover:shadow-blue-500/10"
+                className="relative cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:shadow-2xl border-border/50 hover:border-blue-500/50 bg-card/60 hover:bg-muted/60 backdrop-blur-sm group-hover:shadow-blue-500/10"
                 onClick={() => onSelectType("import")}
                 role="button"
                 tabIndex={0}
@@ -117,7 +117,7 @@ export function WalletTypeSelector(
                       <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-blue-400 transition-colors">
                         Import Existing Wallet
                       </h3>
-                      <p className="text-zinc-400 mb-6 leading-relaxed">
+                      <p className="text-muted-foreground mb-6 leading-relaxed">
                         Restore your wallet using your existing private key
                       </p>
                     </div>
@@ -133,7 +133,7 @@ export function WalletTypeSelector(
           </div>
 
           {/* Enhanced Security Notice */}
-          <div className="mt-12 p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-zinc-700/30 backdrop-blur-sm">
+          <div className="mt-12 p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-border/30 backdrop-blur-sm">
             <div className="flex items-start gap-4">
               <div className="p-2 bg-green-500/20 rounded-full">
                 <Shield className="h-6 w-6 text-green-400" />
@@ -142,7 +142,7 @@ export function WalletTypeSelector(
                 <div className="font-semibold text-foreground mb-2 text-lg">
                   🔒 Security Guarantee
                 </div>
-                <div className="text-zinc-300 leading-relaxed">
+                <div className="text-card-foreground leading-relaxed">
                   Your private key is generated and stored securely in your
                   browser using advanced encryption. We never have access to
                   your private keys or funds - everything stays local to your
