@@ -43,9 +43,9 @@ export function WalletTypeSelector(
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Create New Wallet */}
             <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-200" />
               <Card
-                className="relative cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl border-zinc-700/50 hover:border-amber-500/50 bg-zinc-900/60 hover:bg-zinc-800/60 backdrop-blur-sm group-hover:shadow-amber-500/10"
+                className="relative cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:shadow-2xl border-zinc-700/50 hover:border-amber-500/50 bg-zinc-900/60 hover:bg-zinc-800/60 backdrop-blur-sm group-hover:shadow-amber-500/10"
                 onClick={() => onSelectType("create")}
                 role="button"
                 tabIndex={0}
@@ -110,7 +110,7 @@ export function WalletTypeSelector(
                     </div>
 
                     {/* Hover indicator */}
-                    <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                    <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-150 transform translate-x-2 group-hover:translate-x-0">
                       <ArrowRight className="h-5 w-5 text-amber-400" />
                     </div>
                   </div>
@@ -120,9 +120,9 @@ export function WalletTypeSelector(
 
             {/* Import Existing Wallet */}
             <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-200" />
               <Card
-                className="relative cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl border-zinc-700/50 hover:border-blue-500/50 bg-zinc-900/60 hover:bg-zinc-800/60 backdrop-blur-sm group-hover:shadow-blue-500/10"
+                className="relative cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:shadow-2xl border-zinc-700/50 hover:border-blue-500/50 bg-zinc-900/60 hover:bg-zinc-800/60 backdrop-blur-sm group-hover:shadow-blue-500/10"
                 onClick={() => onSelectType("import")}
                 role="button"
                 tabIndex={0}
@@ -186,7 +186,7 @@ export function WalletTypeSelector(
                     </div>
 
                     {/* Hover indicator */}
-                    <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                    <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-150 transform translate-x-2 group-hover:translate-x-0">
                       <ArrowRight className="h-5 w-5 text-blue-400" />
                     </div>
                   </div>
@@ -224,7 +224,7 @@ export function WalletTypeSelector(
           @keyframes fade-in-up {
             from {
               opacity: 0;
-              transform: translateY(30px);
+              transform: translateY(20px);
             }
             to {
               opacity: 1;
@@ -233,7 +233,7 @@ export function WalletTypeSelector(
           }
           
           .animate-fade-in-up {
-            animation: fade-in-up 0.8s ease-out forwards;
+            animation: fade-in-up 0.3s ease-out forwards;
             opacity: 0;
           }
         `,

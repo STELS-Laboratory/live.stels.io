@@ -221,7 +221,7 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
           </div>
           <div className="w-full bg-zinc-800 rounded-full h-2">
             <div
-              className="bg-amber-500 h-2 rounded-full transition-all duration-200 ease-out"
+              className="bg-amber-500 h-2 rounded-full transition-all duration-150 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>

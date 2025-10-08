@@ -204,7 +204,7 @@ export function NetworkSetup(
                 onConnect();
               }}
               disabled={!selectedNetwork || isConnecting}
-              className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25 transition-all duration-300"
+              className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25 transition-all duration-150"
             >
               {isConnecting
                 ? (
@@ -231,7 +231,7 @@ export function NetworkSetup(
             @keyframes fade-in-up {
               from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(20px);
               }
               to {
                 opacity: 1;
@@ -240,7 +240,7 @@ export function NetworkSetup(
             }
             
             .animate-fade-in-up {
-              animation: fade-in-up 0.8s ease-out forwards;
+              animation: fade-in-up 0.3s ease-out forwards;
               opacity: 0;
             }
           `,

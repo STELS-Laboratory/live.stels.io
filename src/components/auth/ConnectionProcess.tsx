@@ -42,7 +42,7 @@ export function ConnectionProcess(
 
   useEffect(() => {
     if (isConnecting) {
-      // Enhanced connection progress with more realistic timing
+      // Enhanced connection progress with faster realistic timing
       const steps = [
         { step: "Initializing secure connection...", progress: 10, icon: "🔐" },
         { step: "Validating wallet credentials...", progress: 20, icon: "✅" },
@@ -84,7 +84,7 @@ export function ConnectionProcess(
         } else {
           clearInterval(interval);
         }
-      }, 1000); // Slightly longer intervals for better UX
+      }, 250); // Faster intervals for responsive UX
 
       return () => clearInterval(interval);
     }
@@ -97,7 +97,7 @@ export function ConnectionProcess(
       // Auto-success after a short delay
       setTimeout(() => {
         onSuccess();
-      }, 1500);
+      }, 400);
     }
   }, [isConnected, onSuccess]);
 
@@ -201,7 +201,7 @@ export function ConnectionProcess(
             <div className="relative w-full bg-zinc-800/50 rounded-full h-3 border border-zinc-700/50 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-zinc-700/50 to-zinc-600/50 rounded-full" />
               <div
-                className={`relative h-full rounded-full transition-all duration-700 ease-out shadow-lg ${
+                className={`relative h-full rounded-full transition-all duration-300 ease-out shadow-lg ${
                   connectionError
                     ? "bg-gradient-to-r from-red-500 to-red-400"
                     : isConnected
@@ -247,7 +247,7 @@ export function ConnectionProcess(
                 return (
                   <div
                     key={index}
-                    className={`flex items-center gap-4 text-sm transition-all duration-300 ${
+                    className={`flex items-center gap-4 text-sm transition-all duration-150 ${
                       isCompleted
                         ? "text-green-300"
                         : isCurrent
@@ -257,7 +257,7 @@ export function ConnectionProcess(
                   >
                     <div className="relative">
                       <div
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-150 ${
                           isCompleted
                             ? "bg-green-500 border-green-400 text-white scale-110"
                             : isCurrent
@@ -322,7 +322,7 @@ export function ConnectionProcess(
             <Button
               onClick={onBack}
               variant="outline"
-              className="flex-1 h-12 border-zinc-700/50 hover:border-zinc-600/50 bg-zinc-800/50 hover:bg-zinc-700/50 transition-all duration-300"
+              className="flex-1 h-12 border-zinc-700/50 hover:border-zinc-600/50 bg-zinc-800/50 hover:bg-zinc-700/50 transition-all duration-150"
               disabled={isConnecting}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -331,7 +331,7 @@ export function ConnectionProcess(
             {connectionError && (
               <Button
                 onClick={handleRetry}
-                className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25 transition-all duration-300"
+                className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25 transition-all duration-150"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Retry Connection
@@ -348,7 +348,7 @@ export function ConnectionProcess(
           @keyframes fade-in-up {
             from {
               opacity: 0;
-              transform: translateY(30px);
+              transform: translateY(20px);
             }
             to {
               opacity: 1;
@@ -362,12 +362,12 @@ export function ConnectionProcess(
           }
           
           .animate-fade-in-up {
-            animation: fade-in-up 0.8s ease-out forwards;
+            animation: fade-in-up 0.3s ease-out forwards;
             opacity: 0;
           }
           
           .animate-shimmer {
-            animation: shimmer 2s infinite;
+            animation: shimmer 1.5s infinite;
           }
         `,
         }}

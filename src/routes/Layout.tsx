@@ -1,11 +1,9 @@
 "use client";
 
 import type * as React from "react";
-import { useState } from "react";
 import { useAppStore } from "@/stores";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
 	Tooltip,
 	TooltipContent,
@@ -22,10 +20,8 @@ import {
 	Globe,
 	Home,
 	Layers,
-	Menu,
 	ScanSearch,
 	Wallet,
-	X,
 } from "lucide-react";
 import Graphite from "@/components/ui/vectors/logos/Graphite";
 import { navigateTo } from "@/lib/router";
@@ -49,7 +45,6 @@ interface NavItem {
 function Layout({ children }: LayoutProps): React.ReactElement {
 	const { currentRoute, allowedRoutes, routeLoading } = useAppStore();
 	// Wallet info is now handled by ConnectionStatusSimple component
-	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 	/**
 	 * Navigate back to welcome screen (App Store)
@@ -106,26 +101,25 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 				<motion.div
 					key={item.key}
 					whileTap={{ scale: 0.95 }}
-					transition={{ duration: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
+					transition={{ duration: 0.15, ease: [0.34, 1.56, 0.64, 1] }}
 				>
 					<Button
 						variant={isActive ? "default" : "ghost"}
 						size="sm"
 						className={cn(
-							"flex items-center gap-2 w-full justify-start transition-all duration-300",
+							"flex items-center gap-2 w-full justify-start transition-all duration-150",
 							isActive
 								? "bg-amber-500/20 text-amber-400 border-amber-500/30"
 								: "text-muted-foreground hover:text-foreground hover:bg-muted/50",
 						)}
 						onClick={() => {
 							navigateTo(item.key);
-							setIsMobileMenuOpen(false);
 						}}
 						aria-current={isActive ? "page" : undefined}
 					>
 						<motion.div
 							animate={isActive ? { rotate: [0, -8, 8, 0] } : {}}
-							transition={{ duration: 0.8, ease: "easeInOut" }}
+							transition={{ duration: 0.5, ease: "easeInOut" }}
 						>
 							<Icon className="size-4 shrink-0" />
 						</motion.div>
@@ -141,16 +135,16 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 				key={item.key}
 				initial={{ opacity: 0, x: -30 }}
 				animate={{ opacity: 1, x: 0 }}
-				transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+				transition={{ duration: 0.3, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
 			>
 				<TooltipProvider>
-					<Tooltip delayDuration={200}>
+					<Tooltip delayDuration={100}>
 						<TooltipTrigger asChild>
 							<motion.button
 								type="button"
 								onClick={() => navigateTo(item.key)}
 								className={cn(
-									"cursor-pointer flex flex-1 items-center p-3 m-1 justify-center text-sm transition-all duration-300 outline-none rounded-lg",
+									"cursor-pointer flex flex-1 items-center p-3 m-1 justify-center text-sm transition-all duration-150 outline-none rounded-lg",
 									"hover:bg-amber-500/10 hover:text-amber-400",
 									isActive
 										? "text-amber-400 bg-amber-500/20 ring-1 ring-amber-500/30 shadow-sm"
@@ -159,24 +153,24 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								aria-current={isActive ? "page" : undefined}
 								whileHover={{
 									scale: 1.08,
-									transition: { duration: 0.4, ease: [0.34, 1.56, 0.64, 1] },
+									transition: { duration: 0.2, ease: [0.34, 1.56, 0.64, 1] },
 								}}
 								whileTap={{ scale: 0.92 }}
 								animate={isActive ? { scale: [1, 1.06, 1] } : { scale: 1 }}
 								transition={{
 									scale: isActive
 										? {
-											duration: 0.6,
+											duration: 0.4,
 											repeat: 0,
 											ease: [0.16, 1, 0.3, 1],
 										}
-										: { duration: 0.3 },
+										: { duration: 0.2 },
 								}}
 							>
 								<motion.div
 									animate={isActive ? { rotate: [0, -8, 8, 0] } : { rotate: 0 }}
 									transition={{
-										duration: 0.8,
+										duration: 0.5,
 										ease: "easeInOut",
 									}}
 								>
@@ -209,7 +203,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 					aria-label="Primary navigation"
 					initial={{ x: -80, opacity: 0 }}
 					animate={{ x: 0, opacity: 1 }}
-					transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+					transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
 				>
 					<div className="flex h-30 w-full items-center justify-center border-b border-border/50">
 						<motion.button
@@ -219,7 +213,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 							whileHover={{
 								scale: 1.1,
 								rotate: 10,
-								transition: { duration: 0.5, ease: [0.34, 1.56, 0.64, 1] },
+								transition: { duration: 0.25, ease: [0.34, 1.56, 0.64, 1] },
 							}}
 							whileTap={{ scale: 0.9 }}
 						>
@@ -228,7 +222,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 									rotate: [0, 3, -3, 0],
 								}}
 								transition={{
-									duration: 4,
+									duration: 3,
 									repeat: Infinity,
 									ease: "easeInOut",
 								}}
@@ -264,16 +258,16 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						className="p-4 h-16"
 						initial={{ opacity: 0, y: 30 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.7, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+						transition={{ duration: 0.4, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
 					>
 						<motion.div
 							animate={{
 								scale: [1, 1.04, 1],
 							}}
 							transition={{
-								duration: 3,
+								duration: 2,
 								repeat: Infinity,
-								repeatDelay: 4,
+								repeatDelay: 2,
 								ease: "easeInOut",
 							}}
 						>
@@ -287,7 +281,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 										opacity: [0.8, 1, 0.8],
 									}}
 									transition={{
-										duration: 2.5,
+										duration: 1.8,
 										repeat: Infinity,
 										ease: "easeInOut",
 									}}
@@ -308,55 +302,16 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								className="flex items-center justify-between p-4 h-16"
 								initial={{ y: -30, opacity: 0 }}
 								animate={{ y: 0, opacity: 1 }}
-								transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+								transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
 							>
 								<div className="flex items-center gap-3">
-									<motion.button
-										onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-										className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-										aria-label="Toggle mobile menu"
-										whileTap={{ scale: 0.85, rotate: 15 }}
-										transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
-									>
-										<AnimatePresence mode="wait" initial={false}>
-											{isMobileMenuOpen
-												? (
-													<motion.div
-														key="close"
-														initial={{ rotate: -180, opacity: 0, scale: 0.5 }}
-														animate={{ rotate: 0, opacity: 1, scale: 1 }}
-														exit={{ rotate: 180, opacity: 0, scale: 0.5 }}
-														transition={{
-															duration: 0.4,
-															ease: [0.34, 1.56, 0.64, 1],
-														}}
-													>
-														<X className="size-5" />
-													</motion.div>
-												)
-												: (
-													<motion.div
-														key="menu"
-														initial={{ rotate: 180, opacity: 0, scale: 0.5 }}
-														animate={{ rotate: 0, opacity: 1, scale: 1 }}
-														exit={{ rotate: -180, opacity: 0, scale: 0.5 }}
-														transition={{
-															duration: 0.4,
-															ease: [0.34, 1.56, 0.64, 1],
-														}}
-													>
-														<Menu className="size-5" />
-													</motion.div>
-												)}
-										</AnimatePresence>
-									</motion.button>
 									<motion.div
 										className="flex items-center gap-2"
 										initial={{ x: -30, opacity: 0 }}
 										animate={{ x: 0, opacity: 1 }}
 										transition={{
-											duration: 0.6,
-											delay: 0.2,
+											duration: 0.25,
+											delay: 0.05,
 											ease: [0.16, 1, 0.3, 1],
 										}}
 									>
@@ -365,7 +320,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 												rotate: [0, 5, -5, 0],
 											}}
 											transition={{
-												duration: 4,
+												duration: 3,
 												repeat: Infinity,
 												ease: "easeInOut",
 											}}
@@ -380,8 +335,8 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 									initial={{ x: 30, opacity: 0 }}
 									animate={{ x: 0, opacity: 1 }}
 									transition={{
-										duration: 0.6,
-										delay: 0.2,
+										duration: 0.3,
+										delay: 0.1,
 										ease: [0.16, 1, 0.3, 1],
 									}}
 								>
@@ -395,8 +350,8 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
 								transition={{
-									duration: 0.6,
-									delay: 0.3,
+									duration: 0.3,
+									delay: 0.1,
 									ease: [0.16, 1, 0.3, 1],
 								}}
 							>
@@ -408,7 +363,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 											animate={{ opacity: 1, x: 0 }}
 											exit={{ opacity: 0, x: -20 }}
 											transition={{
-												duration: 0.5,
+												duration: 0.3,
 												ease: [0.16, 1, 0.3, 1],
 											}}
 											onClick={handleBackToWelcome}
@@ -418,9 +373,9 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 											<motion.div
 												animate={{ x: [0, -2, 0] }}
 												transition={{
-													duration: 2,
+													duration: 1.5,
 													repeat: Infinity,
-													repeatDelay: 3,
+													repeatDelay: 2,
 													ease: "easeInOut",
 												}}
 											>
@@ -432,7 +387,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 													opacity: [1, 0.9, 1],
 												}}
 												transition={{
-													duration: 3,
+													duration: 2,
 													repeat: Infinity,
 													ease: "easeInOut",
 												}}
@@ -443,30 +398,32 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 									)}
 								</AnimatePresence>
 
-								{/* Center: App Title (iOS Style) */}
-								<motion.div
-									className="absolute left-1/2 transform -translate-x-1/2"
-									key={currentRoute}
-									initial={{ opacity: 0, y: -5 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{
-										duration: 0.5,
-										delay: 0.2,
-										ease: [0.16, 1, 0.3, 1],
-									}}
-								>
-									<motion.h1
-										className="text-base font-semibold text-white tracking-tight"
-										initial={{ scale: 1.05 }}
-										animate={{ scale: 1 }}
+								{/* Center: App Title (iOS Style) - Hidden on welcome screen */}
+								{currentRoute !== "welcome" && (
+									<motion.div
+										className="absolute left-1/2 transform -translate-x-1/2"
+										key={currentRoute}
+										initial={{ opacity: 0, y: -5 }}
+										animate={{ opacity: 1, y: 0 }}
 										transition={{
-											duration: 0.5,
-											ease: [0.34, 1.56, 0.64, 1],
+											duration: 0.3,
+											delay: 0.1,
+											ease: [0.16, 1, 0.3, 1],
 										}}
 									>
-										{getAppName(currentRoute)}
-									</motion.h1>
-								</motion.div>
+										<motion.h1
+											className="text-base font-semibold text-white tracking-tight"
+											initial={{ scale: 1.05 }}
+											animate={{ scale: 1 }}
+											transition={{
+												duration: 0.3,
+												ease: [0.34, 1.56, 0.64, 1],
+											}}
+										>
+											{getAppName(currentRoute)}
+										</motion.h1>
+									</motion.div>
+								)}
 
 								{/* Right: empty space for balance */}
 								<div className="w-[100px]" />
@@ -479,8 +436,8 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 							initial={{ y: -30, opacity: 0 }}
 							animate={{ y: 0, opacity: 1 }}
 							transition={{
-								duration: 0.7,
-								delay: 0.3,
+								duration: 0.4,
+								delay: 0.1,
 								ease: [0.16, 1, 0.3, 1],
 							}}
 						>
@@ -494,23 +451,23 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 												animate={{ opacity: 1, x: 0 }}
 												exit={{ opacity: 0, x: -20 }}
 												transition={{
-													duration: 0.5,
+													duration: 0.3,
 													ease: [0.16, 1, 0.3, 1],
 												}}
 												onClick={handleBackToWelcome}
 												className="relative group flex items-center gap-1 -ml-2 px-2 py-1.5 rounded-lg text-amber-500 hover:opacity-80 active:opacity-60 transition-opacity duration-150"
 												whileHover={{
 													x: -3,
-													transition: { duration: 0.3, ease: "easeOut" },
+													transition: { duration: 0.2, ease: "easeOut" },
 												}}
 												whileTap={{ scale: 0.96, x: -4 }}
 											>
 												<motion.div
 													animate={{ x: [0, -2, 0] }}
 													transition={{
-														duration: 2,
+														duration: 1.5,
 														repeat: Infinity,
-														repeatDelay: 3,
+														repeatDelay: 2,
 														ease: "easeInOut",
 													}}
 												>
@@ -522,7 +479,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 														opacity: [1, 0.9, 1],
 													}}
 													transition={{
-														duration: 3,
+														duration: 2,
 														repeat: Infinity,
 														ease: "easeInOut",
 													}}
@@ -535,7 +492,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 													className="absolute bottom-0.5 left-0 right-0 h-0.5 bg-amber-500/50 rounded-full"
 													initial={{ scaleX: 0, opacity: 0 }}
 													whileHover={{ scaleX: 0.8, opacity: 1 }}
-													transition={{ duration: 0.3, ease: "easeOut" }}
+													transition={{ duration: 0.2, ease: "easeOut" }}
 													style={{ transformOrigin: "left" }}
 												/>
 											</motion.button>
@@ -549,42 +506,44 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 											initial={{ opacity: 0, scaleY: 0 }}
 											animate={{ opacity: 1, scaleY: 1 }}
 											exit={{ opacity: 0, scaleY: 0 }}
-											transition={{ duration: 0.5, delay: 0.3 }}
+											transition={{ duration: 0.3, delay: 0.1 }}
 										/>
 									)}
 
-									{/* iOS-Style App Title */}
-									<motion.div
-										className="flex items-center gap-2"
-										key={currentRoute}
-										initial={{ opacity: 0, y: -5 }}
-										animate={{ opacity: 1, y: 0 }}
-										transition={{
-											duration: 0.5,
-											delay: 0.2,
-											ease: [0.16, 1, 0.3, 1],
-										}}
-									>
-										<motion.h1
-											className="text-lg font-semibold text-white tracking-tight"
-											initial={{ scale: 1.05, opacity: 0 }}
-											animate={{ scale: 1, opacity: 1 }}
+									{/* iOS-Style App Title - Hidden on welcome screen */}
+									{currentRoute !== "welcome" && (
+										<motion.div
+											className="flex items-center gap-2"
+											key={currentRoute}
+											initial={{ opacity: 0, y: -5 }}
+											animate={{ opacity: 1, y: 0 }}
 											transition={{
-												duration: 0.5,
-												ease: [0.34, 1.56, 0.64, 1],
+												duration: 0.2,
+												delay: 0.05,
+												ease: [0.16, 1, 0.3, 1],
 											}}
 										>
-											{getAppName(currentRoute)}
-										</motion.h1>
-									</motion.div>
+											<motion.h1
+												className="text-lg font-semibold text-white tracking-tight"
+												initial={{ scale: 1.05, opacity: 0 }}
+												animate={{ scale: 1, opacity: 1 }}
+												transition={{
+													duration: 0.2,
+													ease: [0.34, 1.56, 0.64, 1],
+												}}
+											>
+												{getAppName(currentRoute)}
+											</motion.h1>
+										</motion.div>
+									)}
 								</div>
 
 								<motion.div
 									initial={{ x: 30, opacity: 0 }}
 									animate={{ x: 0, opacity: 1 }}
 									transition={{
-										duration: 0.6,
-										delay: 0.4,
+										duration: 0.3,
+										delay: 0.15,
 										ease: [0.16, 1, 0.3, 1],
 									}}
 								>
@@ -595,192 +554,20 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 					</header>
 
 					<AnimatePresence>
-						{isMobileMenuOpen && (
-							<motion.div
-								className="lg:hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-sm"
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								exit={{ opacity: 0 }}
-								transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-							>
-								<motion.div
-									className="flex flex-col h-full"
-									initial={{ x: -350 }}
-									animate={{ x: 0 }}
-									exit={{ x: -350 }}
-									transition={{
-										type: "spring",
-										stiffness: 200,
-										damping: 25,
-									}}
-								>
-									<div className="flex items-center justify-between p-4 border-b">
-										<motion.div
-											className="flex items-center gap-2"
-											initial={{ opacity: 0, x: -20 }}
-											animate={{ opacity: 1, x: 0 }}
-											transition={{
-												delay: 0.2,
-												duration: 0.5,
-												ease: [0.16, 1, 0.3, 1],
-											}}
-										>
-											<motion.div
-												animate={{
-													rotate: [0, 5, -5, 0],
-												}}
-												transition={{
-													duration: 4,
-													repeat: Infinity,
-													ease: "easeInOut",
-												}}
-											>
-												<Graphite size={1.5} />
-											</motion.div>
-											<span className="text-sm font-semibold">STELS</span>
-										</motion.div>
-										<motion.button
-											onClick={() => setIsMobileMenuOpen(false)}
-											className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-											whileTap={{ scale: 0.85, rotate: 90 }}
-											initial={{ opacity: 0, rotate: -180, scale: 0.5 }}
-											animate={{ opacity: 1, rotate: 0, scale: 1 }}
-											transition={{
-												delay: 0.2,
-												duration: 0.5,
-												ease: [0.34, 1.56, 0.64, 1],
-											}}
-										>
-											<X className="size-5" />
-										</motion.button>
-									</div>
-
-									<div className="flex-1 overflow-y-auto p-4">
-										<nav className="space-y-6">
-											<motion.div
-												initial={{ opacity: 0, y: 20 }}
-												animate={{ opacity: 1, y: 0 }}
-												transition={{
-													delay: 0.3,
-													duration: 0.6,
-													ease: [0.16, 1, 0.3, 1],
-												}}
-											>
-												<div className="px-2 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 mb-3">
-													Stels
-												</div>
-												<div className="space-y-2">
-													{generalNav.map((item, index) => (
-														<motion.div
-															key={item.key}
-															initial={{ opacity: 0, x: -30 }}
-															animate={{ opacity: 1, x: 0 }}
-															transition={{
-																delay: 0.4 + index * 0.1,
-																duration: 0.5,
-																ease: [0.16, 1, 0.3, 1],
-															}}
-														>
-															{renderNavItem(item, true)}
-														</motion.div>
-													))}
-												</div>
-											</motion.div>
-
-											<Separator />
-
-											<motion.div
-												initial={{ opacity: 0, y: 20 }}
-												animate={{ opacity: 1, y: 0 }}
-												transition={{
-													delay: 0.6,
-													duration: 0.6,
-													ease: [0.16, 1, 0.3, 1],
-												}}
-											>
-												<div className="px-2 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 mb-3">
-													Apps
-												</div>
-												<div className="space-y-2">
-													{systemNav.map((item, index) => (
-														<motion.div
-															key={item.key}
-															initial={{ opacity: 0, x: -30 }}
-															animate={{ opacity: 1, x: 0 }}
-															transition={{
-																delay: 0.7 + index * 0.1,
-																duration: 0.5,
-																ease: [0.16, 1, 0.3, 1],
-															}}
-														>
-															{renderNavItem(item, true)}
-														</motion.div>
-													))}
-												</div>
-											</motion.div>
-										</nav>
-									</div>
-
-									<motion.div
-										className="p-4 border-t"
-										initial={{ opacity: 0, y: 30 }}
-										animate={{ opacity: 1, y: 0 }}
-										transition={{
-											delay: 1,
-											duration: 0.6,
-											ease: [0.16, 1, 0.3, 1],
-										}}
-									>
-										<motion.div
-											animate={{
-												scale: [1, 1.03, 1],
-											}}
-											transition={{
-												duration: 3,
-												repeat: Infinity,
-												ease: "easeInOut",
-											}}
-										>
-											<Badge
-												variant="outline"
-												className="w-full justify-center text-amber-400 border-amber-500/30 bg-amber-500/5"
-											>
-												<motion.span
-													className="size-2 rounded-full bg-amber-400 mr-2"
-													animate={{
-														scale: [1, 1.4, 1],
-														opacity: [1, 0.4, 1],
-													}}
-													transition={{
-														duration: 2,
-														repeat: Infinity,
-														ease: "easeInOut",
-													}}
-												/>
-												<span className="font-medium">LIVE</span>
-											</Badge>
-										</motion.div>
-									</motion.div>
-								</motion.div>
-							</motion.div>
-						)}
-					</AnimatePresence>
-
-					<AnimatePresence>
 						{routeLoading && (
 							<motion.div
 								className="w-full border-b"
 								initial={{ opacity: 0, scaleX: 0 }}
 								animate={{ opacity: 1, scaleX: 1 }}
 								exit={{ opacity: 0, scaleX: 0 }}
-								transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+								transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
 								style={{ transformOrigin: "left" }}
 							>
 								<motion.div
 									initial={{ width: "0%" }}
 									animate={{ width: "100%" }}
 									transition={{
-										duration: 2,
+										duration: 0.5,
 										ease: [0.16, 1, 0.3, 1],
 									}}
 								>
@@ -794,7 +581,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						className="flex flex-1 overflow-y-auto overflow-x-hidden bg-background"
 						data-route-container
 					>
-						<div className="w-full mx-auto px-4 py-6">
+						<div className="w-full mx-auto">
 							{children}
 						</div>
 

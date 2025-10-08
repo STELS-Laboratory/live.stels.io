@@ -58,7 +58,7 @@ export function WalletConfirmation({
     try {
       await navigator.clipboard.writeText(wallet.address);
       setCopiedAddress(true);
-      setTimeout(() => setCopiedAddress(false), 2000);
+      setTimeout(() => setCopiedAddress(false), 1500);
     } catch (error) {
       console.error("Failed to copy address:", error);
     }
@@ -68,7 +68,7 @@ export function WalletConfirmation({
     try {
       await navigator.clipboard.writeText(wallet.publicKey);
       setCopiedPublicKey(true);
-      setTimeout(() => setCopiedPublicKey(false), 2000);
+      setTimeout(() => setCopiedPublicKey(false), 1500);
     } catch (error) {
       console.error("Failed to copy public key:", error);
     }
@@ -254,7 +254,7 @@ export function WalletConfirmation({
               {/* User Mode */}
               <div
                 onClick={() => setIsDeveloperMode(false)}
-                className={`p-4 rounded-xl border transition-all duration-300 cursor-pointer ${
+                className={`p-4 rounded-xl border transition-all duration-150 cursor-pointer ${
                   !isDeveloperMode
                     ? "bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/50 shadow-lg shadow-green-500/10"
                     : "bg-zinc-800/30 border-zinc-700/30 hover:border-zinc-600/50"
@@ -296,7 +296,7 @@ export function WalletConfirmation({
               {/* Developer Mode */}
               <div
                 onClick={() => setIsDeveloperMode(true)}
-                className={`p-4 rounded-xl border transition-all duration-300 cursor-pointer ${
+                className={`p-4 rounded-xl border transition-all duration-150 cursor-pointer ${
                   isDeveloperMode
                     ? "bg-gradient-to-r from-purple-500/20 to-violet-500/20 border-purple-500/50 shadow-lg shadow-purple-500/10"
                     : "bg-zinc-800/30 border-zinc-700/30 hover:border-zinc-600/50"
@@ -389,7 +389,7 @@ export function WalletConfirmation({
             <Button
               onClick={handleConfirm}
               disabled={!isConfirmed}
-              className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Continue to Network Setup
               <ArrowRight className="h-4 w-4 ml-2" />
@@ -405,7 +405,7 @@ export function WalletConfirmation({
             @keyframes fade-in-up {
               from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(20px);
               }
               to {
                 opacity: 1;
@@ -414,7 +414,7 @@ export function WalletConfirmation({
             }
             
             .animate-fade-in-up {
-              animation: fade-in-up 0.8s ease-out forwards;
+              animation: fade-in-up 0.3s ease-out forwards;
               opacity: 0;
             }
           `,

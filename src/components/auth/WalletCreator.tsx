@@ -95,7 +95,7 @@ export function WalletCreator(
 
     try {
       // Small delay for better UX
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 150));
       createNewWallet();
       onSuccess();
     } catch (err: any) {
@@ -122,7 +122,7 @@ export function WalletCreator(
 
     try {
       // Small delay for better UX
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       const success = importExistingWallet(privateKey.trim());
 
@@ -231,7 +231,7 @@ export function WalletCreator(
                   placeholder="Enter your 64-character hex private key..."
                   value={privateKey}
                   onChange={(e) => setPrivateKey(e.target.value)}
-                  className={`h-12 font-mono text-sm transition-all duration-300 ${
+                  className={`h-12 font-mono text-sm transition-all duration-150 ${
                     validationState.type === "error"
                       ? "border-red-500/50 focus:border-red-400 bg-red-500/5"
                       : validationState.type === "success"
@@ -264,7 +264,7 @@ export function WalletCreator(
               {validationState.message && (
                 <div
                   id="private-key-validation"
-                  className={`flex items-center gap-2 text-sm transition-all duration-300 ${
+                  className={`flex items-center gap-2 text-sm transition-all duration-150 ${
                     validationState.type === "error"
                       ? "text-red-400"
                       : "text-green-400"
@@ -335,7 +335,7 @@ export function WalletCreator(
               disabled={isLoading ||
                 (content.showInput &&
                   (!privateKey.trim() || !validationState.isValid))}
-              className={`flex-1 h-12 transition-all duration-300 ${
+              className={`flex-1 h-12 transition-all duration-150 ${
                 walletType === "create"
                   ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25"
                   : "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/25"
@@ -368,7 +368,7 @@ export function WalletCreator(
           @keyframes fade-in-up {
             from {
               opacity: 0;
-              transform: translateY(30px);
+              transform: translateY(20px);
             }
             to {
               opacity: 1;
@@ -377,7 +377,7 @@ export function WalletCreator(
           }
           
           .animate-fade-in-up {
-            animation: fade-in-up 0.8s ease-out forwards;
+            animation: fade-in-up 0.3s ease-out forwards;
             opacity: 0;
           }
         `,

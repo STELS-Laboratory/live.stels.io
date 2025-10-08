@@ -67,7 +67,7 @@ export function NetworkSelectorCompact(
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="w-full justify-between h-12 border-zinc-700/50 hover:border-zinc-600/50 bg-zinc-800/50 hover:bg-zinc-700/50 transition-all duration-300"
+            className="w-full justify-between h-12 border-zinc-700/50 hover:border-zinc-600/50 bg-zinc-800/50 hover:bg-zinc-700/50 transition-all duration-150"
           >
             <div className="flex items-center gap-3">
               {selectedNetwork

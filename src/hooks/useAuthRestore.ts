@@ -52,7 +52,7 @@ export const useAuthRestore = (): void => {
 				}).catch((error) => {
 					console.error('[AuthRestore] Error during restore:', error);
 				});
-			}, 150);
+			}, 50);
 
 			return () => clearTimeout(timer);
 		}
@@ -83,7 +83,7 @@ export const useAuthRestore = (): void => {
 					}).catch((error) => {
 						console.error('[AuthRestore] Error restoring session:', error);
 					});
-				}, 150);
+				}, 50);
 
 				return () => clearTimeout(timer);
 			}

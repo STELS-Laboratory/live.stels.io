@@ -11,17 +11,17 @@
     --font-size: 14px;
     --font-family: 'Saira', sans-serif;
 
-    /* Optimized motion variables */
-    --motion-duration-fast: 0.15s;
-    --motion-duration-normal: 0.25s;
-    --motion-duration-slow: 0.35s;
-    --motion-ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    /* Optimized motion variables - ultra fast */
+    --motion-duration-fast: 0.1s;
+    --motion-duration-normal: 0.15s;
+    --motion-duration-slow: 0.25s;
+    --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
     --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     --motion-ease-in: cubic-bezier(0.55, 0.055, 0.675, 0.19);
 
-    /* Route transition - simplified */
-    --route-transition-duration: var(--motion-duration-normal);
-    --route-transition-offset: 12px;
+    /* Route transition - ultra fast */
+    --route-transition-duration: 0.15s;
+    --route-transition-offset: 8px;
 
     /* Container max-widths following Web3 standards */
     --container-sm: 640px;
@@ -467,7 +467,7 @@
 
     /* Reduce route transition offset on mobile */
     :root {
-        --route-transition-offset: 8px;
+        --route-transition-offset: 5px;
     }
 
     /* Improve touch targets on mobile */
@@ -483,9 +483,9 @@
 /* High refresh rate display optimizations */
 @media (min-resolution: 120dpi) and (prefers-reduced-motion: no-preference) {
     :root {
-        --motion-duration-fast: 0.12s;
-        --motion-duration-normal: 0.2s;
-        --motion-duration-slow: 0.3s;
+        --motion-duration-fast: 0.1s;
+        --motion-duration-normal: 0.15s;
+        --motion-duration-slow: 0.2s;
     }
 }
 
@@ -496,21 +496,21 @@
     backface-visibility: hidden;
 }
 
-/* iOS-style bottom modal animations */
+/* iOS-style bottom modal animations - optimized for speed */
 @layer utilities {
     .slide-in-from-bottom-100 {
-        animation: slide-in-from-bottom 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        animation: slide-in-from-bottom 0.2s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .slide-out-to-bottom-100 {
-        animation: slide-out-to-bottom 0.25s cubic-bezier(0.55, 0.055, 0.675, 0.19);
+        animation: slide-out-to-bottom 0.15s cubic-bezier(0.55, 0.055, 0.675, 0.19);
     }
 }
 
 @keyframes slide-in-from-bottom {
     from {
         transform: translateY(100%);
-        opacity: 0.8;
+        opacity: 0.85;
     }
     to {
         transform: translateY(0);
@@ -525,6 +525,6 @@
     }
     to {
         transform: translateY(100%);
-        opacity: 0.8;
+        opacity: 0.85;
     }
 }

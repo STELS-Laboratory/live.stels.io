@@ -78,7 +78,7 @@ function createWebSocket(
 		console.log('WebSocket connection closed. Code:', event.code, 'Reason:', event.reason);
 		
 		// Check if session is expired (close code 1000 with specific reason or 1006 for abnormal closure)
-		if (event.code === 1000 && event.reason.includes('session') || 
+		if ((event.code === 1000 && event.reason.includes('session')) || 
 		    event.code === 1006 || 
 		    event.reason.includes('expired') || 
 		    event.reason.includes('invalid')) {
@@ -88,7 +88,7 @@ function createWebSocket(
 		}
 		
 		console.log('WebSocket connection closed. Attempting to reconnect...');
-		setTimeout(onReconnect, 3000);
+		setTimeout(onReconnect, 1500);
 		onError();
 	};
 	
@@ -105,7 +105,7 @@ function createWebSocket(
 		}
 		
 		ws.close();
-		setTimeout(onReconnect, 3000);
+		setTimeout(onReconnect, 1500);
 	};
 	
 	return ws;
@@ -206,7 +206,7 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 					
 					if (reconnectAttempts < maxReconnectAttempts) {
 						set({reconnectAttempts: reconnectAttempts + 1});
-						setTimeout(connectWebSocket, 3000);
+						setTimeout(connectWebSocket, 1500);
 					} else {
 						console.error('Maximum reconnection attempts reached. Stopping reconnection.');
 						set({sessionExpired: true});

@@ -146,7 +146,7 @@ export default function Dashboard(): React.ReactElement {
 			setTransitionProgress(100);
 
 			// Small additional delay to show completed progress
-			await new Promise((resolve) => setTimeout(resolve, 200));
+			await new Promise((resolve) => setTimeout(resolve, 50));
 
 			setIsTransitioning(false);
 			setTransitionProgress(0);
@@ -163,19 +163,19 @@ export default function Dashboard(): React.ReactElement {
 	const getTransitionDelay = useCallback(
 		(fromState: AppState, toState: AppState): number => {
 			const delays: Record<string, number> = {
-				"initializing->hydrating": 800,
-				"hydrating->checking_session": 1200,
-				"checking_session->authenticating": 600,
-				"checking_session->loading_app": 1000,
-				"authenticating->connecting": 800,
-				"connecting->loading_app": 1500,
-				"loading_app->ready": 1200,
-				"ready->upgrading": 500,
-				"upgrading->ready": 800,
+				"initializing->hydrating": 200,
+				"hydrating->checking_session": 300,
+				"checking_session->authenticating": 150,
+				"checking_session->loading_app": 250,
+				"authenticating->connecting": 200,
+				"connecting->loading_app": 400,
+				"loading_app->ready": 300,
+				"ready->upgrading": 150,
+				"upgrading->ready": 200,
 			};
 
 			const key = `${fromState}->${toState}`;
-			return delays[key] || 1000;
+			return delays[key] || 250;
 		},
 		[],
 	);
@@ -227,7 +227,7 @@ export default function Dashboard(): React.ReactElement {
 						const timer = setTimeout(() => {
 							console.log("[App] Store hydration timeout - forcing render");
 							setForceRender(true);
-						}, 2000);
+						}, 800);
 						return () => clearTimeout(timer);
 					}
 					break;
@@ -326,7 +326,7 @@ export default function Dashboard(): React.ReactElement {
 					}
 					// Handle splash screen completion
 					if (showSplash) {
-						setTimeout(() => setShowSplash(false), 1000);
+						setTimeout(() => setShowSplash(false), 300);
 					}
 					break;
 			}
@@ -353,7 +353,7 @@ export default function Dashboard(): React.ReactElement {
 		if (isHeavyRoute && appState === "ready") {
 			setRouteLoading(true);
 			// Fallback timeout in case component doesn't signal readiness
-			const timeout = setTimeout(() => setRouteLoading(false), 1500);
+			const timeout = setTimeout(() => setRouteLoading(false), 500);
 			return () => clearTimeout(timeout);
 		} else {
 			setRouteLoading(false);
@@ -552,13 +552,13 @@ export default function Dashboard(): React.ReactElement {
 
 	/**
 	 * Animation variants for route transitions
-	 * Smooth and organic timing for better feel
+	 * Fast and responsive timing for instant feel
 	 */
 	const pageVariants = {
 		initial: {
 			opacity: 0,
-			scale: 0.96,
-			y: 20,
+			scale: 0.98,
+			y: 10,
 		},
 		animate: {
 			opacity: 1,
@@ -567,8 +567,8 @@ export default function Dashboard(): React.ReactElement {
 		},
 		exit: {
 			opacity: 0,
-			scale: 0.96,
-			y: -20,
+			scale: 0.98,
+			y: -10,
 		},
 	};
 
@@ -657,7 +657,7 @@ export default function Dashboard(): React.ReactElement {
 							? (
 								<SplashScreen
 									onComplete={handleSplashComplete}
-									duration={3000}
+									duration={1200}
 								/>
 							)
 							: (
@@ -672,8 +672,8 @@ export default function Dashboard(): React.ReactElement {
 													animate="animate"
 													exit="exit"
 													transition={{
-														duration: 0.6,
-														ease: [0.16, 1, 0.3, 1],
+														duration: 0.2,
+														ease: [0.22, 1, 0.36, 1],
 													}}
 													className="h-full w-full"
 												>
@@ -709,7 +709,7 @@ style.textContent = `
 	@keyframes fadeInUp {
 		from {
 			opacity: 0;
-			transform: translateY(20px);
+			transform: translateY(15px);
 		}
 		to {
 			opacity: 1;
@@ -718,7 +718,7 @@ style.textContent = `
 	}
 	
 	.animate-fade-in-up {
-		animation: fadeInUp 0.6s ease-out forwards;
+		animation: fadeInUp 0.3s ease-out forwards;
 	}
 `;
 

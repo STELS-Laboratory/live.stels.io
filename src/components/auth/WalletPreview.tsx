@@ -39,7 +39,7 @@ export function WalletPreview({
     try {
       await navigator.clipboard.writeText(wallet.address);
       setCopiedAddress(true);
-      setTimeout(() => setCopiedAddress(false), 2000);
+      setTimeout(() => setCopiedAddress(false), 1500);
     } catch (error) {
       console.error("Failed to copy address:", error);
     }
@@ -51,7 +51,7 @@ export function WalletPreview({
     try {
       await navigator.clipboard.writeText(wallet.publicKey);
       setCopiedPublicKey(true);
-      setTimeout(() => setCopiedPublicKey(false), 2000);
+      setTimeout(() => setCopiedPublicKey(false), 1500);
     } catch (error) {
       console.error("Failed to copy public key:", error);
     }
@@ -251,7 +251,7 @@ export function WalletPreview({
           @keyframes fade-in-up {
             from {
               opacity: 0;
-              transform: translateY(30px);
+              transform: translateY(20px);
             }
             to {
               opacity: 1;
@@ -260,7 +260,7 @@ export function WalletPreview({
           }
           
           .animate-fade-in-up {
-            animation: fade-in-up 0.8s ease-out forwards;
+            animation: fade-in-up 0.3s ease-out forwards;
             opacity: 0;
           }
         `,

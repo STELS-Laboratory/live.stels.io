@@ -26,10 +26,10 @@ export const SessionExpiredNotification: React.FC = (): React.ReactElement => {
   useEffect(() => {
     if (sessionExpired && !isVisible) {
       setIsVisible(true);
-      // Auto-hide after 10 seconds if user doesn't interact
+      // Auto-hide after 5 seconds if user doesn't interact
       const timer = setTimeout(() => {
         setIsVisible(false);
-      }, 10000);
+      }, 5000);
 
       return () => clearTimeout(timer);
     }
