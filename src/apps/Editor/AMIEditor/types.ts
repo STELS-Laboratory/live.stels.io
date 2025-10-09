@@ -2,7 +2,7 @@
  * TypeScript type definitions for AMIEditor module
  */
 
-import type { Worker } from "@/stores/modules/worker.store.ts";
+import type { Worker } from "../store.ts";
 
 export interface WorkerFormData {
 	title: string;

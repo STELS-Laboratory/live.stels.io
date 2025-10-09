@@ -28,8 +28,7 @@ import {
 	type FlowNodeData,
 	type SessionStore,
 } from "@/lib/canvas-types.ts";
-import { useCanvasUIStore } from "@/stores/modules/canvas-ui.store.ts";
-import { usePanelStore } from "@/stores/modules/panel.store.ts";
+import { useCanvasStore } from "./store.ts";
 import { PanelTabs } from "@/components/panels/PanelTabs.tsx";
 import { PanelManager } from "@/components/panels/PanelManager.tsx";
 import { WidgetStore } from "@/components/widgets/WidgetStore.tsx";
@@ -166,21 +165,15 @@ function FlowWithPanels(): React.ReactElement | null {
 	const [nodes, setNodes, onNodesChange] = useNodesState<FlowNodeData>([]);
 	const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
-	// Use UI store for widget store state
-	const {
-		isOpen: isWidgetStoreOpen,
-		toggleWidgetStore,
-	} = useCanvasUIStore();
-
-	// Use panel store for panel management
-	const {
-		panels,
-		activePanelId,
-		getActivePanel,
-		getPanelData,
-		updatePanelData,
-		createPanel,
-	} = usePanelStore();
+	// Use Canvas store for UI and panel management
+	const isWidgetStoreOpen = useCanvasStore((state) => state.ui.isOpen);
+	const toggleWidgetStore = useCanvasStore((state) => state.toggleWidgetStore);
+	const panels = useCanvasStore((state) => state.panels.panels);
+	const activePanelId = useCanvasStore((state) => state.panels.activePanelId);
+	const getActivePanel = useCanvasStore((state) => state.getActivePanel);
+	const getPanelData = useCanvasStore((state) => state.getPanelData);
+	const updatePanelData = useCanvasStore((state) => state.updatePanelData);
+	const createPanel = useCanvasStore((state) => state.createPanel);
 
 	const [isPanelManagerOpen, setIsPanelManagerOpen] = useState(false);
 	const [isPanelTransitioning, setIsPanelTransitioning] = useState(false);

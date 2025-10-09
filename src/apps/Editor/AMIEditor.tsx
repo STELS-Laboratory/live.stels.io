@@ -31,8 +31,7 @@ import { Button } from "@/components/ui/button.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import { Textarea } from "@/components/ui/textarea.tsx";
 import EditorComponent from "@/components/editor/EditorComponent.tsx";
-import type { Worker } from "@/stores/modules/worker.store.ts";
-import { useWorkerStore } from "@/stores/modules/worker.store.ts";
+import { useEditorStore, type Worker } from "./store.ts";
 import { useAuthStore } from "@/stores/modules/auth.store.ts";
 import { useAppStore } from "@/stores/modules/app.store.ts";
 import { useMobile } from "@/hooks/useMobile.ts";
@@ -51,8 +50,8 @@ export function AMIEditor(): JSX.Element {
 	const mobile = useMobile();
 	const { wallet } = useAuthStore();
 	const { setRoute } = useAppStore();
-	const listWorkers = useWorkerStore((state) => state.listWorkers);
-	const updateWorker = useWorkerStore((state) => state.updateWorker);
+	const listWorkers = useEditorStore((state) => state.listWorkers);
+	const updateWorker = useEditorStore((state) => state.updateWorker);
 
 	const [workers, setWorkers] = useState<Worker[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -64,7 +63,7 @@ export function AMIEditor(): JSX.Element {
 	const [isEditingNote, setIsEditingNote] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filterActive, setFilterActive] = useState<boolean | null>(null);
-	const setWorker = useWorkerStore((state) => state.setWorker);
+	const setWorker = useEditorStore((state) => state.setWorker);
 	const [creatingWorker, setCreatingWorker] = useState(false);
 	const [newlyCreatedWorker, setNewlyCreatedWorker] = useState<string | null>(
 		null,
@@ -75,7 +74,7 @@ export function AMIEditor(): JSX.Element {
 		setLoading(true);
 		try {
 			await listWorkers();
-			const w = useWorkerStore.getState().workers;
+			const w = useEditorStore.getState().workers;
 			setWorkers(w);
 			setLoading(false);
 		} catch (error) {

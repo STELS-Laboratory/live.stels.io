@@ -634,7 +634,7 @@ const OrderBook: React.FC = React.memo(() => {
   }, [calculatedMetrics]);
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1 container mx-auto">
       {orderBookData.length === 0
         ? (
           <Card className="bg-card border ">

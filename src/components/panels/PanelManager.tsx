@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { usePanelStore } from "@/stores/modules/panel.store";
+import { useCanvasStore } from "@/apps/Canvas/store.ts";
 import type { Panel } from "@/lib/panel-types";
 
 interface PanelManagerProps {
@@ -166,14 +166,14 @@ const PanelCard: React.FC<PanelCardProps> = ({
 export const PanelManager: React.FC<PanelManagerProps> = (
 	{ isOpen, onClose },
 ) => {
-	const {
-		panels,
-		createPanel,
-		updatePanel,
-		duplicatePanel,
-		deletePanel,
-		clearAllPanels,
-	} = usePanelStore();
+	const panels = useCanvasStore((state) => state.panels.panels);
+	const createPanel = useCanvasStore((state) => state.createPanel);
+	const updatePanel = useCanvasStore((state) => state.updatePanel);
+	const duplicatePanel = useCanvasStore((state) => state.duplicatePanel);
+	const deletePanel = useCanvasStore((state) => state.deletePanel);
+	const clearAllPanels = useCanvasStore((state) => state.clearAllPanels);
+	const movePanelUp = useCanvasStore((state) => state.movePanelUp);
+	const movePanelDown = useCanvasStore((state) => state.movePanelDown);
 
 	const [showCreateForm, setShowCreateForm] = useState(false);
 	const [editingPanel, setEditingPanel] = useState<Panel | null>(null);
@@ -234,8 +234,11 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 	};
 
 	const handleMovePanel = (panelId: string, direction: "up" | "down") => {
-		// TODO: Implement panel reordering
-		console.log(`Move panel ${panelId} ${direction}`);
+		if (direction === "up") {
+			movePanelUp(panelId);
+		} else {
+			movePanelDown(panelId);
+		}
 	};
 
 	const handleClearAllPanels = () => {

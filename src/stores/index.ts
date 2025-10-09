@@ -1,7 +1,14 @@
-export {useAppStore} from '@/stores/modules/app.store'
-export {useWorkerStore} from '@/stores/modules/worker.store'
-export {usePanelStore} from './modules/panel.store'
-export {useCanvasUIStore} from './modules/canvas-ui.store'
-export {useAuthStore} from './modules/auth.store'
-export {useThemeStore} from './modules/theme.store'
-export type {ThemeMode, ResolvedTheme} from './modules/theme.store'
+/**
+ * Global stores exports
+ * Application-specific stores are located in their respective app directories
+ */
+
+// Global stores
+export { useAppStore } from "./modules/app.store.ts";
+export { useAuthStore } from "./modules/auth.store.ts";
+export { useThemeStore } from "./modules/theme.store.ts";
+
+// Types
+export type { ThemeMode, ResolvedTheme } from "./modules/theme.store.ts";
+export type { AppState } from "./modules/app.store.ts";
+export type { AuthStore, NetworkConfig, ConnectionSession } from "./modules/auth.store.ts";

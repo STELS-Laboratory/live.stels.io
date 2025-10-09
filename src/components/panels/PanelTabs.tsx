@@ -1,9 +1,9 @@
-import React, {useState} from "react";
-import {cn} from "@/lib/utils";
-import {Button} from "@/components/ui/button";
-import {Badge} from "@/components/ui/badge";
-import {usePanelStore} from "@/stores/modules/panel.store";
-import type {Panel} from "@/lib/panel-types";
+import React, { useState } from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useCanvasStore } from "@/apps/Canvas/store.ts";
+import type { Panel } from "@/lib/panel-types";
 
 interface PanelTabsProps {
 	className?: string;
@@ -19,10 +19,10 @@ interface PanelTabProps {
  * Individual panel tab component
  */
 const PanelTab: React.FC<PanelTabProps> = ({
-	                                           panel,
-	                                           isActive,
-	                                           onClick,
-                                           }) => {
+	panel,
+	isActive,
+	onClick,
+}) => {
 	return (
 		<div
 			className={cn(
@@ -35,15 +35,17 @@ const PanelTab: React.FC<PanelTabProps> = ({
 			onClick={onClick}
 		>
 			<div className="flex items-center px-3 py-2 min-w-0 flex-1">
-        <span
-	        className={cn(
-		        "text-sm font-medium truncate",
-		        isActive ? "text-amber-500" : "text-muted-foreground dark:text-muted-foreground",
-	        )}
-        >
-          {panel.name}
-        </span>
-				
+				<span
+					className={cn(
+						"text-sm font-medium truncate",
+						isActive
+							? "text-amber-500"
+							: "text-muted-foreground dark:text-muted-foreground",
+					)}
+				>
+					{panel.name}
+				</span>
+
 				{panel.description && (
 					<Badge
 						variant="secondary"
@@ -62,30 +64,28 @@ const PanelTab: React.FC<PanelTabProps> = ({
 /**
  * Panel tabs container component
  */
-export const PanelTabs: React.FC<PanelTabsProps> = ({className}) => {
-	const {
-		panels,
-		activePanelId,
-		setActivePanel,
-		updatePanel,
-	} = usePanelStore();
-	
+export const PanelTabs: React.FC<PanelTabsProps> = ({ className }) => {
+	const panels = useCanvasStore((state) => state.panels.panels);
+	const activePanelId = useCanvasStore((state) => state.panels.activePanelId);
+	const setActivePanel = useCanvasStore((state) => state.setActivePanel);
+	const updatePanel = useCanvasStore((state) => state.updatePanel);
+
 	const [editingPanel, setEditingPanel] = useState<string | null>(null);
 	const [editName, setEditName] = useState("");
-	
+
 	const handleSaveEdit = () => {
 		if (editingPanel && editName.trim()) {
-			updatePanel(editingPanel, {name: editName.trim()});
+			updatePanel(editingPanel, { name: editName.trim() });
 			setEditingPanel(null);
 			setEditName("");
 		}
 	};
-	
+
 	const handleCancelEdit = () => {
 		setEditingPanel(null);
 		setEditName("");
 	};
-	
+
 	return (
 		<div
 			className={cn(
@@ -104,11 +104,10 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({className}) => {
 					/>
 				))}
 			</div>
-			
+
 			{/* Inline edit dialog */}
 			{editingPanel && (
-				<div
-					className="absolute top-full left-0 right-0 z-50 bg-white dark:bg-muted border border-zinc-200 dark:border-border rounded-md shadow-lg p-3">
+				<div className="absolute top-full left-0 right-0 z-50 bg-white dark:bg-muted border border-zinc-200 dark:border-border rounded-md shadow-lg p-3">
 					<div className="flex items-center space-x-2">
 						<input
 							type="text"
