@@ -1,6 +1,5 @@
 /**
- * Scanner utility functions
- * Formatting, validation, and calculation utilities
+ * Utility functions and calculations for Scanner
  */
 
 /**
@@ -13,7 +12,7 @@ export const validateAddress = (address: string): boolean => {
 };
 
 /**
- * Formats currency values
+ * Format number as currency
  */
 export const formatCurrency = (value: string | number): string => {
 	const num = typeof value === "string" ? Number.parseFloat(value) : value;
@@ -28,9 +27,11 @@ export const formatCurrency = (value: string | number): string => {
 };
 
 /**
- * Formats currency with color based on value
+ * Format currency with color based on value
  */
-export const formatCurrencyWithColor = (value: string | number) => {
+export const formatCurrencyWithColor = (
+	value: string | number,
+): { value: string; color: string } => {
 	const num = typeof value === "string" ? Number.parseFloat(value) : value;
 	if (isNaN(num)) return { value: "$0.00", color: "text-muted-foreground" };
 
@@ -47,9 +48,11 @@ export const formatCurrencyWithColor = (value: string | number) => {
 };
 
 /**
- * Formats percentage with color
+ * Format percentage with color
  */
-export const formatPercentageWithColor = (value: string | number) => {
+export const formatPercentageWithColor = (
+	value: string | number,
+): { value: string; color: string } => {
 	const num = typeof value === "string" ? Number.parseFloat(value) : value;
 	if (isNaN(num)) return { value: "0%", color: "text-muted-foreground" };
 
@@ -61,13 +64,13 @@ export const formatPercentageWithColor = (value: string | number) => {
 };
 
 /**
- * Calculates and formats ROI with color
+ * Format ROI with color
  */
 export const formatROIWithColor = (
 	entryPrice: number,
 	currentPrice: number,
 	side: string,
-) => {
+): { value: string; color: string } => {
 	const roi = ((currentPrice - entryPrice) / entryPrice) * 100 *
 		(side.toLowerCase() === "sell" ? -1 : 1);
 	const formatted = `${roi.toFixed(2)}%`;
@@ -78,7 +81,7 @@ export const formatROIWithColor = (
 };
 
 /**
- * Formats numbers with decimal places
+ * Format number with specified decimals
  */
 export const formatNumber = (value: string | number, decimals = 4): string => {
 	const num = typeof value === "string" ? Number.parseFloat(value) : value;
@@ -91,7 +94,7 @@ export const formatNumber = (value: string | number, decimals = 4): string => {
 };
 
 /**
- * Formats timestamp to readable date
+ * Format timestamp to readable date
  */
 export const formatDate = (timestamp: number | string): string => {
 	const date = new Date(
@@ -107,20 +110,26 @@ export const formatDate = (timestamp: number | string): string => {
 };
 
 /**
- * Professional calculations class for financial metrics
+ * Professional calculations utility class
  */
 export class ProfessionalCalculations {
 	static formatCurrency(value: number, precision = 2): string {
-		return new Intl.NumberFormat("en-US", {
+		const isNegative = value < 0;
+		const absValue = Math.abs(value);
+		const formatted = new Intl.NumberFormat("en-US", {
 			style: "currency",
 			currency: "USD",
 			minimumFractionDigits: precision,
 			maximumFractionDigits: precision,
-		}).format(value);
+		}).format(absValue);
+		return isNegative ? `-${formatted}` : formatted;
 	}
 
 	static formatNumber(value: number, precision = 8): string {
-		return value.toFixed(precision);
+		return new Intl.NumberFormat("en-US", {
+			minimumFractionDigits: Math.min(2, precision),
+			maximumFractionDigits: precision,
+		}).format(value);
 	}
 
 	static formatPercentage(value: number, precision = 2): string {
@@ -136,8 +145,9 @@ export class ProfessionalCalculations {
 		isProfit: boolean;
 	} {
 		const absolute = current - previous;
-		const percentage = previous !== 0 ? (absolute / previous) * 100 : 0;
-
+		const percentage = previous !== 0
+			? (absolute / Math.abs(previous)) * 100
+			: 0;
 		return {
 			absolute,
 			percentage,
@@ -154,56 +164,56 @@ export class ProfessionalCalculations {
 		marginLevel: number;
 		riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 	} {
-		const utilizationRatio = balance !== 0 ? (initial / balance) * 100 : 0;
-		const marginLevel = maintenance !== 0 ? (balance / maintenance) * 100 : 0;
-		let riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" = "LOW";
+		const utilizationRatio = (initial / balance) * 100;
+		const marginLevel = balance / maintenance;
 
-		if (marginLevel < 110) riskLevel = "CRITICAL";
-		else if (marginLevel < 150) riskLevel = "HIGH";
-		else if (marginLevel < 200) riskLevel = "MEDIUM";
+		let riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" = "LOW";
+		if (marginLevel < 1.5) riskLevel = "CRITICAL";
+		else if (marginLevel < 2.5) riskLevel = "HIGH";
+		else if (marginLevel < 5) riskLevel = "MEDIUM";
 
 		return { utilizationRatio, marginLevel, riskLevel };
 	}
 
-	static calculateWorkerEfficiency(workers: {
-		active: number;
-		stopped: number;
-		total: number;
-	}): {
+	static calculateWorkerEfficiency(
+		workers: { active: number; stopped: number; total: number },
+	): {
 		efficiency: number;
 		status: "OPTIMAL" | "GOOD" | "WARNING" | "CRITICAL";
 	} {
-		const efficiency = workers.total !== 0
+		const efficiency = workers.total > 0
 			? (workers.active / workers.total) * 100
 			: 0;
-		let status: "OPTIMAL" | "GOOD" | "WARNING" | "CRITICAL" = "OPTIMAL";
 
-		if (efficiency < 50) status = "CRITICAL";
-		else if (efficiency < 70) status = "WARNING";
-		else if (efficiency < 90) status = "GOOD";
+		let status: "OPTIMAL" | "GOOD" | "WARNING" | "CRITICAL" = "CRITICAL";
+		if (efficiency >= 95) status = "OPTIMAL";
+		else if (efficiency >= 80) status = "GOOD";
+		else if (efficiency >= 60) status = "WARNING";
 
 		return { efficiency, status };
 	}
 
 	static formatTimestamp(timestamp: number): string {
-		return new Date(timestamp).toLocaleString("en-US", {
+		const date = new Date(timestamp);
+		return date.toLocaleString("en-US", {
 			month: "short",
-			day: "numeric",
-			year: "numeric",
+			day: "2-digit",
 			hour: "2-digit",
 			minute: "2-digit",
+			second: "2-digit",
+			hour12: false,
 		});
 	}
 
 	static getTimeDifference(timestamp1: number, timestamp2: number): string {
 		const diff = Math.abs(timestamp1 - timestamp2);
-		const minutes = Math.floor(diff / 60000);
-
-		if (minutes < 60) return `${minutes}m ago`;
+		const seconds = Math.floor(diff / 1000);
+		const minutes = Math.floor(seconds / 60);
 		const hours = Math.floor(minutes / 60);
-		if (hours < 24) return `${hours}h ago`;
-		const days = Math.floor(hours / 24);
-		return `${days}d ago`;
+
+		if (hours > 0) return `${hours}h ${minutes % 60}m ago`;
+		if (minutes > 0) return `${minutes}m ${seconds % 60}s ago`;
+		return `${seconds}s ago`;
 	}
 
 	static analyzeNetworkNodes(nodeMap: Record<string, any>): {
@@ -217,30 +227,52 @@ export class ProfessionalCalculations {
 	} {
 		const nodes = Object.values(nodeMap);
 		const totalNodes = nodes.length;
-		const activeNodes = nodes.filter((n: any) => n.status === "active").length;
-		const regions: Record<string, number> = {};
 
-		let totalCpu = 0;
-		let totalMemory = 0;
-		let latestUpdate = 0;
+		const currentTime = Date.now();
+		const activeNodes = nodes.filter((node) => {
+			const nodeTime = node.value?.timestamp || 0;
+			return (currentTime - nodeTime) < 300000; // 5 minutes threshold
+		}).length;
 
-		nodes.forEach((node: any) => {
-			const region = node.region || "unknown";
-			regions[region] = (regions[region] || 0) + 1;
-			totalCpu += node.cpuUsage || 0;
-			totalMemory += node.memoryUsage || 0;
-			if (node.lastUpdate > latestUpdate) latestUpdate = node.lastUpdate;
-		});
+		const regions = nodes.reduce((acc, node) => {
+			const location = node.value?.raw?.location;
+			if (location?.country_name) {
+				acc[location.country_name] = (acc[location.country_name] || 0) + 1;
+			}
+			return acc;
+		}, {} as Record<string, number>);
 
-		const avgCpuUsage = totalNodes > 0 ? totalCpu / totalNodes : 0;
-		const avgMemoryUsage = totalNodes > 0 ? totalMemory / totalNodes : 0;
-		const activeRatio = totalNodes > 0 ? (activeNodes / totalNodes) * 100 : 0;
+		const cpuUsages = nodes.map((node) => {
+			const cpu = node.value?.raw?.cpu || [0, 0, 0];
+			return cpu.reduce((sum: number, val: number) => sum + val, 0) /
+				cpu.length;
+		}).filter((usage) => usage > 0);
 
-		let healthStatus: "EXCELLENT" | "GOOD" | "STABLE" | "CRITICAL" =
-			"EXCELLENT";
-		if (activeRatio < 50) healthStatus = "CRITICAL";
-		else if (activeRatio < 75) healthStatus = "STABLE";
-		else if (activeRatio < 95) healthStatus = "GOOD";
+		const memoryUsages = nodes.map((node) => {
+			const memory = node.value?.raw?.memory;
+			if (!memory) return 0;
+			return (memory.heapUsed / memory.heapTotal) * 100;
+		}).filter((usage) => usage > 0);
+
+		const avgCpuUsage = cpuUsages.length > 0
+			? cpuUsages.reduce((sum, val) => sum + val, 0) / cpuUsages.length
+			: 0;
+
+		const avgMemoryUsage = memoryUsages.length > 0
+			? memoryUsages.reduce((sum, val) => sum + val, 0) / memoryUsages.length
+			: 0;
+
+		const healthPercentage = totalNodes > 0
+			? (activeNodes / totalNodes) * 100
+			: 0;
+		let healthStatus: "EXCELLENT" | "GOOD" | "STABLE" | "CRITICAL" = "CRITICAL";
+		if (healthPercentage >= 95) healthStatus = "EXCELLENT";
+		else if (healthPercentage >= 40) healthStatus = "GOOD";
+		else if (healthPercentage >= 10) healthStatus = "STABLE";
+
+		const lastUpdate = Math.max(
+			...nodes.map((node) => node.value?.timestamp || 0),
+		);
 
 		return {
 			totalNodes,
@@ -249,8 +281,7 @@ export class ProfessionalCalculations {
 			avgCpuUsage,
 			avgMemoryUsage,
 			healthStatus,
-			lastUpdate: latestUpdate,
+			lastUpdate,
 		};
 	}
 }
-

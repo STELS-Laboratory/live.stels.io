@@ -1,12 +1,23 @@
-/**
- * Metric card component
- * Displays a single metric with optional icon and trend
- */
-
-import type React from "react";
+import React from "react";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { MetricCardProps } from "../types";
+
+/**
+ * Props for MetricCard component
+ */
+interface MetricCardProps {
+  label: string;
+  value: string;
+  color?: string;
+  icon?: React.ReactNode;
+  size?: "sm" | "md" | "lg";
+  trend?: {
+    value: number;
+    isPositive: boolean;
+  };
+  onClick?: () => void;
+  className?: string;
+}
 
 /**
  * Metric display card component
@@ -20,7 +31,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   trend,
   onClick,
   className,
-}): React.ReactElement => (
+}) => (
   <div
     className={cn(
       "space-y-1 p-3 rounded-lg transition-all duration-200",

@@ -1,12 +1,11 @@
 /**
- * Welcome module type definitions
- * TypeScript interfaces extracted from Welcome.tsx
+ * Type definitions for Welcome screen
  */
 
 import type React from "react";
 
 /**
- * Application metadata structure
+ * Application metadata for the app store
  */
 export interface AppMetadata {
 	id: string;
@@ -27,13 +26,3 @@ export interface AppMetadata {
 	badge?: string;
 	stats?: string;
 }
-
-/**
- * App card component props
- */
-export interface AppCardProps {
-	app: AppMetadata;
-	onLaunch: (route: string) => void;
-	isMobile: boolean;
-}
-

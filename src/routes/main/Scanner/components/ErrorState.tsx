@@ -1,22 +1,25 @@
-/**
- * Error state component
- * Displays error messages with retry and dismiss options
- */
-
-import type React from "react";
-import { AlertCircle, RefreshCw, XCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import type { ErrorStateProps } from "../types";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, RefreshCw, XCircle } from "lucide-react";
 
 /**
- * Enhanced error display component
+ * Props for ErrorState component
+ */
+interface ErrorStateProps {
+  error: string;
+  onRetry?: () => void;
+  onDismiss?: () => void;
+}
+
+/**
+ * Enhanced error state component with retry and dismiss actions
  */
 export const ErrorState: React.FC<ErrorStateProps> = ({
   error,
   onRetry,
   onDismiss,
-}): React.ReactElement => (
+}) => (
   <Alert variant="destructive" className="mb-6">
     <AlertCircle className="h-4 w-4" />
     <AlertDescription className="font-medium flex items-center justify-between">

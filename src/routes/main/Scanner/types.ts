@@ -1,22 +1,7 @@
 /**
- * Scanner module type definitions
- * All TypeScript interfaces for the wallet scanner functionality
+ * Type definitions for Scanner component
  */
 
-import type React from "react";
-
-/**
- * Error state component props
- */
-export interface ErrorStateProps {
-	error: string;
-	onRetry?: () => void;
-	onDismiss?: () => void;
-}
-
-/**
- * Coin information from exchange wallet
- */
 export interface CoinInfo {
 	coin: string;
 	equity: string;
@@ -39,9 +24,6 @@ export interface CoinInfo {
 	cumRealisedPnl: string;
 }
 
-/**
- * Raw position data from exchange
- */
 export interface RawPosition {
 	symbol: string;
 	contracts: number;
@@ -67,9 +49,6 @@ export interface RawPosition {
 	percentage: number;
 }
 
-/**
- * Position data container
- */
 export interface PositionData {
 	key: string[];
 	value: {
@@ -82,9 +61,6 @@ export interface PositionData {
 	};
 }
 
-/**
- * Order information
- */
 export interface OrderInfo {
 	info: {
 		symbol: string;
@@ -124,9 +100,6 @@ export interface OrderInfo {
 	};
 }
 
-/**
- * Order data container
- */
 export interface OrderData {
 	key: string[];
 	value: {
@@ -145,9 +118,6 @@ export interface OrderData {
 	};
 }
 
-/**
- * Wallet data structure
- */
 export interface WalletData {
 	info: {
 		result: {
@@ -167,9 +137,6 @@ export interface WalletData {
 	};
 }
 
-/**
- * Trading protocol configuration
- */
 export interface Protocol {
 	strategy: string;
 	tradingStyle: string;
@@ -192,9 +159,6 @@ export interface Protocol {
 	dynamicPositionSizing: boolean;
 }
 
-/**
- * Complete wallet response from API
- */
 export interface WalletResponse {
 	nid: string;
 	address: string;
@@ -212,40 +176,6 @@ export interface WalletResponse {
 	workers?: string[];
 }
 
-/**
- * Metric card component props
- */
-export interface MetricCardProps {
-	label: string;
-	value: string;
-	color?: string;
-	icon?: React.ReactNode;
-	size?: "sm" | "md" | "lg";
-	trend?: {
-		value: number;
-		isPositive: boolean;
-	};
-	onClick?: () => void;
-	className?: string;
-}
-
-/**
- * Account overview component props
- */
-export interface AccountOverviewProps {
-	walletData: WalletResponse;
-}
-
-/**
- * Asset balances component props
- */
-export interface AssetBalancesProps {
-	coins: CoinInfo[];
-}
-
-/**
- * Network connection data from session
- */
 export interface NetworkConnectionData {
 	channel: string;
 	module: string;
@@ -266,9 +196,6 @@ export interface NetworkConnectionData {
 	timestamp: number;
 }
 
-/**
- * Welcome session data structure
- */
 export interface WelcomeSessionData {
 	[key: string]: {
 		raw: {
@@ -294,3 +221,17 @@ export interface WelcomeSessionData {
 	};
 }
 
+/**
+ * Component props
+ */
+export interface AccountOverviewProps {
+	walletData: WalletResponse;
+}
+
+export interface AssetBalancesProps {
+	coins: CoinInfo[];
+}
+
+export interface AccountCardProps {
+	walletData: WalletResponse;
+}
