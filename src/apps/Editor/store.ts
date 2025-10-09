@@ -68,7 +68,7 @@ export type EditorStore = EditorStoreState & EditorStoreActions;
  */
 export const useEditorStore = create<EditorStore>()(
 	devtools(
-		(set, get) => ({
+		(set) => ({
 			// Initial State
 			workers: [],
 			workersLoading: false,

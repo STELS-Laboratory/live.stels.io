@@ -9,6 +9,7 @@ import SOLIcon from "@/assets/icons/coins/SOL.png";
 import TRXIcon from "@/assets/icons/coins/TRX.png";
 import XRPIcon from "@/assets/icons/coins/XRP.png";
 import BNBIcon from "@/assets/icons/coins/BNB.png";
+import SQRIcon from "@/assets/icons/coins/SQR.png";
 import JASMYIcon from "@/assets/icons/coins/JASMY.png";
 
 // Import exchange icons
@@ -95,6 +96,7 @@ export const getCurrencyIcon = (symbol: string): string | null => {
 		TRX: TRXIcon,
 		XRP: XRPIcon,
 		BNB: BNBIcon,
+		SQR: SQRIcon,
 		JASMY: JASMYIcon,
 	};
 	return iconMap[symbol] || null;

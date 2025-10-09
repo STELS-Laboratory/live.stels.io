@@ -25,7 +25,7 @@ export const SONAR_APPLICATIONS: AppMetadata[] = [
   {
     id: "scanner",
     route: "scanner",
-    name: "Liquidity Scanner",
+    name: "Liquidity",
     tagline: "Real-time liquidity analysis",
     description:
       "Professional liquidity analysis system for monitoring trading positions, account balances, and market exposure across multiple exchanges in real-time.",
@@ -40,7 +40,7 @@ export const SONAR_APPLICATIONS: AppMetadata[] = [
   {
     id: "markets",
     route: "markets",
-    name: "Market Aggregator",
+    name: "Markets",
     tagline: "Unified multi-exchange terminal",
     description:
       "Professional market aggregator consolidating real-time data from multiple exchanges. Monitor spot markets, compare prices, analyze volumes, and track liquidity across all connected trading venues in one unified interface.",
@@ -55,10 +55,9 @@ export const SONAR_APPLICATIONS: AppMetadata[] = [
   {
     id: "orderbook",
     route: "orderbook",
-    name: "Order Book",
-    tagline: "Real-time market depth analysis",
-    description:
-      "Professional order book visualization and analysis tool. Monitor real-time market depth, track bid-ask spreads, analyze liquidity distribution, and identify trading opportunities across multiple exchanges and markets.",
+    name: "Aggregator",
+    tagline: "Real-time market depth aggregator",
+    description: "Real-time market depth aggregator",
     icon: <BookOpen className="w-8 h-8" />,
     color: "from-emerald-500/20 to-teal-500/20",
     category: "Trading",
@@ -70,7 +69,7 @@ export const SONAR_APPLICATIONS: AppMetadata[] = [
   {
     id: "canvas",
     route: "canvas",
-    name: "Canvas dashboard",
+    name: "Canvas",
     tagline: "Visual data composition",
     description:
       "Advanced widget store and Canvas for building custom data visualizations. Drag and drop widgets to create your perfect trading dashboard.",
@@ -98,8 +97,8 @@ export const SONAR_APPLICATIONS: AppMetadata[] = [
   {
     id: "editor",
     route: "editor",
-    name: "AMI Editor",
-    tagline: "Algorithmic strategy development",
+    name: "Playground",
+    tagline: "Algorithmic strategy development playground",
     description:
       "Professional code Editor for developing and managing trading algorithms. Create, test, and deploy automated trading strategies (AMI workers).",
     icon: <Code2 className="w-8 h-8" />,

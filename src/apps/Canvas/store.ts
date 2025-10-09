@@ -5,16 +5,13 @@
 
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import type { Edge, Node } from "reactflow";
 import type {
-	FlowNodeData,
 	GroupingMode,
 	WidgetStoreUIState,
 } from "@/lib/canvas-types.ts";
 import type {
 	Panel,
 	PanelData,
-	PanelSettings,
 } from "@/lib/panel-types.ts";
 
 /**

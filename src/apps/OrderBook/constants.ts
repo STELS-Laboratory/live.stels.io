@@ -23,6 +23,7 @@ import SOLIcon from "@/assets/icons/coins/SOL.png";
 import TRXIcon from "@/assets/icons/coins/TRX.png";
 import XRPIcon from "@/assets/icons/coins/XRP.png";
 import BNBIcon from "@/assets/icons/coins/BNB.png";
+import SQRIcon from "@/assets/icons/coins/SQR.png";
 import JASMYIcon from "@/assets/icons/coins/JASMY.png";
 
 /**
@@ -54,6 +55,7 @@ export const CURRENCY_ICONS: { [key: string]: string } = {
 	TRX: TRXIcon,
 	XRP: XRPIcon,
 	BNB: BNBIcon,
+	SQR: SQRIcon,
 	JASMY: JASMYIcon,
 };
 

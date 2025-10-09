@@ -87,7 +87,7 @@ const DEFAULT_STATE: OrderBookStoreState = {
 export const useOrderBookStore = create<OrderBookStore>()(
 	devtools(
 		persist(
-			(set, get) => ({
+			(set) => ({
 				// Initial State
 				...DEFAULT_STATE,
 
