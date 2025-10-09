@@ -101,7 +101,7 @@ export function CategoryFilter({
       <div className="px-4 py-4 border-b border-border/30 bg-card/30">
         {/* Horizontal scroll categories */}
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent -mx-4 px-4">
-          {categories.map((category, index) => {
+          {categories.map((category) => {
             const isActive = selectedCategory === category;
             const count = categoryCounts[category] || 0;
 
@@ -115,9 +115,6 @@ export function CategoryFilter({
                     ? getCategoryActiveColor(category)
                     : "bg-card/50 text-muted-foreground border-border/50 hover:bg-card hover:border-border",
                 )}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 {getCategoryIcon(category)}
@@ -194,7 +191,7 @@ export function CategoryFilter({
                     size="sm"
                     onClick={() => setSelectedCategory(category)}
                     className={cn(
-                      "h-9 gap-2 transition-all duration-200 relative",
+                      "h-10 gap-2.5 px-4 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] relative shadow-sm hover:shadow-md",
                       isActive
                         ? getCategoryActiveColor(category)
                         : getCategoryColor(category),
@@ -228,13 +225,13 @@ export function CategoryFilter({
               size="sm"
               onClick={toggleShowOnlyFeatured}
               className={cn(
-                "h-9 gap-2",
+                "h-10 gap-2.5 px-4 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-sm hover:shadow-md",
                 showOnlyFeatured &&
                   "bg-amber-500/20 text-amber-500 border-amber-500/30 hover:bg-amber-500/30",
               )}
             >
               <Sparkles className="w-4 h-4" />
-              <span className="font-medium">Featured Only</span>
+              <span className="font-semibold">Featured Only</span>
             </Button>
           </motion.div>
         </div>

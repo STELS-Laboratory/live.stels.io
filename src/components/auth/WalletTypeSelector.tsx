@@ -1,12 +1,6 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  ArrowRight,
-  Key,
-  Shield,
-  Sparkles,
-  Wallet,
-} from "lucide-react";
+import { ArrowRight, Key, Shield, Sparkles, Wallet } from "lucide-react";
 
 interface WalletTypeSelectorProps {
   onSelectType: (type: "create" | "import") => void;
@@ -133,16 +127,16 @@ export function WalletTypeSelector(
           </div>
 
           {/* Enhanced Security Notice */}
-          <div className="mt-12 p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-border/30 backdrop-blur-sm">
+          <div className="mt-12 p-6 bg-muted/50 dark:bg-muted/30 rounded-xl border border-border/30 backdrop-blur-sm">
             <div className="flex items-start gap-4">
               <div className="p-2 bg-green-500/20 rounded-full">
-                <Shield className="h-6 w-6 text-green-400" />
+                <Shield className="h-6 w-6 text-green-500 dark:text-green-400" />
               </div>
               <div>
                 <div className="font-semibold text-foreground mb-2 text-lg">
                   🔒 Security Guarantee
                 </div>
-                <div className="text-card-foreground leading-relaxed">
+                <div className="text-foreground leading-relaxed">
                   Your private key is generated and stored securely in your
                   browser using advanced encryption. We never have access to
                   your private keys or funds - everything stays local to your

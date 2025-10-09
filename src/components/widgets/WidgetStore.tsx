@@ -238,7 +238,7 @@ function WidgetItem({
           "flex items-center p-2 rounded-md transition-all duration-200",
           isInCanvas
             ? "bg-muted text-muted-foreground cursor-not-allowed opacity-60"
-            : "bg-amber-600 text-black cursor-grab active:cursor-grabbing hover:bg-amber-500 hover:scale-105",
+            : "bg-amber-600 text-black dark:text-black cursor-grab active:cursor-grabbing hover:bg-amber-500 hover:scale-105",
           dragState.isDragging && "opacity-50 scale-95",
           isMobile && "touch-manipulation",
         )}
@@ -376,7 +376,7 @@ function FilterBar({
   isTablet,
 }: FilterBarProps): React.ReactElement {
   return (
-    <div className="space-y-3 p-3 border-b bg-zinc-50 dark:bg-muted/50">
+    <div className="space-y-3 p-3 border-b bg-muted/30 dark:bg-muted/50">
       {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

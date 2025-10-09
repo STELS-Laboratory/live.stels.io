@@ -121,8 +121,8 @@ export function WalletPreview({
                   : <Copy className="h-4 w-4 text-muted-foreground" />}
               </Button>
             </div>
-            <div className="p-4 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-lg border border-border/30 backdrop-blur-sm">
-              <div className="font-mono text-sm text-card-foreground break-all leading-relaxed">
+            <div className="p-4 bg-muted/50 dark:bg-muted/30 rounded-lg border border-border/30 backdrop-blur-sm">
+              <div className="font-mono text-sm text-foreground break-all leading-relaxed">
                 {wallet.address}
               </div>
             </div>
@@ -134,8 +134,8 @@ export function WalletPreview({
               <div className="w-2 h-2 bg-blue-400 rounded-full" />
               Card Number
             </label>
-            <div className="p-4 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-lg border border-border/30 backdrop-blur-sm">
-              <div className="font-mono text-lg text-card-foreground font-bold">
+            <div className="p-4 bg-muted/50 dark:bg-muted/30 rounded-lg border border-border/30 backdrop-blur-sm">
+              <div className="font-mono text-lg text-foreground font-bold">
                 {wallet.number}
               </div>
             </div>
@@ -171,10 +171,10 @@ export function WalletPreview({
                 </Button>
               </div>
             </div>
-            <div className="p-4 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-lg border border-border/30 backdrop-blur-sm">
+            <div className="p-4 bg-muted/50 dark:bg-muted/30 rounded-lg border border-border/30 backdrop-blur-sm">
               {showPublicKey
                 ? (
-                  <div className="font-mono text-xs text-card-foreground break-all leading-relaxed">
+                  <div className="font-mono text-xs text-foreground break-all leading-relaxed">
                     {wallet.publicKey}
                   </div>
                 )
@@ -184,7 +184,7 @@ export function WalletPreview({
                       {Array.from({ length: 16 }).map((_, i) => (
                         <div
                           key={i}
-                          className="w-1 h-3 bg-zinc-600 rounded-full"
+                          className="w-1 h-3 bg-border dark:bg-muted rounded-full"
                         />
                       ))}
                     </div>
@@ -235,7 +235,7 @@ export function WalletPreview({
               <Button
                 onClick={handleContinue}
                 size="sm"
-                className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25 transition-all duration-300"
+                className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black dark:text-black shadow-lg shadow-amber-500/25 transition-all duration-300"
               >
                 Continue
               </Button>

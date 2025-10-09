@@ -47,7 +47,7 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-md mx-4">
         <Card className="border-amber-500/20 bg-card/95 backdrop-blur-md">
           <CardHeader className="text-center">
@@ -64,14 +64,14 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
 
           <CardContent className="space-y-4">
             {/* Security Information */}
-            <div className="bg-blue-500/5 border border-blue-500/20 rounded-lg p-4">
+            <div className="bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/20 dark:border-blue-500/30 rounded-lg p-4">
               <div className="flex items-start space-x-3">
-                <Shield className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                <Shield className="h-5 w-5 text-blue-500 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                 <div className="space-y-2">
-                  <p className="text-blue-400 text-sm font-medium">
+                  <p className="text-blue-600 dark:text-blue-400 text-sm font-medium">
                     Security Testing in Progress
                   </p>
-                  <p className="text-blue-300 text-xs leading-relaxed">
+                  <p className="text-blue-700 dark:text-blue-300 text-xs leading-relaxed">
                     Our security team is currently testing session management
                     mechanisms to protect against unauthorized access and cyber
                     attacks. You may need to re-authenticate when you return.
@@ -83,7 +83,7 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
             <div className="space-y-3">
               <Button
                 onClick={handleProceedWithLogout}
-                className="w-full bg-amber-500 hover:bg-amber-600 text-black font-medium"
+                className="w-full bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-600 text-black dark:text-black font-medium"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign Out & Continue
@@ -92,7 +92,7 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
               <Button
                 onClick={handleCancelLogout}
                 variant="outline"
-                className="w-full border-border hover:bg-muted text-card-foreground"
+                className="w-full"
               >
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Stay Logged In

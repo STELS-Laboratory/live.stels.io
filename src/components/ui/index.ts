@@ -5,6 +5,7 @@
 
 export * from "./accordion";
 export * from "./alert";
+export * from "./app-icon";
 export * from "./badge";
 export * from "./button";
 export * from "./card";

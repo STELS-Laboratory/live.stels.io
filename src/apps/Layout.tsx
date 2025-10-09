@@ -70,13 +70,13 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 	const getAppName = (route: string): string => {
 		const names: Record<string, string> = {
 			welcome: "Welcome",
-			scanner: "Liquidity Scanner",
-			markets: "Market Data",
+			scanner: "Liquidity",
+			markets: "Markets",
 			fred: "Indicators",
-			network: "Network Explorer",
-			editor: "AMI Editor",
+			network: "Network",
+			editor: "Editor",
 			wallet: "Wallet",
-			canvas: "Widget Studio",
+			canvas: "Canvas",
 		};
 		return names[route] || route;
 	};

@@ -4,7 +4,6 @@
  */
 
 import React from "react";
-import { motion } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import { useWelcomeStore } from "../store.ts";
@@ -22,25 +21,10 @@ export function EmptyState({ isMobile }: EmptyStateProps): React.ReactElement {
   const clearFilters = useWelcomeStore((state) => state.clearFilters);
 
   return (
-    <motion.div
-      className={isMobile ? "px-4 py-16" : "container mx-auto px-6 py-24"}
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4 }}
-    >
+    <div className={isMobile ? "px-4 py-16" : "container mx-auto px-6 py-24"}>
       <div className="text-center max-w-md mx-auto">
         {/* Icon */}
-        <motion.div
-          className="mb-6 flex items-center justify-center"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{
-            duration: 0.5,
-            delay: 0.1,
-            type: "spring",
-            stiffness: 200,
-          }}
-        >
+        <div className="mb-6 flex items-center justify-center">
           <div className="relative">
             {/* Static rings */}
             <div className="absolute -inset-2 rounded-full border-2 border-amber-500/20" />
@@ -63,18 +47,14 @@ export function EmptyState({ isMobile }: EmptyStateProps): React.ReactElement {
               <X className="w-4 h-4 text-amber-500" />
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Message */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-        >
-          <h3 className="text-xl font-bold text-foreground mb-2">
+        <div>
+          <h3 className="text-2xl font-black text-foreground mb-3 tracking-tight">
             No Applications Found
           </h3>
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="text-base text-muted-foreground/70 mb-8 font-semibold leading-relaxed">
             {searchTerm
               ? (
                 <>
@@ -99,33 +79,34 @@ export function EmptyState({ isMobile }: EmptyStateProps): React.ReactElement {
           {/* Clear filters button */}
           <div className="relative inline-block">
             {/* Corner accents */}
-            <div className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-amber-400/50" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-amber-400/50" />
-            <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-amber-400/50" />
-            <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-amber-400/50" />
+            <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-amber-400/50" />
+            <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-amber-400/50" />
+            <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-amber-400/50" />
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-amber-400/50" />
 
             <Button
               onClick={clearFilters}
-              className="relative bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-600 hover:via-amber-500 hover:to-amber-600 text-black font-bold"
+              className="relative h-14 px-8 text-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:scale-[0.98] text-black font-black shadow-lg hover:shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
             >
               Clear All Filters
             </Button>
           </div>
-        </motion.div>
+        </div>
 
         {/* Suggestions */}
-        <motion.div
-          className="mt-8 p-4 rounded-lg bg-muted/30 border border-border/30"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-        >
-          <p className="text-xs text-muted-foreground">
-            <span className="font-bold text-foreground">Tip:</span>{" "}
+        <div className="relative mt-10 p-6 bg-muted/30 border-2 border-border/30 shadow-sm">
+          {/* Corner accents */}
+          <div className="absolute -top-0.5 -left-0.5 w-3 h-3 border-t border-l border-border/50" />
+          <div className="absolute -top-0.5 -right-0.5 w-3 h-3 border-t border-r border-border/50" />
+          <div className="absolute -bottom-0.5 -left-0.5 w-3 h-3 border-b border-l border-border/50" />
+          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 border-b border-r border-border/50" />
+
+          <p className="text-sm text-muted-foreground/70 font-medium relative">
+            <span className="font-black text-foreground">Tip:</span>{" "}
             Try different search terms or browse all categories
           </p>
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

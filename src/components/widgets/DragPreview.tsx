@@ -43,7 +43,7 @@ export function DragPreview({
     <div
       className={cn(
         "fixed pointer-events-none transition-all duration-200",
-        "bg-amber-500 text-black rounded-lg shadow-lg border-2 border-amber-400",
+        "bg-amber-500 text-black dark:text-black rounded-lg shadow-lg border-2 border-amber-400",
       )}
       style={{
         left: position.x,

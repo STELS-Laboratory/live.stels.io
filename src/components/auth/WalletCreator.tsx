@@ -207,8 +207,8 @@ export function WalletCreator(
 
         <CardContent className="px-8 pb-8 space-y-8">
           {/* Enhanced Description */}
-          <div className="p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-border/30 backdrop-blur-sm">
-            <p className="text-card-foreground leading-relaxed">
+          <div className="p-6 bg-muted/50 dark:bg-muted/30 rounded-xl border border-border/30 backdrop-blur-sm">
+            <p className="text-foreground leading-relaxed">
               {content.description}
             </p>
           </div>
@@ -279,7 +279,10 @@ export function WalletCreator(
                 </div>
               )}
 
-              <p id="private-key-help" className="text-xs text-muted-foreground">
+              <p
+                id="private-key-help"
+                className="text-xs text-muted-foreground"
+              >
                 Your private key is 64 hexadecimal characters (0-9, a-f). It's
                 processed securely in your browser.
               </p>
@@ -337,8 +340,8 @@ export function WalletCreator(
                   (!privateKey.trim() || !validationState.isValid))}
               className={`flex-1 h-12 transition-all duration-150 ${
                 walletType === "create"
-                  ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25"
-                  : "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-foreground shadow-lg shadow-blue-500/25"
+                  ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black dark:text-black shadow-lg shadow-amber-500/25"
+                  : "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white dark:text-white shadow-lg shadow-blue-500/25"
               }`}
             >
               {isLoading

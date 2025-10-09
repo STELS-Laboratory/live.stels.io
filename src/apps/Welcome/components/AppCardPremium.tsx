@@ -5,16 +5,8 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  Heart,
-  Sparkles,
-  Star,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { ArrowRight, Heart, Sparkles, Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card.tsx";
-import { Badge } from "@/components/ui/badge.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { cn } from "@/lib/utils.ts";
 import type { AppMetadata } from "../types.ts";
@@ -80,13 +72,11 @@ function getCategoryColorScheme(category: string): {
 }
 
 /**
- * Mobile App Card
+ * iOS-style Mobile App Card
  */
 function MobileAppCard({
   app,
   onLaunch,
-  isFavorite,
-  onToggleFavorite,
 }: AppCardPremiumProps & {
   isFavorite: boolean;
   onToggleFavorite: () => void;
@@ -97,68 +87,39 @@ function MobileAppCard({
   return (
     <motion.div
       className="relative"
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3 }}
-      whileTap={{ scale: 0.92 }}
+      whileTap={{ scale: 0.88 }}
+      transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
     >
       <button
         onClick={() => onLaunch(app.route)}
         onTouchStart={() => setIsPressed(true)}
         onTouchEnd={() => setIsPressed(false)}
         className={cn(
-          "relative w-full aspect-square rounded-2xl overflow-hidden transition-all duration-200",
-          "bg-gradient-to-br border",
+          "relative w-full aspect-square overflow-hidden transition-all duration-200 border",
+          "bg-gradient-to-br shadow-md active:shadow-sm",
+          "ease-[cubic-bezier(0.4,0,0.2,1)]",
           app.color,
-          isPressed ? "scale-95 shadow-lg" : "scale-100 shadow-md",
         )}
       >
-        {/* Icon */}
-        <div className="absolute inset-0 flex items-center justify-center">
+        {/* Subtle overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+
+        {/* Icon container */}
+        <div className="absolute inset-0 flex items-center justify-center p-4">
           <motion.div
-            className={cn(
-              "p-3 rounded-xl bg-card/50 backdrop-blur-sm border",
-              colorScheme.border,
-            )}
-            animate={isPressed ? { scale: 0.9 } : { scale: 1 }}
+            className={cn("relative", colorScheme.text)}
+            animate={isPressed
+              ? { scale: 0.85, opacity: 0.8 }
+              : { scale: 1, opacity: 1 }}
+            transition={{ duration: 0.15 }}
           >
             {app.icon}
           </motion.div>
         </div>
-
-        {/* Badge */}
-        {app.badge && (
-          <div className="absolute top-2 right-2">
-            <Badge
-              variant="secondary"
-              className="text-xs bg-card/80 backdrop-blur-sm border-border/50 px-2 py-0.5"
-            >
-              {app.badge}
-            </Badge>
-          </div>
-        )}
-
-        {/* Favorite button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleFavorite();
-          }}
-          className="absolute top-2 left-2 p-1.5 rounded-full bg-card/80 backdrop-blur-sm border border-border/50 transition-colors"
-        >
-          <Heart
-            className={cn(
-              "w-3 h-3",
-              isFavorite
-                ? "fill-red-500 text-red-500"
-                : "text-muted-foreground",
-            )}
-          />
-        </button>
       </button>
 
-      {/* App name below */}
-      <p className="text-xs font-medium text-center mt-2 text-foreground truncate px-1">
+      {/* App name */}
+      <p className="text-[11px] font-semibold text-center mt-1.5 text-foreground/90 truncate px-0.5 leading-tight">
         {app.name}
       </p>
     </motion.div>
@@ -171,7 +132,6 @@ function MobileAppCard({
 function DesktopAppCard({
   app,
   onLaunch,
-  index,
   isFavorite,
   onToggleFavorite,
 }: AppCardPremiumProps & {
@@ -182,19 +142,13 @@ function DesktopAppCard({
   const colorScheme = getCategoryColorScheme(app.category);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.4,
-        delay: index * 0.05,
-        ease: [0.16, 1, 0.3, 1],
-      }}
-    >
+    <div>
       <Card
         className={cn(
-          "group relative overflow-hidden border-2 transition-all duration-300 cursor-pointer",
-          "hover:shadow-2xl hover:scale-[1.03] hover:-translate-y-2",
+          "group relative overflow-hidden border-2 transition-all duration-500 cursor-pointer",
+          "hover:shadow-xl hover:scale-[1.01] hover:-translate-y-0.5",
+          "bg-gradient-to-br from-card via-card/98 to-card/95",
+          "ease-[cubic-bezier(0.4,0,0.2,1)]",
           isHovered && colorScheme.border,
           isHovered && `shadow-lg ${colorScheme.glow}`,
         )}
@@ -202,46 +156,33 @@ function DesktopAppCard({
         onMouseLeave={() => setIsHovered(false)}
         onClick={() => onLaunch(app.route)}
       >
-        {/* Grid pattern overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        {/* Subtle overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
 
-        {/* Animated background gradient */}
+        {/* Animated background gradient on hover */}
         <motion.div
           className={cn(
-            "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+            "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500",
             app.color,
           )}
         />
 
-        {/* Top accent line */}
-        <div
-          className={cn(
-            "absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-            colorScheme.text.replace("text-", "via-"),
-          )}
-        />
-
-        {/* Corner accent lines */}
-        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-transparent group-hover:border-amber-500/30 transition-all duration-300" />
-        <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-transparent group-hover:border-amber-500/30 transition-all duration-300" />
-        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-transparent group-hover:border-amber-500/30 transition-all duration-300" />
-        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-transparent group-hover:border-amber-500/30 transition-all duration-300" />
-
-        <CardContent className="relative p-6">
+        <CardContent className="relative p-7">
           {/* Header */}
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start justify-between mb-6">
+            {/* Icon container */}
             <motion.div
               className={cn(
-                "p-3 rounded-xl border-2 bg-card/50 backdrop-blur-sm",
+                "relative p-4 border-2 bg-gradient-to-br backdrop-blur-sm",
                 colorScheme.border,
-                colorScheme.text,
+                colorScheme.bg,
               )}
-              animate={isHovered
-                ? { scale: 1.1, rotate: 5 }
-                : { scale: 1, rotate: 0 }}
-              transition={{ duration: 0.3 }}
+              animate={isHovered ? { scale: 1.05 } : { scale: 1 }}
+              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
             >
-              {app.icon}
+              <div className={cn("relative", colorScheme.text)}>
+                {app.icon}
+              </div>
             </motion.div>
 
             {/* Favorite button */}
@@ -251,10 +192,10 @@ function DesktopAppCard({
                 onToggleFavorite();
               }}
               className={cn(
-                "p-2 rounded-full border transition-all duration-200",
+                "p-2 border transition-all duration-300",
                 isFavorite
-                  ? "bg-red-500/20 border-red-500/30 text-red-500"
-                  : "bg-card/50 border-border/50 text-muted-foreground hover:bg-card hover:border-border",
+                  ? "bg-red-500/15 text-red-500 border-red-500/30"
+                  : "bg-muted/50 text-muted-foreground border-border hover:bg-muted",
               )}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -269,133 +210,101 @@ function DesktopAppCard({
           </div>
 
           {/* Title and tagline */}
-          <div className="mb-3">
-            <h3 className="text-xl font-bold text-foreground mb-1 group-hover:text-amber-500 transition-colors">
+          <div className="mb-5">
+            <h3 className="text-xl font-bold text-foreground mb-2 tracking-tight leading-tight line-clamp-1">
               {app.name}
             </h3>
-            <p className="text-sm text-muted-foreground font-medium">
+            <p className="text-sm text-muted-foreground/70 font-semibold tracking-tight leading-snug line-clamp-2">
               {app.tagline}
             </p>
           </div>
 
           {/* Description */}
-          <p className="text-sm text-muted-foreground leading-relaxed mb-4 line-clamp-2">
+          <p className="text-sm text-muted-foreground/60 leading-relaxed mb-5 line-clamp-3">
             {app.description}
           </p>
 
           {/* Badges */}
-          <div className="flex items-center gap-2 mb-4 flex-wrap">
-            <Badge
-              variant="outline"
+          <div className="flex items-center gap-2.5 mb-6 flex-wrap">
+            {/* Category badge */}
+            <div
               className={cn(
-                "text-xs font-medium",
-                colorScheme.text,
+                "px-3.5 py-1.5 border text-xs font-semibold backdrop-blur-sm",
                 colorScheme.border,
+                colorScheme.bg,
+                colorScheme.text,
               )}
             >
               {app.category}
-            </Badge>
+            </div>
+
+            {/* Feature badge */}
             {app.badge && (
-              <Badge
-                variant="secondary"
-                className="text-xs bg-amber-500/10 text-amber-500 border-amber-500/20"
-              >
-                <Star className="w-3 h-3 mr-1" />
-                {app.badge}
-              </Badge>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 border border-amber-500/30 bg-amber-500/10 text-amber-500">
+                <Star className="w-3.5 h-3.5 fill-current" />
+                <span className="text-xs font-semibold">
+                  {app.badge}
+                </span>
+              </div>
+            )}
+
+            {/* Stats badge */}
+            {app.stats && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 border border-border bg-muted/50">
+                <div className="w-1.5 h-1.5 bg-green-500" />
+                <span className="text-xs font-semibold text-muted-foreground">
+                  {app.stats}
+                </span>
+              </div>
             )}
           </div>
 
-          {/* Stats */}
-          {app.stats && (
-            <div className="flex items-center gap-2 mb-4 text-xs text-muted-foreground">
-              <Users className="w-3 h-3" />
-              <span className="font-medium">{app.stats}</span>
-            </div>
-          )}
-
           {/* Launch button */}
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 10 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="relative"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 8 }}
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
           >
-            {/* Button corner accents */}
-            <div className="absolute -top-0.5 -left-0.5 w-3 h-3 border-t border-l border-amber-400/50" />
-            <div className="absolute -top-0.5 -right-0.5 w-3 h-3 border-t border-r border-amber-400/50" />
-            <div className="absolute -bottom-0.5 -left-0.5 w-3 h-3 border-b border-l border-amber-400/50" />
-            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 border-b border-r border-amber-400/50" />
-
             <Button
-              className="w-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-600 hover:via-amber-500 hover:to-amber-600 text-black font-bold h-10 group/btn relative"
+              className="w-full h-12 text-base bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:scale-[0.98] text-black font-bold shadow-md hover:shadow-lg transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group/btn"
               onClick={(e) => {
                 e.stopPropagation();
                 onLaunch(app.route);
               }}
             >
-              <span>Launch App</span>
-              <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+              <span>Launch</span>
+              <ArrowRight className="w-5 h-5 ml-2 group-hover/btn:translate-x-0.5 transition-transform duration-200" />
             </Button>
           </motion.div>
 
-          {/* Featured indicator */}
+          {/* Featured badge */}
           {app.featured && (
-            <div className="absolute top-3 left-3">
-              <div className="px-2 py-1 rounded-full bg-gradient-to-r from-amber-500/80 to-orange-500/80 backdrop-blur-sm">
-                <div className="flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-white" />
-                  <span className="text-xs font-bold text-white">Featured</span>
-                </div>
+            <div className="absolute top-3 left-3 z-20">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 border border-white/20 bg-gradient-to-r from-amber-500 to-orange-500 shadow-lg">
+                <Sparkles className="w-3 h-3 text-white" />
+                <span className="text-[10px] font-bold text-white tracking-wide uppercase">
+                  Featured
+                </span>
               </div>
-            </div>
-          )}
-
-          {/* Trending indicator */}
-          {app.id === "scanner" && (
-            <div className="absolute bottom-3 left-3">
-              <Badge
-                variant="secondary"
-                className="bg-green-500/20 text-green-500 border-green-500/30"
-              >
-                <TrendingUp className="w-3 h-3 mr-1" />
-                <span className="text-xs font-bold">Trending</span>
-              </Badge>
             </div>
           )}
         </CardContent>
 
-        {/* Enhanced hover glow effect */}
-        <motion.div
-          className="absolute inset-0 pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isHovered ? 1 : 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className={cn("absolute -inset-2 blur-2xl", colorScheme.glow)} />
-          <div
-            className={cn(
-              "absolute -inset-4 blur-3xl opacity-50",
-              colorScheme.glow,
-            )}
-          />
-        </motion.div>
-
-        {/* Outer neon glow */}
+        {/* Subtle hover glow */}
         <motion.div
           className={cn(
-            "absolute -inset-[2px] opacity-0 transition-opacity duration-300",
-            isHovered && "opacity-100",
+            "absolute -inset-[1px] opacity-0 transition-opacity duration-500 pointer-events-none",
+            isHovered && "opacity-30",
           )}
           style={{
-            background: `linear-gradient(45deg, transparent, ${
-              colorScheme.text.replace("text-", "rgb(var(--") + ") / 0.2"
-            }, transparent)`,
-            filter: "blur(8px)",
+            background: `linear-gradient(135deg, transparent, ${
+              colorScheme.text.replace("text-", "").replace("-500", "-400")
+            } / 0.15, transparent)`,
+            filter: "blur(12px)",
           }}
         />
       </Card>
-    </motion.div>
+    </div>
   );
 }
 

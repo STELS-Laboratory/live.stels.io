@@ -93,7 +93,7 @@ function AutoConnectionsSettings({
       module: "bg-lime-500/20 text-lime-400 border-lime-500/30",
     };
     return colors[key as keyof typeof colors] ||
-      "bg-gray-500/20 text-gray-400 border-gray-500/30";
+      "bg-muted/20 text-muted-foreground border-border/30";
   };
 
   return (
@@ -114,7 +114,7 @@ function AutoConnectionsSettings({
               "transition-all duration-200",
               isEnabled
                 ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30"
-                : "bg-secondary/50 text-muted-foreground hover:bg-zinc-600/50",
+                : "bg-secondary/50 text-muted-foreground hover:bg-muted/50",
             )}
           >
             {isEnabled
@@ -133,16 +133,22 @@ function AutoConnectionsSettings({
           <div className="space-y-2">
             <div className="flex items-center space-x-2 text-sm">
               <Info className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Connection Statistics</span>
+              <span className="text-muted-foreground">
+                Connection Statistics
+              </span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="bg-muted/50 rounded-lg p-2">
                 <div className="text-muted-foreground">Nodes</div>
-                <div className="text-foreground font-medium">{stats.nodeCount}</div>
+                <div className="text-foreground font-medium">
+                  {stats.nodeCount}
+                </div>
               </div>
               <div className="bg-muted/50 rounded-lg p-2">
                 <div className="text-muted-foreground">Groups</div>
-                <div className="text-foreground font-medium">{stats.groupCount}</div>
+                <div className="text-foreground font-medium">
+                  {stats.groupCount}
+                </div>
               </div>
             </div>
 

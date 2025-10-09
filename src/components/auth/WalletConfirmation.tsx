@@ -160,7 +160,7 @@ export function WalletConfirmation({
               Wallet Details
             </h3>
 
-            <div className="p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-border/30 backdrop-blur-sm space-y-4">
+            <div className="p-6 bg-muted/50 dark:bg-muted/30 rounded-xl border border-border/30 backdrop-blur-sm space-y-4">
               {/* Wallet Address */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -268,14 +268,18 @@ export function WalletConfirmation({
                   >
                     <User
                       className={`h-5 w-5 ${
-                        !isDeveloperMode ? "text-green-400" : "text-muted-foreground"
+                        !isDeveloperMode
+                          ? "text-green-400"
+                          : "text-muted-foreground"
                       }`}
                     />
                   </div>
                   <div>
                     <div
                       className={`font-semibold ${
-                        !isDeveloperMode ? "text-green-300" : "text-card-foreground"
+                        !isDeveloperMode
+                          ? "text-green-300"
+                          : "text-card-foreground"
                       }`}
                     >
                       User Mode
@@ -310,14 +314,18 @@ export function WalletConfirmation({
                   >
                     <Code
                       className={`h-5 w-5 ${
-                        isDeveloperMode ? "text-purple-400" : "text-muted-foreground"
+                        isDeveloperMode
+                          ? "text-purple-400"
+                          : "text-muted-foreground"
                       }`}
                     />
                   </div>
                   <div>
                     <div
                       className={`font-semibold ${
-                        isDeveloperMode ? "text-purple-300" : "text-card-foreground"
+                        isDeveloperMode
+                          ? "text-purple-300"
+                          : "text-card-foreground"
                       }`}
                     >
                       Developer Mode
@@ -389,7 +397,7 @@ export function WalletConfirmation({
             <Button
               onClick={handleConfirm}
               disabled={!isConfirmed}
-              className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black dark:text-black shadow-lg shadow-amber-500/25 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Continue to Network Setup
               <ArrowRight className="h-4 w-4 ml-2" />

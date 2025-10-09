@@ -101,7 +101,7 @@ export function NetworkSetup(
             </div>
 
             {/* Network Selector */}
-            <div className="p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-border/30 backdrop-blur-sm">
+            <div className="p-6 bg-muted/50 dark:bg-muted/30 rounded-xl border border-border/30 backdrop-blur-sm">
               <NetworkSelectorCompact />
             </div>
           </div>
@@ -204,12 +204,12 @@ export function NetworkSetup(
                 onConnect();
               }}
               disabled={!selectedNetwork || isConnecting}
-              className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25 transition-all duration-150"
+              className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black dark:text-black shadow-lg shadow-amber-500/25 transition-all duration-150"
             >
               {isConnecting
                 ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-zinc-900 mr-2" />
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black dark:border-black mr-2" />
                     Connecting...
                   </>
                 )

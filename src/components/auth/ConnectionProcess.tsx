@@ -159,7 +159,7 @@ export function ConnectionProcess(
                     : "bg-amber-500/20"
                 }`}
               />
-              <div className="relative p-3 rounded-full bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 border border-border/50 backdrop-blur-sm">
+              <div className="relative p-3 rounded-full bg-muted/50 dark:bg-muted/30 border border-border/50 backdrop-blur-sm">
                 {getStatusIcon()}
               </div>
             </div>
@@ -198,8 +198,8 @@ export function ConnectionProcess(
               </div>
             </div>
 
-            <div className="relative w-full bg-muted/50 rounded-full h-3 border border-border/50 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-zinc-700/50 to-zinc-600/50 rounded-full" />
+            <div className="relative w-full bg-muted/50 dark:bg-muted/30 rounded-full h-3 border border-border/50 overflow-hidden">
+              <div className="absolute inset-0 bg-muted dark:bg-muted/50 rounded-full" />
               <div
                 className={`relative h-full rounded-full transition-all duration-300 ease-out shadow-lg ${
                   connectionError
@@ -216,8 +216,8 @@ export function ConnectionProcess(
           </div>
 
           {/* Enhanced Current Step */}
-          <div className="text-center p-6 bg-gradient-to-r from-zinc-800/50 to-zinc-900/50 rounded-xl border border-border/30 backdrop-blur-sm">
-            <p className="text-lg text-card-foreground font-medium leading-relaxed">
+          <div className="text-center p-6 bg-muted/50 dark:bg-muted/30 rounded-xl border border-border/30 backdrop-blur-sm">
+            <p className="text-lg text-foreground font-medium leading-relaxed">
               {currentStep || (connectionError
                 ? "❌ Connection failed"
                 : "⏳ Preparing secure connection...")}
@@ -259,9 +259,9 @@ export function ConnectionProcess(
                       <div
                         className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-150 ${
                           isCompleted
-                            ? "bg-green-500 border-green-400 text-foreground scale-110"
+                            ? "bg-green-500 border-green-400 text-white dark:text-white scale-110"
                             : isCurrent
-                            ? "bg-amber-500 border-amber-400 text-zinc-900 scale-105"
+                            ? "bg-amber-500 border-amber-400 text-black dark:text-black scale-105"
                             : "bg-muted border-muted text-muted-foreground"
                         }`}
                       >
@@ -331,7 +331,7 @@ export function ConnectionProcess(
             {connectionError && (
               <Button
                 onClick={handleRetry}
-                className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-zinc-900 shadow-lg shadow-amber-500/25 transition-all duration-150"
+                className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black dark:text-black shadow-lg shadow-amber-500/25 transition-all duration-150"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Retry Connection

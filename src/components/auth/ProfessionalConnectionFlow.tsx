@@ -244,7 +244,7 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
                     className={`w-3 h-3 rounded-full transition-all ${
                       isActive
                         ? isCurrent ? "bg-amber-500 scale-125" : "bg-green-500"
-                        : "bg-zinc-600"
+                        : "bg-muted dark:bg-muted-foreground"
                     }`}
                   />
                   <span

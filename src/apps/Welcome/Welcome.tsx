@@ -18,7 +18,6 @@ import {
   FavoritesSection,
   HeroSection,
   RecentApps,
-  StatsBar,
 } from "./components";
 
 /**
@@ -163,19 +162,6 @@ function Welcome(): React.ReactElement {
         />
       )}
 
-      {/* Stats Bar - Desktop only, no filters active */}
-      {!isMobile &&
-        !searchTerm &&
-        selectedCategory === "All" &&
-        !showOnlyFeatured && (
-        <StatsBar
-          totalApps={applications.length}
-          featuredApps={featuredApps.length}
-          categories={APP_CATEGORIES.length - 1}
-          isMobile={isMobile}
-        />
-      )}
-
       {/* Empty State */}
       {showEmptyState && <EmptyState isMobile={isMobile} />}
 
@@ -190,6 +176,7 @@ function Welcome(): React.ReactElement {
             ? "Top picks for you"
             : "Handpicked professional tools for traders and developers"}
           showFeaturedBadge={!isMobile}
+          variant="featured"
         />
       )}
 

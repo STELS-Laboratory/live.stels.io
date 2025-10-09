@@ -55,8 +55,8 @@ const PanelCard: React.FC<PanelCardProps> = ({
 			className={cn(
 				"cursor-pointer transition-all duration-200 hover:shadow-md",
 				isActive
-					? "ring-2 ring-amber-500 bg-amber-50 dark:bg-amber-900/10"
-					: "hover:bg-zinc-50 dark:hover:bg-muted/50",
+					? "ring-2 ring-amber-500 bg-amber-100/50 dark:bg-amber-900/10"
+					: "hover:bg-muted/30 dark:hover:bg-muted/50",
 			)}
 		>
 			<CardHeader className="pb-2">
@@ -255,7 +255,7 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 	if (!isOpen) return null;
 
 	return (
-		<div className="fixed inset-0 z-50 bg-black/50 dark:bg-black/50 flex items-center justify-center p-4">
+		<div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
 			<Card className="w-full max-w-4xl max-h-[80vh] bg-card">
 				<CardHeader>
 					<div className="flex items-center justify-between">
@@ -308,7 +308,7 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 
 					{/* Create/Edit form */}
 					{(showCreateForm || editingPanel) && (
-						<Card className="bg-zinc-50 dark:bg-muted">
+						<Card className="bg-muted/30 dark:bg-muted">
 							<CardContent className="p-4">
 								<div className="space-y-3">
 									<div>

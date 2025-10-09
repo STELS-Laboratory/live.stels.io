@@ -1021,7 +1021,7 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
                               {exchange}
                             </span>
                             {isDominant && (
-                              <span className="text-[7px] bg-amber-500 text-black px-1 rounded font-bold">
+                              <span className="text-[7px] bg-amber-500 text-black dark:text-black px-1 rounded font-bold">
                                 LEADER
                               </span>
                             )}

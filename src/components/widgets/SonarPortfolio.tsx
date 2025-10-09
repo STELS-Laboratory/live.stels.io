@@ -226,13 +226,13 @@ function SonarPortfolio() {
 	const getChangeIcon = (change: number) => {
 		if (change > 0) return <ArrowUpIcon className="w-4 h-4 text-green-500" />;
 		if (change < 0) return <ArrowDownIcon className="w-4 h-4 text-red-500" />;
-		return <MinusIcon className="w-4 h-4 text-gray-500" />;
+		return <MinusIcon className="w-4 h-4 text-muted-foreground" />;
 	};
 
 	const getChangeColor = (change: number) => {
 		if (change > 0) return "text-green-500";
 		if (change < 0) return "text-red-500";
-		return "text-gray-500";
+		return "text-muted-foreground";
 	};
 
 	return (

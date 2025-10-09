@@ -30,7 +30,7 @@ const PanelTab: React.FC<PanelTabProps> = ({
 				"border-b-2 transition-all duration-300 ease-in-out",
 				isActive
 					? "border-amber-500 bg-amber-500/10 scale-105 shadow-sm"
-					: "border-transparent hover:border-zinc-400/50 hover:bg-zinc-100/50 dark:hover:bg-muted/50 hover:scale-102",
+					: "border-transparent hover:border-border/50 hover:bg-muted/30 dark:hover:bg-muted/50 hover:scale-102",
 			)}
 			onClick={onClick}
 		>
@@ -49,7 +49,7 @@ const PanelTab: React.FC<PanelTabProps> = ({
 				{panel.description && (
 					<Badge
 						variant="secondary"
-						className="ml-2 text-xs bg-zinc-200/50 dark:bg-secondary/50"
+						className="ml-2 text-xs bg-muted/50 dark:bg-secondary/50"
 					>
 						{panel.description.length > 20
 							? `${panel.description.substring(0, 20)}...`
@@ -89,7 +89,7 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({ className }) => {
 	return (
 		<div
 			className={cn(
-				"flex items-center bg-white dark:bg-card border-b border-zinc-200 dark:border-border transition-all duration-300 ease-in-out",
+				"flex items-center bg-card border-b border-border transition-all duration-300 ease-in-out",
 				className,
 			)}
 		>
@@ -107,13 +107,13 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({ className }) => {
 
 			{/* Inline edit dialog */}
 			{editingPanel && (
-				<div className="absolute top-full left-0 right-0 z-50 bg-white dark:bg-muted border border-zinc-200 dark:border-border rounded-md shadow-lg p-3">
+				<div className="absolute top-full left-0 right-0 z-50 bg-card dark:bg-muted border border-border rounded-md shadow-lg p-3">
 					<div className="flex items-center space-x-2">
 						<input
 							type="text"
 							value={editName}
 							onChange={(e) => setEditName(e.target.value)}
-							className="flex-1 px-2 py-1 text-sm border border-zinc-300 dark:border-muted rounded bg-white dark:bg-secondary text-zinc-900 dark:text-foreground"
+							className="flex-1 px-2 py-1 text-sm border border-border rounded bg-background dark:bg-secondary text-foreground"
 							placeholder="Panel name"
 							autoFocus
 							onKeyDown={(e) => {

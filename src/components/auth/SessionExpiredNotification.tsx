@@ -83,7 +83,7 @@ export const SessionExpiredNotification: React.FC = (): React.ReactElement => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-md mx-4">
         <Card className="border-amber-500/20 bg-card/95 backdrop-blur-md">
           <CardHeader className="text-center">
@@ -100,9 +100,9 @@ export const SessionExpiredNotification: React.FC = (): React.ReactElement => {
 
           <CardContent className="space-y-4">
             {/* Security Information */}
-            <Alert className="border-blue-500/20 bg-blue-500/5">
-              <Shield className="h-4 w-4 text-blue-400" />
-              <AlertDescription className="text-blue-400 text-sm">
+            <Alert className="border-blue-500/20 dark:border-blue-500/30 bg-blue-500/5 dark:bg-blue-500/10">
+              <Shield className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+              <AlertDescription className="text-blue-600 dark:text-blue-400 text-sm">
                 <strong>Security Notice:</strong>{" "}
                 Our team is testing session security mechanisms to protect
                 against unauthorized access and cyber attacks. Please
@@ -111,9 +111,9 @@ export const SessionExpiredNotification: React.FC = (): React.ReactElement => {
             </Alert>
 
             {connectionError && (
-              <Alert className="border-red-500/20 bg-red-500/5">
-                <AlertTriangle className="h-4 w-4 text-red-400" />
-                <AlertDescription className="text-red-400 text-sm">
+              <Alert className="border-red-500/20 dark:border-red-500/30 bg-red-500/5 dark:bg-red-500/10">
+                <AlertTriangle className="h-4 w-4 text-red-500 dark:text-red-400" />
+                <AlertDescription className="text-red-600 dark:text-red-400 text-sm">
                   {connectionError}
                 </AlertDescription>
               </Alert>
@@ -123,7 +123,7 @@ export const SessionExpiredNotification: React.FC = (): React.ReactElement => {
               <Button
                 onClick={handleReAuthenticate}
                 disabled={isHandling}
-                className="w-full bg-amber-500 hover:bg-amber-600 text-black font-medium"
+                className="w-full bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-600 text-black dark:text-black font-medium"
               >
                 {isHandling
                   ? (
@@ -144,7 +144,7 @@ export const SessionExpiredNotification: React.FC = (): React.ReactElement => {
                 onClick={handleLogout}
                 disabled={isHandling}
                 variant="outline"
-                className="w-full border-border hover:bg-muted text-card-foreground"
+                className="w-full"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign Out

@@ -37,7 +37,7 @@ export const SessionExpiredModal: React.FC = (): React.ReactElement => {
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 dark:bg-black/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
       <div className="w-full max-w-lg mx-4">
         <Card className="border-amber-500/20 bg-card/95 backdrop-blur-md">
           <CardHeader className="text-center">
@@ -54,19 +54,19 @@ export const SessionExpiredModal: React.FC = (): React.ReactElement => {
 
           <CardContent className="space-y-6">
             {/* Security Information */}
-            <div className="bg-blue-500/5 border border-blue-500/20 rounded-lg p-6">
+            <div className="bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/20 dark:border-blue-500/30 rounded-lg p-6">
               <div className="flex items-start space-x-4">
-                <Shield className="h-6 w-6 text-blue-400 mt-0.5 flex-shrink-0" />
+                <Shield className="h-6 w-6 text-blue-500 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                 <div className="space-y-3">
-                  <p className="text-blue-400 text-base font-medium">
+                  <p className="text-blue-600 dark:text-blue-400 text-base font-medium">
                     Security Testing Notice
                   </p>
-                  <p className="text-blue-300 text-sm leading-relaxed">
+                  <p className="text-blue-700 dark:text-blue-300 text-sm leading-relaxed">
                     Our security team is currently testing session management
                     mechanisms to protect against unauthorized access and cyber
                     attacks. This testing ensures your account remains secure.
                   </p>
-                  <p className="text-blue-300 text-sm leading-relaxed">
+                  <p className="text-blue-700 dark:text-blue-300 text-sm leading-relaxed">
                     Please click "OK" to proceed with re-authentication.
                   </p>
                 </div>
@@ -76,7 +76,7 @@ export const SessionExpiredModal: React.FC = (): React.ReactElement => {
             <div className="text-center">
               <Button
                 onClick={handleOkClick}
-                className="bg-amber-500 hover:bg-amber-600 text-black font-medium px-8 py-3 text-base"
+                className="bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-600 text-black dark:text-black font-medium px-8 py-3 text-base"
               >
                 OK
               </Button>
