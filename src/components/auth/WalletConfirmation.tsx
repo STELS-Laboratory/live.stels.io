@@ -23,7 +23,7 @@ interface WalletConfirmationProps {
 }
 
 /**
- * Professional wallet confirmation component
+ * Professional Wallet confirmation component
  */
 export function WalletConfirmation({
   walletType,
@@ -75,11 +75,11 @@ export function WalletConfirmation({
   };
 
   // const handleDownloadPrivateKey = (): void => {
-  //   const blob = new Blob([wallet.privateKey], { type: "text/plain" });
+  //   const blob = new Blob([Wallet.privateKey], { type: "text/plain" });
   //   const url = URL.createObjectURL(blob);
   //   const a = document.createElement("a");
   //   a.href = url;
-  //   a.download = `gliesereum-private-key-${wallet.address.slice(0, 8)}.txt`;
+  //   a.download = `gliesereum-private-key-${Wallet.address.slice(0, 8)}.txt`;
   //   document.body.appendChild(a);
   //   a.click();
   //   document.body.removeChild(a);
@@ -90,7 +90,7 @@ export function WalletConfirmation({
     if (walletType === "create") {
       return {
         title: "New Wallet Created",
-        subtitle: "Your wallet has been successfully generated",
+        subtitle: "Your Wallet has been successfully generated",
         badge: {
           text: "New Wallet",
           className: "bg-green-500/20 text-green-400 border-green-500/30",
@@ -100,7 +100,7 @@ export function WalletConfirmation({
     } else {
       return {
         title: "Wallet Imported",
-        subtitle: "Your existing wallet has been successfully imported",
+        subtitle: "Your existing Wallet has been successfully imported",
         badge: {
           text: "Imported",
           className: "bg-blue-500/20 text-blue-400 border-blue-500/30",

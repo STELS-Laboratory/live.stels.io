@@ -157,9 +157,9 @@ export const useAuthStore = create<AuthStore>()(
 						});
 						console.log('[Auth] Wallet created:', wallet.address);
 					} catch (error) {
-						console.error('[Auth] Failed to create wallet:', error);
+						console.error('[Auth] Failed to create Wallet:', error);
 						set({
-							connectionError: error instanceof Error ? error.message : 'Failed to create wallet'
+							connectionError: error instanceof Error ? error.message : 'Failed to create Wallet'
 						});
 					}
 				},
@@ -175,7 +175,7 @@ export const useAuthStore = create<AuthStore>()(
 						console.log('[Auth] Wallet imported:', wallet.address);
 						return true;
 					} catch (error) {
-						console.error('[Auth] Failed to import wallet:', error);
+						console.error('[Auth] Failed to import Wallet:', error);
 						set({
 							connectionError: error instanceof Error ? error.message : 'Invalid private key'
 						});
@@ -197,12 +197,12 @@ export const useAuthStore = create<AuthStore>()(
 						showNetworkSelector: false
 					});
 					
-					// Clear only wallet-related data, keep other localStorage intact
+					// Clear only Wallet-related data, keep other localStorage intact
 					try {
 						localStorage.removeItem('auth-store');
 						console.log('[Auth] Wallet reset successfully');
 					} catch (error) {
-						console.error('[Auth] Error resetting wallet:', error);
+						console.error('[Auth] Error resetting Wallet:', error);
 					}
 				},
 				
@@ -226,7 +226,7 @@ export const useAuthStore = create<AuthStore>()(
 					const { wallet, selectedNetwork } = get();
 					
 					if (!wallet) {
-						console.log('[Auth] No wallet found');
+						console.log('[Auth] No Wallet found');
 						set({ connectionError: 'Wallet not created' });
 						return false;
 					}
@@ -377,7 +377,7 @@ export const useAuthStore = create<AuthStore>()(
 					// Check if we have saved session data
 					const savedSession = localStorage.getItem('private-store');
 					if (!savedSession || !wallet || !selectedNetwork) {
-						console.log('[Auth] No saved session or missing wallet/network');
+						console.log('[Auth] No saved session or missing Wallet/network');
 						return false;
 					}
 					

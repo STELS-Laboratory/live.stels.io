@@ -213,7 +213,7 @@ export default function EditorComponent(
 			},
 		});
 
-		// Configure editor shortcuts
+		// Configure Editor shortcuts
 		editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
 			// Trigger save action
 			console.log("Save shortcut triggered");

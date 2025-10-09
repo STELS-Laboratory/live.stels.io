@@ -5,7 +5,7 @@
  * The original 1093 line file has been refactored into a modular structure:
  * - gliesereum/types.ts - Type definitions
  * - gliesereum/crypto.ts - Cryptographic utilities
- * - gliesereum/wallet.ts - Wallet management
+ * - gliesereum/Wallet.ts - Wallet management
  * - gliesereum/validation.ts - Validation functions
  * - gliesereum/index.ts - Main exports and transactions
  */

@@ -1,5 +1,5 @@
 /**
- * Gliesereum wallet management
+ * Gliesereum Wallet management
  * Functions for creating, importing, and managing wallets
  * 
  * ⚠️ CRITICAL: Cryptographic operations must match server implementation
@@ -72,7 +72,7 @@ export function getAddress(publicKey: Uint8Array): string {
 }
 
 /**
- * Creates a new wallet
+ * Creates a new Wallet
  */
 export function createWallet(): Wallet {
 	const pair = EC.genKeyPair();
@@ -90,7 +90,7 @@ export function createWallet(): Wallet {
 }
 
 /**
- * Imports wallet from private key
+ * Imports Wallet from private key
  */
 export function importWallet(privateKey: string): Wallet {
 	if (!/^[0-9a-fA-F]{64}$/.test(privateKey)) {

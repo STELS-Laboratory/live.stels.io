@@ -22,7 +22,7 @@ interface NetworkSelectorCompactProps {
 }
 
 /**
- * Compact network selector for use in wallet interface
+ * Compact network selector for use in Wallet interface
  */
 export function NetworkSelectorCompact(
   { className }: NetworkSelectorCompactProps,

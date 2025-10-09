@@ -9,16 +9,17 @@ import { useHydration } from "@/hooks/useHydration";
 import { useTheme } from "@/hooks/useTheme";
 import { AnimatePresence, motion } from "framer-motion";
 
-import Welcome from "@/routes/main/Welcome";
-import MarketDataViewer from "@/routes/main/Markets";
-import Flow from "@/routes/main/Canvas/Flow";
-import HeterogenComponent from "@/routes/main/Globe/HeterogenMap";
-import Scanner from "@/routes/main/Scanner";
-import GliesereumWallet from "@/routes/wallet/Wallet";
+import Welcome from "@/apps/Welcome";
+import MarketAggregator from "@/apps/Markets";
+import OrderBook from "@/apps/OrderBook";
+import Flow from "@/apps/Canvas/Flow";
+import HeterogenComponent from "@/apps/Globe/HeterogenMap";
+import Scanner from "@/apps/Scanner";
+import GliesereumWallet from "@/apps/Wallet/Wallet";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Layout from "@/routes/Layout";
-import Fred from "@/routes/main/Fred";
-import { AMIEditor } from "@/routes/editor/AMIEditor";
+import Layout from "@/apps/Layout.tsx";
+import Fred from "@/apps/Fred";
+import { AMIEditor } from "@/apps/Editor/AMIEditor";
 import SplashScreen from "./components/main/SplashScreen";
 import UpgradeScreen from "./components/main/UpgradeScreen";
 import { ProfessionalConnectionFlow } from "@/components/auth/ProfessionalConnectionFlow";
@@ -592,7 +593,9 @@ export default function Dashboard(): React.ReactElement {
 			case "fred":
 				return <Fred />;
 			case "markets":
-				return <MarketDataViewer />;
+				return <MarketAggregator />;
+			case "orderbook":
+				return <OrderBook />;
 			case "network":
 				return <HeterogenComponent />;
 			case "editor":

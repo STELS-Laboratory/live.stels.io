@@ -127,7 +127,7 @@ export interface SmartTransaction {
  * Gliesereum library interface
  */
 export interface Gliesereum {
-	// Basic wallet functions
+	// Basic Wallet functions
 	cardNumber(
 		input: string | Uint8Array,
 		prefix?: string,

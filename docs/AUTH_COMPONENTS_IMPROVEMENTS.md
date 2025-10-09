@@ -28,7 +28,7 @@ exposing private keys.
 ```typescript
 interface WalletPreviewProps {
   showActions?: boolean; // Show action buttons
-  onReset?: () => void; // Reset wallet callback
+  onReset?: () => void; // Reset Wallet callback
   onContinue?: () => void; // Continue callback
 }
 ```
@@ -88,7 +88,7 @@ resetWallet: (() => {
     showNetworkSelector: false,
   });
 
-  // Clear only wallet-related data
+  // Clear only Wallet-related data
   localStorage.removeItem("auth-store");
   console.log("[Auth] Wallet reset successfully");
 });
@@ -108,7 +108,7 @@ resetWallet: (() => {
 #### Before:
 
 ```typescript
-// Custom wallet display with manual styling
+// Custom Wallet display with manual styling
 <div className="p-3 bg-zinc-800 rounded-lg font-mono text-sm break-all">
   {wallet.address}
 </div>;

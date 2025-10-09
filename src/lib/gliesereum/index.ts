@@ -76,7 +76,7 @@ export {
 } from "./crypto";
 export { signWithDomain as cryptoSignWithDomain } from "./crypto";
 
-// Re-export wallet functions
+// Re-export Wallet functions
 export {
 	validateAddress,
 	getAddress,

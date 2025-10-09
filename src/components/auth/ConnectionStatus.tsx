@@ -19,7 +19,7 @@ import {
 import { useAuthStore } from "@/stores/modules/auth.store";
 
 /**
- * Connection status component showing current network and wallet info
+ * Connection status component showing current network and Wallet info
  */
 export function ConnectionStatus(): React.ReactElement {
   const {

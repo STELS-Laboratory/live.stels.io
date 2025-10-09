@@ -21,7 +21,7 @@ interface WalletPreviewProps {
 }
 
 /**
- * Wallet preview component showing wallet info without private key
+ * Wallet preview component showing Wallet info without private key
  */
 export function WalletPreview({
   showActions = false,

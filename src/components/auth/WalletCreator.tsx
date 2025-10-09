@@ -23,7 +23,7 @@ interface WalletCreatorProps {
 }
 
 /**
- * Professional wallet creator/importer component
+ * Professional Wallet creator/importer component
  */
 export function WalletCreator(
   { walletType, onBack, onSuccess }: WalletCreatorProps,
@@ -99,7 +99,7 @@ export function WalletCreator(
       createNewWallet();
       onSuccess();
     } catch (err: any) {
-      setError("Failed to create wallet. Please try again.");
+      setError("Failed to create Wallet. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -135,7 +135,7 @@ export function WalletCreator(
       }
     } catch (err: any) {
       setError(
-        "Failed to import wallet. Please check your private key and try again.",
+        "Failed to import Wallet. Please check your private key and try again.",
       );
     } finally {
       setIsLoading(false);
@@ -146,20 +146,20 @@ export function WalletCreator(
     if (walletType === "create") {
       return {
         title: "Create New Wallet",
-        subtitle: "Generate a secure wallet with a unique private key",
+        subtitle: "Generate a secure Wallet with a unique private key",
         icon: <Sparkles className="h-6 w-6 text-amber-500" />,
         description:
-          "We'll generate a cryptographically secure private key for your new wallet. This process is completely secure and happens locally in your browser.",
+          "We'll generate a cryptographically secure private key for your new Wallet. This process is completely secure and happens locally in your browser.",
         actionText: "Generate Wallet",
         actionHandler: handleCreateWallet,
       };
     } else {
       return {
         title: "Import Existing Wallet",
-        subtitle: "Restore your wallet using your private key",
+        subtitle: "Restore your Wallet using your private key",
         icon: <Key className="h-6 w-6 text-blue-500" />,
         description:
-          "Enter your 64-character hexadecimal private key to restore access to your existing wallet and funds.",
+          "Enter your 64-character hexadecimal private key to restore access to your existing Wallet and funds.",
         actionText: "Import Wallet",
         actionHandler: handleImportWallet,
         showInput: true,

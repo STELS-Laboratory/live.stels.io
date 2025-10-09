@@ -50,8 +50,8 @@ export const clearIndexedDB = async (): Promise<void> => {
 			// List of possible IndexedDB databases used by the app
 			const possibleDatabases = [
 				'auth-store',
-				'wallet-store',
-				'gliesereum-wallet',
+				'Wallet-store',
+				'gliesereum-Wallet',
 				'web3-app',
 				'zustand-store',
 				'vite-plugin-pwa-cache'
@@ -157,18 +157,18 @@ export const clearAppSpecificStorage = (): void => {
 			'auth-store',
 			'private-store',
 			'_g',
-			'wallet-store',
+			'Wallet-store',
 			'app-store',
 			'panel-store',
 			'Canvas-ui-store',
 			'worker-store',
-			'gliesereum-wallet',
+			'gliesereum-Wallet',
 			'web3-session',
 			'user-preferences',
 			'app-settings',
 			'connection-data',
 			'network-config',
-			'wallet-data'
+			'Wallet-data'
 		];
 
 		// Clear from localStorage

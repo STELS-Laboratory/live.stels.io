@@ -13,7 +13,7 @@ interface WalletTypeSelectorProps {
 }
 
 /**
- * Professional wallet type selector component
+ * Professional Wallet type selector component
  */
 export function WalletTypeSelector(
   { onSelectType }: WalletTypeSelectorProps,

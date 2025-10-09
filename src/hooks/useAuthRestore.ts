@@ -37,9 +37,9 @@ export const useAuthRestore = (): void => {
 			return;
 		}
 		
-		// Case 1: We have wallet and network but missing connection/authentication
+		// Case 1: We have Wallet and network but missing connection/authentication
 		if (wallet && selectedNetwork && (!isConnected || !isAuthenticated || !connectionSession)) {
-			console.log('[AuthRestore] Have wallet/network but missing connection/auth, attempting restore...');
+			console.log('[AuthRestore] Have Wallet/network but missing connection/auth, attempting restore...');
 			
 			// Small delay to ensure all state is stable
 			const timer = setTimeout(() => {
@@ -57,13 +57,13 @@ export const useAuthRestore = (): void => {
 			return () => clearTimeout(timer);
 		}
 		
-		// Case 2: No wallet/network in store but data exists in localStorage
+		// Case 2: No Wallet/network in store but data exists in localStorage
 		if (!wallet || !selectedNetwork) {
 			const authStoreData = localStorage.getItem('auth-store');
 			const privateStoreData = localStorage.getItem('private-store');
 			const hasValidSession = privateStoreData && JSON.parse(privateStoreData)?.raw?.session;
 			
-			console.log('[AuthRestore] Missing wallet/network in store, checking localStorage:', {
+			console.log('[AuthRestore] Missing Wallet/network in store, checking localStorage:', {
 				hasAuthStore: !!authStoreData,
 				hasPrivateStore: !!privateStoreData,
 				hasValidSession: !!hasValidSession

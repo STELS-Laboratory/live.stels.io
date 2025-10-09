@@ -59,7 +59,7 @@ export function AuthTestPanel(): React.ReactElement {
   };
 
   const handleTestResetWallet = (): void => {
-    console.log("[AuthTest] Testing wallet reset...");
+    console.log("[AuthTest] Testing Wallet reset...");
     resetWallet();
     console.log("[AuthTest] Wallet reset completed");
   };

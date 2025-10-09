@@ -45,7 +45,7 @@ export function ConnectionProcess(
       // Enhanced connection progress with faster realistic timing
       const steps = [
         { step: "Initializing secure connection...", progress: 10, icon: "🔐" },
-        { step: "Validating wallet credentials...", progress: 20, icon: "✅" },
+        { step: "Validating Wallet credentials...", progress: 20, icon: "✅" },
         {
           step: "Creating authentication transaction...",
           progress: 35,

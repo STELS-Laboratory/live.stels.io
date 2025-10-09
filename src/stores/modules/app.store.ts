@@ -144,13 +144,13 @@ export const useAppStore = create<AppState>()(
 					}
 				}
 				
-				const allowedRoutes = ['welcome', 'scanner', 'canvas', 'markets', 'network', 'wallet', 'editor'];
-				//const allowedRoutes = ['welcome', 'scanner', 'markets', 'Canvas', 'fred', 'wallet', 'network', 'editor'];
+				const allowedRoutes = ['welcome', 'scanner', 'canvas', 'markets', 'orderbook', 'network', 'wallet', 'editor'];
+				//const allowedRoutes = ['welcome', 'scanner', 'markets', 'Canvas', 'fred', 'Wallet', 'network', 'Editor'];
 				console.log('[Store] Initializing with allowedRoutes:', allowedRoutes);
 				
-				return {
-					version: '1.0.6',
-					upgrade: false,
+			return {
+				version: '1.0.7',
+				upgrade: false,
 					setVersion: (v: string) => set({version: v}),
 					setUpgrade: (value: boolean) => set({upgrade: value}),
 					...initialNetwork,
@@ -263,7 +263,7 @@ export const useAppStore = create<AppState>()(
 				}
 			},
 			{
-				name: 'testnet_app_store_07_111',
+				name: 'testnet_app_store_08_orderbook',
 			}
 		)
 	)
