@@ -4,9 +4,7 @@
  */
 
 import React from "react";
-import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
-import { Badge } from "@/components/ui/badge.tsx";
 import { cn } from "@/lib/utils.ts";
 import { useWelcomeStore } from "../store.ts";
 import type { AppMetadata } from "../types.ts";
@@ -26,6 +24,12 @@ export function RecentApps({
   isMobile,
 }: RecentAppsProps): React.ReactElement | null {
   const recentApps = useWelcomeStore((state) => state.recentApps);
+  const removeFromRecent = useWelcomeStore((state) => state.removeFromRecent);
+
+  const handleRemove = (e: React.MouseEvent, appId: string): void => {
+    e.stopPropagation();
+    removeFromRecent(appId);
+  };
 
   if (recentApps.length === 0) return null;
 
@@ -38,114 +42,147 @@ export function RecentApps({
 
   if (isMobile) {
     return (
-      <div className="px-4 py-4 border-b border-border/30 bg-card/30">
-        <div className="flex items-center gap-2 mb-3">
-          <Clock className="w-4 h-4 text-muted-foreground" />
-          <h2 className="text-sm font-bold text-foreground">Recent</h2>
+      <div className="relative px-4 py-3 border-b border-border bg-card overflow-hidden">
+        {/* Decorative line */}
+        <div className="absolute top-0 left-4 w-12 h-px bg-amber-500/30" />
+
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <div className="relative p-1 border border-amber-500/30 bg-amber-500/10">
+              <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-amber-500/50" />
+              <Clock className="w-3 h-3 text-amber-500" />
+            </div>
+            <div>
+              <h2 className="text-xs font-bold text-foreground tracking-tight leading-tight">
+                Running Apps
+              </h2>
+              <p className="text-[10px] text-muted-foreground/70 font-medium">
+                Tap to launch
+              </p>
+            </div>
+          </div>
+          {recentAppData.length > 0 && (
+            <div className="px-1.5 py-0.5 border border-border bg-muted">
+              <span className="text-[10px] font-bold text-foreground">
+                {recentAppData.length}
+              </span>
+            </div>
+          )}
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent -mx-4 px-4">
-          {recentAppData.map((app) => (
-            <motion.button
-              key={app.id}
-              onClick={() => onLaunch(app.route)}
-              className={cn(
-                "flex-shrink-0 w-16 aspect-square flex items-center justify-center",
-                "bg-gradient-to-br border transition-all duration-200",
-                app.color,
-                "hover:scale-105 active:scale-95",
-              )}
-              whileTap={{ scale: 0.9 }}
-            >
-              {app.icon}
-            </motion.button>
-          ))}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4">
+          {recentAppData.map((app) => {
+            // Get border color based on category for tonal accent
+            const borderColors: Record<string, string> = {
+              Analytics: "border-blue-500/40 active:border-blue-500/60",
+              Trading: "border-green-500/40 active:border-green-500/60",
+              Development: "border-purple-500/40 active:border-purple-500/60",
+              Network: "border-emerald-500/40 active:border-emerald-500/60",
+              Visualization: "border-pink-500/40 active:border-pink-500/60",
+            };
+
+            const borderColor = borderColors[app.category] ||
+              "border-amber-500/40 active:border-amber-500/60";
+
+            return (
+              <div key={app.id} className="relative flex-shrink-0">
+                <button
+                  onClick={() => onLaunch(app.route)}
+                  className={cn(
+                    "relative w-16 h-16 flex flex-col items-center justify-center overflow-hidden",
+                    "bg-card active:bg-muted border transition-colors active:scale-95",
+                    borderColor,
+                  )}
+                >
+                  {/* Corner decorations */}
+                  <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-border" />
+                  <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-border" />
+                  <div className="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-border" />
+                  <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-border" />
+
+                  {/* Icon */}
+                  <div className="relative flex items-center justify-center text-foreground scale-50 mb-1">
+                    {app.icon}
+                  </div>
+
+                  {/* App name */}
+                  <p className="text-[9px] font-bold text-foreground text-center truncate w-full px-1 leading-tight">
+                    {app.name}
+                  </p>
+
+                  {/* Close button */}
+                  <button
+                    onClick={(e) => handleRemove(e, app.id)}
+                    className="absolute -top-1 -right-1 w-4 h-4 bg-background border border-border flex items-center justify-center hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors text-[10px] leading-none font-bold"
+                    aria-label={`Close ${app.name}`}
+                  >
+                    ×
+                  </button>
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
     );
   }
 
   return (
-    <motion.div
-      className="container mx-auto px-6 py-8"
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-    >
-      <div className="flex items-baseline justify-between mb-5">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 border-2 border-amber-500/30 bg-amber-500/10">
-            <Clock className="w-4 h-4 text-amber-500" />
+    <div className="relative container mx-auto px-6 py-3">
+      {/* Decorative line */}
+      <div className="absolute top-0 left-6 w-16 h-px bg-amber-500/30" />
+
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <div className="relative p-1.5 border border-amber-500/30 bg-amber-500/10">
+            {/* Corner accent */}
+            <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-amber-500/50" />
+            <Clock className="w-3 h-3 text-amber-500" />
           </div>
-          <div>
-            <h2 className="text-[22px] font-black text-foreground tracking-tight leading-tight">
-              Recently Opened
-            </h2>
-            <p className="text-[13px] text-muted-foreground/60 font-semibold">
-              Quick access to your apps
-            </p>
-          </div>
+          <h2 className="text-xs font-bold text-foreground tracking-tight">
+            Running Applications
+          </h2>
         </div>
 
-        <span className="text-sm font-bold text-muted-foreground/60">
-          {recentAppData.length}
-        </span>
+        <div className="px-1.5 py-0.5 border border-border bg-muted">
+          <span className="text-[10px] font-bold text-foreground">
+            {recentAppData.length}
+          </span>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {recentAppData.map((app, index) => (
-          <motion.button
-            key={app.id}
-            onClick={() => onLaunch(app.route)}
-            className={cn(
-              "group relative p-5 border-2 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-              "bg-gradient-to-br shadow-sm hover:shadow-lg hover:scale-[1.02]",
-              app.color,
-            )}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: index * 0.05 }}
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            {/* Subtle overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
-
-            {/* Icon */}
-            <div className="flex items-center justify-center mb-3">
-              <motion.div
-                className="p-2.5 border bg-card/40 backdrop-blur-sm"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
-              >
-                {app.icon}
-              </motion.div>
-            </div>
-
-            {/* Name */}
-            <p className="text-sm font-bold text-foreground text-center mb-1 truncate">
-              {app.name}
-            </p>
-
-            {/* Category */}
-            <p className="text-xs text-muted-foreground/60 text-center font-semibold">
-              {app.category}
-            </p>
-
-            {/* Hover launch overlay */}
-            <motion.div
-              className="absolute inset-0 bg-amber-500/90 flex items-center justify-center backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              whileHover={{ opacity: 1 }}
-              transition={{ duration: 0.2 }}
+      <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+        {recentAppData.map((app) => (
+          <div key={app.id} className="relative flex-shrink-0">
+            <button
+              onClick={() =>
+                onLaunch(app.route)}
+              className="relative w-20 h-20 flex flex-col items-center justify-center overflow-hidden bg-card active:bg-muted border border-border transition-colors active:scale-95"
             >
-              <span className="text-sm font-bold text-black">
-                Launch
-              </span>
-            </motion.div>
-          </motion.button>
+              {/* Corner decorations */}
+              <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-border" />
+              <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-border" />
+              <div className="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-border" />
+              <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-border" />
+
+              {/* Icon */}
+              <div className="relative flex items-center justify-center text-foreground mb-1 scale-50">
+                {app.icon}
+              </div>
+
+              {/* Close button */}
+              <button
+                onClick={(e) =>
+                  handleRemove(e, app.id)}
+                className="absolute -top-1 -right-1 w-5 h-5 bg-background border border-border flex items-center justify-center hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors text-xs leading-none font-bold"
+                aria-label={`Close ${app.name}`}
+              >
+                ×
+              </button>
+            </button>
+          </div>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }

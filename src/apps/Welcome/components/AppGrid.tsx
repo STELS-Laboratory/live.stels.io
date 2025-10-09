@@ -38,66 +38,73 @@ function SectionHeader({
 }): React.ReactElement {
   if (isMobile) {
     return (
-      <div className="px-4 mb-4 pt-4">
-        <div className="flex items-baseline justify-between mb-1.5">
-          <h2 className="text-[22px] font-black text-foreground tracking-tight leading-tight">
-            {title}
-          </h2>
-          <span className="text-base font-bold text-muted-foreground/60">
-            {count}
-          </span>
+      <div className="relative px-4 mb-3 pt-3">
+        {/* Decorative corner */}
+        <div className="absolute top-0 left-4 w-8 h-px bg-amber-500/30" />
+
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            {showFeaturedBadge && (
+              <div className="relative p-1 border border-amber-500/30 bg-amber-500/10">
+                <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-amber-500/50" />
+                <Sparkles className="w-2.5 h-2.5 text-amber-500 animate-pulse" />
+              </div>
+            )}
+            <div>
+              <h2 className="text-sm font-bold text-foreground tracking-tight leading-tight">
+                {title}
+              </h2>
+              {description && (
+                <p className="text-[10px] text-muted-foreground/70 font-medium leading-tight">
+                  {description}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="px-1.5 py-0.5 border border-border bg-muted">
+            <span className="text-[10px] font-bold text-foreground">
+              {count}
+            </span>
+          </div>
         </div>
-        {description && (
-          <p className="text-[13px] text-muted-foreground/60 font-semibold leading-snug">
-            {description}
-          </p>
-        )}
       </div>
     );
   }
 
   return (
-    <motion.div
-      className="flex items-start justify-between mb-8 relative"
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-    >
-      <div className="flex items-start gap-4">
+    <div className="relative flex items-center justify-between mb-4">
+      {/* Decorative line */}
+      <div className="absolute -top-2 left-0 w-12 h-px bg-amber-500/30" />
+
+      <div className="flex items-center gap-3">
         {showFeaturedBadge && (
-          <motion.div
-            className="relative p-3 border-2 bg-gradient-to-br from-amber-500/15 to-orange-500/15 border-amber-500/30"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-          >
-            <Sparkles className="w-5 h-5 text-amber-500" />
-          </motion.div>
+          <div className="relative p-2 border bg-amber-500/10 border-amber-500/30">
+            {/* Corner accent */}
+            <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-amber-500/50" />
+            <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
+          </div>
         )}
 
         <div>
-          <h2 className="text-[28px] font-black text-foreground mb-1 tracking-tight leading-tight">
+          <h2 className="text-lg font-bold text-foreground mb-0.5 tracking-tight">
             {title}
           </h2>
           {description && (
-            <p className="text-[15px] text-muted-foreground/60 font-semibold tracking-tight leading-snug max-w-2xl">
+            <p className="text-xs text-muted-foreground/70 font-medium max-w-2xl">
               {description}
             </p>
           )}
         </div>
       </div>
 
-      <motion.div
-        className="flex items-center gap-2 px-3 py-1.5 border bg-muted/40"
-        initial={{ opacity: 0, x: 10 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-      >
-        <span className="text-sm font-bold text-muted-foreground/70">
+      <div className="relative flex items-center gap-1.5 px-2 py-1 border bg-muted">
+        {/* Corner accent */}
+        <div className="absolute -top-0.5 -right-0.5 w-1 h-1 border-t border-r border-border" />
+        <span className="text-xs font-bold text-foreground">
           {count}
         </span>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 
@@ -161,13 +168,11 @@ export function AppGrid({
   return (
     <motion.div
       className={cn(
-        isMobile ? "mb-10" : "container mx-auto px-6 mb-16",
-        // iOS-style section spacing
-        variant === "featured" && !isMobile && "mb-20",
+        isMobile ? "mb-6" : "container mt-8 mx-auto px-6 mb-8",
       )}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
     >
       <SectionHeader
         title={title}

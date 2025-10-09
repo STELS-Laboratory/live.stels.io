@@ -6,6 +6,7 @@
 import React, { useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Flame, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils.ts";
 import { useAppStore } from "@/stores";
 import { useMobile } from "@/hooks/useMobile.ts";
 import { useWelcomeStore } from "./store.ts";
@@ -165,6 +166,38 @@ function Welcome(): React.ReactElement {
       {/* Empty State */}
       {showEmptyState && <EmptyState isMobile={isMobile} />}
 
+      {/* Marketing banner - Mobile only */}
+      {isMobile && !showEmptyState && (
+        <div className="relative px-4 py-3 border-b border-border bg-amber-500/5 overflow-hidden">
+          {/* Decorative corners */}
+          <div className="absolute top-0 left-0 w-6 h-px bg-amber-500/30" />
+          <div className="absolute top-0 right-0 w-6 h-px bg-amber-500/30" />
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="relative p-1.5 border border-amber-500/30 bg-amber-500/10">
+                <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-amber-500/50" />
+                <Sparkles className="w-3 h-3 text-amber-500 animate-pulse" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-foreground leading-tight">
+                  AI Trading Platform
+                </p>
+                <p className="text-[10px] text-muted-foreground/70 font-medium">
+                  Web3 • Real-time • Secure
+                </p>
+              </div>
+            </div>
+            <div className="relative px-2 py-1 bg-amber-500 border border-amber-400 text-black">
+              <div className="absolute -top-0.5 -right-0.5 w-1 h-1 border-t border-r border-amber-300" />
+              <span className="text-[9px] font-bold uppercase tracking-wider">
+                Pro
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Featured Apps Section */}
       {!showEmptyState && featuredApps.length > 0 && (
         <AppGrid
@@ -197,83 +230,96 @@ function Welcome(): React.ReactElement {
         </div>
       )}
 
-      {/* Footer - Desktop only */}
-      {!isMobile && (
-        <motion.div
-          className="container mx-auto px-6 py-12 mt-8 border-t border-border/30"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-        >
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-            {/* Features */}
-            <div className="grid grid-cols-3 gap-6">
-              <motion.div
-                className="p-4 rounded-lg bg-gradient-to-br from-amber-500/5 to-orange-500/5 border border-amber-500/20"
-                whileHover={{ scale: 1.05 }}
-              >
-                <Sparkles className="w-6 h-6 text-amber-500 mx-auto mb-2" />
-                <p className="text-sm font-bold text-foreground mb-1">
+      {/* Footer */}
+      <div
+        className={cn(
+          "relative border-t border-border bg-card overflow-hidden",
+          isMobile ? "px-4 py-4 mt-6" : "container mx-auto px-6 py-6 mt-8",
+        )}
+      >
+        {/* Decorative grid pattern */}
+        {!isMobile && (
+          <div className="absolute inset-0 opacity-[0.02]">
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage:
+                  "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)",
+                backgroundSize: "20px 20px",
+              }}
+            />
+          </div>
+        )}
+
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent opacity-50" />
+
+        <div className="max-w-3xl mx-auto relative">
+          {!isMobile && (
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <div className="relative p-3 border border-amber-500/30 bg-amber-500/5 text-center">
+                {/* Corner accent */}
+                <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-amber-500/50" />
+                <Sparkles className="w-4 h-4 text-amber-500 mx-auto mb-1" />
+                <p className="text-xs font-bold text-foreground mb-0.5">
                   Web3 Technology
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  Secure, decentralized AI infrastructure
+                <p className="text-[10px] text-muted-foreground/70 font-medium">
+                  Decentralized infrastructure
                 </p>
-              </motion.div>
+              </div>
 
-              <motion.div
-                className="p-4 rounded-lg bg-gradient-to-br from-green-500/5 to-emerald-500/5 border border-green-500/20"
-                whileHover={{ scale: 1.05 }}
-              >
-                <div className="w-6 h-6 mx-auto mb-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mx-auto" />
+              <div className="relative p-3 border border-green-500/30 bg-green-500/5 text-center">
+                {/* Corner accent */}
+                <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-green-500/50" />
+                <div className="w-4 h-4 mx-auto mb-1 flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 bg-green-500" />
                 </div>
-                <p className="text-sm font-bold text-foreground mb-1">
-                  Real-time Data
+                <p className="text-xs font-bold text-foreground mb-0.5">
+                  Real-Time Data
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  Live market data and professional indicators
+                <p className="text-[10px] text-muted-foreground/70 font-medium">
+                  Live market indicators
                 </p>
-              </motion.div>
+              </div>
 
-              <motion.div
-                className="p-4 rounded-lg bg-gradient-to-br from-blue-500/5 to-cyan-500/5 border border-blue-500/20"
-                whileHover={{ scale: 1.05 }}
-              >
-                <Flame className="w-6 h-6 text-blue-500 mx-auto mb-2" />
-                <p className="text-sm font-bold text-foreground mb-1">
+              <div className="relative p-3 border border-blue-500/30 bg-blue-500/5 text-center">
+                {/* Corner accent */}
+                <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-blue-500/50" />
+                <Flame className="w-4 h-4 text-blue-500 mx-auto mb-1" />
+                <p className="text-xs font-bold text-foreground mb-0.5">
                   Professional Tools
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  Advanced trading features for professionals
+                <p className="text-[10px] text-muted-foreground/70 font-medium">
+                  Advanced trading platform
                 </p>
-              </motion.div>
+              </div>
             </div>
+          )}
 
-            {/* Version */}
-            <div className="pt-6 border-t border-border/30">
-              <p className="text-xs text-muted-foreground font-bold tracking-wider">
-                STELS WEB3 OS v0.12.8
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                © 2024 Gliesereum Ukraine. All rights reserved.
-              </p>
-            </div>
+          <div
+            className={cn(
+              "relative border-t border-border text-center",
+              isMobile ? "pt-3" : "pt-4",
+            )}
+          >
+            {/* Decorative corners for mobile */}
+            {isMobile && (
+              <>
+                <div className="absolute top-0 left-0 w-4 h-px bg-border" />
+                <div className="absolute top-0 right-0 w-4 h-px bg-border" />
+              </>
+            )}
+
+            <p className="text-[10px] text-muted-foreground font-medium tracking-wider mb-0.5">
+              STELS WEB3 OS v0.12.8
+            </p>
+            <p className="text-[10px] text-muted-foreground/70">
+              © 2024 Gliesereum Ukraine. All rights reserved.
+            </p>
           </div>
-        </motion.div>
-      )}
-
-      {/* Mobile Footer */}
-      {isMobile && (
-        <div className="px-4 py-8 mt-8 border-t border-border/30 text-center">
-          <p className="text-xs text-muted-foreground font-bold tracking-wider mb-2">
-            STELS WEB3 OS v0.12.8
-          </p>
-          <p className="text-xs text-muted-foreground">
-            © 2024 Gliesereum Ukraine
-          </p>
         </div>
-      )}
+      </div>
     </motion.div>
   );
 }

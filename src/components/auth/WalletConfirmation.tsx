@@ -328,7 +328,7 @@ export function WalletConfirmation({
                           : "text-card-foreground"
                       }`}
                     >
-                      Developer Mode
+                      Developer
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
                       Access to test networks and dev tools

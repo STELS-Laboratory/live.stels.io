@@ -6,7 +6,6 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Heart, Star } from "lucide-react";
-import { Badge } from "@/components/ui/badge.tsx";
 import { cn } from "@/lib/utils.ts";
 import { useWelcomeStore } from "../store.ts";
 import type { AppMetadata } from "../types.ts";
@@ -38,35 +37,57 @@ export function FavoritesSection({
 
   return (
     <motion.div
-      className={isMobile ? "px-4 py-6" : "container mx-auto px-6 py-8"}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className={cn(
+        "relative",
+        isMobile
+          ? "px-4 py-3 border-b border-border bg-card"
+          : "container mx-auto px-6 py-4",
+      )}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
     >
+      {/* Decorative line */}
+      <div className="absolute top-0 left-6 w-16 h-px bg-red-500/30" />
+
       {/* Header */}
-      <div className="flex items-baseline justify-between mb-5">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 border-2 border-red-500/30 bg-gradient-to-br from-red-500/15 to-pink-500/15">
-            <Heart className="w-4 h-4 text-red-500 fill-current" />
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="relative p-2 border border-red-500/30 bg-red-500/10">
+            {/* Corner accent */}
+            <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-red-500/50" />
+            <Heart className="w-3.5 h-3.5 text-red-500 fill-current animate-pulse" />
           </div>
           <div>
             <h2
               className={cn(
-                "font-black text-foreground tracking-tight leading-tight",
-                isMobile ? "text-[22px]" : "text-[22px]",
+                "font-bold text-foreground tracking-tight leading-tight",
+                isMobile ? "text-xs" : "text-sm",
               )}
             >
-              Your Favorites
+              Favorite Applications
             </h2>
-            <p className="text-[13px] text-muted-foreground/60 font-semibold">
-              Apps you love the most
+            <p
+              className={cn(
+                "text-muted-foreground/70 font-medium",
+                isMobile ? "text-[10px]" : "text-xs",
+              )}
+            >
+              {isMobile ? "Your top picks" : "Quick access to your favorites"}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 px-2.5 py-1 border border-red-500/30 bg-red-500/10">
+        <div className="relative flex items-center gap-1 px-2 py-1 border border-red-500/30 bg-red-500/10">
+          {/* Corner accent */}
+          <div className="absolute -top-0.5 -right-0.5 w-1 h-1 border-t border-r border-red-500/50" />
           <Star className="w-3 h-3 text-red-500 fill-current" />
-          <span className="text-sm font-bold text-red-500">
+          <span
+            className={cn(
+              "font-bold text-red-500",
+              isMobile ? "text-[10px]" : "text-xs",
+            )}
+          >
             {favoriteAppData.length}
           </span>
         </div>
@@ -76,22 +97,21 @@ export function FavoritesSection({
       <motion.div
         className={cn(
           isMobile
-            ? "grid grid-cols-4 gap-3"
-            : "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4",
+            ? "grid grid-cols-3 gap-2"
+            : "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3",
         )}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
+        transition={{ duration: 0.2 }}
       >
         {favoriteAppData.map((app, index) => (
           <motion.div
             key={app.id}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{
-              duration: 0.3,
-              delay: index * 0.05,
-              ease: [0.16, 1, 0.3, 1],
+              duration: 0.2,
+              delay: index * 0.03,
             }}
           >
             <AppCardPremium

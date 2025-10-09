@@ -32,13 +32,13 @@ export function FeatureHighlight({
     },
     green: {
       border:
-        "border-green-500/40 active:border-green-500/70 group-hover:border-green-500/50",
-      bg: "bg-green-500/0 active:bg-green-500/20 group-hover:bg-green-500/20",
+        "border-green-500 active:border-green-500 group-hover:border-green-500",
+      bg: "bg-green-500 active:bg-green-500/20 group-hover:bg-green-500/20",
       glow: "from-green-500 to-emerald-500",
-      iconBg: "bg-green-500/0 active:bg-green-500/20",
+      iconBg: "bg-green-500 active:bg-green-500/20",
       iconText:
-        "text-green-400/80 active:text-green-300 group-hover:text-green-400",
-      cornerBorder: "border-green-500/50",
+        "text-green-400 active:text-green-300 group-hover:text-green-400",
+      cornerBorder: "border-green-500",
     },
     blue: {
       border:

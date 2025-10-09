@@ -177,7 +177,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 						transition={{ duration: 0.3, delay: 0.25 }}
 					>
 						<Badge variant="outline" className="text-xs">
-							Developer Mode
+							Developer
 						</Badge>
 					</motion.div>
 				)}

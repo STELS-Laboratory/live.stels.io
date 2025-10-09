@@ -144,7 +144,7 @@ export function ConnectionStatus(): React.ReactElement {
           {connectionSession.developer && (
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-xs">
-                Developer Mode
+                Developer
               </Badge>
             </div>
           )}

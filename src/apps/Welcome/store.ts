@@ -41,6 +41,8 @@ interface WelcomeStoreActions {
 	setSortBy: (sortBy: "name" | "category" | "popular") => void;
 	/** Add app to recent */
 	addToRecent: (appId: string) => void;
+	/** Remove app from recent */
+	removeFromRecent: (appId: string) => void;
 	/** Toggle favorite */
 	toggleFavorite: (appId: string) => void;
 	/** Toggle show only featured */
@@ -97,6 +99,12 @@ export const useWelcomeStore = create<WelcomeStore>()(
 						const updated = [appId, ...filtered].slice(0, 5);
 						return { recentApps: updated };
 					});
+				},
+
+				removeFromRecent: (appId: string) => {
+					set((state) => ({
+						recentApps: state.recentApps.filter((id) => id !== appId),
+					}));
 				},
 
 				toggleFavorite: (appId: string) => {
@@ -168,6 +176,7 @@ export const useWelcomeActions = () =>
 		setViewMode: state.setViewMode,
 		setSortBy: state.setSortBy,
 		addToRecent: state.addToRecent,
+		removeFromRecent: state.removeFromRecent,
 		toggleFavorite: state.toggleFavorite,
 		toggleShowOnlyFeatured: state.toggleShowOnlyFeatured,
 		clearFilters: state.clearFilters,

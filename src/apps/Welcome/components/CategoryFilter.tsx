@@ -98,56 +98,73 @@ export function CategoryFilter({
 
   if (isMobile) {
     return (
-      <div className="px-4 py-4 border-b border-border/30 bg-card/30">
+      <div className="relative px-4 py-3 border-b border-border bg-card overflow-hidden">
+        {/* Decorative line */}
+        <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-border to-transparent opacity-50" />
+
         {/* Horizontal scroll categories */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent -mx-4 px-4">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4">
           {categories.map((category) => {
             const isActive = selectedCategory === category;
             const count = categoryCounts[category] || 0;
 
             return (
-              <motion.button
+              <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-full border transition-all duration-200 whitespace-nowrap flex-shrink-0",
+                  "relative flex items-center gap-1.5 px-2.5 py-1.5 border transition-colors whitespace-nowrap flex-shrink-0",
                   isActive
                     ? getCategoryActiveColor(category)
-                    : "bg-card/50 text-muted-foreground border-border/50 hover:bg-card hover:border-border",
+                    : "bg-background text-muted-foreground border-border active:bg-muted",
                 )}
-                whileTap={{ scale: 0.95 }}
               >
+                {/* Corner accent for active */}
+                {isActive && (
+                  <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-current" />
+                )}
+
                 {getCategoryIcon(category)}
                 <span className="text-xs font-medium">{category}</span>
                 <Badge
                   variant="secondary"
                   className={cn(
-                    "ml-1 text-xs h-5 px-1.5",
-                    isActive ? "bg-white/20" : "bg-muted/50",
+                    "ml-0.5 text-[10px] h-4 px-1",
+                    isActive ? "bg-background/20" : "bg-muted",
                   )}
                 >
                   {count}
                 </Badge>
-              </motion.button>
+              </button>
             );
           })}
         </div>
 
-        {/* Featured toggle */}
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
-          <Button
-            variant={showOnlyFeatured ? "default" : "outline"}
-            size="sm"
-            onClick={toggleShowOnlyFeatured}
-            className={cn(
-              "h-8 text-xs",
-              showOnlyFeatured &&
-                "bg-amber-500/20 text-amber-500 border-amber-500/30 hover:bg-amber-500/30",
+        {/* Featured toggle with marketing */}
+        <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant={showOnlyFeatured ? "default" : "outline"}
+              size="sm"
+              onClick={toggleShowOnlyFeatured}
+              className={cn(
+                "h-7 text-xs relative",
+                showOnlyFeatured &&
+                  "bg-amber-500 text-black border-amber-500 hover:bg-amber-600",
+              )}
+            >
+              {showOnlyFeatured && (
+                <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-amber-400" />
+              )}
+              <Sparkles className="w-3 h-3 mr-1" />
+              Featured
+            </Button>
+            {showOnlyFeatured && (
+              <span className="text-[10px] text-amber-500 font-bold animate-pulse">
+                ★ Best picks
+              </span>
             )}
-          >
-            <Sparkles className="w-3 h-3 mr-1" />
-            Featured Only
-          </Button>
+          </div>
         </div>
       </div>
     );
@@ -155,18 +172,15 @@ export function CategoryFilter({
 
   return (
     <motion.div
-      className="relative border-b border-border/30 bg-card/30 backdrop-blur-sm overflow-hidden"
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
+      className="relative border-b border-border bg-card overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
     >
-      {/* Grid pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:30px_30px] pointer-events-none" />
-
       {/* Top accent line */}
-      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent opacity-50" />
 
-      <div className="container mx-auto px-6 py-6 relative">
+      <div className="container mx-auto px-6 py-3 relative">
         <div className="flex items-center justify-between flex-wrap gap-4">
           {/* Categories */}
           <div className="flex items-center gap-2 flex-wrap">
@@ -175,65 +189,48 @@ export function CategoryFilter({
               const count = categoryCounts[category] || 0;
 
               return (
-                <motion.div
+                <Button
                   key={category}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                  className="relative"
-                >
-                  {/* Glow effect for active button */}
-                  {isActive && (
-                    <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/20 via-amber-400/20 to-amber-500/20 blur-lg" />
+                  variant={isActive ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(category)}
+                  className={cn(
+                    "h-8 gap-2 px-3 transition-colors",
+                    isActive
+                      ? getCategoryActiveColor(category)
+                      : getCategoryColor(category),
                   )}
-                  <Button
-                    variant={isActive ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedCategory(category)}
+                >
+                  {getCategoryIcon(category)}
+                  <span className="font-medium text-xs">{category}</span>
+                  <Badge
+                    variant="secondary"
                     className={cn(
-                      "h-10 gap-2.5 px-4 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] relative shadow-sm hover:shadow-md",
-                      isActive
-                        ? getCategoryActiveColor(category)
-                        : getCategoryColor(category),
+                      "ml-0.5 text-[10px] h-4 px-1",
+                      isActive ? "bg-background/20" : "bg-muted",
                     )}
                   >
-                    {getCategoryIcon(category)}
-                    <span className="font-medium">{category}</span>
-                    <Badge
-                      variant="secondary"
-                      className={cn(
-                        "ml-1 text-xs h-5 px-1.5",
-                        isActive ? "bg-white/20" : "bg-muted/50",
-                      )}
-                    >
-                      {count}
-                    </Badge>
-                  </Button>
-                </motion.div>
+                    {count}
+                  </Badge>
+                </Button>
               );
             })}
           </div>
 
           {/* Featured toggle */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, delay: 0.4 }}
+          <Button
+            variant={showOnlyFeatured ? "default" : "outline"}
+            size="sm"
+            onClick={toggleShowOnlyFeatured}
+            className={cn(
+              "h-8 gap-2 px-3 transition-colors",
+              showOnlyFeatured &&
+                "bg-amber-500 text-black border-amber-500 hover:bg-amber-600",
+            )}
           >
-            <Button
-              variant={showOnlyFeatured ? "default" : "outline"}
-              size="sm"
-              onClick={toggleShowOnlyFeatured}
-              className={cn(
-                "h-10 gap-2.5 px-4 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-sm hover:shadow-md",
-                showOnlyFeatured &&
-                  "bg-amber-500/20 text-amber-500 border-amber-500/30 hover:bg-amber-500/30",
-              )}
-            >
-              <Sparkles className="w-4 h-4" />
-              <span className="font-semibold">Featured Only</span>
-            </Button>
-          </motion.div>
+            <Sparkles className="w-3.5 h-3.5" />
+            <span className="font-medium text-xs">Featured</span>
+          </Button>
         </div>
       </div>
     </motion.div>
