@@ -1,9 +1,9 @@
 name: Deploy
 on:
   push:
-    branches: Canvas
+    branches: canvas
   pull_request:
-    branches: Canvas
+    branches: canvas
 
 jobs:
   deploy:
