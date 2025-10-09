@@ -144,44 +144,42 @@ export function ConnectionProcess(
   };
 
   return (
-    <div className="w-full space-y-8 animate-fade-in-up">
-      {/* Enhanced Connection Process */}
-      <Card className="w-full max-w-2xl mx-auto backdrop-blur-sm bg-card/80 border-border/50 shadow-2xl">
-        <CardHeader className="text-center pb-6">
-          <CardTitle className="flex items-center justify-center gap-3 text-3xl font-bold">
-            <div className="relative">
-              <div
-                className={`absolute inset-0 rounded-full blur-lg ${
-                  connectionError
-                    ? "bg-red-500/20"
-                    : isConnected
-                    ? "bg-green-500/20"
-                    : "bg-amber-500/20"
-                }`}
-              />
-              <div className="relative p-3 rounded-full bg-muted/50 dark:bg-muted/30 border border-border/50 backdrop-blur-sm">
-                {getStatusIcon()}
-              </div>
+    <div className="w-full space-y-6">
+      {/* Connection Process */}
+      <Card className="w-full max-w-2xl mx-auto bg-card border">
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="flex items-center justify-center gap-3 text-xl font-bold">
+            <div
+              className={`relative p-2 border-2 ${
+                connectionError
+                  ? "border-red-500/30 bg-red-500/10"
+                  : isConnected
+                  ? "border-green-500/30 bg-green-500/10"
+                  : "border-amber-500/30 bg-amber-500/10"
+              }`}
+            >
+              <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-current" />
+              {getStatusIcon()}
             </div>
             <span className={getStatusColor()}>
               {getStatusText()}
             </span>
           </CardTitle>
-          <div className="flex items-center justify-center gap-2 mt-3">
-            <div className="flex items-center gap-2 px-3 py-1 bg-muted/50 rounded-full border border-border/50">
-              <Wifi className="h-4 w-4 text-amber-400" />
-              <span className="text-sm text-card-foreground">
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <div className="flex items-center gap-2 px-2 py-1 bg-muted border border-border">
+              <Wifi className="h-3 w-3 text-amber-500" />
+              <span className="text-xs text-foreground font-medium">
                 {selectedNetwork?.name}
               </span>
             </div>
-            <div className="text-muted-foreground">•</div>
-            <div className="text-xs text-muted-foreground font-mono">
+            <div className="text-muted-foreground text-xs">•</div>
+            <div className="text-[10px] text-muted-foreground font-mono">
               {selectedNetwork?.api}
             </div>
           </div>
         </CardHeader>
 
-        <CardContent className="px-8 pb-8 space-y-8">
+        <CardContent className="px-6 pb-6 space-y-4">
           {/* Enhanced Progress Bar */}
           <div className="space-y-4">
             <div className="flex justify-between items-center">
@@ -198,29 +196,26 @@ export function ConnectionProcess(
               </div>
             </div>
 
-            <div className="relative w-full bg-muted/50 dark:bg-muted/30 rounded-full h-3 border border-border/50 overflow-hidden">
-              <div className="absolute inset-0 bg-muted dark:bg-muted/50 rounded-full" />
+            <div className="relative w-full bg-muted h-2 border border-border overflow-hidden">
               <div
-                className={`relative h-full rounded-full transition-all duration-300 ease-out shadow-lg ${
+                className={`h-full transition-all duration-300 ${
                   connectionError
-                    ? "bg-gradient-to-r from-red-500 to-red-400"
+                    ? "bg-red-500"
                     : isConnected
-                    ? "bg-gradient-to-r from-green-500 to-emerald-400"
-                    : "bg-gradient-to-r from-amber-500 via-amber-400 to-blue-500"
+                    ? "bg-green-500"
+                    : "bg-amber-500"
                 }`}
                 style={{ width: `${progress}%` }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
-              </div>
+              />
             </div>
           </div>
 
-          {/* Enhanced Current Step */}
-          <div className="text-center p-6 bg-muted/50 dark:bg-muted/30 rounded-xl border border-border/30 backdrop-blur-sm">
-            <p className="text-lg text-foreground font-medium leading-relaxed">
+          {/* Current Step */}
+          <div className="text-center p-4 bg-muted border border-border">
+            <p className="text-sm text-foreground font-medium">
               {currentStep || (connectionError
-                ? "❌ Connection failed"
-                : "⏳ Preparing secure connection...")}
+                ? "Connection failed"
+                : "Preparing secure connection...")}
             </p>
           </div>
 
@@ -247,32 +242,32 @@ export function ConnectionProcess(
                 return (
                   <div
                     key={index}
-                    className={`flex items-center gap-4 text-sm transition-all duration-150 ${
+                    className={`flex items-center gap-3 text-xs transition-colors ${
                       isCompleted
-                        ? "text-green-300"
+                        ? "text-green-500"
                         : isCurrent
-                        ? "text-amber-300"
+                        ? "text-amber-500"
                         : "text-muted-foreground"
                     }`}
                   >
                     <div className="relative">
                       <div
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-150 ${
+                        className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${
                           isCompleted
-                            ? "bg-green-500 border-green-400 text-white dark:text-white scale-110"
+                            ? "bg-green-500/10 border-green-500"
                             : isCurrent
-                            ? "bg-amber-500 border-amber-400 text-black dark:text-black scale-105"
-                            : "bg-muted border-muted text-muted-foreground"
+                            ? "bg-amber-500/10 border-amber-500"
+                            : "bg-background border-border"
                         }`}
                       >
                         {isCompleted
-                          ? <CheckCircle className="w-4 h-4" />
-                          : <span className="text-xs">{item.icon}</span>}
+                          ? <CheckCircle className="w-3 h-3" />
+                          : <span className="text-[10px]">{item.icon}</span>}
                       </div>
 
-                      {/* Pulse animation for current step */}
+                      {/* Pulse for current step */}
                       {isCurrent && !isCompleted && (
-                        <div className="absolute inset-0 rounded-full border-2 border-amber-400 animate-ping" />
+                        <div className="absolute -inset-0.5 border border-amber-500 animate-ping" />
                       )}
                     </div>
 
@@ -283,31 +278,32 @@ export function ConnectionProcess(
             </div>
           )}
 
-          {/* Enhanced Error Display */}
+          {/* Error Display */}
           {connectionError && (
             <Alert
               variant="destructive"
-              className="border-red-500/50 bg-red-500/10"
+              className="border-red-500/30 bg-red-500/10"
             >
-              <AlertCircle className="h-4 w-4 text-red-400" />
-              <AlertDescription className="text-red-300">
+              <AlertCircle className="h-4 w-4 text-red-500" />
+              <AlertDescription className="text-red-500">
                 {connectionError}
               </AlertDescription>
             </Alert>
           )}
 
-          {/* Enhanced Security Notice */}
+          {/* Security Notice */}
           {!connectionError && (
-            <div className="p-6 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/30 backdrop-blur-sm">
-              <div className="flex items-start gap-4">
-                <div className="p-2 bg-green-500/20 rounded-full">
-                  <Shield className="h-6 w-6 text-green-400" />
+            <div className="relative p-4 bg-green-500/5 border border-green-500/30">
+              <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t border-l border-green-500/50" />
+              <div className="flex items-start gap-3">
+                <div className="p-1.5 border border-green-500/30 bg-green-500/10">
+                  <Shield className="h-4 w-4 text-green-500" />
                 </div>
                 <div>
-                  <div className="font-semibold text-green-300 mb-2 text-lg">
-                    🔒 Secure Connection
+                  <div className="font-bold text-foreground mb-1 text-xs">
+                    Secure Connection
                   </div>
-                  <div className="text-green-200/80 text-sm leading-relaxed">
+                  <div className="text-muted-foreground text-xs">
                     Your connection is encrypted and authenticated using your
                     wallet's private key. All data transmission is secured with
                     industry-standard encryption protocols.
@@ -317,12 +313,12 @@ export function ConnectionProcess(
             </div>
           )}
 
-          {/* Enhanced Action Buttons */}
-          <div className="flex gap-4 pt-6">
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-4">
             <Button
               onClick={onBack}
               variant="outline"
-              className="flex-1 h-12 border-border/50 hover:border-muted/50 bg-muted/50 hover:bg-secondary/50 transition-all duration-150"
+              className="flex-1 h-10"
               disabled={isConnecting}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -331,7 +327,7 @@ export function ConnectionProcess(
             {connectionError && (
               <Button
                 onClick={handleRetry}
-                className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black dark:text-black shadow-lg shadow-amber-500/25 transition-all duration-150"
+                className="flex-1 h-10 bg-amber-500 hover:bg-amber-600 text-black font-bold"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Retry Connection
@@ -340,38 +336,6 @@ export function ConnectionProcess(
           </div>
         </CardContent>
       </Card>
-
-      {/* Custom Animations */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-          @keyframes fade-in-up {
-            from {
-              opacity: 0;
-              transform: translateY(20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-          
-          @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-          }
-          
-          .animate-fade-in-up {
-            animation: fade-in-up 0.3s ease-out forwards;
-            opacity: 0;
-          }
-          
-          .animate-shimmer {
-            animation: shimmer 1.5s infinite;
-          }
-        `,
-        }}
-      />
     </div>
   );
 }

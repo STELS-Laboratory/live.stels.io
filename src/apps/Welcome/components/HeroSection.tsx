@@ -68,7 +68,7 @@ export function HeroSection({
                 STELS
               </h1>
               <p className="text-[10px] text-muted-foreground/70 font-medium">
-                Application Store
+                Web3 Application Store
               </p>
             </div>
           </div>
@@ -172,7 +172,7 @@ export function HeroSection({
               <div>
                 <h1 className="text-lg font-bold text-foreground">STELS</h1>
                 <p className="text-xs text-muted-foreground">
-                  Application Store
+                  Web3 Application Store
                 </p>
               </div>
             </div>

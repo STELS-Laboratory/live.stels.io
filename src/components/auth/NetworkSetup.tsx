@@ -60,28 +60,26 @@ export function NetworkSetup(
   };
 
   return (
-    <div className="space-y-8 animate-fade-in-up">
+    <div className="space-y-6">
       {/* Network Setup Card */}
-      <Card className="w-full max-w-2xl mx-auto backdrop-blur-sm bg-card/80 border-border/50 shadow-2xl">
-        <CardHeader className="text-center pb-6">
-          <CardTitle className="flex items-center justify-center gap-3 text-3xl font-bold">
-            <div className="relative">
-              <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-lg" />
-              <div className="relative p-3 rounded-full bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 backdrop-blur-sm">
-                <Network className="h-6 w-6 text-amber-500" />
-              </div>
+      <Card className="w-full max-w-2xl mx-auto bg-card border">
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="flex items-center justify-center gap-3 text-xl font-bold">
+            <div className="relative p-2 border-2 border-amber-500/30 bg-amber-500/10">
+              <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-amber-500/50" />
+              <Network className="h-6 w-6 text-amber-500" />
             </div>
-            <span className="bg-gradient-to-r from-amber-400 via-white to-orange-400 bg-clip-text text-transparent">
+            <span className="text-foreground">
               Select Network
             </span>
           </CardTitle>
-          <p className="text-muted-foreground text-lg mt-3 leading-relaxed">
+          <p className="text-muted-foreground text-sm mt-2">
             Your wallet is ready. Choose a network to connect to the STELS Web3
             platform.
           </p>
         </CardHeader>
 
-        <CardContent className="px-8 pb-8 space-y-8">
+        <CardContent className="px-6 pb-6 space-y-4">
           {/* Network Selector Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -101,7 +99,7 @@ export function NetworkSetup(
             </div>
 
             {/* Network Selector */}
-            <div className="p-6 bg-muted/50 dark:bg-muted/30 rounded-xl border border-border/30 backdrop-blur-sm">
+            <div className="p-4 bg-muted border border-border">
               <NetworkSelectorCompact />
             </div>
           </div>
@@ -110,10 +108,10 @@ export function NetworkSetup(
           {connectionError && (
             <Alert
               variant="destructive"
-              className="border-red-500/50 bg-red-500/10"
+              className="border-red-500/30 bg-red-500/10"
             >
-              <AlertCircle className="h-4 w-4 text-red-400" />
-              <AlertDescription className="text-red-300">
+              <AlertCircle className="h-4 w-4 text-red-500" />
+              <AlertDescription className="text-red-500">
                 {connectionError}
               </AlertDescription>
             </Alert>
@@ -121,45 +119,35 @@ export function NetworkSetup(
 
           {/* Selected Network Summary */}
           {selectedNetwork && (
-            <div className="p-6 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl border border-amber-500/30 backdrop-blur-sm">
+            <div className="relative p-4 bg-amber-500/5 border border-amber-500/30">
+              <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t border-l border-amber-500/50" />
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <div
-                      className={`absolute inset-0 rounded-full blur-lg ${
-                        selectedNetwork.id === "testnet"
-                          ? "bg-blue-500/20"
-                          : selectedNetwork.id === "mainnet"
-                          ? "bg-green-500/20"
-                          : "bg-purple-500/20"
-                      }`}
-                    />
-                    <div
-                      className={`relative p-3 rounded-full ${
-                        selectedNetwork.id === "testnet"
-                          ? "bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30"
-                          : selectedNetwork.id === "mainnet"
-                          ? "bg-gradient-to-br from-green-500/20 to-green-600/20 border border-green-500/30"
-                          : "bg-gradient-to-br from-purple-500/20 to-purple-600/20 border border-purple-500/30"
-                      } backdrop-blur-sm`}
-                    >
-                      {getNetworkIcon(selectedNetwork)}
-                    </div>
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`p-2 border-2 ${
+                      selectedNetwork.id === "testnet"
+                        ? "border-blue-500/30 bg-blue-500/10"
+                        : selectedNetwork.id === "mainnet"
+                        ? "border-green-500/30 bg-green-500/10"
+                        : "border-purple-500/30 bg-purple-500/10"
+                    }`}
+                  >
+                    {getNetworkIcon(selectedNetwork)}
                   </div>
                   <div>
-                    <div className="font-semibold text-amber-400 text-lg">
+                    <div className="font-bold text-foreground text-sm">
                       Ready to connect to {selectedNetwork.name}
                     </div>
-                    <div className="text-sm text-card-foreground mt-1">
+                    <div className="text-xs text-muted-foreground mt-0.5">
                       {selectedNetwork.description}
                     </div>
-                    <div className="text-xs font-mono text-muted-foreground mt-2">
+                    <div className="text-[10px] font-mono text-muted-foreground/70 mt-1">
                       {selectedNetwork.api}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <div className="w-1.5 h-1.5 bg-green-500 animate-pulse" />
                   <span>Ready</span>
                 </div>
               </div>
@@ -167,16 +155,17 @@ export function NetworkSetup(
           )}
 
           {/* Security Information */}
-          <div className="p-6 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/30 backdrop-blur-sm">
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-green-500/20 rounded-full">
-                <Shield className="h-6 w-6 text-green-400" />
+          <div className="relative p-4 bg-green-500/5 border border-green-500/30">
+            <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t border-l border-green-500/50" />
+            <div className="flex items-start gap-3">
+              <div className="p-1.5 border border-green-500/30 bg-green-500/10">
+                <Shield className="h-4 w-4 text-green-500" />
               </div>
               <div>
-                <div className="font-semibold text-green-300 mb-2 text-lg">
-                  🔒 Secure Connection
+                <div className="font-bold text-foreground mb-1 text-xs">
+                  Secure Connection
                 </div>
-                <div className="text-green-200/80 text-sm leading-relaxed">
+                <div className="text-muted-foreground text-xs">
                   Your connection will be encrypted and authenticated using your
                   wallet's private key. All data transmission is secured with
                   industry-standard encryption protocols.
@@ -186,11 +175,11 @@ export function NetworkSetup(
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-6">
+          <div className="flex gap-3 pt-4">
             <Button
               onClick={onBack}
               variant="outline"
-              className="flex-1 h-12 border-border/50 hover:border-muted/50 bg-muted/50 hover:bg-secondary/50 transition-all duration-300"
+              className="flex-1 h-10"
               disabled={isConnecting}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -204,12 +193,12 @@ export function NetworkSetup(
                 onConnect();
               }}
               disabled={!selectedNetwork || isConnecting}
-              className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black dark:text-black shadow-lg shadow-amber-500/25 transition-all duration-150"
+              className="flex-1 h-10 bg-amber-500 hover:bg-amber-600 text-black font-bold"
             >
               {isConnecting
                 ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black dark:border-black mr-2" />
+                    <div className="animate-spin w-4 h-4 border-2 border-black border-t-transparent rounded-full mr-2" />
                     Connecting...
                   </>
                 )
@@ -223,29 +212,6 @@ export function NetworkSetup(
           </div>
         </CardContent>
       </Card>
-
-      {/* Custom Animations */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-            @keyframes fade-in-up {
-              from {
-                opacity: 0;
-                transform: translateY(20px);
-              }
-              to {
-                opacity: 1;
-                transform: translateY(0);
-              }
-            }
-            
-            .animate-fade-in-up {
-              animation: fade-in-up 0.3s ease-out forwards;
-              opacity: 0;
-            }
-          `,
-        }}
-      />
     </div>
   );
 }

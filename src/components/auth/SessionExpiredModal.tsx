@@ -37,36 +37,40 @@ export const SessionExpiredModal: React.FC = (): React.ReactElement => {
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/95">
       <div className="w-full max-w-lg mx-4">
-        <Card className="border-amber-500/20 bg-card/95 backdrop-blur-md">
+        <Card className="border bg-card">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10">
-              <AlertTriangle className="h-8 w-8 text-amber-500" />
+            <div className="relative mx-auto mb-4 p-3 border-2 border-amber-500/30 bg-amber-500/10 inline-flex">
+              <div className="absolute -top-1 -left-1 w-2 h-2 border-t border-l border-amber-500/50" />
+              <AlertTriangle className="h-6 w-6 text-amber-500" />
             </div>
-            <CardTitle className="text-2xl text-foreground">
+            <CardTitle className="text-xl text-foreground">
               Session Expired
             </CardTitle>
-            <CardDescription className="text-muted-foreground text-base">
+            <CardDescription className="text-muted-foreground text-sm">
               Your session has been terminated
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4">
             {/* Security Information */}
-            <div className="bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/20 dark:border-blue-500/30 rounded-lg p-6">
-              <div className="flex items-start space-x-4">
-                <Shield className="h-6 w-6 text-blue-500 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                <div className="space-y-3">
-                  <p className="text-blue-600 dark:text-blue-400 text-base font-medium">
+            <div className="relative bg-blue-500/5 border border-blue-500/30 p-4">
+              <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t border-l border-blue-500/50" />
+              <div className="flex items-start gap-3">
+                <div className="p-1.5 border border-blue-500/30 bg-blue-500/10">
+                  <Shield className="h-4 w-4 text-blue-500" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-foreground text-xs font-bold">
                     Security Testing Notice
                   </p>
-                  <p className="text-blue-700 dark:text-blue-300 text-sm leading-relaxed">
+                  <p className="text-muted-foreground text-xs">
                     Our security team is currently testing session management
                     mechanisms to protect against unauthorized access and cyber
                     attacks. This testing ensures your account remains secure.
                   </p>
-                  <p className="text-blue-700 dark:text-blue-300 text-sm leading-relaxed">
+                  <p className="text-muted-foreground text-xs">
                     Please click "OK" to proceed with re-authentication.
                   </p>
                 </div>
@@ -76,7 +80,7 @@ export const SessionExpiredModal: React.FC = (): React.ReactElement => {
             <div className="text-center">
               <Button
                 onClick={handleOkClick}
-                className="bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-600 text-black dark:text-black font-medium px-8 py-3 text-base"
+                className="bg-amber-500 hover:bg-amber-600 text-black font-bold px-8 h-10"
               >
                 OK
               </Button>

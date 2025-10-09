@@ -127,23 +127,24 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
 
       case "success":
         return (
-          <div className="text-center space-y-6">
+          <div className="text-center space-y-4 max-w-md mx-auto">
             <div className="flex justify-center">
-              <div className="p-6 bg-green-500/20 rounded-full">
-                <CheckCircle className="h-16 w-16 text-green-500" />
+              <div className="relative p-4 border-2 border-green-500/30 bg-green-500/10">
+                <div className="absolute -top-1 -left-1 w-2 h-2 border-t border-l border-green-500/50" />
+                <CheckCircle className="h-12 w-12 text-green-500" />
               </div>
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-foreground mb-2">
+              <h2 className="text-xl font-bold text-foreground mb-2">
                 Welcome to STELS Web3
               </h2>
-              <p className="text-muted-foreground text-lg">
+              <p className="text-muted-foreground text-sm">
                 Your wallet is connected and ready to use
               </p>
             </div>
-            <Alert className="max-w-md mx-auto bg-green-500/10 border-green-500/30">
+            <Alert className="bg-green-500/5 border-green-500/30">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <AlertDescription className="text-green-300">
+              <AlertDescription className="text-muted-foreground text-xs">
                 You can now access all features of the STELS Web3 platform
               </AlertDescription>
             </Alert>
@@ -211,23 +212,23 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
 
         {/* Progress Indicator */}
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium text-muted-foreground">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-medium text-muted-foreground">
               {stepTitle}
             </span>
-            <span className="text-sm font-medium text-muted-foreground">
+            <span className="text-xs font-bold text-foreground">
               {progress}%
             </span>
           </div>
-          <div className="w-full bg-muted rounded-full h-2">
+          <div className="w-full bg-muted border border-border h-2 overflow-hidden">
             <div
-              className="bg-amber-500 h-2 rounded-full transition-all duration-150 ease-out"
+              className="bg-amber-500 h-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
 
           {/* Step Indicators */}
-          <div className="flex justify-between mt-4">
+          <div className="flex justify-between mt-3">
             {[
               { step: "type", label: "Setup", progress: 20 },
               { step: "create", label: "Wallet", progress: 40 },
@@ -241,14 +242,16 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
               return (
                 <div key={item.step} className="flex flex-col items-center">
                   <div
-                    className={`w-3 h-3 rounded-full transition-all ${
+                    className={`w-2 h-2 border transition-all ${
                       isActive
-                        ? isCurrent ? "bg-amber-500 scale-125" : "bg-green-500"
-                        : "bg-muted dark:bg-muted-foreground"
+                        ? isCurrent
+                          ? "bg-amber-500 border-amber-500"
+                          : "bg-green-500 border-green-500"
+                        : "bg-background border-border"
                     }`}
                   />
                   <span
-                    className={`text-xs mt-1 transition-colors ${
+                    className={`text-[10px] mt-1 transition-colors font-medium ${
                       isActive ? "text-foreground" : "text-muted-foreground"
                     }`}
                   >

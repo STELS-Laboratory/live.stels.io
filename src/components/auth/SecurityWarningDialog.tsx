@@ -47,31 +47,35 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95">
       <div className="w-full max-w-md mx-4">
-        <Card className="border-amber-500/20 bg-card/95 backdrop-blur-md">
+        <Card className="border bg-card">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10">
-              <AlertTriangle className="h-6 w-6 text-amber-500" />
+            <div className="relative mx-auto mb-3 p-2 border-2 border-amber-500/30 bg-amber-500/10 inline-flex">
+              <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-amber-500/50" />
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
             </div>
-            <CardTitle className="text-xl text-foreground">
+            <CardTitle className="text-lg text-foreground">
               Security Notice
             </CardTitle>
-            <CardDescription className="text-muted-foreground">
+            <CardDescription className="text-muted-foreground text-xs">
               Important information before signing out
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             {/* Security Information */}
-            <div className="bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/20 dark:border-blue-500/30 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <Shield className="h-5 w-5 text-blue-500 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                <div className="space-y-2">
-                  <p className="text-blue-600 dark:text-blue-400 text-sm font-medium">
+            <div className="relative bg-blue-500/5 border border-blue-500/30 p-3">
+              <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-blue-500/50" />
+              <div className="flex items-start gap-2">
+                <div className="p-1 border border-blue-500/30 bg-blue-500/10">
+                  <Shield className="h-3.5 w-3.5 text-blue-500" />
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-foreground text-xs font-bold">
                     Security Testing in Progress
                   </p>
-                  <p className="text-blue-700 dark:text-blue-300 text-xs leading-relaxed">
+                  <p className="text-muted-foreground text-xs">
                     Our security team is currently testing session management
                     mechanisms to protect against unauthorized access and cyber
                     attacks. You may need to re-authenticate when you return.
@@ -80,10 +84,10 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Button
                 onClick={handleProceedWithLogout}
-                className="w-full bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-600 text-black dark:text-black font-medium"
+                className="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold h-9"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign Out & Continue
@@ -92,7 +96,7 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
               <Button
                 onClick={handleCancelLogout}
                 variant="outline"
-                className="w-full"
+                className="w-full h-9"
               >
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Stay Logged In

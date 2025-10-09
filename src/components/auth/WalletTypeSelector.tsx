@@ -14,129 +14,137 @@ export function WalletTypeSelector(
 ): React.ReactElement {
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <Card className="backdrop-blur-sm bg-card/80 border-border/50 shadow-2xl">
-        <CardHeader className="text-center pb-8">
-          <CardTitle className="flex items-center justify-center gap-3 text-3xl font-bold">
-            <div className="relative">
-              <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-lg" />
-              <Wallet className="relative h-8 w-8 text-amber-400" />
+      <Card className="bg-card border">
+        <CardHeader className="text-center pb-6">
+          <CardTitle className="flex items-center justify-center gap-3 text-2xl font-bold">
+            <div className="relative p-2 border border-amber-500/30 bg-amber-500/10">
+              <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-amber-500/50" />
+              <Wallet className="h-6 w-6 text-amber-500" />
             </div>
-            <span className="bg-gradient-to-r from-amber-400 via-white to-blue-400 bg-clip-text text-transparent">
+            <span className="text-foreground">
               Choose Setup Method
             </span>
           </CardTitle>
-          <p className="text-muted-foreground text-lg mt-3 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-muted-foreground text-sm mt-2 max-w-2xl mx-auto">
             Select how you want to set up your Gliesereum wallet. Both options
             are secure and encrypted.
           </p>
         </CardHeader>
 
-        <CardContent className="px-8 pb-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <CardContent className="px-6 pb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Create New Wallet */}
-            <div className="group relative">
-              <div className="absolute inset-0 group-hover:blur-2xl transition-all duration-200" />
-              <Card
-                className="relative cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:shadow-2xl border-border/50 hover:border-amber-500/50 bg-card/60 hover:bg-muted/60 backdrop-blur-sm group-hover:shadow-amber-500/10"
-                onClick={() => onSelectType("create")}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    onSelectType("create");
-                  }
-                }}
-                aria-label="Create new wallet - Generate a completely new wallet with a unique private key"
-              >
-                <CardContent className="p-8">
-                  <div className="text-center space-y-6">
-                    {/* Icon with enhanced animation */}
-                    <div className="flex justify-center">
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-amber-500/30 rounded-full animate-pulse" />
-                        <div className="relative p-6 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-full border border-amber-500/30 backdrop-blur-sm">
-                          <Sparkles className="h-10 w-10 text-amber-400 group-hover:animate-pulse" />
-                        </div>
-                      </div>
-                    </div>
+            <Card
+              className="relative cursor-pointer transition-colors hover:border-amber-500/50 bg-card border"
+              onClick={() => onSelectType("create")}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelectType("create");
+                }
+              }}
+              aria-label="Create new wallet - Generate a completely new wallet with a unique private key"
+            >
+              {/* Corner decorations */}
+              <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-border hover:border-amber-500/50 transition-colors" />
+              <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-border hover:border-amber-500/50 transition-colors" />
+              <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-border hover:border-amber-500/50 transition-colors" />
+              <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-border hover:border-amber-500/50 transition-colors" />
 
-                    <div>
-                      <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-amber-400 transition-colors">
-                        Create New Wallet
-                      </h3>
-                      <p className="text-muted-foreground mb-6 leading-relaxed">
-                        Generate a completely new wallet with a unique private
-                        key
-                      </p>
-                    </div>
-                    {/* Hover indicator */}
-                    <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-150 transform translate-x-2 group-hover:translate-x-0">
-                      <ArrowRight className="h-5 w-5 text-amber-400" />
+              <CardContent className="p-6">
+                <div className="text-center space-y-4">
+                  {/* Icon */}
+                  <div className="flex justify-center">
+                    <div className="relative p-4 border-2 border-amber-500/30 bg-amber-500/10">
+                      <div className="absolute -top-1 -left-1 w-2 h-2 border-t border-l border-amber-500/50" />
+                      <Sparkles className="h-8 w-8 text-amber-500" />
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground mb-2">
+                      Create New Wallet
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      Generate a completely new wallet with a unique private key
+                    </p>
+                  </div>
+
+                  {/* Action indicator */}
+                  <div className="flex items-center justify-center gap-2 text-amber-500 text-xs font-medium">
+                    <span>Get started</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Import Existing Wallet */}
-            <div className="group relative">
-              <div className="absolute inset-0 group-hover:blur-2xl transition-all duration-200" />
-              <Card
-                className="relative cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:shadow-2xl border-border/50 hover:border-blue-500/50 bg-card/60 hover:bg-muted/60 backdrop-blur-sm group-hover:shadow-blue-500/10"
-                onClick={() => onSelectType("import")}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    onSelectType("import");
-                  }
-                }}
-                aria-label="Import existing wallet - Restore your wallet using your existing private key"
-              >
-                <CardContent className="p-8">
-                  <div className="text-center space-y-6">
-                    {/* Icon with enhanced animation */}
-                    <div className="flex justify-center">
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-blue-500/30 rounded-full animate-pulse" />
-                        <div className="relative p-6 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full border border-blue-500/30 backdrop-blur-sm">
-                          <Key className="h-10 w-10 text-blue-400 group-hover:animate-pulse" />
-                        </div>
-                      </div>
-                    </div>
+            <Card
+              className="relative cursor-pointer transition-colors hover:border-blue-500/50 bg-card border"
+              onClick={() => onSelectType("import")}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelectType("import");
+                }
+              }}
+              aria-label="Import existing wallet - Restore your wallet using your existing private key"
+            >
+              {/* Corner decorations */}
+              <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-border hover:border-blue-500/50 transition-colors" />
+              <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-border hover:border-blue-500/50 transition-colors" />
+              <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-border hover:border-blue-500/50 transition-colors" />
+              <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-border hover:border-blue-500/50 transition-colors" />
 
-                    <div>
-                      <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-blue-400 transition-colors">
-                        Import Existing Wallet
-                      </h3>
-                      <p className="text-muted-foreground mb-6 leading-relaxed">
-                        Restore your wallet using your existing private key
-                      </p>
-                    </div>
-
-                    {/* Hover indicator */}
-                    <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-150 transform translate-x-2 group-hover:translate-x-0">
-                      <ArrowRight className="h-5 w-5 text-blue-400" />
+              <CardContent className="p-6">
+                <div className="text-center space-y-4">
+                  {/* Icon */}
+                  <div className="flex justify-center">
+                    <div className="relative p-4 border-2 border-blue-500/30 bg-blue-500/10">
+                      <div className="absolute -top-1 -left-1 w-2 h-2 border-t border-l border-blue-500/50" />
+                      <Key className="h-8 w-8 text-blue-500" />
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground mb-2">
+                      Import Existing Wallet
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      Restore your wallet using your existing private key
+                    </p>
+                  </div>
+
+                  {/* Action indicator */}
+                  <div className="flex items-center justify-center gap-2 text-blue-500 text-xs font-medium">
+                    <span>Restore wallet</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Enhanced Security Notice */}
-          <div className="mt-12 p-6 bg-muted/50 dark:bg-muted/30 rounded-xl border border-border/30 backdrop-blur-sm">
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-green-500/20 rounded-full">
-                <Shield className="h-6 w-6 text-green-500 dark:text-green-400" />
+          {/* Security Notice */}
+          <div className="relative mt-8 p-4 bg-green-500/5 border border-green-500/30">
+            {/* Corner accents */}
+            <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t border-l border-green-500/50" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 border-b border-r border-green-500/50" />
+
+            <div className="flex items-start gap-3">
+              <div className="p-2 border border-green-500/30 bg-green-500/10">
+                <Shield className="h-5 w-5 text-green-500" />
               </div>
               <div>
-                <div className="font-semibold text-foreground mb-2 text-lg">
-                  🔒 Security Guarantee
+                <div className="font-bold text-foreground mb-1 text-sm">
+                  Security Guarantee
                 </div>
-                <div className="text-foreground leading-relaxed">
+                <div className="text-muted-foreground text-xs">
                   Your private key is generated and stored securely in your
                   browser using advanced encryption. We never have access to
                   your private keys or funds - everything stays local to your
@@ -147,29 +155,6 @@ export function WalletTypeSelector(
           </div>
         </CardContent>
       </Card>
-
-      {/* Custom Animations */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-          @keyframes fade-in-up {
-            from {
-              opacity: 0;
-              transform: translateY(20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-          
-          .animate-fade-in-up {
-            animation: fade-in-up 0.3s ease-out forwards;
-            opacity: 0;
-          }
-        `,
-        }}
-      />
     </div>
   );
 }

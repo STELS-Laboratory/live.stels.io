@@ -113,46 +113,34 @@ export function WalletConfirmation({
   const typeInfo = getWalletTypeInfo();
 
   return (
-    <div className="space-y-8 animate-fade-in-up">
+    <div className="space-y-6">
       {/* Wallet Confirmation Card */}
-      <Card className="w-full max-w-2xl mx-auto backdrop-blur-sm bg-card/80 border-border/50 shadow-2xl">
-        <CardHeader className="text-center pb-6">
-          <CardTitle className="flex items-center justify-center gap-3 text-3xl font-bold">
-            <div className="relative">
-              <div
-                className={`absolute inset-0 rounded-full blur-lg ${
-                  walletType === "create" ? "bg-green-500/20" : "bg-blue-500/20"
-                }`}
-              />
-              <div
-                className={`relative p-3 rounded-full ${
-                  walletType === "create"
-                    ? "bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30"
-                    : "bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30"
-                } backdrop-blur-sm`}
-              >
-                {typeInfo.icon}
-              </div>
-            </div>
-            <span
-              className={`bg-gradient-to-r bg-clip-text text-transparent ${
+      <Card className="w-full max-w-2xl mx-auto bg-card border">
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="flex items-center justify-center gap-3 text-xl font-bold">
+            <div
+              className={`relative p-2 border-2 ${
                 walletType === "create"
-                  ? "from-green-400 via-white to-emerald-400"
-                  : "from-blue-400 via-white to-cyan-400"
+                  ? "border-green-500/30 bg-green-500/10"
+                  : "border-blue-500/30 bg-blue-500/10"
               }`}
             >
+              <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-current" />
+              {typeInfo.icon}
+            </div>
+            <span className="text-foreground">
               {typeInfo.title}
             </span>
           </CardTitle>
-          <p className="text-muted-foreground text-lg mt-3 leading-relaxed">
+          <p className="text-muted-foreground text-sm mt-2">
             {typeInfo.subtitle}
           </p>
-          <Badge className={`mx-auto ${typeInfo.badge.className}`}>
+          <Badge className={`mx-auto mt-2 ${typeInfo.badge.className}`}>
             {typeInfo.badge.text}
           </Badge>
         </CardHeader>
 
-        <CardContent className="px-8 pb-8 space-y-8">
+        <CardContent className="px-6 pb-6 space-y-4">
           {/* Wallet Information Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-card-foreground flex items-center gap-2">
@@ -160,7 +148,7 @@ export function WalletConfirmation({
               Wallet Details
             </h3>
 
-            <div className="p-6 bg-muted/50 dark:bg-muted/30 rounded-xl border border-border/30 backdrop-blur-sm space-y-4">
+            <div className="p-4 bg-muted border border-border space-y-3">
               {/* Wallet Address */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -178,8 +166,8 @@ export function WalletConfirmation({
                       : <Copy className="h-3 w-3" />}
                   </Button>
                 </div>
-                <div className="p-3 bg-muted/50 rounded-lg border border-border/30">
-                  <div className="font-mono text-sm text-card-foreground break-all">
+                <div className="p-2 bg-background border border-border">
+                  <div className="font-mono text-xs text-foreground break-all">
                     {wallet.address}
                   </div>
                 </div>
@@ -190,8 +178,8 @@ export function WalletConfirmation({
                 <label className="text-sm font-medium text-muted-foreground">
                   Card Number
                 </label>
-                <div className="p-3 bg-muted/50 rounded-lg border border-border/30">
-                  <div className="font-mono text-sm text-card-foreground">
+                <div className="p-2 bg-background border border-border">
+                  <div className="font-mono text-sm text-foreground">
                     {wallet.number}
                   </div>
                 </div>
@@ -226,10 +214,10 @@ export function WalletConfirmation({
                     </Button>
                   </div>
                 </div>
-                <div className="p-3 bg-muted/50 rounded-lg border border-border/30">
+                <div className="p-2 bg-background border border-border">
                   {showPublicKey
                     ? (
-                      <div className="font-mono text-xs text-card-foreground break-all">
+                      <div className="font-mono text-xs text-foreground break-all">
                         {wallet.privateKey}
                       </div>
                     )
@@ -254,45 +242,50 @@ export function WalletConfirmation({
               {/* User Mode */}
               <div
                 onClick={() => setIsDeveloperMode(false)}
-                className={`p-4 rounded-xl border transition-all duration-150 cursor-pointer ${
+                className={`relative p-4 border transition-colors cursor-pointer ${
                   !isDeveloperMode
-                    ? "bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/50 shadow-lg shadow-green-500/10"
-                    : "bg-muted/30 border-border/30 hover:border-muted/50"
+                    ? "bg-green-500/10 border-green-500/30"
+                    : "bg-muted border-border hover:border-border"
                 }`}
               >
+                {!isDeveloperMode && (
+                  <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t border-l border-green-500/50" />
+                )}
                 <div className="flex items-center gap-3">
                   <div
-                    className={`p-2 rounded-full ${
-                      !isDeveloperMode ? "bg-green-500/20" : "bg-secondary/50"
+                    className={`p-2 border ${
+                      !isDeveloperMode
+                        ? "border-green-500/30 bg-green-500/10"
+                        : "border-border bg-background"
                     }`}
                   >
                     <User
                       className={`h-5 w-5 ${
                         !isDeveloperMode
-                          ? "text-green-400"
+                          ? "text-green-500"
                           : "text-muted-foreground"
                       }`}
                     />
                   </div>
                   <div>
                     <div
-                      className={`font-semibold ${
-                        !isDeveloperMode
-                          ? "text-green-300"
-                          : "text-card-foreground"
+                      className={`font-bold text-sm ${
+                        !isDeveloperMode ? "text-foreground" : "text-foreground"
                       }`}
                     >
                       User Mode
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">
+                    <div className="text-xs text-muted-foreground">
                       Standard access with production networks
                     </div>
                   </div>
                 </div>
                 {!isDeveloperMode && (
-                  <div className="flex items-center gap-2 mt-3">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                    <span className="text-xs text-green-400">Selected</span>
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <div className="w-1.5 h-1.5 bg-green-500" />
+                    <span className="text-xs text-green-500 font-medium">
+                      Selected
+                    </span>
                   </div>
                 )}
               </div>
@@ -300,45 +293,46 @@ export function WalletConfirmation({
               {/* Developer Mode */}
               <div
                 onClick={() => setIsDeveloperMode(true)}
-                className={`p-4 rounded-xl border transition-all duration-150 cursor-pointer ${
+                className={`relative p-4 border transition-colors cursor-pointer ${
                   isDeveloperMode
-                    ? "bg-gradient-to-r from-purple-500/20 to-violet-500/20 border-purple-500/50 shadow-lg shadow-purple-500/10"
-                    : "bg-muted/30 border-border/30 hover:border-muted/50"
+                    ? "bg-purple-500/10 border-purple-500/30"
+                    : "bg-muted border-border hover:border-border"
                 }`}
               >
+                {isDeveloperMode && (
+                  <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t border-l border-purple-500/50" />
+                )}
                 <div className="flex items-center gap-3">
                   <div
-                    className={`p-2 rounded-full ${
-                      isDeveloperMode ? "bg-purple-500/20" : "bg-secondary/50"
+                    className={`p-2 border ${
+                      isDeveloperMode
+                        ? "border-purple-500/30 bg-purple-500/10"
+                        : "border-border bg-background"
                     }`}
                   >
                     <Code
                       className={`h-5 w-5 ${
                         isDeveloperMode
-                          ? "text-purple-400"
+                          ? "text-purple-500"
                           : "text-muted-foreground"
                       }`}
                     />
                   </div>
                   <div>
-                    <div
-                      className={`font-semibold ${
-                        isDeveloperMode
-                          ? "text-purple-300"
-                          : "text-card-foreground"
-                      }`}
-                    >
+                    <div className={`font-bold text-sm text-foreground`}>
                       Developer
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">
+                    <div className="text-xs text-muted-foreground">
                       Access to test networks and dev tools
                     </div>
                   </div>
                 </div>
                 {isDeveloperMode && (
-                  <div className="flex items-center gap-2 mt-3">
-                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
-                    <span className="text-xs text-purple-400">Selected</span>
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <div className="w-1.5 h-1.5 bg-purple-500" />
+                    <span className="text-xs text-purple-500 font-medium">
+                      Selected
+                    </span>
                   </div>
                 )}
               </div>
@@ -346,16 +340,17 @@ export function WalletConfirmation({
           </div>
 
           {/* Security Notice */}
-          <div className="p-6 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl border border-amber-500/30 backdrop-blur-sm">
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-amber-500/20 rounded-full">
-                <AlertCircle className="h-6 w-6 text-amber-400" />
+          <div className="relative p-4 bg-amber-500/5 border border-amber-500/30">
+            <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t border-l border-amber-500/50" />
+            <div className="flex items-start gap-3">
+              <div className="p-1.5 border border-amber-500/30 bg-amber-500/10">
+                <AlertCircle className="h-4 w-4 text-amber-500" />
               </div>
               <div>
-                <div className="font-semibold text-amber-300 mb-2 text-lg">
-                  🔒 Important Security Notice
+                <div className="font-bold text-foreground mb-1 text-xs">
+                  Important Security Notice
                 </div>
-                <div className="text-amber-200/80 text-sm leading-relaxed">
+                <div className="text-muted-foreground text-xs">
                   Please save your private key securely. If you lose it, you
                   will permanently lose access to your wallet and funds.
                   Consider using a secure password manager or hardware wallet
@@ -366,7 +361,7 @@ export function WalletConfirmation({
           </div>
 
           {/* Confirmation Checkbox */}
-          <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg border border-border/30">
+          <div className="flex items-start gap-3 p-3 bg-muted border border-border">
             <input
               type="checkbox"
               id="confirmWallet"
@@ -385,11 +380,11 @@ export function WalletConfirmation({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-6">
+          <div className="flex gap-3 pt-4">
             <Button
               onClick={onBack}
               variant="outline"
-              className="flex-1 h-12 border-border/50 hover:border-muted/50 bg-muted/50 hover:bg-secondary/50 transition-all duration-300"
+              className="flex-1 h-10"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
@@ -397,7 +392,7 @@ export function WalletConfirmation({
             <Button
               onClick={handleConfirm}
               disabled={!isConfirmed}
-              className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black dark:text-black shadow-lg shadow-amber-500/25 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 h-10 bg-amber-500 hover:bg-amber-600 text-black font-bold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Continue to Network Setup
               <ArrowRight className="h-4 w-4 ml-2" />
@@ -405,29 +400,6 @@ export function WalletConfirmation({
           </div>
         </CardContent>
       </Card>
-
-      {/* Custom Animations */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-            @keyframes fade-in-up {
-              from {
-                opacity: 0;
-                transform: translateY(20px);
-              }
-              to {
-                opacity: 1;
-                transform: translateY(0);
-              }
-            }
-            
-            .animate-fade-in-up {
-              animation: fade-in-up 0.3s ease-out forwards;
-              opacity: 0;
-            }
-          `,
-        }}
-      />
     </div>
   );
 }

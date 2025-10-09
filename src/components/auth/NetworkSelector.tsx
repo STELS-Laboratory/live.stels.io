@@ -56,13 +56,16 @@ export function NetworkSelector(
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader className="text-center">
-        <CardTitle className="flex items-center justify-center gap-2">
-          <Network className="h-5 w-5 text-amber-500" />
-          Select Network
+    <Card className="w-full max-w-2xl mx-auto bg-card border">
+      <CardHeader className="text-center pb-4">
+        <CardTitle className="flex items-center justify-center gap-2 text-lg">
+          <div className="relative p-1.5 border border-amber-500/30 bg-amber-500/10">
+            <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-amber-500/50" />
+            <Network className="h-4 w-4 text-amber-500" />
+          </div>
+          <span className="text-foreground">Select Network</span>
         </CardTitle>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground mt-1">
           Choose the network you want to connect to
         </p>
       </CardHeader>
@@ -71,13 +74,16 @@ export function NetworkSelector(
           {availableNetworks.map((network) => (
             <div
               key={network.id}
-              className={`p-4 rounded-lg border cursor-pointer transition-all hover:bg-muted/50 ${
+              className={`relative p-3 border cursor-pointer transition-colors hover:bg-muted ${
                 selectedNetwork?.id === network.id
-                  ? "border-amber-500/50 bg-amber-500/10"
-                  : "border-border/50 hover:border-muted/50"
+                  ? "border-amber-500/30 bg-amber-500/5"
+                  : "border-border"
               }`}
               onClick={() => handleNetworkSelect(network)}
             >
+              {selectedNetwork?.id === network.id && (
+                <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t border-l border-amber-500/50" />
+              )}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {getNetworkIcon(network)}
@@ -107,8 +113,8 @@ export function NetworkSelector(
                 </div>
               </div>
 
-              <div className="mt-3 pt-3 border-t border-border/50">
-                <div className="grid grid-cols-2 gap-4 text-xs">
+              <div className="mt-2 pt-2 border-t border-border">
+                <div className="grid grid-cols-2 gap-3 text-[10px]">
                   <div>
                     <span className="text-muted-foreground">API:</span>
                     <div className="font-mono text-card-foreground break-all">
@@ -135,16 +141,18 @@ export function NetworkSelector(
         )}
 
         {selectedNetwork && (
-          <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+          <div className="relative mt-3 p-3 bg-amber-500/5 border border-amber-500/30">
+            <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-amber-500/50" />
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-amber-400">
-                <Network className="h-4 w-4" />
-                <span className="text-sm font-medium">
+              <div className="flex items-center gap-2 text-amber-500">
+                <Network className="h-3.5 w-3.5" />
+                <span className="text-xs font-bold">
                   Selected: {selectedNetwork.name}
                 </span>
               </div>
-              <div className="text-xs text-amber-300">
-                Ready to connect
+              <div className="flex items-center gap-1">
+                <div className="w-1 h-1 bg-green-500" />
+                <span className="text-[10px] text-muted-foreground">Ready</span>
               </div>
             </div>
           </div>

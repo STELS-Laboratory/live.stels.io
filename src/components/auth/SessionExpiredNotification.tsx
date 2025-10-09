@@ -83,27 +83,29 @@ export const SessionExpiredNotification: React.FC = (): React.ReactElement => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95">
       <div className="w-full max-w-md mx-4">
-        <Card className="border-amber-500/20 bg-card/95 backdrop-blur-md">
+        <Card className="border bg-card">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10">
-              <Shield className="h-6 w-6 text-amber-500" />
+            <div className="relative mx-auto mb-3 p-2 border-2 border-amber-500/30 bg-amber-500/10 inline-flex">
+              <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-amber-500/50" />
+              <Shield className="h-5 w-5 text-amber-500" />
             </div>
-            <CardTitle className="text-xl text-foreground">
+            <CardTitle className="text-lg text-foreground">
               Security Session Test
             </CardTitle>
-            <CardDescription className="text-muted-foreground">
+            <CardDescription className="text-muted-foreground text-xs">
               Your session has been terminated for security testing
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             {/* Security Information */}
-            <Alert className="border-blue-500/20 dark:border-blue-500/30 bg-blue-500/5 dark:bg-blue-500/10">
-              <Shield className="h-4 w-4 text-blue-500 dark:text-blue-400" />
-              <AlertDescription className="text-blue-600 dark:text-blue-400 text-sm">
-                <strong>Security Notice:</strong>{" "}
+            <Alert className="border-blue-500/30 bg-blue-500/5">
+              <Shield className="h-4 w-4 text-blue-500" />
+              <AlertDescription className="text-muted-foreground text-xs">
+                <strong className="text-foreground">Security Notice:</strong>
+                {" "}
                 Our team is testing session security mechanisms to protect
                 against unauthorized access and cyber attacks. Please
                 re-authenticate to continue.
@@ -111,19 +113,19 @@ export const SessionExpiredNotification: React.FC = (): React.ReactElement => {
             </Alert>
 
             {connectionError && (
-              <Alert className="border-red-500/20 dark:border-red-500/30 bg-red-500/5 dark:bg-red-500/10">
-                <AlertTriangle className="h-4 w-4 text-red-500 dark:text-red-400" />
-                <AlertDescription className="text-red-600 dark:text-red-400 text-sm">
+              <Alert className="border-red-500/30 bg-red-500/10">
+                <AlertTriangle className="h-4 w-4 text-red-500" />
+                <AlertDescription className="text-red-500 text-xs">
                   {connectionError}
                 </AlertDescription>
               </Alert>
             )}
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Button
                 onClick={handleReAuthenticate}
                 disabled={isHandling}
-                className="w-full bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-600 text-black dark:text-black font-medium"
+                className="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold h-9"
               >
                 {isHandling
                   ? (
@@ -144,14 +146,14 @@ export const SessionExpiredNotification: React.FC = (): React.ReactElement => {
                 onClick={handleLogout}
                 disabled={isHandling}
                 variant="outline"
-                className="w-full"
+                className="w-full h-9"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign Out
               </Button>
             </div>
 
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-1">
               <p className="text-xs text-muted-foreground">
                 This notification will auto-dismiss in a few seconds
               </p>

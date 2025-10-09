@@ -170,45 +170,33 @@ export function WalletCreator(
   const content = getContent();
 
   return (
-    <div className="w-full max-w-2xl mx-auto animate-fade-in-up">
-      <Card className="backdrop-blur-sm bg-card/80 border-border/50 shadow-2xl">
-        <CardHeader className="text-center pb-6">
-          <CardTitle className="flex items-center justify-center gap-3 text-3xl font-bold">
-            <div className="relative">
-              <div
-                className={`absolute inset-0 rounded-full blur-lg ${
-                  walletType === "create" ? "bg-amber-500/20" : "bg-blue-500/20"
-                }`}
-              />
-              <div
-                className={`relative p-3 rounded-full ${
-                  walletType === "create"
-                    ? "bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30"
-                    : "bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30"
-                } backdrop-blur-sm`}
-              >
-                {content.icon}
-              </div>
-            </div>
-            <span
-              className={`bg-gradient-to-r bg-clip-text text-transparent ${
+    <div className="w-full max-w-2xl mx-auto">
+      <Card className="bg-card border">
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="flex items-center justify-center gap-3 text-xl font-bold">
+            <div
+              className={`relative p-2 border-2 ${
                 walletType === "create"
-                  ? "from-amber-400 via-white to-orange-400"
-                  : "from-blue-400 via-white to-cyan-400"
+                  ? "border-amber-500/30 bg-amber-500/10"
+                  : "border-blue-500/30 bg-blue-500/10"
               }`}
             >
+              <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-current" />
+              {content.icon}
+            </div>
+            <span className="text-foreground">
               {content.title}
             </span>
           </CardTitle>
-          <p className="text-muted-foreground text-lg mt-3 leading-relaxed">
+          <p className="text-muted-foreground text-sm mt-2">
             {content.subtitle}
           </p>
         </CardHeader>
 
-        <CardContent className="px-8 pb-8 space-y-8">
-          {/* Enhanced Description */}
-          <div className="p-6 bg-muted/50 dark:bg-muted/30 rounded-xl border border-border/30 backdrop-blur-sm">
-            <p className="text-foreground leading-relaxed">
+        <CardContent className="px-6 pb-6 space-y-4">
+          {/* Description */}
+          <div className="p-4 bg-muted border border-border">
+            <p className="text-muted-foreground text-sm">
               {content.description}
             </p>
           </div>
@@ -231,12 +219,12 @@ export function WalletCreator(
                   placeholder="Enter your 64-character hex private key..."
                   value={privateKey}
                   onChange={(e) => setPrivateKey(e.target.value)}
-                  className={`h-12 font-mono text-sm transition-all duration-150 ${
+                  className={`h-10 font-mono text-sm transition-colors ${
                     validationState.type === "error"
-                      ? "border-red-500/50 focus:border-red-400 bg-red-500/5"
+                      ? "border-red-500/30 focus:border-red-500 bg-red-500/5"
                       : validationState.type === "success"
-                      ? "border-green-500/50 focus:border-green-400 bg-green-500/5"
-                      : "border-border/50 focus:border-amber-400"
+                      ? "border-green-500/30 focus:border-green-500 bg-green-500/5"
+                      : "border-border focus:border-amber-500"
                   }`}
                   disabled={isLoading}
                   aria-describedby="private-key-help private-key-validation"
@@ -289,30 +277,31 @@ export function WalletCreator(
             </div>
           )}
 
-          {/* Enhanced Error Display */}
+          {/* Error Display */}
           {(error || connectionError) && (
             <Alert
               variant="destructive"
-              className="border-red-500/50 bg-red-500/10"
+              className="border-red-500/30 bg-red-500/10"
             >
-              <AlertCircle className="h-4 w-4 text-red-400" />
-              <AlertDescription className="text-red-300">
+              <AlertCircle className="h-4 w-4 text-red-500" />
+              <AlertDescription className="text-red-500">
                 {error || connectionError}
               </AlertDescription>
             </Alert>
           )}
 
-          {/* Enhanced Security Notice */}
-          <div className="p-6 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/30 backdrop-blur-sm">
+          {/* Security Notice */}
+          <div className="relative p-4 bg-green-500/5 border border-green-500/30">
+            <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t border-l border-green-500/50" />
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-green-500/20 rounded-full">
-                <AlertCircle className="h-5 w-5 text-green-400" />
+              <div className="p-1.5 border border-green-500/30 bg-green-500/10">
+                <AlertCircle className="h-4 w-4 text-green-500" />
               </div>
               <div>
-                <div className="font-semibold text-green-300 mb-2">
-                  🔒 Maximum Security
+                <div className="font-bold text-foreground mb-1 text-xs">
+                  Maximum Security
                 </div>
-                <div className="text-green-200/80 text-sm leading-relaxed">
+                <div className="text-muted-foreground text-xs">
                   Your private key is processed locally in your browser using
                   advanced cryptographic functions. We never have access to your
                   private keys, and all operations happen securely on your
@@ -322,26 +311,26 @@ export function WalletCreator(
             </div>
           </div>
 
-          {/* Enhanced Action Buttons */}
-          <div className="flex gap-4 pt-4">
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-4">
             <Button
               onClick={onBack}
               variant="outline"
-              className="flex-1 h-12 border-border/50 hover:border-muted/50 bg-muted/50 hover:bg-secondary/50 transition-all duration-300"
+              className="flex-1 h-10"
               disabled={isLoading}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Selection
+              Back
             </Button>
             <Button
               onClick={content.actionHandler}
               disabled={isLoading ||
                 (content.showInput &&
                   (!privateKey.trim() || !validationState.isValid))}
-              className={`flex-1 h-12 transition-all duration-150 ${
+              className={`flex-1 h-10 font-bold ${
                 walletType === "create"
-                  ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black dark:text-black shadow-lg shadow-amber-500/25"
-                  : "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white dark:text-white shadow-lg shadow-blue-500/25"
+                  ? "bg-amber-500 hover:bg-amber-600 text-black"
+                  : "bg-blue-500 hover:bg-blue-600 text-white"
               }`}
             >
               {isLoading
@@ -363,29 +352,6 @@ export function WalletCreator(
           </div>
         </CardContent>
       </Card>
-
-      {/* Custom Animations */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-          @keyframes fade-in-up {
-            from {
-              opacity: 0;
-              transform: translateY(20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-          
-          .animate-fade-in-up {
-            animation: fade-in-up 0.3s ease-out forwards;
-            opacity: 0;
-          }
-        `,
-        }}
-      />
     </div>
   );
 }

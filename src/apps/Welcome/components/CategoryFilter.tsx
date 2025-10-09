@@ -184,7 +184,7 @@ export function CategoryFilter({
         <div className="flex items-center justify-between flex-wrap gap-4">
           {/* Categories */}
           <div className="flex items-center gap-2 flex-wrap">
-            {categories.map((category, index) => {
+            {categories.map((category) => {
               const isActive = selectedCategory === category;
               const count = categoryCounts[category] || 0;
 

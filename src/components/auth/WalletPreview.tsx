@@ -77,28 +77,28 @@ export function WalletPreview({
   }
 
   return (
-    <div className="w-full max-w-lg mx-auto animate-fade-in-up">
-      <Card className="backdrop-blur-sm bg-card/80 border-border/50 shadow-2xl">
-        <CardHeader className="text-center pb-6">
-          <CardTitle className="flex items-center justify-center gap-3 text-2xl font-bold">
-            <div className="relative">
-              <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-lg" />
-              <Wallet className="relative h-6 w-6 text-amber-400" />
+    <div className="w-full max-w-lg mx-auto">
+      <Card className="bg-card border">
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="flex items-center justify-center gap-3 text-lg font-bold">
+            <div className="relative p-2 border-2 border-amber-500/30 bg-amber-500/10">
+              <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-amber-500/50" />
+              <Wallet className="h-5 w-5 text-amber-500" />
             </div>
-            <span className="bg-gradient-to-r from-amber-400 via-white to-orange-400 bg-clip-text text-transparent">
+            <span className="text-foreground">
               Your Wallet
             </span>
           </CardTitle>
-          <p className="text-muted-foreground mt-2 leading-relaxed">
+          <p className="text-muted-foreground text-xs mt-1">
             Secure Gliesereum wallet ready to use
           </p>
         </CardHeader>
 
-        <CardContent className="px-6 pb-6 space-y-6">
-          {/* Enhanced Wallet Status */}
+        <CardContent className="px-6 pb-6 space-y-4">
+          {/* Wallet Status */}
           <div className="flex items-center justify-center">
-            <Badge className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 border-green-500/30 px-4 py-2">
-              <CheckCircle className="h-4 w-4 mr-2" />
+            <Badge className="bg-green-500/10 text-green-500 border-green-500/30 px-3 py-1 text-xs">
+              <CheckCircle className="h-3 w-3 mr-1.5" />
               Wallet Ready
             </Badge>
           </div>
@@ -121,8 +121,8 @@ export function WalletPreview({
                   : <Copy className="h-4 w-4 text-muted-foreground" />}
               </Button>
             </div>
-            <div className="p-4 bg-muted/50 dark:bg-muted/30 rounded-lg border border-border/30 backdrop-blur-sm">
-              <div className="font-mono text-sm text-foreground break-all leading-relaxed">
+            <div className="p-2 bg-background border border-border">
+              <div className="font-mono text-xs text-foreground break-all">
                 {wallet.address}
               </div>
             </div>
@@ -134,8 +134,8 @@ export function WalletPreview({
               <div className="w-2 h-2 bg-blue-400 rounded-full" />
               Card Number
             </label>
-            <div className="p-4 bg-muted/50 dark:bg-muted/30 rounded-lg border border-border/30 backdrop-blur-sm">
-              <div className="font-mono text-lg text-foreground font-bold">
+            <div className="p-2 bg-background border border-border">
+              <div className="font-mono text-sm text-foreground font-bold">
                 {wallet.number}
               </div>
             </div>
@@ -171,20 +171,20 @@ export function WalletPreview({
                 </Button>
               </div>
             </div>
-            <div className="p-4 bg-muted/50 dark:bg-muted/30 rounded-lg border border-border/30 backdrop-blur-sm">
+            <div className="p-2 bg-background border border-border">
               {showPublicKey
                 ? (
-                  <div className="font-mono text-xs text-foreground break-all leading-relaxed">
+                  <div className="font-mono text-xs text-foreground break-all">
                     {wallet.publicKey}
                   </div>
                 )
                 : (
                   <div className="font-mono text-xs text-muted-foreground flex items-center gap-1">
-                    <div className="flex gap-1">
+                    <div className="flex gap-0.5">
                       {Array.from({ length: 16 }).map((_, i) => (
                         <div
                           key={i}
-                          className="w-1 h-3 bg-border dark:bg-muted rounded-full"
+                          className="w-1 h-2 bg-border"
                         />
                       ))}
                     </div>
@@ -202,17 +202,18 @@ export function WalletPreview({
             <NetworkSelectorCompact />
           </div>
 
-          {/* Enhanced Security Notice */}
-          <div className="p-4 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg border border-blue-500/30 backdrop-blur-sm">
-            <div className="flex items-start gap-3">
-              <div className="p-1 bg-blue-500/20 rounded-full">
-                <AlertCircle className="h-4 w-4 text-blue-400" />
+          {/* Security Notice */}
+          <div className="relative p-3 bg-blue-500/5 border border-blue-500/30">
+            <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-blue-500/50" />
+            <div className="flex items-start gap-2">
+              <div className="p-1 border border-blue-500/30 bg-blue-500/10">
+                <AlertCircle className="h-3 w-3 text-blue-500" />
               </div>
-              <div className="text-sm">
-                <div className="font-medium text-blue-300 mb-1">
-                  🔐 Secure Storage
+              <div className="text-xs">
+                <div className="font-bold text-foreground mb-0.5">
+                  Secure Storage
                 </div>
-                <div className="text-blue-200/80 leading-relaxed">
+                <div className="text-muted-foreground">
                   Your private key is securely stored and never displayed. You
                   can export it later from wallet settings.
                 </div>
@@ -220,14 +221,14 @@ export function WalletPreview({
             </div>
           </div>
 
-          {/* Enhanced Action Buttons */}
+          {/* Action Buttons */}
           {showActions && (
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-2 pt-3">
               <Button
                 onClick={handleResetWallet}
                 variant="outline"
                 size="sm"
-                className="flex-1 h-12 border-border/50 hover:border-muted/50 bg-muted/50 hover:bg-secondary/50 transition-all duration-300"
+                className="flex-1 h-9"
               >
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Reset Wallet
@@ -235,7 +236,7 @@ export function WalletPreview({
               <Button
                 onClick={handleContinue}
                 size="sm"
-                className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black dark:text-black shadow-lg shadow-amber-500/25 transition-all duration-300"
+                className="flex-1 h-9 bg-amber-500 hover:bg-amber-600 text-black font-bold"
               >
                 Continue
               </Button>
@@ -243,29 +244,6 @@ export function WalletPreview({
           )}
         </CardContent>
       </Card>
-
-      {/* Custom Animations */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-          @keyframes fade-in-up {
-            from {
-              opacity: 0;
-              transform: translateY(20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-          
-          .animate-fade-in-up {
-            animation: fade-in-up 0.3s ease-out forwards;
-            opacity: 0;
-          }
-        `,
-        }}
-      />
     </div>
   );
 }
