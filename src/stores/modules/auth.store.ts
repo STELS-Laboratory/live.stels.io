@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { createWallet, importWallet, createSignedTransaction, type Wallet } from '@/lib/gliesereum';
 import { clearAllStorage, clearAppStorage } from '@/lib/storage-cleaner';
+import { useWebSocketStore } from '@/hooks/useWebSocketStore';
 
 /**
  * Network configuration interface
@@ -451,6 +452,26 @@ export const useAuthStore = create<AuthStore>()(
 				
 				// Utility operations
 				resetAuth: async () => {
+					console.log('[Auth] Starting logout process...');
+					
+					// 1. Close WebSocket connection and clear its state
+					try {
+						const wsStore = useWebSocketStore.getState();
+						wsStore.resetWebSocketState();
+					} catch (error) {
+						console.error('[Auth] ❌ Error closing WebSocket:', error);
+					}
+					
+					// 2. Clear sessionStorage (where WebSocket data is stored)
+					try {
+						console.log('[Auth] Clearing sessionStorage...');
+						sessionStorage.clear();
+						console.log('[Auth] ✅ sessionStorage cleared');
+					} catch (error) {
+						console.error('[Auth] ❌ Error clearing sessionStorage:', error);
+					}
+					
+					// 3. Reset auth state
 					set({
 						wallet: null,
 						isWalletCreated: false,
@@ -464,6 +485,7 @@ export const useAuthStore = create<AuthStore>()(
 						showNetworkSelector: false
 					});
 					
+					// 4. Clear all storage
 					try {
 						// Use comprehensive storage cleaner for complete reset
 						await clearAllStorage();
@@ -473,6 +495,8 @@ export const useAuthStore = create<AuthStore>()(
 						// Fallback to basic clearing
 						clearAppStorage();
 					}
+					
+					console.log('[Auth] 🎯 Logout process completed');
 				}
 			}),
 			{

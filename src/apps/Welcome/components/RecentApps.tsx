@@ -109,15 +109,15 @@ export function RecentApps({
                   <p className="text-[9px] font-bold text-foreground text-center truncate w-full px-1 leading-tight">
                     {app.name}
                   </p>
+                </button>
 
-                  {/* Close button */}
-                  <button
-                    onClick={(e) => handleRemove(e, app.id)}
-                    className="absolute -top-1 -right-1 w-4 h-4 bg-background border border-border flex items-center justify-center hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors text-[10px] leading-none font-bold"
-                    aria-label={`Close ${app.name}`}
-                  >
-                    ×
-                  </button>
+                {/* Close button - outside of launch button to avoid nesting */}
+                <button
+                  onClick={(e) => handleRemove(e, app.id)}
+                  className="absolute -top-1 -right-1 w-4 h-4 bg-background border border-border flex items-center justify-center hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors text-[10px] leading-none font-bold z-10"
+                  aria-label={`Close ${app.name}`}
+                >
+                  ×
                 </button>
               </div>
             );
@@ -169,16 +169,16 @@ export function RecentApps({
               <div className="relative flex items-center justify-center text-foreground mb-1 scale-50">
                 {app.icon}
               </div>
+            </button>
 
-              {/* Close button */}
-              <button
-                onClick={(e) =>
-                  handleRemove(e, app.id)}
-                className="absolute -top-1 -right-1 w-5 h-5 bg-background border border-border flex items-center justify-center hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors text-xs leading-none font-bold"
-                aria-label={`Close ${app.name}`}
-              >
-                ×
-              </button>
+            {/* Close button - outside of launch button to avoid nesting */}
+            <button
+              onClick={(e) =>
+                handleRemove(e, app.id)}
+              className="absolute -top-1 -right-1 w-5 h-5 bg-background border border-border flex items-center justify-center hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors text-xs leading-none font-bold z-10"
+              aria-label={`Close ${app.name}`}
+            >
+              ×
             </button>
           </div>
         ))}

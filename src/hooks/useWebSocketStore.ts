@@ -77,6 +77,12 @@ function createWebSocket(
 	ws.onclose = (event) => {
 		console.log('WebSocket connection closed. Code:', event.code, 'Reason:', event.reason);
 		
+		// Check if this is a user-initiated logout - do not reconnect
+		if (event.code === 1000 && event.reason.includes('logged out')) {
+			console.log('WebSocket closed due to user logout - not reconnecting');
+			return;
+		}
+		
 		// Check if session is expired (close code 1000 with specific reason or 1006 for abnormal closure)
 		if ((event.code === 1000 && event.reason.includes('session')) || 
 		    event.code === 1006 || 
@@ -128,6 +134,76 @@ interface WebSocketState {
 	connectNode: (config: WebSocketConfig) => void;
 	handleSessionExpired: () => void;
 	resetReconnectAttempts: () => void;
+	resetWebSocketState: () => void;
+}
+
+/**
+ * Message batching for performance optimization
+ * Prevents blocking the event loop when processing many messages
+ */
+interface MessageBatch {
+	[channel: string]: string;
+}
+
+let messageBatch: MessageBatch = {};
+let batchScheduled = false;
+let messageCount = 0;
+let initialSyncComplete = false;
+
+/**
+ * Process accumulated messages in batches using requestAnimationFrame
+ * This prevents blocking the event loop and allows WebSocket ping/pong to work
+ */
+function scheduleMessageBatch(): void {
+	if (batchScheduled) {
+		return;
+	}
+	
+	batchScheduled = true;
+	
+	// Use requestAnimationFrame for non-blocking async processing
+	requestAnimationFrame(() => {
+		const batchToProcess = messageBatch;
+		const batchSize = Object.keys(batchToProcess).length;
+		
+		messageBatch = {};
+		batchScheduled = false;
+		
+		if (batchSize > 0) {
+			console.log(`[WS Batch] Processing ${batchSize} messages`);
+			
+			// Process all messages in the batch at once
+			Object.entries(batchToProcess).forEach(([channel, data]) => {
+				try {
+					sessionStorage.setItem(channel, data);
+				} catch (error) {
+					console.error(`Error saving to sessionStorage [${channel}]:`, error);
+				}
+			});
+		}
+	});
+}
+
+/**
+ * Flush any pending messages immediately (used during cleanup)
+ */
+function flushMessageBatch(): void {
+	if (Object.keys(messageBatch).length === 0) {
+		return;
+	}
+	
+	console.log(`[WS Batch] Flushing ${Object.keys(messageBatch).length} pending messages`);
+	
+	Object.entries(messageBatch).forEach(([channel, data]) => {
+		try {
+			sessionStorage.setItem(channel, data);
+		} catch (error) {
+			console.error(`Error saving to sessionStorage [${channel}]:`, error);
+		}
+	});
+	
+	messageBatch = {};
+	batchScheduled = false;
 }
 
 const useWebSocketStore = create<WebSocketState>((set, get) => ({
@@ -160,6 +236,11 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 				currentWs.close(1000, 'Replacing with new connection');
 			}
 			
+			// Reset message statistics for new connection
+			messageCount = 0;
+			initialSyncComplete = false;
+			console.log('[WS] Starting new connection, message batching enabled');
+			
 			const ws = createWebSocket(
 				config.raw.info,
 				(event: MessageEvent) => {
@@ -182,7 +263,25 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 						}
 						
 						if (json.value) {
-							sessionStorage.setItem(json.value.channel, JSON.stringify(json.value));
+							// Track message statistics
+							messageCount++;
+							
+							// Log initial sync progress
+							if (!initialSyncComplete && messageCount % 50 === 0) {
+								console.log(`[WS] Received ${messageCount} messages (batching enabled)`);
+							}
+							
+							// Mark initial sync as complete after first batch
+							if (!initialSyncComplete && messageCount > 100) {
+								initialSyncComplete = true;
+								console.log(`[WS] Initial sync complete: ${messageCount} messages received`);
+							}
+							
+							// Add message to batch instead of processing immediately
+							// This prevents blocking the event loop with synchronous sessionStorage operations
+							messageBatch[json.value.channel] = JSON.stringify(json.value);
+							scheduleMessageBatch();
+							
 							set({connection: true, reconnectAttempts: 0}); // Сбрасываем счетчик при успешном подключении
 							
 							// Only notify sync system about significant data changes
@@ -200,6 +299,9 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 					}
 				},
 				() => {
+					// Flush any pending messages before reconnecting
+					flushMessageBatch();
+					
 					const { reconnectAttempts, maxReconnectAttempts } = get();
 					console.log(`WebSocket connection closed. Reconnecting... (attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`);
 					set({connection: false});
@@ -234,6 +336,32 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 		set({reconnectAttempts: 0});
 	},
 	
+	resetWebSocketState: () => {
+		console.log('[WebSocket] Resetting WebSocket state for logout...');
+		
+		// Flush any pending messages before cleanup
+		flushMessageBatch();
+		
+		// Close current WebSocket connection
+		const { ws } = get();
+		if (ws) {
+			console.log('[WebSocket] Closing WebSocket connection...');
+			ws.close(1000, 'User logged out');
+		}
+		
+		// Reset to initial state
+		set({
+			ws: null,
+			connection: false,
+			locked: true,
+			sessionExpired: false,
+			reconnectAttempts: 0,
+			isCleaningUp: false
+		});
+		
+		console.log('[WebSocket] ✅ WebSocket state reset complete');
+	},
+	
 	handleSessionExpired: () => {
 		const { isCleaningUp } = get();
 		
@@ -245,6 +373,9 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 		
 		console.log('[WebSocket] Session expired, cleaning up and resetting auth state');
 		set({ isCleaningUp: true });
+		
+		// Flush any pending messages before cleanup
+		flushMessageBatch();
 		
 		// Close current WebSocket connection
 		const { ws } = get();
