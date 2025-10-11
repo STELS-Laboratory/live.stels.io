@@ -1548,198 +1548,198 @@ export default function WalletWidget(): React.ReactElement {
 						</TabsContent>
 
 						{/* News Tab */}
-						<TabsContent value="news" className="p-0 space-y-3">
-							{/* Top News - Enhanced */}
-							{(news.raw as unknown as any[]).length > 0 && (
-								<Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 relative overflow-hidden">
-									{/* Background Pattern */}
-									<div className="absolute inset-0 opacity-5">
-										<div className="absolute top-0 right-0 w-32 h-32 bg-primary rounded-full -translate-y-16 translate-x-16">
-										</div>
-										<div className="absolute bottom-0 left-0 w-24 h-24 bg-primary rounded-full translate-y-12 -translate-x-12">
-										</div>
-									</div>
-
-									<CardHeader className="pb-3 relative">
-										<div className="flex items-center justify-between">
-											<div className="flex items-center gap-2">
-												<div className="p-2 bg-primary/20 rounded-lg">
-													<Activity className="w-4 h-4 text-primary" />
-												</div>
-												<CardTitle className="text-sm flex items-center">
-													TOP MARKET NEWS
-												</CardTitle>
-											</div>
-											<div className="flex items-center gap-2">
-												<Badge
-													variant="outline"
-													className="text-xs border-primary/30 bg-primary/10 text-primary"
-												>
-													Score: {(news.raw as unknown as any[])[0].score}
-												</Badge>
-												<Badge
-													variant="outline"
-													className="text-xs border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-												>
-													TRENDING
-												</Badge>
-											</div>
-										</div>
-									</CardHeader>
-									<CardContent className="relative">
-										<div className="space-y-4">
-											<h3 className="font-semibold text-lg line-clamp-3 leading-relaxed">
-												{(news.raw as unknown as any[])[0].title}
-											</h3>
-											<div className="flex items-center justify-between">
-												<div className="flex items-center gap-3 text-xs text-muted-foreground">
-													<div className="flex items-center gap-1">
-														<div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse">
-														</div>
-														<span>
-															{calc.getTimeDifference(
-																Date.now(),
-																(news.raw as unknown as any[])[0].ts,
-															)}
-														</span>
-													</div>
-													<span>•</span>
-													<span className="flex items-center gap-1">
-														{(news.raw as unknown as any[])[0].source.includes(
-																"google.com",
-															)
-															? (
-																<>
-																	<div className="w-3 h-3 bg-blue-500 rounded-sm">
-																	</div>
-																	Google News
-																</>
-															)
-															: (
-																<>
-																	<div className="w-3 h-3 bg-muted rounded-sm">
-																	</div>
-																	External
-																</>
-															)}
-													</span>
-												</div>
-												{(news.raw as unknown as any[])[0].link && (
-													<a
-														href={(news.raw as unknown as any[])[0].link}
-														target="_blank"
-														rel="noopener noreferrer"
-														className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors font-medium"
-													>
-														Read full article
-														<svg
-															className="w-3 h-3"
-															fill="none"
-															stroke="currentColor"
-															viewBox="0 0 24 24"
-														>
-															<path
-																strokeLinecap="round"
-																strokeLinejoin="round"
-																strokeWidth={2}
-																d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-															/>
-														</svg>
-													</a>
-												)}
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-							)}
-
-							{/* News Grid */}
-							<Card>
-								<CardHeader className="pb-2">
-									<div className="flex items-center justify-between">
-										<CardTitle className="text-xs flex items-center">
-											<Activity className="w-3 h-3 mr-1" />
-											LATEST NEWS
-										</CardTitle>
-										<Badge variant="outline" className="text-xs">
-											{(news.raw as unknown as any[]).length} articles
-										</Badge>
-									</div>
-								</CardHeader>
-								<CardContent>
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-										{(news.raw as unknown as any[]).slice(1, 7).map((
-											article: any,
-											index: number,
-										) => (
-											<div
-												key={index}
-												className="group p-3 bg-muted/20 rounded-lg hover:bg-muted/40 transition-all duration-200 border border-transparent hover:border-primary/20"
-											>
-												<div className="space-y-2">
-													<div className="flex items-start justify-between gap-2">
-														<h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
-															{article.title}
-														</h4>
-														<div className="flex flex-col items-end gap-1">
-															<Badge
-																variant="outline"
-																className="text-xs px-1.5 py-0"
-															>
-																{article.source.includes("google.com")
-																	? "Google"
-																	: "External"}
-															</Badge>
-															<div className="text-xs text-muted-foreground">
-																Score: {article.score}
-															</div>
-														</div>
-													</div>
-
-													<div className="flex items-center justify-between">
-														<div className="flex items-center gap-2 text-xs text-muted-foreground">
-															<div className="flex items-center gap-1">
-																<div className="w-1.5 h-1.5 bg-blue-500 rounded-full">
-																</div>
-																<span>
-																	{calc.getTimeDifference(
-																		Date.now(),
-																		article.ts,
-																	)}
-																</span>
-															</div>
-														</div>
-														{article.link && (
-															<a
-																href={article.link}
-																target="_blank"
-																rel="noopener noreferrer"
-																className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors opacity-0 group-hover:opacity-100"
-															>
-																Read
-																<svg
-																	className="w-3 h-3"
-																	fill="none"
-																	stroke="currentColor"
-																	viewBox="0 0 24 24"
-																>
-																	<path
-																		strokeLinecap="round"
-																		strokeLinejoin="round"
-																		strokeWidth={2}
-																		d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-																	/>
-																</svg>
-															</a>
-														)}
-													</div>
-												</div>
-											</div>
-										))}
-									</div>
-								</CardContent>
-							</Card>
-						</TabsContent>
+						{/*<TabsContent value="news" className="p-0 space-y-3">*/}
+						{/*	/!* Top News - Enhanced *!/*/}
+						{/*	{(news.raw as unknown as any[]).length > 0 && (*/}
+						{/*		<Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 relative overflow-hidden">*/}
+						{/*			/!* Background Pattern *!/*/}
+						{/*			<div className="absolute inset-0 opacity-5">*/}
+						{/*				<div className="absolute top-0 right-0 w-32 h-32 bg-primary rounded-full -translate-y-16 translate-x-16">*/}
+						{/*				</div>*/}
+						{/*				<div className="absolute bottom-0 left-0 w-24 h-24 bg-primary rounded-full translate-y-12 -translate-x-12">*/}
+						{/*				</div>*/}
+						{/*			</div>*/}
+						
+						{/*			<CardHeader className="pb-3 relative">*/}
+						{/*				<div className="flex items-center justify-between">*/}
+						{/*					<div className="flex items-center gap-2">*/}
+						{/*						<div className="p-2 bg-primary/20 rounded-lg">*/}
+						{/*							<Activity className="w-4 h-4 text-primary" />*/}
+						{/*						</div>*/}
+						{/*						<CardTitle className="text-sm flex items-center">*/}
+						{/*							TOP MARKET NEWS*/}
+						{/*						</CardTitle>*/}
+						{/*					</div>*/}
+						{/*					<div className="flex items-center gap-2">*/}
+						{/*						<Badge*/}
+						{/*							variant="outline"*/}
+						{/*							className="text-xs border-primary/30 bg-primary/10 text-primary"*/}
+						{/*						>*/}
+						{/*							Score: {(news.raw as unknown as any[])[0].score}*/}
+						{/*						</Badge>*/}
+						{/*						<Badge*/}
+						{/*							variant="outline"*/}
+						{/*							className="text-xs border-emerald-500/30 bg-emerald-500/10 text-emerald-400"*/}
+						{/*						>*/}
+						{/*							TRENDING*/}
+						{/*						</Badge>*/}
+						{/*					</div>*/}
+						{/*				</div>*/}
+						{/*			</CardHeader>*/}
+						{/*			<CardContent className="relative">*/}
+						{/*				<div className="space-y-4">*/}
+						{/*					<h3 className="font-semibold text-lg line-clamp-3 leading-relaxed">*/}
+						{/*						{(news.raw as unknown as any[])[0].title}*/}
+						{/*					</h3>*/}
+						{/*					<div className="flex items-center justify-between">*/}
+						{/*						<div className="flex items-center gap-3 text-xs text-muted-foreground">*/}
+						{/*							<div className="flex items-center gap-1">*/}
+						{/*								<div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse">*/}
+						{/*								</div>*/}
+						{/*								<span>*/}
+						{/*									{calc.getTimeDifference(*/}
+						{/*										Date.now(),*/}
+						{/*										(news.raw as unknown as any[])[0].ts,*/}
+						{/*									)}*/}
+						{/*								</span>*/}
+						{/*							</div>*/}
+						{/*							<span>•</span>*/}
+						{/*							<span className="flex items-center gap-1">*/}
+						{/*								{(news.raw as unknown as any[])[0].source.includes(*/}
+						{/*										"google.com",*/}
+						{/*									)*/}
+						{/*									? (*/}
+						{/*										<>*/}
+						{/*											<div className="w-3 h-3 bg-blue-500 rounded-sm">*/}
+						{/*											</div>*/}
+						{/*											Google News*/}
+						{/*										</>*/}
+						{/*									)*/}
+						{/*									: (*/}
+						{/*										<>*/}
+						{/*											<div className="w-3 h-3 bg-muted rounded-sm">*/}
+						{/*											</div>*/}
+						{/*											External*/}
+						{/*										</>*/}
+						{/*									)}*/}
+						{/*							</span>*/}
+						{/*						</div>*/}
+						{/*						{(news.raw as unknown as any[])[0].link && (*/}
+						{/*							<a*/}
+						{/*								href={(news.raw as unknown as any[])[0].link}*/}
+						{/*								target="_blank"*/}
+						{/*								rel="noopener noreferrer"*/}
+						{/*								className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors font-medium"*/}
+						{/*							>*/}
+						{/*								Read full article*/}
+						{/*								<svg*/}
+						{/*									className="w-3 h-3"*/}
+						{/*									fill="none"*/}
+						{/*									stroke="currentColor"*/}
+						{/*									viewBox="0 0 24 24"*/}
+						{/*								>*/}
+						{/*									<path*/}
+						{/*										strokeLinecap="round"*/}
+						{/*										strokeLinejoin="round"*/}
+						{/*										strokeWidth={2}*/}
+						{/*										d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"*/}
+						{/*									/>*/}
+						{/*								</svg>*/}
+						{/*							</a>*/}
+						{/*						)}*/}
+						{/*					</div>*/}
+						{/*				</div>*/}
+						{/*			</CardContent>*/}
+						{/*		</Card>*/}
+						{/*	)}*/}
+						
+						{/*	/!* News Grid *!/*/}
+						{/*	<Card>*/}
+						{/*		<CardHeader className="pb-2">*/}
+						{/*			<div className="flex items-center justify-between">*/}
+						{/*				<CardTitle className="text-xs flex items-center">*/}
+						{/*					<Activity className="w-3 h-3 mr-1" />*/}
+						{/*					LATEST NEWS*/}
+						{/*				</CardTitle>*/}
+						{/*				<Badge variant="outline" className="text-xs">*/}
+						{/*					{(news.raw as unknown as any[]).length} articles*/}
+						{/*				</Badge>*/}
+						{/*			</div>*/}
+						{/*		</CardHeader>*/}
+						{/*		<CardContent>*/}
+						{/*			<div className="grid grid-cols-1 md:grid-cols-2 gap-3">*/}
+						{/*				{(news.raw as unknown as any[]).slice(1, 7).map((*/}
+						{/*					article: any,*/}
+						{/*					index: number,*/}
+						{/*				) => (*/}
+						{/*					<div*/}
+						{/*						key={index}*/}
+						{/*						className="group p-3 bg-muted/20 rounded-lg hover:bg-muted/40 transition-all duration-200 border border-transparent hover:border-primary/20"*/}
+						{/*					>*/}
+						{/*						<div className="space-y-2">*/}
+						{/*							<div className="flex items-start justify-between gap-2">*/}
+						{/*								<h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">*/}
+						{/*									{article.title}*/}
+						{/*								</h4>*/}
+						{/*								<div className="flex flex-col items-end gap-1">*/}
+						{/*									<Badge*/}
+						{/*										variant="outline"*/}
+						{/*										className="text-xs px-1.5 py-0"*/}
+						{/*									>*/}
+						{/*										{article.source.includes("google.com")*/}
+						{/*											? "Google"*/}
+						{/*											: "External"}*/}
+						{/*									</Badge>*/}
+						{/*									<div className="text-xs text-muted-foreground">*/}
+						{/*										Score: {article.score}*/}
+						{/*									</div>*/}
+						{/*								</div>*/}
+						{/*							</div>*/}
+						
+						{/*							<div className="flex items-center justify-between">*/}
+						{/*								<div className="flex items-center gap-2 text-xs text-muted-foreground">*/}
+						{/*									<div className="flex items-center gap-1">*/}
+						{/*										<div className="w-1.5 h-1.5 bg-blue-500 rounded-full">*/}
+						{/*										</div>*/}
+						{/*										<span>*/}
+						{/*											{calc.getTimeDifference(*/}
+						{/*												Date.now(),*/}
+						{/*												article.ts,*/}
+						{/*											)}*/}
+						{/*										</span>*/}
+						{/*									</div>*/}
+						{/*								</div>*/}
+						{/*								{article.link && (*/}
+						{/*									<a*/}
+						{/*										href={article.link}*/}
+						{/*										target="_blank"*/}
+						{/*										rel="noopener noreferrer"*/}
+						{/*										className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors opacity-0 group-hover:opacity-100"*/}
+						{/*									>*/}
+						{/*										Read*/}
+						{/*										<svg*/}
+						{/*											className="w-3 h-3"*/}
+						{/*											fill="none"*/}
+						{/*											stroke="currentColor"*/}
+						{/*											viewBox="0 0 24 24"*/}
+						{/*										>*/}
+						{/*											<path*/}
+						{/*												strokeLinecap="round"*/}
+						{/*												strokeLinejoin="round"*/}
+						{/*												strokeWidth={2}*/}
+						{/*												d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"*/}
+						{/*											/>*/}
+						{/*										</svg>*/}
+						{/*									</a>*/}
+						{/*								)}*/}
+						{/*							</div>*/}
+						{/*						</div>*/}
+						{/*					</div>*/}
+						{/*				))}*/}
+						{/*			</div>*/}
+						{/*		</CardContent>*/}
+						{/*	</Card>*/}
+						{/*</TabsContent>*/}
 
 						{/* Scanner Tab */}
 						<TabsContent value="scanner" className="p-0 space-y-4">
