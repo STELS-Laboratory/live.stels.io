@@ -7,6 +7,7 @@ import {
 	Clock,
 	Code,
 	Cpu,
+	Crown,
 	Database,
 	FileCode,
 	FileText,
@@ -23,6 +24,7 @@ import {
 	Server,
 	Settings,
 	Terminal,
+	Trash2,
 	X,
 	Zap,
 } from "lucide-react";
@@ -30,8 +32,20 @@ import { Badge } from "@/components/ui/badge.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import { Textarea } from "@/components/ui/textarea.tsx";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog.tsx";
 import EditorComponent from "@/components/editor/EditorComponent.tsx";
-import { useEditorStore, type Worker } from "./store.ts";
+import {
+	useEditorStore,
+	type Worker,
+	type WorkerCreateRequest,
+} from "./store.ts";
 import { useAuthStore } from "@/stores/modules/auth.store.ts";
 import { useAppStore } from "@/stores/modules/app.store.ts";
 import { useMobile } from "@/hooks/useMobile.ts";
@@ -45,13 +59,20 @@ import {
 	SelectValue,
 } from "@/components/ui/select.tsx";
 import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
+import { CreateWorkerDialog } from "./AMIEditor/CreateWorkerDialog.tsx";
+import { LeaderInfoCard } from "./AMIEditor/LeaderInfoCard.tsx";
+import { WorkerStatsPanel } from "./AMIEditor/WorkerStatsPanel.tsx";
 
 export function AMIEditor(): JSX.Element {
 	const mobile = useMobile();
 	const { wallet } = useAuthStore();
 	const { setRoute } = useAppStore();
 	const listWorkers = useEditorStore((state) => state.listWorkers);
+	const createWorker = useEditorStore((state) => state.createWorker);
 	const updateWorker = useEditorStore((state) => state.updateWorker);
+	const deleteWorker = useEditorStore((state) => state.deleteWorker);
+	const getLeaderInfo = useEditorStore((state) => state.getLeaderInfo);
+	const getWorkerStats = useEditorStore((state) => state.getWorkerStats);
 
 	const [workers, setWorkers] = useState<Worker[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -63,8 +84,10 @@ export function AMIEditor(): JSX.Element {
 	const [isEditingNote, setIsEditingNote] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filterActive, setFilterActive] = useState<boolean | null>(null);
-	const setWorker = useEditorStore((state) => state.setWorker);
-	const [creatingWorker, setCreatingWorker] = useState(false);
+	const [showCreateDialog, setShowCreateDialog] = useState(false);
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const [workerToDelete, setWorkerToDelete] = useState<string | null>(null);
+	const [showStatsPanel, setShowStatsPanel] = useState(false);
 	const [newlyCreatedWorker, setNewlyCreatedWorker] = useState<string | null>(
 		null,
 	);
@@ -95,6 +118,36 @@ export function AMIEditor(): JSX.Element {
 			return () => clearTimeout(timer);
 		}
 	}, [newlyCreatedWorker]);
+
+	const handleCreateWorker = async (
+		request: WorkerCreateRequest,
+	): Promise<void> => {
+		const created = await createWorker(request);
+		if (created) {
+			const newWorker: Worker = created;
+			setWorkers((prev) => [newWorker, ...prev]);
+			setSelectedWorker(newWorker);
+			setCurrentScript(newWorker.value.raw.script);
+			setCurrentNote(newWorker.value.raw.note);
+			setIsEditing(false);
+			setIsEditingNote(false);
+			setNewlyCreatedWorker(newWorker.value.raw.sid);
+		}
+	};
+
+	const handleDeleteWorker = async (sid: string): Promise<void> => {
+		const success = await deleteWorker(sid);
+		if (success) {
+			setWorkers((prev) => prev.filter((w) => w.value.raw.sid !== sid));
+			if (selectedWorker?.value.raw.sid === sid) {
+				setSelectedWorker(null);
+				setCurrentScript("");
+				setCurrentNote("");
+			}
+			setWorkerToDelete(null);
+			setShowDeleteDialog(false);
+		}
+	};
 
 	const handleSelectWorker = (protocol: Worker) => {
 		setSelectedWorker(protocol);
@@ -352,52 +405,22 @@ export function AMIEditor(): JSX.Element {
 									</div>
 								</div>
 								<div className="flex items-center gap-2">
-									{/*<Button*/}
-									{/*	size="sm"*/}
-									{/*	variant="outline"*/}
-									{/*	className="bg-muted border-border text-muted-foreground hover:bg-secondary hover:text-foreground font-mono text-xs h-8"*/}
-									{/*>*/}
-									{/*	<LogOut className="w-3 h-3 mr-1" />*/}
-									{/*	EXIT*/}
-									{/*</Button>*/}
 									<Button
 										size="sm"
-										onClick={async () => {
-											setCreatingWorker(true);
-											try {
-												const created = await setWorker();
-												if (created && created.value && created.value.raw) {
-													const newWorker: Worker = created;
-													setWorkers((prev) => [newWorker, ...prev]);
-													setSelectedWorker(newWorker);
-													setCurrentScript(newWorker.value.raw.script);
-													setCurrentNote(newWorker.value.raw.note);
-													setIsEditing(false);
-													setIsEditingNote(false);
-													setNewlyCreatedWorker(newWorker.value.raw.sid);
-												}
-											} catch (error) {
-												console.error("Failed to create protocol:", error);
-											} finally {
-												setCreatingWorker(false);
-											}
-										}}
-										disabled={true}
-										className={`bg-amber-500 hover:bg-amber-600 text-black font-mono text-xs h-8 px-3`}
+										variant="outline"
+										onClick={() => setShowStatsPanel(!showStatsPanel)}
+										className="bg-muted border-border text-muted-foreground hover:bg-secondary hover:text-foreground font-mono text-xs h-8"
 									>
-										{creatingWorker
-											? (
-												<>
-													<div className="animate-spin mr-1 w-3 h-3 border-2 border-black border-t-transparent rounded-full" />
-													CREATING
-												</>
-											)
-											: (
-												<>
-													<Plus className="w-3 h-3 mr-1" />
-													AI PROTOCOL
-												</>
-											)}
+										<Activity className="w-3 h-3 mr-1" />
+										STATS
+									</Button>
+									<Button
+										size="sm"
+										onClick={() => setShowCreateDialog(true)}
+										className="bg-amber-500 hover:bg-amber-600 text-black font-mono text-xs h-8 px-3"
+									>
+										<Plus className="w-3 h-3 mr-1" />
+										AI PROTOCOL
 									</Button>
 								</div>
 							</div>
@@ -492,11 +515,12 @@ export function AMIEditor(): JSX.Element {
 										newlyCreatedWorker === protocol.value.raw.sid;
 									const isSelected =
 										selectedWorker?.value.raw.sid === protocol.value.raw.sid;
+									const isLeaderMode =
+										(protocol.value.raw as any).executionMode === "leader";
 
 									return (
 										<div
 											key={protocol.value.raw.sid}
-											onClick={() => handleSelectWorker(protocol)}
 											className={`group relative p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
 												isSelected
 													? "border-amber-400 bg-amber-400/10 shadow-lg shadow-amber-400/20"
@@ -504,6 +528,7 @@ export function AMIEditor(): JSX.Element {
 													? "border-green-400 bg-green-400/10 shadow-lg shadow-green-400/20 animate-pulse"
 													: "border-border bg-muted/50 hover:border-muted hover:bg-muted"
 											}`}
+											onClick={() => handleSelectWorker(protocol)}
 										>
 											{/* Header */}
 											<div className="flex items-center justify-between mb-3">
@@ -527,6 +552,11 @@ export function AMIEditor(): JSX.Element {
 														{protocol.value.raw.active && (
 															<div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse border-2 border-border" />
 														)}
+														{isLeaderMode && (
+															<div className="absolute -bottom-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-border flex items-center justify-center">
+																<Crown className="w-2 h-2 text-black" />
+															</div>
+														)}
 													</div>
 													<div className="flex-1 min-w-0">
 														<div
@@ -547,16 +577,30 @@ export function AMIEditor(): JSX.Element {
 														)}
 													</div>
 												</div>
-												<Badge
-													variant="outline"
-													className={`text-xs ${
-														protocol.value.raw.active
-															? "border-green-400 text-green-400 bg-green-400/10"
-															: "border-red-400 text-red-400 bg-red-400/10"
-													}`}
-												>
-													{protocol.value.raw.active ? "ACTIVE" : "INACTIVE"}
-												</Badge>
+												<div className="flex items-center gap-1.5">
+													<Badge
+														variant="outline"
+														className={`text-xs ${
+															protocol.value.raw.active
+																? "border-green-400 text-green-400 bg-green-400/10"
+																: "border-red-400 text-red-400 bg-red-400/10"
+														}`}
+													>
+														{protocol.value.raw.active ? "ACTIVE" : "INACTIVE"}
+													</Badge>
+													<Button
+														variant="ghost"
+														size="sm"
+														onClick={(e) => {
+															e.stopPropagation();
+															setWorkerToDelete(protocol.value.raw.sid);
+															setShowDeleteDialog(true);
+														}}
+														className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300"
+													>
+														<Trash2 className="w-3 h-3" />
+													</Button>
+												</div>
 											</div>
 
 											{/* Note */}
@@ -824,6 +868,19 @@ export function AMIEditor(): JSX.Element {
 										</div>
 									)}
 
+									{/* Leader Info (for leader mode workers) */}
+									{selectedWorker &&
+										(selectedWorker.value.raw as any).executionMode ===
+											"leader" &&
+										(
+											<div className="px-6 pb-4">
+												<LeaderInfoCard
+													workerId={selectedWorker.value.raw.sid}
+													onRefresh={getLeaderInfo}
+												/>
+											</div>
+										)}
+
 									{/* Code Editor */}
 									<div className="flex-1 overflow-hidden">
 										<EditorComponent
@@ -858,25 +915,77 @@ export function AMIEditor(): JSX.Element {
 					</div>
 				</Split>
 
-				{/* Worker Creation Modal */}
-				{creatingWorker && (
-					<div className="fixed inset-0 bg-black/80 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
-						<div className="bg-card border border-border rounded-xl p-8 max-w-md mx-4 shadow-2xl">
-							<div className="text-center">
-								<div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center mb-6 mx-auto relative">
-									<Zap className="w-8 h-8 text-amber-400" />
-									<div className="absolute inset-0 rounded-xl border-2 border-amber-400/30 animate-ping" />
+				{/* Create Worker Dialog */}
+				<CreateWorkerDialog
+					open={showCreateDialog}
+					onOpenChange={setShowCreateDialog}
+					onSubmit={handleCreateWorker}
+				/>
+
+				{/* Delete Worker Confirmation */}
+				<Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+					<DialogContent className="max-w-md bg-card border-border">
+						<DialogHeader>
+							<DialogTitle className="flex items-center gap-2">
+								<div className="relative p-2 border border-red-500/30 bg-red-500/10">
+									<div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-red-500/50" />
+									<Trash2 className="h-5 w-5 text-red-500" />
 								</div>
-								<h3 className="text-amber-400 font-mono text-xl font-bold mb-2">
-									CREATING PROTOCOL
-								</h3>
-								<p className="text-muted-foreground text-sm mb-6">
-									Initializing new execution instance...
+								<span className="text-foreground">Delete Worker</span>
+							</DialogTitle>
+							<DialogDescription className="text-muted-foreground">
+								Are you sure you want to delete this worker? This action cannot
+								be undone.
+							</DialogDescription>
+						</DialogHeader>
+
+						<div className="py-4">
+							<div className="p-3 bg-muted border border-border rounded-lg">
+								<p className="text-xs text-muted-foreground mb-1">Worker ID:</p>
+								<p className="text-sm text-foreground font-mono">
+									{workerToDelete}
 								</p>
-								<div className="bg-muted rounded-full h-2 overflow-hidden">
-									<div className="bg-amber-400 h-full animate-pulse" />
-								</div>
 							</div>
+						</div>
+
+						<DialogFooter>
+							<Button
+								variant="outline"
+								onClick={() => setShowDeleteDialog(false)}
+							>
+								Cancel
+							</Button>
+							<Button
+								variant="destructive"
+								onClick={() => {
+									if (workerToDelete) {
+										handleDeleteWorker(workerToDelete);
+									}
+								}}
+								className="bg-red-500 hover:bg-red-600 text-foreground"
+							>
+								<Trash2 className="w-4 h-4 mr-2" />
+								Delete Worker
+							</Button>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
+
+				{/* Stats Panel */}
+				{showStatsPanel && (
+					<div className="fixed inset-0 bg-black/80 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+						<div className="w-full max-w-3xl">
+							<div className="flex justify-end mb-2">
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => setShowStatsPanel(false)}
+									className="text-muted-foreground hover:text-foreground"
+								>
+									<X className="w-4 h-4" />
+								</Button>
+							</div>
+							<WorkerStatsPanel onRefresh={getWorkerStats} />
 						</div>
 					</div>
 				)}

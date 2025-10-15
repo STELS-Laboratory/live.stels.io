@@ -170,8 +170,6 @@ function scheduleMessageBatch(): void {
 		batchScheduled = false;
 		
 		if (batchSize > 0) {
-			console.log(`[WS Batch] Processing ${batchSize} messages`);
-			
 			// Process all messages in the batch at once
 			Object.entries(batchToProcess).forEach(([channel, data]) => {
 				try {
