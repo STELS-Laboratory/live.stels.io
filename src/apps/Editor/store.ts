@@ -105,6 +105,8 @@ interface EditorStoreActions {
 	getLeaderInfo: (workerId: string) => Promise<LeaderInfo | null>;
 	/** Get stats for all workers */
 	getWorkerStats: () => Promise<WorkerStats[]>;
+	/** Stop all active workers */
+	stopAllWorkers: () => Promise<{ stopped: number; failed: number; total: number }>;
 	/** Clear workers error */
 	clearError: () => void;
 }
@@ -392,12 +394,72 @@ export const useEditorStore = create<EditorStore>()(
 			}
 		},
 
-		getWorkerStats: async (): Promise<WorkerStats[]> => {
+	getWorkerStats: async (): Promise<WorkerStats[]> => {
+		const connectionSession = useAuthStore.getState().connectionSession;
+
+		if (!connectionSession) {
+			console.error("No active connection");
+			return [];
+		}
+
+		try {
+			const response = await fetch(connectionSession.api, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"stels-session": connectionSession.session,
+				},
+				body: JSON.stringify({
+					webfix: "1.0",
+					method: "getWorkerStats",
+					params: [],
+					body: {},
+				}),
+			});
+
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+
+			const data = await response.json();
+
+			// API returns object with workers array
+			if (data && data.workers && Array.isArray(data.workers)) {
+				return data.workers.map((worker: any) => {
+					// Parse errorRate from "0.00%" format to number
+					let errorRate = 0;
+					if (typeof worker.errorRate === 'string') {
+						errorRate = parseFloat(worker.errorRate.replace('%', '')) || 0;
+					} else if (typeof worker.errorRate === 'number') {
+						errorRate = worker.errorRate;
+					}
+
+					return {
+						sid: worker.sid,
+						executions: worker.executions || 0,
+						errors: worker.errors || 0,
+						errorRate: errorRate,
+						networkErrors: worker.networkErrors || 0,
+						criticalErrors: worker.criticalErrors || 0,
+						isRunning: worker.isRunning || false,
+						lastExecution: worker.lastRun || null,
+					};
+				});
+			}
+
+			return [];
+		} catch (error) {
+			console.error("Failed to get worker stats:", error);
+			return [];
+		}
+	},
+
+		stopAllWorkers: async (): Promise<{ stopped: number; failed: number; total: number }> => {
 			const connectionSession = useAuthStore.getState().connectionSession;
 
 			if (!connectionSession) {
 				console.error("No active connection");
-				return [];
+				return { stopped: 0, failed: 0, total: 0 };
 			}
 
 			try {
@@ -409,7 +471,7 @@ export const useEditorStore = create<EditorStore>()(
 					},
 					body: JSON.stringify({
 						webfix: "1.0",
-						method: "getWorkerStats",
+						method: "stopAllWorkers",
 						params: [],
 						body: {},
 					}),
@@ -419,20 +481,19 @@ export const useEditorStore = create<EditorStore>()(
 					throw new Error(`HTTP error! status: ${response.status}`);
 				}
 
-				const data = await response.json();
+				const result = await response.json();
 
-				// Transform Map entries to array
-				if (Array.isArray(data)) {
-					return data.map(([sid, stats]: [string, any]) => ({
-						sid,
-						...stats,
-					}));
-				}
+				// Refresh workers list
+				await (get() as any).listWorkers();
 
-				return [];
+				return {
+					stopped: result.stopped || 0,
+					failed: result.failed || 0,
+					total: result.total || 0,
+				};
 			} catch (error) {
-				console.error("Failed to get worker stats:", error);
-				return [];
+				console.error("Failed to stop all workers:", error);
+				return { stopped: 0, failed: 0, total: 0 };
 			}
 		},
 

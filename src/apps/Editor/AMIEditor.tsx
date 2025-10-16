@@ -6,6 +6,7 @@ import {
 	Check,
 	Clock,
 	Code,
+	Copy,
 	Cpu,
 	Crown,
 	Database,
@@ -23,6 +24,7 @@ import {
 	Search,
 	Server,
 	Settings,
+	Square,
 	Terminal,
 	Trash2,
 	X,
@@ -62,6 +64,12 @@ import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
 import { CreateWorkerDialog } from "./AMIEditor/CreateWorkerDialog.tsx";
 import { LeaderInfoCard } from "./AMIEditor/LeaderInfoCard.tsx";
 import { WorkerStatsPanel } from "./AMIEditor/WorkerStatsPanel.tsx";
+import {
+	Tabs,
+	TabsContent,
+	TabsList,
+	TabsTrigger,
+} from "@/components/ui/tabs.tsx";
 
 export function AMIEditor(): JSX.Element {
 	const mobile = useMobile();
@@ -73,6 +81,7 @@ export function AMIEditor(): JSX.Element {
 	const deleteWorker = useEditorStore((state) => state.deleteWorker);
 	const getLeaderInfo = useEditorStore((state) => state.getLeaderInfo);
 	const getWorkerStats = useEditorStore((state) => state.getWorkerStats);
+	const stopAllWorkers = useEditorStore((state) => state.stopAllWorkers);
 
 	const [workers, setWorkers] = useState<Worker[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -102,6 +111,8 @@ export function AMIEditor(): JSX.Element {
 		assignedNode: "",
 		nid: "",
 	});
+	const [activeTab, setActiveTab] = useState("code");
+	const [stoppingAll, setStoppingAll] = useState(false);
 
 	// Load workers
 	const loadWorkers = async () => {
@@ -383,6 +394,28 @@ export function AMIEditor(): JSX.Element {
 		}
 	};
 
+	const handleStopAll = async () => {
+		if (!confirm("Are you sure you want to stop all active workers?")) {
+			return;
+		}
+		setStoppingAll(true);
+		try {
+			const result = await stopAllWorkers();
+			if (result.total > 0) {
+				alert(
+					`Stopped ${result.stopped}/${result.total} workers${
+						result.failed > 0 ? ` (${result.failed} failed)` : ""
+					}`,
+				);
+			}
+		} catch (error) {
+			console.error("Failed to stop all workers:", error);
+			alert("Failed to stop all workers");
+		} finally {
+			setStoppingAll(false);
+		}
+	};
+
 	const filteredWorkers = workers.filter((protocol) => {
 		const matchesSearch = protocol.value.raw.note.toLowerCase().includes(
 			searchTerm.toLowerCase(),
@@ -488,6 +521,28 @@ export function AMIEditor(): JSX.Element {
 									>
 										<Activity className="w-3 h-3 mr-1" />
 										STATS
+									</Button>
+									<Button
+										size="sm"
+										variant="outline"
+										onClick={handleStopAll}
+										disabled={stoppingAll ||
+											workers.filter((w) => w.value.raw.active).length === 0}
+										className="bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20 hover:text-red-300 font-mono text-xs h-8"
+									>
+										{stoppingAll
+											? (
+												<>
+													<div className="animate-spin w-3 h-3 border-2 border-red-400 border-t-transparent rounded-full mr-1" />
+													STOPPING
+												</>
+											)
+											: (
+												<>
+													<Square className="w-3 h-3 mr-1" />
+													STOP ALL
+												</>
+											)}
 									</Button>
 									<Button
 										size="sm"
@@ -758,39 +813,55 @@ export function AMIEditor(): JSX.Element {
 						{selectedWorker
 							? (
 								<div className="h-full flex flex-col">
-									{/* Editor Header */}
-									<div className="bg-card border-b border-border p-4">
-										<div className="flex items-center justify-between mb-3">
-											<div className="flex items-center gap-3">
-												<div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center relative">
-													<Terminal className="w-5 h-5 text-amber-400" />
+									{/* Editor Header - Compact */}
+									<div className="bg-card border-b border-border px-4 py-3">
+										<div className="flex items-center justify-between">
+											<div className="flex items-center gap-3 flex-1 min-w-0">
+												<div className="w-9 h-9 bg-muted rounded-lg flex items-center justify-center relative flex-shrink-0">
+													<Terminal className="w-4 h-4 text-amber-400" />
 													{selectedWorker.value.raw.active && (
-														<div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse border-2 border-zinc-900" />
+														<div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse border-2 border-card" />
 													)}
 												</div>
-												<div>
-													<h3 className="text-foreground font-mono text-lg font-bold">
-														{selectedWorker.value.raw.sid}
-													</h3>
-													<div className="flex items-center gap-2 mt-1">
+												<div className="flex-1 min-w-0">
+													<div className="flex items-center gap-2">
+														<h3 className="text-foreground font-mono text-base font-bold truncate">
+															{selectedWorker.value.raw.sid}
+														</h3>
 														<Badge
 															variant="outline"
-															className={`text-xs ${
+															className={`text-[10px] px-1.5 py-0 h-4 flex-shrink-0 ${
 																selectedWorker.value.raw.active
-																	? "border-green-400 text-green-400 bg-green-400/10"
-																	: "border-red-400 text-red-400 bg-red-400/10"
+																	? "border-green-400/50 text-green-400 bg-green-400/10"
+																	: "border-red-400/50 text-red-400 bg-red-400/10"
 															}`}
 														>
-															{selectedWorker.value.raw.active
-																? "ACTIVE"
-																: "INACTIVE"}
+															{selectedWorker.value.raw.active ? "ON" : "OFF"}
 														</Badge>
 														<Badge
 															variant="outline"
-															className="text-xs border-amber-400 text-amber-400 bg-amber-400/10"
+															className="text-[10px] px-1.5 py-0 h-4 border-amber-400/50 text-amber-400 bg-amber-400/10 flex-shrink-0"
 														>
 															v{selectedWorker.value.raw.version}
 														</Badge>
+														{(selectedWorker.value.raw as any).executionMode ===
+																"leader" && (
+															<Crown className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+														)}
+													</div>
+													<div className="flex items-center gap-3 mt-0.5 text-[10px] text-muted-foreground">
+														<span className="flex items-center gap-1">
+															<Server className="w-2.5 h-2.5" />
+															{selectedWorker.value.raw.nid}
+														</span>
+														<span className="flex items-center gap-1">
+															<Clock className="w-2.5 h-2.5" />
+															{getTimeAgo(selectedWorker.value.raw.timestamp)}
+														</span>
+														<span className="flex items-center gap-1">
+															<HardDrive className="w-2.5 h-2.5" />
+															{selectedWorker.value.raw.script.length}
+														</span>
 													</div>
 												</div>
 											</div>
@@ -799,437 +870,370 @@ export function AMIEditor(): JSX.Element {
 												onClick={handleToggleWorkerStatus}
 												size="sm"
 												disabled={updating}
-												className={`px-4 py-2 font-mono text-sm transition-all duration-200 ${
+												className={`px-3 py-1.5 font-mono text-xs h-8 flex-shrink-0 ${
 													selectedWorker.value.raw.active
-														? "bg-red-500 hover:bg-red-600 text-foreground"
-														: "bg-green-500 hover:bg-green-600 text-foreground"
+														? "bg-red-500 hover:bg-red-600 text-white"
+														: "bg-green-500 hover:bg-green-600 text-white"
 												}`}
 											>
 												{updating
 													? (
 														<>
-															<Settings className="animate-spin mr-2 w-4 h-4" />
-															UPDATING
+															<Settings className="animate-spin mr-1.5 w-3.5 h-3.5" />
+															...
 														</>
 													)
 													: selectedWorker.value.raw.active
 													? (
 														<>
-															<PowerOff className="w-4 h-4 mr-2" />
+															<PowerOff className="w-3.5 h-3.5 mr-1.5" />
 															STOP
 														</>
 													)
 													: (
 														<>
-															<Play className="w-4 h-4 mr-2" />
+															<Play className="w-3.5 h-3.5 mr-1.5" />
 															START
 														</>
 													)}
 											</Button>
 										</div>
-
-										{/* Metadata */}
-										<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-											<div className="flex items-center gap-2">
-												<Server className="w-3 h-3 text-blue-400" />
-												<span className="text-muted-foreground">Node:</span>
-												<span className="text-blue-300 font-mono">
-													{selectedWorker.value.raw.nid}
-												</span>
-											</div>
-											<div className="flex items-center gap-2">
-												<Network className="w-3 h-3 text-purple-400" />
-												<span className="text-muted-foreground">Channel:</span>
-												<span className="text-purple-300 font-mono truncate">
-													{selectedWorker.value.channel}
-												</span>
-											</div>
-											<div className="flex items-center gap-2">
-												<Calendar className="w-3 h-3 text-amber-400" />
-												<span className="text-muted-foreground">Modified:</span>
-												<span className="text-amber-400 font-mono">
-													{formatTimestamp(selectedWorker.value.raw.timestamp)}
-												</span>
-											</div>
-											<div className="flex items-center gap-2">
-												<HardDrive className="w-3 h-3 text-muted-foreground" />
-												<span className="text-muted-foreground">Size:</span>
-												<span className="text-card-foreground font-mono">
-													{selectedWorker.value.raw.script.length} chars
-												</span>
-											</div>
-										</div>
 									</div>
 
-									{/* Configuration Section */}
-									<div className="bg-card border-b border-border p-4">
-										<div className="flex items-center justify-between mb-3">
-											<div className="flex items-center gap-2">
-												<Settings className="w-4 h-4 text-purple-400" />
-												<span className="text-purple-300 font-mono text-sm font-bold">
-													CONFIGURATION
-												</span>
-											</div>
-											{isEditingConfig && (
-												<div className="flex items-center gap-2">
-													<Button
-														onClick={resetConfig}
-														variant="ghost"
-														size="sm"
-														className="text-xs text-muted-foreground hover:text-card-foreground"
+									{/* Tabs Navigation & Content */}
+									<Tabs
+										value={activeTab}
+										onValueChange={setActiveTab}
+										className="flex-1 flex flex-col min-h-0"
+									>
+										<div className="bg-card border-b border-border px-4 pt-2">
+											<div className="flex items-center justify-between">
+												<TabsList className="bg-muted/30 p-0.5 h-8">
+													<TabsTrigger
+														value="code"
+														className="text-xs h-7 px-3"
 													>
-														<RotateCcw className="w-3 h-3 mr-1" />
-														Reset
-													</Button>
-													<Button
-														onClick={handleSaveAll}
-														variant="outline"
-														size="sm"
-														className="text-xs border-purple-400 bg-purple-400/10 text-purple-400 hover:bg-purple-400/20"
-														disabled={updating}
+														<Code className="w-3 h-3 mr-1.5" />
+														Code
+													</TabsTrigger>
+													<TabsTrigger
+														value="config"
+														className="text-xs h-7 px-3"
 													>
-														<Save className="w-3 h-3 mr-1" />
-														Save
-													</Button>
-												</div>
-											)}
-										</div>
-
-										<div className="space-y-3">
-											{/* Row 1: Execution Mode and Priority */}
-											<div className="grid grid-cols-2 gap-3">
-												<div className="space-y-1.5">
-													<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-														<Cpu className="w-3 h-3" />
-														<span>Execution Mode</span>
-													</div>
-													<Select
-														value={currentConfig.executionMode}
-														onValueChange={(value: any) =>
-															handleConfigChange("executionMode", value)}
+														<Settings className="w-3 h-3 mr-1.5" />
+														Config
+													</TabsTrigger>
+													<TabsTrigger
+														value="notes"
+														className="text-xs h-7 px-3"
 													>
-														<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-8">
-															<SelectValue />
-														</SelectTrigger>
-														<SelectContent>
-															<SelectItem value="parallel">
-																<div className="flex items-center gap-2">
-																	<span>Parallel</span>
-																	<span className="text-xs text-muted-foreground">
-																		(All nodes)
-																	</span>
-																</div>
-															</SelectItem>
-															<SelectItem value="leader">
-																<div className="flex items-center gap-2">
-																	<span>Leader</span>
-																	<span className="text-xs text-muted-foreground">
-																		(One node)
-																	</span>
-																</div>
-															</SelectItem>
-															<SelectItem value="exclusive">
-																<div className="flex items-center gap-2">
-																	<span>Exclusive</span>
-																	<span className="text-xs text-muted-foreground">
-																		(Assigned)
-																	</span>
-																</div>
-															</SelectItem>
-														</SelectContent>
-													</Select>
-												</div>
+														<FileText className="w-3 h-3 mr-1.5" />
+														Notes
+													</TabsTrigger>
+													{(selectedWorker.value.raw as any).executionMode ===
+															"leader" && (
+														<TabsTrigger
+															value="leader"
+															className="text-xs h-7 px-3"
+														>
+															<Crown className="w-3 h-3 mr-1.5" />
+															Leader
+														</TabsTrigger>
+													)}
+												</TabsList>
 
-												<div className="space-y-1.5">
-													<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-														<Zap className="w-3 h-3" />
-														<span>Priority</span>
-													</div>
-													<Select
-														value={currentConfig.priority}
-														onValueChange={(value: any) =>
-															handleConfigChange("priority", value)}
-													>
-														<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-8">
-															<SelectValue />
-														</SelectTrigger>
-														<SelectContent>
-															<SelectItem value="critical">
-																<div className="flex items-center gap-2">
-																	<span>Critical</span>
-																	<span className="text-xs text-muted-foreground">
-																		(50 errors, 1ms)
-																	</span>
-																</div>
-															</SelectItem>
-															<SelectItem value="high">
-																<div className="flex items-center gap-2">
-																	<span>High</span>
-																	<span className="text-xs text-muted-foreground">
-																		(20 errors, 10ms)
-																	</span>
-																</div>
-															</SelectItem>
-															<SelectItem value="normal">
-																<div className="flex items-center gap-2">
-																	<span>Normal</span>
-																	<span className="text-xs text-muted-foreground">
-																		(10 errors, 100ms)
-																	</span>
-																</div>
-															</SelectItem>
-															<SelectItem value="low">
-																<div className="flex items-center gap-2">
-																	<span>Low</span>
-																	<span className="text-xs text-muted-foreground">
-																		(5 errors, 1s)
-																	</span>
-																</div>
-															</SelectItem>
-														</SelectContent>
-													</Select>
-												</div>
-											</div>
-
-											{/* Row 2: Worker Mode and Version */}
-											<div className="grid grid-cols-2 gap-3">
-												<div className="space-y-1.5">
-													<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-														<Layers className="w-3 h-3" />
-														<span>Worker Mode</span>
-													</div>
-													<Select
-														value={currentConfig.mode}
-														onValueChange={(value: any) =>
-															handleConfigChange("mode", value)}
-													>
-														<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-8">
-															<SelectValue />
-														</SelectTrigger>
-														<SelectContent>
-															<SelectItem value="loop">
-																<div className="flex items-center gap-2">
-																	<span>Loop</span>
-																	<span className="text-xs text-muted-foreground">
-																		(Engine repeats)
-																	</span>
-																</div>
-															</SelectItem>
-															<SelectItem value="single">
-																<div className="flex items-center gap-2">
-																	<span>Single</span>
-																	<span className="text-xs text-muted-foreground">
-																		(Self-managed)
-																	</span>
-																</div>
-															</SelectItem>
-														</SelectContent>
-													</Select>
-												</div>
-
-												<div className="space-y-1.5">
-													<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-														<Hash className="w-3 h-3" />
-														<span>Version</span>
-													</div>
-													<Input
-														value={currentConfig.version}
-														onChange={(e) =>
-															handleConfigChange("version", e.target.value)}
-														placeholder="1.19.2"
-														className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
-													/>
-												</div>
-											</div>
-
-											{/* Row 3: Node ID and Dependencies */}
-											<div className="grid grid-cols-2 gap-3">
-												<div className="space-y-1.5">
-													<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-														<Server className="w-3 h-3" />
-														<span>Node ID</span>
-													</div>
-													<Input
-														value={currentConfig.nid}
-														onChange={(e) =>
-															handleConfigChange("nid", e.target.value)}
-														placeholder="s-0001"
-														className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
-													/>
-												</div>
-
-												<div className="space-y-1.5">
-													<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-														<Database className="w-3 h-3" />
-														<span>Dependencies</span>
-													</div>
-													<Input
-														value={currentConfig.dependencies.join(", ")}
-														onChange={(e) =>
-															handleConfigChange(
-																"dependencies",
-																e.target.value.split(",").map((d) => d.trim())
-																	.filter(Boolean),
-															)}
-														placeholder="gliesereum"
-														className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
-													/>
-												</div>
-											</div>
-
-											{/* Row 4: Account ID */}
-											<div className="grid grid-cols-2 gap-3">
-												<div className="space-y-1.5">
-													<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-														<Code className="w-3 h-3" />
-														<span>Account ID (Optional)</span>
-													</div>
-													<Input
-														value={currentConfig.accountId}
-														onChange={(e) =>
-															handleConfigChange("accountId", e.target.value)}
-														placeholder="g-bhts"
-														className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
-													/>
-												</div>
-
-												{currentConfig.executionMode === "exclusive" && (
-													<div className="space-y-1.5">
-														<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-															<Server className="w-3 h-3" />
-															<span>Assigned Node</span>
-														</div>
-														<Input
-															value={currentConfig.assignedNode}
-															onChange={(e) =>
-																handleConfigChange(
-																	"assignedNode",
-																	e.target.value,
-																)}
-															placeholder="s-0001"
-															className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
-														/>
+												{(isEditing || isEditingNote || isEditingConfig) && (
+													<div className="flex items-center gap-2">
+														<Button
+															onClick={() => {
+																resetScript();
+																resetNote();
+																resetConfig();
+															}}
+															variant="ghost"
+															size="sm"
+															className="text-xs h-7 px-2 text-muted-foreground hover:text-amber-400"
+														>
+															<RotateCcw className="w-3 h-3 mr-1" />
+															Revert
+														</Button>
+														<Button
+															onClick={handleSaveAll}
+															size="sm"
+															className="text-xs h-7 px-3 bg-amber-500 hover:bg-amber-600 text-black"
+															disabled={updating}
+														>
+															<Save className="w-3 h-3 mr-1" />
+															Save All
+														</Button>
 													</div>
 												)}
 											</div>
 										</div>
-									</div>
 
-									{/* Notes Section */}
-									<div className="bg-card border-b border-border p-4">
-										<div className="flex items-center justify-between mb-3">
-											<div className="flex items-center gap-2">
-												<FileText className="w-4 h-4 text-blue-400" />
-												<span className="text-blue-300 font-mono text-sm font-bold">
-													NOTES
-												</span>
-											</div>
-											{isEditingNote && (
-												<div className="flex items-center gap-2">
-													<Button
-														onClick={resetNote}
-														variant="ghost"
-														size="sm"
-														className="text-xs text-muted-foreground hover:text-card-foreground"
-													>
-														<RotateCcw className="w-3 h-3 mr-1" />
-														Reset
-													</Button>
-													<Button
-														onClick={handleSaveNote}
-														variant="outline"
-														size="sm"
-														className="text-xs border-blue-400 bg-blue-400/10 text-blue-400 hover:bg-blue-400/20"
-														disabled={updating}
-													>
-														<Save className="w-3 h-3 mr-1" />
-														Save
-													</Button>
+										{/* Tab: Code */}
+										<TabsContent
+											value="code"
+											className="flex-1 m-0 p-0 min-h-0"
+										>
+											<EditorComponent
+												script={currentScript}
+												handleEditorChange={handleEditorChange}
+											/>
+										</TabsContent>
+
+										{/* Tab: Configuration */}
+										<TabsContent
+											value="config"
+											className="flex-1 m-0 p-4 overflow-y-auto"
+										>
+											<div className="max-w-2xl mx-auto space-y-3">
+												{/* Row 1: Execution Mode and Priority */}
+												<div className="grid grid-cols-2 gap-3">
+													<div className="space-y-1.5">
+														<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+															<Cpu className="w-3 h-3" />
+															<span>Execution Mode</span>
+														</div>
+														<Select
+															value={currentConfig.executionMode}
+															onValueChange={(value: any) =>
+																handleConfigChange("executionMode", value)}
+														>
+															<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-8">
+																<SelectValue />
+															</SelectTrigger>
+															<SelectContent>
+																<SelectItem value="parallel">
+																	<div className="flex items-center gap-2">
+																		<span>Parallel</span>
+																		<span className="text-xs text-muted-foreground">
+																			(All nodes)
+																		</span>
+																	</div>
+																</SelectItem>
+																<SelectItem value="leader">
+																	<div className="flex items-center gap-2">
+																		<span>Leader</span>
+																		<span className="text-xs text-muted-foreground">
+																			(One node)
+																		</span>
+																	</div>
+																</SelectItem>
+																<SelectItem value="exclusive">
+																	<div className="flex items-center gap-2">
+																		<span>Exclusive</span>
+																		<span className="text-xs text-muted-foreground">
+																			(Assigned)
+																		</span>
+																	</div>
+																</SelectItem>
+															</SelectContent>
+														</Select>
+													</div>
+
+													<div className="space-y-1.5">
+														<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+															<Zap className="w-3 h-3" />
+															<span>Priority</span>
+														</div>
+														<Select
+															value={currentConfig.priority}
+															onValueChange={(value: any) =>
+																handleConfigChange("priority", value)}
+														>
+															<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-8">
+																<SelectValue />
+															</SelectTrigger>
+															<SelectContent>
+																<SelectItem value="critical">
+																	<div className="flex items-center gap-2">
+																		<span>Critical</span>
+																		<span className="text-xs text-muted-foreground">
+																			(50 errors, 1ms)
+																		</span>
+																	</div>
+																</SelectItem>
+																<SelectItem value="high">
+																	<div className="flex items-center gap-2">
+																		<span>High</span>
+																		<span className="text-xs text-muted-foreground">
+																			(20 errors, 10ms)
+																		</span>
+																	</div>
+																</SelectItem>
+																<SelectItem value="normal">
+																	<div className="flex items-center gap-2">
+																		<span>Normal</span>
+																		<span className="text-xs text-muted-foreground">
+																			(10 errors, 100ms)
+																		</span>
+																	</div>
+																</SelectItem>
+																<SelectItem value="low">
+																	<div className="flex items-center gap-2">
+																		<span>Low</span>
+																		<span className="text-xs text-muted-foreground">
+																			(5 errors, 1s)
+																		</span>
+																	</div>
+																</SelectItem>
+															</SelectContent>
+														</Select>
+													</div>
 												</div>
-											)}
-										</div>
-										<Textarea
-											value={currentNote}
-											onChange={(e) => handleNoteChange(e.target.value)}
-											placeholder="Add notes about this protocol..."
-											className="bg-muted border-border text-card-foreground placeholder-zinc-500 text-sm resize-none h-20 focus:border-blue-400 focus:ring-blue-400/20"
-										/>
-									</div>
 
-									{/* Unsaved Changes Warning */}
-									{(isEditing || isEditingNote || isEditingConfig) && (
-										<div className="bg-amber-400/10 border-b border-amber-400/20 text-amber-400 px-4 py-3 flex justify-between items-center">
-											<div className="flex items-center gap-2">
-												<Activity className="w-4 h-4 animate-pulse" />
-												<span className="font-mono text-sm font-bold">
-													UNSAVED CHANGES
-													{[
-															isEditing && "SCRIPT",
-															isEditingNote && "NOTES",
-															isEditingConfig && "CONFIG",
-														].filter(Boolean).length > 1
-														? ` (${
-															[
-																isEditing && "SCRIPT",
-																isEditingNote && "NOTES",
-																isEditingConfig && "CONFIG",
-															].filter(Boolean).join(" & ")
-														})`
-														: isEditing
-														? " (SCRIPT)"
-														: isEditingNote
-														? " (NOTES)"
-														: " (CONFIG)"}
-												</span>
-											</div>
-											<div className="flex gap-2">
-												<Button
-													onClick={() => {
-														resetScript();
-														resetNote();
-														resetConfig();
-													}}
-													variant="ghost"
-													size="sm"
-													className="text-amber-400 hover:text-amber-300 hover:bg-amber-400/10"
-												>
-													<RotateCcw className="w-3 h-3 mr-1" />
-													Revert
-												</Button>
-												<Button
-													onClick={handleSaveAll}
-													variant="outline"
-													size="sm"
-													className="border-amber-400 bg-amber-400/10 text-amber-400 hover:bg-amber-400/20"
-													disabled={updating}
-												>
-													<Check className="w-3 h-3 mr-1" />
-													Save All
-												</Button>
-											</div>
-										</div>
-									)}
+												{/* Row 2: Worker Mode and Version */}
+												<div className="grid grid-cols-2 gap-3">
+													<div className="space-y-1.5">
+														<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+															<Layers className="w-3 h-3" />
+															<span>Worker Mode</span>
+														</div>
+														<Select
+															value={currentConfig.mode}
+															onValueChange={(value: any) =>
+																handleConfigChange("mode", value)}
+														>
+															<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-8">
+																<SelectValue />
+															</SelectTrigger>
+															<SelectContent>
+																<SelectItem value="loop">
+																	<div className="flex items-center gap-2">
+																		<span>Loop</span>
+																		<span className="text-xs text-muted-foreground">
+																			(Engine repeats)
+																		</span>
+																	</div>
+																</SelectItem>
+																<SelectItem value="single">
+																	<div className="flex items-center gap-2">
+																		<span>Single</span>
+																		<span className="text-xs text-muted-foreground">
+																			(Self-managed)
+																		</span>
+																	</div>
+																</SelectItem>
+															</SelectContent>
+														</Select>
+													</div>
 
-									{/* Leader Info (for leader mode workers) */}
-									{selectedWorker &&
-										(selectedWorker.value.raw as any).executionMode ===
-											"leader" &&
-										(
-											<div className="px-6 pb-4">
-												<LeaderInfoCard
-													workerId={selectedWorker.value.raw.sid}
-													onRefresh={getLeaderInfo}
+													<div className="space-y-1.5">
+														<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+															<Hash className="w-3 h-3" />
+															<span>Version</span>
+														</div>
+														<Input
+															value={currentConfig.version}
+															onChange={(e) =>
+																handleConfigChange("version", e.target.value)}
+															placeholder="1.19.2"
+															className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
+														/>
+													</div>
+												</div>
+
+												{/* Row 3: Node ID and Dependencies */}
+												<div className="grid grid-cols-2 gap-3">
+													<div className="space-y-1.5">
+														<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+															<Server className="w-3 h-3" />
+															<span>Node ID</span>
+														</div>
+														<Input
+															value={currentConfig.nid}
+															onChange={(e) =>
+																handleConfigChange("nid", e.target.value)}
+															placeholder="s-0001"
+															className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
+														/>
+													</div>
+
+													<div className="space-y-1.5">
+														<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+															<Database className="w-3 h-3" />
+															<span>Dependencies</span>
+														</div>
+														<Input
+															value={currentConfig.dependencies.join(", ")}
+															onChange={(e) => handleConfigChange(
+																"dependencies",
+																e.target.value.split(",").map((d) => d.trim())
+																	.filter(Boolean),
+															)}
+															placeholder="gliesereum"
+															className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
+														/>
+													</div>
+												</div>
+
+												{/* Row 4: Account ID */}
+												<div className="grid grid-cols-2 gap-3">
+													<div className="space-y-1.5">
+														<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+															<Code className="w-3 h-3" />
+															<span>Account ID (Optional)</span>
+														</div>
+														<Input
+															value={currentConfig.accountId}
+															onChange={(e) =>
+																handleConfigChange("accountId", e.target.value)}
+															placeholder="g-bhts"
+															className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
+														/>
+													</div>
+
+													{currentConfig.executionMode === "exclusive" && (
+														<div className="space-y-1.5">
+															<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+																<Server className="w-3 h-3" />
+																<span>Assigned Node</span>
+															</div>
+															<Input
+																value={currentConfig.assignedNode}
+																onChange={(e) =>
+																	handleConfigChange(
+																		"assignedNode",
+																		e.target.value,
+																	)}
+																placeholder="s-0001"
+																className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
+															/>
+														</div>
+													)}
+												</div>
+											</div>
+										</TabsContent>
+
+										{/* Tab: Notes */}
+										<TabsContent value="notes" className="flex-1 m-0 p-4">
+											<div className="max-w-2xl mx-auto">
+												<Textarea
+													value={currentNote}
+													onChange={(e) => handleNoteChange(e.target.value)}
+													placeholder="Add notes about this worker..."
+													className="bg-muted border-border text-card-foreground placeholder-zinc-500 text-sm resize-none min-h-[200px] focus:border-blue-400 focus:ring-blue-400/20"
 												/>
 											</div>
-										)}
+										</TabsContent>
 
-									{/* Code Editor */}
-									<div className="flex-1 overflow-hidden">
-										<EditorComponent
-											script={currentScript}
-											handleEditorChange={handleEditorChange}
-										/>
-									</div>
+										{/* Tab: Leader Info */}
+										{(selectedWorker.value.raw as any).executionMode ===
+												"leader" && (
+											<TabsContent
+												value="leader"
+												className="flex-1 m-0 p-4 overflow-y-auto"
+											>
+												<div className="max-w-2xl mx-auto">
+													<LeaderInfoCard
+														workerId={selectedWorker.value.raw.sid}
+														onRefresh={getLeaderInfo}
+													/>
+												</div>
+											</TabsContent>
+										)}
+									</Tabs>
 								</div>
 							)
 							: (
