@@ -94,6 +94,10 @@ export function AMIEditor(): JSX.Element {
 	const [isEditingConfig, setIsEditingConfig] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filterActive, setFilterActive] = useState<boolean | null>(null);
+	const [filterExecutionMode, setFilterExecutionMode] = useState<string | null>(
+		null,
+	);
+	const [filterPriority, setFilterPriority] = useState<string | null>(null);
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [workerToDelete, setWorkerToDelete] = useState<string | null>(null);
@@ -416,15 +420,45 @@ export function AMIEditor(): JSX.Element {
 		}
 	};
 
-	const filteredWorkers = workers.filter((protocol) => {
-		const matchesSearch = protocol.value.raw.note.toLowerCase().includes(
-			searchTerm.toLowerCase(),
-		) ||
-			protocol.value.raw.sid.toLowerCase().includes(searchTerm.toLowerCase());
-		const matchesFilter = filterActive === null ||
-			protocol.value.raw.active === filterActive;
-		return matchesSearch && matchesFilter;
-	});
+	const filteredWorkers = workers
+		.filter((protocol) => {
+			// Search filter
+			const matchesSearch = !searchTerm ||
+				protocol.value.raw.note.toLowerCase().includes(
+					searchTerm.toLowerCase(),
+				) ||
+				protocol.value.raw.sid.toLowerCase().includes(
+					searchTerm.toLowerCase(),
+				) ||
+				protocol.value.raw.nid.toLowerCase().includes(
+					searchTerm.toLowerCase(),
+				) ||
+				protocol.value.raw.version.toLowerCase().includes(
+					searchTerm.toLowerCase(),
+				);
+
+			// Active status filter
+			const matchesActive = filterActive === null ||
+				protocol.value.raw.active === filterActive;
+
+			// Execution mode filter
+			const workerExecMode = (protocol.value.raw as any).executionMode ||
+				"parallel";
+			const matchesExecMode = !filterExecutionMode ||
+				workerExecMode === filterExecutionMode;
+
+			// Priority filter
+			const workerPriority = (protocol.value.raw as any).priority || "normal";
+			const matchesPriority = !filterPriority ||
+				workerPriority === filterPriority;
+
+			return matchesSearch && matchesActive && matchesExecMode &&
+				matchesPriority;
+		})
+		.sort((a, b) => {
+			// Sort by timestamp descending (newest first)
+			return b.value.raw.timestamp - a.value.raw.timestamp;
+		});
 
 	const formatTimestamp = (timestamp: number) => {
 		return new Date(timestamp).toLocaleString("en-US", {
@@ -556,7 +590,7 @@ export function AMIEditor(): JSX.Element {
 							</div>
 
 							{/* Search and Filter */}
-							<div className="space-y-3">
+							<div className="space-y-2.5">
 								<div className="relative">
 									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
 									<Input
@@ -577,6 +611,7 @@ export function AMIEditor(): JSX.Element {
 									)}
 								</div>
 
+								{/* Filter Row 1: Status */}
 								<div className="flex items-center gap-2">
 									<Select
 										value={filterActive === null
@@ -598,25 +633,35 @@ export function AMIEditor(): JSX.Element {
 												value="all"
 												className="text-card-foreground text-xs"
 											>
-												All Workers
+												<div className="flex items-center gap-2">
+													<Layers className="w-3 h-3" />
+													All Status
+												</div>
 											</SelectItem>
 											<SelectItem
 												value="active"
 												className="text-green-400 text-xs"
 											>
-												Active Only
+												<div className="flex items-center gap-2">
+													<Play className="w-3 h-3" />
+													Active Only
+												</div>
 											</SelectItem>
 											<SelectItem
 												value="inactive"
 												className="text-red-400 text-xs"
 											>
-												Inactive Only
+												<div className="flex items-center gap-2">
+													<PowerOff className="w-3 h-3" />
+													Inactive Only
+												</div>
 											</SelectItem>
 										</SelectContent>
 									</Select>
 
 									<div className="flex items-center gap-1 ml-auto">
-										{(searchTerm || filterActive !== null) && (
+										{(searchTerm || filterActive !== null ||
+											filterExecutionMode || filterPriority) && (
 											<Button
 												size="sm"
 												variant="ghost"
@@ -624,16 +669,139 @@ export function AMIEditor(): JSX.Element {
 												onClick={() => {
 													setSearchTerm("");
 													setFilterActive(null);
+													setFilterExecutionMode(null);
+													setFilterPriority(null);
 												}}
 											>
 												Reset
 											</Button>
 										)}
-										<div className="text-xs text-amber-400 bg-amber-400/10 px-2 py-1 rounded">
+										<div className="text-xs text-amber-400 bg-amber-400/10 px-2 py-1 rounded font-mono">
 											{filteredWorkers.length}/{workers.length}
 										</div>
 									</div>
 								</div>
+
+								{/* Filter Row 2: Execution Mode & Priority */}
+								<div className="grid grid-cols-2 gap-2">
+									<Select
+										value={filterExecutionMode || "all-modes"}
+										onValueChange={(value) => {
+											setFilterExecutionMode(
+												value === "all-modes" ? null : value,
+											);
+										}}
+									>
+										<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-7">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent className="bg-muted border-border">
+											<SelectItem value="all-modes" className="text-xs">
+												<div className="flex items-center gap-2">
+													<Cpu className="w-3 h-3 text-muted-foreground" />
+													All Modes
+												</div>
+											</SelectItem>
+											<SelectItem value="parallel" className="text-xs">
+												<div className="flex items-center gap-2">
+													<Layers className="w-3 h-3 text-blue-400" />
+													Parallel
+												</div>
+											</SelectItem>
+											<SelectItem value="leader" className="text-xs">
+												<div className="flex items-center gap-2">
+													<Crown className="w-3 h-3 text-amber-400" />
+													Leader
+												</div>
+											</SelectItem>
+											<SelectItem value="exclusive" className="text-xs">
+												<div className="flex items-center gap-2">
+													<Server className="w-3 h-3 text-purple-400" />
+													Exclusive
+												</div>
+											</SelectItem>
+										</SelectContent>
+									</Select>
+
+									<Select
+										value={filterPriority || "all-priorities"}
+										onValueChange={(value) => {
+											setFilterPriority(
+												value === "all-priorities" ? null : value,
+											);
+										}}
+									>
+										<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-7">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent className="bg-muted border-border">
+											<SelectItem value="all-priorities" className="text-xs">
+												<div className="flex items-center gap-2">
+													<Zap className="w-3 h-3 text-muted-foreground" />
+													All Priorities
+												</div>
+											</SelectItem>
+											<SelectItem value="critical" className="text-xs">
+												<div className="flex items-center gap-2">
+													<Zap className="w-3 h-3 text-red-400" />
+													Critical
+												</div>
+											</SelectItem>
+											<SelectItem value="high" className="text-xs">
+												<div className="flex items-center gap-2">
+													<Zap className="w-3 h-3 text-orange-400" />
+													High
+												</div>
+											</SelectItem>
+											<SelectItem value="normal" className="text-xs">
+												<div className="flex items-center gap-2">
+													<Zap className="w-3 h-3 text-green-400" />
+													Normal
+												</div>
+											</SelectItem>
+											<SelectItem value="low" className="text-xs">
+												<div className="flex items-center gap-2">
+													<Zap className="w-3 h-3 text-blue-400" />
+													Low
+												</div>
+											</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+
+								{/* Active Filters Display */}
+								{(filterExecutionMode || filterPriority) && (
+									<div className="flex flex-wrap gap-1.5">
+										{filterExecutionMode && (
+											<Badge
+												variant="outline"
+												className="text-[10px] px-1.5 py-0 h-5 border-blue-400/50 bg-blue-400/10 text-blue-400"
+											>
+												{filterExecutionMode}
+												<button
+													onClick={() => setFilterExecutionMode(null)}
+													className="ml-1 hover:text-blue-300"
+												>
+													<X className="w-2.5 h-2.5" />
+												</button>
+											</Badge>
+										)}
+										{filterPriority && (
+											<Badge
+												variant="outline"
+												className="text-[10px] px-1.5 py-0 h-5 border-orange-400/50 bg-orange-400/10 text-orange-400"
+											>
+												{filterPriority}
+												<button
+													onClick={() => setFilterPriority(null)}
+													className="ml-1 hover:text-orange-300"
+												>
+													<X className="w-2.5 h-2.5" />
+												</button>
+											</Badge>
+										)}
+									</div>
+								)}
 							</div>
 						</div>
 
@@ -1157,11 +1325,12 @@ export function AMIEditor(): JSX.Element {
 														</div>
 														<Input
 															value={currentConfig.dependencies.join(", ")}
-															onChange={(e) => handleConfigChange(
-																"dependencies",
-																e.target.value.split(",").map((d) => d.trim())
-																	.filter(Boolean),
-															)}
+															onChange={(e) =>
+																handleConfigChange(
+																	"dependencies",
+																	e.target.value.split(",").map((d) => d.trim())
+																		.filter(Boolean),
+																)}
 															placeholder="gliesereum"
 															className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
 														/>
