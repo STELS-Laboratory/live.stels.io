@@ -82,6 +82,7 @@ export function AMIEditor(): JSX.Element {
 	const [currentNote, setCurrentNote] = useState<string>("");
 	const [isEditing, setIsEditing] = useState(false);
 	const [isEditingNote, setIsEditingNote] = useState(false);
+	const [isEditingConfig, setIsEditingConfig] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filterActive, setFilterActive] = useState<boolean | null>(null);
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -91,6 +92,16 @@ export function AMIEditor(): JSX.Element {
 	const [newlyCreatedWorker, setNewlyCreatedWorker] = useState<string | null>(
 		null,
 	);
+	const [currentConfig, setCurrentConfig] = useState({
+		executionMode: "parallel" as "parallel" | "leader" | "exclusive",
+		priority: "normal" as "critical" | "high" | "normal" | "low",
+		mode: "loop" as "loop" | "single",
+		version: "1.19.2",
+		dependencies: [] as string[],
+		accountId: "",
+		assignedNode: "",
+		nid: "",
+	});
 
 	// Load workers
 	const loadWorkers = async () => {
@@ -153,8 +164,19 @@ export function AMIEditor(): JSX.Element {
 		setSelectedWorker(protocol);
 		setCurrentScript(protocol.value.raw.script);
 		setCurrentNote(protocol.value.raw.note);
+		setCurrentConfig({
+			executionMode: (protocol.value.raw as any).executionMode || "parallel",
+			priority: (protocol.value.raw as any).priority || "normal",
+			mode: (protocol.value.raw as any).mode || "loop",
+			version: protocol.value.raw.version || "1.19.2",
+			dependencies: protocol.value.raw.dependencies || [],
+			accountId: (protocol.value.raw as any).accountId || "",
+			assignedNode: (protocol.value.raw as any).assignedNode || "",
+			nid: protocol.value.raw.nid || "",
+		});
 		setIsEditing(false);
 		setIsEditingNote(false);
+		setIsEditingConfig(false);
 	};
 
 	const handleEditorChange = (value: string | undefined) => {
@@ -184,6 +206,46 @@ export function AMIEditor(): JSX.Element {
 		if (selectedWorker) {
 			setCurrentNote(selectedWorker.value.raw.note);
 			setIsEditingNote(false);
+		}
+	};
+
+	const handleConfigChange = (field: string, value: any) => {
+		if (selectedWorker) {
+			const originalConfig = {
+				executionMode: (selectedWorker.value.raw as any).executionMode ||
+					"parallel",
+				priority: (selectedWorker.value.raw as any).priority || "normal",
+				mode: (selectedWorker.value.raw as any).mode || "loop",
+				version: selectedWorker.value.raw.version || "1.19.2",
+				dependencies: selectedWorker.value.raw.dependencies || [],
+				accountId: (selectedWorker.value.raw as any).accountId || "",
+				assignedNode: (selectedWorker.value.raw as any).assignedNode || "",
+				nid: selectedWorker.value.raw.nid || "",
+			};
+			const newConfig = { ...currentConfig, [field]: value };
+			setCurrentConfig(newConfig);
+			setIsEditingConfig(
+				JSON.stringify(newConfig) !== JSON.stringify(originalConfig),
+			);
+		} else {
+			setCurrentConfig((prev) => ({ ...prev, [field]: value }));
+		}
+	};
+
+	const resetConfig = () => {
+		if (selectedWorker) {
+			setCurrentConfig({
+				executionMode: (selectedWorker.value.raw as any).executionMode ||
+					"parallel",
+				priority: (selectedWorker.value.raw as any).priority || "normal",
+				mode: (selectedWorker.value.raw as any).mode || "loop",
+				version: selectedWorker.value.raw.version || "1.19.2",
+				dependencies: selectedWorker.value.raw.dependencies || [],
+				accountId: (selectedWorker.value.raw as any).accountId || "",
+				assignedNode: (selectedWorker.value.raw as any).assignedNode || "",
+				nid: selectedWorker.value.raw.nid || "",
+			});
+			setIsEditingConfig(false);
 		}
 	};
 
@@ -267,14 +329,26 @@ export function AMIEditor(): JSX.Element {
 	};
 
 	const handleSaveAll = async () => {
-		if (!selectedWorker || (!isEditing && !isEditingNote)) return;
+		if (!selectedWorker || (!isEditing && !isEditingNote && !isEditingConfig)) {
+			return;
+		}
 		setUpdating(true);
 		try {
 			const updatedRaw = {
 				...selectedWorker.value.raw,
 				script: currentScript,
 				note: currentNote,
+				version: currentConfig.version,
+				dependencies: currentConfig.dependencies,
+				nid: currentConfig.nid,
 				timestamp: Date.now(),
+				...(currentConfig.executionMode &&
+					{ executionMode: currentConfig.executionMode }),
+				...(currentConfig.priority && { priority: currentConfig.priority }),
+				...(currentConfig.mode && { mode: currentConfig.mode }),
+				...(currentConfig.accountId && { accountId: currentConfig.accountId }),
+				...(currentConfig.assignedNode &&
+					{ assignedNode: currentConfig.assignedNode }),
 			};
 			const workerBody: Worker = {
 				...selectedWorker,
@@ -300,6 +374,7 @@ export function AMIEditor(): JSX.Element {
 				);
 				setIsEditing(false);
 				setIsEditingNote(false);
+				setIsEditingConfig(false);
 			}
 		} catch (error) {
 			console.error("Failed to save protocol changes:", error);
@@ -786,6 +861,260 @@ export function AMIEditor(): JSX.Element {
 										</div>
 									</div>
 
+									{/* Configuration Section */}
+									<div className="bg-card border-b border-border p-4">
+										<div className="flex items-center justify-between mb-3">
+											<div className="flex items-center gap-2">
+												<Settings className="w-4 h-4 text-purple-400" />
+												<span className="text-purple-300 font-mono text-sm font-bold">
+													CONFIGURATION
+												</span>
+											</div>
+											{isEditingConfig && (
+												<div className="flex items-center gap-2">
+													<Button
+														onClick={resetConfig}
+														variant="ghost"
+														size="sm"
+														className="text-xs text-muted-foreground hover:text-card-foreground"
+													>
+														<RotateCcw className="w-3 h-3 mr-1" />
+														Reset
+													</Button>
+													<Button
+														onClick={handleSaveAll}
+														variant="outline"
+														size="sm"
+														className="text-xs border-purple-400 bg-purple-400/10 text-purple-400 hover:bg-purple-400/20"
+														disabled={updating}
+													>
+														<Save className="w-3 h-3 mr-1" />
+														Save
+													</Button>
+												</div>
+											)}
+										</div>
+
+										<div className="space-y-3">
+											{/* Row 1: Execution Mode and Priority */}
+											<div className="grid grid-cols-2 gap-3">
+												<div className="space-y-1.5">
+													<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+														<Cpu className="w-3 h-3" />
+														<span>Execution Mode</span>
+													</div>
+													<Select
+														value={currentConfig.executionMode}
+														onValueChange={(value: any) =>
+															handleConfigChange("executionMode", value)}
+													>
+														<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-8">
+															<SelectValue />
+														</SelectTrigger>
+														<SelectContent>
+															<SelectItem value="parallel">
+																<div className="flex items-center gap-2">
+																	<span>Parallel</span>
+																	<span className="text-xs text-muted-foreground">
+																		(All nodes)
+																	</span>
+																</div>
+															</SelectItem>
+															<SelectItem value="leader">
+																<div className="flex items-center gap-2">
+																	<span>Leader</span>
+																	<span className="text-xs text-muted-foreground">
+																		(One node)
+																	</span>
+																</div>
+															</SelectItem>
+															<SelectItem value="exclusive">
+																<div className="flex items-center gap-2">
+																	<span>Exclusive</span>
+																	<span className="text-xs text-muted-foreground">
+																		(Assigned)
+																	</span>
+																</div>
+															</SelectItem>
+														</SelectContent>
+													</Select>
+												</div>
+
+												<div className="space-y-1.5">
+													<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+														<Zap className="w-3 h-3" />
+														<span>Priority</span>
+													</div>
+													<Select
+														value={currentConfig.priority}
+														onValueChange={(value: any) =>
+															handleConfigChange("priority", value)}
+													>
+														<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-8">
+															<SelectValue />
+														</SelectTrigger>
+														<SelectContent>
+															<SelectItem value="critical">
+																<div className="flex items-center gap-2">
+																	<span>Critical</span>
+																	<span className="text-xs text-muted-foreground">
+																		(50 errors, 1ms)
+																	</span>
+																</div>
+															</SelectItem>
+															<SelectItem value="high">
+																<div className="flex items-center gap-2">
+																	<span>High</span>
+																	<span className="text-xs text-muted-foreground">
+																		(20 errors, 10ms)
+																	</span>
+																</div>
+															</SelectItem>
+															<SelectItem value="normal">
+																<div className="flex items-center gap-2">
+																	<span>Normal</span>
+																	<span className="text-xs text-muted-foreground">
+																		(10 errors, 100ms)
+																	</span>
+																</div>
+															</SelectItem>
+															<SelectItem value="low">
+																<div className="flex items-center gap-2">
+																	<span>Low</span>
+																	<span className="text-xs text-muted-foreground">
+																		(5 errors, 1s)
+																	</span>
+																</div>
+															</SelectItem>
+														</SelectContent>
+													</Select>
+												</div>
+											</div>
+
+											{/* Row 2: Worker Mode and Version */}
+											<div className="grid grid-cols-2 gap-3">
+												<div className="space-y-1.5">
+													<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+														<Layers className="w-3 h-3" />
+														<span>Worker Mode</span>
+													</div>
+													<Select
+														value={currentConfig.mode}
+														onValueChange={(value: any) =>
+															handleConfigChange("mode", value)}
+													>
+														<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-8">
+															<SelectValue />
+														</SelectTrigger>
+														<SelectContent>
+															<SelectItem value="loop">
+																<div className="flex items-center gap-2">
+																	<span>Loop</span>
+																	<span className="text-xs text-muted-foreground">
+																		(Engine repeats)
+																	</span>
+																</div>
+															</SelectItem>
+															<SelectItem value="single">
+																<div className="flex items-center gap-2">
+																	<span>Single</span>
+																	<span className="text-xs text-muted-foreground">
+																		(Self-managed)
+																	</span>
+																</div>
+															</SelectItem>
+														</SelectContent>
+													</Select>
+												</div>
+
+												<div className="space-y-1.5">
+													<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+														<Hash className="w-3 h-3" />
+														<span>Version</span>
+													</div>
+													<Input
+														value={currentConfig.version}
+														onChange={(e) =>
+															handleConfigChange("version", e.target.value)}
+														placeholder="1.19.2"
+														className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
+													/>
+												</div>
+											</div>
+
+											{/* Row 3: Node ID and Dependencies */}
+											<div className="grid grid-cols-2 gap-3">
+												<div className="space-y-1.5">
+													<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+														<Server className="w-3 h-3" />
+														<span>Node ID</span>
+													</div>
+													<Input
+														value={currentConfig.nid}
+														onChange={(e) =>
+															handleConfigChange("nid", e.target.value)}
+														placeholder="s-0001"
+														className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
+													/>
+												</div>
+
+												<div className="space-y-1.5">
+													<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+														<Database className="w-3 h-3" />
+														<span>Dependencies</span>
+													</div>
+													<Input
+														value={currentConfig.dependencies.join(", ")}
+														onChange={(e) =>
+															handleConfigChange(
+																"dependencies",
+																e.target.value.split(",").map((d) => d.trim())
+																	.filter(Boolean),
+															)}
+														placeholder="gliesereum"
+														className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
+													/>
+												</div>
+											</div>
+
+											{/* Row 4: Account ID */}
+											<div className="grid grid-cols-2 gap-3">
+												<div className="space-y-1.5">
+													<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+														<Code className="w-3 h-3" />
+														<span>Account ID (Optional)</span>
+													</div>
+													<Input
+														value={currentConfig.accountId}
+														onChange={(e) =>
+															handleConfigChange("accountId", e.target.value)}
+														placeholder="g-bhts"
+														className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
+													/>
+												</div>
+
+												{currentConfig.executionMode === "exclusive" && (
+													<div className="space-y-1.5">
+														<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+															<Server className="w-3 h-3" />
+															<span>Assigned Node</span>
+														</div>
+														<Input
+															value={currentConfig.assignedNode}
+															onChange={(e) =>
+																handleConfigChange(
+																	"assignedNode",
+																	e.target.value,
+																)}
+															placeholder="s-0001"
+															className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
+														/>
+													</div>
+												)}
+											</div>
+										</div>
+									</div>
+
 									{/* Notes Section */}
 									<div className="bg-card border-b border-border p-4">
 										<div className="flex items-center justify-between mb-3">
@@ -828,17 +1157,29 @@ export function AMIEditor(): JSX.Element {
 									</div>
 
 									{/* Unsaved Changes Warning */}
-									{(isEditing || isEditingNote) && (
+									{(isEditing || isEditingNote || isEditingConfig) && (
 										<div className="bg-amber-400/10 border-b border-amber-400/20 text-amber-400 px-4 py-3 flex justify-between items-center">
 											<div className="flex items-center gap-2">
 												<Activity className="w-4 h-4 animate-pulse" />
 												<span className="font-mono text-sm font-bold">
 													UNSAVED CHANGES
-													{isEditing && isEditingNote
-														? " (SCRIPT & NOTES)"
+													{[
+															isEditing && "SCRIPT",
+															isEditingNote && "NOTES",
+															isEditingConfig && "CONFIG",
+														].filter(Boolean).length > 1
+														? ` (${
+															[
+																isEditing && "SCRIPT",
+																isEditingNote && "NOTES",
+																isEditingConfig && "CONFIG",
+															].filter(Boolean).join(" & ")
+														})`
 														: isEditing
 														? " (SCRIPT)"
-														: " (NOTES)"}
+														: isEditingNote
+														? " (NOTES)"
+														: " (CONFIG)"}
 												</span>
 											</div>
 											<div className="flex gap-2">
@@ -846,6 +1187,7 @@ export function AMIEditor(): JSX.Element {
 													onClick={() => {
 														resetScript();
 														resetNote();
+														resetConfig();
 													}}
 													variant="ghost"
 													size="sm"
