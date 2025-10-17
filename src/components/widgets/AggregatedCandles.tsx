@@ -1,10 +1,18 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type {
   CandlestickData,
+  DeepPartial,
   HistogramData,
   IChartApi,
   ISeriesApi,
   LineData,
+  LineWidth,
   UTCTimestamp,
 } from "lightweight-charts";
 import {
@@ -250,7 +258,7 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
         dominance,
         marketShare,
       };
-    }).sort((a, b) => (b as any).dominance - (a as any).dominance);
+    }).sort((a, b) => (b.dominance || 0) - (a.dominance || 0));
   }, [candlesData, orderBookData, selectedMarket]);
 
   // Create liquidity-weighted aggregated candles for regulatory analysis
@@ -556,7 +564,7 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
       if (!lineSeriesRefs.current[exchange] && exchangeLineData[exchange]) {
         // Calculate line width based on dominance (higher dominance = thicker line)
         const maxDominance = Math.max(
-          ...exchangeData.map((e) => (e as any).dominance || 0),
+          ...exchangeData.map((e) => e.dominance || 0),
         );
         const dominanceRatio = (dominance || 0) / maxDominance;
         const lineWidth = Math.max(1, Math.min(5, 1 + dominanceRatio * 4));
@@ -569,9 +577,13 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
         const colorWithOpacity = color +
           Math.floor(opacity * 255).toString(16).padStart(2, "0");
 
+        const clampedLineWidth = Math.max(
+          1,
+          Math.min(5, Math.round(lineWidth)),
+        );
         const lineSeries = chartRef.current!.addSeries(LineSeries, {
           color: colorWithOpacity,
-          lineWidth: lineWidth as any, // Type assertion for lineWidth
+          lineWidth: clampedLineWidth as unknown as DeepPartial<LineWidth>,
           priceLineVisible: false,
           lastValueVisible: false,
           crosshairMarkerVisible: true,
@@ -644,7 +656,7 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
   }, [lastCandle, fairValuePrice]);
 
   // Helper function to calculate Gini coefficient (corrected formula)
-  const calculateGiniCoefficient = (values: number[]): number => {
+  const calculateGiniCoefficient = useCallback((values: number[]): number => {
     if (values.length === 0) return 0;
     const sorted = [...values].sort((a, b) => a - b);
     const n = sorted.length;
@@ -657,7 +669,7 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
       gini += (i + 1) * sorted[i];
     }
     return (2 * gini) / (n * sum) - (n + 1) / n;
-  };
+  }, []);
 
   // Calculate market efficiency score (0-100)
   const marketEfficiency = useMemo(() => {
@@ -698,9 +710,9 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
 
     // Market concentration efficiency (prefer more balanced markets)
     const marketShareVariance = marketExchangeData.reduce((sum, ex) => {
-      const marketShare = (ex as any).marketShare || 0;
+      const marketShare = ex.marketShare || 0;
       const avgMarketShare = marketExchangeData.reduce((s, e) =>
-        s + ((e as any).marketShare || 0), 0) / marketExchangeData.length;
+        s + (e.marketShare || 0), 0) / marketExchangeData.length;
       return sum + Math.pow(marketShare - avgMarketShare, 2);
     }, 0);
     const concentrationEfficiency = Math.max(
@@ -753,7 +765,7 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
                     Leader: {exchangeData[0].exchange}
                   </span>
                   <span className="mx-1 text-muted-foreground">
-                    ({(exchangeData[0] as any).marketShare?.toFixed(1)}%)
+                    ({exchangeData[0].marketShare?.toFixed(1)}%)
                   </span>
                 </>
               )}
@@ -974,7 +986,7 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
                     index,
                   ) => {
                     const maxDominance = Math.max(
-                      ...exchangeData.map((e) => (e as any).dominance || 0),
+                      ...exchangeData.map((e) => e.dominance || 0),
                     );
                     const dominanceRatio = (dominance || 0) / maxDominance;
                     const lineWidth = Math.max(
@@ -1038,15 +1050,15 @@ const AggregatedCandles: React.FC<AggregatedCandlesProps> = ({
 
                 {/* Market Concentration Warning */}
                 {exchangeData.length > 0 &&
-                  (exchangeData[0] as any).marketShare > 40 && (
+                  (exchangeData[0].marketShare || 0) > 40 && (
                   <div className="mt-2 p-2 bg-red-500/10 border border-red-500/30 rounded">
                     <div className="text-[9px] text-red-400 font-semibold uppercase tracking-wider">
                       ⚠️ High Market Concentration
                     </div>
                     <div className="text-[8px] text-red-300 mt-1">
                       {exchangeData[0].exchange} controls{" "}
-                      {(exchangeData[0] as any).marketShare?.toFixed(1)}% of
-                      market liquidity
+                      {exchangeData[0].marketShare?.toFixed(1)}% of market
+                      liquidity
                     </div>
                   </div>
                 )}

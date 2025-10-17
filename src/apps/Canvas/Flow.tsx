@@ -9,4 +9,3 @@ function Flow(): React.ReactElement | null {
 }
 
 export default Flow;
-export * from "./store.ts";

@@ -18,7 +18,6 @@ import {
   Activity,
   AlertCircle,
   AlertTriangle,
-  CheckCircle,
   Cpu,
   Play,
   RefreshCw,
@@ -78,6 +77,7 @@ export function WorkerStatsPanel({
   // Initial load
   useEffect(() => {
     loadStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Auto-refresh every 15 seconds
@@ -89,6 +89,7 @@ export function WorkerStatsPanel({
     }, 15000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRefresh]);
 
   // Calculate totals

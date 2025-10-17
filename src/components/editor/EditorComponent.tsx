@@ -236,7 +236,6 @@ export default function EditorComponent(
 		console.log("[Monaco] Theme changed to:", themeName);
 	}, [resolvedTheme]);
 
-	// @ts-ignore
 	return (
 		<MonacoEditor
 			width="100%"

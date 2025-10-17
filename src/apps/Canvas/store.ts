@@ -255,7 +255,8 @@ export const useCanvasStore = create<CanvasStore>()(
 						const remainingPanels = state.panels.panels.filter(
 							(p) => p.id !== panelId,
 						);
-						const { [panelId]: _, ...remainingPanelData } =
+						// eslint-disable-next-line @typescript-eslint/no-unused-vars
+						const { [panelId]: _deletedPanel, ...remainingPanelData } =
 							state.panels.panelData;
 
 						// If deleting active panel, activate another one

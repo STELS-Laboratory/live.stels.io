@@ -80,6 +80,7 @@ export function LeaderInfoCard({
   // Initial load
   useEffect(() => {
     loadLeaderInfo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workerId]);
 
   // Auto-refresh every 10 seconds
@@ -91,6 +92,7 @@ export function LeaderInfoCard({
     }, 10000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workerId, autoRefresh]);
 
   if (loading && !leaderInfo) {

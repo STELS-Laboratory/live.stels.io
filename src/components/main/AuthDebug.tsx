@@ -22,9 +22,13 @@ export const AuthDebug: React.FC = () => {
     resetAuth,
   } = useAuthStore();
 
-  const [debugInfo, setDebugInfo] = useState({
-    localStorageAuth: null as any,
-    localStoragePrivate: null as any,
+  const [debugInfo, setDebugInfo] = useState<{
+    localStorageAuth: Record<string, unknown> | null;
+    localStoragePrivate: Record<string, unknown> | null;
+    timestamp: number;
+  }>({
+    localStorageAuth: null,
+    localStoragePrivate: null,
     timestamp: Date.now(),
   });
 
@@ -86,12 +90,17 @@ export const AuthDebug: React.FC = () => {
                     Store: {isAuthenticated ? "✓" : "✗"}
                   </Badge>
                   <Badge
-                    variant={debugInfo.localStorageAuth?.state?.isAuthenticated
+                    variant={(debugInfo.localStorageAuth as {
+                        state?: { isAuthenticated?: boolean };
+                      })?.state?.isAuthenticated
                       ? "default"
                       : "destructive"}
                     className="text-xs"
                   >
-                    LS: {debugInfo.localStorageAuth?.state?.isAuthenticated
+                    LS:{" "}
+                    {(debugInfo.localStorageAuth as {
+                        state?: { isAuthenticated?: boolean };
+                      })?.state?.isAuthenticated
                       ? "✓"
                       : "✗"}
                   </Badge>
@@ -200,11 +209,14 @@ export const AuthDebug: React.FC = () => {
                   {debugInfo.localStoragePrivate ? "Present" : "Missing"}
                 </Badge>
               </div>
-              {debugInfo.localStoragePrivate?.raw?.session && (
+              {(debugInfo.localStoragePrivate as { raw?: { session?: string } })
+                ?.raw?.session && (
                 <div>
                   <span className="text-muted-foreground">Session in LS:</span>
                   <div className="mt-1 font-mono text-xs bg-muted px-2 py-1 rounded">
-                    {debugInfo.localStoragePrivate.raw.session.slice(0, 20)}...
+                    {((debugInfo.localStoragePrivate as {
+                      raw?: { session?: string };
+                    })?.raw?.session || "").slice(0, 20)}...
                   </div>
                 </div>
               )}

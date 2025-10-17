@@ -80,7 +80,14 @@ export default function GliesereumWallet(): React.ReactElement {
 
 			loadAccounts();
 		}
-	}, [wallet?.address, connectionSession?.session, isConnected]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [
+		wallet?.address,
+		connectionSession?.session,
+		connectionSession?.api,
+		isConnected,
+		fetchAccountsFromServer,
+	]);
 
 	// If no Wallet or not connected, show connection status
 	if (!wallet || !isConnected || !connectionSession) {

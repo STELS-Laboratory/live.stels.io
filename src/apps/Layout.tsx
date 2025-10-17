@@ -1,5 +1,3 @@
-"use client";
-
 import type * as React from "react";
 import { useAppStore } from "@/stores";
 import { useAuthStore } from "@/stores/modules/auth.store.ts";

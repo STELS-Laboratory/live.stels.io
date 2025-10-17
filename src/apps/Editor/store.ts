@@ -22,6 +22,11 @@ export interface Worker {
 			dependencies: string[];
 			version: string;
 			timestamp: number;
+			executionMode?: "parallel" | "leader" | "exclusive";
+			priority?: "critical" | "high" | "normal" | "low";
+			mode?: "loop" | "single";
+			accountId?: string;
+			assignedNode?: string;
 		};
 		channel: string;
 	};
@@ -119,7 +124,7 @@ export type EditorStore = EditorStoreState & EditorStoreActions;
  */
 export const useEditorStore = create<EditorStore>()(
 	devtools(
-		(set) => ({
+		(set, get) => ({
 			// Initial State
 			workers: [],
 			workersLoading: false,
@@ -245,7 +250,7 @@ export const useEditorStore = create<EditorStore>()(
 
 		setWorker: async (): Promise<Worker | null> => {
 			// Legacy method - use createWorker instead
-			return await (get() as any).createWorker({
+			return await get().createWorker({
 				scriptContent:
 					"// Worker script\n// Available context: { Stels, logger }\n\nlogger.info('Worker started on node:', Stels.config.nid);\n\n// Your logic here\n",
 				dependencies: ["gliesereum"],
@@ -384,7 +389,16 @@ export const useEditorStore = create<EditorStore>()(
 
 			// API returns object with workers array
 			if (data && data.workers && Array.isArray(data.workers)) {
-				return data.workers.map((worker: any) => {
+				return data.workers.map((worker: {
+					sid: string;
+					executions?: number;
+					errors?: number;
+					errorRate?: string | number;
+					networkErrors?: number;
+					criticalErrors?: number;
+					isRunning?: boolean;
+					lastRun?: number;
+				}) => {
 					// Parse errorRate from "0.00%" format to number
 					let errorRate = 0;
 					if (typeof worker.errorRate === 'string') {
@@ -443,7 +457,7 @@ export const useEditorStore = create<EditorStore>()(
 				const result = await response.json();
 
 				// Refresh workers list
-				await (get() as any).listWorkers();
+				await get().listWorkers();
 
 				return {
 					stopped: result.stopped || 0,

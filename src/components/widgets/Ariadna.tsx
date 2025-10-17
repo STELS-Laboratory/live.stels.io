@@ -3,7 +3,19 @@
 import { useEffect, useState } from "react";
 import { PulsingBorder } from "@paper-design/shaders-react";
 
-function Ariadna({ data }: { data: any }) {
+interface AriadnaData {
+	raw: {
+		name: string;
+		description: string;
+		status: string;
+		info: string;
+		plugins: string[];
+		accounts: unknown[];
+		timestamp: number;
+	};
+}
+
+function Ariadna({ data }: { data: AriadnaData }) {
 	const [isAnimating, setIsAnimating] = useState(false);
 	const [pulseActive, setPulseActive] = useState(false);
 

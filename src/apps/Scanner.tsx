@@ -1,5 +1,3 @@
-"use client";
-
 import type React from "react";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -21,7 +19,12 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog.tsx";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.tsx";
+import {
+	Tabs,
+	TabsContent,
+	TabsList,
+	TabsTrigger,
+} from "@/components/ui/tabs.tsx";
 import {
 	Activity,
 	AlertCircle,
@@ -148,7 +151,8 @@ export default function WalletWidget(): React.ReactElement {
 
 	const handleRetry = useCallback(() => {
 		if (address.trim()) {
-			handleSubmit(new Event("submit") as any);
+			const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+			handleSubmit(fakeEvent);
 		}
 	}, [address, handleSubmit]);
 
@@ -157,7 +161,8 @@ export default function WalletWidget(): React.ReactElement {
 
 		setIsRefreshing(true);
 		try {
-			await handleSubmit(new Event("submit") as any);
+			const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+			await handleSubmit(fakeEvent);
 		} finally {
 			setIsRefreshing(false);
 		}
@@ -291,7 +296,9 @@ export default function WalletWidget(): React.ReactElement {
 	const getAssetValue = (coin: string, amount: number): number => {
 		const tickerKey =
 			`testnet.runtime.connector.exchange.crypto.bybit.spot.${coin}/USDT.ticker`;
-		const tickerData = session[tickerKey] as any;
+		const tickerData = session[tickerKey] as
+			| { raw?: { last?: number } }
+			| undefined;
 
 		if (tickerData && tickerData.raw && tickerData.raw.last) {
 			return amount * tickerData.raw.last;
@@ -320,7 +327,7 @@ export default function WalletWidget(): React.ReactElement {
 				changePercent,
 				price: (session[
 					`testnet.runtime.connector.exchange.crypto.bybit.spot.${coin}/USDT.ticker`
-				] as any)?.raw?.last || 0,
+				] as { raw?: { last?: number } } | undefined)?.raw?.last || 0,
 			};
 		})
 		.filter((asset) => asset.usdValue >= 500) // Filter assets with $500+ value
@@ -1559,7 +1566,7 @@ export default function WalletWidget(): React.ReactElement {
 						{/*				<div className="absolute bottom-0 left-0 w-24 h-24 bg-primary rounded-full translate-y-12 -translate-x-12">*/}
 						{/*				</div>*/}
 						{/*			</div>*/}
-						
+
 						{/*			<CardHeader className="pb-3 relative">*/}
 						{/*				<div className="flex items-center justify-between">*/}
 						{/*					<div className="flex items-center gap-2">*/}
@@ -1652,7 +1659,7 @@ export default function WalletWidget(): React.ReactElement {
 						{/*			</CardContent>*/}
 						{/*		</Card>*/}
 						{/*	)}*/}
-						
+
 						{/*	/!* News Grid *!/*/}
 						{/*	<Card>*/}
 						{/*		<CardHeader className="pb-2">*/}
@@ -1695,7 +1702,7 @@ export default function WalletWidget(): React.ReactElement {
 						{/*									</div>*/}
 						{/*								</div>*/}
 						{/*							</div>*/}
-						
+
 						{/*							<div className="flex items-center justify-between">*/}
 						{/*								<div className="flex items-center gap-2 text-xs text-muted-foreground">*/}
 						{/*									<div className="flex items-center gap-1">*/}

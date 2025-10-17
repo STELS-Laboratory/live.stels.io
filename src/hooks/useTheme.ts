@@ -42,11 +42,11 @@ export function useTheme(): {
 		};
 
 		// Modern addEventListener
-		mediaQuery.addEventListener("change", handleChange as any);
+		mediaQuery.addEventListener("change", handleChange as (this: MediaQueryList, ev: MediaQueryListEvent) => void);
 
 		// Legacy addListener for older browsers
 		if (mediaQuery.addListener) {
-			mediaQuery.addListener(handleChange as any);
+			mediaQuery.addListener(handleChange as (this: MediaQueryList, ev: MediaQueryListEvent) => void);
 		}
 
 		// Polling fallback - check every 500ms for system theme changes
@@ -57,9 +57,9 @@ export function useTheme(): {
 
 		// Cleanup
 		return () => {
-			mediaQuery.removeEventListener("change", handleChange as any);
+			mediaQuery.removeEventListener("change", handleChange as (this: MediaQueryList, ev: MediaQueryListEvent) => void);
 			if (mediaQuery.removeListener) {
-				mediaQuery.removeListener(handleChange as any);
+				mediaQuery.removeListener(handleChange as (this: MediaQueryList, ev: MediaQueryListEvent) => void);
 			}
 			clearInterval(pollInterval);
 		};

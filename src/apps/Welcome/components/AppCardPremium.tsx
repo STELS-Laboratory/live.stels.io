@@ -20,15 +20,20 @@ interface AppCardPremiumProps {
 }
 
 /**
- * Get category color scheme
+ * Category color scheme type
  */
-function getCategoryColorScheme(category: string): {
+interface CategoryColorScheme {
   bg: string;
   text: string;
   border: string;
   iconBg: string;
-} {
-  const schemes: Record<string, any> = {
+}
+
+/**
+ * Get category color scheme
+ */
+function getCategoryColorScheme(category: string): CategoryColorScheme {
+  const schemes: Record<string, CategoryColorScheme> = {
     Analytics: {
       bg: "bg-blue-500/10",
       text: "text-blue-400",

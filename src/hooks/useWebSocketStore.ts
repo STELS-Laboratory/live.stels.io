@@ -215,10 +215,10 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 	
 	connectNode: (config: WebSocketConfig) => {
 		const connectWebSocket = () => {
-			// Закрываем предыдущее соединение перед созданием нового
+			// Close previous connection before creating new one
 			const { ws: currentWs, sessionExpired } = get();
 			
-			// Если сессия уже истекла, не пытаемся подключаться
+			// If session already expired, don't attempt to connect
 			if (sessionExpired) {
 				console.log('Session expired, skipping WebSocket connection');
 				return;
@@ -226,7 +226,7 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 			
 			if (currentWs && currentWs.readyState !== WebSocket.CLOSED) {
 				console.log('Closing previous WebSocket connection...');
-				// Не закрываем соединение, если оно уже открыто или подключается
+				// Don't close connection if it's already open or connecting
 				if (currentWs.readyState === WebSocket.OPEN || currentWs.readyState === WebSocket.CONNECTING) {
 					console.log('Previous connection is active, aborting new connection attempt');
 					return;
@@ -280,7 +280,7 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 							messageBatch[json.value.channel] = JSON.stringify(json.value);
 							scheduleMessageBatch();
 							
-							set({connection: true, reconnectAttempts: 0}); // Сбрасываем счетчик при успешном подключении
+							set({connection: true, reconnectAttempts: 0}); // Reset counter on successful connection
 							
 							// Only notify sync system about significant data changes
 							// Skip frequent sessionStorage updates, focus on important state changes
@@ -363,7 +363,7 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 	handleSessionExpired: () => {
 		const { isCleaningUp } = get();
 		
-		// Предотвращаем множественные вызовы
+		// Prevent multiple calls
 		if (isCleaningUp) {
 			console.log('[WebSocket] Cleanup already in progress, skipping');
 			return;
@@ -404,7 +404,7 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 		}).catch((error) => {
 			console.error('[WebSocket] Error resetting auth state:', error);
 		}).finally(() => {
-			// Сбрасываем флаг очистки после завершения
+			// Reset cleanup flag after completion
 			setTimeout(() => {
 				set({ isCleaningUp: false });
 			}, 1000);

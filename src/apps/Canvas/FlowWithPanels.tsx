@@ -229,7 +229,7 @@ function FlowWithPanels(): React.ReactElement | null {
 							...node,
 							data: {
 								...node.data,
-								onDelete: undefined as any,
+								onDelete: undefined as unknown as (nodeId: string) => void,
 							},
 						})),
 					});
@@ -356,6 +356,7 @@ function FlowWithPanels(): React.ReactElement | null {
 			setEdges([]);
 			setIsPanelTransitioning(false);
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [activePanelId, getPanelData]);
 
 	// Clean brands on mount
@@ -383,6 +384,7 @@ function FlowWithPanels(): React.ReactElement | null {
 				})
 			);
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [session]);
 
 	const onConnect = useCallback(
@@ -473,7 +475,7 @@ function FlowWithPanels(): React.ReactElement | null {
 				debouncedSaveNodes(updatedNodes);
 				return updatedNodes;
 			});
-		} catch (error) {
+		} catch {
 			// Fallback to old method
 			const key = event.dataTransfer.getData("application/reactflow");
 			const sessionData = sessionStorage.getItem(key);
@@ -709,7 +711,7 @@ function FlowWithPanels(): React.ReactElement | null {
 							"quote",
 							"type",
 							"module",
-						] as any}
+						] as Array<keyof import("@/lib/canvas-types").ConnectionKeys>}
 					/>
 				</div>
 			)}

@@ -39,17 +39,26 @@ interface PortfolioMetrics {
 }
 
 function SonarPortfolio() {
-	const session = useSessionStoreSync() as any;
+	const session = useSessionStoreSync() as
+		| Record<
+			string,
+			{
+				raw: {
+					coins: Record<string, number>;
+					liquidity: number;
+					available: number;
+					protection: number;
+					rate: number;
+					workers: { active: number; total: number };
+				};
+			}
+		>
+		| null;
 	const [selectedAsset, setSelectedAsset] = useState<string | null>(null);
 
-	if (
-		!session || !session["testnet.snapshot.sonar"] ||
-		!session["testnet.runtime.sonar"]
-	) {
-		return <Loader>Scanning connection Testnet</Loader>;
-	}
-
+	// All hooks must be called before any conditional returns
 	const ASSET_PRICES: Record<string, number> = useMemo(() => {
+		if (!session) return { USDT: 1 };
 		const prices: Record<string, number> = {
 			USDT: 1, // Stablecoin always 1:1
 		};
@@ -68,7 +77,9 @@ function SonarPortfolio() {
 			try {
 				const tickerKey =
 					`testnet.runtime.connector.exchange.crypto.bybit.futures.${pair}.ticker`;
-				const tickerData = session[tickerKey];
+				const tickerData = session[tickerKey] as
+					| { raw?: { last?: number } }
+					| undefined;
 
 				if (tickerData?.raw?.last) {
 					prices[symbol] = tickerData.raw.last;
@@ -96,11 +107,17 @@ function SonarPortfolio() {
 		return prices;
 	}, [session]);
 
-	const snapshot = session["testnet.snapshot.sonar"];
-	const runtime = session["testnet.runtime.sonar"];
-
 	// Process assets with accurate value calculations
 	const allAssets: AssetData[] = useMemo(() => {
+		if (
+			!session || !session["testnet.snapshot.sonar"] ||
+			!session["testnet.runtime.sonar"]
+		) {
+			return [];
+		}
+
+		const snapshot = session["testnet.snapshot.sonar"];
+		const runtime = session["testnet.runtime.sonar"];
 		const snapshotCoins = snapshot.raw.coins;
 		const runtimeCoins = runtime.raw.coins;
 
@@ -117,9 +134,9 @@ function SonarPortfolio() {
 			const majorPairs = ["BTC", "ETH", "SOL", "BNB", "TON"];
 			const priceSource: "realtime" | "fallback" =
 				majorPairs.includes(symbol) &&
-					session[
+					(session[
 						`testnet.runtime.connector.exchange.crypto.bybit.futures.${symbol}/USDT:USDT.ticker`
-					]?.raw?.last
+					] as { raw?: { last?: number } } | undefined)?.raw?.last
 					? "realtime"
 					: "fallback";
 
@@ -137,7 +154,7 @@ function SonarPortfolio() {
 				changeValue,
 			};
 		}).filter((asset) => asset.amount > 0).sort((a, b) => b.value - a.value);
-	}, [snapshot, runtime, ASSET_PRICES, session]);
+	}, [ASSET_PRICES, session]);
 
 	// Filter assets by liquidity threshold
 	const assets = useMemo(() => {
@@ -147,6 +164,30 @@ function SonarPortfolio() {
 
 	// Calculate portfolio metrics with accurate totals
 	const metrics: PortfolioMetrics = useMemo(() => {
+		if (
+			!session || !session["testnet.snapshot.sonar"] ||
+			!session["testnet.runtime.sonar"]
+		) {
+			return {
+				totalLiquidity: 0,
+				available: 0,
+				protection: 0,
+				rate: 0,
+				activeWorkers: 0,
+				totalWorkers: 0,
+				totalPortfolioValue: 0,
+				totalChange: 0,
+				totalChangePercent: 0,
+				priceStatus: { realtimeCount: 0, totalCount: 0 },
+				filteredStats: {
+					displayedCount: 0,
+					totalAssetsCount: 0,
+					minLiquidityThreshold: 0,
+				},
+			};
+		}
+
+		const runtime = session["testnet.runtime.sonar"];
 		const totalPortfolioValue = assets.reduce(
 			(sum, asset) => sum + asset.value,
 			0,
@@ -184,7 +225,7 @@ function SonarPortfolio() {
 				minLiquidityThreshold: 1000,
 			},
 		};
-	}, [assets, allAssets, runtime]);
+	}, [assets, allAssets, session]);
 
 	// Generate pie chart data
 	const pieData = useMemo(() =>
@@ -234,6 +275,14 @@ function SonarPortfolio() {
 		if (change < 0) return "text-red-500";
 		return "text-muted-foreground";
 	};
+
+	// Early return after all hooks
+	if (
+		!session || !session["testnet.snapshot.sonar"] ||
+		!session["testnet.runtime.sonar"]
+	) {
+		return <Loader>Scanning connection Testnet</Loader>;
+	}
 
 	return (
 		<div className="w-[1044px] h-[907px] overflow-y-scroll space-y-5 p-4 bg-background">

@@ -62,7 +62,7 @@ export const formatVolume = (volume: number): string => {
 /**
  * Get exchange color gradient
  */
-export const getExchangeColor = (_exchange: string): string => {
+export const getExchangeColor = (): string => {
 	return "from-amber-400 to-amber-600";
 };
 

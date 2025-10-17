@@ -216,7 +216,7 @@ export class ProfessionalCalculations {
 		return `${seconds}s ago`;
 	}
 
-	static analyzeNetworkNodes(nodeMap: Record<string, any>): {
+	static analyzeNetworkNodes(nodeMap: Record<string, unknown> | unknown[]): {
 		totalNodes: number;
 		activeNodes: number;
 		regions: Record<string, number>;
@@ -225,32 +225,32 @@ export class ProfessionalCalculations {
 		healthStatus: "EXCELLENT" | "GOOD" | "STABLE" | "CRITICAL";
 		lastUpdate: number;
 	} {
-		const nodes = Object.values(nodeMap);
+		const nodes = Array.isArray(nodeMap) ? nodeMap : Object.values(nodeMap);
 		const totalNodes = nodes.length;
 
 		const currentTime = Date.now();
 		const activeNodes = nodes.filter((node) => {
-			const nodeTime = node.value?.timestamp || 0;
+			const nodeTime = (node as { value?: { timestamp?: number } })?.value?.timestamp || 0;
 			return (currentTime - nodeTime) < 300000; // 5 minutes threshold
 		}).length;
 
-		const regions = nodes.reduce((acc, node) => {
-			const location = node.value?.raw?.location;
+		const regions = nodes.reduce<Record<string, number>>((acc, node) => {
+			const location = (node as { value?: { raw?: { location?: { country_name?: string } } } })?.value?.raw?.location;
 			if (location?.country_name) {
 				acc[location.country_name] = (acc[location.country_name] || 0) + 1;
 			}
 			return acc;
-		}, {} as Record<string, number>);
+		}, {});
 
 		const cpuUsages = nodes.map((node) => {
-			const cpu = node.value?.raw?.cpu || [0, 0, 0];
+			const cpu = (node as { value?: { raw?: { cpu?: number[] } } })?.value?.raw?.cpu || [0, 0, 0];
 			return cpu.reduce((sum: number, val: number) => sum + val, 0) /
 				cpu.length;
 		}).filter((usage) => usage > 0);
 
 		const memoryUsages = nodes.map((node) => {
-			const memory = node.value?.raw?.memory;
-			if (!memory) return 0;
+			const memory = (node as { value?: { raw?: { memory?: { heapUsed?: number; heapTotal?: number } } } })?.value?.raw?.memory;
+			if (!memory || !memory.heapUsed || !memory.heapTotal) return 0;
 			return (memory.heapUsed / memory.heapTotal) * 100;
 		}).filter((usage) => usage > 0);
 
@@ -271,7 +271,7 @@ export class ProfessionalCalculations {
 		else if (healthPercentage >= 10) healthStatus = "STABLE";
 
 		const lastUpdate = Math.max(
-			...nodes.map((node) => node.value?.timestamp || 0),
+			...nodes.map((node) => (node as { value?: { timestamp?: number } })?.value?.timestamp || 0),
 		);
 
 		return {

@@ -6,7 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card.tsx";
-// Убрали Tabs компоненты, используем обычные кнопки
 import { Badge } from "@/components/ui/badge.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import {
@@ -17,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog.tsx";
 import OrderBookWidget from "@/components/widgets/OrderBook.tsx";
-//import AggregatedCandles from "@/components/widgets/AggregatedCandles";
+import AggregatedCandles from "@/components/widgets/AggregatedCandles";
 import {
   Activity,
   ArrowDownUp,
@@ -177,12 +176,16 @@ const OrderBook: React.FC = React.memo(() => {
   const spotCandlesRaw = filterSession(
     session || {},
     /\.spot\..*\.candles$/,
-  ) as any[];
+  ) as Array<
+    {
+      value: { raw: { exchange: string; market: string; candles: number[][] } };
+    }
+  >;
 
   const spotTickersRaw = filterSession(
     session || {},
     /\.spot\..*\.ticker$/,
-  ) as any[];
+  ) as Array<{ value: { raw: TickerData } }>;
 
   // Transform session data
   const orderBookData: OrderBookData[] = useMemo(() => {
@@ -267,14 +270,14 @@ const OrderBook: React.FC = React.memo(() => {
       TRX: TRXIcon,
       XRP: XRPIcon,
       BNB: BNBIcon,
-	    SQR: SQRIcon,
+      SQR: SQRIcon,
       JASMY: JASMYIcon,
     };
     return currencyIconMap[symbol] || null;
   }, []);
 
-  const getExchangeColor = (_exchange: string): string => {
-    // Используем единую цветовую схему приложения - zinc/amber
+  const getExchangeColor = (): string => {
+    // Using unified app color scheme - zinc/amber
     return "from-amber-400 to-amber-600";
   };
 
@@ -283,7 +286,7 @@ const OrderBook: React.FC = React.memo(() => {
     const markets = [...new Set(orderBookData.map((item) => item.market))];
     const sortedMarkets = markets.sort();
 
-    // Убеждаемся что SOL/USDT всегда первый, если он есть
+    // Ensure SOL/USDT is always first if available
     if (sortedMarkets.includes("SOL/USDT")) {
       return [
         "SOL/USDT",
@@ -294,10 +297,10 @@ const OrderBook: React.FC = React.memo(() => {
     return sortedMarkets;
   }, [orderBookData]);
 
-  // Update selected market - устанавливаем SOL/USDT как приоритетную вкладку
+  // Update selected market - set SOL/USDT as priority tab
   React.useEffect(() => {
     if (availableMarkets.length > 0 && !selectedMarket) {
-      // Приоритет SOL/USDT, если доступен
+      // SOL/USDT priority if available
       const defaultMarket = availableMarkets.includes("SOL/USDT")
         ? "SOL/USDT"
         : availableMarkets[0];
@@ -312,7 +315,17 @@ const OrderBook: React.FC = React.memo(() => {
     availableMarkets.forEach((market) => {
       const marketData = orderBookData.filter((item) => item.market === market);
 
-      const exchanges: { [exchange: string]: any } = {};
+      const exchanges: {
+        [exchange: string]: {
+          bids: [number, number][];
+          asks: [number, number][];
+          volume: [number, number];
+          latency: number;
+          bidLiquidity: number;
+          askLiquidity: number;
+          totalLiquidity: number;
+        };
+      } = {};
       let totalBidLiquidity = 0;
       let totalAskLiquidity = 0;
 
@@ -417,20 +430,20 @@ const OrderBook: React.FC = React.memo(() => {
     return volume.toFixed(2);
   }, []);
 
-  // Мемоизированные данные для рынков
+  // Memoized market data
   const marketData = React.useMemo(() => {
     const data: {
       [market: string]: { price: number | null; latency: number };
     } = {};
 
     availableMarkets.forEach((market) => {
-      // Цена из ticker данных
+      // Price from ticker data
       const marketTicker = tickersData.find((ticker) =>
         ticker.market === market
       );
       const price = marketTicker ? marketTicker.last : null;
 
-      // Задержка из order book данных
+      // Latency from order book data
       const marketOrderBooks = orderBookData.filter((item) =>
         item.market === market
       );
@@ -447,7 +460,7 @@ const OrderBook: React.FC = React.memo(() => {
     return data;
   }, [availableMarkets, tickersData, orderBookData]);
 
-  // Оптимизированные функции для получения данных
+  // Optimized data retrieval functions
   const getMarketPrice = React.useCallback((market: string): number | null => {
     return marketData[market]?.price || null;
   }, [marketData]);
@@ -456,7 +469,7 @@ const OrderBook: React.FC = React.memo(() => {
     return marketData[market]?.latency || 0;
   }, [marketData]);
 
-  // Мемоизированный компонент вкладки
+  // Memoized tab component
   const TabButton = React.memo(({
     market,
     isSelected,
@@ -542,8 +555,8 @@ const OrderBook: React.FC = React.memo(() => {
       : `${Math.floor(seconds / 60)}m ${seconds % 60}s ago`;
   }, [lastUpdate]);
 
-  // Дебаунс для обновления времени - обновляем каждые 5 секунд
-  const [_, setDisplayTime] = useState(timeSinceUpdate);
+  // Debounce for time updates - refresh every 5 seconds
+  const [, setDisplayTime] = useState(timeSinceUpdate);
   React.useEffect(() => {
     const interval = setInterval(() => {
       const seconds = Math.floor((Date.now() - lastUpdate) / 1000);
@@ -570,34 +583,34 @@ const OrderBook: React.FC = React.memo(() => {
     }
 
     const bidVolume = currentOrderBook.aggregatedBids.reduce(
-      (sum, [_, vol]) => sum + vol,
+      (sum, [, vol]) => sum + vol,
       0,
     );
     const askVolume = currentOrderBook.aggregatedAsks.reduce(
-      (sum, [_, vol]) => sum + vol,
+      (sum, [, vol]) => sum + vol,
       0,
     );
 
-    // Volume imbalance - защита от деления на ноль
+    // Volume imbalance - protect from division by zero
     const totalVolume = bidVolume + askVolume;
     const imbalance = totalVolume > 0
       ? (bidVolume - askVolume) / totalVolume
       : 0;
 
-    // Depth ratio - защита от деления на ноль
+    // Depth ratio - protect from division by zero
     const depthRatio = askVolume > 0
       ? bidVolume / askVolume
       : bidVolume > 0
       ? 999.99
-      : 0; // Ограничиваем максимальное значение
+      : 0; // Cap maximum value
 
-    // VWAP calculation - защита от деления на ноль
+    // VWAP calculation - protect from division by zero
     const totalVwap = totalVolume > 0
       ? [...currentOrderBook.aggregatedBids, ...currentOrderBook.aggregatedAsks]
         .reduce((sum, [price, vol]) => sum + price * vol, 0) / totalVolume
       : 0;
 
-    // Large orders detection - защита от пустых массивов
+    // Large orders detection - protect from empty arrays
     const bidVolumes = currentOrderBook.aggregatedBids.map(([, vol]) => vol);
     const askVolumes = currentOrderBook.aggregatedAsks.map(([, vol]) => vol);
     const allVolumes = [...bidVolumes, ...askVolumes];
@@ -606,7 +619,7 @@ const OrderBook: React.FC = React.memo(() => {
     const largeOrders =
       [...currentOrderBook.aggregatedBids, ...currentOrderBook.aggregatedAsks]
         .filter((
-          [_, vol],
+          [, vol],
         ) => vol > largeOrderThreshold).length;
 
     return {
@@ -732,11 +745,7 @@ const OrderBook: React.FC = React.memo(() => {
                         )
                         : (
                           <div
-                            className={`w-6 h-6 bg-gradient-to-br ${
-                              getExchangeColor(
-                                currentOrderBook.dominantExchange,
-                              )
-                            } rounded-full flex items-center justify-center text-foreground text-xs font-bold`}
+                            className={`w-6 h-6 bg-gradient-to-br ${getExchangeColor()} rounded-full flex items-center justify-center text-foreground text-xs font-bold`}
                           >
                             {currentOrderBook.dominantExchange.charAt(0)
                               .toUpperCase()}
@@ -750,28 +759,6 @@ const OrderBook: React.FC = React.memo(() => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Aggregated Candles Chart */}
-            {/*<Card className="bg-card border mb-6">*/}
-            {/*  <CardHeader>*/}
-            {/*    <CardTitle className="flex items-center gap-2">*/}
-            {/*      <BarChart3 className="w-5 h-5 text-amber-500" />*/}
-            {/*      Professional Price Analysis*/}
-            {/*    </CardTitle>*/}
-            {/*    <CardDescription>*/}
-            {/*      Liquidity-weighted aggregation with fair value calculation and*/}
-            {/*      market efficiency metrics*/}
-            {/*    </CardDescription>*/}
-            {/*  </CardHeader>*/}
-            {/*  <CardContent>*/}
-            {/*    <AggregatedCandles*/}
-            {/*      candlesData={candlesData}*/}
-            {/*      orderBookData={orderBookData}*/}
-            {/*      selectedMarket={selectedMarket}*/}
-            {/*      height={400}*/}
-            {/*    />*/}
-            {/*  </CardContent>*/}
-            {/*</Card>*/}
           </>
         )
         : (
@@ -793,7 +780,7 @@ const OrderBook: React.FC = React.memo(() => {
       {availableMarkets.length > 0
         ? (
           <div className="flex border">
-            {/* Фиксированная первая вкладка */}
+            {/* Fixed first tab */}
             {availableMarkets.length > 0 && (
               <div className="flex-shrink-0 bg-muted">
                 <TabButton
@@ -804,7 +791,7 @@ const OrderBook: React.FC = React.memo(() => {
               </div>
             )}
 
-            {/* Скроллируемые остальные вкладки */}
+            {/* Scrollable remaining tabs */}
             {availableMarkets.length > 1 && (
               <>
                 <div className="flex w-full overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800">
@@ -826,6 +813,27 @@ const OrderBook: React.FC = React.memo(() => {
             <p>Loading markets...</p>
           </div>
         )}
+	    
+	    <Card className="bg-card border mb-6">
+		    <CardHeader>
+			    <CardTitle className="flex items-center gap-2">
+				    <BarChart3 className="w-5 h-5 text-amber-500" />
+				    Professional Price Analysis
+			    </CardTitle>
+			    <CardDescription>
+				    Liquidity-weighted aggregation with fair value calculation and
+				    market efficiency metrics
+			    </CardDescription>
+		    </CardHeader>
+		    <CardContent>
+			    <AggregatedCandles
+				    candlesData={candlesData}
+				    orderBookData={orderBookData}
+				    selectedMarket={selectedMarket}
+				    height={400}
+			    />
+		    </CardContent>
+	    </Card>
 
       {/* Optimized Professional Header */}
       <div className="bg-background border  overflow-hidden">
@@ -1318,9 +1326,7 @@ const OrderBook: React.FC = React.memo(() => {
                               )
                               : (
                                 <div
-                                  className={`w-6 h-6 bg-gradient-to-br ${
-                                    getExchangeColor(item.exchange)
-                                  } rounded-full flex items-center justify-center text-foreground text-xs font-bold`}
+                                  className={`w-6 h-6 bg-gradient-to-br ${getExchangeColor()} rounded-full flex items-center justify-center text-foreground text-xs font-bold`}
                                 >
                                   {item.exchange.charAt(0).toUpperCase()}
                                 </div>
@@ -1369,9 +1375,7 @@ const OrderBook: React.FC = React.memo(() => {
                 )
                 : (
                   <div
-                    className={`w-8 h-8 bg-gradient-to-br ${
-                      getExchangeColor(selectedExchange)
-                    } rounded-full flex items-center justify-center text-foreground text-sm font-bold`}
+                    className={`w-8 h-8 bg-gradient-to-br ${getExchangeColor()} rounded-full flex items-center justify-center text-foreground text-sm font-bold`}
                   >
                     {selectedExchange.charAt(0).toUpperCase()}
                   </div>

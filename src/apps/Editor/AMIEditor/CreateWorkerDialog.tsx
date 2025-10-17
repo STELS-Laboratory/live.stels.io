@@ -38,11 +38,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 import type { WorkerCreateRequest } from "../store.ts";
-import {
-  getTemplateById,
-  WORKER_TEMPLATES,
-  type WorkerTemplate,
-} from "./templates.ts";
+import { getTemplateById, WORKER_TEMPLATES } from "./templates.ts";
 
 interface CreateWorkerDialogProps {
   open: boolean;
@@ -323,7 +319,9 @@ export function CreateWorkerDialog({
                   <Label>Execution Mode</Label>
                   <Select
                     value={formData.executionMode}
-                    onValueChange={(value: any) =>
+                    onValueChange={(
+                      value: "parallel" | "leader" | "exclusive",
+                    ) =>
                       setFormData({
                         ...formData,
                         executionMode: value,
@@ -369,8 +367,9 @@ export function CreateWorkerDialog({
                   <Label>Priority</Label>
                   <Select
                     value={formData.priority}
-                    onValueChange={(value: any) =>
-                      setFormData({ ...formData, priority: value })}
+                    onValueChange={(
+                      value: "critical" | "high" | "normal" | "low",
+                    ) => setFormData({ ...formData, priority: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -423,7 +422,7 @@ export function CreateWorkerDialog({
                   <Label>Worker Mode</Label>
                   <Select
                     value={formData.mode || "loop"}
-                    onValueChange={(value: any) =>
+                    onValueChange={(value: "loop" | "single") =>
                       setFormData({ ...formData, mode: value })}
                   >
                     <SelectTrigger>

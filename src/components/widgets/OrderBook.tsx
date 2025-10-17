@@ -78,7 +78,6 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 		maxCumulative: 0,
 	});
 	const [showScales, setShowScales] = useState(true);
-	const [currentTime, setCurrentTime] = useState(new Date().getTime());
 
 	// Add new states for enhanced UX
 	const [viewMode, setViewMode] = useState<"standard" | "depth">("standard");
@@ -145,15 +144,8 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 		}, 1000);
 
 		return () => clearTimeout(timer);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [book]);
-
-	useEffect(() => {
-		const timer = setInterval(() => {
-			setCurrentTime(new Date().getTime());
-		}, 1000);
-
-		return () => clearInterval(timer);
-	}, []);
 
 	// Calculate max volumes for depth visualization
 	const maxBidVolume = Math.max(...book.bids.map((bid) => bid[1]));
@@ -174,9 +166,10 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 		return seconds < 60
 			? `${seconds}s ago`
 			: `${Math.floor(seconds / 60)}m ${seconds % 60}s ago`;
-	}, [currentTime, lastUpdate]);
+	}, [lastUpdate]);
 
-	const { base, quote } = parseTradingPair(book.market) as any;
+	const tradingPair = parseTradingPair(book.market);
+	const { base = "BTC", quote = "USDT" } = tradingPair || {};
 
 	const largeOrderThreshold = maxBidVolume * 0.4;
 
@@ -214,10 +207,8 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 		}
 
 		// Calculate total volumes
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		const bidVolume = book.bids.reduce((sum, [_, vol]) => sum + vol, 0);
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		const askVolume = book.asks.reduce((sum, [_, vol]) => sum + vol, 0);
+		const bidVolume = book.bids.reduce((sum, [, vol]) => sum + vol, 0);
+		const askVolume = book.asks.reduce((sum, [, vol]) => sum + vol, 0);
 
 		// Volume imbalance (positive = more bids, negative = more asks)
 		const imbalance = (bidVolume - askVolume) / (bidVolume + askVolume);
@@ -250,8 +241,7 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 		const volatility = (Math.abs(midPrice - prevMidPrice) / prevMidPrice) * 100;
 
 		// Large orders detection (count orders above threshold)
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		const largeOrders = [...book.bids, ...book.asks].filter(([_, vol]) =>
+		const largeOrders = [...book.bids, ...book.asks].filter(([, vol]) =>
 			vol > largeOrderThreshold
 		).length;
 
@@ -265,6 +255,7 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 		});
 
 		setPrevBook(book);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [book]);
 
 	// Format currency value with K/M/B suffixes
@@ -354,7 +345,7 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 	};
 
 	// Function to determine animation color
-	const getAnimationColor = (side: "bid" | "ask", isNew: any) => {
+	const getAnimationColor = (side: "bid" | "ask", isNew: boolean) => {
 		if (side === "bid") {
 			return isNew ? "bg-green-400/30" : "bg-green-300/20";
 		} else {
@@ -601,7 +592,7 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 				className="px-2 py-1 bg-background/20 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
 			>
 				{Array.from({ length: Math.max(book.bids.length, book.asks.length) })
-					.map((_, index) => {
+					.map((_unused, index) => {
 						// Find if this bid is a large order
 						const isLargeBid = index < book.bids.length &&
 							book.bids[index][1] > largeOrderThreshold;
@@ -637,7 +628,7 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 								index < book.bids.length &&
 								row.price === book.bids[index][0] &&
 								row.volume === book.bids[index][1],
-						) as any;
+						);
 
 						const askAnimation = animatedRows.find(
 							(row) =>
@@ -645,7 +636,7 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 								index < book.asks.length &&
 								row.price === book.asks[index][0] &&
 								row.volume === book.asks[index][1],
-						) as any;
+						);
 
 						return (
 							<motion.div

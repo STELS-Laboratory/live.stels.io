@@ -98,7 +98,7 @@ export function WalletCreator(
       await new Promise((resolve) => setTimeout(resolve, 150));
       createNewWallet();
       onSuccess();
-    } catch (err: any) {
+    } catch {
       setError("Failed to create Wallet. Please try again.");
     } finally {
       setIsLoading(false);
@@ -133,7 +133,7 @@ export function WalletCreator(
       } else {
         setError("Invalid private key format. Please check and try again.");
       }
-    } catch (err: any) {
+    } catch {
       setError(
         "Failed to import Wallet. Please check your private key and try again.",
       );

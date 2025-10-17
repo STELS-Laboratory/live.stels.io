@@ -165,7 +165,7 @@ if (typeof window !== "undefined") {
 	
 	// Also try addListener for older browsers
 	if (mediaQuery.addListener) {
-		mediaQuery.addListener(handleSystemThemeChange as any);
+		mediaQuery.addListener(handleSystemThemeChange as (this: MediaQueryList, ev: MediaQueryListEvent) => void);
 	}
 }
 

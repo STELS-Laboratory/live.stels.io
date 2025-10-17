@@ -21,7 +21,7 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
 		if (props.data.onDelete) {
 			props.data.onDelete(props.id);
 		}
-	}, [props.data.onDelete, props.id]);
+	}, [props.data, props.id]);
 
 	const handleMinimize = useCallback(() => {
 		setNodeState((prev) => {

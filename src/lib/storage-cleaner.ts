@@ -143,7 +143,7 @@ export const clearWebSQL = (): void => {
 			// WebSQL is deprecated but some old browsers might still have it
 			console.log('[StorageCleaner] WebSQL detected but not cleared (deprecated)');
 		}
-	} catch (error) {
+	} catch {
 		console.log('[StorageCleaner] WebSQL not available');
 	}
 };

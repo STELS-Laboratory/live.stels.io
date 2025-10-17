@@ -31,9 +31,7 @@ export function ExchangeGroup({
               )
               : (
                 <div
-                  className={`w-12 h-12 bg-gradient-to-br ${
-                    getExchangeColor(group.exchange)
-                  } rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md`}
+                  className={`w-12 h-12 bg-gradient-to-br ${getExchangeColor()} rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md`}
                 >
                   {group.exchange.charAt(0).toUpperCase()}
                 </div>

@@ -16,7 +16,12 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select.tsx";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.tsx";
+import {
+	Tabs,
+	TabsContent,
+	TabsList,
+	TabsTrigger,
+} from "@/components/ui/tabs.tsx";
 import { Separator } from "@/components/ui/separator.tsx";
 import { Progress } from "@/components/ui/progress.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -359,7 +364,7 @@ const CountryComparison = ({ countries }: { countries: CountryData[] }) => {
 };
 
 function Fred() {
-	const session = useSessionStoreSync() as any;
+	const session = useSessionStoreSync() as Record<string, unknown> | null;
 	const [selectedCountry, setSelectedCountry] = useState<string>("all");
 	const [searchTerm, setSearchTerm] = useState<string>("");
 	const [selectedCategory, setSelectedCategory] = useState<string>("all");

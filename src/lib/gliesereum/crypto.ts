@@ -109,7 +109,7 @@ export function deterministicStringify(obj: unknown): string {
  */
 export function sign(data: string, privateKey: string): string {
 	const hash = sha256(new TextEncoder().encode(data));
-	// @ts-ignore: elliptic library types are incomplete
+	// @ts-expect-error - elliptic library types are incomplete
 	const signature = EC.sign(hash, hexToUint8Array(privateKey), {
 		canonical: true,
 	});

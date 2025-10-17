@@ -40,7 +40,13 @@ const Widget = ({ widget, raw, data }: WidgetProps): React.ReactElement => {
 	try {
 		switch (widgetType) {
 			case WidgetType.INDICATOR:
-				return <FredIndicatorWidget data={data as any} />;
+				return (
+					<FredIndicatorWidget
+						data={data as unknown as Parameters<
+							typeof FredIndicatorWidget
+						>[0]["data"]}
+					/>
+				);
 
 			case WidgetType.TRADES:
 				return (
@@ -52,16 +58,33 @@ const Widget = ({ widget, raw, data }: WidgetProps): React.ReactElement => {
 				);
 
 			case WidgetType.BOOK:
-				return <OrderBook book={raw as any} />;
+				return (
+					<OrderBook
+						book={raw as unknown as Parameters<typeof OrderBook>[0]["book"]}
+					/>
+				);
 
 			case WidgetType.TIMEZONE:
-				return <TimeZone data={data} />;
+				return (
+					<TimeZone
+						data={data as unknown as Parameters<typeof TimeZone>[0]["data"]}
+					/>
+				);
 
 			case WidgetType.ARIADNA:
-				return <Ariadna data={data} />;
+				return (
+					<Ariadna
+						data={data as unknown as Parameters<typeof Ariadna>[0]["data"]}
+					/>
+				);
 
 			case WidgetType.FINANCE:
-				return <NewsBox data={data} type={"finance"} />;
+				return (
+					<NewsBox
+						data={data as unknown as Parameters<typeof NewsBox>[0]["data"]}
+						type={"finance"}
+					/>
+				);
 
 			case WidgetType.CANDLES:
 				return <Candles raw={raw} />;

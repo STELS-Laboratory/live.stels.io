@@ -3,7 +3,7 @@ import type { Edge } from "reactflow";
 import type {
 	FlowNode,
 	AutoConnectionConfig,
-	GroupedEdgeData,
+	GroupedEdgeData, ConnectionKeys,
 } from "@/lib/canvas-types";
 import {
 	generateAutoConnections,
@@ -71,9 +71,10 @@ export function useAutoConnections(
 
 	// Add grouping key
 	const addGroupingKey = useCallback((key: string) => {
-		if (!config.groupByKeys.includes(key as any)) {
+		const typedKey = key as keyof ConnectionKeys;
+		if (!config.groupByKeys.includes(typedKey)) {
 			updateConfig({
-				groupByKeys: [...config.groupByKeys, key as any],
+				groupByKeys: [...config.groupByKeys, typedKey],
 			});
 		}
 	}, [config.groupByKeys, updateConfig]);

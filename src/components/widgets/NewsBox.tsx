@@ -1,5 +1,19 @@
+interface NewsData {
+	raw: Array<{
+		title: string;
+		link: string;
+		description: string;
+		score: number;
+		ageMs: number;
+		pubDate: string;
+		source: string;
+	}>;
+	timestamp: number;
+	channel: string;
+}
+
 function NewsBox(
-	{ data, type }: { data: any; type: "finance" | "global" | "ukraine" },
+	{ data, type }: { data: NewsData; type: "finance" | "global" | "ukraine" },
 ) {
 	const getTypeColor = () => {
 		return "from-muted/40 to-muted/30 dark:from-zinc-800/40 dark:to-zinc-900/40 border-border/30";
@@ -98,7 +112,7 @@ function NewsBox(
 
 			{/* News Feed */}
 			<div className="space-y-4 max-h-323 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground dark:scrollbar-thumb-zinc-600 scrollbar-track-transparent">
-				{data?.raw?.map((article: any, index: number) => {
+				{data?.raw?.map((article, index: number) => {
 					const styles = getImportanceStyles(article.score);
 					const importance = getImportanceLevel(article.score);
 

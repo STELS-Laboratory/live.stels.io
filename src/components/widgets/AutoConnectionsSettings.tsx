@@ -58,9 +58,10 @@ function AutoConnectionsSettings({
 }: AutoConnectionsSettingsProps): React.ReactElement {
   const toggleGroupingKey = (key: string) => {
     const currentKeys = config.groupByKeys;
-    const newKeys = currentKeys.includes(key as any)
+    const typedKey = key as keyof import("@/lib/canvas-types").ConnectionKeys;
+    const newKeys = currentKeys.includes(typedKey)
       ? currentKeys.filter((k) => k !== key)
-      : [...currentKeys, key as any];
+      : [...currentKeys, typedKey];
 
     onUpdateConfig({ groupByKeys: newKeys });
   };
@@ -193,7 +194,9 @@ function AutoConnectionsSettings({
                 onClick={() => toggleGroupingKey(key)}
                 className={cn(
                   "justify-start text-xs h-auto p-2 transition-all duration-200",
-                  config.groupByKeys.includes(key as any)
+                  config.groupByKeys.includes(
+                      key as keyof import("@/lib/canvas-types").ConnectionKeys,
+                    )
                     ? getKeyColor(key)
                     : "bg-muted/30 text-muted-foreground hover:bg-secondary/50 hover:text-muted-foreground",
                 )}

@@ -192,14 +192,32 @@ const AnalogClock: React.FC<AnalogClockProps> = (
 };
 
 /**
+ * TimeZone data interface
+ */
+interface TimezoneData {
+	location: string;
+	city: string;
+	country: string;
+	offset: string;
+	time: string;
+}
+
+interface TimeZoneWidgetData {
+	raw?: {
+		timezone?: TimezoneData[];
+	};
+	timestamp?: number;
+}
+
+/**
  * Main TimeZone widget component
  */
-const TimeZone: React.FC<{ data: any }> = ({ data }) => {
+const TimeZone: React.FC<{ data: TimeZoneWidgetData }> = ({ data }) => {
 	const [searchTerm, setSearchTerm] = useState<string>("");
 	const [selectedRegion, setSelectedRegion] = useState<string>("all");
 
 	// Extract timezones from data
-	const timezones = data?.raw?.timezone || [];
+	const timezones = useMemo(() => data?.raw?.timezone || [], [data]);
 
 	// // Get unique regions for filter
 	// const regions = useMemo(() => {
@@ -209,7 +227,7 @@ const TimeZone: React.FC<{ data: any }> = ({ data }) => {
 
 	// Filter timezones based on search and region
 	const filteredTimezones = useMemo(() => {
-		return timezones.filter((tz: any) => {
+		return timezones.filter((tz: TimezoneData) => {
 			const matchesSearch =
 				tz.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
 				tz.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -265,7 +283,7 @@ const TimeZone: React.FC<{ data: any }> = ({ data }) => {
 
 			{/* Clocks Horizontal Grid */}
 			<div className="grid grid-cols-4 gap-4 overflow-y-auto pr-2">
-				{filteredTimezones.map((timezone: any, index: any) => (
+				{filteredTimezones.map((timezone: TimezoneData, index: number) => (
 					<AnalogClock
 						key={`${timezone.city}-${timezone.country}-${index}`}
 						time={timezone.time}

@@ -2,11 +2,8 @@ import { useEffect, useState } from "react";
 import Split from "react-split";
 import {
 	Activity,
-	Calendar,
-	Check,
 	Clock,
 	Code,
-	Copy,
 	Cpu,
 	Crown,
 	Database,
@@ -15,7 +12,6 @@ import {
 	HardDrive,
 	Hash,
 	Layers,
-	Network,
 	Play,
 	Plus,
 	PowerOff,
@@ -33,14 +29,6 @@ import { Badge } from "@/components/ui/badge.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import { Textarea } from "@/components/ui/textarea.tsx";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog.tsx";
 import EditorComponent from "@/components/editor/EditorComponent.tsx";
 import {
 	useEditorStore,
@@ -132,6 +120,7 @@ export function AMIEditor(): JSX.Element {
 
 	useEffect(() => {
 		loadWorkers();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [listWorkers]);
 
 	useEffect(() => {
@@ -164,13 +153,13 @@ export function AMIEditor(): JSX.Element {
 		setCurrentScript(protocol.value.raw.script);
 		setCurrentNote(protocol.value.raw.note);
 		setCurrentConfig({
-			executionMode: (protocol.value.raw as any).executionMode || "parallel",
-			priority: (protocol.value.raw as any).priority || "normal",
-			mode: (protocol.value.raw as any).mode || "loop",
+			executionMode: protocol.value.raw.executionMode || "parallel",
+			priority: protocol.value.raw.priority || "normal",
+			mode: protocol.value.raw.mode || "loop",
 			version: protocol.value.raw.version || "1.19.2",
 			dependencies: protocol.value.raw.dependencies || [],
-			accountId: (protocol.value.raw as any).accountId || "",
-			assignedNode: (protocol.value.raw as any).assignedNode || "",
+			accountId: protocol.value.raw.accountId || "",
+			assignedNode: protocol.value.raw.assignedNode || "",
 			nid: protocol.value.raw.nid || "",
 		});
 		setIsEditing(false);
@@ -208,17 +197,31 @@ export function AMIEditor(): JSX.Element {
 		}
 	};
 
-	const handleConfigChange = (field: string, value: any) => {
+	const handleConfigChange = (
+		field: string,
+		value:
+			| string
+			| string[]
+			| "parallel"
+			| "leader"
+			| "exclusive"
+			| "critical"
+			| "high"
+			| "normal"
+			| "low"
+			| "loop"
+			| "single",
+	) => {
 		if (selectedWorker) {
 			const originalConfig = {
-				executionMode: (selectedWorker.value.raw as any).executionMode ||
-					"parallel",
-				priority: (selectedWorker.value.raw as any).priority || "normal",
-				mode: (selectedWorker.value.raw as any).mode || "loop",
+				executionMode: selectedWorker.value.raw.executionMode ||
+					"parallel" as const,
+				priority: selectedWorker.value.raw.priority || "normal" as const,
+				mode: selectedWorker.value.raw.mode || "loop" as const,
 				version: selectedWorker.value.raw.version || "1.19.2",
 				dependencies: selectedWorker.value.raw.dependencies || [],
-				accountId: (selectedWorker.value.raw as any).accountId || "",
-				assignedNode: (selectedWorker.value.raw as any).assignedNode || "",
+				accountId: selectedWorker.value.raw.accountId || "",
+				assignedNode: selectedWorker.value.raw.assignedNode || "",
 				nid: selectedWorker.value.raw.nid || "",
 			};
 			const newConfig = { ...currentConfig, [field]: value };
@@ -234,14 +237,14 @@ export function AMIEditor(): JSX.Element {
 	const resetConfig = () => {
 		if (selectedWorker) {
 			setCurrentConfig({
-				executionMode: (selectedWorker.value.raw as any).executionMode ||
+				executionMode: selectedWorker.value.raw.executionMode ||
 					"parallel",
-				priority: (selectedWorker.value.raw as any).priority || "normal",
-				mode: (selectedWorker.value.raw as any).mode || "loop",
+				priority: selectedWorker.value.raw.priority || "normal",
+				mode: selectedWorker.value.raw.mode || "loop",
 				version: selectedWorker.value.raw.version || "1.19.2",
 				dependencies: selectedWorker.value.raw.dependencies || [],
-				accountId: (selectedWorker.value.raw as any).accountId || "",
-				assignedNode: (selectedWorker.value.raw as any).assignedNode || "",
+				accountId: selectedWorker.value.raw.accountId || "",
+				assignedNode: selectedWorker.value.raw.assignedNode || "",
 				nid: selectedWorker.value.raw.nid || "",
 			});
 			setIsEditingConfig(false);
@@ -252,17 +255,17 @@ export function AMIEditor(): JSX.Element {
 		if (!selectedWorker) return;
 		setUpdating(true);
 		try {
-			// API требует ПОЛНЫЙ объект raw со ВСЕМИ полями
+			// API requires FULL raw object with ALL fields
 			const updatedRaw = {
 				sid: selectedWorker.value.raw.sid,
 				nid: selectedWorker.value.raw.nid,
 				active: !selectedWorker.value.raw.active,
-				mode: (selectedWorker.value.raw as any).mode || "loop",
-				executionMode: (selectedWorker.value.raw as any).executionMode ||
+				mode: selectedWorker.value.raw.mode || "loop",
+				executionMode: selectedWorker.value.raw.executionMode ||
 					"parallel",
-				priority: (selectedWorker.value.raw as any).priority || "normal",
-				accountId: (selectedWorker.value.raw as any).accountId || null,
-				assignedNode: (selectedWorker.value.raw as any).assignedNode || null,
+				priority: selectedWorker.value.raw.priority || "normal",
+				accountId: selectedWorker.value.raw.accountId || undefined,
+				assignedNode: selectedWorker.value.raw.assignedNode || undefined,
 				note: selectedWorker.value.raw.note,
 				script: selectedWorker.value.raw.script,
 				dependencies: selectedWorker.value.raw.dependencies,
@@ -273,7 +276,7 @@ export function AMIEditor(): JSX.Element {
 				...selectedWorker,
 				value: {
 					...selectedWorker.value,
-					raw: updatedRaw as any,
+					raw: updatedRaw,
 				},
 			};
 			const result = await updateWorker(workerBody);
@@ -292,59 +295,13 @@ export function AMIEditor(): JSX.Element {
 		}
 	};
 
-	const handleSaveNote = async () => {
-		if (!selectedWorker || !isEditingNote) return;
-		setUpdating(true);
-		try {
-			// API требует ПОЛНЫЙ объект raw со ВСЕМИ полями
-			const updatedRaw = {
-				sid: selectedWorker.value.raw.sid,
-				nid: selectedWorker.value.raw.nid,
-				active: selectedWorker.value.raw.active,
-				mode: (selectedWorker.value.raw as any).mode || "loop",
-				executionMode: (selectedWorker.value.raw as any).executionMode ||
-					"parallel",
-				priority: (selectedWorker.value.raw as any).priority || "normal",
-				accountId: (selectedWorker.value.raw as any).accountId || null,
-				assignedNode: (selectedWorker.value.raw as any).assignedNode || null,
-				note: currentNote,
-				script: selectedWorker.value.raw.script,
-				dependencies: selectedWorker.value.raw.dependencies,
-				version: selectedWorker.value.raw.version,
-				timestamp: Date.now(),
-			};
-			const workerBody: Worker = {
-				...selectedWorker,
-				value: {
-					...selectedWorker.value,
-					raw: updatedRaw as any,
-				},
-			};
-			const result = await updateWorker(workerBody);
-			if (result) {
-				setWorkers((prev) =>
-					prev.map((w) =>
-						w.value.raw.sid === selectedWorker.value.raw.sid ? result : w
-					)
-				);
-				setSelectedWorker(result);
-				setCurrentNote(result.value.raw.note);
-				setIsEditingNote(false);
-			}
-		} catch (error) {
-			console.error("Failed to save protocol note:", error);
-		} finally {
-			setUpdating(false);
-		}
-	};
-
 	const handleSaveAll = async () => {
 		if (!selectedWorker || (!isEditing && !isEditingNote && !isEditingConfig)) {
 			return;
 		}
 		setUpdating(true);
 		try {
-			// API требует ПОЛНЫЙ объект raw со ВСЕМИ полями (не partial update)
+			// API requires FULL raw object with ALL fields (not partial update)
 			const updatedRaw = {
 				sid: selectedWorker.value.raw.sid,
 				nid: currentConfig.nid,
@@ -352,8 +309,8 @@ export function AMIEditor(): JSX.Element {
 				mode: currentConfig.mode,
 				executionMode: currentConfig.executionMode,
 				priority: currentConfig.priority,
-				accountId: currentConfig.accountId || null,
-				assignedNode: currentConfig.assignedNode || null,
+				accountId: currentConfig.accountId || undefined,
+				assignedNode: currentConfig.assignedNode || undefined,
 				note: currentNote,
 				script: currentScript,
 				dependencies: currentConfig.dependencies,
@@ -364,7 +321,7 @@ export function AMIEditor(): JSX.Element {
 				...selectedWorker,
 				value: {
 					...selectedWorker.value,
-					raw: updatedRaw as any,
+					raw: updatedRaw,
 				},
 			};
 			const result = await updateWorker(workerBody);
@@ -378,13 +335,13 @@ export function AMIEditor(): JSX.Element {
 				setCurrentScript(result.value.raw.script);
 				setCurrentNote(result.value.raw.note);
 				setCurrentConfig({
-					executionMode: (result.value.raw as any).executionMode || "parallel",
-					priority: (result.value.raw as any).priority || "normal",
-					mode: (result.value.raw as any).mode || "loop",
+					executionMode: result.value.raw.executionMode || "parallel",
+					priority: result.value.raw.priority || "normal",
+					mode: result.value.raw.mode || "loop",
 					version: result.value.raw.version || "1.19.2",
 					dependencies: result.value.raw.dependencies || [],
-					accountId: (result.value.raw as any).accountId || "",
-					assignedNode: (result.value.raw as any).assignedNode || "",
+					accountId: result.value.raw.accountId || "",
+					assignedNode: result.value.raw.assignedNode || "",
 					nid: result.value.raw.nid || "",
 				});
 				setIsEditing(false);
@@ -438,13 +395,13 @@ export function AMIEditor(): JSX.Element {
 				protocol.value.raw.active === filterActive;
 
 			// Execution mode filter
-			const workerExecMode = (protocol.value.raw as any).executionMode ||
+			const workerExecMode = protocol.value.raw.executionMode ||
 				"parallel";
 			const matchesExecMode = !filterExecutionMode ||
 				workerExecMode === filterExecutionMode;
 
 			// Priority filter
-			const workerPriority = (protocol.value.raw as any).priority || "normal";
+			const workerPriority = protocol.value.raw.priority || "normal";
 			const matchesPriority = !filterPriority ||
 				workerPriority === filterPriority;
 
@@ -455,16 +412,6 @@ export function AMIEditor(): JSX.Element {
 			// Sort by timestamp descending (newest first)
 			return b.value.raw.timestamp - a.value.raw.timestamp;
 		});
-
-	const formatTimestamp = (timestamp: number) => {
-		return new Date(timestamp).toLocaleString("en-US", {
-			month: "short",
-			day: "2-digit",
-			hour: "2-digit",
-			minute: "2-digit",
-			hour12: false,
-		});
-	};
 
 	const getTimeAgo = (timestamp: number) => {
 		const minutes = Math.floor((Date.now() - timestamp) / 1000 / 60);
@@ -799,7 +746,7 @@ export function AMIEditor(): JSX.Element {
 									const isSelected =
 										selectedWorker?.value.raw.sid === protocol.value.raw.sid;
 									const isLeaderMode =
-										(protocol.value.raw as any).executionMode === "leader";
+										protocol.value.raw.executionMode === "leader";
 
 									return (
 										<div
@@ -913,12 +860,11 @@ export function AMIEditor(): JSX.Element {
 											{/* Mode & Priority Badges */}
 											<div className="flex items-center gap-1.5">
 												{(() => {
-													const execMode =
-														(protocol.value.raw as any).executionMode ||
+													const execMode = protocol.value.raw.executionMode ||
 														"parallel";
-													const priority =
-														(protocol.value.raw as any).priority || "normal";
-													const mode = (protocol.value.raw as any).mode ||
+													const priority = protocol.value.raw.priority ||
+														"normal";
+													const mode = protocol.value.raw.mode ||
 														"loop";
 
 													return (
@@ -1016,13 +962,12 @@ export function AMIEditor(): JSX.Element {
 															v{selectedWorker.value.raw.version}
 														</Badge>
 														{(() => {
-															const execMode = (selectedWorker.value.raw as any)
+															const execMode = selectedWorker.value.raw
 																.executionMode || "parallel";
 															const priority =
-																(selectedWorker.value.raw as any).priority ||
+																selectedWorker.value.raw.priority ||
 																"normal";
-															const mode =
-																(selectedWorker.value.raw as any).mode ||
+															const mode = selectedWorker.value.raw.mode ||
 																"loop";
 
 															return (
@@ -1069,10 +1014,10 @@ export function AMIEditor(): JSX.Element {
 															<HardDrive className="w-2.5 h-2.5" />
 															{selectedWorker.value.raw.script.length}
 														</span>
-														{(selectedWorker.value.raw as any).accountId && (
+														{selectedWorker.value.raw.accountId && (
 															<span className="flex items-center gap-1">
 																<Code className="w-2.5 h-2.5" />
-																{(selectedWorker.value.raw as any).accountId}
+																{selectedWorker.value.raw.accountId}
 															</span>
 														)}
 													</div>
@@ -1143,7 +1088,7 @@ export function AMIEditor(): JSX.Element {
 														<FileText className="w-3 h-3 mr-1.5" />
 														Notes
 													</TabsTrigger>
-													{(selectedWorker.value.raw as any).executionMode ===
+													{selectedWorker.value.raw.executionMode ===
 															"leader" && (
 														<TabsTrigger
 															value="leader"
@@ -1210,8 +1155,9 @@ export function AMIEditor(): JSX.Element {
 														</div>
 														<Select
 															value={currentConfig.executionMode}
-															onValueChange={(value: any) =>
-																handleConfigChange("executionMode", value)}
+															onValueChange={(
+																value: "parallel" | "leader" | "exclusive",
+															) => handleConfigChange("executionMode", value)}
 														>
 															<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-8">
 																<SelectValue />
@@ -1252,8 +1198,9 @@ export function AMIEditor(): JSX.Element {
 														</div>
 														<Select
 															value={currentConfig.priority}
-															onValueChange={(value: any) =>
-																handleConfigChange("priority", value)}
+															onValueChange={(
+																value: "critical" | "high" | "normal" | "low",
+															) => handleConfigChange("priority", value)}
 														>
 															<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-8">
 																<SelectValue />
@@ -1305,7 +1252,7 @@ export function AMIEditor(): JSX.Element {
 														</div>
 														<Select
 															value={currentConfig.mode}
-															onValueChange={(value: any) =>
+															onValueChange={(value: "loop" | "single") =>
 																handleConfigChange("mode", value)}
 														>
 															<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-8">
@@ -1425,7 +1372,9 @@ export function AMIEditor(): JSX.Element {
 											<div className="max-w-2xl mx-auto">
 												<Textarea
 													value={currentNote}
-													onChange={(e) => handleNoteChange(e.target.value)}
+													onChange={(
+														e: React.ChangeEvent<HTMLTextAreaElement>,
+													) => handleNoteChange(e.target.value)}
 													placeholder="Add notes about this worker..."
 													className="bg-muted border-border text-card-foreground placeholder-zinc-500 text-sm resize-none min-h-[200px] focus:border-blue-400 focus:ring-blue-400/20"
 												/>
@@ -1433,7 +1382,7 @@ export function AMIEditor(): JSX.Element {
 										</TabsContent>
 
 										{/* Tab: Leader Info */}
-										{(selectedWorker.value.raw as any).executionMode ===
+										{selectedWorker.value.raw.executionMode ===
 												"leader" && (
 											<TabsContent
 												value="leader"
