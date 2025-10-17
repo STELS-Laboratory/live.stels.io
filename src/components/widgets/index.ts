@@ -6,7 +6,6 @@
 export { default as AggregatedCandles } from "./AggregatedCandles";
 export { default as Ariadna } from "./Ariadna";
 export { default as AutoConnectionsSettings } from "./AutoConnectionsSettings";
-export { default as Candles } from "./Candles";
 export { DragPreview, DropZoneIndicator } from "./DragPreview";
 export { FredIndicatorWidget } from "./FredIndicatorWidget";
 export { default as GroupedEdge } from "./GroupedEdge";

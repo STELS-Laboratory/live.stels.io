@@ -813,27 +813,27 @@ const OrderBook: React.FC = React.memo(() => {
             <p>Loading markets...</p>
           </div>
         )}
-	    
-	    <Card className="bg-card border mb-6">
+
+      <Card className="bg-card border mb-6">
 		    <CardHeader>
 			    <CardTitle className="flex items-center gap-2">
 				    <BarChart3 className="w-5 h-5 text-amber-500" />
-				    Professional Price Analysis
+				    Exchange Performance Tracker
 			    </CardTitle>
 			    <CardDescription>
-				    Liquidity-weighted aggregation with fair value calculation and
-				    market efficiency metrics
+				    Normalized view showing relative price movement from center point -
+				    instantly compare exchange performance and identify arbitrage opportunities
 			    </CardDescription>
 		    </CardHeader>
-		    <CardContent>
-			    <AggregatedCandles
-				    candlesData={candlesData}
-				    orderBookData={orderBookData}
-				    selectedMarket={selectedMarket}
-				    height={400}
-			    />
-		    </CardContent>
-	    </Card>
+        <CardContent>
+          <AggregatedCandles
+            candlesData={candlesData}
+            orderBookData={orderBookData}
+            selectedMarket={selectedMarket}
+            height={400}
+          />
+        </CardContent>
+      </Card>
 
       {/* Optimized Professional Header */}
       <div className="bg-background border  overflow-hidden">

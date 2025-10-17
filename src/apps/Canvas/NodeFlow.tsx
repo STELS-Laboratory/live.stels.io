@@ -3,7 +3,6 @@ import { memo, useCallback } from "react";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
 import TradesWidget from "@/components/widgets/TradeWidget.tsx";
 import OrderBook from "@/components/widgets/OrderBook.tsx";
-import Candles from "@/components/widgets/Candles.tsx";
 import Ticker from "@/components/widgets/Ticker.tsx";
 import { FredIndicatorWidget } from "@/components/widgets/FredIndicatorWidget.tsx";
 import SonarPortfolio from "@/components/widgets/SonarPortfolio.tsx";
@@ -87,7 +86,17 @@ const Widget = ({ widget, raw, data }: WidgetProps): React.ReactElement => {
 				);
 
 			case WidgetType.CANDLES:
-				return <Candles raw={raw} />;
+				// Candles widget removed - migrated to AggregatedCandles
+				return (
+					<div className="p-4 text-center text-muted-foreground">
+						<p className="text-sm">
+							Candles widget migrated to AggregatedCandles
+						</p>
+						<p className="text-xs mt-2">
+							Use AggregatedCandles for professional multi-exchange charts
+						</p>
+					</div>
+				);
 
 			case WidgetType.SONAR:
 				return <SonarPortfolio />;
