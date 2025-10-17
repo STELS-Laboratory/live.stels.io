@@ -11,4 +11,5 @@ export * from "../store.ts";
 export { CreateWorkerDialog } from "./CreateWorkerDialog.tsx";
 export { LeaderInfoCard } from "./LeaderInfoCard.tsx";
 export { WorkerStatsPanel } from "./WorkerStatsPanel.tsx";
+export { StopAllDialog } from "./StopAllDialog.tsx";
 

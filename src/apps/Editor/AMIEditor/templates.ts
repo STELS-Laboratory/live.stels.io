@@ -82,6 +82,7 @@ try {
 		version: "1.19.2",
 		executionMode: "leader",
 		priority: "critical",
+		mode: "loop",
 	},
 };
 
@@ -197,6 +198,7 @@ logger.info('Market data collection completed');`,
 		version: "1.19.2",
 		executionMode: "parallel",
 		priority: "normal",
+		mode: "loop",
 	},
 };
 
@@ -244,6 +246,7 @@ try {
 		version: "1.19.2",
 		executionMode: "parallel",
 		priority: "critical",
+		mode: "loop",
 	},
 };
 
@@ -303,6 +306,7 @@ for (const symbol of SYMBOLS) {
 		version: "1.19.2",
 		executionMode: "leader",
 		priority: "high",
+		mode: "loop",
 	},
 };
 
@@ -340,6 +344,7 @@ logger.debug(\`Health: CPU \${health.cpu[0].toFixed(2)} Memory \${(health.memory
 		version: "1.19.2",
 		executionMode: "parallel",
 		priority: "low",
+		mode: "loop",
 	},
 };
 
@@ -377,6 +382,7 @@ logger.info(\`Cleanup complete: \${deleted} old logs deleted\`);`,
 		version: "1.19.2",
 		executionMode: "exclusive",
 		priority: "low",
+		mode: "loop",
 		assignedNode: "s-0001",
 	},
 };
@@ -403,6 +409,7 @@ logger.info('Worker execution completed');`,
 		version: "1.19.2",
 		executionMode: "parallel",
 		priority: "normal",
+		mode: "loop",
 	},
 };
 

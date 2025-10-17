@@ -26,7 +26,6 @@ import {
 	Settings,
 	Square,
 	Terminal,
-	Trash2,
 	X,
 	Zap,
 } from "lucide-react";
@@ -64,12 +63,14 @@ import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
 import { CreateWorkerDialog } from "./AMIEditor/CreateWorkerDialog.tsx";
 import { LeaderInfoCard } from "./AMIEditor/LeaderInfoCard.tsx";
 import { WorkerStatsPanel } from "./AMIEditor/WorkerStatsPanel.tsx";
+import { StopAllDialog } from "./AMIEditor/StopAllDialog.tsx";
 import {
 	Tabs,
 	TabsContent,
 	TabsList,
 	TabsTrigger,
 } from "@/components/ui/tabs.tsx";
+import { getExecutionModeColor, getPriorityColor } from "./AMIEditor/utils.ts";
 
 export function AMIEditor(): JSX.Element {
 	const mobile = useMobile();
@@ -78,7 +79,6 @@ export function AMIEditor(): JSX.Element {
 	const listWorkers = useEditorStore((state) => state.listWorkers);
 	const createWorker = useEditorStore((state) => state.createWorker);
 	const updateWorker = useEditorStore((state) => state.updateWorker);
-	const deleteWorker = useEditorStore((state) => state.deleteWorker);
 	const getLeaderInfo = useEditorStore((state) => state.getLeaderInfo);
 	const getWorkerStats = useEditorStore((state) => state.getWorkerStats);
 	const stopAllWorkers = useEditorStore((state) => state.stopAllWorkers);
@@ -99,9 +99,8 @@ export function AMIEditor(): JSX.Element {
 	);
 	const [filterPriority, setFilterPriority] = useState<string | null>(null);
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
-	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-	const [workerToDelete, setWorkerToDelete] = useState<string | null>(null);
 	const [showStatsPanel, setShowStatsPanel] = useState(false);
+	const [showStopAllDialog, setShowStopAllDialog] = useState(false);
 	const [newlyCreatedWorker, setNewlyCreatedWorker] = useState<string | null>(
 		null,
 	);
@@ -116,7 +115,6 @@ export function AMIEditor(): JSX.Element {
 		nid: "",
 	});
 	const [activeTab, setActiveTab] = useState("code");
-	const [stoppingAll, setStoppingAll] = useState(false);
 
 	// Load workers
 	const loadWorkers = async () => {
@@ -158,20 +156,6 @@ export function AMIEditor(): JSX.Element {
 			setIsEditing(false);
 			setIsEditingNote(false);
 			setNewlyCreatedWorker(newWorker.value.raw.sid);
-		}
-	};
-
-	const handleDeleteWorker = async (sid: string): Promise<void> => {
-		const success = await deleteWorker(sid);
-		if (success) {
-			setWorkers((prev) => prev.filter((w) => w.value.raw.sid !== sid));
-			if (selectedWorker?.value.raw.sid === sid) {
-				setSelectedWorker(null);
-				setCurrentScript("");
-				setCurrentNote("");
-			}
-			setWorkerToDelete(null);
-			setShowDeleteDialog(false);
 		}
 	};
 
@@ -268,33 +252,38 @@ export function AMIEditor(): JSX.Element {
 		if (!selectedWorker) return;
 		setUpdating(true);
 		try {
+			// API требует ПОЛНЫЙ объект raw со ВСЕМИ полями
 			const updatedRaw = {
-				...selectedWorker.value.raw,
+				sid: selectedWorker.value.raw.sid,
+				nid: selectedWorker.value.raw.nid,
 				active: !selectedWorker.value.raw.active,
+				mode: (selectedWorker.value.raw as any).mode || "loop",
+				executionMode: (selectedWorker.value.raw as any).executionMode ||
+					"parallel",
+				priority: (selectedWorker.value.raw as any).priority || "normal",
+				accountId: (selectedWorker.value.raw as any).accountId || null,
+				assignedNode: (selectedWorker.value.raw as any).assignedNode || null,
+				note: selectedWorker.value.raw.note,
+				script: selectedWorker.value.raw.script,
+				dependencies: selectedWorker.value.raw.dependencies,
+				version: selectedWorker.value.raw.version,
 				timestamp: Date.now(),
 			};
 			const workerBody: Worker = {
 				...selectedWorker,
 				value: {
 					...selectedWorker.value,
-					raw: updatedRaw,
+					raw: updatedRaw as any,
 				},
 			};
 			const result = await updateWorker(workerBody);
 			if (result) {
 				setWorkers((prev) =>
 					prev.map((w) =>
-						w.value.raw.sid === selectedWorker.value.raw.sid
-							? { ...w, value: { ...w.value, raw: updatedRaw } }
-							: w
+						w.value.raw.sid === selectedWorker.value.raw.sid ? result : w
 					)
 				);
-				setSelectedWorker((
-					prev,
-				) => (prev
-					? { ...prev, value: { ...prev.value, raw: updatedRaw } }
-					: null)
-				);
+				setSelectedWorker(result);
 			}
 		} catch (error) {
 			console.error("Failed to update protocol status:", error);
@@ -307,33 +296,39 @@ export function AMIEditor(): JSX.Element {
 		if (!selectedWorker || !isEditingNote) return;
 		setUpdating(true);
 		try {
+			// API требует ПОЛНЫЙ объект raw со ВСЕМИ полями
 			const updatedRaw = {
-				...selectedWorker.value.raw,
+				sid: selectedWorker.value.raw.sid,
+				nid: selectedWorker.value.raw.nid,
+				active: selectedWorker.value.raw.active,
+				mode: (selectedWorker.value.raw as any).mode || "loop",
+				executionMode: (selectedWorker.value.raw as any).executionMode ||
+					"parallel",
+				priority: (selectedWorker.value.raw as any).priority || "normal",
+				accountId: (selectedWorker.value.raw as any).accountId || null,
+				assignedNode: (selectedWorker.value.raw as any).assignedNode || null,
 				note: currentNote,
+				script: selectedWorker.value.raw.script,
+				dependencies: selectedWorker.value.raw.dependencies,
+				version: selectedWorker.value.raw.version,
 				timestamp: Date.now(),
 			};
 			const workerBody: Worker = {
 				...selectedWorker,
 				value: {
 					...selectedWorker.value,
-					raw: updatedRaw,
+					raw: updatedRaw as any,
 				},
 			};
 			const result = await updateWorker(workerBody);
 			if (result) {
 				setWorkers((prev) =>
 					prev.map((w) =>
-						w.value.raw.sid === selectedWorker.value.raw.sid
-							? { ...w, value: { ...w.value, raw: updatedRaw } }
-							: w
+						w.value.raw.sid === selectedWorker.value.raw.sid ? result : w
 					)
 				);
-				setSelectedWorker((
-					prev,
-				) => (prev
-					? { ...prev, value: { ...prev.value, raw: updatedRaw } }
-					: null)
-				);
+				setSelectedWorker(result);
+				setCurrentNote(result.value.raw.note);
 				setIsEditingNote(false);
 			}
 		} catch (error) {
@@ -349,44 +344,49 @@ export function AMIEditor(): JSX.Element {
 		}
 		setUpdating(true);
 		try {
+			// API требует ПОЛНЫЙ объект raw со ВСЕМИ полями (не partial update)
 			const updatedRaw = {
-				...selectedWorker.value.raw,
-				script: currentScript,
-				note: currentNote,
-				version: currentConfig.version,
-				dependencies: currentConfig.dependencies,
+				sid: selectedWorker.value.raw.sid,
 				nid: currentConfig.nid,
+				active: selectedWorker.value.raw.active,
+				mode: currentConfig.mode,
+				executionMode: currentConfig.executionMode,
+				priority: currentConfig.priority,
+				accountId: currentConfig.accountId || null,
+				assignedNode: currentConfig.assignedNode || null,
+				note: currentNote,
+				script: currentScript,
+				dependencies: currentConfig.dependencies,
+				version: currentConfig.version,
 				timestamp: Date.now(),
-				...(currentConfig.executionMode &&
-					{ executionMode: currentConfig.executionMode }),
-				...(currentConfig.priority && { priority: currentConfig.priority }),
-				...(currentConfig.mode && { mode: currentConfig.mode }),
-				...(currentConfig.accountId && { accountId: currentConfig.accountId }),
-				...(currentConfig.assignedNode &&
-					{ assignedNode: currentConfig.assignedNode }),
 			};
 			const workerBody: Worker = {
 				...selectedWorker,
 				value: {
 					...selectedWorker.value,
-					raw: updatedRaw,
+					raw: updatedRaw as any,
 				},
 			};
 			const result = await updateWorker(workerBody);
 			if (result) {
 				setWorkers((prev) =>
 					prev.map((w) =>
-						w.value.raw.sid === selectedWorker.value.raw.sid
-							? { ...w, value: { ...w.value, raw: updatedRaw } }
-							: w
+						w.value.raw.sid === selectedWorker.value.raw.sid ? result : w
 					)
 				);
-				setSelectedWorker((
-					prev,
-				) => (prev
-					? { ...prev, value: { ...prev.value, raw: updatedRaw } }
-					: null)
-				);
+				setSelectedWorker(result);
+				setCurrentScript(result.value.raw.script);
+				setCurrentNote(result.value.raw.note);
+				setCurrentConfig({
+					executionMode: (result.value.raw as any).executionMode || "parallel",
+					priority: (result.value.raw as any).priority || "normal",
+					mode: (result.value.raw as any).mode || "loop",
+					version: result.value.raw.version || "1.19.2",
+					dependencies: result.value.raw.dependencies || [],
+					accountId: (result.value.raw as any).accountId || "",
+					assignedNode: (result.value.raw as any).assignedNode || "",
+					nid: result.value.raw.nid || "",
+				});
 				setIsEditing(false);
 				setIsEditingNote(false);
 				setIsEditingConfig(false);
@@ -398,25 +398,21 @@ export function AMIEditor(): JSX.Element {
 		}
 	};
 
-	const handleStopAll = async () => {
-		if (!confirm("Are you sure you want to stop all active workers?")) {
-			return;
-		}
-		setStoppingAll(true);
+	const handleStopAll = async (): Promise<{
+		stopped: number;
+		failed: number;
+		total: number;
+	}> => {
 		try {
 			const result = await stopAllWorkers();
-			if (result.total > 0) {
-				alert(
-					`Stopped ${result.stopped}/${result.total} workers${
-						result.failed > 0 ? ` (${result.failed} failed)` : ""
-					}`,
-				);
-			}
+
+			// Refresh workers list to show updated status (active: false)
+			await loadWorkers();
+
+			return result;
 		} catch (error) {
 			console.error("Failed to stop all workers:", error);
-			alert("Failed to stop all workers");
-		} finally {
-			setStoppingAll(false);
+			throw error;
 		}
 	};
 
@@ -559,24 +555,13 @@ export function AMIEditor(): JSX.Element {
 									<Button
 										size="sm"
 										variant="outline"
-										onClick={handleStopAll}
-										disabled={stoppingAll ||
-											workers.filter((w) => w.value.raw.active).length === 0}
+										onClick={() => setShowStopAllDialog(true)}
+										disabled={workers.filter((w) => w.value.raw.active)
+											.length === 0}
 										className="bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20 hover:text-red-300 font-mono text-xs h-8"
 									>
-										{stoppingAll
-											? (
-												<>
-													<div className="animate-spin w-3 h-3 border-2 border-red-400 border-t-transparent rounded-full mr-1" />
-													STOPPING
-												</>
-											)
-											: (
-												<>
-													<Square className="w-3 h-3 mr-1" />
-													STOP ALL
-												</>
-											)}
+										<Square className="w-3 h-3 mr-1" />
+										STOP ALL
 									</Button>
 									<Button
 										size="sm"
@@ -875,30 +860,16 @@ export function AMIEditor(): JSX.Element {
 														)}
 													</div>
 												</div>
-												<div className="flex items-center gap-1.5">
-													<Badge
-														variant="outline"
-														className={`text-xs ${
-															protocol.value.raw.active
-																? "border-green-400 text-green-400 bg-green-400/10"
-																: "border-red-400 text-red-400 bg-red-400/10"
-														}`}
-													>
-														{protocol.value.raw.active ? "ACTIVE" : "INACTIVE"}
-													</Badge>
-													<Button
-														variant="ghost"
-														size="sm"
-														onClick={(e) => {
-															e.stopPropagation();
-															setWorkerToDelete(protocol.value.raw.sid);
-															setShowDeleteDialog(true);
-														}}
-														className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300"
-													>
-														<Trash2 className="w-3 h-3" />
-													</Button>
-												</div>
+												<Badge
+													variant="outline"
+													className={`text-xs ${
+														protocol.value.raw.active
+															? "border-green-400 text-green-400 bg-green-400/10"
+															: "border-red-400 text-red-400 bg-red-400/10"
+													}`}
+												>
+													{protocol.value.raw.active ? "ACTIVE" : "INACTIVE"}
+												</Badge>
 											</div>
 
 											{/* Note */}
@@ -910,24 +881,18 @@ export function AMIEditor(): JSX.Element {
 												</div>
 											)}
 
-											{/* Metadata */}
-											<div className="grid grid-cols-2 gap-2 text-xs">
+											{/* Metadata Grid */}
+											<div className="grid grid-cols-2 gap-2 text-xs mb-2">
 												<div className="flex items-center gap-1">
-													<Network className="w-3 h-3 text-blue-400" />
-													<span className="text-muted-foreground truncate">
+													<Server className="w-3 h-3 text-blue-400" />
+													<span className="text-blue-300 font-mono truncate">
 														{protocol.value.raw.nid}
 													</span>
 												</div>
 												<div className="flex items-center gap-1">
 													<Hash className="w-3 h-3 text-amber-400" />
-													<span className="text-amber-400">
+													<span className="text-amber-400 font-mono">
 														{protocol.value.raw.version}
-													</span>
-												</div>
-												<div className="flex items-center gap-1">
-													<Layers className="w-3 h-3 text-purple-400" />
-													<span className="text-purple-300 truncate">
-														{protocol.value.channel.split(".").pop()}
 													</span>
 												</div>
 												<div className="flex items-center gap-1">
@@ -936,15 +901,53 @@ export function AMIEditor(): JSX.Element {
 														{getTimeAgo(protocol.value.raw.timestamp)}
 													</span>
 												</div>
+												<div className="flex items-center gap-1">
+													<Database className="w-3 h-3 text-purple-400" />
+													<span className="text-purple-300 truncate">
+														{protocol.value.raw.dependencies.join(", ") ||
+															"none"}
+													</span>
+												</div>
 											</div>
 
-											{/* Script Preview */}
-											<div className="mt-3 p-2 bg-card/50 rounded border border-border/50">
-												<code className="text-xs text-muted-foreground line-clamp-1">
-													{protocol.value.raw.script.replace(/\s+/g, " ")
-														.trim() ||
-														"// Empty script"}
-												</code>
+											{/* Mode & Priority Badges */}
+											<div className="flex items-center gap-1.5">
+												{(() => {
+													const execMode =
+														(protocol.value.raw as any).executionMode ||
+														"parallel";
+													const priority =
+														(protocol.value.raw as any).priority || "normal";
+													const mode = (protocol.value.raw as any).mode ||
+														"loop";
+
+													return (
+														<>
+															<Badge
+																variant="outline"
+																className={`text-[10px] px-1.5 py-0 h-4 ${
+																	getExecutionModeColor(execMode)
+																}`}
+															>
+																{execMode}
+															</Badge>
+															<Badge
+																variant="outline"
+																className={`text-[10px] px-1.5 py-0 h-4 ${
+																	getPriorityColor(priority)
+																}`}
+															>
+																{priority}
+															</Badge>
+															<Badge
+																variant="outline"
+																className="text-[10px] px-1.5 py-0 h-4 border-muted/50 text-muted-foreground"
+															>
+																{mode}
+															</Badge>
+														</>
+													);
+												})()}
 											</div>
 										</div>
 									);
@@ -992,7 +995,7 @@ export function AMIEditor(): JSX.Element {
 													)}
 												</div>
 												<div className="flex-1 min-w-0">
-													<div className="flex items-center gap-2">
+													<div className="flex items-center gap-1.5 flex-wrap">
 														<h3 className="text-foreground font-mono text-base font-bold truncate">
 															{selectedWorker.value.raw.sid}
 														</h3>
@@ -1012,12 +1015,48 @@ export function AMIEditor(): JSX.Element {
 														>
 															v{selectedWorker.value.raw.version}
 														</Badge>
-														{(selectedWorker.value.raw as any).executionMode ===
-																"leader" && (
-															<Crown className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
-														)}
+														{(() => {
+															const execMode = (selectedWorker.value.raw as any)
+																.executionMode || "parallel";
+															const priority =
+																(selectedWorker.value.raw as any).priority ||
+																"normal";
+															const mode =
+																(selectedWorker.value.raw as any).mode ||
+																"loop";
+
+															return (
+																<>
+																	<Badge
+																		variant="outline"
+																		className={`text-[10px] px-1.5 py-0 h-4 flex-shrink-0 ${
+																			getExecutionModeColor(execMode)
+																		}`}
+																	>
+																		{execMode === "leader" && (
+																			<Crown className="w-2.5 h-2.5 mr-0.5" />
+																		)}
+																		{execMode}
+																	</Badge>
+																	<Badge
+																		variant="outline"
+																		className={`text-[10px] px-1.5 py-0 h-4 flex-shrink-0 ${
+																			getPriorityColor(priority)
+																		}`}
+																	>
+																		{priority}
+																	</Badge>
+																	<Badge
+																		variant="outline"
+																		className="text-[10px] px-1.5 py-0 h-4 border-muted/50 text-muted-foreground flex-shrink-0"
+																	>
+																		{mode}
+																	</Badge>
+																</>
+															);
+														})()}
 													</div>
-													<div className="flex items-center gap-3 mt-0.5 text-[10px] text-muted-foreground">
+													<div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
 														<span className="flex items-center gap-1">
 															<Server className="w-2.5 h-2.5" />
 															{selectedWorker.value.raw.nid}
@@ -1030,6 +1069,12 @@ export function AMIEditor(): JSX.Element {
 															<HardDrive className="w-2.5 h-2.5" />
 															{selectedWorker.value.raw.script.length}
 														</span>
+														{(selectedWorker.value.raw as any).accountId && (
+															<span className="flex items-center gap-1">
+																<Code className="w-2.5 h-2.5" />
+																{(selectedWorker.value.raw as any).accountId}
+															</span>
+														)}
 													</div>
 												</div>
 											</div>
@@ -1437,54 +1482,13 @@ export function AMIEditor(): JSX.Element {
 					onSubmit={handleCreateWorker}
 				/>
 
-				{/* Delete Worker Confirmation */}
-				<Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-					<DialogContent className="max-w-md bg-card border-border">
-						<DialogHeader>
-							<DialogTitle className="flex items-center gap-2">
-								<div className="relative p-2 border border-red-500/30 bg-red-500/10">
-									<div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-red-500/50" />
-									<Trash2 className="h-5 w-5 text-red-500" />
-								</div>
-								<span className="text-foreground">Delete Worker</span>
-							</DialogTitle>
-							<DialogDescription className="text-muted-foreground">
-								Are you sure you want to delete this worker? This action cannot
-								be undone.
-							</DialogDescription>
-						</DialogHeader>
-
-						<div className="py-4">
-							<div className="p-3 bg-muted border border-border rounded-lg">
-								<p className="text-xs text-muted-foreground mb-1">Worker ID:</p>
-								<p className="text-sm text-foreground font-mono">
-									{workerToDelete}
-								</p>
-							</div>
-						</div>
-
-						<DialogFooter>
-							<Button
-								variant="outline"
-								onClick={() => setShowDeleteDialog(false)}
-							>
-								Cancel
-							</Button>
-							<Button
-								variant="destructive"
-								onClick={() => {
-									if (workerToDelete) {
-										handleDeleteWorker(workerToDelete);
-									}
-								}}
-								className="bg-red-500 hover:bg-red-600 text-foreground"
-							>
-								<Trash2 className="w-4 h-4 mr-2" />
-								Delete Worker
-							</Button>
-						</DialogFooter>
-					</DialogContent>
-				</Dialog>
+				{/* Stop All Workers Dialog */}
+				<StopAllDialog
+					open={showStopAllDialog}
+					onOpenChange={setShowStopAllDialog}
+					onConfirm={handleStopAll}
+					activeWorkersCount={workers.filter((w) => w.value.raw.active).length}
+				/>
 
 				{/* Stats Panel */}
 				{showStatsPanel && (

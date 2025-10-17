@@ -141,3 +141,41 @@ export const validateScript = (script: string): {
 	}
 };
 
+/**
+ * Get color class for execution mode
+ */
+export const getExecutionModeColor = (
+	mode: "parallel" | "leader" | "exclusive",
+): string => {
+	switch (mode) {
+		case "parallel":
+			return "border-blue-400/50 bg-blue-400/10 text-blue-400";
+		case "leader":
+			return "border-amber-400/50 bg-amber-400/10 text-amber-400";
+		case "exclusive":
+			return "border-purple-400/50 bg-purple-400/10 text-purple-400";
+		default:
+			return "border-muted/50 bg-muted/10 text-muted-foreground";
+	}
+};
+
+/**
+ * Get color class for priority
+ */
+export const getPriorityColor = (
+	priority: "critical" | "high" | "normal" | "low",
+): string => {
+	switch (priority) {
+		case "critical":
+			return "border-red-400/50 bg-red-400/10 text-red-400";
+		case "high":
+			return "border-orange-400/50 bg-orange-400/10 text-orange-400";
+		case "normal":
+			return "border-green-400/50 bg-green-400/10 text-green-400";
+		case "low":
+			return "border-blue-400/50 bg-blue-400/10 text-blue-400";
+		default:
+			return "border-muted/50 bg-muted/10 text-muted-foreground";
+	}
+};
+

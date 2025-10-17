@@ -102,7 +102,7 @@ export default function WalletWidget(): React.ReactElement {
 				},
 			};
 
-			const res = await fetch("https://live.stels.dev", {
+			const res = await fetch("http://10.0.0.238:8088", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

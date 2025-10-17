@@ -99,8 +99,6 @@ interface EditorStoreActions {
 	setWorker: () => Promise<Worker | null>;
 	/** Update existing worker */
 	updateWorker: (workerData: Worker) => Promise<Worker | null>;
-	/** Delete worker */
-	deleteWorker: (sid: string) => Promise<boolean>;
 	/** Get leader info for a worker */
 	getLeaderInfo: (workerId: string) => Promise<LeaderInfo | null>;
 	/** Get stats for all workers */
@@ -321,46 +319,7 @@ export const useEditorStore = create<EditorStore>()(
 			}
 		},
 
-		deleteWorker: async (sid: string): Promise<boolean> => {
-			const connectionSession = useAuthStore.getState().connectionSession;
-
-			if (!connectionSession) {
-				console.error("No active connection");
-				return false;
-			}
-
-			try {
-				const response = await fetch(connectionSession.api, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						"stels-session": connectionSession.session,
-					},
-					body: JSON.stringify({
-						webfix: "1.0",
-						method: "deleteWorker",
-						params: [],
-						body: { sid },
-					}),
-				});
-
-				if (!response.ok) {
-					throw new Error(`HTTP error! status: ${response.status}`);
-				}
-
-				// Remove from local state
-				set((state) => ({
-					workers: state.workers.filter((w) => w.value.raw.sid !== sid),
-				}));
-
-				return true;
-			} catch (error) {
-				console.error("Failed to delete worker:", error);
-				return false;
-			}
-		},
-
-		getLeaderInfo: async (workerId: string): Promise<LeaderInfo | null> => {
+	getLeaderInfo: async (workerId: string): Promise<LeaderInfo | null> => {
 			const connectionSession = useAuthStore.getState().connectionSession;
 
 			if (!connectionSession) {
