@@ -22,6 +22,7 @@ export interface Worker {
 			dependencies: string[];
 			version: string;
 			timestamp: number;
+			scope?: "local" | "network";
 			executionMode?: "parallel" | "leader" | "exclusive";
 			priority?: "critical" | "high" | "normal" | "low";
 			mode?: "loop" | "single";
@@ -84,6 +85,7 @@ export interface WorkerCreateRequest {
 	scriptContent: string;
 	dependencies: string[];
 	version: string;
+	scope: "local" | "network";
 	executionMode: "parallel" | "leader" | "exclusive";
 	priority: "critical" | "high" | "normal" | "low";
 	mode?: "loop" | "single";
@@ -104,6 +106,8 @@ interface EditorStoreActions {
 	setWorker: () => Promise<Worker | null>;
 	/** Update existing worker */
 	updateWorker: (workerData: Worker) => Promise<Worker | null>;
+	/** Migrate worker to network with new SID */
+	migrateWorkerWithNewSid: (worker: Worker) => Promise<Worker | null>;
 	/** Get leader info for a worker */
 	getLeaderInfo: (workerId: string) => Promise<LeaderInfo | null>;
 	/** Get stats for all workers */
@@ -255,7 +259,8 @@ export const useEditorStore = create<EditorStore>()(
 					"// Worker script\n// Available context: { Stels, logger }\n\nlogger.info('Worker started on node:', Stels.config.nid);\n\n// Your logic here\n",
 				dependencies: ["gliesereum"],
 				version: "1.19.2",
-				executionMode: "parallel",
+				scope: "local",
+				executionMode: "leader",
 				priority: "normal",
 				note: "New worker",
 			});
@@ -318,6 +323,78 @@ export const useEditorStore = create<EditorStore>()(
 					worker: {
 						isLoading: false,
 						isEditor: true,
+					},
+				});
+				return null;
+			}
+		},
+
+		migrateWorkerWithNewSid: async (worker: Worker): Promise<Worker | null> => {
+			const connectionSession = useAuthStore.getState().connectionSession;
+
+			if (!connectionSession) {
+				console.error("No active connection");
+				return null;
+			}
+
+			set({
+				worker: {
+					isLoading: true,
+					isEditor: false,
+				},
+			});
+
+			try {
+				// Create new worker with network scope and all the same settings
+				const createRequest: WorkerCreateRequest = {
+					scriptContent: worker.value.raw.script,
+					dependencies: worker.value.raw.dependencies,
+					version: worker.value.raw.version,
+					scope: "network", // Always migrate to network
+					executionMode: worker.value.raw.executionMode || "parallel",
+					priority: worker.value.raw.priority || "normal",
+					mode: worker.value.raw.mode || "loop",
+					accountId: worker.value.raw.accountId,
+					assignedNode: worker.value.raw.assignedNode,
+					note: `[Migrated] ${worker.value.raw.note}`,
+				};
+
+				const response = await fetch(connectionSession.api, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"stels-session": connectionSession.session,
+					},
+					body: JSON.stringify({
+						webfix: "1.0",
+						method: "setWorker",
+						params: [],
+						body: createRequest,
+					}),
+				});
+
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+
+				const newWorker = await response.json();
+
+				// Add to workers list
+				set((state) => ({
+					workers: [newWorker, ...state.workers],
+					worker: {
+						isLoading: false,
+						isEditor: true,
+					},
+				}));
+
+				return newWorker;
+			} catch (error) {
+				console.error("Failed to migrate worker:", error);
+				set({
+					worker: {
+						isLoading: false,
+						isEditor: false,
 					},
 				});
 				return null;

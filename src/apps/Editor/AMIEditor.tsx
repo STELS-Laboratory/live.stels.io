@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import Split from "react-split";
 import {
 	Activity,
+	AlertCircle,
+	ArrowDown,
+	ArrowUp,
 	Clock,
 	Code,
 	Cpu,
@@ -9,6 +12,7 @@ import {
 	Database,
 	FileCode,
 	FileText,
+	Globe,
 	HardDrive,
 	Hash,
 	Layers,
@@ -22,9 +26,11 @@ import {
 	Settings,
 	Square,
 	Terminal,
+	Upload,
 	X,
 	Zap,
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert.tsx";
 import { Badge } from "@/components/ui/badge.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
@@ -52,6 +58,7 @@ import { CreateWorkerDialog } from "./AMIEditor/CreateWorkerDialog.tsx";
 import { LeaderInfoCard } from "./AMIEditor/LeaderInfoCard.tsx";
 import { WorkerStatsPanel } from "./AMIEditor/WorkerStatsPanel.tsx";
 import { StopAllDialog } from "./AMIEditor/StopAllDialog.tsx";
+import { MigrateWorkerDialog } from "./AMIEditor/MigrateWorkerDialog.tsx";
 import {
 	Tabs,
 	TabsContent,
@@ -67,6 +74,9 @@ export function AMIEditor(): JSX.Element {
 	const listWorkers = useEditorStore((state) => state.listWorkers);
 	const createWorker = useEditorStore((state) => state.createWorker);
 	const updateWorker = useEditorStore((state) => state.updateWorker);
+	const migrateWorkerWithNewSid = useEditorStore((state) =>
+		state.migrateWorkerWithNewSid
+	);
 	const getLeaderInfo = useEditorStore((state) => state.getLeaderInfo);
 	const getWorkerStats = useEditorStore((state) => state.getWorkerStats);
 	const stopAllWorkers = useEditorStore((state) => state.stopAllWorkers);
@@ -80,20 +90,27 @@ export function AMIEditor(): JSX.Element {
 	const [isEditing, setIsEditing] = useState(false);
 	const [isEditingNote, setIsEditingNote] = useState(false);
 	const [isEditingConfig, setIsEditingConfig] = useState(false);
+	const [validationError, setValidationError] = useState<string | null>(null);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filterActive, setFilterActive] = useState<boolean | null>(null);
 	const [filterExecutionMode, setFilterExecutionMode] = useState<string | null>(
 		null,
 	);
 	const [filterPriority, setFilterPriority] = useState<string | null>(null);
+	const [filterScope, setFilterScope] = useState<string | null>(null);
+	const [sortBy, setSortBy] = useState<"date" | "name" | "status">("date");
+	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
 	const [showStatsPanel, setShowStatsPanel] = useState(false);
 	const [showStopAllDialog, setShowStopAllDialog] = useState(false);
+	const [showMigrateDialog, setShowMigrateDialog] = useState(false);
+	const [workerToMigrate, setWorkerToMigrate] = useState<Worker | null>(null);
 	const [newlyCreatedWorker, setNewlyCreatedWorker] = useState<string | null>(
 		null,
 	);
 	const [currentConfig, setCurrentConfig] = useState({
-		executionMode: "parallel" as "parallel" | "leader" | "exclusive",
+		scope: "local" as "local" | "network",
+		executionMode: "leader" as "parallel" | "leader" | "exclusive",
 		priority: "normal" as "critical" | "high" | "normal" | "low",
 		mode: "loop" as "loop" | "single",
 		version: "1.19.2",
@@ -152,8 +169,21 @@ export function AMIEditor(): JSX.Element {
 		setSelectedWorker(protocol);
 		setCurrentScript(protocol.value.raw.script);
 		setCurrentNote(protocol.value.raw.note);
+
+		const scope = protocol.value.raw.scope || "local";
+		let executionMode = protocol.value.raw.executionMode || "parallel";
+
+		// Auto-correct: local scope must use leader mode
+		if (
+			scope === "local" &&
+			(executionMode === "parallel" || executionMode === "exclusive")
+		) {
+			executionMode = "leader";
+		}
+
 		setCurrentConfig({
-			executionMode: protocol.value.raw.executionMode || "parallel",
+			scope,
+			executionMode,
 			priority: protocol.value.raw.priority || "normal",
 			mode: protocol.value.raw.mode || "loop",
 			version: protocol.value.raw.version || "1.19.2",
@@ -165,6 +195,7 @@ export function AMIEditor(): JSX.Element {
 		setIsEditing(false);
 		setIsEditingNote(false);
 		setIsEditingConfig(false);
+		setValidationError(null);
 	};
 
 	const handleEditorChange = (value: string | undefined) => {
@@ -202,6 +233,8 @@ export function AMIEditor(): JSX.Element {
 		value:
 			| string
 			| string[]
+			| "local"
+			| "network"
 			| "parallel"
 			| "leader"
 			| "exclusive"
@@ -214,6 +247,7 @@ export function AMIEditor(): JSX.Element {
 	) => {
 		if (selectedWorker) {
 			const originalConfig = {
+				scope: selectedWorker.value.raw.scope || "local" as const,
 				executionMode: selectedWorker.value.raw.executionMode ||
 					"parallel" as const,
 				priority: selectedWorker.value.raw.priority || "normal" as const,
@@ -225,6 +259,15 @@ export function AMIEditor(): JSX.Element {
 				nid: selectedWorker.value.raw.nid || "",
 			};
 			const newConfig = { ...currentConfig, [field]: value };
+
+			// If scope changed to local, enforce leader mode (only option for local)
+			if (field === "scope" && value === "local") {
+				newConfig.executionMode = "leader";
+			}
+
+			// Clear validation error when config changes
+			setValidationError(null);
+
 			setCurrentConfig(newConfig);
 			setIsEditingConfig(
 				JSON.stringify(newConfig) !== JSON.stringify(originalConfig),
@@ -236,9 +279,20 @@ export function AMIEditor(): JSX.Element {
 
 	const resetConfig = () => {
 		if (selectedWorker) {
+			const scope = selectedWorker.value.raw.scope || "local";
+			let executionMode = selectedWorker.value.raw.executionMode || "parallel";
+
+			// Auto-correct: local scope must use leader mode
+			if (
+				scope === "local" &&
+				(executionMode === "parallel" || executionMode === "exclusive")
+			) {
+				executionMode = "leader";
+			}
+
 			setCurrentConfig({
-				executionMode: selectedWorker.value.raw.executionMode ||
-					"parallel",
+				scope,
+				executionMode,
 				priority: selectedWorker.value.raw.priority || "normal",
 				mode: selectedWorker.value.raw.mode || "loop",
 				version: selectedWorker.value.raw.version || "1.19.2",
@@ -248,6 +302,7 @@ export function AMIEditor(): JSX.Element {
 				nid: selectedWorker.value.raw.nid || "",
 			});
 			setIsEditingConfig(false);
+			setValidationError(null);
 		}
 	};
 
@@ -261,6 +316,7 @@ export function AMIEditor(): JSX.Element {
 				nid: selectedWorker.value.raw.nid,
 				active: !selectedWorker.value.raw.active,
 				mode: selectedWorker.value.raw.mode || "loop",
+				scope: selectedWorker.value.raw.scope || "local",
 				executionMode: selectedWorker.value.raw.executionMode ||
 					"parallel",
 				priority: selectedWorker.value.raw.priority || "normal",
@@ -299,6 +355,22 @@ export function AMIEditor(): JSX.Element {
 		if (!selectedWorker || (!isEditing && !isEditingNote && !isEditingConfig)) {
 			return;
 		}
+
+		// Clear previous validation errors
+		setValidationError(null);
+
+		// Validation: local scope can only use leader mode
+		if (
+			currentConfig.scope === "local" &&
+			(currentConfig.executionMode === "parallel" ||
+				currentConfig.executionMode === "exclusive")
+		) {
+			setValidationError(
+				"Invalid configuration: Local scope workers can only use leader execution mode (single node execution)",
+			);
+			return;
+		}
+
 		setUpdating(true);
 		try {
 			// API requires FULL raw object with ALL fields (not partial update)
@@ -307,6 +379,7 @@ export function AMIEditor(): JSX.Element {
 				nid: currentConfig.nid,
 				active: selectedWorker.value.raw.active,
 				mode: currentConfig.mode,
+				scope: currentConfig.scope,
 				executionMode: currentConfig.executionMode,
 				priority: currentConfig.priority,
 				accountId: currentConfig.accountId || undefined,
@@ -335,6 +408,7 @@ export function AMIEditor(): JSX.Element {
 				setCurrentScript(result.value.raw.script);
 				setCurrentNote(result.value.raw.note);
 				setCurrentConfig({
+					scope: result.value.raw.scope || "local",
 					executionMode: result.value.raw.executionMode || "parallel",
 					priority: result.value.raw.priority || "normal",
 					mode: result.value.raw.mode || "loop",
@@ -347,6 +421,7 @@ export function AMIEditor(): JSX.Element {
 				setIsEditing(false);
 				setIsEditingNote(false);
 				setIsEditingConfig(false);
+				setValidationError(null);
 			}
 		} catch (error) {
 			console.error("Failed to save protocol changes:", error);
@@ -371,6 +446,28 @@ export function AMIEditor(): JSX.Element {
 			console.error("Failed to stop all workers:", error);
 			throw error;
 		}
+	};
+
+	const handleMigrateWorker = async (
+		worker: Worker,
+	): Promise<Worker | null> => {
+		try {
+			const migratedWorker = await migrateWorkerWithNewSid(worker);
+			if (migratedWorker) {
+				// Add to workers list
+				setWorkers((prev) => [migratedWorker, ...prev]);
+				setNewlyCreatedWorker(migratedWorker.value.raw.sid);
+			}
+			return migratedWorker;
+		} catch (error) {
+			console.error("Failed to migrate worker:", error);
+			throw error;
+		}
+	};
+
+	const handleOpenMigrateDialog = (worker: Worker): void => {
+		setWorkerToMigrate(worker);
+		setShowMigrateDialog(true);
 	};
 
 	const filteredWorkers = workers
@@ -405,12 +502,33 @@ export function AMIEditor(): JSX.Element {
 			const matchesPriority = !filterPriority ||
 				workerPriority === filterPriority;
 
+			// Scope filter
+			const workerScope = protocol.value.raw.scope || "local";
+			const matchesScope = !filterScope || workerScope === filterScope;
+
 			return matchesSearch && matchesActive && matchesExecMode &&
-				matchesPriority;
+				matchesPriority && matchesScope;
 		})
 		.sort((a, b) => {
-			// Sort by timestamp descending (newest first)
-			return b.value.raw.timestamp - a.value.raw.timestamp;
+			// Sort based on selected criteria
+			let comparison = 0;
+
+			switch (sortBy) {
+				case "date":
+					comparison = b.value.raw.timestamp - a.value.raw.timestamp;
+					break;
+				case "name":
+					comparison = a.value.raw.sid.localeCompare(b.value.raw.sid);
+					break;
+				case "status":
+					comparison = (b.value.raw.active ? 1 : 0) -
+						(a.value.raw.active ? 1 : 0);
+					break;
+				default:
+					comparison = b.value.raw.timestamp - a.value.raw.timestamp;
+			}
+
+			return sortOrder === "asc" ? -comparison : comparison;
 		});
 
 	const getTimeAgo = (timestamp: number) => {
@@ -472,7 +590,7 @@ export function AMIEditor(): JSX.Element {
 					})}
 				>
 					{/* Left Panel - Workers Registry */}
-					<div className="h-full bg-card flex flex-col border-r border-border">
+					<div className="h-full bg-card flex flex-col border-r border-border overflow-hidden">
 						{/* Header */}
 						<div className="p-4 border-b border-border bg-card">
 							<div className="flex items-center justify-between mb-4">
@@ -522,20 +640,21 @@ export function AMIEditor(): JSX.Element {
 							</div>
 
 							{/* Search and Filter */}
-							<div className="space-y-2.5">
+							<div className="space-y-2">
+								{/* Search */}
 								<div className="relative">
-									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
 									<Input
-										placeholder="Search workers..."
+										placeholder="Search..."
 										value={searchTerm}
 										onChange={(e) => setSearchTerm(e.target.value)}
-										className="pl-10 bg-muted border-border text-card-foreground placeholder-zinc-500 h-9 focus:border-amber-400 focus:ring-amber-400/20"
+										className="pl-9 pr-8 bg-muted border-border text-card-foreground placeholder-zinc-500 h-8 text-xs focus:border-amber-400 focus:ring-amber-400/20"
 									/>
 									{searchTerm && (
 										<Button
 											size="sm"
 											variant="ghost"
-											className="absolute right-2 top-1/2 transform -translate-y-1/2 h-5 w-5 p-0 text-muted-foreground hover:text-card-foreground"
+											className="absolute right-1.5 top-1/2 transform -translate-y-1/2 h-5 w-5 p-0 text-muted-foreground hover:text-card-foreground"
 											onClick={() => setSearchTerm("")}
 										>
 											<X className="w-3 h-3" />
@@ -543,8 +662,69 @@ export function AMIEditor(): JSX.Element {
 									)}
 								</div>
 
-								{/* Filter Row 1: Status */}
-								<div className="flex items-center gap-2">
+								{/* Compact Sort and Filters */}
+								<div className="flex items-center gap-1.5">
+									{/* Sort */}
+									<Select
+										value={`${sortBy}-${sortOrder}`}
+										onValueChange={(value) => {
+											const [by, order] = value.split("-") as [
+												typeof sortBy,
+												typeof sortOrder,
+											];
+											setSortBy(by);
+											setSortOrder(order);
+										}}
+									>
+										<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-7 w-[110px]">
+											<div className="flex items-center gap-1">
+												{sortOrder === "asc"
+													? <ArrowUp className="w-3 h-3" />
+													: <ArrowDown className="w-3 h-3" />}
+												<span className="capitalize">{sortBy}</span>
+											</div>
+										</SelectTrigger>
+										<SelectContent className="bg-muted border-border">
+											<SelectItem value="date-desc" className="text-xs">
+												<div className="flex items-center gap-2">
+													<ArrowDown className="w-3 h-3" />
+													Date (Newest)
+												</div>
+											</SelectItem>
+											<SelectItem value="date-asc" className="text-xs">
+												<div className="flex items-center gap-2">
+													<ArrowUp className="w-3 h-3" />
+													Date (Oldest)
+												</div>
+											</SelectItem>
+											<SelectItem value="name-asc" className="text-xs">
+												<div className="flex items-center gap-2">
+													<ArrowUp className="w-3 h-3" />
+													Name (A-Z)
+												</div>
+											</SelectItem>
+											<SelectItem value="name-desc" className="text-xs">
+												<div className="flex items-center gap-2">
+													<ArrowDown className="w-3 h-3" />
+													Name (Z-A)
+												</div>
+											</SelectItem>
+											<SelectItem value="status-desc" className="text-xs">
+												<div className="flex items-center gap-2">
+													<ArrowDown className="w-3 h-3" />
+													Status (Active)
+												</div>
+											</SelectItem>
+											<SelectItem value="status-asc" className="text-xs">
+												<div className="flex items-center gap-2">
+													<ArrowUp className="w-3 h-3" />
+													Status (Inactive)
+												</div>
+											</SelectItem>
+										</SelectContent>
+									</Select>
+
+									{/* Status Filter */}
 									<Select
 										value={filterActive === null
 											? "all"
@@ -557,190 +737,174 @@ export function AMIEditor(): JSX.Element {
 											else setFilterActive(false);
 										}}
 									>
-										<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-8">
+										<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-7 w-[90px]">
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent className="bg-muted border-border">
-											<SelectItem
-												value="all"
-												className="text-card-foreground text-xs"
-											>
-												<div className="flex items-center gap-2">
-													<Layers className="w-3 h-3" />
-													All Status
-												</div>
+											<SelectItem value="all" className="text-xs">
+												All
 											</SelectItem>
 											<SelectItem
 												value="active"
-												className="text-green-400 text-xs"
+												className="text-xs text-green-400"
 											>
-												<div className="flex items-center gap-2">
-													<Play className="w-3 h-3" />
-													Active Only
-												</div>
+												Active
 											</SelectItem>
 											<SelectItem
 												value="inactive"
-												className="text-red-400 text-xs"
+												className="text-xs text-red-400"
 											>
-												<div className="flex items-center gap-2">
-													<PowerOff className="w-3 h-3" />
-													Inactive Only
+												Inactive
+											</SelectItem>
+										</SelectContent>
+									</Select>
+
+									{/* Scope Filter */}
+									<Select
+										value={filterScope || "all-scope"}
+										onValueChange={(value) =>
+											setFilterScope(value === "all-scope" ? null : value)}
+									>
+										<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-7 w-[90px]">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent className="bg-muted border-border">
+											<SelectItem value="all-scope" className="text-xs">
+												All Scope
+											</SelectItem>
+											<SelectItem
+												value="local"
+												className="text-xs text-blue-400"
+											>
+												<div className="flex items-center gap-1.5">
+													<Server className="w-3 h-3" />
+													Local
+												</div>
+											</SelectItem>
+											<SelectItem
+												value="network"
+												className="text-xs text-green-400"
+											>
+												<div className="flex items-center gap-1.5">
+													<Globe className="w-3 h-3" />
+													Network
 												</div>
 											</SelectItem>
 										</SelectContent>
 									</Select>
 
-									<div className="flex items-center gap-1 ml-auto">
-										{(searchTerm || filterActive !== null ||
-											filterExecutionMode || filterPriority) && (
-											<Button
-												size="sm"
-												variant="ghost"
-												className="h-6 px-2 text-xs text-muted-foreground hover:text-card-foreground"
-												onClick={() => {
-													setSearchTerm("");
-													setFilterActive(null);
-													setFilterExecutionMode(null);
-													setFilterPriority(null);
-												}}
-											>
-												Reset
-											</Button>
-										)}
-										<div className="text-xs text-amber-400 bg-amber-400/10 px-2 py-1 rounded font-mono">
-											{filteredWorkers.length}/{workers.length}
-										</div>
-									</div>
+									{/* Clear filters */}
+									{(searchTerm || filterActive !== null ||
+										filterExecutionMode || filterPriority || filterScope) && (
+										<Button
+											size="sm"
+											variant="ghost"
+											className="h-7 w-7 p-0 text-muted-foreground hover:text-amber-400"
+											onClick={() => {
+												setSearchTerm("");
+												setFilterActive(null);
+												setFilterExecutionMode(null);
+												setFilterPriority(null);
+												setFilterScope(null);
+											}}
+										>
+											<X className="w-3.5 h-3.5" />
+										</Button>
+									)}
 								</div>
 
-								{/* Filter Row 2: Execution Mode & Priority */}
-								<div className="grid grid-cols-2 gap-2">
-									<Select
-										value={filterExecutionMode || "all-modes"}
-										onValueChange={(value) => {
-											setFilterExecutionMode(
-												value === "all-modes" ? null : value,
-											);
-										}}
-									>
-										<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-7">
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent className="bg-muted border-border">
-											<SelectItem value="all-modes" className="text-xs">
-												<div className="flex items-center gap-2">
-													<Cpu className="w-3 h-3 text-muted-foreground" />
+								{/* Advanced Filters - Execution Mode & Priority */}
+								<div className="flex items-center justify-between gap-1.5">
+									<div className="flex items-center gap-1.5 flex-1">
+										<Select
+											value={filterExecutionMode || "all-modes"}
+											onValueChange={(value) =>
+												setFilterExecutionMode(
+													value === "all-modes" ? null : value,
+												)}
+										>
+											<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-7 flex-1">
+												<SelectValue placeholder="Mode" />
+											</SelectTrigger>
+											<SelectContent className="bg-muted border-border">
+												<SelectItem value="all-modes" className="text-xs">
 													All Modes
-												</div>
-											</SelectItem>
-											<SelectItem value="parallel" className="text-xs">
-												<div className="flex items-center gap-2">
-													<Layers className="w-3 h-3 text-blue-400" />
+												</SelectItem>
+												<SelectItem
+													value="parallel"
+													className="text-xs text-blue-400"
+												>
 													Parallel
-												</div>
-											</SelectItem>
-											<SelectItem value="leader" className="text-xs">
-												<div className="flex items-center gap-2">
-													<Crown className="w-3 h-3 text-amber-400" />
+												</SelectItem>
+												<SelectItem
+													value="leader"
+													className="text-xs text-amber-400"
+												>
 													Leader
-												</div>
-											</SelectItem>
-											<SelectItem value="exclusive" className="text-xs">
-												<div className="flex items-center gap-2">
-													<Server className="w-3 h-3 text-purple-400" />
+												</SelectItem>
+												<SelectItem
+													value="exclusive"
+													className="text-xs text-purple-400"
+												>
 													Exclusive
-												</div>
-											</SelectItem>
-										</SelectContent>
-									</Select>
+												</SelectItem>
+											</SelectContent>
+										</Select>
 
-									<Select
-										value={filterPriority || "all-priorities"}
-										onValueChange={(value) => {
-											setFilterPriority(
-												value === "all-priorities" ? null : value,
-											);
-										}}
-									>
-										<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-7">
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent className="bg-muted border-border">
-											<SelectItem value="all-priorities" className="text-xs">
-												<div className="flex items-center gap-2">
-													<Zap className="w-3 h-3 text-muted-foreground" />
-													All Priorities
-												</div>
-											</SelectItem>
-											<SelectItem value="critical" className="text-xs">
-												<div className="flex items-center gap-2">
-													<Zap className="w-3 h-3 text-red-400" />
+										<Select
+											value={filterPriority || "all-priorities"}
+											onValueChange={(value) =>
+												setFilterPriority(
+													value === "all-priorities" ? null : value,
+												)}
+										>
+											<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-7 flex-1">
+												<SelectValue placeholder="Priority" />
+											</SelectTrigger>
+											<SelectContent className="bg-muted border-border">
+												<SelectItem value="all-priorities" className="text-xs">
+													All Priority
+												</SelectItem>
+												<SelectItem
+													value="critical"
+													className="text-xs text-red-400"
+												>
 													Critical
-												</div>
-											</SelectItem>
-											<SelectItem value="high" className="text-xs">
-												<div className="flex items-center gap-2">
-													<Zap className="w-3 h-3 text-orange-400" />
+												</SelectItem>
+												<SelectItem
+													value="high"
+													className="text-xs text-orange-400"
+												>
 													High
-												</div>
-											</SelectItem>
-											<SelectItem value="normal" className="text-xs">
-												<div className="flex items-center gap-2">
-													<Zap className="w-3 h-3 text-green-400" />
+												</SelectItem>
+												<SelectItem
+													value="normal"
+													className="text-xs text-green-400"
+												>
 													Normal
-												</div>
-											</SelectItem>
-											<SelectItem value="low" className="text-xs">
-												<div className="flex items-center gap-2">
-													<Zap className="w-3 h-3 text-blue-400" />
+												</SelectItem>
+												<SelectItem
+													value="low"
+													className="text-xs text-blue-400"
+												>
 													Low
-												</div>
-											</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
-
-								{/* Active Filters Display */}
-								{(filterExecutionMode || filterPriority) && (
-									<div className="flex flex-wrap gap-1.5">
-										{filterExecutionMode && (
-											<Badge
-												variant="outline"
-												className="text-[10px] px-1.5 py-0 h-5 border-blue-400/50 bg-blue-400/10 text-blue-400"
-											>
-												{filterExecutionMode}
-												<button
-													onClick={() => setFilterExecutionMode(null)}
-													className="ml-1 hover:text-blue-300"
-												>
-													<X className="w-2.5 h-2.5" />
-												</button>
-											</Badge>
-										)}
-										{filterPriority && (
-											<Badge
-												variant="outline"
-												className="text-[10px] px-1.5 py-0 h-5 border-orange-400/50 bg-orange-400/10 text-orange-400"
-											>
-												{filterPriority}
-												<button
-													onClick={() => setFilterPriority(null)}
-													className="ml-1 hover:text-orange-300"
-												>
-													<X className="w-2.5 h-2.5" />
-												</button>
-											</Badge>
-										)}
+												</SelectItem>
+											</SelectContent>
+										</Select>
 									</div>
-								)}
+
+									{/* Results counter */}
+									<div className="text-xs text-amber-400 bg-amber-400/10 px-2 py-1 rounded font-mono whitespace-nowrap">
+										{filteredWorkers.length}/{workers.length}
+									</div>
+								</div>
 							</div>
 						</div>
 
 						{/* Workers List */}
-						<ScrollArea className="flex-1 px-2 py-2">
+						<ScrollArea className="flex-1 px-2 py-2 overflow-y-auto">
 							<div className="space-y-2">
-								{filteredWorkers.map((protocol) => {
+								{filteredWorkers.map((protocol, index) => {
 									const isNewlyCreated =
 										newlyCreatedWorker === protocol.value.raw.sid;
 									const isSelected =
@@ -748,9 +912,14 @@ export function AMIEditor(): JSX.Element {
 									const isLeaderMode =
 										protocol.value.raw.executionMode === "leader";
 
+									// Create unique key using both key array and sid
+									const uniqueKey = `${
+										protocol.key.join("-")
+									}-${protocol.value.raw.sid}-${index}`;
+
 									return (
 										<div
-											key={protocol.value.raw.sid}
+											key={uniqueKey}
 											className={`group relative p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
 												isSelected
 													? "border-amber-400 bg-amber-400/10 shadow-lg shadow-amber-400/20"
@@ -858,42 +1027,71 @@ export function AMIEditor(): JSX.Element {
 											</div>
 
 											{/* Mode & Priority Badges */}
-											<div className="flex items-center gap-1.5">
-												{(() => {
-													const execMode = protocol.value.raw.executionMode ||
-														"parallel";
-													const priority = protocol.value.raw.priority ||
-														"normal";
-													const mode = protocol.value.raw.mode ||
-														"loop";
+											<div className="flex items-center justify-between gap-1.5">
+												<div className="flex items-center gap-1.5 flex-wrap flex-1">
+													{(() => {
+														const scope = protocol.value.raw.scope || "local";
+														const execMode = protocol.value.raw.executionMode ||
+															"parallel";
+														const priority = protocol.value.raw.priority ||
+															"normal";
+														const mode = protocol.value.raw.mode ||
+															"loop";
 
-													return (
-														<>
-															<Badge
-																variant="outline"
-																className={`text-[10px] px-1.5 py-0 h-4 ${
-																	getExecutionModeColor(execMode)
-																}`}
-															>
-																{execMode}
-															</Badge>
-															<Badge
-																variant="outline"
-																className={`text-[10px] px-1.5 py-0 h-4 ${
-																	getPriorityColor(priority)
-																}`}
-															>
-																{priority}
-															</Badge>
-															<Badge
-																variant="outline"
-																className="text-[10px] px-1.5 py-0 h-4 border-muted/50 text-muted-foreground"
-															>
-																{mode}
-															</Badge>
-														</>
-													);
-												})()}
+														return (
+															<>
+																<Badge
+																	variant="outline"
+																	className={`text-[10px] px-1.5 py-0 h-4 ${
+																		scope === "network"
+																			? "border-green-400/50 bg-green-400/10 text-green-400"
+																			: "border-blue-400/50 bg-blue-400/10 text-blue-400"
+																	}`}
+																>
+																	{scope}
+																</Badge>
+																<Badge
+																	variant="outline"
+																	className={`text-[10px] px-1.5 py-0 h-4 ${
+																		getExecutionModeColor(execMode)
+																	}`}
+																>
+																	{execMode}
+																</Badge>
+																<Badge
+																	variant="outline"
+																	className={`text-[10px] px-1.5 py-0 h-4 ${
+																		getPriorityColor(priority)
+																	}`}
+																>
+																	{priority}
+																</Badge>
+																<Badge
+																	variant="outline"
+																	className="text-[10px] px-1.5 py-0 h-4 border-muted/50 text-muted-foreground"
+																>
+																	{mode}
+																</Badge>
+															</>
+														);
+													})()}
+												</div>
+
+												{/* Migrate button for local workers */}
+												{(protocol.value.raw.scope || "local") === "local" && (
+													<Button
+														size="sm"
+														variant="ghost"
+														onClick={(e) => {
+															e.stopPropagation();
+															handleOpenMigrateDialog(protocol);
+														}}
+														className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-green-400"
+														title="Migrate to network"
+													>
+														<Upload className="w-3.5 h-3.5" />
+													</Button>
+												)}
 											</div>
 										</div>
 									);
@@ -901,25 +1099,22 @@ export function AMIEditor(): JSX.Element {
 							</div>
 						</ScrollArea>
 
-						{/* Footer */}
-						<div className="p-4 border-t border-border bg-card">
-							<div className="flex items-center justify-between text-xs">
-								<div className="text-amber-400 font-mono font-bold">
-									{filteredWorkers.length} of {workers.length} workers
+						{/* Footer - Status Summary */}
+						<div className="p-3 border-t border-border bg-card/50">
+							<div className="flex items-center justify-center gap-4 text-xs">
+								<div className="flex items-center gap-1.5">
+									<div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+									<span className="text-muted-foreground">Active:</span>
+									<span className="text-green-400 font-mono font-bold">
+										{workers.filter((w) => w.value.raw.active).length}
+									</span>
 								</div>
-								<div className="flex items-center gap-3">
-									<div className="flex items-center gap-1">
-										<div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-										<span className="text-green-400 font-mono">
-											{workers.filter((w) => w.value.raw.active).length}
-										</span>
-									</div>
-									<div className="flex items-center gap-1">
-										<div className="w-2 h-2 bg-red-400 rounded-full" />
-										<span className="text-red-400 font-mono">
-											{workers.filter((w) => !w.value.raw.active).length}
-										</span>
-									</div>
+								<div className="flex items-center gap-1.5">
+									<div className="w-2 h-2 bg-red-400 rounded-full" />
+									<span className="text-muted-foreground">Inactive:</span>
+									<span className="text-red-400 font-mono font-bold">
+										{workers.filter((w) => !w.value.raw.active).length}
+									</span>
 								</div>
 							</div>
 						</div>
@@ -962,6 +1157,8 @@ export function AMIEditor(): JSX.Element {
 															v{selectedWorker.value.raw.version}
 														</Badge>
 														{(() => {
+															const scope = selectedWorker.value.raw.scope ||
+																"local";
 															const execMode = selectedWorker.value.raw
 																.executionMode || "parallel";
 															const priority =
@@ -972,6 +1169,16 @@ export function AMIEditor(): JSX.Element {
 
 															return (
 																<>
+																	<Badge
+																		variant="outline"
+																		className={`text-[10px] px-1.5 py-0 h-4 flex-shrink-0 ${
+																			scope === "network"
+																				? "border-green-400/50 bg-green-400/10 text-green-400"
+																				: "border-blue-400/50 bg-blue-400/10 text-blue-400"
+																		}`}
+																	>
+																		{scope}
+																	</Badge>
 																	<Badge
 																		variant="outline"
 																		className={`text-[10px] px-1.5 py-0 h-4 flex-shrink-0 ${
@@ -1024,37 +1231,55 @@ export function AMIEditor(): JSX.Element {
 												</div>
 											</div>
 
-											<Button
-												onClick={handleToggleWorkerStatus}
-												size="sm"
-												disabled={updating}
-												className={`px-3 py-1.5 font-mono text-xs h-8 flex-shrink-0 ${
-													selectedWorker.value.raw.active
-														? "bg-red-500 hover:bg-red-600 text-white"
-														: "bg-green-500 hover:bg-green-600 text-white"
-												}`}
-											>
-												{updating
-													? (
-														<>
-															<Settings className="animate-spin mr-1.5 w-3.5 h-3.5" />
-															...
-														</>
-													)
-													: selectedWorker.value.raw.active
-													? (
-														<>
-															<PowerOff className="w-3.5 h-3.5 mr-1.5" />
-															STOP
-														</>
-													)
-													: (
-														<>
-															<Play className="w-3.5 h-3.5 mr-1.5" />
-															START
-														</>
-													)}
-											</Button>
+											<div className="flex items-center gap-2">
+												{/* Migrate button for local workers */}
+												{(selectedWorker.value.raw.scope || "local") ===
+														"local" && (
+													<Button
+														onClick={() =>
+															handleOpenMigrateDialog(selectedWorker)}
+														size="sm"
+														variant="outline"
+														className="px-3 py-1.5 font-mono text-xs h-8 flex-shrink-0 bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300"
+													>
+														<Upload className="w-3.5 h-3.5 mr-1.5" />
+														MIGRATE
+													</Button>
+												)}
+
+												{/* Start/Stop button */}
+												<Button
+													onClick={handleToggleWorkerStatus}
+													size="sm"
+													disabled={updating}
+													className={`px-3 py-1.5 font-mono text-xs h-8 flex-shrink-0 ${
+														selectedWorker.value.raw.active
+															? "bg-red-500 hover:bg-red-600 text-white"
+															: "bg-green-500 hover:bg-green-600 text-white"
+													}`}
+												>
+													{updating
+														? (
+															<>
+																<Settings className="animate-spin mr-1.5 w-3.5 h-3.5" />
+																...
+															</>
+														)
+														: selectedWorker.value.raw.active
+														? (
+															<>
+																<PowerOff className="w-3.5 h-3.5 mr-1.5" />
+																STOP
+															</>
+														)
+														: (
+															<>
+																<Play className="w-3.5 h-3.5 mr-1.5" />
+																START
+															</>
+														)}
+												</Button>
+											</div>
 										</div>
 									</div>
 
@@ -1146,7 +1371,70 @@ export function AMIEditor(): JSX.Element {
 											className="flex-1 m-0 p-4 overflow-y-auto"
 										>
 											<div className="max-w-2xl mx-auto space-y-3">
-												{/* Row 1: Execution Mode and Priority */}
+												{/* Validation Error */}
+												{validationError && (
+													<Alert className="border-red-500/30 bg-red-500/10">
+														<AlertCircle className="h-4 w-4 text-red-500" />
+														<AlertDescription className="text-red-400">
+															{validationError}
+														</AlertDescription>
+													</Alert>
+												)}
+
+												{/* Row 1: Scope */}
+												<div className="space-y-1.5">
+													<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+														<Database className="w-3 h-3" />
+														<span>Scope</span>
+													</div>
+													<Select
+														value={currentConfig.scope}
+														onValueChange={(value: "local" | "network") =>
+															handleConfigChange("scope", value)}
+													>
+														<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-8">
+															<SelectValue />
+														</SelectTrigger>
+														<SelectContent>
+															<SelectItem value="local">
+																<div className="flex items-center gap-2">
+																	<Server className="w-4 h-4 text-blue-400" />
+																	<span>Local</span>
+																	<span className="text-xs text-muted-foreground">
+																		(This node only)
+																	</span>
+																</div>
+															</SelectItem>
+															<SelectItem value="network">
+																<div className="flex items-center gap-2">
+																	<Cpu className="w-4 h-4 text-green-400" />
+																	<span>Network</span>
+																	<span className="text-xs text-muted-foreground">
+																		(All nodes in network)
+																	</span>
+																</div>
+															</SelectItem>
+														</SelectContent>
+													</Select>
+													<p className="text-xs text-muted-foreground">
+														Where this worker will be stored and visible
+													</p>
+												</div>
+
+												{/* Local Scope Info */}
+												{currentConfig.scope === "local" && (
+													<Alert className="border-blue-500/30 bg-blue-500/10">
+														<AlertCircle className="h-4 w-4 text-blue-500" />
+														<AlertDescription className="text-blue-400 text-xs">
+															<strong>Local scope:</strong>{" "}
+															Worker executes only on this node in leader mode.
+															Parallel and exclusive modes are only available
+															for network scope.
+														</AlertDescription>
+													</Alert>
+												)}
+
+												{/* Row 2: Execution Mode and Priority */}
 												<div className="grid grid-cols-2 gap-3">
 													<div className="space-y-1.5">
 														<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -1163,11 +1451,16 @@ export function AMIEditor(): JSX.Element {
 																<SelectValue />
 															</SelectTrigger>
 															<SelectContent>
-																<SelectItem value="parallel">
+																<SelectItem
+																	value="parallel"
+																	disabled={currentConfig.scope === "local"}
+																>
 																	<div className="flex items-center gap-2">
 																		<span>Parallel</span>
 																		<span className="text-xs text-muted-foreground">
-																			(All nodes)
+																			{currentConfig.scope === "local"
+																				? "(Network only)"
+																				: "(All nodes)"}
 																		</span>
 																	</div>
 																</SelectItem>
@@ -1175,15 +1468,20 @@ export function AMIEditor(): JSX.Element {
 																	<div className="flex items-center gap-2">
 																		<span>Leader</span>
 																		<span className="text-xs text-muted-foreground">
-																			(One node)
+																			(Single node)
 																		</span>
 																	</div>
 																</SelectItem>
-																<SelectItem value="exclusive">
+																<SelectItem
+																	value="exclusive"
+																	disabled={currentConfig.scope === "local"}
+																>
 																	<div className="flex items-center gap-2">
 																		<span>Exclusive</span>
 																		<span className="text-xs text-muted-foreground">
-																			(Assigned)
+																			{currentConfig.scope === "local"
+																				? "(Network only)"
+																				: "(Assigned node)"}
 																		</span>
 																	</div>
 																</SelectItem>
@@ -1437,6 +1735,14 @@ export function AMIEditor(): JSX.Element {
 					onOpenChange={setShowStopAllDialog}
 					onConfirm={handleStopAll}
 					activeWorkersCount={workers.filter((w) => w.value.raw.active).length}
+				/>
+
+				{/* Migrate Worker Dialog */}
+				<MigrateWorkerDialog
+					open={showMigrateDialog}
+					onOpenChange={setShowMigrateDialog}
+					worker={workerToMigrate}
+					onMigrate={handleMigrateWorker}
 				/>
 
 				{/* Stats Panel */}

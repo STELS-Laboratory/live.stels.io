@@ -179,3 +179,17 @@ export const getPriorityColor = (
 	}
 };
 
+/**
+ * Get color class for scope
+ */
+export const getScopeColor = (scope: "local" | "network"): string => {
+	switch (scope) {
+		case "network":
+			return "border-green-400/50 bg-green-400/10 text-green-400";
+		case "local":
+			return "border-blue-400/50 bg-blue-400/10 text-blue-400";
+		default:
+			return "border-muted/50 bg-muted/10 text-muted-foreground";
+	}
+};
+

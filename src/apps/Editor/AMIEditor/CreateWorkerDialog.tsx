@@ -136,7 +136,8 @@ export function CreateWorkerDialog({
     scriptContent: "",
     dependencies: ["gliesereum"],
     version: "1.19.2",
-    executionMode: "parallel",
+    scope: "local",
+    executionMode: "leader",
     priority: "normal",
     mode: "loop",
     note: "",
@@ -172,6 +173,17 @@ export function CreateWorkerDialog({
       return;
     }
 
+    if (
+      formData.scope === "local" &&
+      (formData.executionMode === "parallel" ||
+        formData.executionMode === "exclusive")
+    ) {
+      setError(
+        "Local scope workers can only use leader execution mode (single node)",
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -193,7 +205,8 @@ export function CreateWorkerDialog({
       scriptContent: "",
       dependencies: ["gliesereum"],
       version: "1.19.2",
-      executionMode: "parallel",
+      scope: "local",
+      executionMode: "leader",
       priority: "normal",
       mode: "loop",
       note: "",
@@ -313,7 +326,55 @@ export function CreateWorkerDialog({
           : (
             // Step 2: Configuration
             <div className="space-y-4 py-4">
-              {/* Execution Mode */}
+              {/* Row 1: Scope */}
+              <div className="space-y-2">
+                <Label>Scope *</Label>
+                <Select
+                  value={formData.scope}
+                  onValueChange={(value: "local" | "network") => {
+                    const newFormData = {
+                      ...formData,
+                      scope: value,
+                    };
+                    // Local scope = only leader mode (single node execution)
+                    if (value === "local") {
+                      newFormData.executionMode = "leader";
+                    }
+                    setFormData(newFormData);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="local">
+                      <div className="flex items-center gap-2">
+                        <Server className="w-4 h-4 text-blue-400" />
+                        <span>Local</span>
+                        <span className="text-xs text-muted-foreground">
+                          (This node only)
+                        </span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="network">
+                      <div className="flex items-center gap-2">
+                        <Cpu className="w-4 h-4 text-green-400" />
+                        <span>Network</span>
+                        <span className="text-xs text-muted-foreground">
+                          (All nodes in network)
+                        </span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Choose where this worker will be stored and visible
+                  {formData.scope === "local" &&
+                    " (Only leader mode available for single-node execution)"}
+                </p>
+              </div>
+
+              {/* Row 2: Execution Mode & Priority */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Execution Mode</Label>
@@ -331,12 +392,17 @@ export function CreateWorkerDialog({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="parallel">
+                      <SelectItem
+                        value="parallel"
+                        disabled={formData.scope === "local"}
+                      >
                         <div className="flex items-center gap-2">
                           <Boxes className="w-4 h-4 text-blue-400" />
                           <span>Parallel</span>
                           <span className="text-xs text-muted-foreground">
-                            (All nodes)
+                            {formData.scope === "local"
+                              ? "(Network only)"
+                              : "(All nodes)"}
                           </span>
                         </div>
                       </SelectItem>
@@ -345,16 +411,21 @@ export function CreateWorkerDialog({
                           <Zap className="w-4 h-4 text-amber-400" />
                           <span>Leader</span>
                           <span className="text-xs text-muted-foreground">
-                            (One node)
+                            (Single node)
                           </span>
                         </div>
                       </SelectItem>
-                      <SelectItem value="exclusive">
+                      <SelectItem
+                        value="exclusive"
+                        disabled={formData.scope === "local"}
+                      >
                         <div className="flex items-center gap-2">
                           <Server className="w-4 h-4 text-purple-400" />
                           <span>Exclusive</span>
                           <span className="text-xs text-muted-foreground">
-                            (Assigned)
+                            {formData.scope === "local"
+                              ? "(Network only)"
+                              : "(Assigned node)"}
                           </span>
                         </div>
                       </SelectItem>
@@ -548,6 +619,19 @@ export function CreateWorkerDialog({
                   <div className="space-y-1 text-xs">
                     <p className="text-foreground font-bold">
                       Configuration Summary
+                    </p>
+                    <p className="text-muted-foreground">
+                      <span className="font-medium">Scope:</span>{" "}
+                      <span
+                        className={formData.scope === "network"
+                          ? "text-green-400"
+                          : "text-blue-400"}
+                      >
+                        {formData.scope}
+                      </span>{" "}
+                      ({formData.scope === "local"
+                        ? "this node only"
+                        : "all nodes in network"})
                     </p>
                     <p className="text-muted-foreground">
                       <span className="font-medium">Mode:</span>{" "}
