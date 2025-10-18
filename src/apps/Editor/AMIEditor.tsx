@@ -92,12 +92,12 @@ export function AMIEditor(): JSX.Element {
 	const [isEditingConfig, setIsEditingConfig] = useState(false);
 	const [validationError, setValidationError] = useState<string | null>(null);
 	const [searchTerm, setSearchTerm] = useState("");
-	const [filterActive, setFilterActive] = useState<boolean | null>(null);
+	const [filterActive, setFilterActive] = useState<boolean | null>(null); // Default: All (active and inactive)
 	const [filterExecutionMode, setFilterExecutionMode] = useState<string | null>(
 		null,
 	);
 	const [filterPriority, setFilterPriority] = useState<string | null>(null);
-	const [filterScope, setFilterScope] = useState<string | null>(null);
+	const [filterScope, setFilterScope] = useState<string | null>("local"); // Default: Local only
 	const [sortBy, setSortBy] = useState<"date" | "name" | "status">("date");
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -246,6 +246,14 @@ export function AMIEditor(): JSX.Element {
 			| "single",
 	) => {
 		if (selectedWorker) {
+			// Scope cannot be changed after creation
+			if (field === "scope") {
+				console.warn(
+					"Scope cannot be changed after creation. Use migration instead.",
+				);
+				return;
+			}
+
 			const originalConfig = {
 				scope: selectedWorker.value.raw.scope || "local" as const,
 				executionMode: selectedWorker.value.raw.executionMode ||
@@ -259,11 +267,6 @@ export function AMIEditor(): JSX.Element {
 				nid: selectedWorker.value.raw.nid || "",
 			};
 			const newConfig = { ...currentConfig, [field]: value };
-
-			// If scope changed to local, enforce leader mode (only option for local)
-			if (field === "scope" && value === "local") {
-				newConfig.executionMode = "leader";
-			}
 
 			// Clear validation error when config changes
 			setValidationError(null);
@@ -510,13 +513,30 @@ export function AMIEditor(): JSX.Element {
 				matchesPriority && matchesScope;
 		})
 		.sort((a, b) => {
-			// Sort based on selected criteria
-			let comparison = 0;
+			// Multi-level default sorting: Local > Active > Date
+			if (sortBy === "date") {
+				// 1. Sort by scope (local first)
+				const scopeA = a.value.raw.scope || "local";
+				const scopeB = b.value.raw.scope || "local";
+				if (scopeA !== scopeB) {
+					return scopeA === "local" ? -1 : 1;
+				}
 
+				// 2. Sort by active status (active first)
+				const activeA = a.value.raw.active ? 1 : 0;
+				const activeB = b.value.raw.active ? 1 : 0;
+				if (activeA !== activeB) {
+					return activeB - activeA;
+				}
+
+				// 3. Sort by timestamp (newest first)
+				const comparison = b.value.raw.timestamp - a.value.raw.timestamp;
+				return sortOrder === "asc" ? -comparison : comparison;
+			}
+
+			// Other sorting modes
+			let comparison = 0;
 			switch (sortBy) {
-				case "date":
-					comparison = b.value.raw.timestamp - a.value.raw.timestamp;
-					break;
 				case "name":
 					comparison = a.value.raw.sid.localeCompare(b.value.raw.sid);
 					break;
@@ -581,11 +601,11 @@ export function AMIEditor(): JSX.Element {
 				<Split
 					className="flex h-full"
 					direction="horizontal"
-					sizes={[30, 70]}
+					sizes={[20, 80]}
 					minSize={[280, 400]}
 					gutterSize={1}
 					gutterStyle={() => ({
-						background: "#27272a",
+						background: "red",
 						cursor: "col-resize",
 					})}
 				>
@@ -686,9 +706,14 @@ export function AMIEditor(): JSX.Element {
 										</SelectTrigger>
 										<SelectContent className="bg-muted border-border">
 											<SelectItem value="date-desc" className="text-xs">
-												<div className="flex items-center gap-2">
-													<ArrowDown className="w-3 h-3" />
-													Date (Newest)
+												<div className="flex flex-col gap-0.5">
+													<div className="flex items-center gap-2">
+														<ArrowDown className="w-3 h-3" />
+														Smart Sort (Default)
+													</div>
+													<span className="text-[10px] text-muted-foreground pl-5">
+														Local → Active → Newest
+													</span>
 												</div>
 											</SelectItem>
 											<SelectItem value="date-asc" className="text-xs">
@@ -1381,18 +1406,17 @@ export function AMIEditor(): JSX.Element {
 													</Alert>
 												)}
 
-												{/* Row 1: Scope */}
+												{/* Row 1: Scope (Read-only) */}
 												<div className="space-y-1.5">
 													<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
 														<Database className="w-3 h-3" />
-														<span>Scope</span>
+														<span>Scope (Read-only)</span>
 													</div>
 													<Select
 														value={currentConfig.scope}
-														onValueChange={(value: "local" | "network") =>
-															handleConfigChange("scope", value)}
+														disabled={true}
 													>
-														<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-8">
+														<SelectTrigger className="bg-muted/50 border-border text-card-foreground text-xs h-8 opacity-75 cursor-not-allowed">
 															<SelectValue />
 														</SelectTrigger>
 														<SelectContent>
@@ -1417,7 +1441,24 @@ export function AMIEditor(): JSX.Element {
 														</SelectContent>
 													</Select>
 													<p className="text-xs text-muted-foreground">
-														Where this worker will be stored and visible
+														Scope cannot be changed after creation.
+														{currentConfig.scope === "local" && (
+															<>
+																{" "}Use{" "}
+																<button
+																	onClick={() => {
+																		if (selectedWorker) {
+																			handleOpenMigrateDialog(selectedWorker);
+																		}
+																	}}
+																	className="text-blue-400 hover:text-blue-300 underline font-medium"
+																>
+																	Migrate to Network
+																</button>{" "}
+																to move this worker to network scope with a new
+																ID.
+															</>
+														)}
 													</p>
 												</div>
 
