@@ -594,3 +594,41 @@
         opacity: 0.85;
     }
 }
+
+/* React-Split Gutter Styles */
+.gutter {
+    background-color: #27272a;
+    background-repeat: no-repeat;
+    background-position: 50%;
+    transition: background-color 0.2s ease;
+    position: relative;
+}
+
+.gutter.gutter-horizontal {
+    cursor: col-resize;
+}
+
+.gutter.gutter-vertical {
+    cursor: row-resize;
+}
+
+.gutter:hover {
+    background-color: rgba(245, 158, 11, 0.2) !important;
+}
+
+.gutter:active {
+    background-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+/* Light theme gutter */
+.light .gutter {
+    background-color: #e4e4e7;
+}
+
+.light .gutter:hover {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+}
+
+.light .gutter:active {
+    background-color: rgba(245, 158, 11, 0.25) !important;
+}

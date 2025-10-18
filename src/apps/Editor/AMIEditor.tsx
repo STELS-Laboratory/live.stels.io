@@ -602,15 +602,11 @@ export function AMIEditor(): JSX.Element {
 					className="flex h-full"
 					direction="horizontal"
 					sizes={[20, 80]}
-					minSize={[280, 400]}
-					gutterSize={1}
-					gutterStyle={() => ({
-						background: "red",
-						cursor: "col-resize",
-					})}
+					minSize={[450, 400]}
+					gutterSize={2}
 				>
 					{/* Left Panel - Workers Registry */}
-					<div className="h-full bg-card flex flex-col border-r border-border overflow-hidden">
+					<div className="h-full bg-card flex flex-col overflow-hidden">
 						{/* Header */}
 						<div className="p-4 border-b border-border bg-card">
 							<div className="flex items-center justify-between mb-4">
