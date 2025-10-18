@@ -122,7 +122,7 @@ export function MigrateWorkerDialog({
         {showConfirmation && worker && (
           <div className="space-y-4 py-4">
             {/* Current Worker Info */}
-            <div className="relative p-3 bg-muted/50 border border-border rounded-lg">
+            <div className="relative p-3 bg-muted/50 border border-border rounded">
               <div className="text-xs text-muted-foreground mb-2">
                 Current Worker
               </div>
@@ -165,7 +165,7 @@ export function MigrateWorkerDialog({
             </div>
 
             {/* New Worker Info */}
-            <div className="relative p-3 bg-green-500/5 border border-green-500/30 rounded-lg">
+            <div className="relative p-3 bg-green-500/5 border border-green-500/30 rounded">
               <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-green-500/50" />
               <div className="text-xs text-green-400 mb-2 font-bold">
                 New Worker (Network)
@@ -222,7 +222,7 @@ export function MigrateWorkerDialog({
               </AlertDescription>
             </Alert>
 
-            <div className="relative p-3 bg-muted/50 border border-border rounded-lg">
+            <div className="relative p-3 bg-muted/50 border border-border rounded">
               <div className="text-xs text-muted-foreground mb-2">
                 New Worker Details
               </div>

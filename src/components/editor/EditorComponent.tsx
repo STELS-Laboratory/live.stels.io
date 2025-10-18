@@ -3,6 +3,7 @@ import type { ReactElement } from "react";
 import { useCallback, useEffect, useRef } from "react";
 import type * as monaco from "monaco-editor";
 import { useThemeStore } from "@/stores";
+import { setupWorkerMonacoEditor } from "./monaco/autocomplete.ts";
 
 interface EditorComponentProps {
 	script: string | undefined;
@@ -14,17 +15,27 @@ export default function EditorComponent(
 ): ReactElement {
 	const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 	const monacoRef = useRef<typeof import("monaco-editor") | null>(null);
+	const disposablesRef = useRef<monaco.IDisposable[]>([]);
 	const { resolvedTheme } = useThemeStore();
 
 	const handleEditorDidMount = useCallback((
 		editor: monaco.editor.IStandaloneCodeEditor,
-		monaco: typeof import("monaco-editor"),
+		monacoInstance: typeof import("monaco-editor"),
 	) => {
 		editorRef.current = editor;
-		monacoRef.current = monaco;
+		monacoRef.current = monacoInstance;
+
+		// Setup Worker SDK autocomplete and types
+		const { disposables } = setupWorkerMonacoEditor(monacoInstance, {
+			theme: resolvedTheme === "light" ? "vs-light" : "vs-dark",
+			fontSize: 14,
+			minimap: true,
+		});
+
+		disposablesRef.current = disposables;
 
 		// Define Molokai Dark theme
-		monaco.editor.defineTheme("molokai-dark", {
+		monacoInstance.editor.defineTheme("molokai-dark", {
 			base: "vs-dark",
 			inherit: true,
 			rules: [
@@ -69,7 +80,7 @@ export default function EditorComponent(
 		});
 
 		// Define Molokai Light theme
-		monaco.editor.defineTheme("molokai-light", {
+		monacoInstance.editor.defineTheme("molokai-light", {
 			base: "vs",
 			inherit: true,
 			rules: [
@@ -117,113 +128,35 @@ export default function EditorComponent(
 		const currentTheme = document.documentElement.classList.contains("light")
 			? "molokai-light"
 			: "molokai-dark";
-		monaco.editor.setTheme(currentTheme);
+		monacoInstance.editor.setTheme(currentTheme);
 
-		// Configure JavaScript/TypeScript language features
-		monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-			target: monaco.languages.typescript.ScriptTarget.ES2020,
-			allowNonTsExtensions: true,
-			moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-			module: monaco.languages.typescript.ModuleKind.CommonJS,
-			noEmit: true,
-			esModuleInterop: true,
-			jsx: monaco.languages.typescript.JsxEmit.React,
-			reactNamespace: "React",
-			allowJs: true,
-			typeRoots: ["node_modules/@types"],
-		});
-
-		// Add Stels SDK type definitions
-		const stelsSdkTypes = `
-      declare global {
-        const Stels: {
-          nid: string;
-          sid: string;
-          version: string;
-          timestamp: number;
-          log: (message: any, ...args: any[]) => void;
-          error: (message: any, ...args: any[]) => void;
-          warn: (message: any, ...args: any[]) => void;
-          info: (message: any, ...args: any[]) => void;
-          debug: (message: any, ...args: any[]) => void;
-          fetch: (url: string, options?: RequestInit) => Promise<Response>;
-          storage: {
-            get: (key: string) => Promise<any>;
-            set: (key: string, value: any) => Promise<void>;
-            delete: (key: string) => Promise<void>;
-            clear: () => Promise<void>;
-          };
-          crypto: {
-            hash: (data: string, algorithm?: string) => Promise<string>;
-            encrypt: (data: string, key: string) => Promise<string>;
-            decrypt: (data: string, key: string) => Promise<string>;
-          };
-          utils: {
-            delay: (ms: number) => Promise<void>;
-            uuid: () => string;
-            timestamp: () => number;
-            formatDate: (date: Date, format?: string) => string;
-          };
-        };
-        
-        const console: {
-          log: (message?: any, ...optionalParams: any[]) => void;
-          error: (message?: any, ...optionalParams: any[]) => void;
-          warn: (message?: any, ...optionalParams: any[]) => void;
-          info: (message?: any, ...optionalParams: any[]) => void;
-          debug: (message?: any, ...optionalParams: any[]) => void;
-        };
-      }
-    `;
-
-		monaco.languages.typescript.javascriptDefaults.addExtraLib(
-			stelsSdkTypes,
-			"stels-sdk.d.ts",
-		);
-
-		// Add custom completion provider for Stels SDK
-		monaco.languages.registerCompletionItemProvider("javascript", {
-			provideCompletionItems: (model, position) => {
-				const word = model.getWordUntilPosition(position);
-				const range = {
-					startLineNumber: position.lineNumber,
-					endLineNumber: position.lineNumber,
-					startColumn: word.startColumn,
-					endColumn: word.endColumn,
-				};
-
-				const suggestions = [
-					{
-						label: "Stels.nid",
-						kind: monaco.languages.CompletionItemKind.Property,
-						insertText: "Stels.nid",
-						range: range,
-						documentation: "Node ID",
-					},
-					{
-						label: "Stels.sid",
-						kind: monaco.languages.CompletionItemKind.Property,
-						insertText: "Stels.sid",
-						range: range,
-						documentation: "Session ID",
-					},
-				];
-
-				return { suggestions };
-			},
+		// Format on paste
+		editor.onDidPaste(() => {
+			editor.getAction("editor.action.formatDocument")?.run();
 		});
 
 		// Configure Editor shortcuts
-		editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-			// Trigger save action
-			console.log("Save shortcut triggered");
-		});
+		editor.addCommand(
+			monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.KeyS,
+			() => {
+				// Trigger save action (can be connected to parent component)
+				console.log("Save shortcut triggered (Cmd/Ctrl+S)");
+			},
+		);
 
-		editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
-			// Trigger run action
-			console.log("Run shortcut triggered");
+		editor.addCommand(
+			monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.Enter,
+			() => {
+				// Trigger run action (can be connected to parent component)
+				console.log("Run shortcut triggered (Cmd/Ctrl+Enter)");
+			},
+		);
+
+		// Cleanup disposables on unmount
+		editor.onDidDispose(() => {
+			disposablesRef.current.forEach((d) => d.dispose());
 		});
-	}, []);
+	}, [resolvedTheme]);
 
 	// Update Monaco theme when app theme changes
 	useEffect(() => {
@@ -248,16 +181,16 @@ export default function EditorComponent(
 			options={{
 				// Appearance
 				minimap: { enabled: true, scale: 1 },
-				fontSize: 14,
+				fontSize: 18,
 				fontFamily: "Saira, monospace",
 				fontLigatures: true,
-				lineHeight: 1.6,
-				letterSpacing: 0.5,
+				lineHeight: 1.4,
+				letterSpacing: 0.6,
 
 				// Padding and spacing
-				padding: { top: 16, bottom: 16 },
+				padding: { top: 32, bottom: 32 },
 				lineNumbers: "on",
-				lineNumbersMinChars: 4,
+				lineNumbersMinChars: 0,
 				glyphMargin: true,
 				folding: true,
 				foldingStrategy: "indentation",
@@ -289,16 +222,38 @@ export default function EditorComponent(
 					horizontalScrollbarSize: 12,
 				},
 
-				// IntelliSense
+				// IntelliSense - Professional autocomplete
 				quickSuggestions: {
 					other: true,
 					comments: false,
-					strings: false,
+					strings: true, // Enable in strings for better DX
 				},
 				suggestOnTriggerCharacters: true,
 				acceptSuggestionOnEnter: "on",
+				acceptSuggestionOnCommitCharacter: true,
 				tabCompletion: "on",
-				wordBasedSuggestions: "matchingDocuments",
+				wordBasedSuggestions: "currentDocument",
+				snippetSuggestions: "inline",
+				suggest: {
+					showWords: true,
+					showFunctions: true,
+					showVariables: true,
+					showModules: true,
+					showKeywords: true,
+					showSnippets: true,
+					showProperties: true,
+					showMethods: true,
+					showConstants: true,
+					showClasses: true,
+					showInterfaces: true,
+					insertMode: "replace",
+					filterGraceful: true,
+					localityBonus: true,
+				},
+				parameterHints: {
+					enabled: true,
+					cycle: true,
+				},
 
 				// Validation and diagnostics
 				showUnused: true,
@@ -315,7 +270,25 @@ export default function EditorComponent(
 				matchBrackets: "always",
 				bracketPairColorization: { enabled: true },
 
-				// Comments and strings
+				// Auto-closing
+				autoClosingBrackets: "always",
+				autoClosingQuotes: "always",
+				autoSurround: "languageDefined",
+
+				// Code actions and refactoring
+				codeLens: true,
+				definitionLinkOpensInPeek: false,
+
+				// Hover and links
+				hover: {
+					enabled: true,
+					delay: 300,
+					sticky: true,
+				},
+				links: true,
+				colorDecorators: true,
+
+				// Comments
 				comments: {
 					insertSpace: true,
 					ignoreEmptyLines: true,

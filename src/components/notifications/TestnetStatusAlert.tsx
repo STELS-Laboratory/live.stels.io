@@ -78,7 +78,7 @@ const TestnetStatusAlert: React.FC<TestnetStatusAlertProps> = ({
       )}
     >
       <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent animate-pulse rounded-lg" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent animate-pulse rounded" />
         <Rocket className="h-4 w-4 text-amber-600 dark:text-amber-400 relative z-10" />
       </div>
       <AlertDescription className="space-y-3">
@@ -128,7 +128,7 @@ const TestnetStatusAlert: React.FC<TestnetStatusAlertProps> = ({
           </div>
         </div>
 
-        <div className="p-3 rounded-lg bg-zinc-50 dark:bg-muted/50 border border-zinc-200 dark:border-border">
+        <div className="p-3 rounded bg-zinc-50 dark:bg-muted/50 border border-zinc-200 dark:border-border">
           <div className="flex items-start gap-2">
             <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
             <div>

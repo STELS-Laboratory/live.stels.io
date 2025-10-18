@@ -136,7 +136,7 @@ export function StopAllDialog({
               </AlertDescription>
             </Alert>
 
-            <div className="relative p-4 bg-muted border border-border rounded-lg">
+            <div className="relative p-4 bg-muted border border-border rounded">
               <div className="space-y-2 text-sm">
                 <p className="text-card-foreground font-medium">
                   Workers will be stopped by:

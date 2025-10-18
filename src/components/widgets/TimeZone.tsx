@@ -251,7 +251,7 @@ const TimeZone: React.FC<{ data: TimeZoneWidgetData }> = ({ data }) => {
 						placeholder="Search cities or countries..."
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
-						className="w-full px-4 py-2 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-amber-500 focus:outline-none transition-colors"
+						className="w-full px-4 py-2 bg-card border border-border rounded text-foreground placeholder-muted-foreground focus:border-amber-500 focus:outline-none transition-colors"
 					/>
 				</div>
 
@@ -260,7 +260,7 @@ const TimeZone: React.FC<{ data: TimeZoneWidgetData }> = ({ data }) => {
 					<select
 						value={selectedRegion}
 						onChange={(e) => setSelectedRegion(e.target.value)}
-						className="w-full px-4 py-2 bg-card border border-border rounded-lg text-foreground focus:border-amber-500 focus:outline-none transition-colors"
+						className="w-full px-4 py-2 bg-card border border-border rounded text-foreground focus:border-amber-500 focus:outline-none transition-colors"
 					>
 						{/*{regions.map((region) => (*/}
 						{/*	<option key={region} value={region}>*/}

@@ -102,7 +102,7 @@ function GroupedEdge({
 
           {/* Tooltip on hover */}
           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-            <div className="bg-popover/95 text-foreground text-xs rounded-lg px-3 py-2 backdrop-blur-sm border border-border/50 whitespace-nowrap">
+            <div className="bg-popover/95 text-foreground text-xs rounded px-3 py-2 backdrop-blur-sm border border-border/50 whitespace-nowrap">
               <div className="font-medium mb-1">
                 {data?.groupType || "Unknown"}: {data?.groupKey || "Connection"}
               </div>

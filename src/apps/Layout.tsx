@@ -148,7 +148,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								type="button"
 								onClick={() => navigateTo(item.key)}
 								className={cn(
-									"cursor-pointer flex flex-1 items-center p-3 m-1 justify-center text-sm transition-all duration-150 outline-none rounded-lg",
+									"cursor-pointer flex flex-1 items-center p-3 m-1 justify-center text-sm transition-all duration-150 outline-none rounded",
 									"hover:bg-amber-500/10 hover:text-amber-400",
 									isActive
 										? "text-amber-400 bg-amber-500/20 ring-1 ring-amber-500/30 shadow-sm"
@@ -202,7 +202,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 		<div className="flex flex-col absolute w-[100%] h-[100%] overflow-hidden">
 			<div
 				className={`grid grid-cols-1 ${
-					isDeveloper ? "lg:grid-cols-[80px_1fr]" : ""
+					isDeveloper ? "lg:grid-cols-[60px_1fr]" : ""
 				} gap-0 h-full overflow-hidden`}
 			>
 				{/* Desktop Sidebar - Only for developers */}
@@ -368,7 +368,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 													ease: [0.16, 1, 0.3, 1],
 												}}
 												onClick={handleBackToWelcome}
-												className="relative group flex items-center gap-1 -ml-2 px-2 py-1.5 rounded-lg text-amber-500 hover:opacity-80 active:opacity-60 transition-opacity duration-150"
+												className="relative group flex items-center gap-1 -ml-2 px-2 py-1.5 rounded text-amber-500 hover:opacity-80 active:opacity-60 transition-opacity duration-150"
 												whileHover={{
 													x: -3,
 													transition: { duration: 0.2, ease: "easeOut" },
@@ -496,13 +496,13 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						className="flex flex-1 overflow-y-auto overflow-x-hidden bg-background"
 						data-route-container
 					>
-						<div className="w-full mx-auto pt-2 sm:pt-2 lg:pt-2 flex-1 min-h-0 bg-background">
+						<div className="w-full mx-auto flex-1 min-h-0 bg-background">
 							{children}
 						</div>
 
 						{routeLoading && (
 							<div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-								<div className="bg-card/90 backdrop-blur-sm rounded-lg p-4 border shadow-lg">
+								<div className="bg-card/90 backdrop-blur-sm rounded p-4 border shadow-lg">
 									<div className="flex items-center gap-3">
 										<div className="size-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
 										<span className="text-sm text-muted-foreground">

@@ -409,7 +409,7 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 						<TooltipTrigger asChild>
 							<motion.div
 								whileHover={{ scale: 1.01 }}
-								className="bg-muted/30 dark:bg-black/30 p-2 rounded-lg border border-border/50 cursor-help"
+								className="bg-muted/30 dark:bg-black/30 p-2 rounded border border-border/50 cursor-help"
 							>
 								<div className="text-[10px] text-muted-foreground uppercase tracking-wider">
 									IMBALANCE
@@ -439,7 +439,7 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 						<TooltipTrigger asChild>
 							<motion.div
 								whileHover={{ scale: 1.01 }}
-								className="bg-muted/30 dark:bg-black/30 p-2 rounded-lg border border-border/50 cursor-help"
+								className="bg-muted/30 dark:bg-black/30 p-2 rounded border border-border/50 cursor-help"
 							>
 								<div className="text-[10px] text-muted-foreground uppercase tracking-wider">
 									DEPTH RATIO
@@ -460,7 +460,7 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 						<TooltipTrigger asChild>
 							<motion.div
 								whileHover={{ scale: 1.01 }}
-								className="bg-muted/30 dark:bg-black/30 p-2 rounded-lg border border-border/50 cursor-help"
+								className="bg-muted/30 dark:bg-black/30 p-2 rounded border border-border/50 cursor-help"
 							>
 								<div className="text-[10px] text-muted-foreground uppercase tracking-wider">
 									VWAP
@@ -481,7 +481,7 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 						<TooltipTrigger asChild>
 							<motion.div
 								whileHover={{ scale: 1.01 }}
-								className="bg-muted/30 dark:bg-black/30 p-2 rounded-lg border border-border/50 cursor-help"
+								className="bg-muted/30 dark:bg-black/30 p-2 rounded border border-border/50 cursor-help"
 							>
 								<div className="text-[10px] text-muted-foreground uppercase tracking-wider">
 									VELOCITY
@@ -511,7 +511,7 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 						<TooltipTrigger asChild>
 							<motion.div
 								whileHover={{ scale: 1.01 }}
-								className="bg-muted/30 dark:bg-black/30 p-2 rounded-lg border border-border/50 cursor-help"
+								className="bg-muted/30 dark:bg-black/30 p-2 rounded border border-border/50 cursor-help"
 							>
 								<div className="text-[10px] text-muted-foreground uppercase tracking-wider">
 									VOLATILITY
@@ -527,7 +527,7 @@ export default function OrderBook({ book }: { book: OrderBookData }) {
 					</Tooltip>
 				</TooltipProvider>
 
-				<div className="bg-muted/30 dark:bg-black/30 p-2 rounded-lg border border-border/50 flex flex-col justify-between">
+				<div className="bg-muted/30 dark:bg-black/30 p-2 rounded border border-border/50 flex flex-col justify-between">
 					<div className="text-[10px] text-muted-foreground uppercase tracking-wider">
 						CONTROLS
 					</div>

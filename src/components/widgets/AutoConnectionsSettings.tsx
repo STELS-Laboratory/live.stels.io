@@ -139,13 +139,13 @@ function AutoConnectionsSettings({
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-muted/50 rounded-lg p-2">
+              <div className="bg-muted/50 rounded p-2">
                 <div className="text-muted-foreground">Nodes</div>
                 <div className="text-foreground font-medium">
                   {stats.nodeCount}
                 </div>
               </div>
-              <div className="bg-muted/50 rounded-lg p-2">
+              <div className="bg-muted/50 rounded p-2">
                 <div className="text-muted-foreground">Groups</div>
                 <div className="text-foreground font-medium">
                   {stats.groupCount}
@@ -233,7 +233,7 @@ function AutoConnectionsSettings({
         <div className="pt-2">
           <div
             className={cn(
-              "flex items-center justify-center space-x-2 p-2 rounded-lg text-xs font-medium",
+              "flex items-center justify-center space-x-2 p-2 rounded text-xs font-medium",
               isEnabled
                 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                 : "bg-muted/50 text-muted-foreground border border-border/50",

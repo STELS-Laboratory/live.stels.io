@@ -74,7 +74,7 @@ const TestnetNotification: React.FC<TestnetNotificationProps> = ({
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-zinc-50 dark:bg-muted/50">
+                <div className="flex items-start gap-2 p-3 rounded bg-zinc-50 dark:bg-muted/50">
                   <Settings className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-zinc-900 dark:text-foreground mb-1">
@@ -86,7 +86,7 @@ const TestnetNotification: React.FC<TestnetNotificationProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-zinc-50 dark:bg-muted/50">
+                <div className="flex items-start gap-2 p-3 rounded bg-zinc-50 dark:bg-muted/50">
                   <Code className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-zinc-900 dark:text-foreground mb-1">

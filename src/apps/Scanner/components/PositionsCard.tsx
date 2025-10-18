@@ -31,7 +31,7 @@ export const PositionsCard: React.FC<PositionsCardProps> = ({ positions }) => {
     <Card>
       <CardHeader className="pb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-500/10 rounded-lg">
+          <div className="p-2 bg-blue-500/10 rounded">
             <Activity className="h-5 w-5 text-blue-600" />
           </div>
           <div>

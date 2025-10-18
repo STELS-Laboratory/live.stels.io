@@ -357,7 +357,7 @@ function SonarPortfolio() {
 									</div>
 								)}
 							</div>
-							<div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center">
+							<div className="w-8 h-8 bg-amber-500/20 rounded flex items-center justify-center">
 								<span className="text-amber-500 text-sm font-medium">$</span>
 							</div>
 						</div>
@@ -373,7 +373,7 @@ function SonarPortfolio() {
 									{formatCurrency(metrics.totalLiquidity)}
 								</p>
 							</div>
-							<div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+							<div className="w-8 h-8 bg-blue-500/20 rounded flex items-center justify-center">
 								<span className="text-blue-500 text-sm font-medium">💧</span>
 							</div>
 						</div>
@@ -389,7 +389,7 @@ function SonarPortfolio() {
 									{formatCurrency(metrics.available)}
 								</p>
 							</div>
-							<div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+							<div className="w-8 h-8 bg-green-500/20 rounded flex items-center justify-center">
 								<span className="text-green-500 text-sm font-medium">✓</span>
 							</div>
 						</div>
@@ -405,7 +405,7 @@ function SonarPortfolio() {
 									{(metrics.rate * 100).toFixed(2)}%
 								</p>
 							</div>
-							<div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+							<div className="w-8 h-8 bg-purple-500/20 rounded flex items-center justify-center">
 								<span className="text-purple-500 text-sm font-medium">%</span>
 							</div>
 						</div>
@@ -472,7 +472,7 @@ function SonarPortfolio() {
 							{assets.map((asset) => (
 								<div
 									key={asset.symbol}
-									className={`pl-2 pr-2 rounded-lg border transition-colors cursor-pointer ${
+									className={`pl-2 pr-2 rounded border transition-colors cursor-pointer ${
 										selectedAsset === asset.symbol
 											? "bg-amber-500/10 border-amber-500/30"
 											: "bg-muted/50 border-border hover:bg-muted/70"
@@ -484,7 +484,7 @@ function SonarPortfolio() {
 								>
 									<div className="flex items-center justify-between">
 										<div className="flex items-center space-x-3">
-											<div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center">
+											<div className="w-8 h-8 bg-amber-500/20 rounded flex items-center justify-center">
 												<span className="text-amber-500 text-sm font-bold">
 													{asset.symbol.slice(0, 2)}
 												</span>

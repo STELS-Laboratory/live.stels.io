@@ -10,6 +10,7 @@ export * from "./templates.ts";
 export { CreateWorkerDialog } from "./CreateWorkerDialog.tsx";
 export { LeaderInfoCard } from "./LeaderInfoCard.tsx";
 export { WorkerStatsPanel } from "./WorkerStatsPanel.tsx";
+export { WorkerLogsPanel } from "./WorkerLogsPanel.tsx";
 export { StopAllDialog } from "./StopAllDialog.tsx";
 export { MigrateWorkerDialog } from "./MigrateWorkerDialog.tsx";
 export type { Worker, WorkerCreateRequest, LeaderInfo, WorkerStats } from "../store.ts";

@@ -612,7 +612,7 @@ function Fred() {
 										return (
 											<div
 												key={key}
-												className="flex items-center justify-between p-4 bg-muted/30 rounded-lg"
+												className="flex items-center justify-between p-4 bg-muted/30 rounded"
 											>
 												<div className="flex items-center gap-3">
 													<div
@@ -646,7 +646,7 @@ function Fred() {
 									{countries.map((country) => (
 										<div
 											key={country.country}
-											className="flex items-center justify-between p-4 bg-muted/30 rounded-lg"
+											className="flex items-center justify-between p-4 bg-muted/30 rounded"
 										>
 											<span className="text-base font-semibold">
 												{country.countryName}

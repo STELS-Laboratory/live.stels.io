@@ -249,7 +249,7 @@ export default function GliesereumWallet(): React.ReactElement {
 									<label className="text-xs text-muted-foreground uppercase tracking-wider">
 										Address
 									</label>
-									<div className="font-mono text-sm text-card-foreground bg-muted/50 rounded-lg p-3 border border-border/50 break-all">
+									<div className="font-mono text-sm text-card-foreground bg-muted/50 rounded p-3 border border-border/50 break-all">
 										{wallet.address}
 									</div>
 								</div>
@@ -258,7 +258,7 @@ export default function GliesereumWallet(): React.ReactElement {
 									<label className="text-xs text-muted-foreground uppercase tracking-wider">
 										Card Number
 									</label>
-									<div className="font-mono text-sm text-card-foreground bg-muted/50 rounded-lg p-3 border border-border/50">
+									<div className="font-mono text-sm text-card-foreground bg-muted/50 rounded p-3 border border-border/50">
 										{wallet.number}
 									</div>
 								</div>
@@ -267,7 +267,7 @@ export default function GliesereumWallet(): React.ReactElement {
 									<label className="text-xs text-muted-foreground uppercase tracking-wider">
 										Public Key
 									</label>
-									<div className="font-mono text-xs text-muted-foreground bg-muted/50 rounded-lg p-3 border border-border/50 break-all">
+									<div className="font-mono text-xs text-muted-foreground bg-muted/50 rounded p-3 border border-border/50 break-all">
 										{wallet.publicKey}
 									</div>
 								</div>
@@ -596,7 +596,7 @@ export default function GliesereumWallet(): React.ReactElement {
 									<label className="text-xs text-muted-foreground uppercase tracking-wider">
 										Private Key
 									</label>
-									<div className="font-mono text-xs text-card-foreground bg-muted/50 rounded-lg p-3 border border-border/50 break-all">
+									<div className="font-mono text-xs text-card-foreground bg-muted/50 rounded p-3 border border-border/50 break-all">
 										{privateKey}
 									</div>
 								</div>

@@ -34,7 +34,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 }) => (
   <div
     className={cn(
-      "space-y-1 p-3 rounded-lg transition-all duration-200",
+      "space-y-1 p-3 rounded transition-all duration-200",
       onClick &&
         "cursor-pointer hover:bg-muted/50 hover:scale-[1.02] active:scale-[0.98]",
       className,

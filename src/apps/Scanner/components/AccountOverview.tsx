@@ -44,7 +44,7 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
       <CardHeader className="pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="p-2 bg-primary/10 rounded-lg">
+            <div className="p-2 bg-primary/10 rounded">
               <DollarSign className="h-5 w-5 text-primary" />
             </div>
             <div>
@@ -64,7 +64,7 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
           </div>
         </div>
         {walletData.note && (
-          <div className="mt-3 p-3 bg-muted/50 rounded-lg">
+          <div className="mt-3 p-3 bg-muted/50 rounded">
             <p className="text-sm text-muted-foreground">{walletData.note}</p>
           </div>
         )}
@@ -111,7 +111,7 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
             <p className="text-xs text-muted-foreground font-medium">
               Wallet Address
             </p>
-            <div className="p-2 bg-muted rounded-lg">
+            <div className="p-2 bg-muted rounded">
               <code className="text-xs break-all font-mono text-muted-foreground">
                 {walletData.address}
               </code>

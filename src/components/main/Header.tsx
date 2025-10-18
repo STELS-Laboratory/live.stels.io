@@ -11,7 +11,7 @@ function Header(
 	return (
 		<div className="flex items-center justify-between">
 			<div className="flex items-center space-x-4">
-				<div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+				<div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center">
 					<BarChart3 className="w-6 h-6 " />
 				</div>
 				<div>

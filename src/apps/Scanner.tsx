@@ -1570,7 +1570,7 @@ export default function WalletWidget(): React.ReactElement {
 						{/*			<CardHeader className="pb-3 relative">*/}
 						{/*				<div className="flex items-center justify-between">*/}
 						{/*					<div className="flex items-center gap-2">*/}
-						{/*						<div className="p-2 bg-primary/20 rounded-lg">*/}
+						{/*						<div className="p-2 bg-primary/20 rounded">*/}
 						{/*							<Activity className="w-4 h-4 text-primary" />*/}
 						{/*						</div>*/}
 						{/*						<CardTitle className="text-sm flex items-center">*/}
@@ -1681,7 +1681,7 @@ export default function WalletWidget(): React.ReactElement {
 						{/*				) => (*/}
 						{/*					<div*/}
 						{/*						key={index}*/}
-						{/*						className="group p-3 bg-muted/20 rounded-lg hover:bg-muted/40 transition-all duration-200 border border-transparent hover:border-primary/20"*/}
+						{/*						className="group p-3 bg-muted/20 rounded hover:bg-muted/40 transition-all duration-200 border border-transparent hover:border-primary/20"*/}
 						{/*					>*/}
 						{/*						<div className="space-y-2">*/}
 						{/*							<div className="flex items-start justify-between gap-2">*/}
@@ -1754,7 +1754,7 @@ export default function WalletWidget(): React.ReactElement {
 								<CardHeader className="pb-3">
 									<div className="flex items-center justify-between">
 										<div className="flex items-center gap-3">
-											<div className="p-2 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-lg">
+											<div className="p-2 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded">
 												<Target className="h-5 w-5 text-amber-600" />
 											</div>
 											<div>
@@ -1872,7 +1872,7 @@ export default function WalletWidget(): React.ReactElement {
 									</CardHeader>
 									<CardContent>
 										<div className="space-y-2">
-											<div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+											<div className="flex items-center justify-between p-3 bg-muted/30 rounded">
 												<div className="flex items-center gap-3">
 													<div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
 														<Wallet className="w-4 h-4 text-primary" />
@@ -1919,7 +1919,7 @@ export default function WalletWidget(): React.ReactElement {
 						<div className="flex items-start justify-between">
 							<div className="flex-1 min-w-0">
 								<DialogTitle className="flex items-center gap-3 text-xl font-semibold">
-									<div className="p-2 bg-primary/10 rounded-lg">
+									<div className="p-2 bg-primary/10 rounded">
 										<Wallet className="h-5 w-5 text-primary" />
 									</div>
 									<span>Wallet Analysis Results</span>
@@ -1966,7 +1966,7 @@ export default function WalletWidget(): React.ReactElement {
 									<Card className="border-2 bg-gradient-to-br from-primary/5 to-primary/10">
 										<CardHeader className="pb-4">
 											<div className="flex items-center gap-3">
-												<div className="p-2 bg-primary/20 rounded-lg">
+												<div className="p-2 bg-primary/20 rounded">
 													<Users className="h-5 w-5 text-primary" />
 												</div>
 												<div>
@@ -2066,7 +2066,7 @@ export default function WalletWidget(): React.ReactElement {
 								<Card>
 									<CardHeader className="pb-4">
 										<div className="flex items-center gap-3">
-											<div className="p-2 bg-blue-500/10 rounded-lg">
+											<div className="p-2 bg-blue-500/10 rounded">
 												<Activity className="h-5 w-5 text-blue-600" />
 											</div>
 											<div>

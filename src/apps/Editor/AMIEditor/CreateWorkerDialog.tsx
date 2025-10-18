@@ -601,7 +601,7 @@ export function CreateWorkerDialog({
               {/* Script Preview */}
               <div className="space-y-2">
                 <Label>Script Preview</Label>
-                <div className="relative p-3 bg-muted border border-border rounded-lg">
+                <div className="relative p-3 bg-muted border border-border rounded">
                   <pre className="text-xs text-card-foreground font-mono whitespace-pre-wrap line-clamp-6">
 										{formData.scriptContent}
                   </pre>

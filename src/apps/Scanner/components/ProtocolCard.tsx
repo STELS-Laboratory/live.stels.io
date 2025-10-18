@@ -24,7 +24,7 @@ export const ProtocolCard: React.FC<ProtocolCardProps> = ({ protocol }) => {
     <Card>
       <CardHeader className="pb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-orange-500/10 rounded-lg">
+          <div className="p-2 bg-orange-500/10 rounded">
             <Shield className="h-5 w-5 text-orange-600" />
           </div>
           <div>

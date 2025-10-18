@@ -119,7 +119,7 @@ function NewsBox(
 					return (
 						<div
 							key={index}
-							className={`${styles.bg} rounded-lg p-4 border ${styles.border} ${styles.glow} transition-all duration-300 relative`}
+							className={`${styles.bg} rounded p-4 border ${styles.border} ${styles.glow} transition-all duration-300 relative`}
 						>
 							<div
 								className={`absolute left-0 top-0 bottom-0 w-1 ${styles.indicator} rounded-l-lg`}
@@ -163,7 +163,7 @@ function NewsBox(
 								</div>
 
 								<div
-									className={`flex flex-col items-center ${styles.ratingBg} rounded-lg px-3 py-2 border ${
+									className={`flex flex-col items-center ${styles.ratingBg} rounded px-3 py-2 border ${
 										styles.border.split(" ")[0]
 									}`}
 								>

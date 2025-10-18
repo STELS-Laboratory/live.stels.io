@@ -775,7 +775,7 @@ const OrderBook: React.FC = React.memo(() => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="bg-background p-2 rounded-lg border cursor-help">
+                <div className="bg-background p-2 rounded border cursor-help">
                   <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
                     DEPTH RATIO
                   </div>
@@ -793,7 +793,7 @@ const OrderBook: React.FC = React.memo(() => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="bg-background p-2 rounded-lg border cursor-help">
+                <div className="bg-background p-2 rounded border cursor-help">
                   <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
                     VWAP
                   </div>
@@ -811,7 +811,7 @@ const OrderBook: React.FC = React.memo(() => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="bg-background p-2 rounded-lg border cursor-help">
+                <div className="bg-background p-2 rounded border cursor-help">
                   <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
                     LARGE ORDERS
                   </div>
@@ -829,7 +829,7 @@ const OrderBook: React.FC = React.memo(() => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="bg-background p-2 rounded-lg border cursor-help">
+                <div className="bg-background p-2 rounded border cursor-help">
                   <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
                     MARKET CONC.
                   </div>

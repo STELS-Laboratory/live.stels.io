@@ -85,7 +85,7 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
 
 	return (
 		<div
-			className={`border transition-all cursor-auto bg-card rounded-lg overflow-hidden
+			className={`border transition-all cursor-auto bg-card rounded overflow-hidden
         ${nodeState.maximized ? "w-full h-full" : "w-auto h-auto"} 
         ${nodeState.minimized ? "h-8" : ""}`}
 		>

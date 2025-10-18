@@ -29,7 +29,7 @@ export const AssetBalances: React.FC<AssetBalancesProps> = ({
   <Card>
     <CardHeader className="pb-4">
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-emerald-500/10 rounded-lg">
+        <div className="p-2 bg-emerald-500/10 rounded">
           <Wallet className="h-5 w-5 text-emerald-600" />
         </div>
         <div>

@@ -35,7 +35,7 @@ export const OrdersCard: React.FC<OrdersCardProps> = ({ orders }) => {
     <Card>
       <CardHeader className="pb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-purple-500/10 rounded-lg">
+          <div className="p-2 bg-purple-500/10 rounded">
             <ShoppingCart className="h-5 w-5 text-purple-600" />
           </div>
           <div>

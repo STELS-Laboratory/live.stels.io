@@ -57,6 +57,7 @@ import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
 import { CreateWorkerDialog } from "./AMIEditor/CreateWorkerDialog.tsx";
 import { LeaderInfoCard } from "./AMIEditor/LeaderInfoCard.tsx";
 import { WorkerStatsPanel } from "./AMIEditor/WorkerStatsPanel.tsx";
+import { WorkerLogsPanel } from "./AMIEditor/WorkerLogsPanel.tsx";
 import { StopAllDialog } from "./AMIEditor/StopAllDialog.tsx";
 import { MigrateWorkerDialog } from "./AMIEditor/MigrateWorkerDialog.tsx";
 import {
@@ -597,9 +598,9 @@ export function AMIEditor(): JSX.Element {
 
 	return wallet
 		? (
-			<div className="h-full bg-background">
+			<div className="h-full">
 				<Split
-					className="flex h-full"
+					className="flex h-full bg-background p-0 m-0"
 					direction="horizontal"
 					sizes={[20, 80]}
 					minSize={[450, 400]}
@@ -611,7 +612,7 @@ export function AMIEditor(): JSX.Element {
 						<div className="p-4 border-b border-border bg-card">
 							<div className="flex items-center justify-between mb-4">
 								<div className="flex items-center gap-3">
-									<div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+									<div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
 										<Database className="w-4 h-4 text-amber-400" />
 									</div>
 									<div>
@@ -941,7 +942,7 @@ export function AMIEditor(): JSX.Element {
 									return (
 										<div
 											key={uniqueKey}
-											className={`group relative p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+											className={`group relative p-3 rounded border cursor-pointer transition-all duration-200 ${
 												isSelected
 													? "border-amber-400 bg-amber-400/10 shadow-lg shadow-amber-400/20"
 													: isNewlyCreated
@@ -955,7 +956,7 @@ export function AMIEditor(): JSX.Element {
 												<div className="flex items-center gap-2 flex-1 min-w-0">
 													<div className="relative">
 														<div
-															className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+															className={`w-8 h-8 rounded flex items-center justify-center ${
 																isNewlyCreated
 																	? "bg-green-400/20"
 																	: "bg-secondary/50"
@@ -1142,7 +1143,7 @@ export function AMIEditor(): JSX.Element {
 					</div>
 
 					{/* Right Panel - Code Editor */}
-					<div className="flex flex-col h-full bg-card">
+					<div className="flex flex-col h-full bg-muted">
 						{selectedWorker
 							? (
 								<div className="h-full flex flex-col">
@@ -1150,7 +1151,7 @@ export function AMIEditor(): JSX.Element {
 									<div className="bg-card border-b border-border px-4 py-3">
 										<div className="flex items-center justify-between">
 											<div className="flex items-center gap-3 flex-1 min-w-0">
-												<div className="w-9 h-9 bg-muted rounded-lg flex items-center justify-center relative flex-shrink-0">
+												<div className="w-9 h-9 bg-muted rounded flex items-center justify-center relative flex-shrink-0">
 													<Terminal className="w-4 h-4 text-amber-400" />
 													{selectedWorker.value.raw.active && (
 														<div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse border-2 border-card" />
@@ -1308,9 +1309,9 @@ export function AMIEditor(): JSX.Element {
 									<Tabs
 										value={activeTab}
 										onValueChange={setActiveTab}
-										className="flex-1 flex flex-col min-h-0"
+										className="flex-1 flex flex-col min-h-0 p-0 m-0 gap-0"
 									>
-										<div className="bg-card border-b border-border px-4 pt-2">
+										<div className="bg-card border-b border-border px-4 py-3">
 											<div className="flex items-center justify-between">
 												<TabsList className="bg-muted/30 p-0.5 h-8">
 													<TabsTrigger
@@ -1333,6 +1334,13 @@ export function AMIEditor(): JSX.Element {
 													>
 														<FileText className="w-3 h-3 mr-1.5" />
 														Notes
+													</TabsTrigger>
+													<TabsTrigger
+														value="logs"
+														className="text-xs h-7 px-3"
+													>
+														<Terminal className="w-3 h-3 mr-1.5" />
+														Logs
 													</TabsTrigger>
 													{selectedWorker.value.raw.executionMode ===
 															"leader" && (
@@ -1389,9 +1397,9 @@ export function AMIEditor(): JSX.Element {
 										{/* Tab: Configuration */}
 										<TabsContent
 											value="config"
-											className="flex-1 m-0 p-4 overflow-y-auto"
+											className="flex-1 m-0 p-4 overflow-y-auto bg-surface"
 										>
-											<div className="max-w-2xl mx-auto space-y-3">
+											<div className="max-w-2xl mx-auto space-y-3 bg-muted p-4 border rounded">
 												{/* Validation Error */}
 												{validationError && (
 													<Alert className="border-red-500/30 bg-red-500/10">
@@ -1716,6 +1724,16 @@ export function AMIEditor(): JSX.Element {
 											</div>
 										</TabsContent>
 
+										{/* Tab: Logs */}
+										<TabsContent
+											value="logs"
+											className="flex-1 m-0 p-0 min-h-0 gap-0"
+										>
+											<WorkerLogsPanel
+												workerId={selectedWorker.value.raw.sid}
+											/>
+										</TabsContent>
+
 										{/* Tab: Leader Info */}
 										{selectedWorker.value.raw.executionMode ===
 												"leader" && (
@@ -1738,7 +1756,7 @@ export function AMIEditor(): JSX.Element {
 								/* No Worker Selected */
 								<div className="h-full flex items-center justify-center">
 									<div className="text-center max-w-md">
-										<div className="w-20 h-20 bg-muted rounded-xl flex items-center justify-center mb-6 mx-auto">
+										<div className="w-20 h-20 bg-muted rounded flex items-center justify-center mb-6 mx-auto">
 											<Code className="w-10 h-10 text-amber-400" />
 										</div>
 										<h3 className="text-amber-400 font-mono text-xl font-bold mb-2">
@@ -1747,7 +1765,7 @@ export function AMIEditor(): JSX.Element {
 										<p className="text-muted-foreground text-sm mb-6">
 											Select a protocol from the registry to start editing
 										</p>
-										<div className="px-4 py-2 bg-muted rounded-lg inline-block">
+										<div className="px-4 py-2 bg-muted rounded inline-block">
 											<div className="text-xs text-muted-foreground font-mono flex items-center gap-2">
 												<Terminal className="w-3 h-3" />
 												Ready for development
@@ -1821,9 +1839,9 @@ export function AMIEditor(): JSX.Element {
 					</p>
 
 					<div className="space-y-4">
-						<div className="bg-card/50 border border-border rounded-lg p-4">
+						<div className="bg-card/50 border border-border rounded p-4">
 							<div className="flex items-center gap-3 mb-3">
-								<div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+								<div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
 									<Database className="w-4 h-4 text-blue-400" />
 								</div>
 								<span className="text-card-foreground font-mono text-sm font-bold">
@@ -1835,9 +1853,9 @@ export function AMIEditor(): JSX.Element {
 							</p>
 						</div>
 
-						<div className="bg-card/50 border border-border rounded-lg p-4">
+						<div className="bg-card/50 border border-border rounded p-4">
 							<div className="flex items-center gap-3 mb-3">
-								<div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+								<div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
 									<Code className="w-4 h-4 text-green-400" />
 								</div>
 								<span className="text-card-foreground font-mono text-sm font-bold">
@@ -1852,13 +1870,13 @@ export function AMIEditor(): JSX.Element {
 
 					<Button
 						onClick={() => setRoute("wallet")}
-						className="mt-8 bg-amber-500 hover:bg-amber-600 text-black font-mono text-sm font-bold px-8 py-3 rounded-lg shadow-lg shadow-amber-400/20 transition-all duration-200 hover:shadow-amber-400/30"
+						className="mt-8 bg-amber-500 hover:bg-amber-600 text-black font-mono text-sm font-bold px-8 py-3 rounded shadow-lg shadow-amber-400/20 transition-all duration-200 hover:shadow-amber-400/30"
 					>
 						<Zap className="w-4 h-4 mr-2" />
 						CONNECT WALLET
 					</Button>
 
-					<div className="mt-6 px-4 py-2 bg-muted/50 rounded-lg inline-block">
+					<div className="mt-6 px-4 py-2 bg-muted/50 rounded inline-block">
 						<div className="text-xs text-muted-foreground font-mono flex items-center gap-2">
 							<Server className="w-3 h-3" />
 							Secure Web3 connection required

@@ -43,7 +43,7 @@ export function DragPreview({
     <div
       className={cn(
         "fixed pointer-events-none transition-all duration-200",
-        "bg-amber-500 text-black dark:text-black rounded-lg shadow-lg border-2 border-amber-400",
+        "bg-amber-500 text-black dark:text-black rounded shadow-lg border-2 border-amber-400",
       )}
       style={{
         left: position.x,
@@ -78,7 +78,7 @@ export function DropZoneIndicator({
 
   return (
     <div
-      className="fixed pointer-events-none border-2 border-dashed border-amber-500 bg-amber-500/10 rounded-lg transition-all duration-200"
+      className="fixed pointer-events-none border-2 border-dashed border-amber-500 bg-amber-500/10 rounded transition-all duration-200"
       style={{
         left: position.x,
         top: position.y,

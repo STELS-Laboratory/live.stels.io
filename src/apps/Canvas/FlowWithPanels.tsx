@@ -540,7 +540,7 @@ function FlowWithPanels(): React.ReactElement | null {
 				{/* Panel transition overlay */}
 				{isPanelTransitioning && (
 					<div className="absolute inset-0 z-50 bg-background/60 backdrop-blur-sm flex items-center justify-center">
-						<div className="bg-card/95 rounded-lg px-6 py-4 shadow-lg border border-border">
+						<div className="bg-card/95 rounded px-6 py-4 shadow-lg border border-border">
 							<div className="flex items-center space-x-3">
 								<div className="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-500">
 								</div>

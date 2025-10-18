@@ -352,7 +352,7 @@ const HeterogenComponent = (): ReactElement => {
 				<CardHeader className="pb-3">
 					<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
 						<div className="flex items-center gap-3">
-							<div className="p-2 bg-white/10 rounded-lg backdrop-blur-sm">
+							<div className="p-2 bg-white/10 rounded backdrop-blur-sm">
 								<Server className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
 							</div>
 							<div>
@@ -403,19 +403,19 @@ const HeterogenComponent = (): ReactElement => {
 				<CardContent className="space-y-3 sm:space-y-4">
 					{/* Network Health */}
 					<div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-						<div className="text-center p-2 sm:p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+						<div className="text-center p-2 sm:p-3 bg-white/10 rounded backdrop-blur-sm">
 							<div className="text-xs text-card-foreground mb-1">UPTIME</div>
 							<div className="text-sm sm:text-lg font-bold text-emerald-400">
 								{health.uptime.toFixed(1)}%
 							</div>
 						</div>
-						<div className="text-center p-2 sm:p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+						<div className="text-center p-2 sm:p-3 bg-white/10 rounded backdrop-blur-sm">
 							<div className="text-xs text-card-foreground mb-1">LATENCY</div>
 							<div className="text-sm sm:text-lg font-bold text-blue-400">
 								{health.latency.toFixed(0)}ms
 							</div>
 						</div>
-						<div className="text-center p-2 sm:p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+						<div className="text-center p-2 sm:p-3 bg-white/10 rounded backdrop-blur-sm">
 							<div className="text-xs text-card-foreground mb-1">
 								CONNECTIONS
 							</div>
@@ -423,7 +423,7 @@ const HeterogenComponent = (): ReactElement => {
 								{health.connections}
 							</div>
 						</div>
-						<div className="text-center p-2 sm:p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+						<div className="text-center p-2 sm:p-3 bg-white/10 rounded backdrop-blur-sm">
 							<div className="text-xs text-card-foreground mb-1">STATUS</div>
 							<Badge
 								variant={getStatusBadgeVariant(health.status)}
@@ -624,7 +624,7 @@ const HeterogenComponent = (): ReactElement => {
 					pointLabel={(d: NodeData) => {
 						const health = generateNetworkHealth();
 						return (
-							<div className="p-4 bg-card/95 border border-border rounded-lg backdrop-blur-sm max-w-xs">
+							<div className="p-4 bg-card/95 border border-border rounded backdrop-blur-sm max-w-xs">
 								<div className="flex items-center gap-2 mb-2">
 									<h3 className="text-sm font-bold text-foreground">{d.name}</h3>
 									<Badge
@@ -752,13 +752,13 @@ const HeterogenComponent = (): ReactElement => {
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="grid grid-cols-3 gap-3">
-							<div className="text-center p-3 bg-muted/20 rounded-lg">
+							<div className="text-center p-3 bg-muted/20 rounded">
 								<div className="text-xs text-muted-foreground mb-1">NODES</div>
 								<div className="text-xl font-bold text-emerald-400">
 									{stats.totalNodes}
 								</div>
 							</div>
-							<div className="text-center p-3 bg-muted/20 rounded-lg">
+							<div className="text-center p-3 bg-muted/20 rounded">
 								<div className="text-xs text-muted-foreground mb-1">
 									NETWORKS
 								</div>
@@ -766,7 +766,7 @@ const HeterogenComponent = (): ReactElement => {
 									{stats.uniqueNetworks}
 								</div>
 							</div>
-							<div className="text-center p-3 bg-muted/20 rounded-lg">
+							<div className="text-center p-3 bg-muted/20 rounded">
 								<div className="text-xs text-muted-foreground mb-1">
 									COUNTRIES
 								</div>
@@ -838,19 +838,19 @@ const HeterogenComponent = (): ReactElement => {
 				<Card className="bg-card/80 border-border/30 backdrop-blur-xl shadow-2xl">
 					<CardContent className="p-3">
 						<div className="grid grid-cols-3 gap-2">
-							<div className="text-center p-2 bg-white/10 rounded-lg backdrop-blur-sm">
+							<div className="text-center p-2 bg-white/10 rounded backdrop-blur-sm">
 								<div className="text-xs text-card-foreground mb-1">NODES</div>
 								<div className="text-lg font-bold text-emerald-400">
 									{stats.totalNodes}
 								</div>
 							</div>
-							<div className="text-center p-2 bg-white/10 rounded-lg backdrop-blur-sm">
+							<div className="text-center p-2 bg-white/10 rounded backdrop-blur-sm">
 								<div className="text-xs text-card-foreground mb-1">NETWORKS</div>
 								<div className="text-lg font-bold text-blue-400">
 									{stats.uniqueNetworks}
 								</div>
 							</div>
-							<div className="text-center p-2 bg-white/10 rounded-lg backdrop-blur-sm">
+							<div className="text-center p-2 bg-white/10 rounded backdrop-blur-sm">
 								<div className="text-xs text-card-foreground mb-1">COUNTRIES</div>
 								<div className="text-lg font-bold text-amber-400">
 									{stats.uniqueCountries}
