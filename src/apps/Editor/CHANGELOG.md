@@ -13,18 +13,55 @@
   - Download logs functionality
   - Connection status indicator
   - Line counter
+  - **Linux Terminal Design** - classic green-on-black terminal style
+  - Scanlines effect (CRT monitor simulation)
+  - Terminal header with macOS-style buttons
+  - Unix-style prompt (`worker@stels:~/workerId$`)
+  - Blinking cursor indicator
+  - Terminal prompt symbol (`›`) for each log line
+
+- **Keyboard Shortcuts**
+  - `⌘S` / `Ctrl+S` - Save all changes (code, notes, config)
+  - Smart detection - only saves when there are changes
+  - Prevents browser's default save dialog
+  - Cross-platform support (macOS, Windows, Linux)
+  - Visual tooltip on Save All button
+
+### 🎨 UX Improvements
+
+- **Worker Switching**
+  - Auto-clear previous worker's logs
+  - Visual separator with timestamp and worker ID
+  - Prevents confusion between workers
+  - Cyan-colored separator for visibility
+
+- **Terminal UI**
+  - Linux-style terminal design
+  - Green monospace text on black background
+  - Scanlines effect for retro CRT look
+  - macOS-style window controls (● ● ●)
+  - Unix-style prompt display
+  - Blinking cursor when connected
+  - Prompt symbol (`›`) for each log line
 
 ### 📚 Documentation
 
-- Added `WORKER_LOGS.md` - comprehensive guide for logs integration
+- Added `HOTKEYS.md` - keyboard shortcuts guide
+- Added `TERMINAL_DESIGN.md` - Linux terminal styling documentation
+- Added `SSE_PARSING_FIX.md` - detailed explanation of SSE parsing
+- Added `SECURITY_NOTES.md` - security guide for authenticated SSE
 - Updated API documentation references
 
 ### 🔧 Technical
 
 - Integration with Worker Logs API (`/api/worker/logs/stream`)
-- Server-Sent Events (SSE) implementation
+- Server-Sent Events (SSE) implementation with proper chunk buffering
+- Authentication via fetch headers (fetch + ReadableStream, not EventSource)
 - Circular buffer pattern for memory optimization
 - Automatic reconnection on connection loss
+- Keyboard event listeners with proper cleanup
+- Cross-platform hotkey detection (metaKey vs ctrlKey)
+- Auto-clear logs on worker switch with visual separator
 
 ---
 

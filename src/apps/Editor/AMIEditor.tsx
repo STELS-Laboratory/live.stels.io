@@ -150,6 +150,28 @@ export function AMIEditor(): JSX.Element {
 		}
 	}, [newlyCreatedWorker]);
 
+	// Hotkey: Cmd+S / Ctrl+S to save changes
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent): void => {
+			// Check for Cmd+S (Mac) or Ctrl+S (Windows/Linux)
+			if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+				e.preventDefault(); // Prevent browser's save dialog
+
+				// Only save if there are changes and a worker is selected
+				if (selectedWorker && (isEditing || isEditingNote || isEditingConfig)) {
+					handleSaveAll();
+				}
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedWorker, isEditing, isEditingNote, isEditingConfig]);
+
 	const handleCreateWorker = async (
 		request: WorkerCreateRequest,
 	): Promise<void> => {
@@ -1374,9 +1396,13 @@ export function AMIEditor(): JSX.Element {
 															size="sm"
 															className="text-xs h-7 px-3 bg-amber-500 hover:bg-amber-600 text-black"
 															disabled={updating}
+															title="Save all changes (⌘S / Ctrl+S)"
 														>
 															<Save className="w-3 h-3 mr-1" />
 															Save All
+															<kbd className="ml-2 px-1.5 py-0.5 text-[10px] bg-black/20 rounded border border-black/30">
+																⌘S
+															</kbd>
 														</Button>
 													</div>
 												)}
