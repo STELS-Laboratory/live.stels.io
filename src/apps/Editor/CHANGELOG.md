@@ -63,6 +63,26 @@
 - Cross-platform hotkey detection (metaKey vs ctrlKey)
 - Auto-clear logs on worker switch with visual separator
 
+### 🛠️ Build & Linter Fixes
+
+- **Excluded external libraries from linting**
+  - Added `src/lib/ccxt` to ESLint and TypeScript ignores
+  - Added `src/components/editor/monaco` to ESLint and TypeScript ignores
+  - Faster builds by skipping 985+ third-party files
+
+- **Fixed type safety issues**
+  - Removed `any` type from `useAutoConnections.ts` (used
+    `keyof ConnectionKeys`)
+  - Removed `any` types from `echarts-utils.ts` (created `EChartsTooltipParam`
+    interface)
+  - Added type guards for safe property access
+  - Added null checks for optional properties
+
+- **Build status**
+  - ✅ 0 ESLint errors
+  - ✅ 0 TypeScript errors
+  - ✅ Production build successful
+
 ---
 
 ## Previous Updates

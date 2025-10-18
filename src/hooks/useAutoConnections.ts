@@ -87,8 +87,8 @@ export function useAutoConnections(
 	}, [config.groupByKeys, updateConfig]);
 
 	// Toggle grouping key
-	const toggleGroupingKey = useCallback((key: string) => {
-		if (config.groupByKeys.includes(key as any)) {
+	const toggleGroupingKey = useCallback((key: keyof ConnectionKeys) => {
+		if (config.groupByKeys.includes(key)) {
 			removeGroupingKey(key);
 		} else {
 			addGroupingKey(key);

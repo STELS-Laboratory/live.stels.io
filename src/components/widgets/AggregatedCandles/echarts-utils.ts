@@ -105,15 +105,28 @@ export const createExchangeLineSeries = (
 };
 
 /**
+ * ECharts tooltip parameter type
+ */
+interface EChartsTooltipParam {
+	componentSubType?: string;
+	data?: number | number[] | [number, number, number, number, number];
+	seriesName?: string;
+	color?: string;
+}
+
+/**
  * Get ECharts tooltip formatter for candlestick data
  */
-export const getCandlestickTooltipFormatter = (params: any): string => {
-	if (!Array.isArray(params) || params.length === 0) return "";
+export const getCandlestickTooltipFormatter = (
+	params: EChartsTooltipParam | EChartsTooltipParam[],
+): string => {
+	const paramsArray = Array.isArray(params) ? params : [params];
+	if (paramsArray.length === 0) return "";
 
 	const lines: string[] = [];
 
-	params.forEach((param: any) => {
-		if (param.componentSubType === "candlestick" && param.data) {
+	paramsArray.forEach((param: EChartsTooltipParam) => {
+		if (param.componentSubType === "candlestick" && param.data && Array.isArray(param.data) && param.data.length === 5) {
 			const [time, open, close, low, high] = param.data;
 			const date = new Date(time).toLocaleString();
 			const change = close - open;
@@ -146,17 +159,17 @@ export const getCandlestickTooltipFormatter = (params: any): string => {
 			);
 			lines.push(`<span>Change:</span><span style="font-family: monospace; color: ${color};">${change >= 0 ? "+" : ""}${change.toFixed(2)} (${changePercent}%)</span>`);
 			lines.push(`</div>`);
-		} else if (param.componentSubType === "bar" && param.data) {
+		} else if (param.componentSubType === "bar" && param.data && typeof param.data === "number") {
 			lines.push(
 				`<div style="display: flex; justify-content: space-between; gap: 20px; margin-top: 8px;">`,
 			);
 			lines.push(`<span>Volume:</span><span style="font-family: monospace;">${param.data.toFixed(2)}</span>`);
 			lines.push(`</div>`);
-		} else if (param.componentSubType === "line" && param.seriesName) {
+		} else if (param.componentSubType === "line" && param.seriesName && param.data && Array.isArray(param.data) && param.data.length >= 2) {
 			lines.push(
 				`<div style="display: flex; justify-content: space-between; gap: 20px; margin-top: 4px;">`,
 			);
-			lines.push(`<span style="color: ${param.color};">●</span>`);
+			lines.push(`<span style="color: ${param.color || "#666"};">●</span>`);
 			lines.push(`<span>${param.seriesName}:</span>`);
 			lines.push(`<span style="font-family: monospace;">${param.data[1].toFixed(2)}</span>`);
 			lines.push(`</div>`);
