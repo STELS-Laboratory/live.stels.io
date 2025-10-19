@@ -1,6 +1,6 @@
 const exchangeId = "bybit";
 const category = "spot";
-const symbol = "SOLUSDT".toUpperCase();
+const symbol = "BTCUSDT".toUpperCase();
 const depth = "200";
 const endpoint = "wss://stream.bybit.com";
 const url = `${endpoint}/v5/public/${category}`;
@@ -145,7 +145,7 @@ function buildTickerData({ orderBook, lastPrice, tickerInfo, ts }) {
         {
           type: "div",
           className:
-            "flex flex-col gap-2 py-4 cursor-pointer hover:bg-zinc-800/50 rounded-lg transition-colors",
+            "flex flex-col gap-2 p-2 cursor-pointer hover:bg-zinc-800/50 rounded transition-colors",
           events: {
             onClick: {
               type: "openModal",
@@ -172,57 +172,62 @@ function buildTickerData({ orderBook, lastPrice, tickerInfo, ts }) {
           children: [
             {
               type: "div",
-              className: "flex items-baseline gap-3",
+              className: "flex flex-col items-baseline gap-3",
               children: [
                 {
-                  type: "span",
+                  type: "div",
                   text: "${data.last}",
                   format: {
                     type: "number",
                     decimals: 2,
                   },
-                  className: "text-[32px] font-bold text-white",
+                  className: "text-[32px] font-bold",
                 },
                 {
-                  type: "span",
-                  text: "${data.change}",
-                  format: {
-                    type: "number",
-                    decimals: 2,
-                  },
-                  className: "text-base font-semibold",
-                  style: {
-                    color: {
-                      condition: {
-                        key: "data.change",
-                        operator: ">",
-                        value: 0,
+                  type: "div",
+                  children: [
+                    {
+                      type: "span",
+                      text: "${data.change}",
+                      format: {
+                        type: "number",
+                        decimals: 2,
                       },
-                      true: "#00C853",
-                      false: "#D50000",
-                    },
-                  },
-                },
-                {
-                  type: "span",
-                  text: "({data.percentage}%)",
-                  format: {
-                    type: "number",
-                    decimals: 2,
-                  },
-                  className: "text-base",
-                  style: {
-                    color: {
-                      condition: {
-                        key: "data.percentage",
-                        operator: ">",
-                        value: 0,
+                      className: "text-sm font-semibold",
+                      style: {
+                        color: {
+                          condition: {
+                            key: "data.change",
+                            operator: ">",
+                            value: 0,
+                          },
+                          true: "#00C853",
+                          false: "#D50000",
+                        },
                       },
-                      true: "#00C853",
-                      false: "#D50000",
                     },
-                  },
-                },
+                    {
+                      type: "span",
+                      text: "({data.percentage}%)",
+                      format: {
+                        type: "number",
+                        decimals: 2,
+                      },
+                      className: "pl-2 text-sm",
+                      style: {
+                        color: {
+                          condition: {
+                            key: "data.percentage",
+                            operator: ">",
+                            value: 0,
+                          },
+                          true: "#00C853",
+                          false: "#D50000",
+                        },
+                      },
+                    },
+                  ]
+                }
               ],
             },
             {

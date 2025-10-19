@@ -11,16 +11,14 @@ import {
 } from "@/components/ui/tooltip.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Progress } from "@/components/ui/progress.tsx";
-import {
-	Boxes,
-	CircleX,
-	Code,
-	Home,
-} from "lucide-react";
+import { Boxes, CircleX, Code, Home, Layout as LayoutIcon } from "lucide-react";
 import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
 import { navigateTo } from "@/lib/router.ts";
 import { ConnectionStatusSimple } from "@/components/auth/ConnectionStatusSimple.tsx";
-import { ThemeToggle, ThemeToggleCompact } from "@/components/ui/theme-toggle.tsx";
+import {
+	ThemeToggle,
+	ThemeToggleCompact,
+} from "@/components/ui/theme-toggle.tsx";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface LayoutProps {
@@ -65,6 +63,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 			welcome: "Welcome",
 			editor: "Editor",
 			canvas: "Canvas",
+			schemas: "Schemas",
 		};
 		return names[route] || route;
 	};
@@ -76,6 +75,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 	const systemNav: NavItem[] = [
 		{ key: "canvas", label: "Canvas", icon: Boxes },
 		{ key: "editor", label: "Editor", icon: Code },
+		{ key: "schemas", label: "Schemas", icon: LayoutIcon },
 	].filter((i) => allowedRoutes.includes(i.key));
 
 	const renderNavItem = (

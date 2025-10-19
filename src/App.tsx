@@ -10,6 +10,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { AnimatePresence, motion } from "framer-motion";
 import Welcome from "@/apps/Welcome";
 import Flow from "@/apps/Canvas/Flow";
+import Schemas from "@/apps/Schemas";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/apps/Layout.tsx";
 import { AMIEditor } from "@/apps/Editor/AMIEditor";
@@ -588,6 +589,8 @@ export default function Dashboard(): React.ReactElement {
 						<Flow />
 					</ReactFlowProvider>
 				);
+			case "schemas":
+				return <Schemas />;
 			default:
 				return <Welcome />;
 		}

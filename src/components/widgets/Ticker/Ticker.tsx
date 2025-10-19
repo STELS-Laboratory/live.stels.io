@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
 import { filterSession } from "@/lib";
-import UIRenderer from "@/lib/gui/ui.ts";
+import { UIEngineProvider, UIRenderer } from "@/lib/gui/ui.ts";
+import type { UINode } from "@/lib/gui/ui.ts";
 
 interface TickerData {
 	key: string;
@@ -9,7 +10,7 @@ interface TickerData {
 		channel: string;
 		module: string;
 		widget: string;
-		ui: any;
+		ui: UINode;
 		raw: {
 			exchange: string;
 			market: string;
@@ -33,6 +34,12 @@ interface TickerData {
 /**
  * Ticker component that renders real-time cryptocurrency ticker data
  * using UIRenderer with data from WebSocket session.
+ *
+ * Features:
+ * - Automatic refresh based on schema refresh intervals
+ * - Modal integration for detailed views
+ * - Session storage integration
+ * - Performance optimized with memoization
  */
 function Ticker(): React.ReactElement {
 	const session = useSessionStoreSync() as Record<string, unknown> | null;
@@ -57,7 +64,7 @@ function Ticker(): React.ReactElement {
 		return (): void => {
 			clearInterval(intervalId);
 		};
-	}, [spotTickers.length]);
+	}, [spotTickers]);
 
 	if (!session || spotTickers.length === 0) {
 		return (
@@ -73,23 +80,25 @@ function Ticker(): React.ReactElement {
 	}
 
 	return (
-		<div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-			{spotTickers.map((ticker) => {
-				const { ui, raw, active, timestamp } = ticker.value;
+		<UIEngineProvider>
+			<div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+				{spotTickers.map((ticker) => {
+					const { ui, raw, active, timestamp } = ticker.value;
 
-				const renderData = {
-					...raw,
-					active,
-					timestamp,
-				};
+					const renderData = {
+						...raw,
+						active,
+						timestamp,
+					};
 
-				return (
-					<div key={ticker.key}>
-						<UIRenderer schema={ui} data={renderData} />
-					</div>
-				);
-			})}
-		</div>
+					return (
+						<div key={ticker.key}>
+							<UIRenderer schema={ui} data={renderData} />
+						</div>
+					);
+				})}
+			</div>
+		</UIEngineProvider>
 	);
 }
 

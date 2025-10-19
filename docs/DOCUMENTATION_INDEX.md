@@ -5,8 +5,8 @@
 Complete technical documentation for STELS Web3 OS, a professional-grade
 decentralized trading platform.
 
-**Version:** 0.12.8\
-**Last Updated:** 2025-10-17\
+**Version:** 0.12.9\
+**Last Updated:** 2025-10-19\
 **License:** © 2024 Gliesereum Ukraine. All rights reserved.
 
 ## Documentation Structure
@@ -76,6 +76,130 @@ decentralized trading platform.
 **Target Audience:** Senior developers, architects, technical leads
 
 **Estimated Reading Time:** 30 minutes
+
+---
+
+#### [GUI_TECHNOLOGY_SUMMARY.md](GUI_TECHNOLOGY_SUMMARY.md)
+
+**Executive summary of GUI architecture**
+
+**Contents:**
+
+- Overview of Data-Driven UI Rendering
+- Key innovations (SDUI, declarative schemas, dynamic rendering)
+- Technical stack and components
+- Usage examples and patterns
+- Advantages and trade-offs
+- Performance metrics
+- Comparison with alternatives
+- Use cases and recommendations
+- Improvement roadmap
+- Security considerations
+- Quick start guide
+
+**Target Audience:** All developers, technical leads, product managers
+
+**Estimated Reading Time:** 15 minutes
+
+---
+
+#### [GUI_ARCHITECTURE_ANALYSIS.md](GUI_ARCHITECTURE_ANALYSIS.md)
+
+**In-depth technical analysis of GUI system**
+
+**Contents:**
+
+- Architecture overview and conceptual model
+- Core components (Workers, UIRenderer, Session Sync)
+- Complete data flow analysis
+- Technical deep dive (interpolation, conditions, styling)
+- Design patterns (SDUI, polling, composition)
+- Performance analysis and benchmarks
+- Security considerations and mitigations
+- Detailed advantages and trade-offs
+- Use cases and applications
+- Potential improvements and roadmap
+- Comprehensive comparison with alternatives
+
+**Target Audience:** Senior developers, architects, system designers
+
+**Estimated Reading Time:** 60 minutes
+
+---
+
+#### [GUI_PATTERNS_AND_EXAMPLES.md](GUI_PATTERNS_AND_EXAMPLES.md)
+
+**Practical patterns and examples for GUI development**
+
+**Contents:**
+
+- Schema design patterns (composite widgets, conditional layouts)
+- Advanced interpolation techniques
+- Dynamic styling techniques (gradients, responsive sizes)
+- Event handling patterns
+- Performance optimization strategies
+- Common pitfalls and solutions
+- Testing strategies (schema, interpolation, rendering, integration)
+- Real-world widget examples (orderbook, portfolio, news feed)
+
+**Target Audience:** Frontend developers, widget developers
+
+**Estimated Reading Time:** 45 minutes
+
+---
+
+#### [GUI_QUICK_REFERENCE.md](GUI_QUICK_REFERENCE.md)
+
+**Quick reference guide for GUI development**
+
+**Contents:**
+
+- TL;DR overview
+- Core concepts in 5 minutes
+- Quick examples (interpolation, conditions, iteration, styling)
+- Cheat sheet (UINode properties, operators, formats)
+- Common patterns (widget structures)
+- Performance tips (do's and don'ts)
+- Debugging tips and techniques
+- Common issues and solutions
+- Architecture decision log
+- Migration guide from static components
+- Useful commands and tools
+- Glossary of terms
+
+**Target Audience:** All developers, quick reference
+
+**Estimated Reading Time:** 10 minutes
+
+---
+
+#### [GUI_ARCHITECTURE_DIAGRAMS.md](GUI_ARCHITECTURE_DIAGRAMS.md)
+
+**Visual diagrams of GUI architecture**
+
+**Contents:**
+
+- System overview diagram
+- Data flow sequence diagrams
+- UIRenderer processing pipeline
+- Text interpolation flow
+- Conditional rendering logic
+- Array iteration process
+- Style resolution flow
+- Session storage sync architecture
+- Worker script lifecycle state machine
+- Component hierarchy tree
+- Widget schema structure
+- Error handling flow
+- Performance optimization points
+- Security architecture layers
+- Future enhancements roadmap
+- Comparison matrix with alternatives
+- Deployment architecture
+
+**Target Audience:** Visual learners, architects, all developers
+
+**Estimated Reading Time:** 20 minutes (with diagrams)
 
 ---
 
@@ -277,9 +401,12 @@ decentralized trading platform.
 **Frontend Developer:**
 
 1. [COMPONENT_GUIDE.md](COMPONENT_GUIDE.md)
-2. [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md)
-3. [TYPESCRIPT_GUIDE.md](TYPESCRIPT_GUIDE.md)
-4. [CONTRIBUTING.md](CONTRIBUTING.md)
+2. [GUI_QUICK_REFERENCE.md](GUI_QUICK_REFERENCE.md) - If working with widgets
+3. [GUI_PATTERNS_AND_EXAMPLES.md](GUI_PATTERNS_AND_EXAMPLES.md) - Widget
+   development
+4. [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md)
+5. [TYPESCRIPT_GUIDE.md](TYPESCRIPT_GUIDE.md)
+6. [CONTRIBUTING.md](CONTRIBUTING.md)
 
 **Backend Developer:**
 
@@ -315,6 +442,8 @@ decentralized trading platform.
 **Creating New Component:**
 
 - [COMPONENT_GUIDE.md](COMPONENT_GUIDE.md) - Component Patterns
+- [GUI_PATTERNS_AND_EXAMPLES.md](GUI_PATTERNS_AND_EXAMPLES.md) - If creating
+  widget
 - [TYPESCRIPT_GUIDE.md](TYPESCRIPT_GUIDE.md) - Type Safety
 
 **Adding New Feature:**
@@ -587,6 +716,15 @@ git commit -m "docs: improve API documentation clarity"
 - Security guidelines established
 - TypeScript guide created
 
+**v1.1 (2025-10-19):**
+
+- GUI Architecture documentation (5 new documents)
+- Data-Driven UI Rendering system analysis
+- Schema-based widget development guide
+- 20+ architecture diagrams (Mermaid)
+- Performance analysis and optimization guide
+- Security considerations for dynamic UI
+
 **Future Updates:**
 
 - Testing documentation (when tests implemented)
@@ -616,17 +754,22 @@ git commit -m "docs: improve API documentation clarity"
 
 ## Document Status
 
-| Document               | Status      | Last Updated | Completeness |
-| ---------------------- | ----------- | ------------ | ------------ |
-| README.md              | ✅ Complete | 2025-10-17   | 100%         |
-| QUICK_START.md         | ✅ Complete | 2025-10-17   | 100%         |
-| ARCHITECTURE.md        | ✅ Complete | 2025-10-17   | 100%         |
-| API_DOCUMENTATION.md   | ✅ Complete | 2025-10-17   | 100%         |
-| STATE_MANAGEMENT.md    | ✅ Complete | 2025-10-17   | 100%         |
-| COMPONENT_GUIDE.md     | ✅ Complete | 2025-10-17   | 100%         |
-| DEPLOYMENT_SECURITY.md | ✅ Complete | 2025-10-17   | 100%         |
-| TYPESCRIPT_GUIDE.md    | ✅ Complete | 2025-10-17   | 100%         |
-| CONTRIBUTING.md        | ✅ Complete | 2025-10-17   | 100%         |
+| Document                     | Status      | Last Updated | Completeness |
+| ---------------------------- | ----------- | ------------ | ------------ |
+| README.md                    | ✅ Complete | 2025-10-17   | 100%         |
+| QUICK_START.md               | ✅ Complete | 2025-10-17   | 100%         |
+| ARCHITECTURE.md              | ✅ Complete | 2025-10-17   | 100%         |
+| API_DOCUMENTATION.md         | ✅ Complete | 2025-10-17   | 100%         |
+| STATE_MANAGEMENT.md          | ✅ Complete | 2025-10-17   | 100%         |
+| COMPONENT_GUIDE.md           | ✅ Complete | 2025-10-17   | 100%         |
+| DEPLOYMENT_SECURITY.md       | ✅ Complete | 2025-10-17   | 100%         |
+| TYPESCRIPT_GUIDE.md          | ✅ Complete | 2025-10-17   | 100%         |
+| CONTRIBUTING.md              | ✅ Complete | 2025-10-17   | 100%         |
+| GUI_TECHNOLOGY_SUMMARY.md    | ✅ Complete | 2025-10-19   | 100%         |
+| GUI_ARCHITECTURE_ANALYSIS.md | ✅ Complete | 2025-10-19   | 100%         |
+| GUI_PATTERNS_AND_EXAMPLES.md | ✅ Complete | 2025-10-19   | 100%         |
+| GUI_QUICK_REFERENCE.md       | ✅ Complete | 2025-10-19   | 100%         |
+| GUI_ARCHITECTURE_DIAGRAMS.md | ✅ Complete | 2025-10-19   | 100%         |
 
 ## Glossary
 
@@ -656,6 +799,19 @@ algorithm
 **Type Guard** - Function that narrows TypeScript types
 
 **shadcn/ui** - Component library based on Radix UI
+
+**UIRenderer** - React component that dynamically renders UI from JSON schemas
+
+**UINode** - JSON object describing a UI element structure
+
+**Worker Script** - JavaScript executed on server to fetch market data and
+generate UI schemas
+
+**SDUI** - Server-Driven UI; architecture where server controls UI structure
+
+**Interpolation** - Replacing `{variable}` placeholders with actual data values
+
+**Schema** - JSON definition of UI structure and behavior
 
 ### Acronyms
 
@@ -716,8 +872,8 @@ algorithm
 
 ---
 
-**Document Version:** 1.0\
-**Last Updated:** 2025-10-17\
+**Document Version:** 1.1\
+**Last Updated:** 2025-10-19\
 **Maintainers:** STELS Development Team
 
 **Happy developing! 🚀**
