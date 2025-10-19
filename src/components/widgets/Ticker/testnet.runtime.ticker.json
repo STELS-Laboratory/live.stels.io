@@ -1,0 +1,235 @@
+{
+  "channel": "testnet.runtime.ticker.SOL/USDT.bybit.spot",
+  "module": "ticker",
+  "widget": "widget.testnet.runtime.ticker.SOL/USDT.bybit.spot",
+  "ui": {
+    "type": "div",
+    "refreshInterval": 100,
+    "className": "flex flex-col gap-4 p-5 bg-zinc-900 rounded-lg border border-zinc-700 font-mono",
+    "children": [
+      {
+        "type": "div",
+        "className": "flex justify-between items-center pb-3 border-b border-zinc-700",
+        "children": [
+          {
+            "type": "div",
+            "className": "flex items-center gap-2",
+            "children": [
+              {
+                "type": "span",
+                "text": "{market}",
+                "className": "text-lg font-bold text-white"
+              },
+              {
+                "type": "span",
+                "text": " • {exchange}",
+                "className": "text-sm text-zinc-500"
+              }
+            ]
+          },
+          {
+            "type": "span",
+            "text": "●",
+            "condition": {
+              "key": "active",
+              "operator": "===",
+              "value": true
+            },
+            "className": "text-xs text-green-500"
+          }
+        ]
+      },
+      {
+        "type": "div",
+        "className": "flex flex-col gap-2 py-4",
+        "children": [
+          {
+            "type": "div",
+            "className": "flex items-baseline gap-3",
+            "children": [
+              {
+                "type": "span",
+                "text": "${data.last}",
+                "format": {
+                  "type": "number",
+                  "decimals": 2
+                },
+                "className": "text-[32px] font-bold text-white"
+              },
+              {
+                "type": "span",
+                "text": "${data.change}",
+                "format": {
+                  "type": "number",
+                  "decimals": 2
+                },
+                "className": "text-base font-semibold",
+                "style": {
+                  "color": {
+                    "condition": {
+                      "key": "data.change",
+                      "operator": ">",
+                      "value": 0
+                    },
+                    "true": "#00C853",
+                    "false": "#D50000"
+                  }
+                }
+              },
+              {
+                "type": "span",
+                "text": "({data.percentage}%)",
+                "format": {
+                  "type": "number",
+                  "decimals": 2
+                },
+                "className": "text-base",
+                "style": {
+                  "color": {
+                    "condition": {
+                      "key": "data.percentage",
+                      "operator": ">",
+                      "value": 0
+                    },
+                    "true": "#00C853",
+                    "false": "#D50000"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "div",
+        "className": "grid grid-cols-2 gap-3",
+        "children": [
+          {
+            "type": "div",
+            "className": "flex flex-col gap-1 p-3 bg-green-500/5 rounded border border-green-500/20",
+            "children": [
+              {
+                "type": "span",
+                "text": "Bid",
+                "className": "text-xs text-zinc-500"
+              },
+              {
+                "type": "span",
+                "text": "${data.bid}",
+                "format": {
+                  "type": "number",
+                  "decimals": 2
+                },
+                "className": "text-lg font-semibold text-green-500"
+              }
+            ]
+          },
+          {
+            "type": "div",
+            "className": "flex flex-col gap-1 p-3 bg-red-500/5 rounded border border-red-500/20",
+            "children": [
+              {
+                "type": "span",
+                "text": "Ask",
+                "className": "text-xs text-zinc-500"
+              },
+              {
+                "type": "span",
+                "text": "${data.ask}",
+                "format": {
+                  "type": "number",
+                  "decimals": 2
+                },
+                "className": "text-lg font-semibold text-red-600"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "div",
+        "className": "grid grid-cols-2 gap-3",
+        "children": [
+          {
+            "type": "div",
+            "className": "flex flex-col gap-1",
+            "children": [
+              {
+                "type": "span",
+                "text": "Volume (Base)",
+                "className": "text-xs text-zinc-500"
+              },
+              {
+                "type": "span",
+                "text": "{data.baseVolume}",
+                "format": {
+                  "type": "volume",
+                  "decimals": 2
+                },
+                "className": "text-sm text-white"
+              }
+            ]
+          },
+          {
+            "type": "div",
+            "className": "flex flex-col gap-1",
+            "children": [
+              {
+                "type": "span",
+                "text": "Volume (Quote)",
+                "className": "text-xs text-zinc-500"
+              },
+              {
+                "type": "span",
+                "text": "$${data.quoteVolume}",
+                "format": {
+                  "type": "volume",
+                  "decimals": 2
+                },
+                "className": "text-sm text-white"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "div",
+        "className": "flex justify-between pt-3 border-t border-zinc-700 text-xs text-zinc-600",
+        "children": [
+          {
+            "type": "span",
+            "text": "Updated: {timestamp}",
+            "format": {
+              "type": "datetime"
+            }
+          },
+          {
+            "type": "span",
+            "text": "Latency: {latency}ms",
+            "format": {
+              "type": "number",
+              "decimals": 0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "raw": {
+    "exchange": "bybit",
+    "market": "SOL/USDT",
+    "data": {
+      "last": 186.05,
+      "bid": 186.06,
+      "ask": 186.07,
+      "change": 2.930000000000007,
+      "percentage": 1.6000436871996542,
+      "baseVolume": 552448.5979,
+      "quoteVolume": 102489414.045733
+    },
+    "timestamp": 1760834390616,
+    "latency": 4
+  },
+  "active": true,
+  "timestamp": 1760834390616
+}
