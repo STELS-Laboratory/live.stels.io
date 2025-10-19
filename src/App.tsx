@@ -8,22 +8,14 @@ import { useAuthRestore } from "@/hooks/useAuthRestore";
 import { useHydration } from "@/hooks/useHydration";
 import { useTheme } from "@/hooks/useTheme";
 import { AnimatePresence, motion } from "framer-motion";
-
 import Welcome from "@/apps/Welcome";
-import MarketAggregator from "@/apps/Markets";
-import OrderBook from "@/apps/OrderBook";
 import Flow from "@/apps/Canvas/Flow";
-import HeterogenComponent from "@/apps/Globe/HeterogenMap";
-import Scanner from "@/apps/Scanner";
-import GliesereumWallet from "@/apps/Wallet/Wallet";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/apps/Layout.tsx";
-import Fred from "@/apps/Fred";
 import { AMIEditor } from "@/apps/Editor/AMIEditor";
 import SplashScreen from "./components/main/SplashScreen";
 import UpgradeScreen from "./components/main/UpgradeScreen";
 import { ProfessionalConnectionFlow } from "@/components/auth/ProfessionalConnectionFlow";
-// import { SessionExpiredNotification } from "@/components/auth/SessionExpiredNotification";
 import { SecurityWarningDialog } from "@/components/auth/SecurityWarningDialog";
 import { SessionExpiredModal } from "@/components/auth/SessionExpiredModal";
 
@@ -588,20 +580,8 @@ export default function Dashboard(): React.ReactElement {
 		switch (currentRoute) {
 			case "welcome":
 				return <Welcome />;
-			case "scanner":
-				return <Scanner />;
-			case "fred":
-				return <Fred />;
-			case "markets":
-				return <MarketAggregator />;
-			case "orderbook":
-				return <OrderBook />;
-			case "network":
-				return <HeterogenComponent />;
 			case "editor":
 				return <AMIEditor />;
-			case "wallet":
-				return <GliesereumWallet />;
 			case "canvas":
 				return (
 					<ReactFlowProvider>
@@ -699,9 +679,6 @@ export default function Dashboard(): React.ReactElement {
 									</RouteLoader>
 								</div>
 							)}
-						{/* Session expired notification overlay */}
-						{/*<SessionExpiredNotification />*/}
-						{/* Security warning dialog */}
 						<SecurityWarningDialog />
 						{/* Session expired blocking modal */}
 						<SessionExpiredModal />

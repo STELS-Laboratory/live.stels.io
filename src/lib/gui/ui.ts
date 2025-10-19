@@ -1,23 +1,43 @@
 import React from "react";
 
-interface FormatConfig {
+// ============================================================================
+// Type Definitions
+// ============================================================================
+
+export interface FormatConfig {
   type: "number" | "volume" | "datetime" | "time";
   decimals?: number;
 }
 
-interface Condition {
+export interface Condition {
   key: string;
   operator: "===" | ">" | "<" | ">=" | "<=";
   value: unknown;
 }
 
-interface IterateConfig {
+export interface IterateConfig {
   source: string;
   limit?: number;
   reverse?: boolean;
 }
 
-interface UINode {
+export interface ActionPayload {
+  channel?: string;
+  modalId?: string;
+  width?: string;
+  height?: string;
+  maxWidth?: string;
+  maxHeight?: string;
+  backdrop?: "dark" | "light" | "blur";
+  closeOnBackdrop?: boolean;
+}
+
+export interface Action {
+  type: "openModal" | "closeModal" | "emit";
+  payload?: ActionPayload;
+}
+
+export interface UINode {
   type: string;
   className?: string;
   style?: Record<string, unknown>;
@@ -26,7 +46,19 @@ interface UINode {
   format?: FormatConfig;
   condition?: Condition;
   iterate?: IterateConfig;
+  refreshInterval?: number;
+  events?: {
+    onClick?: Action;
+    onDoubleClick?: Action;
+    onMouseEnter?: Action;
+    onMouseLeave?: Action;
+  };
 }
+
+
+// ============================================================================
+// Utility Functions
+// ============================================================================
 
 const getValue = (obj: unknown, path: string): unknown => {
   if (!path) return obj;
@@ -75,22 +107,12 @@ const interpolate = (
   item?: unknown,
 ): string => {
   return text.replace(/\$?\{([^}]+)\}/g, (_match, expression: string) => {
-    console.log(
-      "[interpolate] expression:",
-      expression,
-      "| data:",
-      data,
-      "| item:",
-      item,
-    );
-
     const hasOperators = /[+\-*/]/.test(expression);
 
     if (hasOperators) {
       const evaluated = expression.replace(
         /(\$item(?:\[[0-9]+\])+|data\.[a-zA-Z0-9]+(?:\[[0-9]+\])*(?:\[[0-9]+\])*|\$item\.[a-zA-Z0-9.]+)/g,
         (varMatch) => {
-          console.log("[interpolate] varMatch in expression:", varMatch);
           let value: unknown;
 
           if (varMatch.startsWith("$item")) {
@@ -107,18 +129,14 @@ const interpolate = (
             value = getValue(dataObj, path);
           }
 
-          console.log("[interpolate] extracted value:", value);
           return String(value ?? "0");
         },
       );
 
       try {
-        console.log("[interpolate] evaluated expression:", evaluated);
         const result = new Function(`return ${evaluated}`)();
-        console.log("[interpolate] result:", result);
         return String(result);
       } catch (e) {
-        console.error("[interpolate] eval error:", e);
         return "NaN";
       }
     } else {
@@ -140,7 +158,6 @@ const interpolate = (
         result = getValue(data, expression);
       }
 
-      console.log("[interpolate] simple value result:", result);
       return String(result ?? "");
     }
   });
@@ -218,13 +235,6 @@ const resolveStyle = (
         const numValue = parseFloat(valueStr);
         const numMax = parseFloat(maxStr);
 
-        console.log(
-          "[resolveStyle] percentage calc - value:",
-          numValue,
-          "max:",
-          numMax,
-        );
-
         if (!isNaN(numValue) && !isNaN(numMax) && numMax > 0) {
           const percentage = (numValue / numMax) * 100;
           resolved[key] = `${percentage.toFixed(2)}%`;
@@ -239,6 +249,10 @@ const resolveStyle = (
 
   return resolved as React.CSSProperties;
 };
+
+// ============================================================================
+// Main UIRenderer Component (Simple & Clean)
+// ============================================================================
 
 export const UIRenderer: React.FC<{
   schema: UINode;
@@ -256,7 +270,7 @@ export const UIRenderer: React.FC<{
       return null;
     }
 
-    const { type, className, style, children, text, iterate } = node;
+    const { type, className, style, children, text, iterate, events } = node;
     const Element = type as keyof React.JSX.IntrinsicElements;
 
     const resolvedStyle = style
@@ -291,17 +305,28 @@ export const UIRenderer: React.FC<{
       const ordered = iterate.reverse ? [...limited].reverse() : limited;
 
       return ordered.map((item: unknown, idx: number) =>
-        renderNode({ ...node, iterate: undefined }, idx, item)
+        renderNode({ ...node, iterate: undefined }, idx, item),
       );
     }
 
     const childNodes = children?.map((child: UINode, idx: number) =>
-      renderNode(child, idx, iterationItem)
+      renderNode(child, idx, iterationItem),
     );
+
+    // Handle events
+    const eventHandlers: Record<string, () => void> = {};
+
+    if (events?.onClick) {
+      eventHandlers.onClick = () => {
+        const action = events.onClick!;
+	      console.log(action);
+				
+      };
+    }
 
     return React.createElement(
       Element,
-      { key: index, className, style: resolvedStyle },
+      { key: index, className, style: resolvedStyle, ...eventHandlers },
       content,
       childNodes,
     );
@@ -311,3 +336,4 @@ export const UIRenderer: React.FC<{
 };
 
 export default UIRenderer;
+

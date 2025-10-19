@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
 import { filterSession } from "@/lib";
-import { type UINode, UIRenderer } from "./ui.ts";
+import UIRenderer from "@/lib/gui/ui.ts";
 
 interface TickerData {
 	key: string;
@@ -9,7 +9,7 @@ interface TickerData {
 		channel: string;
 		module: string;
 		widget: string;
-		ui: UINode;
+		ui: any;
 		raw: {
 			exchange: string;
 			market: string;

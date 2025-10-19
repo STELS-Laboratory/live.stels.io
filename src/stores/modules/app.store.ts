@@ -144,7 +144,7 @@ export const useAppStore = create<AppState>()(
 					}
 				}
 				
-				const allowedRoutes = ['welcome', 'scanner', 'canvas', 'markets', 'orderbook', 'network', 'wallet', 'editor'];
+				const allowedRoutes = ['welcome', 'canvas', 'editor'];
 				//const allowedRoutes = ['welcome', 'scanner', 'markets', 'Canvas', 'fred', 'Wallet', 'network', 'Editor'];
 				console.log('[Store] Initializing with allowedRoutes:', allowedRoutes);
 				
@@ -263,7 +263,7 @@ export const useAppStore = create<AppState>()(
 				}
 			},
 			{
-				name: 'testnet_app_store_08_orderbook',
+				name: '0.0.1',
 			}
 		)
 	)

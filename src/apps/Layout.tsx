@@ -13,14 +13,9 @@ import { Button } from "@/components/ui/button.tsx";
 import { Progress } from "@/components/ui/progress.tsx";
 import {
 	Boxes,
-	CandlestickChart,
 	CircleX,
 	Code,
-	Globe,
 	Home,
-	Layers,
-	ScanSearch,
-	Wallet,
 } from "lucide-react";
 import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
 import { navigateTo } from "@/lib/router.ts";
@@ -68,12 +63,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 	const getAppName = (route: string): string => {
 		const names: Record<string, string> = {
 			welcome: "Welcome",
-			scanner: "Liquidity",
-			markets: "Markets",
-			fred: "Indicators",
-			network: "Network",
 			editor: "Editor",
-			wallet: "Wallet",
 			canvas: "Canvas",
 		};
 		return names[route] || route;
@@ -81,14 +71,9 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 
 	const generalNav: NavItem[] = [
 		{ key: "welcome", label: "Welcome", icon: Home },
-		{ key: "scanner", label: "Scanner", icon: ScanSearch },
-		{ key: "markets", label: "Markets", icon: CandlestickChart },
-		{ key: "fred", label: "Indicators", icon: Layers },
 	].filter((i) => allowedRoutes.includes(i.key));
 
 	const systemNav: NavItem[] = [
-		{ key: "network", label: "Network", icon: Globe },
-		{ key: "wallet", label: "Wallet", icon: Wallet },
 		{ key: "canvas", label: "Canvas", icon: Boxes },
 		{ key: "editor", label: "Editor", icon: Code },
 	].filter((i) => allowedRoutes.includes(i.key));
