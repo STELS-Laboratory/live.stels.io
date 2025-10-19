@@ -650,44 +650,43 @@ const OrderBook: React.FC = React.memo(() => {
 
   return (
     <div className="space-y-1 container mx-auto">
-	    {/* Optimized Market Tabs with Price and Latency */}
-	    {availableMarkets.length > 0
-		    ? (
-			    <div className="flex border">
-				    {/* Fixed first tab */}
-				    {availableMarkets.length > 0 && (
-					    <div className="flex-shrink-0 bg-muted">
-						    <TabButton
-							    market={availableMarkets[0]}
-							    isSelected={selectedMarket === availableMarkets[0]}
-							    onClick={() => setSelectedMarket(availableMarkets[0])}
-						    />
-					    </div>
-				    )}
-				    
-				    {/* Scrollable remaining tabs */}
-				    {availableMarkets.length > 1 && (
-					    <>
-						    <div className="flex w-full overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800">
-							    {availableMarkets.slice(1).map((market) => (
-								    <TabButton
-									    key={market}
-									    market={market}
-									    isSelected={selectedMarket === market}
-									    onClick={() => setSelectedMarket(market)}
-								    />
-							    ))}
-						    </div>
-					    </>
-				    )}
-			    </div>
-		    )
-		    : (
-			    <div className="text-center py-2 text-muted-foreground">
-				    <p>Loading markets...</p>
-			    </div>
-		    )}
-      
+      {/* Optimized Market Tabs with Price and Latency */}
+      {availableMarkets.length > 0
+        ? (
+          <div className="flex border">
+            {/* Fixed first tab */}
+            {availableMarkets.length > 0 && (
+              <div className="flex-shrink-0 bg-muted">
+                <TabButton
+                  market={availableMarkets[0]}
+                  isSelected={selectedMarket === availableMarkets[0]}
+                  onClick={() => setSelectedMarket(availableMarkets[0])}
+                />
+              </div>
+            )}
+
+            {/* Scrollable remaining tabs */}
+            {availableMarkets.length > 1 && (
+              <>
+                <div className="flex w-full overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800">
+                  {availableMarkets.slice(1).map((market) => (
+                    <TabButton
+                      key={market}
+                      market={market}
+                      isSelected={selectedMarket === market}
+                      onClick={() => setSelectedMarket(market)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )
+        : (
+          <div className="text-center py-2 text-muted-foreground">
+            <p>Loading markets...</p>
+          </div>
+        )}
 
       {/* Optimized Professional Header */}
       <div className="bg-background border  overflow-hidden">
@@ -872,8 +871,9 @@ const OrderBook: React.FC = React.memo(() => {
           </div>
         </div>
       </div>
-	    
-	    <Card className="bg-card border mb-6">
+
+      {
+        /* <Card className="bg-card border mb-6">
 		    <CardHeader>
 			    <CardTitle className="flex items-center gap-2">
 				    <BarChart3 className="w-5 h-5 text-amber-500" />
@@ -892,7 +892,8 @@ const OrderBook: React.FC = React.memo(() => {
 				    height={400}
 			    />
 		    </CardContent>
-	    </Card>
+	    </Card> */
+      }
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-1">
         {/* Optimized Order Book */}
@@ -1234,133 +1235,133 @@ const OrderBook: React.FC = React.memo(() => {
           </CardContent>
         </Card>
       </div>
-	    
-	    {orderBookData.length === 0
-		    ? (
-			    <Card className="bg-card border ">
-				    <CardContent className="flex items-center justify-center py-12">
-					    <div className="text-center">
-						    <Activity className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-						    <h3 className="text-lg font-semibold mb-2">
-							    No Order Book Data
-						    </h3>
-						    <p className="text-muted-foreground">
-							    Waiting for order book data from exchanges...
-						    </p>
-					    </div>
-				    </CardContent>
-			    </Card>
-		    )
-		    : currentOrderBook
-			    ? (
-				    <>
-					    {/* Market Overview */}
-					    <Card className="bg-card border">
-						    <CardHeader>
-							    <CardTitle className="flex items-center gap-3">
-								    {getCurrencyIcon(selectedMarket.split("/")[0])
-									    ? (
-										    <img
-											    src={getCurrencyIcon(selectedMarket.split("/")[0])!}
-											    alt={selectedMarket.split("/")[0]}
-											    className="w-8 h-8 rounded-full"
-										    />
-									    )
-									    : (
-										    <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-foreground text-sm font-bold">
-											    {selectedMarket.split("/")[0].slice(0, 2)}
-										    </div>
-									    )}
-								    {selectedMarket} Market Analysis
-							    </CardTitle>
-							    <CardDescription>
-								    Liquidity-weighted aggregation across{" "}
-								    {Object.keys(currentOrderBook.exchanges).length} exchanges
-								    {currentOrderBook.dominantExchange && (
-									    <>
-										    <br />
-										    <span className="text-amber-500 font-semibold">
+
+      {orderBookData.length === 0
+        ? (
+          <Card className="bg-card border ">
+            <CardContent className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <Activity className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">
+                  No Order Book Data
+                </h3>
+                <p className="text-muted-foreground">
+                  Waiting for order book data from exchanges...
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )
+        : currentOrderBook
+        ? (
+          <>
+            {/* Market Overview */}
+            <Card className="bg-card border">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  {getCurrencyIcon(selectedMarket.split("/")[0])
+                    ? (
+                      <img
+                        src={getCurrencyIcon(selectedMarket.split("/")[0])!}
+                        alt={selectedMarket.split("/")[0]}
+                        className="w-8 h-8 rounded-full"
+                      />
+                    )
+                    : (
+                      <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-foreground text-sm font-bold">
+                        {selectedMarket.split("/")[0].slice(0, 2)}
+                      </div>
+                    )}
+                  {selectedMarket} Market Analysis
+                </CardTitle>
+                <CardDescription>
+                  Liquidity-weighted aggregation across{" "}
+                  {Object.keys(currentOrderBook.exchanges).length} exchanges
+                  {currentOrderBook.dominantExchange && (
+                    <>
+                      <br />
+                      <span className="text-amber-500 font-semibold">
                         Market Leader: {currentOrderBook.dominantExchange}
                       </span>
-									    </>
-								    )}
-							    </CardDescription>
-						    </CardHeader>
-						    <CardContent>
-							    <div className="grid grid-cols-3 md:grid-cols-3 gap-6">
-								    <div className="space-y-2">
-									    <div className="flex items-center gap-2">
-										    <TrendingUp className="w-4 h-4 text-amber-500" />
-										    <span className="text-sm font-medium">
+                    </>
+                  )}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-amber-500" />
+                      <span className="text-sm font-medium">
                         Total Bids
                       </span>
-									    </div>
-									    <div className="text-2xl font-bold text-green-600">
-										    ${formatVolume(currentOrderBook.totalBidLiquidity)}
-									    </div>
-								    </div>
-								    <div className="space-y-2">
-									    <div className="flex items-center gap-2">
-										    <TrendingDown className="w-4 h-4 text-muted-foreground" />
-										    <span className="text-sm font-medium">
+                    </div>
+                    <div className="text-2xl font-bold text-green-600">
+                      ${formatVolume(currentOrderBook.totalBidLiquidity)}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <TrendingDown className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">
                         Total Asks
                       </span>
-									    </div>
-									    <div className="text-2xl font-bold text-red-500">
-										    ${formatVolume(currentOrderBook.totalAskLiquidity)}
-									    </div>
-								    </div>
-								    <div className="space-y-2">
-									    <div className="flex items-center gap-2">
-										    <BarChart3 className="w-4 h-4 text-amber-500" />
-										    <span className="text-sm font-medium">
+                    </div>
+                    <div className="text-2xl font-bold text-red-500">
+                      ${formatVolume(currentOrderBook.totalAskLiquidity)}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4 text-amber-500" />
+                      <span className="text-sm font-medium">
                         Dominant
                       </span>
-									    </div>
-									    <div className="flex items-center gap-2">
-										    {getExchangeIcon(currentOrderBook.dominantExchange)
-											    ? (
-												    <img
-													    src={getExchangeIcon(
-														    currentOrderBook.dominantExchange,
-													    )!}
-													    alt={currentOrderBook.dominantExchange}
-													    className="w-6 h-6 rounded-full"
-												    />
-											    )
-											    : (
-												    <div
-													    className={`w-6 h-6 bg-gradient-to-br ${getExchangeColor()} rounded-full flex items-center justify-center text-foreground text-xs font-bold`}
-												    >
-													    {currentOrderBook.dominantExchange.charAt(0)
-														    .toUpperCase()}
-												    </div>
-											    )}
-										    <span className="text-lg font-bold capitalize">
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {getExchangeIcon(currentOrderBook.dominantExchange)
+                        ? (
+                          <img
+                            src={getExchangeIcon(
+                              currentOrderBook.dominantExchange,
+                            )!}
+                            alt={currentOrderBook.dominantExchange}
+                            className="w-6 h-6 rounded-full"
+                          />
+                        )
+                        : (
+                          <div
+                            className={`w-6 h-6 bg-gradient-to-br ${getExchangeColor()} rounded-full flex items-center justify-center text-foreground text-xs font-bold`}
+                          >
+                            {currentOrderBook.dominantExchange.charAt(0)
+                              .toUpperCase()}
+                          </div>
+                        )}
+                      <span className="text-lg font-bold capitalize">
                         {currentOrderBook.dominantExchange}
                       </span>
-									    </div>
-								    </div>
-							    </div>
-						    </CardContent>
-					    </Card>
-				    </>
-			    )
-			    : (
-				    <Card className="bg-card border border-border">
-					    <CardContent className="flex items-center justify-center py-12">
-						    <div className="text-center">
-							    <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-							    <h3 className="text-lg font-semibold mb-2">
-								    No Data for {selectedMarket}
-							    </h3>
-							    <p className="text-muted-foreground">
-								    No order book data available for the selected market.
-							    </p>
-						    </div>
-					    </CardContent>
-				    </Card>
-			    )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )
+        : (
+          <Card className="bg-card border border-border">
+            <CardContent className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">
+                  No Data for {selectedMarket}
+                </h3>
+                <p className="text-muted-foreground">
+                  No order book data available for the selected market.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
       {/* Exchange Details Modal */}
       <Dialog open={isExchangeModalOpen} onOpenChange={setIsExchangeModalOpen}>

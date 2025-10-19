@@ -1,0 +1,317 @@
+{
+  "channel": "testnet.runtime.book.SOL/USDT.bybit.spot",
+  "module": "book",
+  "widget": "widget.testnet.runtime.book.SOL/USDT.bybit.spot",
+  "ui": {
+    "type": "div",
+    "refreshInterval": 100,
+    "className": "flex flex-col gap-0 p-5 bg-zinc-900 rounded-lg border border-zinc-700 font-mono min-w-[400px]",
+    "children": [
+      {
+        "type": "div",
+        "className": "flex justify-between items-center pb-3 border-b border-zinc-700 mb-3",
+        "children": [
+          {
+            "type": "div",
+            "className": "flex items-center gap-2",
+            "children": [
+              {
+                "type": "span",
+                "text": "{market}",
+                "className": "text-lg font-bold text-white"
+              },
+              {
+                "type": "span",
+                "text": " • {exchange}",
+                "className": "text-sm text-zinc-500"
+              }
+            ]
+          },
+          {
+            "type": "span",
+            "text": "●",
+            "condition": {
+              "key": "active",
+              "operator": "===",
+              "value": true
+            },
+            "className": "text-xs text-green-500"
+          }
+        ]
+      },
+      {
+        "type": "div",
+        "className": "grid grid-cols-3 gap-2 py-2 text-xs text-zinc-600 border-b border-zinc-800",
+        "children": [
+          {
+            "type": "span",
+            "text": "Price",
+            "className": "text-right"
+          },
+          {
+            "type": "span",
+            "text": "Amount",
+            "className": "text-right"
+          },
+          {
+            "type": "span",
+            "text": "Total",
+            "className": "text-right"
+          }
+        ]
+      },
+      {
+        "type": "div",
+        "iterate": {
+          "source": "data.asks",
+          "limit": 10,
+          "reverse": true
+        },
+        "className": "flex relative py-1",
+        "children": [
+          {
+            "type": "div",
+            "className": "absolute top-0 right-0 bottom-0 bg-red-500/8",
+            "style": {
+              "width": {
+                "calculate": "percentage",
+                "value": "{$item[1]}",
+                "max": "{data.volume[1]}"
+              }
+            }
+          },
+          {
+            "type": "div",
+            "className": "grid grid-cols-3 gap-2 relative z-10 w-full",
+            "children": [
+              {
+                "type": "span",
+                "text": "${$item[0]}",
+                "format": {
+                  "type": "number",
+                  "decimals": 2
+                },
+                "className": "text-right text-red-600 text-[13px]"
+              },
+              {
+                "type": "span",
+                "text": "{$item[1]}",
+                "format": {
+                  "type": "number",
+                  "decimals": 4
+                },
+                "className": "text-right text-zinc-300 text-[13px]"
+              },
+              {
+                "type": "span",
+                "text": "{$item[0] * $item[1]}",
+                "format": {
+                  "type": "number",
+                  "decimals": 2
+                },
+                "className": "text-right text-zinc-500 text-[13px]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "div",
+        "className": "py-3 text-center text-base font-semibold text-amber-500 border-t border-b border-zinc-800 bg-zinc-850",
+        "children": [
+          {
+            "type": "span",
+            "text": "Spread: ${data.asks[0][0] - data.bids[0][0]}",
+            "format": {
+              "type": "number",
+              "decimals": 2
+            }
+          }
+        ]
+      },
+      {
+        "type": "div",
+        "iterate": {
+          "source": "data.bids",
+          "limit": 10
+        },
+        "className": "flex relative py-1",
+        "children": [
+          {
+            "type": "div",
+            "className": "absolute top-0 right-0 bottom-0 bg-green-500/8",
+            "style": {
+              "width": {
+                "calculate": "percentage",
+                "value": "{$item[1]}",
+                "max": "{data.volume[0]}"
+              }
+            }
+          },
+          {
+            "type": "div",
+            "className": "grid grid-cols-3 gap-2 relative z-10 w-full",
+            "children": [
+              {
+                "type": "span",
+                "text": "${$item[0]}",
+                "format": {
+                  "type": "number",
+                  "decimals": 2
+                },
+                "className": "text-right text-green-500 text-[13px]"
+              },
+              {
+                "type": "span",
+                "text": "{$item[1]}",
+                "format": {
+                  "type": "number",
+                  "decimals": 4
+                },
+                "className": "text-right text-zinc-300 text-[13px]"
+              },
+              {
+                "type": "span",
+                "text": "{$item[0] * $item[1]}",
+                "format": {
+                  "type": "number",
+                  "decimals": 2
+                },
+                "className": "text-right text-zinc-500 text-[13px]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "div",
+        "className": "flex justify-between pt-3 border-t border-zinc-700 text-xs text-zinc-600 mt-2",
+        "children": [
+          {
+            "type": "div",
+            "className": "flex gap-4",
+            "children": [
+              {
+                "type": "span",
+                "text": "Bid Vol: {data.volume[0]}",
+                "format": {
+                  "type": "volume",
+                  "decimals": 2
+                },
+                "className": "text-green-500"
+              },
+              {
+                "type": "span",
+                "text": "Ask Vol: {data.volume[1]}",
+                "format": {
+                  "type": "volume",
+                  "decimals": 2
+                },
+                "className": "text-red-600"
+              }
+            ]
+          },
+          {
+            "type": "span",
+            "text": "{latency}ms",
+            "format": {
+              "type": "number",
+              "decimals": 0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "strict": {
+    "exchange": {
+      "type": "string",
+      "description": "Exchange identifier",
+      "required": true
+    },
+    "market": {
+      "type": "string",
+      "description": "Trading pair symbol",
+      "required": true
+    },
+    "data": {
+      "type": "object",
+      "description": "Order book data",
+      "required": true,
+      "properties": {
+        "bids": {
+          "type": "array",
+          "description": "Buy orders [price, amount]",
+          "items": {
+            "type": "array",
+            "description": "Order [price, amount]"
+          }
+        },
+        "asks": {
+          "type": "array",
+          "description": "Sell orders [price, amount]",
+          "items": {
+            "type": "array",
+            "description": "Order [price, amount]"
+          }
+        },
+        "volume": {
+          "type": "array",
+          "description": "Total volume [bids, asks]"
+        }
+      }
+    },
+    "timestamp": {
+      "type": "number",
+      "description": "Data timestamp (Unix ms)",
+      "required": true
+    },
+    "latency": {
+      "type": "number",
+      "description": "Data latency (ms)",
+      "required": true
+    }
+  },
+  "raw": {
+    "exchange": "bybit",
+    "market": "SOL/USDT",
+    "data": {
+      "bids": [
+        [
+          1091.9,
+          0.5501
+        ],
+        [
+          1091.8,
+          0.3254
+        ],
+        [
+          1091.7,
+          1.5266
+        ]
+      ],
+      "asks": [
+        [
+          1092,
+          2.7287
+        ],
+        [
+          1092.1,
+          2.1304
+        ],
+        [
+          1092.2,
+          4.7429
+        ]
+      ],
+      "volume": [
+        377.6512999999998,
+        457.8323
+      ]
+    },
+    "timestamp": 1760822799856,
+    "latency": 0
+  },
+  "active": true,
+  "timestamp": 1760822799856
+}
