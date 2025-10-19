@@ -17,9 +17,10 @@ import {
   CategoryFilter,
   EmptyState,
   FavoritesSection,
-  HeroSection,
+  //HeroSection,
   RecentApps,
 } from "./components";
+import Ticker from "@/components/widgets/Ticker/Ticker.tsx";
 
 /**
  * Premium Welcome Screen Component
@@ -120,12 +121,15 @@ function Welcome(): React.ReactElement {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
+	    
+	    <Ticker />
+	    
       {/* Hero Section */}
-      <HeroSection
-        totalApps={applications.length}
-        featuredCount={featuredApps.length}
-        isMobile={isMobile}
-      />
+      {/*<HeroSection*/}
+      {/*  totalApps={applications.length}*/}
+      {/*  featuredCount={featuredApps.length}*/}
+      {/*  isMobile={isMobile}*/}
+      {/*/>*/}
 
       {/* Category Filter */}
       {!isMobile && (

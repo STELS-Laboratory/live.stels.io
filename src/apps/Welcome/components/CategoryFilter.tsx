@@ -172,7 +172,7 @@ export function CategoryFilter({
 
   return (
     <motion.div
-      className="relative border-b border-border bg-card overflow-hidden"
+      className="relative overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
