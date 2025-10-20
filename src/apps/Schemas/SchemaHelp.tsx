@@ -14,6 +14,30 @@ interface Snippet {
 
 const SNIPPETS: Snippet[] = [
   {
+    title: "Universal Schema (self)",
+    description: "Reusable schema for any channel with same structure",
+    code: `{
+  "type": "div",
+  "className": "bg-zinc-900 p-4 w-[300px]",
+  "children": [
+    {
+      "type": "div",
+      "className": "flex gap-4",
+      "children": [
+        {"type": "div", "text": "$\{self.raw.exchange}", "className": "uppercase text-pink-500"},
+        {"type": "div", "text": "$\{self.raw.market}", "className": "text-zinc-100"}
+      ]
+    },
+    {
+      "type": "div",
+      "text": "$\{self.raw.data.last}",
+      "className": "text-2xl font-bold",
+      "format": {"type": "number", "decimals": 2}
+    }
+  ]
+}`,
+  },
+  {
     title: "Basic Text",
     description: "Display simple text or interpolated data",
     code: `{

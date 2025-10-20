@@ -10,6 +10,7 @@ import type { ChannelAlias, ChannelData } from "./types.ts";
 interface SessionDataViewerProps {
   channelsData: ChannelData[];
   channelAliases: ChannelAlias[];
+  selfChannelKey?: string | null;
 }
 
 interface ChannelExpanded {
@@ -22,6 +23,7 @@ interface ChannelExpanded {
 export default function SessionDataViewer({
   channelsData,
   channelAliases,
+  selfChannelKey,
 }: SessionDataViewerProps): ReactElement {
   // Get original channel key from alias
   const getOriginalKey = (alias: string): string => {
@@ -161,30 +163,40 @@ export default function SessionDataViewer({
 
   return (
     <div className="flex-shrink-0 border-t border-zinc-800 bg-zinc-900/50">
-      <div className="flex items-center justify-between p-2 border-b border-zinc-800">
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-medium text-zinc-400">
-            Session Data — Click keys to copy
-          </span>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={expandAll}
-              className="text-xs text-zinc-500 hover:text-amber-400 transition-colors px-2 py-0.5 rounded hover:bg-zinc-800"
-            >
-              Expand All
-            </button>
-            <span className="text-zinc-700">|</span>
-            <button
-              onClick={collapseAll}
-              className="text-xs text-zinc-500 hover:text-amber-400 transition-colors px-2 py-0.5 rounded hover:bg-zinc-800"
-            >
-              Collapse All
-            </button>
+      <div className="flex flex-col gap-2 p-2 border-b border-zinc-800">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-medium text-zinc-400">
+              Session Data — Click keys to copy
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={expandAll}
+                className="text-xs text-zinc-500 hover:text-amber-400 transition-colors px-2 py-0.5 rounded hover:bg-zinc-800"
+              >
+                Expand All
+              </button>
+              <span className="text-zinc-700">|</span>
+              <button
+                onClick={collapseAll}
+                className="text-xs text-zinc-500 hover:text-amber-400 transition-colors px-2 py-0.5 rounded hover:bg-zinc-800"
+              >
+                Collapse All
+              </button>
+            </div>
           </div>
+          <span className="text-xs text-zinc-500">
+            {channelsData.length} channel{channelsData.length !== 1 ? "s" : ""}
+          </span>
         </div>
-        <span className="text-xs text-zinc-500">
-          {channelsData.length} channel{channelsData.length !== 1 ? "s" : ""}
-        </span>
+        {channelsData.length > 0 && selfChannelKey && (
+          <div className="px-2 py-1 bg-green-500/10 rounded border border-green-500/20">
+            <span className="text-[10px] text-green-400">
+              ✨ <code className="font-mono text-green-300">self</code> ={" "}
+              <code className="font-mono text-green-200">{selfChannelKey}</code>
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="max-h-80 overflow-y-auto p-3 bg-zinc-950">
@@ -193,6 +205,8 @@ export default function SessionDataViewer({
             const isExpanded = expandedChannels[channel.key];
             const originalKey = getOriginalKey(channel.key);
             const isAlias = originalKey !== channel.key;
+            const isSelf = channel.key === "self" ||
+              originalKey === selfChannelKey;
 
             return (
               <div
@@ -213,9 +227,16 @@ export default function SessionDataViewer({
                           <ChevronRight className="w-3 h-3 text-zinc-400 flex-shrink-0" />
                         )}
                       <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                        <span className="text-xs font-mono text-green-400 font-semibold">
-                          {channel.key}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono text-green-400 font-semibold">
+                            {channel.key}
+                          </span>
+                          {isSelf && (
+                            <span className="text-[10px] px-1.5 py-0.5 bg-green-500/30 text-green-300 rounded font-semibold">
+                              SELF
+                            </span>
+                          )}
+                        </div>
                         {isAlias && (
                           <span className="text-[10px] font-mono text-zinc-500 truncate">
                             → {originalKey}

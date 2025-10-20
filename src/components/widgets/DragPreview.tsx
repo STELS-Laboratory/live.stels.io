@@ -10,9 +10,11 @@ interface DragPreviewProps {
   isDragging: boolean;
   /** Widget data being dragged */
   widgetData?: {
-    module: string;
-    channel: string;
+    module?: string;
+    channel?: string;
     type: string;
+    name?: string; // For schemas
+    widgetKey?: string; // For schemas
   };
   /** Mouse position */
   mousePosition?: { x: number; y: number };
@@ -39,6 +41,11 @@ export function DragPreview({
 
   if (!isDragging || !widgetData) return null;
 
+  // Determine display text: name for schemas, module for regular widgets
+  const displayText = widgetData.type === "schema"
+    ? widgetData.name || widgetData.widgetKey || "Schema"
+    : widgetData.module || widgetData.channel || "Widget";
+
   return (
     <div
       className={cn(
@@ -53,7 +60,7 @@ export function DragPreview({
       <div className="flex items-center space-x-2 p-3">
         <Zap className="h-4 w-4" />
         <div className="text-sm font-medium">
-          {widgetData.module}
+          {displayText}
         </div>
       </div>
     </div>

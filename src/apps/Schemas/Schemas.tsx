@@ -57,6 +57,7 @@ export default function Schemas(): ReactElement {
     [],
   );
   const [channelAliases, setChannelAliases] = useState<ChannelAlias[]>([]);
+  const [selfChannelKey, setSelfChannelKey] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [triggerCreateDialog, setTriggerCreateDialog] = useState(false);
 
@@ -128,11 +129,20 @@ export default function Schemas(): ReactElement {
       } else {
         setChannelAliases(existingAliases);
       }
+
+      // Restore self channel from schema or use first channel as default
+      setSelfChannelKey(
+        activeSchema.selfChannelKey ||
+          (activeSchema.channelKeys.length > 0
+            ? activeSchema.channelKeys[0]
+            : null),
+      );
     } else {
       setSchemaJson("");
       setSelectedChannels([]);
       setSelectedNestedSchemas([]);
       setChannelAliases([]);
+      setSelfChannelKey(null);
     }
   }, [activeSchema, autoGenerateAliases]);
 
@@ -161,6 +171,21 @@ export default function Schemas(): ReactElement {
 
     const result: ChannelData[] = [];
 
+    // Add "self" channel if selfChannelKey is set
+    const selfKey = selfChannelKey || selectedChannels[0];
+    if (selfKey) {
+      const selfData = session[selfKey];
+      if (selfData && typeof selfData === "object") {
+        const selfDataObj = selfData as Record<string, unknown>;
+        if ("raw" in selfDataObj) {
+          result.push({
+            key: "self",
+            data: selfDataObj,
+          });
+        }
+      }
+    }
+
     selectedChannels.forEach((channelKey) => {
       const data = session[channelKey];
       if (!data || typeof data !== "object") return;
@@ -183,7 +208,7 @@ export default function Schemas(): ReactElement {
     });
 
     return result;
-  }, [session, selectedChannels, channelAliases]);
+  }, [session, selectedChannels, channelAliases, selfChannelKey]);
 
   // Error message
   const errorMessage = useMemo<string | null>(() => {
@@ -272,6 +297,7 @@ export default function Schemas(): ReactElement {
         schema: parsedSchema,
         channelKeys: selectedChannels,
         channelAliases: channelAliases,
+        selfChannelKey: selfChannelKey,
         nestedSchemas: allNestedSchemas,
         updatedAt: Date.now(),
       };
@@ -658,6 +684,8 @@ export default function Schemas(): ReactElement {
                           channelKeys={selectedChannels}
                           aliases={channelAliases}
                           onChange={setChannelAliases}
+                          selfChannelKey={selfChannelKey}
+                          onSelfChannelChange={setSelfChannelKey}
                         />
                       </div>
                     </CollapsibleSection>
@@ -665,26 +693,52 @@ export default function Schemas(): ReactElement {
                 </>
               )}
 
-              {/* Static schemas - nested schema selection */}
+              {/* Static schemas - nested schema selection and self channel */}
               {activeSchema?.type === "static" && (
-                <CollapsibleSection
-                  title="Nested Schemas"
-                  subtitle="Compose schemas"
-                  defaultOpen={selectedNestedSchemas.length === 0 &&
-                    autoDetectedSchemas.length === 0}
-                  badge={selectedNestedSchemas.length +
-                    autoDetectedSchemas.length}
-                >
-                  <div className="p-4">
-                    <NestedSchemaSelector
-                      schemas={schemas}
-                      currentSchemaId={activeSchemaId}
-                      selectedSchemas={selectedNestedSchemas}
-                      autoDetectedSchemas={autoDetectedSchemas}
-                      onChange={setSelectedNestedSchemas}
-                    />
-                  </div>
-                </CollapsibleSection>
+                <>
+                  <CollapsibleSection
+                    title="Nested Schemas"
+                    subtitle="Compose schemas"
+                    defaultOpen={selectedNestedSchemas.length === 0 &&
+                      autoDetectedSchemas.length === 0}
+                    badge={selectedNestedSchemas.length +
+                      autoDetectedSchemas.length}
+                  >
+                    <div className="p-4">
+                      <NestedSchemaSelector
+                        schemas={schemas}
+                        currentSchemaId={activeSchemaId}
+                        selectedSchemas={selectedNestedSchemas}
+                        autoDetectedSchemas={autoDetectedSchemas}
+                        onChange={setSelectedNestedSchemas}
+                      />
+                    </div>
+                  </CollapsibleSection>
+
+                  <CollapsibleSection
+                    title="Context Channel (self)"
+                    subtitle="Override 'self' for nested schemas"
+                    defaultOpen={false}
+                  >
+                    <div className="p-4">
+                      <MultiChannelSelector
+                        selectedChannels={selectedChannels}
+                        onChange={setSelectedChannels}
+                      />
+                      {selectedChannels.length > 0 && (
+                        <div className="mt-3">
+                          <ChannelAliasEditor
+                            channelKeys={selectedChannels}
+                            aliases={[]}
+                            onChange={() => {}}
+                            selfChannelKey={selfChannelKey}
+                            onSelfChannelChange={setSelfChannelKey}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </CollapsibleSection>
+                </>
               )}
 
               {/* Help panel */}
@@ -836,16 +890,17 @@ export default function Schemas(): ReactElement {
               />
             </div>
 
-            {/* Session Data Viewer - only for dynamic schemas */}
-            {activeSchema?.type === "dynamic" && channelsData.length > 0 && (
+            {/* Session Data Viewer */}
+            {channelsData.length > 0 && (
               <SessionDataViewer
                 channelsData={channelsData}
                 channelAliases={channelAliases}
+                selfChannelKey={selfChannelKey}
               />
             )}
 
-            {/* Info for static schemas */}
-            {activeSchema?.type === "static" && (
+            {/* Info for static schemas without channels */}
+            {activeSchema?.type === "static" && channelsData.length === 0 && (
               <div className="flex-shrink-0 border-t border-zinc-800 bg-zinc-900/50 p-4">
                 <div className="p-3 bg-purple-500/10 rounded border border-purple-500/20">
                   <div className="text-xs text-purple-400 mb-2 font-semibold">
@@ -861,6 +916,10 @@ export default function Schemas(): ReactElement {
                   <div className="mt-2 text-xs text-zinc-500">
                     Selected nested schemas:{" "}
                     {activeSchema.nestedSchemas?.length || 0}
+                  </div>
+                  <div className="mt-2 text-xs text-blue-400">
+                    💡 Tip: Set a context channel to provide "self" for nested
+                    schemas
                   </div>
                 </div>
               </div>

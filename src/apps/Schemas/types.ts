@@ -29,6 +29,7 @@ export interface SchemaProject {
   widgetKey: string; // e.g., widget.markets or widget.testnet.runtime.book.SOL/USDT.bybit.spot
   channelKeys: string[]; // Empty for static schemas, populated for dynamic
   channelAliases?: ChannelAlias[]; // Short names for channels (e.g., ticker, book)
+  selfChannelKey?: string | null; // Channel to use as "self" for universal schemas
   nestedSchemas?: string[]; // Widget keys of nested schemas (for static schemas)
   schema: UINode;
   createdAt: number;

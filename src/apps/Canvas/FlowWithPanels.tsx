@@ -300,9 +300,6 @@ function FlowWithPanels(): React.ReactElement | null {
 						data: {
 							...node.data,
 							onDelete: handleDeleteNode,
-							// Restore session data from current session
-							sessionData: session?.[node.data.channel] ||
-								node.data.sessionData,
 						},
 					}));
 					setNodes(nodesWithFunctions);
@@ -363,29 +360,6 @@ function FlowWithPanels(): React.ReactElement | null {
 	useEffect(() => {
 		cleanBrands();
 	}, []);
-
-	// Update nodes with fresh session data when session changes
-	useEffect(() => {
-		if (session && nodes.length > 0) {
-			setNodes((currentNodes) =>
-				currentNodes.map((node) => {
-					const newSessionData = session[node.data.channel];
-					// Only update if session data actually changed
-					if (newSessionData && newSessionData !== node.data.sessionData) {
-						return {
-							...node,
-							data: {
-								...node.data,
-								sessionData: newSessionData,
-							},
-						};
-					}
-					return node;
-				})
-			);
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [session]);
 
 	const onConnect = useCallback(
 		(params: Edge | Connection) => {
@@ -455,57 +429,36 @@ function FlowWithPanels(): React.ReactElement | null {
 
 			const newNodeId = `node-${Date.now()}`;
 
-			// Check if it's a schema
-			if (widgetData.type === "schema") {
-				const newNode = {
-					id: newNodeId,
-					type: "custom",
-					position,
-					data: {
-						channel: widgetData.widgetKey,
-						label: widgetData.name || widgetData.widgetKey,
-						onDelete: handleDeleteNode,
-						isSchema: true,
-						schemaId: widgetData.schemaId,
-						schemaType: widgetData.schemaType,
-						channelKeys: widgetData.channelKeys || [],
-						sessionData: widgetData,
-					},
-					dragHandle: ".drag-handle",
-				};
+			// Simple: just use channel/widget key - NodeFlow will check schema
+			const channelKey = widgetData.type === "schema"
+				? widgetData.widgetKey
+				: (widgetData.channel || widgetData.widget);
 
-				setNodes((prevNodes) => {
-					const updatedNodes = [...prevNodes, newNode];
-					debouncedSaveNodes(updatedNodes);
-					return updatedNodes;
-				});
-			} else {
-				// Regular widget
-				const newNode = {
-					id: newNodeId,
-					type: "custom",
-					position,
-					data: {
-						channel: widgetData.channel || widgetData.widget,
-						label: widgetData.module || widgetData.channel,
-						onDelete: handleDeleteNode,
-						sessionData: session?.[widgetData.channel || widgetData.widget] ||
-							widgetData,
-					},
-					dragHandle: ".drag-handle",
-				};
+			const label = widgetData.type === "schema"
+				? (widgetData.name || widgetData.widgetKey)
+				: (widgetData.module || widgetData.channel);
 
-				setNodes((prevNodes) => {
-					const updatedNodes = [...prevNodes, newNode];
-					debouncedSaveNodes(updatedNodes);
-					return updatedNodes;
-				});
-			}
+			const newNode = {
+				id: newNodeId,
+				type: "custom",
+				position,
+				data: {
+					channel: channelKey,
+					label: label,
+					onDelete: handleDeleteNode,
+				},
+				dragHandle: ".drag-handle",
+			};
+
+			setNodes((prevNodes) => {
+				const updatedNodes = [...prevNodes, newNode];
+				debouncedSaveNodes(updatedNodes);
+				return updatedNodes;
+			});
 		} catch {
 			// Fallback to old method
 			const key = event.dataTransfer.getData("application/reactflow");
-			const sessionData = sessionStorage.getItem(key);
-			if (!sessionData) return;
+			if (!session?.[key]) return;
 
 			const position = screenToFlowPosition({
 				x: event.clientX,
@@ -522,7 +475,6 @@ function FlowWithPanels(): React.ReactElement | null {
 					channel: key,
 					label: key,
 					onDelete: handleDeleteNode,
-					sessionData: session?.[key] || JSON.parse(sessionData),
 				},
 				dragHandle: ".drag-handle",
 			};

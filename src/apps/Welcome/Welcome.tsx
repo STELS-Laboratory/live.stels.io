@@ -125,9 +125,16 @@ function Welcome(): ReactElement {
 
   // Prepare merged data reactively when session updates
   const mergedData = useMemo<Record<string, unknown>>(() => {
-    if (!session || requiredChannelAliases.length === 0) return {};
+    if (!session) return {};
 
     const data: Record<string, unknown> = {};
+
+    // Add "self" using selfChannelKey from schema (set by developer)
+    if (
+      selectedSchema?.selfChannelKey && session[selectedSchema.selfChannelKey]
+    ) {
+      data["self"] = session[selectedSchema.selfChannelKey];
+    }
 
     requiredChannelAliases.forEach(({ channelKey, alias }) => {
       const sessionData = session[channelKey];
@@ -141,7 +148,7 @@ function Welcome(): ReactElement {
     });
 
     return data;
-  }, [session, requiredChannelAliases]);
+  }, [session, requiredChannelAliases, selectedSchema?.selfChannelKey]);
 
   // Handle close app
   const handleCloseApp = useCallback((): void => {
@@ -291,6 +298,11 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
 
         // 3. Prepare data with aliases
         const data: Record<string, unknown> = {};
+
+        // Add "self" using selfChannelKey from schema (set by developer)
+        if (schema.selfChannelKey && session?.[schema.selfChannelKey]) {
+          data["self"] = session[schema.selfChannelKey];
+        }
 
         if (session && requiredChannels.length > 0) {
           for (const { channelKey } of requiredChannels) {

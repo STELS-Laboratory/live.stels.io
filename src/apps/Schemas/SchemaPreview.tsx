@@ -21,7 +21,7 @@ interface SchemaPreviewProps {
   schema: UINode | null;
   channelsData: ChannelData[];
   error: string | null;
-  isStaticSchema?: boolean;
+  isStaticSchema?: boolean; // Optional hint for UI messages
 }
 
 /**
@@ -32,7 +32,7 @@ export default function SchemaPreview({
   schema,
   channelsData,
   error,
-  isStaticSchema = false,
+  isStaticSchema: _isStaticSchema = false,
 }: SchemaPreviewProps): ReactElement {
   const session = useSessionStoreSync() as Record<string, unknown> | null;
   const [resolvedSchema, setResolvedSchema] = useState<UINode | null>(null);
@@ -178,25 +178,8 @@ export default function SchemaPreview({
     );
   }
 
-  // For dynamic schemas, require channels
-  if (!isStaticSchema && channelsData.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full p-8">
-        <div className="text-center max-w-md">
-          <div className="text-zinc-500 text-lg mb-2">No Channels Selected</div>
-          <div className="text-zinc-600 text-sm mb-4">
-            Select one or more channels to preview with live data
-          </div>
-          <div className="p-4 bg-blue-500/10 rounded border border-blue-500/20">
-            <div className="text-xs text-blue-400">
-              📊 Dynamic schemas need channels. Select channels from the panel
-              on the left.
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // For dynamic schemas without channels, show hint (but still allow rendering with empty data)
+  // Static schemas can have channels for "self" context
 
   if (isResolving) {
     return (
@@ -218,7 +201,7 @@ export default function SchemaPreview({
     mergedData[channel.key] = channel.data;
   });
 
-  // Also provide direct access to first channel's data at root level
+  // Also provide direct access to first channel's data at root level (legacy)
   if (allChannelsData.length > 0 && allChannelsData[0]) {
     Object.assign(mergedData, allChannelsData[0].data);
   }

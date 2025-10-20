@@ -317,25 +317,33 @@ export default function SchemaManager({
                           real-time data.
                         </div>
                         <div className="text-amber-400 font-semibold mb-1">
-                          After creating:
+                          Two ways to use:
                         </div>
-                        <div className="space-y-1 ml-2">
-                          <div>
-                            1. Open Channel Selection panel (opens
-                            automatically)
+                        <div className="space-y-2 ml-2">
+                          <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20">
+                            <div className="font-semibold text-blue-400 mb-1">
+                              Universal (recommended):
+                            </div>
+                            <div>
+                              Use{" "}
+                              <code className="text-green-400">
+                                {"{"}self.raw.data.last{"}"}
+                              </code>
+                            </div>
+                            <div className="text-xs text-zinc-600 mt-1">
+                              One schema works for any channel!
+                            </div>
                           </div>
-                          <div>
-                            2. Select one or more data channels (ticker, book,
-                            trades)
-                          </div>
-                          <div>
-                            3. Set aliases for data access (auto-generated)
-                          </div>
-                          <div>
-                            4. Use aliases in your schema:{" "}
-                            <code className="text-green-400">
-                              {"{"}btc_ticker.data.last{"}"}
-                            </code>
+                          <div className="p-2 bg-zinc-800/50 rounded">
+                            <div className="font-semibold text-zinc-400 mb-1">
+                              Multi-channel:
+                            </div>
+                            <div>
+                              Select channels, set aliases, use{" "}
+                              <code className="text-green-400">
+                                {"{"}btc_ticker.raw.data.last{"}"}
+                              </code>
+                            </div>
                           </div>
                         </div>
                       </>

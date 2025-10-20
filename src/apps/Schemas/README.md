@@ -113,6 +113,51 @@ Real-time превью с реальными данными:
    - Используйте данные из выбранных каналов
    - Нажмите "Save Schema"
 
+### Универсальные Схемы с `self`
+
+**Для переиспользования схемы на разных каналах используйте переменную `self`:**
+
+Одна схема, много виджетов:
+
+```json
+{
+  "type": "div",
+  "className": "bg-zinc-900 p-4 w-[300px]",
+  "children": [
+    {
+      "type": "div",
+      "className": "flex gap-4",
+      "children": [
+        {
+          "type": "div",
+          "text": "{self.raw.exchange}",
+          "className": "uppercase text-pink-500"
+        },
+        {
+          "type": "div",
+          "text": "{self.raw.market}",
+          "className": "text-zinc-100"
+        }
+      ]
+    },
+    {
+      "type": "div",
+      "text": "${self.raw.data.last}",
+      "className": "text-2xl font-bold",
+      "format": { "type": "number", "decimals": 2 }
+    }
+  ]
+}
+```
+
+**Применение:**
+
+- ✅ widget.custom.1760935149260 для BTC/USDT
+- ✅ widget.custom.1760935149260 для SOL/USDT
+- ✅ widget.custom.1760935149260 для ETH/USDT
+
+Одна схема автоматически адаптируется под любой канал!
+
 ### Работа с Данными из Нескольких Каналов
 
 **Структура данных в session:**

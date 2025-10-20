@@ -61,6 +61,12 @@ export interface SessionWidgetData {
 	raw: WidgetRawData;
 	timestamp: number | string | object;
 	
+	// Schema-specific fields
+	type?: "schema";
+	name?: string;
+	widgetKey?: string;
+	schemaType?: string;
+	
 	[key: string]: unknown;
 }
 

@@ -1127,9 +1127,12 @@ export function WidgetStore({
         isDragging={dragState.isDragging}
         widgetData={dragState.draggedWidget
           ? {
+            type: dragState.draggedWidget.type ||
+              extractWidgetType(dragState.draggedWidget.widget),
             module: dragState.draggedWidget.module,
             channel: dragState.draggedWidget.channel,
-            type: extractWidgetType(dragState.draggedWidget.widget),
+            name: dragState.draggedWidget.name,
+            widgetKey: dragState.draggedWidget.widgetKey,
           }
           : undefined}
         mousePosition={dragState.mousePosition || undefined}

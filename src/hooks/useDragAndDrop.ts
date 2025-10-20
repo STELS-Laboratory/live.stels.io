@@ -46,6 +46,11 @@ export function useDragAndDrop() {
 			// Add visual feedback
 			if (event.dataTransfer.setDragImage) {
 				const dragImage = document.createElement("div");
+				// Use name for schemas, module for regular widgets
+				const displayText = widgetData.type === "schema"
+					? widgetData.name || widgetData.widgetKey || "Schema"
+					: widgetData.module || widgetData.channel || "Widget";
+				
 				dragImage.innerHTML = `
 					<div style="
 						background: #f59e0b;
@@ -57,7 +62,7 @@ export function useDragAndDrop() {
 						box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 						border: 2px solid #fbbf24;
 					">
-						${widgetData.module}
+						${displayText}
 					</div>
 				`;
 				dragImage.style.position = "absolute";
