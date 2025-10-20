@@ -18,25 +18,25 @@ import ReactFlow, {
 	useReactFlow,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
-import MacOSNode from "@/apps/Canvas/MacOSNode.tsx";
+import useSessionStoreSync from "@/hooks/use_session_store_sync.ts";
+import MacOSNode from "@/apps/canvas/macos_node.tsx";
 import { Network, Settings, ShoppingBag } from "lucide-react";
 import { cleanBrands, cn } from "@/lib/utils.ts";
-import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
+import Graphite from "@/components/ui/vectors/logos/graphite.tsx";
 import {
 	type FlowNode,
 	type FlowNodeData,
 	type SessionStore,
 } from "@/lib/canvas-types.ts";
 import { useCanvasStore } from "./store.ts";
-import { PanelTabs } from "@/components/panels/PanelTabs.tsx";
-import { PanelManager } from "@/components/panels/PanelManager.tsx";
-import { WidgetStore } from "@/components/widgets/WidgetStore.tsx";
-import { useDragAndDrop } from "@/hooks/useDragAndDrop.ts";
-import { DropZoneIndicator } from "@/components/widgets/DragPreview.tsx";
-import { useAutoConnections } from "@/hooks/useAutoConnections.ts";
-import GroupedEdge from "@/components/widgets/GroupedEdge.tsx";
-import AutoConnectionsSettings from "@/components/widgets/AutoConnectionsSettings.tsx";
+import { PanelTabs } from "@/components/panels/panel_tabs.tsx";
+import { PanelManager } from "@/components/panels/panel_manager.tsx";
+import { WidgetStore } from "@/components/widgets/widget_store.tsx";
+import { useDragAndDrop } from "@/hooks/use_drag_and_drop.ts";
+import { DropZoneIndicator } from "@/components/widgets/drag_preview.tsx";
+import { useAutoConnections } from "@/hooks/use_auto_connections.ts";
+import GroupedEdge from "@/components/widgets/grouped_edge.tsx";
+import AutoConnectionsSettings from "@/components/widgets/auto_connections_settings.tsx";
 import { getAvailableConnectionKeys } from "@/lib/auto-connections.ts";
 
 // Define nodeTypes and edgeTypes outside component to avoid React Flow warnings

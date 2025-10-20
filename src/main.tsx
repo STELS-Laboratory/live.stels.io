@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import "@/index.css";
-import App from "@/App";
+import App from "@/app";
 
 function generateId(length = 16): string {
 	const bytes = new Uint8Array(length);

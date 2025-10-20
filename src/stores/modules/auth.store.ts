@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { createWallet, importWallet, createSignedTransaction, type Wallet } from '@/lib/gliesereum';
 import { clearAllStorage, clearAppStorage } from '@/lib/storage-cleaner';
-import { useWebSocketStore } from '@/hooks/useWebSocketStore';
+import { useWebSocketStore } from '@/hooks/use_web_socket_store';
 
 /**
  * Network configuration interface

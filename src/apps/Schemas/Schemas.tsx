@@ -11,23 +11,23 @@ import {
   useRef,
   useState,
 } from "react";
-import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
+import useSessionStoreSync from "@/hooks/use_session_store_sync.ts";
 import { UIEngineProvider } from "@/lib/gui/ui.ts";
 import type { UINode } from "@/lib/gui/ui.ts";
 import { Button } from "@/components/ui";
-import SchemaEditor from "./SchemaEditor.tsx";
-import SchemaPreview from "./SchemaPreview.tsx";
-import SchemaManager from "./SchemaManager.tsx";
-import MultiChannelSelector from "./MultiChannelSelector.tsx";
-import SessionDataViewer from "./SessionDataViewer.tsx";
-import SchemaActions from "./SchemaActions.tsx";
-import CollapsibleSection from "./CollapsibleSection.tsx";
-import SchemaStats from "./SchemaStats.tsx";
-import SchemaHelp from "./SchemaHelp.tsx";
-import NestedSchemaSelector from "./NestedSchemaSelector.tsx";
-import SchemaTree from "./SchemaTree.tsx";
-import ChannelAliasEditor from "./ChannelAliasEditor.tsx";
-import { ToastContainer, useToast } from "./Toast.tsx";
+import SchemaEditor from "./schema_editor";
+import SchemaPreview from "./schema_preview";
+import SchemaManager from "./schema_manager";
+import MultiChannelSelector from "./multi_channel_selector";
+import SessionDataViewer from "./session_data_viewer";
+import SchemaActions from "./schema_actions";
+import CollapsibleSection from "./collapsible_section";
+import SchemaStats from "./schema_stats";
+import SchemaHelp from "./schema_help";
+import NestedSchemaSelector from "./nested_schema_selector";
+import SchemaTree from "./schema_tree";
+import ChannelAliasEditor from "./channel_alias_editor";
+import { ToastContainer, useToast } from "../../components/ui/toast.tsx";
 import type { ChannelAlias, ChannelData, SchemaProject } from "./types.ts";
 import {
   deleteSchema as deleteSchemaFromDB,

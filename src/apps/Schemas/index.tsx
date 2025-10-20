@@ -2,7 +2,7 @@
  * Schema Constructor Application Entry Point
  */
 
-export { default } from "./Schemas.tsx";
+export { default } from "./schemas.tsx";
 export type {
   ChannelAlias,
   ChannelData,

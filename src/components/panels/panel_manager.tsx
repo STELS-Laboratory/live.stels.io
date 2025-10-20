@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { useCanvasStore } from "@/apps/Canvas/store.ts";
+import { useCanvasStore } from "@/apps/canvas/store";
 import type { Panel } from "@/lib/panel-types";
 
 interface PanelManagerProps {

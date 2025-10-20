@@ -5,7 +5,7 @@
 
 import type { ReactElement } from "react";
 import { useCallback, useMemo, useState } from "react";
-import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
+import useSessionStoreSync from "@/hooks/use_session_store_sync.ts";
 import { Button, Checkbox, Input } from "@/components/ui";
 import { ExternalLink, RefreshCw, Search, X } from "lucide-react";
 

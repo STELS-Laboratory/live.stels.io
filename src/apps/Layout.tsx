@@ -12,9 +12,9 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { Progress } from "@/components/ui/progress.tsx";
 import { Boxes, CircleX, Code, Home, Layout as LayoutIcon } from "lucide-react";
-import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
+import Graphite from "@/components/ui/vectors/logos/graphite.tsx";
 import { navigateTo } from "@/lib/router.ts";
-import { ConnectionStatusSimple } from "@/components/auth/ConnectionStatusSimple.tsx";
+import { ConnectionStatusSimple } from "@/components/auth/connection_status_simple.tsx";
 import {
 	ThemeToggle,
 	ThemeToggleCompact,
@@ -298,12 +298,14 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						{/* Mobile Header - iOS Style */}
 						<div className="lg:hidden">
 							<div className="flex items-center justify-between px-4 h-14 border-b border-border/50">
-								<div className="flex items-center gap-2">
-									<Graphite size={1.5} />
-									<span className="text-sm font-semibold text-foreground">
-										STELS
-									</span>
-								</div>
+								{!isDeveloper && (
+									<div className="flex items-center gap-2">
+										<Graphite size={1.5} />
+										<span className="text-sm font-semibold text-foreground">
+											STELS
+										</span>
+									</div>
+								)}
 
 								<div className="flex items-center gap-2">
 									<ThemeToggleCompact />
@@ -340,7 +342,11 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						>
 							<div className="flex items-center justify-between px-6 h-16">
 								<div className="flex items-center gap-4">
-									<Graphite size={2} primary="orange" /> STELS
+									{!isDeveloper && (
+										<div className="flex items-center gap-2">
+											<Graphite size={2} primary="orange" /> STELS
+										</div>
+									)}
 									{/* iOS-Style Back button */}
 									<AnimatePresence mode="wait">
 										{showBackButton && (

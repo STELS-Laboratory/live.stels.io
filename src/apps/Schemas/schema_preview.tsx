@@ -14,8 +14,8 @@ import {
   resolveSchemaRefs,
 } from "@/lib/gui/schema-resolver.ts";
 import { getSchemaByWidgetKey } from "./db.ts";
-import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
-import ErrorBoundary from "./ErrorBoundary.tsx";
+import useSessionStoreSync from "@/hooks/use_session_store_sync.ts";
+import ErrorBoundary from "./error_boundary";
 
 interface SchemaPreviewProps {
   schema: UINode | null;

@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle } from "lucide-react";
 import { useAuthStore } from "@/stores/modules/auth.store";
-import { WalletTypeSelector } from "./WalletTypeSelector";
-import { WalletCreator } from "./WalletCreator";
-import { WalletConfirmation } from "./WalletConfirmation";
-import { NetworkSetup } from "./NetworkSetup";
-import { ConnectionProcess } from "./ConnectionProcess";
+import { WalletTypeSelector } from "./wallet_type_selector";
+import { WalletCreator } from "./wallet_creator";
+import { WalletConfirmation } from "./wallet_confirmation";
+import { NetworkSetup } from "./network_setup";
+import { ConnectionProcess } from "./connection_process";
 
 /**
  * Professional authentication flow with step-by-step process

@@ -35,7 +35,7 @@ import { Badge } from "@/components/ui/badge.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import { Textarea } from "@/components/ui/textarea.tsx";
-import EditorComponent from "@/components/editor/EditorComponent.tsx";
+import EditorComponent from "@/components/editor/editor_component.tsx";
 import {
 	useEditorStore,
 	type Worker,
@@ -43,7 +43,7 @@ import {
 } from "./store.ts";
 import { useAuthStore } from "@/stores/modules/auth.store.ts";
 import { useAppStore } from "@/stores/modules/app.store.ts";
-import { useMobile } from "@/hooks/useMobile.ts";
+import { useMobile } from "@/hooks/use_mobile.ts";
 import type { JSX } from "react/jsx-runtime";
 import { Input } from "@/components/ui/input.tsx";
 import {
@@ -53,20 +53,20 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select.tsx";
-import Graphite from "@/components/ui/vectors/logos/Graphite.tsx";
-import { CreateWorkerDialog } from "./AMIEditor/CreateWorkerDialog.tsx";
-import { LeaderInfoCard } from "./AMIEditor/LeaderInfoCard.tsx";
-import { WorkerStatsPanel } from "./AMIEditor/WorkerStatsPanel.tsx";
-import { WorkerLogsPanel } from "./AMIEditor/WorkerLogsPanel.tsx";
-import { StopAllDialog } from "./AMIEditor/StopAllDialog.tsx";
-import { MigrateWorkerDialog } from "./AMIEditor/MigrateWorkerDialog.tsx";
+import Graphite from "@/components/ui/vectors/logos/graphite.tsx";
+import { CreateWorkerDialog } from "./ami_editor/create_worker_dialog";
+import { LeaderInfoCard } from "./ami_editor/leader_info_card";
+import { WorkerStatsPanel } from "./ami_editor/worker_stats_panel";
+import { WorkerLogsPanel } from "./ami_editor/worker_logs_panel";
+import { StopAllDialog } from "./ami_editor/stop_all_dialog";
+import { MigrateWorkerDialog } from "./ami_editor/migrate_worker_dialog";
 import {
 	Tabs,
 	TabsContent,
 	TabsList,
 	TabsTrigger,
 } from "@/components/ui/tabs.tsx";
-import { getExecutionModeColor, getPriorityColor } from "./AMIEditor/utils.ts";
+import { getExecutionModeColor, getPriorityColor } from "./ami_editor/utils";
 
 export function AMIEditor(): JSX.Element {
 	const mobile = useMobile();

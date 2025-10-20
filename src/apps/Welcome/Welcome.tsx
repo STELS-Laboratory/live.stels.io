@@ -12,15 +12,15 @@ import {
 } from "react";
 import { UIEngineProvider, UIRenderer } from "@/lib/gui/ui.ts";
 import type { UINode } from "@/lib/gui/ui.ts";
-import { getAllSchemas, getSchemaByWidgetKey } from "@/apps/Schemas/db.ts";
-import type { SchemaProject } from "@/apps/Schemas/types.ts";
-import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
+import { getAllSchemas, getSchemaByWidgetKey } from "@/apps/schemas/db.ts";
+import type { SchemaProject } from "@/apps/schemas/types.ts";
+import useSessionStoreSync from "@/hooks/use_session_store_sync.ts";
 import { Calendar, Layers, Package, Play } from "lucide-react";
 import {
   collectRequiredChannels,
   resolveSchemaRefs,
 } from "@/lib/gui/schema-resolver.ts";
-import ErrorBoundary from "@/apps/Schemas/ErrorBoundary.tsx";
+import ErrorBoundary from "@/apps/schemas/error_boundary.tsx";
 
 /**
  * Web3 App Store - Browse and launch static router schemas

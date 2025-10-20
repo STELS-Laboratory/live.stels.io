@@ -1,9 +1,4 @@
-import React, {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronRight,
@@ -21,10 +16,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useDeviceType } from "@/hooks/useMobile.ts";
-import { useDragAndDrop } from "@/hooks/useDragAndDrop";
-import { DragPreview } from "./DragPreview";
-import { WidgetStatusBadge } from "./WidgetStatusBadge";
+import { useDeviceType } from "@/hooks/use_mobile.ts";
+import { useDragAndDrop } from "@/hooks/use_drag_and_drop";
+import { DragPreview } from "./drag_preview";
+import { WidgetStatusBadge } from "./widget_status_badge";
 import {
   type GroupedWidgets,
   type GroupingMode,
@@ -32,7 +27,7 @@ import {
   type SessionWidgetData,
   type WidgetCategories,
 } from "@/lib/canvas-types";
-import useSessionStoreSync from "@/hooks/useSessionStoreSync";
+import useSessionStoreSync from "@/hooks/use_session_store_sync";
 /**
  * Props for the WidgetStore component
  */

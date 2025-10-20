@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import Graphite from "@/components/ui/vectors/logos/Graphite";
+import Graphite from "@/components/ui/vectors/logos/graphite";
 
 interface SplashScreenProps {
 	onComplete?: () => void;

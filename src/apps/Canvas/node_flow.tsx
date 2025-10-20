@@ -1,13 +1,13 @@
 import React, { memo, useEffect, useMemo, useState } from "react";
-import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
+import useSessionStoreSync from "@/hooks/use_session_store_sync.ts";
 import type { SessionStore } from "@/lib/canvas-types.ts";
 import { UIEngineProvider, UIRenderer } from "@/lib/gui/ui.ts";
 import type { UINode } from "@/lib/gui/ui.ts";
-import ErrorBoundary from "@/apps/Schemas/ErrorBoundary.tsx";
+import ErrorBoundary from "@/apps/schemas/error_boundary.tsx";
 import {
 	findSchemaByChannelKey,
 	getSchemaByWidgetKey,
-} from "@/apps/Schemas/db.ts";
+} from "@/apps/schemas/db";
 import {
 	collectRequiredChannels,
 	resolveSchemaRefs,

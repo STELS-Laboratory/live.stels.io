@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect } from "react";
-import useWebSocketStore from "@/hooks/useWebSocketStore";
+import useWebSocketStore from "@/hooks/use_web_socket_store";
 import { useAppStore, useAuthStore } from "@/stores";
 import Loader from "@/components/ui/loader";
 

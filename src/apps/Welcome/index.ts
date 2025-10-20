@@ -2,4 +2,4 @@
  * Welcome module exports
  */
 
-export { default } from "./Welcome.tsx";
+export { default } from "./welcome.tsx";

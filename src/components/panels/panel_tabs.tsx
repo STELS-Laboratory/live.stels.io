@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useCanvasStore } from "@/apps/Canvas/store.ts";
+import { useCanvasStore } from "@/apps/canvas/store";
 import type { Panel } from "@/lib/panel-types";
 
 interface PanelTabsProps {

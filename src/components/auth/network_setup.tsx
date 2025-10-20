@@ -13,7 +13,7 @@ import {
   Wifi,
 } from "lucide-react";
 import { type NetworkConfig, useAuthStore } from "@/stores/modules/auth.store";
-import { NetworkSelectorCompact } from "./NetworkSelectorCompact";
+import { NetworkSelectorCompact } from "./network_selector_compact";
 
 interface NetworkSetupProps {
   onBack: () => void;

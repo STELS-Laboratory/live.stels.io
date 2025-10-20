@@ -8,27 +8,28 @@ import React, {
 } from "react";
 import { useAppStore, useAuthStore } from "@/stores";
 import { ReactFlowProvider } from "reactflow";
-import SessionProvider from "@/components/main/Provider";
-import { useUrlRouter } from "@/hooks/useUrlRouter";
-import { RouteLoader } from "@/components/main/RouteLoader";
-import { useAuthRestore } from "@/hooks/useAuthRestore";
-import { useHydration } from "@/hooks/useHydration";
-import { useTheme } from "@/hooks/useTheme";
+import SessionProvider from "@/components/main/provider";
+import { useUrlRouter } from "@/hooks/use_url_router";
+import { RouteLoader } from "@/components/main/route_loader";
+import { useAuthRestore } from "@/hooks/use_auth_restore";
+import { useHydration } from "@/hooks/use_hydration";
+import { useTheme } from "@/hooks/use_theme";
 import { AnimatePresence, motion } from "framer-motion";
+import SplashScreen from "./components/main/splash_screen";
+import UpgradeScreen from "./components/main/upgrade_screen";
+import { ProfessionalConnectionFlow } from "@/components/auth/professional_connection_flow";
+import { SecurityWarningDialog } from "@/components/auth/security_warning_dialog";
+import { SessionExpiredModal } from "@/components/auth/session_expired_modal";
+
 // Lazy-loaded app modules
-const Welcome = lazy(() => import("@/apps/Welcome"));
-const Flow = lazy(() => import("@/apps/Canvas/Flow"));
-const Schemas = lazy(() => import("@/apps/Schemas"));
+const Welcome = lazy(() => import("@/apps/welcome"));
+const Flow = lazy(() => import("@/apps/canvas/flow"));
+const Schemas = lazy(() => import("@/apps/schemas"));
 import { TooltipProvider } from "@/components/ui/tooltip";
-const Layout = lazy(() => import("@/apps/Layout.tsx"));
+const Layout = lazy(() => import("@/apps/layout.tsx"));
 const AMIEditor = lazy(() =>
-	import("@/apps/Editor/AMIEditor").then((m) => ({ default: m.AMIEditor }))
+	import("@/apps/editor/ami_editor").then((m) => ({ default: m.AMIEditor }))
 );
-import SplashScreen from "./components/main/SplashScreen";
-import UpgradeScreen from "./components/main/UpgradeScreen";
-import { ProfessionalConnectionFlow } from "@/components/auth/ProfessionalConnectionFlow";
-import { SecurityWarningDialog } from "@/components/auth/SecurityWarningDialog";
-import { SessionExpiredModal } from "@/components/auth/SessionExpiredModal";
 
 /**
  * App states for managing transitions
