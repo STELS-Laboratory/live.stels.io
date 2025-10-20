@@ -15,6 +15,7 @@ import {
 } from "@/lib/gui/schema-resolver.ts";
 import { findSchemaByChannelKey, getSchemaByWidgetKey } from "./db.ts";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
+import ErrorBoundary from "./ErrorBoundary.tsx";
 
 interface SchemaPreviewProps {
   schema: UINode | null;
@@ -228,26 +229,28 @@ export default function SchemaPreview({
 
   return (
     <div className="h-full overflow-auto p-4 bg-zinc-950">
-      <div className="flex flex-col gap-4">
-        {/* Channel info - show all data sources */}
-        {allChannelsData.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {allChannelsData.map((channel, idx) => (
-              <span
-                key={idx}
-                className="text-xs px-2 py-1 bg-green-500/10 text-green-500 rounded border border-green-500/20 font-mono"
-              >
-                {channel.key}
-              </span>
-            ))}
-          </div>
-        )}
+      <ErrorBoundary key={JSON.stringify(resolvedSchema || schema)}>
+        <div className="flex flex-col gap-4">
+          {/* Channel info - show all data sources */}
+          {allChannelsData.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {allChannelsData.map((channel, idx) => (
+                <span
+                  key={idx}
+                  className="text-xs px-2 py-1 bg-green-500/10 text-green-500 rounded border border-green-500/20 font-mono"
+                >
+                  {channel.key}
+                </span>
+              ))}
+            </div>
+          )}
 
-        {/* Rendered UI */}
-        <div className="flex items-center justify-center">
-          <UIRenderer schema={resolvedSchema || schema} data={mergedData} />
+          {/* Rendered UI */}
+          <div className="flex items-center justify-center">
+            <UIRenderer schema={resolvedSchema || schema} data={mergedData} />
+          </div>
         </div>
-      </div>
+      </ErrorBoundary>
     </div>
   );
 }

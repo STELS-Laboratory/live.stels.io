@@ -3,7 +3,7 @@
  * CRUD operations for schemas with tabs interface
  */
 
-import { type ReactElement, useState } from "react";
+import { type ReactElement, useEffect, useState } from "react";
 import {
   Button,
   Dialog,
@@ -21,6 +21,8 @@ import { generateSchemaId } from "./db.ts";
 interface SchemaManagerProps {
   schemas: SchemaProject[];
   activeSchemaId: string | null;
+  triggerCreateDialog?: boolean;
+  onCreateDialogOpen?: () => void;
   onSelectSchema: (id: string) => void;
   onCreateSchema: (schema: SchemaProject) => void;
   onUpdateSchema: (schema: SchemaProject) => void;
@@ -34,6 +36,8 @@ interface SchemaManagerProps {
 export default function SchemaManager({
   schemas,
   activeSchemaId,
+  triggerCreateDialog = false,
+  onCreateDialogOpen,
   onSelectSchema,
   onCreateSchema,
   onUpdateSchema,
@@ -44,6 +48,16 @@ export default function SchemaManager({
   const [editingSchema, setEditingSchema] = useState<SchemaProject | null>(
     null,
   );
+
+  // Handle external trigger to open create dialog
+  useEffect(() => {
+    if (triggerCreateDialog) {
+      setShowCreateDialog(true);
+      if (onCreateDialogOpen) {
+        onCreateDialogOpen();
+      }
+    }
+  }, [triggerCreateDialog, onCreateDialogOpen]);
 
   // Form state
   const [formName, setFormName] = useState("");
@@ -296,7 +310,36 @@ export default function SchemaManager({
                 </div>
                 <div className="text-xs text-zinc-500">
                   {formType === "dynamic"
-                    ? "📊 Dynamic schemas bind to session channels. After creating, select channels in the Channel Selection panel to add real-time data sources."
+                    ? (
+                      <>
+                        <div className="mb-2">
+                          📊 Dynamic schemas bind to session channels for
+                          real-time data.
+                        </div>
+                        <div className="text-amber-400 font-semibold mb-1">
+                          After creating:
+                        </div>
+                        <div className="space-y-1 ml-2">
+                          <div>
+                            1. Open Channel Selection panel (opens
+                            automatically)
+                          </div>
+                          <div>
+                            2. Select one or more data channels (ticker, book,
+                            trades)
+                          </div>
+                          <div>
+                            3. Set aliases for data access (auto-generated)
+                          </div>
+                          <div>
+                            4. Use aliases in your schema:{" "}
+                            <code className="text-green-400">
+                              {"{"}btc_ticker.data.last{"}"}
+                            </code>
+                          </div>
+                        </div>
+                      </>
+                    )
                     : "📦 Static schemas are containers for composing other schemas. After creating, select nested schemas in the Nested Schemas panel to build your layout."}
                 </div>
               </div>

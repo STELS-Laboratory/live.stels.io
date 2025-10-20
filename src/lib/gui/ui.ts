@@ -474,26 +474,27 @@ const interpolate = (
   item?: unknown,
 ): string => {
   return text.replace(/\$?\{([^}]+)\}/g, (_match, expression: string) => {
-    const hasOperators = /[+\-*/]/.test(expression);
+    const hasOperators = /[+\-*/%()]/.test(expression);
 
     if (hasOperators) {
+      // Match: $item, data.x, or any variable name (e.g. btc_ticker.data.last)
       const evaluated = expression.replace(
-        /(\$item(?:\[[0-9]+\])+|data\.[a-zA-Z0-9]+(?:\[[0-9]+\])*(?:\[[0-9]+\])*|\$item\.[a-zA-Z0-9.]+)/g,
+        /([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z0-9_]+)*(?:\[[0-9]+\])*|\$item(?:\.[a-zA-Z0-9_]+)*(?:\[[0-9]+\])*)/g,
         (varMatch) => {
           let value: unknown;
 
           if (varMatch.startsWith("$item")) {
+            // Handle $item.field or $item[0]
             let path = varMatch.replace("$item", "");
             path = path.replace(/\[/g, ".").replace(/\]/g, "");
             if (path.startsWith(".")) {
               path = path.slice(1);
             }
             value = getValue(item, path);
-          } else if (varMatch.startsWith("data.")) {
-            let path = varMatch.replace("data.", "");
-            path = path.replace(/\[/g, ".").replace(/\]/g, "");
-            const dataObj = data.data as Record<string, unknown>;
-            value = getValue(dataObj, path);
+          } else {
+            // Handle any variable name: btc_ticker.data.last, sol_ticker.data.last, etc.
+            const path = varMatch.replace(/\[/g, ".").replace(/\]/g, "");
+            value = getValue(data, path);
           }
 
           return String(value ?? "0");
@@ -501,28 +502,43 @@ const interpolate = (
       );
 
       try {
+        // Validate expression before evaluation
+        if (!evaluated.trim() || evaluated.includes("undefined")) {
+          return "NaN";
+        }
+        
         const result = new Function(`return ${evaluated}`)();
+        
+        // Check for valid result
+        if (result === undefined || result === null || !isFinite(Number(result))) {
+          return "NaN";
+        }
+        
         return String(result);
-      } catch {
+      } catch (error) {
+        // Silently handle errors during live editing
+        console.warn("[interpolate] Math evaluation error:", {
+          error: error instanceof Error ? error.message : String(error),
+          expression: evaluated,
+        });
         return "NaN";
       }
     } else {
+      // No operators - simple variable access
       let result: unknown;
 
       if (expression.startsWith("$item")) {
+        // Handle $item.field or $item[0]
         let path = expression.replace("$item", "");
         path = path.replace(/\[/g, ".").replace(/\]/g, "");
         if (path.startsWith(".")) {
           path = path.slice(1);
         }
         result = getValue(item, path);
-      } else if (expression.startsWith("data.")) {
-        let path = expression.replace("data.", "");
-        path = path.replace(/\[/g, ".").replace(/\]/g, "");
-        const dataObj = data.data as Record<string, unknown>;
-        result = getValue(dataObj, path);
       } else {
-        result = getValue(data, expression);
+        // Handle any variable path: btc_ticker.data.last, data.last, etc.
+        const path = expression.replace(/\[/g, ".").replace(/\]/g, "");
+        result = getValue(data, path);
       }
 
       return String(result ?? "");

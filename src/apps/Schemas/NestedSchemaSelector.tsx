@@ -13,6 +13,7 @@ interface NestedSchemaSelectorProps {
   schemas: SchemaProject[];
   currentSchemaId: string | null;
   selectedSchemas: string[];
+  autoDetectedSchemas?: string[]; // Schemas found via schemaRef
   onChange: (widgetKeys: string[]) => void;
 }
 
@@ -24,6 +25,7 @@ export default function NestedSchemaSelector({
   schemas,
   currentSchemaId,
   selectedSchemas,
+  autoDetectedSchemas = [],
   onChange,
 }: NestedSchemaSelectorProps): ReactElement {
   const [searchQuery, setSearchQuery] = useState("");
@@ -176,20 +178,33 @@ export default function NestedSchemaSelector({
                       const isSelected = selectedSchemas.includes(
                         schema.widgetKey,
                       );
+                      const isAutoDetected = autoDetectedSchemas.includes(
+                        schema.widgetKey,
+                      );
 
                       return (
                         <label
                           key={schema.id}
-                          className="flex items-center gap-3 p-3 hover:bg-zinc-800/50 cursor-pointer transition-colors"
+                          className={`flex items-center gap-3 p-3 transition-colors ${
+                            isAutoDetected
+                              ? "bg-blue-500/10 cursor-default"
+                              : "hover:bg-zinc-800/50 cursor-pointer"
+                          }`}
                         >
                           <Checkbox
-                            checked={isSelected}
+                            checked={isSelected || isAutoDetected}
+                            disabled={isAutoDetected}
                             onCheckedChange={() =>
-                              handleToggle(schema.widgetKey)}
+                              !isAutoDetected && handleToggle(schema.widgetKey)}
                           />
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm text-zinc-300 font-medium">
+                            <div className="text-sm text-zinc-300 font-medium flex items-center gap-2">
                               {schema.name}
+                              {isAutoDetected && (
+                                <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded uppercase font-semibold">
+                                  Auto
+                                </span>
+                              )}
                             </div>
                             <div className="text-xs text-zinc-500 font-mono truncate mt-0.5">
                               {schema.widgetKey}
@@ -201,12 +216,21 @@ export default function NestedSchemaSelector({
                               </div>
                             )}
                           </div>
-                          {isSelected && (
-                            <span className="text-xs text-green-500 flex items-center gap-1">
-                              <Layers className="w-3 h-3" />
-                              Nested
-                            </span>
-                          )}
+                          {isAutoDetected
+                            ? (
+                              <span className="text-xs text-blue-400 flex items-center gap-1">
+                                <Layers className="w-3 h-3" />
+                                schemaRef
+                              </span>
+                            )
+                            : isSelected
+                            ? (
+                              <span className="text-xs text-green-500 flex items-center gap-1">
+                                <Layers className="w-3 h-3" />
+                                Nested
+                              </span>
+                            )
+                            : null}
                         </label>
                       );
                     })}
@@ -217,18 +241,27 @@ export default function NestedSchemaSelector({
           </div>
         )}
 
-      <div className="flex items-center justify-between text-xs text-zinc-500">
-        <span>
-          {selectedSchemas.length} of {availableSchemas.length} selected
-          {searchQuery && ` (${filteredSchemas.length} shown)`}
-        </span>
-        {selectedSchemas.length > 0 && (
-          <span className="text-purple-400 flex items-center gap-1">
-            <Layers className="w-3 h-3" />
-            {selectedSchemas.length} nested schema
-            {selectedSchemas.length !== 1 ? "s" : ""}
-          </span>
+      <div className="flex flex-col gap-2">
+        {autoDetectedSchemas.length > 0 && (
+          <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20">
+            <div className="text-xs text-blue-400 flex items-center gap-1">
+              <Layers className="w-3 h-3" />
+              {autoDetectedSchemas.length} auto-detected from schemaRef in UI
+            </div>
+          </div>
         )}
+        <div className="flex items-center justify-between text-xs text-zinc-500">
+          <span>
+            {selectedSchemas.length} manually selected
+            {searchQuery && ` (${filteredSchemas.length} shown)`}
+          </span>
+          {selectedSchemas.length + autoDetectedSchemas.length > 0 && (
+            <span className="text-purple-400 flex items-center gap-1">
+              <Layers className="w-3 h-3" />
+              {selectedSchemas.length + autoDetectedSchemas.length} total
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

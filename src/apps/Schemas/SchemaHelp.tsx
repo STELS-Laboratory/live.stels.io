@@ -89,6 +89,26 @@ const SNIPPETS: Snippet[] = [
 }`,
   },
   {
+    title: "Math Operations",
+    description: "Calculate values with +, -, *, /, %, ()",
+    code: `{
+  "type": "div",
+  "text": "$\{btc_ticker.data.last * 2}",
+  "className": "text-2xl text-green-500",
+  "format": {"type": "number", "decimals": 2}
+}`,
+  },
+  {
+    title: "Complex Math Expressions",
+    description: "Multi-channel calculations",
+    code: `{
+  "type": "div",
+  "text": "$\{sol_ticker.data.last - (btc_ticker.data.last / 2)}",
+  "className": "text-xl font-bold",
+  "format": {"type": "number", "decimals": 4}
+}`,
+  },
+  {
     title: "Multiple Channels (BTC + SOL)",
     description: "Combine data from different channels",
     code: `{
@@ -141,6 +161,19 @@ const SNIPPETS: Snippet[] = [
       "schemaRef": "widget.markets.orderbook"
     }
   ]
+}`,
+  },
+  {
+    title: "Nested Schema with Styling",
+    description: "Apply className and style to nested schema",
+    code: `{
+  "type": "div",
+  "className": "bg-zinc-800 p-6 rounded-lg border border-zinc-700",
+  "schemaRef": "widget.custom.ticker",
+  "style": {
+    "borderWidth": "2px",
+    "borderColor": "#f59e0b"
+  }
 }`,
   },
 ];

@@ -176,3 +176,76 @@ export function generateSchemaId(): string {
   return `schema-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
+/**
+ * Extract all schemaRef widget keys from UINode tree
+ */
+export function extractSchemaRefsFromNode(
+  node: unknown,
+  refs: Set<string> = new Set(),
+): Set<string> {
+  if (!node || typeof node !== "object") {
+    return refs;
+  }
+
+  const nodeObj = node as Record<string, unknown>;
+
+  // Check if this node has schemaRef
+  if (nodeObj.schemaRef && typeof nodeObj.schemaRef === "string") {
+    refs.add(nodeObj.schemaRef);
+  }
+
+  // Recursively check children
+  if (Array.isArray(nodeObj.children)) {
+    for (const child of nodeObj.children) {
+      extractSchemaRefsFromNode(child, refs);
+    }
+  }
+
+  return refs;
+}
+
+/**
+ * Recursively collect all nested schemas for export
+ * Scans both nestedSchemas field AND schemaRef in UINode tree
+ * Prevents circular dependencies with Set tracking
+ */
+export async function collectNestedSchemasForExport(
+  widgetKey: string,
+  collected: Set<string> = new Set(),
+): Promise<SchemaProject[]> {
+  // Prevent infinite recursion
+  if (collected.has(widgetKey)) {
+    return [];
+  }
+
+  collected.add(widgetKey);
+
+  const schema = await getSchemaByWidgetKey(widgetKey);
+  if (!schema) {
+    return [];
+  }
+
+  const result: SchemaProject[] = [schema];
+  const refsToProcess = new Set<string>();
+
+  // 1. Collect from nestedSchemas field
+  if (schema.nestedSchemas && schema.nestedSchemas.length > 0) {
+    schema.nestedSchemas.forEach((key) => refsToProcess.add(key));
+  }
+
+  // 2. Collect from schemaRef in UINode tree
+  const schemaRefs = extractSchemaRefsFromNode(schema.schema);
+  schemaRefs.forEach((key) => refsToProcess.add(key));
+
+  // 3. Recursively collect all referenced schemas
+  for (const nestedKey of refsToProcess) {
+    const nestedSchemas = await collectNestedSchemasForExport(
+      nestedKey,
+      collected,
+    );
+    result.push(...nestedSchemas);
+  }
+
+  return result;
+}
+

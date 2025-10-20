@@ -96,7 +96,32 @@ export async function resolveSchemaRefs(
       }
 
       // Recursively resolve the loaded schema
-      return await resolveSchemaRefs(schemaData.schema, store, depth + 1, maxDepth);
+      const resolvedChild = await resolveSchemaRefs(
+        schemaData.schema,
+        store,
+        depth + 1,
+        maxDepth,
+      );
+
+      // Merge parent node's className and style with resolved schema
+      const merged: UINode = {
+        ...resolvedChild,
+      };
+
+      // Apply parent's className (append to child's className)
+      if (node.className) {
+        merged.className = node.className + (resolvedChild.className ? ` ${resolvedChild.className}` : "");
+      }
+
+      // Apply parent's style (merge with child's style)
+      if (node.style) {
+        merged.style = {
+          ...resolvedChild.style,
+          ...node.style, // Parent style takes precedence
+        };
+      }
+
+      return merged;
     } catch (error) {
       console.error(`[SchemaResolver] Failed to resolve schema ${node.schemaRef}:`, error);
       return {

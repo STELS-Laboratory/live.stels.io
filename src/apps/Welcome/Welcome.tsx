@@ -1,127 +1,421 @@
-import { useEffect, useState } from "react";
-import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
-import { filterSession } from "@/lib";
+/**
+ * Welcome App Store
+ * Browse and launch ready-made static router schemas
+ */
+
+import {
+  type ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { UIEngineProvider, UIRenderer } from "@/lib/gui/ui.ts";
-
 import type { UINode } from "@/lib/gui/ui.ts";
-
-interface TickerData {
-  key: string;
-  value: {
-    channel: string;
-    module: string;
-    widget: string;
-    ui: UINode;
-    raw: {
-      exchange: string;
-      market: string;
-      data: {
-        last: number;
-        bid: number;
-        ask: number;
-        change: number;
-        percentage: number;
-        baseVolume: number;
-        quoteVolume: number;
-      };
-      timestamp: number;
-      latency: number;
-    };
-    active: boolean;
-    timestamp: number;
-  };
-}
+import { getAllSchemas, getSchemaByWidgetKey } from "@/apps/Schemas/db.ts";
+import type { SchemaProject } from "@/apps/Schemas/types.ts";
+import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
+import { Calendar, Layers, Package, Play } from "lucide-react";
+import {
+  collectRequiredChannels,
+  resolveSchemaRefs,
+} from "@/lib/gui/schema-resolver.ts";
+import { findSchemaByChannelKey } from "@/apps/Schemas/db.ts";
+import ErrorBoundary from "@/apps/Schemas/ErrorBoundary.tsx";
 
 /**
- * Ticker component that renders real-time cryptocurrency ticker data
- * using UIRenderer with data from WebSocket session.
- *
- * Features:
- * - Automatic refresh based on schema refresh intervals
- * - Modal integration for detailed views
- * - Session storage integration
- * - Performance optimized with memoization
+ * Web3 App Store - Browse and launch static router schemas
  */
-function Welcome(): React.ReactElement {
+function Welcome(): ReactElement {
   const session = useSessionStoreSync() as Record<string, unknown> | null;
-  const [, setRefreshTick] = useState(0);
+  const [schemas, setSchemas] = useState<SchemaProject[]>([]);
+  const [selectedSchema, setSelectedSchema] = useState<SchemaProject | null>(
+    null,
+  );
+  const [resolvedSchema, setResolvedSchema] = useState<UINode | null>(null);
+  const [requiredChannelAliases, setRequiredChannelAliases] = useState<
+    Array<{ channelKey: string; alias: string }>
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isResolving, setIsResolving] = useState(false);
 
-  const spotTickers = filterSession(
-    session || {},
-    /\.ticker\..*\.spot$/,
-  ) as TickerData[];
-
+  // Load all schemas from IndexedDB
   useEffect(() => {
-    if (spotTickers.length === 0) return;
-
-    const minRefreshInterval = Math.min(
-      ...spotTickers.map((ticker) => ticker.value.ui.refreshInterval || 1000),
-    );
-
-    const intervalId = setInterval(() => {
-      setRefreshTick((prev) => prev + 1);
-    }, minRefreshInterval);
-
-    return (): void => {
-      clearInterval(intervalId);
+    const loadSchemas = async (): Promise<void> => {
+      try {
+        const allSchemas = await getAllSchemas();
+        setSchemas(allSchemas);
+      } catch (error) {
+        console.error("Failed to load schemas:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
-  }, [spotTickers]);
 
-  if (!session || spotTickers.length === 0) {
+    loadSchemas();
+  }, []);
+
+  // Filter static router schemas
+  const routerSchemas = useMemo(() => {
+    return schemas.filter(
+      (schema) =>
+        schema.type === "static" &&
+        (schema.widgetKey.includes(".router") ||
+          schema.widgetKey.includes(".app.") ||
+          schema.widgetKey.includes(".apps.")),
+    );
+  }, [schemas]);
+
+  // Handle launch app
+  const handleLaunchApp = useCallback(
+    async (schema: SchemaProject): Promise<void> => {
+      setSelectedSchema(schema);
+      setIsResolving(true);
+
+      try {
+        // Create schema store for resolver
+        const schemaStore = {
+          getSchemaByWidgetKey: async (widgetKey: string) => {
+            const project = await getSchemaByWidgetKey(widgetKey);
+            if (!project) return null;
+
+            return {
+              schema: project.schema,
+              channelKeys: project.channelKeys,
+              channelAliases: project.channelAliases,
+            };
+          },
+        };
+
+        // 1. Resolve schemaRef nodes
+        const resolved = await resolveSchemaRefs(schema.schema, schemaStore);
+
+        // 2. Collect all required channels and their aliases
+        const requiredChannels = await collectRequiredChannels(
+          schema.schema,
+          schemaStore,
+        );
+
+        // 3. Get aliases from owner schemas
+        const aliases: Array<{ channelKey: string; alias: string }> = [];
+        for (const { channelKey } of requiredChannels) {
+          const ownerSchema = await findSchemaByChannelKey(channelKey);
+          const aliasObj = ownerSchema?.channelAliases?.find(
+            (a) => a.channelKey === channelKey,
+          );
+          if (aliasObj) {
+            aliases.push(aliasObj);
+          } else {
+            aliases.push({ channelKey, alias: channelKey });
+          }
+        }
+
+        setResolvedSchema(resolved);
+        setRequiredChannelAliases(aliases);
+      } catch (error) {
+        console.error("Failed to resolve schema:", error);
+        setResolvedSchema(schema.schema);
+        setRequiredChannelAliases([]);
+      } finally {
+        setIsResolving(false);
+      }
+    },
+    [],
+  );
+
+  // Prepare merged data reactively when session updates
+  const mergedData = useMemo<Record<string, unknown>>(() => {
+    if (!session || requiredChannelAliases.length === 0) return {};
+
+    const data: Record<string, unknown> = {};
+
+    requiredChannelAliases.forEach(({ channelKey, alias }) => {
+      const sessionData = session[channelKey];
+      if (!sessionData || typeof sessionData !== "object") return;
+
+      const dataObj = sessionData as Record<string, unknown>;
+      if (!("raw" in dataObj) && !("data" in dataObj)) return;
+
+      const rawData = ("raw" in dataObj ? dataObj.raw : dataObj.data) as Record<
+        string,
+        unknown
+      >;
+      const channelData: Record<string, unknown> = {
+        ...rawData,
+        active: dataObj.active,
+        timestamp: dataObj.timestamp,
+      };
+
+      data[alias] = channelData;
+    });
+
+    return data;
+  }, [session, requiredChannelAliases]);
+
+  // Handle close app
+  const handleCloseApp = useCallback((): void => {
+    setSelectedSchema(null);
+    setResolvedSchema(null);
+    setRequiredChannelAliases([]);
+  }, []);
+
+  // If app is selected, render full-screen
+  if (selectedSchema) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="text-zinc-500 text-lg">No ticker data available</div>
-          <div className="text-zinc-600 text-sm mt-2">
-            Waiting for WebSocket connection...
+      <UIEngineProvider>
+        <div className="h-screen w-screen bg-zinc-950 relative">
+          {/* Close button */}
+          <button
+            onClick={handleCloseApp}
+            className="fixed top-4 right-4 z-50 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 transition-colors flex items-center gap-2"
+          >
+            <span>← Back to Store</span>
+          </button>
+
+          {/* Render app */}
+          <div className="h-full w-full overflow-auto">
+            <ErrorBoundary>
+              {isResolving
+                ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-zinc-500">Loading app...</div>
+                  </div>
+                )
+                : resolvedSchema
+                ? <UIRenderer schema={resolvedSchema} data={mergedData} />
+                : (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-red-500">Failed to load app</div>
+                  </div>
+                )}
+            </ErrorBoundary>
           </div>
         </div>
-      </div>
+      </UIEngineProvider>
     );
   }
 
-  const spotBooks = filterSession(
-    session || {},
-    /\.book\..*\.spot$/,
-  ) as TickerData[];
-
+  // Store view
   return (
     <UIEngineProvider>
-      <div className="flex flex-wrap gap-4 container mx-auto p-4">
-        {spotTickers.map((ticker) => {
-          const { ui, raw, active, timestamp } = ticker.value;
+      <div className="min-h-screen bg-zinc-950 p-8">
+        {/* Header */}
+        <div className="max-w-7xl mx-auto mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <Package className="w-8 h-8 text-amber-500" />
+            <h1 className="text-3xl font-bold text-zinc-100">
+              Web3 App Store
+            </h1>
+          </div>
+          <p className="text-zinc-400 text-lg">
+            Browse and launch ready-made applications built with Schema
+            Constructor
+          </p>
+        </div>
 
-          const renderData = {
-            ...raw,
-            active,
-            timestamp,
-          };
+        {/* Loading */}
+        {isLoading && (
+          <div className="max-w-7xl mx-auto flex items-center justify-center py-20">
+            <div className="text-zinc-500">Loading apps...</div>
+          </div>
+        )}
 
-          return (
-            <div key={ticker.key}>
-              <UIRenderer schema={ui} data={renderData} />
+        {/* No apps */}
+        {!isLoading && routerSchemas.length === 0 && (
+          <div className="max-w-7xl mx-auto">
+            <div className="p-12 bg-zinc-900 rounded-lg border border-zinc-800 text-center">
+              <Package className="w-16 h-16 text-zinc-600 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-zinc-400 mb-2">
+                No Apps Available
+              </h2>
+              <p className="text-zinc-500 mb-4">
+                Create static router schemas in Schema Constructor to see them
+                here
+              </p>
+              <p className="text-xs text-zinc-600">
+                Tip: Create a schema with type "static" and widgetKey containing
+                "router", "app", or "apps"
+              </p>
             </div>
-          );
-        })}
-      </div>
-      <div className="flex flex-wrap gap-4 container mx-auto p-4">
-        {spotBooks.map((ticker) => {
-          const { ui, raw, active, timestamp } = ticker.value;
+          </div>
+        )}
 
-          const renderData = {
-            ...raw,
-            active,
-            timestamp,
-          };
-
-          return (
-            <div key={ticker.key}>
-              <UIRenderer schema={ui} data={renderData} />
+        {/* App Grid */}
+        {!isLoading && routerSchemas.length > 0 && (
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {routerSchemas.map((schema) => (
+                <AppCard
+                  key={schema.id}
+                  schema={schema}
+                  session={session}
+                  onLaunch={handleLaunchApp}
+                />
+              ))}
             </div>
-          );
-        })}
+          </div>
+        )}
       </div>
     </UIEngineProvider>
+  );
+}
+
+/**
+ * App Card Component
+ */
+interface AppCardProps {
+  schema: SchemaProject;
+  session: Record<string, unknown> | null;
+  onLaunch: (schema: SchemaProject) => Promise<void>;
+}
+
+function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
+  const [previewSchema, setPreviewSchema] = useState<UINode | null>(null);
+  const [previewData, setPreviewData] = useState<Record<string, unknown>>({});
+
+  // Resolve schema and collect data for preview
+  useEffect(() => {
+    const resolvePreview = async (): Promise<void> => {
+      try {
+        const schemaStore = {
+          getSchemaByWidgetKey: async (widgetKey: string) => {
+            const project = await getSchemaByWidgetKey(widgetKey);
+            if (!project) return null;
+            return {
+              schema: project.schema,
+              channelKeys: project.channelKeys,
+              channelAliases: project.channelAliases,
+            };
+          },
+        };
+
+        // 1. Resolve schema
+        const resolved = await resolveSchemaRefs(schema.schema, schemaStore);
+
+        // 2. Collect required channels
+        const requiredChannels = await collectRequiredChannels(
+          schema.schema,
+          schemaStore,
+        );
+
+        // 3. Prepare data with aliases
+        const data: Record<string, unknown> = {};
+
+        if (session && requiredChannels.length > 0) {
+          for (const { channelKey } of requiredChannels) {
+            const sessionData = session[channelKey];
+            if (!sessionData || typeof sessionData !== "object") continue;
+
+            const dataObj = sessionData as Record<string, unknown>;
+            if (!("raw" in dataObj) && !("data" in dataObj)) continue;
+
+            const rawData =
+              ("raw" in dataObj ? dataObj.raw : dataObj.data) as Record<
+                string,
+                unknown
+              >;
+            const channelData: Record<string, unknown> = {
+              ...rawData,
+              active: dataObj.active,
+              timestamp: dataObj.timestamp,
+            };
+
+            // Find alias from owner schema
+            const ownerSchema = await findSchemaByChannelKey(channelKey);
+            const aliasObj = ownerSchema?.channelAliases?.find(
+              (a) => a.channelKey === channelKey,
+            );
+            const alias = aliasObj?.alias || channelKey;
+
+            data[alias] = channelData;
+          }
+        }
+
+        setPreviewSchema(resolved);
+        setPreviewData(data);
+      } catch (error) {
+        console.error("Failed to resolve preview:", error);
+        setPreviewSchema(schema.schema);
+        setPreviewData({});
+      }
+    };
+
+    resolvePreview();
+  }, [schema, session]);
+
+  const formattedDate = useMemo(() => {
+    return new Date(schema.updatedAt).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }, [schema.updatedAt]);
+
+  return (
+    <div className="group bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden hover:border-amber-500/50 transition-all">
+      {/* Preview */}
+      <div className="aspect-video bg-zinc-950 border-b border-zinc-800 overflow-hidden relative">
+        <div className="absolute inset-0 scale-50 overflow-auto">
+          <ErrorBoundary>
+            {previewSchema
+              ? <UIRenderer schema={previewSchema} data={previewData} />
+              : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-zinc-600 text-xs">
+                    Loading preview...
+                  </div>
+                </div>
+              )}
+          </ErrorBoundary>
+        </div>
+
+        {/* Overlay on hover */}
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <button
+            onClick={() => onLaunch(schema)}
+            className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-lg transition-colors flex items-center gap-2"
+          >
+            <Play className="w-5 h-5" />
+            Launch App
+          </button>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="p-4">
+        <h3 className="text-lg font-semibold text-zinc-100 mb-1">
+          {schema.name}
+        </h3>
+
+        {schema.description && (
+          <p className="text-sm text-zinc-400 mb-3 line-clamp-2">
+            {schema.description}
+          </p>
+        )}
+
+        {/* Meta */}
+        <div className="flex flex-wrap gap-3 text-xs text-zinc-500">
+          <div className="flex items-center gap-1">
+            <Calendar className="w-3 h-3" />
+            {formattedDate}
+          </div>
+
+          {schema.nestedSchemas && schema.nestedSchemas.length > 0 && (
+            <div className="flex items-center gap-1">
+              <Layers className="w-3 h-3" />
+              {schema.nestedSchemas.length} nested
+            </div>
+          )}
+        </div>
+
+        {/* Widget Key */}
+        <div className="mt-3 pt-3 border-t border-zinc-800">
+          <div className="text-xs font-mono text-zinc-600 truncate">
+            {schema.widgetKey}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

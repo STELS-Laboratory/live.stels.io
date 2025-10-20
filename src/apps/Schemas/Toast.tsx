@@ -3,7 +3,12 @@
  * Beautiful notifications for user feedback
  */
 
-import React, { type ReactElement, useEffect, useState } from "react";
+import React, {
+  type ReactElement,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { AlertCircle, Check, Info, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -77,7 +82,7 @@ function ToastItem({ toast, onClose }: ToastProps): ReactElement {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20, scale: 0.95 }}
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, x: 100, scale: 0.95 }}
       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
@@ -123,7 +128,7 @@ export function ToastContainer({
   onClose,
 }: ToastContainerProps): ReactElement {
   return (
-    <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
+    <div className="fixed bottom-4 right-4 z-[100] flex flex-col-reverse gap-2 pointer-events-none">
       <AnimatePresence mode="popLayout">
         {toasts.map((toast) => (
           <div key={toast.id} className="pointer-events-auto">
@@ -151,27 +156,30 @@ export function useToast(): {
 } {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const showToast = (
-    type: ToastType,
-    title: string,
-    message?: string,
-    duration?: number,
-  ): void => {
-    const id = `toast-${Date.now()}-${Math.random()}`;
-    const newToast: Toast = {
-      id,
-      type,
-      title,
-      message,
-      duration,
-    };
+  const showToast = useCallback(
+    (
+      type: ToastType,
+      title: string,
+      message?: string,
+      duration?: number,
+    ): void => {
+      const id = `toast-${Date.now()}-${Math.random()}`;
+      const newToast: Toast = {
+        id,
+        type,
+        title,
+        message,
+        duration: duration || 3000, // Always 3 seconds if not specified
+      };
 
-    setToasts((prev) => [...prev, newToast]);
-  };
+      setToasts((prev) => [...prev, newToast]);
+    },
+    [],
+  );
 
-  const closeToast = (id: string): void => {
+  const closeToast = useCallback((id: string): void => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
+  }, []);
 
   return { toasts, showToast, closeToast };
 }

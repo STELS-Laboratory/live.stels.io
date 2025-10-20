@@ -8,6 +8,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
@@ -30,9 +31,11 @@ import { ToastContainer, useToast } from "./Toast.tsx";
 import type { ChannelAlias, ChannelData, SchemaProject } from "./types.ts";
 import {
   deleteSchema as deleteSchemaFromDB,
+  extractSchemaRefsFromNode,
   getAllSchemas,
   saveSchema,
 } from "./db.ts";
+import { FileJson, Plus, Upload } from "lucide-react";
 
 /**
  * Main Schema Constructor Component
@@ -41,6 +44,7 @@ import {
 export default function Schemas(): ReactElement {
   const session = useSessionStoreSync() as Record<string, unknown> | null;
   const { toasts, showToast, closeToast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // State
   const [schemas, setSchemas] = useState<SchemaProject[]>([]);
@@ -54,6 +58,7 @@ export default function Schemas(): ReactElement {
   );
   const [channelAliases, setChannelAliases] = useState<ChannelAlias[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [triggerCreateDialog, setTriggerCreateDialog] = useState(false);
 
   // Load schemas callback
   const loadSchemas = useCallback(async (): Promise<void> => {
@@ -142,6 +147,13 @@ export default function Schemas(): ReactElement {
       return null;
     }
   }, [schemaJson, isValid]);
+
+  // Auto-detect nested schemas from schemaRef in UINode tree
+  const autoDetectedSchemas = useMemo<string[]>(() => {
+    if (!parsedSchema) return [];
+    const refs = extractSchemaRefsFromNode(parsedSchema);
+    return Array.from(refs);
+  }, [parsedSchema]);
 
   // Get channels data for preview - use aliases as keys (safe for interpolation)
   const channelsData = useMemo<ChannelData[]>(() => {
@@ -250,22 +262,43 @@ export default function Schemas(): ReactElement {
 
     setIsSaving(true);
     try {
+      // Automatically extract schemaRef from UINode tree
+      const schemaRefs = extractSchemaRefsFromNode(parsedSchema);
+      const autoDetectedSchemas = Array.from(schemaRefs);
+
+      // Merge auto-detected with manually selected (remove duplicates)
+      const allNestedSchemas = Array.from(
+        new Set([...autoDetectedSchemas, ...selectedNestedSchemas]),
+      );
+
       const updatedSchema: SchemaProject = {
         ...activeSchema,
         schema: parsedSchema,
         channelKeys: selectedChannels,
         channelAliases: channelAliases,
-        nestedSchemas: selectedNestedSchemas,
+        nestedSchemas: allNestedSchemas,
         updatedAt: Date.now(),
       };
 
       await saveSchema(updatedSchema);
       await loadSchemas();
-      showToast(
-        "success",
-        "Schema Saved",
-        `${activeSchema.name} has been saved successfully`,
-      );
+
+      // Show info about auto-detected schemas
+      if (autoDetectedSchemas.length > 0) {
+        showToast(
+          "success",
+          "Schema Saved",
+          `${activeSchema.name} saved with ${autoDetectedSchemas.length} auto-detected nested schema${
+            autoDetectedSchemas.length > 1 ? "s" : ""
+          }`,
+        );
+      } else {
+        showToast(
+          "success",
+          "Schema Saved",
+          `${activeSchema.name} has been saved successfully`,
+        );
+      }
     } catch (error) {
       console.error("Failed to save schema:", error);
       showToast(
@@ -326,40 +359,170 @@ export default function Schemas(): ReactElement {
   }, [schemaJson, showToast]);
 
   // Handle export
-  const handleExport = useCallback((): void => {
-    // Success notification handled in SchemaActions
-  }, []);
+  const handleExport = useCallback(
+    (schemas: SchemaProject[]): void => {
+      const count = schemas.length;
+      if (count > 1) {
+        showToast(
+          "success",
+          "Schemas Exported",
+          `Exported ${count} schemas (${count - 1} nested dependencies)`,
+        );
+      } else {
+        showToast("success", "Schema Exported", "Schema exported successfully");
+      }
+    },
+    [showToast],
+  );
 
   // Handle import
   const handleImport = useCallback(
-    async (imported: SchemaProject): Promise<void> => {
+    async (importedSchemas: SchemaProject[]): Promise<void> => {
       try {
-        // Generate new ID to avoid conflicts
-        const newSchema: SchemaProject = {
-          ...imported,
-          id: `schema-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        };
+        let mainSchemaId: string | null = null;
+        let replacedCount = 0;
 
-        await saveSchema(newSchema);
+        // Save schemas preserving original widgetKeys
+        for (const imported of importedSchemas) {
+          // Check if schema with this widgetKey already exists
+          const existing = schemas.find(
+            (s) => s.widgetKey === imported.widgetKey,
+          );
+
+          if (existing) {
+            // Replace existing schema (keep same ID)
+            const updatedSchema: SchemaProject = {
+              ...imported,
+              id: existing.id, // Keep existing ID
+              widgetKey: imported.widgetKey, // Keep original widgetKey
+              createdAt: existing.createdAt, // Keep original creation date
+              updatedAt: Date.now(), // Update modification date
+            };
+
+            await saveSchema(updatedSchema);
+            replacedCount++;
+
+            if (!mainSchemaId) {
+              mainSchemaId = existing.id;
+            }
+          } else {
+            // New schema - generate new ID only
+            const newSchema: SchemaProject = {
+              ...imported,
+              id: `schema-${Date.now()}-${
+                Math.random()
+                  .toString(36)
+                  .substr(2, 9)
+              }-${Math.random().toString(36).substr(2, 5)}`,
+              widgetKey: imported.widgetKey, // Keep original widgetKey!
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            };
+
+            await saveSchema(newSchema);
+
+            if (!mainSchemaId) {
+              mainSchemaId = newSchema.id;
+            }
+          }
+        }
+
         await loadSchemas();
-        setActiveSchemaId(newSchema.id);
-        showToast(
-          "success",
-          "Schema Imported",
-          `${newSchema.name} has been imported successfully`,
-        );
+        if (mainSchemaId) {
+          setActiveSchemaId(mainSchemaId);
+        }
+
+        const count = importedSchemas.length;
+        if (replacedCount > 0) {
+          showToast(
+            "success",
+            "Schemas Imported",
+            `Imported ${count} schemas (${replacedCount} replaced existing)`,
+          );
+        } else if (count > 1) {
+          showToast(
+            "success",
+            "Schemas Imported",
+            `Imported ${count} schemas (${count - 1} nested dependencies)`,
+          );
+        } else {
+          showToast(
+            "success",
+            "Schema Imported",
+            `${importedSchemas[0].name} has been imported successfully`,
+          );
+        }
       } catch (error) {
-        console.error("Failed to import schema:", error);
+        console.error("Failed to import schemas:", error);
         showToast(
           "error",
           "Import Failed",
-          "Failed to import schema. Check the file format.",
+          "Failed to import schemas. Check the file format.",
         );
       }
     },
-    [loadSchemas, showToast],
+    [loadSchemas, showToast, schemas],
+  );
+
+  // Handle import from file input
+  const handleImportFile = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>): void => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const content = e.target?.result as string;
+          const imported = JSON.parse(content) as
+            | SchemaProject
+            | { version?: string; schemas: SchemaProject[] };
+
+          let schemasToImport: SchemaProject[] = [];
+
+          // Check format
+          if (
+            typeof imported === "object" &&
+            "schemas" in imported &&
+            Array.isArray(imported.schemas)
+          ) {
+            schemasToImport = imported.schemas;
+          } else if (
+            typeof imported === "object" &&
+            "id" in imported &&
+            "name" in imported &&
+            "schema" in imported
+          ) {
+            schemasToImport = [imported as SchemaProject];
+          } else {
+            throw new Error("Invalid schema format");
+          }
+
+          // Validate
+          for (const schema of schemasToImport) {
+            if (!schema.id || !schema.name || !schema.schema) {
+              throw new Error("Invalid schema structure");
+            }
+          }
+
+          await handleImport(schemasToImport);
+        } catch (error) {
+          console.error("Import error:", error);
+          showToast(
+            "error",
+            "Import Failed",
+            "Failed to import schema. Please check the file format.",
+          );
+        }
+      };
+      reader.readAsText(file);
+
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    },
+    [handleImport, showToast],
   );
 
   // Keyboard shortcuts
@@ -406,6 +569,7 @@ export default function Schemas(): ReactElement {
               onExport={handleExport}
               onImport={handleImport}
               onCopyJson={handleCopyJson}
+              onError={(message) => showToast("error", "Error", message)}
             />
           )}
 
@@ -443,6 +607,8 @@ export default function Schemas(): ReactElement {
             <SchemaManager
               schemas={schemas}
               activeSchemaId={activeSchemaId}
+              triggerCreateDialog={triggerCreateDialog}
+              onCreateDialogOpen={() => setTriggerCreateDialog(false)}
               onSelectSchema={setActiveSchemaId}
               onCreateSchema={handleCreateSchema}
               onUpdateSchema={handleUpdateSchemaInfo}
@@ -508,14 +674,17 @@ export default function Schemas(): ReactElement {
                 <CollapsibleSection
                   title="Nested Schemas"
                   subtitle="Compose schemas"
-                  defaultOpen={selectedNestedSchemas.length === 0}
-                  badge={selectedNestedSchemas.length}
+                  defaultOpen={selectedNestedSchemas.length === 0 &&
+                    autoDetectedSchemas.length === 0}
+                  badge={selectedNestedSchemas.length +
+                    autoDetectedSchemas.length}
                 >
                   <div className="p-4">
                     <NestedSchemaSelector
                       schemas={schemas}
                       currentSchemaId={activeSchemaId}
                       selectedSchemas={selectedNestedSchemas}
+                      autoDetectedSchemas={autoDetectedSchemas}
                       onChange={setSelectedNestedSchemas}
                     />
                   </div>
@@ -537,14 +706,90 @@ export default function Schemas(): ReactElement {
                 )
                 : (
                   <div className="flex items-center justify-center h-full p-8">
-                    <div className="text-center max-w-md">
-                      <div className="text-zinc-500 text-lg mb-2">
-                        No Schema Selected
-                      </div>
-                      <div className="text-zinc-600 text-sm mb-4">
-                        Create a new schema or select an existing one from the
-                        tabs above
-                      </div>
+                    <div className="text-center max-w-lg">
+                      {schemas.length === 0
+                        ? (
+                          // Empty state - no schemas at all
+                          <>
+                            <div className="mb-6">
+                              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-800/50 border border-zinc-700 mb-4">
+                                <FileJson className="w-8 h-8 text-zinc-600" />
+                              </div>
+                              <div className="text-zinc-400 text-xl font-semibold mb-2">
+                                Welcome to Schema Constructor
+                              </div>
+                              <div className="text-zinc-500 text-sm mb-6">
+                                Create UI schemas and bind them to real-time
+                                session data.
+                                <br />
+                                Get started by creating your first schema or
+                                importing an existing one.
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-center gap-3">
+                              <Button
+                                variant="default"
+                                size="lg"
+                                onClick={() => setTriggerCreateDialog(true)}
+                                className="flex items-center gap-2"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Create First Schema
+                              </Button>
+
+                              <Button
+                                variant="outline"
+                                size="lg"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="flex items-center gap-2"
+                              >
+                                <Upload className="w-4 h-4" />
+                                Import Schema
+                              </Button>
+
+                              <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="application/json,.json"
+                                onChange={handleImportFile}
+                                className="hidden"
+                              />
+                            </div>
+
+                            <div className="mt-8 p-4 bg-blue-500/10 rounded border border-blue-500/20">
+                              <div className="text-xs text-blue-400 text-left">
+                                <div className="font-semibold mb-2">
+                                  💡 Quick Start Tips
+                                </div>
+                                <ul className="space-y-1 list-disc list-inside">
+                                  <li>
+                                    Dynamic schemas bind to session channels
+                                  </li>
+                                  <li>
+                                    Static schemas can compose multiple widgets
+                                  </li>
+                                  <li>
+                                    Use aliases to access channel data in
+                                    schemas
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                          </>
+                        )
+                        : (
+                          // Schema exists but none selected
+                          <div>
+                            <div className="text-zinc-500 text-lg mb-2">
+                              No Schema Selected
+                            </div>
+                            <div className="text-zinc-600 text-sm mb-4">
+                              Select a schema from the tabs above to start
+                              editing
+                            </div>
+                          </div>
+                        )}
                     </div>
                   </div>
                 )}
