@@ -50,7 +50,14 @@ export async function getAllSchemas(): Promise<SchemaProject[]> {
     const request = store.getAll();
 
     request.onsuccess = () => {
-      resolve(request.result as SchemaProject[]);
+      const schemas = request.result as SchemaProject[];
+      console.log(`[DB] Loaded ${schemas.length} schemas from IndexedDB:`, 
+        schemas.map(s => ({
+          name: s.name,
+          selfChannelKey: s.selfChannelKey,
+        }))
+      );
+      resolve(schemas);
     };
 
     request.onerror = () => {
@@ -108,6 +115,13 @@ export async function getSchemaByWidgetKey(
  * Save schema to database (create or update)
  */
 export async function saveSchema(schema: SchemaProject): Promise<void> {
+  console.log("[DB] Saving schema to IndexedDB:", {
+    id: schema.id,
+    name: schema.name,
+    selfChannelKey: schema.selfChannelKey,
+    channelKeys: schema.channelKeys,
+  });
+
   const db = await openDatabase();
 
   return new Promise((resolve, reject) => {
@@ -116,10 +130,12 @@ export async function saveSchema(schema: SchemaProject): Promise<void> {
     const request = store.put(schema);
 
     request.onsuccess = () => {
+      console.log("[DB] Schema saved successfully");
       resolve();
     };
 
     request.onerror = () => {
+      console.error("[DB] Failed to save schema");
       reject(new Error("Failed to save schema"));
     };
   });

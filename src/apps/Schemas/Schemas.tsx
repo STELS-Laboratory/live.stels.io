@@ -60,6 +60,9 @@ export default function Schemas(): ReactElement {
   const [selfChannelKey, setSelfChannelKey] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [triggerCreateDialog, setTriggerCreateDialog] = useState(false);
+  const [lastLoadedSchemaId, setLastLoadedSchemaId] = useState<string | null>(
+    null,
+  );
 
   // Load schemas callback
   const loadSchemas = useCallback(async (): Promise<void> => {
@@ -117,34 +120,54 @@ export default function Schemas(): ReactElement {
   // Load active schema into editor
   useEffect(() => {
     if (activeSchema) {
-      setSchemaJson(JSON.stringify(activeSchema.schema, null, 2));
-      setSelectedChannels(activeSchema.channelKeys);
-      setSelectedNestedSchemas(activeSchema.nestedSchemas || []);
+      // Only reload if this is a different schema (ID changed)
+      const schemaIdChanged = lastLoadedSchemaId !== activeSchema.id;
 
-      // Auto-generate aliases if not set
-      const existingAliases = activeSchema.channelAliases || [];
-      if (existingAliases.length === 0 && activeSchema.channelKeys.length > 0) {
-        const generated = autoGenerateAliases(activeSchema.channelKeys);
-        setChannelAliases(generated);
-      } else {
-        setChannelAliases(existingAliases);
-      }
+      if (schemaIdChanged) {
+        console.log("[Schemas] Loading new schema:", activeSchema.name);
+        setSchemaJson(JSON.stringify(activeSchema.schema, null, 2));
+        setSelectedChannels(activeSchema.channelKeys);
+        setSelectedNestedSchemas(activeSchema.nestedSchemas || []);
 
-      // Restore self channel from schema or use first channel as default
-      setSelfChannelKey(
-        activeSchema.selfChannelKey ||
+        // Auto-generate aliases if not set
+        const existingAliases = activeSchema.channelAliases || [];
+        if (
+          existingAliases.length === 0 && activeSchema.channelKeys.length > 0
+        ) {
+          const generated = autoGenerateAliases(activeSchema.channelKeys);
+          setChannelAliases(generated);
+        } else {
+          setChannelAliases(existingAliases);
+        }
+
+        // Restore self channel from schema or use first channel as default
+        const restoredSelfKey = activeSchema.selfChannelKey ||
           (activeSchema.channelKeys.length > 0
             ? activeSchema.channelKeys[0]
-            : null),
-      );
+            : null);
+
+        console.log("[Schemas] Restoring selfChannelKey:", {
+          saved: activeSchema.selfChannelKey,
+          restored: restoredSelfKey,
+          schemaName: activeSchema.name,
+        });
+
+        setSelfChannelKey(restoredSelfKey);
+        setLastLoadedSchemaId(activeSchema.id);
+      } else {
+        console.log("[Schemas] Same schema reloaded, preserving state");
+        // Schema reloaded but ID same - preserve user's current state
+        // Don't reset selfChannelKey or other fields
+      }
     } else {
       setSchemaJson("");
       setSelectedChannels([]);
       setSelectedNestedSchemas([]);
       setChannelAliases([]);
       setSelfChannelKey(null);
+      setLastLoadedSchemaId(null);
     }
-  }, [activeSchema, autoGenerateAliases]);
+  }, [activeSchema, autoGenerateAliases, lastLoadedSchemaId]);
 
   // Parse schema from JSON
   const parsedSchema = useMemo<UINode | null>(() => {
@@ -281,6 +304,13 @@ export default function Schemas(): ReactElement {
       return;
     }
 
+    console.log("[Schemas] handleSaveSchema called with current state:", {
+      schemaName: activeSchema.name,
+      currentSelfChannelKey: selfChannelKey,
+      selectedChannels: selectedChannels,
+      channelAliases: channelAliases,
+    });
+
     setIsSaving(true);
     try {
       // Automatically extract schemaRef from UINode tree
@@ -302,8 +332,19 @@ export default function Schemas(): ReactElement {
         updatedAt: Date.now(),
       };
 
+      console.log("[Schemas] About to save schema:", {
+        id: updatedSchema.id,
+        name: updatedSchema.name,
+        selfChannelKey: updatedSchema.selfChannelKey,
+        channelKeys: updatedSchema.channelKeys,
+      });
+
       await saveSchema(updatedSchema);
+
+      console.log("[Schemas] Schema saved, reloading schemas...");
       await loadSchemas();
+
+      console.log("[Schemas] Schemas reloaded");
 
       // Show info about auto-detected schemas
       if (autoDetectedSchemas.length > 0) {
@@ -337,6 +378,7 @@ export default function Schemas(): ReactElement {
     isValid,
     selectedChannels,
     channelAliases,
+    selfChannelKey,
     selectedNestedSchemas,
     loadSchemas,
     showToast,
@@ -685,7 +727,13 @@ export default function Schemas(): ReactElement {
                           aliases={channelAliases}
                           onChange={setChannelAliases}
                           selfChannelKey={selfChannelKey}
-                          onSelfChannelChange={setSelfChannelKey}
+                          onSelfChannelChange={(key) => {
+                            console.log(
+                              "[Schemas] User changed selfChannelKey to:",
+                              key,
+                            );
+                            setSelfChannelKey(key);
+                          }}
                         />
                       </div>
                     </CollapsibleSection>
@@ -732,7 +780,13 @@ export default function Schemas(): ReactElement {
                             aliases={[]}
                             onChange={() => {}}
                             selfChannelKey={selfChannelKey}
-                            onSelfChannelChange={setSelfChannelKey}
+                            onSelfChannelChange={(key) => {
+                              console.log(
+                                "[Schemas] Static schema - User changed selfChannelKey to:",
+                                key,
+                              );
+                              setSelfChannelKey(key);
+                            }}
                           />
                         </div>
                       )}

@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "exportedAt": "2025-10-20T06:52:10.373Z",
+  "mainSchema": "widget.custom.1760940022232",
+  "schemas": [
+    {
+      "id": "schema-1760940022232-vkj8cp7mz",
+      "name": "Ticker",
+      "description": "",
+      "type": "dynamic",
+      "widgetKey": "widget.custom.1760940022232",
+      "channelKeys": [
+        "testnet.runtime.ticker.BTC/USDT.bybit.spot",
+        "testnet.runtime.ticker.ETH/USDT.bybit.spot"
+      ],
+      "nestedSchemas": [],
+      "schema": {
+        "type": "div",
+        "className": "p-4",
+        "children": [
+          {
+            "type": "div",
+            "text": "{self.raw.data.last} - {btc.raw.data.last}",
+            "style": {
+              "color": {
+                "condition": {
+                  "key": "self.raw.data.change",
+                  "operator": ">",
+                  "value": 0
+                },
+                "true": "#00C853",
+                "false": "#D50000"
+              }
+            }
+          }
+        ]
+      },
+      "createdAt": 1760940022232,
+      "updatedAt": 1760943070409,
+      "channelAliases": [
+        {
+          "channelKey": "testnet.runtime.ticker.BTC/USDT.bybit.spot",
+          "alias": "btc"
+        },
+        {
+          "channelKey": "testnet.runtime.ticker.ETH/USDT.bybit.spot",
+          "alias": "eth"
+        }
+      ],
+      "selfChannelKey": "testnet.runtime.ticker.BTC/USDT.bybit.spot"
+    }
+  ]
+}

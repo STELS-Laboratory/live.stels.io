@@ -13,7 +13,7 @@ import {
   collectRequiredChannels,
   resolveSchemaRefs,
 } from "@/lib/gui/schema-resolver.ts";
-import { findSchemaByChannelKey, getSchemaByWidgetKey } from "./db.ts";
+import { getSchemaByWidgetKey } from "./db.ts";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync.ts";
 import ErrorBoundary from "./ErrorBoundary.tsx";
 
@@ -79,27 +79,15 @@ export default function SchemaPreview({
         // 1. Resolve schema structure
         const resolved = await resolveSchemaRefs(schema, schemaStore);
 
-        // 2. Collect required channels and their aliases
+        // 2. Collect required channels and their aliases (already includes all aliases)
         const requiredChannels = await collectRequiredChannels(
           schema,
           schemaStore,
         );
 
-        // 3. Get aliases from owner schemas
-        const aliases: Array<{ channelKey: string; alias: string }> = [];
-        for (const { channelKey } of requiredChannels) {
-          const ownerSchema = await findSchemaByChannelKey(channelKey);
-          const aliasObj = ownerSchema?.channelAliases?.find(
-            (a) => a.channelKey === channelKey,
-          );
-          if (aliasObj) {
-            aliases.push(aliasObj);
-          }
-        }
-
         if (!cancelled) {
           setResolvedSchema(resolved);
-          setNestedChannelAliases(aliases);
+          setNestedChannelAliases(requiredChannels);
         }
       } catch (err) {
         console.error("[SchemaPreview] Failed to resolve:", err);
@@ -131,8 +119,8 @@ export default function SchemaPreview({
 
     // Add data from nested schemas using collected aliases
     nestedChannelAliases.forEach(({ channelKey, alias }) => {
-      // Skip if already in current data
-      if (channelsData.some((ch) => ch.key === alias)) {
+      // Skip if this EXACT alias already exists (not just channel)
+      if (allData.some((ch) => ch.key === alias)) {
         return;
       }
 
@@ -145,6 +133,7 @@ export default function SchemaPreview({
       // Pass original session data structure as-is, without modifications
       const mergedData: Record<string, unknown> = dataObj;
 
+      // Add under nested schema's alias (e.g., "btc" even if "self" uses same channel)
       allData.push({
         key: alias,
         data: mergedData,

@@ -500,7 +500,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 					</main>
 
 					<footer className="h-16 border-t">
-						<div className="container mx-auto px-4 py-5">
+						<div className="mx-auto px-5 py-5">
 							<div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
 								<span>© 2024 Gliesereum Ukraine. All rights reserved.</span>
 							</div>

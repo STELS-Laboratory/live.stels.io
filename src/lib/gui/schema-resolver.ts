@@ -22,26 +22,30 @@ export interface SchemaStore {
 }
 
 /**
- * Collect all required channels from schema tree
+ * Collect all required channels with their aliases from schema tree
+ * Returns ALL channelKey+alias pairs (not unique channels)
  */
 export async function collectRequiredChannels(
   node: UINode,
   store: SchemaStore,
-  collected: Set<string> = new Set(),
+  collected: Array<{ channelKey: string; alias: string }> = [],
   depth: number = 0,
   maxDepth: number = 10
 ): Promise<Array<{ channelKey: string; alias: string }>> {
-  if (depth >= maxDepth) return [];
+  if (depth >= maxDepth) return collected;
 
-  // If node has schemaRef, get its channels
+  // If node has schemaRef, get its channels with aliases
   if (node.schemaRef) {
     try {
       const schemaData = await store.getSchemaByWidgetKey(node.schemaRef);
       
       if (schemaData) {
-        // Add this schema's channels
-        if (schemaData.channelKeys && schemaData.channelKeys.length > 0) {
-          schemaData.channelKeys.forEach((key) => collected.add(key));
+        // Add this schema's channels WITH their aliases
+        if (schemaData.channelAliases && schemaData.channelAliases.length > 0) {
+          schemaData.channelAliases.forEach((aliasObj) => {
+            // Add this alias (even if channel already exists under different alias)
+            collected.push(aliasObj);
+          });
         }
 
         // Recursively collect from nested schema
@@ -61,7 +65,7 @@ export async function collectRequiredChannels(
     );
   }
 
-  return Array.from(collected).map((key) => ({ channelKey: key, alias: key }));
+  return collected;
 }
 
 /**

@@ -6,10 +6,8 @@ import React, {
   useState,
 } from "react";
 import {
-  Box,
   ChevronDown,
   ChevronRight,
-  Database,
   Filter,
   Grid3X3,
   List,
@@ -36,9 +34,6 @@ import {
   type WidgetCategories,
 } from "@/lib/canvas-types";
 import useSessionStoreSync from "@/hooks/useSessionStoreSync";
-import { getAllSchemas } from "@/apps/Schemas/db.ts";
-import type { SchemaProject } from "@/apps/Schemas/types.ts";
-
 /**
  * Props for the WidgetStore component
  */
@@ -187,169 +182,6 @@ function getWidgetIcon(widgetType: string): React.ReactNode {
     default:
       return <Zap className={iconClass} />;
   }
-}
-
-/**
- * Schema Item Component for drag & drop
- */
-interface SchemaItemProps {
-  schema: SchemaProject;
-  onDragStart: (event: React.DragEvent<HTMLDivElement>, key: string) => void;
-  onTouchStart: (event: React.TouchEvent<HTMLDivElement>, key: string) => void;
-  isMobile: boolean;
-  isCompact?: boolean;
-  isInCanvas?: boolean;
-}
-
-function SchemaItem({
-  schema,
-  onDragStart,
-  onTouchStart,
-  isMobile,
-  isCompact = false,
-  isInCanvas = false,
-}: SchemaItemProps): React.ReactElement {
-  const {
-    dragState,
-    handleDragStart,
-    handleDragEnd,
-    handleTouchStart,
-    handleTouchMove,
-    handleTouchEnd,
-  } = useDragAndDrop();
-
-  const handleItemDragStart = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      if (isInCanvas) {
-        event.preventDefault();
-        return;
-      }
-      // Pass schema data
-      const schemaData = {
-        type: "schema",
-        widgetKey: schema.widgetKey,
-        schemaId: schema.id,
-        schemaType: schema.type,
-        channelKeys: schema.channelKeys,
-        ...schema,
-      };
-      handleDragStart(event, schemaData);
-      onDragStart(event, `schema:${schema.widgetKey}`);
-    },
-    [schema, onDragStart, handleDragStart, isInCanvas],
-  );
-
-  const handleItemTouchStart = useCallback(
-    (event: React.TouchEvent<HTMLDivElement>) => {
-      if (isInCanvas) {
-        event.preventDefault();
-        return;
-      }
-      const schemaData = {
-        type: "schema",
-        widgetKey: schema.widgetKey,
-        schemaId: schema.id,
-        ...schema,
-      };
-      handleTouchStart(event, schemaData);
-      onTouchStart(event, `schema:${schema.widgetKey}`);
-    },
-    [schema, onTouchStart, handleTouchStart, isInCanvas],
-  );
-
-  const Icon = schema.type === "static" ? Box : Database;
-  const typeColor = schema.type === "static"
-    ? "text-purple-400"
-    : "text-blue-400";
-  const bgColor = schema.type === "static"
-    ? "bg-purple-500/10"
-    : "bg-blue-500/10";
-
-  if (isCompact) {
-    return (
-      <div
-        draggable={!isInCanvas}
-        onDragStart={handleItemDragStart}
-        onTouchStart={handleItemTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onDragEnd={handleDragEnd}
-        className={cn(
-          "flex items-center p-2 rounded-md transition-all duration-200",
-          isInCanvas
-            ? "bg-muted text-muted-foreground cursor-not-allowed opacity-60"
-            : "bg-amber-600 text-black cursor-grab active:cursor-grabbing hover:bg-amber-500 hover:scale-105",
-          dragState.isDragging && "opacity-50 scale-95",
-          isMobile && "touch-manipulation",
-        )}
-        title={isInCanvas ? "Schema already in Canvas" : "Drag to add schema"}
-      >
-        <div className="flex items-center space-x-2 flex-1 min-w-0">
-          <Icon className="h-4 w-4 flex-shrink-0" />
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium truncate">{schema.name}</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <Card
-      draggable={!isInCanvas}
-      onDragStart={handleItemDragStart}
-      onTouchStart={handleItemTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onDragEnd={handleDragEnd}
-      className={cn(
-        "transition-all duration-200",
-        isInCanvas
-          ? "opacity-60 cursor-not-allowed"
-          : "cursor-grab active:cursor-grabbing hover:shadow-lg hover:scale-[1.02]",
-        dragState.isDragging && "opacity-50 scale-95",
-        isMobile && "touch-manipulation",
-      )}
-    >
-      <CardHeader className="p-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-2 flex-1 min-w-0">
-            <div className={cn("p-1.5 rounded", bgColor)}>
-              <Icon className={cn("h-4 w-4", typeColor)} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-sm font-semibold truncate">
-                {schema.name}
-              </CardTitle>
-              {schema.description && (
-                <p className="text-xs text-muted-foreground truncate mt-0.5">
-                  {schema.description}
-                </p>
-              )}
-            </div>
-          </div>
-          <Badge variant="outline" className="ml-2 flex-shrink-0">
-            {schema.type === "static" ? "📦" : "📊"}
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="p-3 pt-0">
-        <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
-          <span className="font-mono truncate">{schema.widgetKey}</span>
-          {schema.channelKeys.length > 0 && (
-            <Badge variant="secondary" className="text-[10px] h-4">
-              {schema.channelKeys.length} ch
-            </Badge>
-          )}
-          {schema.nestedSchemas && schema.nestedSchemas.length > 0 && (
-            <Badge variant="secondary" className="text-[10px] h-4">
-              {schema.nestedSchemas.length} nested
-            </Badge>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
 }
 
 /**
@@ -629,56 +461,41 @@ export function WidgetStore({
   const [statusFilter, setStatusFilter] = useState<
     "all" | "available" | "inCanvas"
   >("all");
-  const [schemas, setSchemas] = useState<SchemaProject[]>([]);
-
-  // Load schemas from IndexedDB - only when needed
-  useEffect(() => {
-    const loadSchemas = async (): Promise<void> => {
-      try {
-        const allSchemas = await getAllSchemas();
-
-        // Filter: only schemas with data available in session
-        const schemasWithData = allSchemas.filter((schema) => {
-          if (!session) return false;
-
-          // Dynamic schemas - check if channels exist in session
-          if (schema.type === "dynamic" && schema.channelKeys.length > 0) {
-            return schema.channelKeys.some((channelKey) => {
-              const data = session[channelKey];
-              return data && typeof data === "object" &&
-                ("raw" in data || "data" in data);
-            });
-          }
-
-          // Static schemas - always show (they compose dynamic schemas)
-          return schema.type === "static";
-        });
-
-        setSchemas(schemasWithData);
-      } catch (error) {
-        console.error("[WidgetStore] Failed to load schemas:", error);
-      }
-    };
-
-    if (isOpen && session) {
-      loadSchemas();
-    }
-  }, [isOpen, session]);
 
   // Refs for mobile touch handling
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(
     null,
   );
 
-  // Get all widget keys
+  // Get all widget keys with professional filtering
   const keys = useMemo(() => {
     if (!session) return [];
-    return Object.keys(session).filter((key) => session[key]?.module);
+
+    return Object.keys(session).filter((key) => {
+      const data = session[key];
+
+      // Must have module field
+      if (!data || !data.module) return false;
+
+      // Skip heartbeat channels
+      if (key.endsWith(".heartbeat")) return false;
+
+      // Skip phantom channels
+      if (key.startsWith("phantom.")) return false;
+
+      // Must have raw data or ui
+      if (!data.raw && !data.ui) return false;
+
+      // Must be active
+      if (data.active === false) return false;
+
+      return true;
+    });
   }, [session]);
 
-  // Categorize widgets + schemas
+  // Categorize widgets (only session widgets, no schemas)
   const widgetsByCategory = useMemo<WidgetCategories>(() => {
-    const categorized: WidgetCategories = { All: [], Schemas: [] };
+    const categorized: WidgetCategories = { All: [] };
 
     // Add session widgets
     if (session) {
@@ -698,23 +515,14 @@ export function WidgetStore({
       });
     }
 
-    // Add schemas (use widgetKey as key)
-    schemas.forEach((schema) => {
-      const schemaKey = `schema:${schema.widgetKey}`;
-      categorized.All.push(schemaKey);
-      categorized.Schemas.push(schemaKey);
-    });
-
     return categorized;
-  }, [keys, session, schemas]);
+  }, [keys, session]);
 
   // Get categories
   const categories = useMemo<string[]>(() => {
     return Object.keys(widgetsByCategory).sort((a, b) => {
       if (a === "All") return -1;
       if (b === "All") return 1;
-      if (a === "Schemas") return -1;
-      if (b === "Schemas") return 1;
       return a.localeCompare(b);
     });
   }, [widgetsByCategory]);
@@ -900,30 +708,7 @@ export function WidgetStore({
                         )}
                       >
                         {assetWidgets.map((keyStore) => {
-                          // Check if it's a schema
-                          if (keyStore.startsWith("schema:")) {
-                            const widgetKey = keyStore.replace("schema:", "");
-                            const schema = schemas.find(
-                              (s) => s.widgetKey === widgetKey,
-                            );
-                            if (!schema) return null;
-
-                            return (
-                              <SchemaItem
-                                key={keyStore}
-                                schema={schema}
-                                onDragStart={onDragStart}
-                                onTouchStart={handleTouchStart}
-                                isMobile={isMobile}
-                                isCompact={viewMode === "list"}
-                                isInCanvas={existingWidgets.includes(
-                                  schema.widgetKey,
-                                )}
-                              />
-                            );
-                          }
-
-                          // Regular widget
+                          // Only session widgets
                           const widget = session?.[keyStore];
                           if (!widget) return null;
 
@@ -1010,30 +795,6 @@ export function WidgetStore({
                         )}
                       >
                         {exchangeWidgets.map((keyStore) => {
-                          // Check if it's a schema
-                          if (keyStore.startsWith("schema:")) {
-                            const widgetKey = keyStore.replace("schema:", "");
-                            const schema = schemas.find(
-                              (s) => s.widgetKey === widgetKey,
-                            );
-                            if (!schema) return null;
-
-                            return (
-                              <SchemaItem
-                                key={keyStore}
-                                schema={schema}
-                                onDragStart={onDragStart}
-                                onTouchStart={handleTouchStart}
-                                isMobile={isMobile}
-                                isCompact={viewMode === "list"}
-                                isInCanvas={existingWidgets.includes(
-                                  schema.widgetKey,
-                                )}
-                              />
-                            );
-                          }
-
-                          // Regular widget
                           const widget = session?.[keyStore];
                           if (!widget) return null;
 

@@ -20,7 +20,6 @@ import {
   collectRequiredChannels,
   resolveSchemaRefs,
 } from "@/lib/gui/schema-resolver.ts";
-import { findSchemaByChannelKey } from "@/apps/Schemas/db.ts";
 import ErrorBoundary from "@/apps/Schemas/ErrorBoundary.tsx";
 
 /**
@@ -96,22 +95,9 @@ function Welcome(): ReactElement {
           schemaStore,
         );
 
-        // 3. Get aliases from owner schemas
-        const aliases: Array<{ channelKey: string; alias: string }> = [];
-        for (const { channelKey } of requiredChannels) {
-          const ownerSchema = await findSchemaByChannelKey(channelKey);
-          const aliasObj = ownerSchema?.channelAliases?.find(
-            (a) => a.channelKey === channelKey,
-          );
-          if (aliasObj) {
-            aliases.push(aliasObj);
-          } else {
-            aliases.push({ channelKey, alias: channelKey });
-          }
-        }
-
+        // 3. Required channels already include correct aliases from collectRequiredChannels
         setResolvedSchema(resolved);
-        setRequiredChannelAliases(aliases);
+        setRequiredChannelAliases(requiredChannels);
       } catch (error) {
         console.error("Failed to resolve schema:", error);
         setResolvedSchema(schema.schema);
@@ -305,21 +291,14 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
         }
 
         if (session && requiredChannels.length > 0) {
-          for (const { channelKey } of requiredChannels) {
+          for (const { channelKey, alias } of requiredChannels) {
             const sessionData = session[channelKey];
             if (!sessionData || typeof sessionData !== "object") continue;
 
             const dataObj = sessionData as Record<string, unknown>;
             if (!("raw" in dataObj)) continue;
 
-            // Find alias from owner schema
-            const ownerSchema = await findSchemaByChannelKey(channelKey);
-            const aliasObj = ownerSchema?.channelAliases?.find(
-              (a) => a.channelKey === channelKey,
-            );
-            const alias = aliasObj?.alias || channelKey;
-
-            // Pass original session data structure as-is, without modifications
+            // Add with alias from schema (collectRequiredChannels already provides it)
             data[alias] = dataObj;
           }
         }
