@@ -16,15 +16,41 @@ export function extractConnectionKeys(
 ): ConnectionKeys {
 	const keys: ConnectionKeys = {};
 
-	// Debug logging (disabled for performance)
-	// console.log("Extracting keys from node data:", {
-	// 	channel: nodeData.channel,
-	// 	sessionData: nodeData.sessionData,
-	// 	hasRaw: !!nodeData.sessionData?.raw,
-	// 	rawKeys: nodeData.sessionData?.raw ? Object.keys(nodeData.sessionData.raw) : [],
-	// });
+	// For schema nodes, extract from channelKeys
+	if (nodeData.isSchema && nodeData.channelKeys && nodeData.channelKeys.length > 0) {
+		// Parse first channelKey to extract connection info
+		// Example: testnet.runtime.ticker.BTC/USDT.bybit.spot
+		const firstChannel = nodeData.channelKeys[0];
+		const parts = firstChannel.split(".");
+		
+		if (parts.length >= 3) {
+			// Extract module (ticker, book, trades)
+			keys.module = parts[2]; // "ticker"
+			
+			// Extract market (BTC/USDT) and exchange from the rest
+			const remaining = parts.slice(3).join(".");
+			const match = remaining.match(/^([^.]+)\.([^.]+)\.([^.]+)$/);
+			
+			if (match) {
+				const [, market, exchange, type] = match;
+				keys.market = market; // "BTC/USDT"
+				keys.exchange = exchange; // "bybit"
+				keys.type = type; // "spot"
+				
+				// Extract base/quote from market
+				if (market.includes("/")) {
+					const [base, quote] = market.split("/");
+					keys.base = base; // "BTC"
+					keys.quote = quote; // "USDT"
+					keys.asset = base; // "BTC"
+				}
+			}
+		}
+		
+		return keys;
+	}
 
-	// Extract from sessionData
+	// Extract from sessionData (regular widgets)
 	if (nodeData.sessionData) {
 		const { sessionData } = nodeData;
 		

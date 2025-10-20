@@ -455,26 +455,52 @@ function FlowWithPanels(): React.ReactElement | null {
 
 			const newNodeId = `node-${Date.now()}`;
 
-			const newNode = {
-				id: newNodeId,
-				type: "custom",
-				position,
-				data: {
-					channel: widgetData.channel || widgetData.widget,
-					label: widgetData.module || widgetData.channel,
-					onDelete: handleDeleteNode,
-					sessionData: session?.[widgetData.channel || widgetData.widget] ||
-						widgetData,
-				},
-				dragHandle: ".drag-handle",
-			};
+			// Check if it's a schema
+			if (widgetData.type === "schema") {
+				const newNode = {
+					id: newNodeId,
+					type: "custom",
+					position,
+					data: {
+						channel: widgetData.widgetKey,
+						label: widgetData.name || widgetData.widgetKey,
+						onDelete: handleDeleteNode,
+						isSchema: true,
+						schemaId: widgetData.schemaId,
+						schemaType: widgetData.schemaType,
+						channelKeys: widgetData.channelKeys || [],
+						sessionData: widgetData,
+					},
+					dragHandle: ".drag-handle",
+				};
 
-			setNodes((prevNodes) => {
-				const updatedNodes = [...prevNodes, newNode];
-				// Save new nodes to panel data
-				debouncedSaveNodes(updatedNodes);
-				return updatedNodes;
-			});
+				setNodes((prevNodes) => {
+					const updatedNodes = [...prevNodes, newNode];
+					debouncedSaveNodes(updatedNodes);
+					return updatedNodes;
+				});
+			} else {
+				// Regular widget
+				const newNode = {
+					id: newNodeId,
+					type: "custom",
+					position,
+					data: {
+						channel: widgetData.channel || widgetData.widget,
+						label: widgetData.module || widgetData.channel,
+						onDelete: handleDeleteNode,
+						sessionData: session?.[widgetData.channel || widgetData.widget] ||
+							widgetData,
+					},
+					dragHandle: ".drag-handle",
+				};
+
+				setNodes((prevNodes) => {
+					const updatedNodes = [...prevNodes, newNode];
+					debouncedSaveNodes(updatedNodes);
+					return updatedNodes;
+				});
+			}
 		} catch {
 			// Fallback to old method
 			const key = event.dataTransfer.getData("application/reactflow");
@@ -503,7 +529,6 @@ function FlowWithPanels(): React.ReactElement | null {
 
 			setNodes((prevNodes) => {
 				const updatedNodes = [...prevNodes, newNode];
-				// Save new nodes to panel data
 				debouncedSaveNodes(updatedNodes);
 				return updatedNodes;
 			});

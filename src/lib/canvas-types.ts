@@ -78,9 +78,14 @@ export interface FlowNodeData {
 	channel: string;
 	label: string;
 	onDelete: (nodeId: string) => void;
-	sessionData?: SessionWidgetData;
+	sessionData?: SessionWidgetData | Record<string, unknown>;
 	// Node state for persistence
 	nodeState?: NodeState;
+	// Schema support
+	isSchema?: boolean;
+	schemaId?: string;
+	schemaType?: "static" | "dynamic";
+	channelKeys?: string[];
 }
 
 /**

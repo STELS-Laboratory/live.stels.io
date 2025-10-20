@@ -100,11 +100,18 @@ export default function ChannelAliasEditor({
         </div>
         <div className="text-xs text-zinc-300 mb-2">
           Aliases are <strong>required</strong>{" "}
-          to access channel data. Use alias (not full key):
+          to access channel data. Examples:
         </div>
-        <code className="text-xs text-green-400 font-mono block mt-2 bg-zinc-950 px-3 py-2 rounded">
-          {`{${getAlias(channelKeys[0]) || "alias"}.data.last}`}
-        </code>
+        <div className="space-y-1 mt-2">
+          <code className="text-xs text-green-400 font-mono block bg-zinc-950 px-3 py-2 rounded">
+            {`{${getAlias(channelKeys[0]) || "alias"}.raw.data.last}`}{" "}
+            — price data
+          </code>
+          <code className="text-xs text-blue-400 font-mono block bg-zinc-950 px-3 py-2 rounded">
+            {`{${getAlias(channelKeys[0]) || "alias"}.raw.exchange}`}{" "}
+            — exchange name
+          </code>
+        </div>
         {channelKeys.length > 1 && (
           <div className="text-xs text-amber-400 mt-2 bg-amber-500/10 px-2 py-1 rounded">
             ⚠️ Set unique aliases for all {channelKeys.length} channels below
@@ -168,11 +175,19 @@ export default function ChannelAliasEditor({
                 )}
               </div>
               {currentAlias && (
-                <div className="text-xs text-green-500 bg-green-500/10 px-2 py-1 rounded border border-green-500/20">
-                  ✓ Access with:{" "}
-                  <code className="font-mono text-green-400">
-                    {`{${currentAlias}.data.last}`}
-                  </code>
+                <div className="text-xs text-green-500 bg-green-500/10 px-2 py-1 rounded border border-green-500/20 space-y-1">
+                  <div>
+                    ✓ Access with:{" "}
+                    <code className="font-mono text-green-400">
+                      {`{${currentAlias}.raw.data.last}`}
+                    </code>
+                  </div>
+                  <div className="text-zinc-400">
+                    or{" "}
+                    <code className="font-mono text-blue-400">
+                      {`{${currentAlias}.raw.exchange}`}
+                    </code>
+                  </div>
                 </div>
               )}
               {!currentAlias && (
@@ -196,9 +211,14 @@ export default function ChannelAliasEditor({
                 <div className="text-zinc-500 mb-0.5 text-[10px]">
                   // {alias.channelKey}
                 </div>
-                <code className="text-green-400 font-mono block bg-zinc-950 px-2 py-1 rounded">
-                  {`{${alias.alias}.data.last}`}
-                </code>
+                <div className="space-y-1">
+                  <code className="text-green-400 font-mono block bg-zinc-950 px-2 py-1 rounded">
+                    {`{${alias.alias}.raw.data.last}`}
+                  </code>
+                  <code className="text-blue-400 font-mono block bg-zinc-950 px-2 py-1 rounded">
+                    {`{${alias.alias}.raw.exchange} {${alias.alias}.raw.market}`}
+                  </code>
+                </div>
               </div>
             ))}
             {aliases.length > 3 && (

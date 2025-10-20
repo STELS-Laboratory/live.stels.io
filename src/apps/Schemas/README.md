@@ -115,21 +115,52 @@ Real-time превью с реальными данными:
 
 ### Работа с Данными из Нескольких Каналов
 
-**Доступ к данным первого канала:**
+**Структура данных в session:**
 
 ```json
 {
-  "type": "div",
-  "text": "{exchange} - {market}"
+  "channel": "testnet.runtime.ticker.SOL/USDT.bybit.spot",
+  "module": "ticker",
+  "widget": "widget.testnet.runtime.ticker.SOL/USDT.bybit.spot",
+  "raw": {
+    "exchange": "bybit",
+    "market": "SOL/USDT",
+    "data": {
+      "last": 191.56,
+      "bid": 191.56,
+      "ask": 191.57,
+      "change": 4.67,
+      "percentage": 2.49
+    },
+    "timestamp": 1760934787416
+  },
+  "active": true,
+  "timestamp": 1760934787416
 }
 ```
 
-**Доступ к конкретному каналу:**
+**Доступ через alias:**
 
 ```json
 {
   "type": "div",
-  "text": "{testnet.runtime.ticker.BTC/USDT.bybit.spot.data.last}"
+  "children": [
+    {
+      "type": "div",
+      "text": "{btc_ticker.raw.data.last}",
+      "comment": "Доступ к данным из raw.data"
+    },
+    {
+      "type": "div",
+      "text": "{btc_ticker.raw.exchange} - {btc_ticker.raw.market}",
+      "comment": "Доступ к метаданным из raw"
+    },
+    {
+      "type": "div",
+      "text": "Active: {btc_ticker.active}",
+      "comment": "Доступ к полям верхнего уровня"
+    }
+  ]
 }
 ```
 
@@ -138,21 +169,33 @@ Real-time превью с реальными данными:
 ```json
 {
   "type": "div",
-  "className": "grid grid-cols-3 gap-4",
+  "className": "grid grid-cols-3 gap-4 p-4",
   "children": [
     {
       "type": "div",
-      "text": "Price: ${testnet.runtime.ticker.BTC/USDT.bybit.spot.data.last}",
+      "className": "flex flex-col gap-2",
+      "children": [
+        {
+          "type": "div",
+          "text": "Price: ${btc_ticker.raw.data.last}",
+          "format": { "type": "number", "decimals": 2 },
+          "className": "text-2xl font-bold"
+        },
+        {
+          "type": "div",
+          "text": "{btc_ticker.raw.exchange} - {btc_ticker.raw.market}",
+          "className": "text-xs text-zinc-500"
+        }
+      ]
+    },
+    {
+      "type": "div",
+      "text": "Bid: ${btc_book.raw.data.bids[0][0]}",
       "format": { "type": "number", "decimals": 2 }
     },
     {
       "type": "div",
-      "text": "Bid: ${testnet.runtime.book.BTC/USDT.bybit.spot.data.bids[0][0]}",
-      "format": { "type": "number", "decimals": 2 }
-    },
-    {
-      "type": "div",
-      "text": "Last Trade: ${testnet.runtime.trades.BTC/USDT.bybit.spot.data[0].price}",
+      "text": "Last Trade: ${btc_trades.raw.data[0].price}",
       "format": { "type": "number", "decimals": 2 }
     }
   ]
@@ -366,7 +409,7 @@ IndexedDB → SchemaManager → Schemas.tsx
   "children": [
     {
       "type": "div",
-      "className": "p-4 bg-zinc-900 rounded",
+      "className": "p-4 bg-zinc-900 rounded border border-zinc-800",
       "children": [
         {
           "type": "div",
@@ -375,15 +418,20 @@ IndexedDB → SchemaManager → Schemas.tsx
         },
         {
           "type": "div",
-          "text": "${channel1.data.last}",
+          "text": "${btc_ticker.raw.data.last}",
           "format": { "type": "number", "decimals": 2 },
-          "className": "text-2xl font-bold"
+          "className": "text-2xl font-bold text-white"
+        },
+        {
+          "type": "div",
+          "text": "{btc_ticker.raw.exchange} - {btc_ticker.raw.market}",
+          "className": "text-xs text-zinc-600 mt-1"
         }
       ]
     },
     {
       "type": "div",
-      "className": "p-4 bg-zinc-900 rounded",
+      "className": "p-4 bg-zinc-900 rounded border border-zinc-800",
       "children": [
         {
           "type": "div",
@@ -392,14 +440,14 @@ IndexedDB → SchemaManager → Schemas.tsx
         },
         {
           "type": "div",
-          "text": "${channel2.data.bids[0][0]} / ${channel2.data.asks[0][0]}",
-          "className": "text-sm"
+          "text": "${btc_book.raw.data.bids[0][0]} / ${btc_book.raw.data.asks[0][0]}",
+          "className": "text-sm text-white"
         }
       ]
     },
     {
       "type": "div",
-      "className": "p-4 bg-zinc-900 rounded",
+      "className": "p-4 bg-zinc-900 rounded border border-zinc-800",
       "children": [
         {
           "type": "div",
@@ -408,9 +456,9 @@ IndexedDB → SchemaManager → Schemas.tsx
         },
         {
           "type": "div",
-          "text": "${channel3.data[0].price}",
+          "text": "${btc_trades.raw.data[0].price}",
           "format": { "type": "number", "decimals": 2 },
-          "className": "text-sm"
+          "className": "text-sm text-white"
         }
       ]
     }

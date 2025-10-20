@@ -142,12 +142,8 @@ export default function SchemaPreview({
       const dataObj = sessionData as Record<string, unknown>;
       if (!("raw" in dataObj)) return;
 
-      const rawData = dataObj.raw as Record<string, unknown>;
-      const mergedData: Record<string, unknown> = {
-        ...rawData,
-        active: dataObj.active,
-        timestamp: dataObj.timestamp,
-      };
+      // Pass original session data structure as-is, without modifications
+      const mergedData: Record<string, unknown> = dataObj;
 
       allData.push({
         key: alias,

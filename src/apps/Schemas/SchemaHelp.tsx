@@ -84,8 +84,17 @@ const SNIPPETS: Snippet[] = [
     description: "Access data using channel alias",
     code: `{
   "type": "div",
-  "text": "$\{btc_ticker.data.last}",
+  "text": "$\{btc_ticker.raw.data.last}",
   "format": {"type": "number", "decimals": 2}
+}`,
+  },
+  {
+    title: "Exchange and Market Info",
+    description: "Access metadata from raw object",
+    code: `{
+  "type": "div",
+  "text": "$\{btc_ticker.raw.exchange} - $\{btc_ticker.raw.market}",
+  "className": "text-sm text-zinc-400"
 }`,
   },
   {
@@ -93,7 +102,7 @@ const SNIPPETS: Snippet[] = [
     description: "Calculate values with +, -, *, /, %, ()",
     code: `{
   "type": "div",
-  "text": "$\{btc_ticker.data.last * 2}",
+  "text": "$\{btc_ticker.raw.data.last * 2}",
   "className": "text-2xl text-green-500",
   "format": {"type": "number", "decimals": 2}
 }`,
@@ -103,7 +112,7 @@ const SNIPPETS: Snippet[] = [
     description: "Multi-channel calculations",
     code: `{
   "type": "div",
-  "text": "$\{sol_ticker.data.last - (btc_ticker.data.last / 2)}",
+  "text": "$\{sol_ticker.raw.data.last - (btc_ticker.raw.data.last / 2)}",
   "className": "text-xl font-bold",
   "format": {"type": "number", "decimals": 4}
 }`,
@@ -116,26 +125,32 @@ const SNIPPETS: Snippet[] = [
   "className": "grid grid-cols-2 gap-4",
   "children": [
     {
-      "type": "span",
-      "text": "BTC: $\{btc_ticker.data.last}"
+      "type": "div",
+      "children": [
+        {"type": "div", "text": "BTC: $\{btc_ticker.raw.data.last}"},
+        {"type": "div", "text": "$\{btc_ticker.raw.exchange}", "className": "text-xs"}
+      ]
     },
     {
-      "type": "span",
-      "text": "SOL: $\{sol_ticker.data.last}"
+      "type": "div",
+      "children": [
+        {"type": "div", "text": "SOL: $\{sol_ticker.raw.data.last}"},
+        {"type": "div", "text": "$\{sol_ticker.raw.market}", "className": "text-xs"}
+      ]
     }
   ]
 }`,
   },
   {
     title: "Cross-Channel Condition",
-    description: "Use data from one channel in another's style",
+    description: "Use data from one channel in conditional style",
     code: `{
   "type": "div",
-  "text": "$\{btc_ticker.data.change}",
+  "text": "$\{btc_ticker.raw.data.change}",
   "style": {
     "color": {
       "condition": {
-        "key": "btc_ticker.data.change",
+        "key": "btc_ticker.raw.data.change",
         "operator": ">",
         "value": 0
       },

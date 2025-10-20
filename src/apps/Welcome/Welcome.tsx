@@ -134,19 +134,10 @@ function Welcome(): ReactElement {
       if (!sessionData || typeof sessionData !== "object") return;
 
       const dataObj = sessionData as Record<string, unknown>;
-      if (!("raw" in dataObj) && !("data" in dataObj)) return;
+      if (!("raw" in dataObj)) return;
 
-      const rawData = ("raw" in dataObj ? dataObj.raw : dataObj.data) as Record<
-        string,
-        unknown
-      >;
-      const channelData: Record<string, unknown> = {
-        ...rawData,
-        active: dataObj.active,
-        timestamp: dataObj.timestamp,
-      };
-
-      data[alias] = channelData;
+      // Pass original session data structure as-is, without modifications
+      data[alias] = dataObj;
     });
 
     return data;
@@ -307,18 +298,7 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
             if (!sessionData || typeof sessionData !== "object") continue;
 
             const dataObj = sessionData as Record<string, unknown>;
-            if (!("raw" in dataObj) && !("data" in dataObj)) continue;
-
-            const rawData =
-              ("raw" in dataObj ? dataObj.raw : dataObj.data) as Record<
-                string,
-                unknown
-              >;
-            const channelData: Record<string, unknown> = {
-              ...rawData,
-              active: dataObj.active,
-              timestamp: dataObj.timestamp,
-            };
+            if (!("raw" in dataObj)) continue;
 
             // Find alias from owner schema
             const ownerSchema = await findSchemaByChannelKey(channelKey);
@@ -327,7 +307,8 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
             );
             const alias = aliasObj?.alias || channelKey;
 
-            data[alias] = channelData;
+            // Pass original session data structure as-is, without modifications
+            data[alias] = dataObj;
           }
         }
 

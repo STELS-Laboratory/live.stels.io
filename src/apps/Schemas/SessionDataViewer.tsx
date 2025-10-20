@@ -228,7 +228,7 @@ export default function SessionDataViewer({
                     </span>
                   </div>
                   <div className="text-[10px] text-zinc-600 ml-5">
-                    Click keys below to copy: {`{${channel.key}.data.last}`}
+                    Click keys below to copy: {`{${channel.key}.raw.data.last}`}
                   </div>
                 </button>
 

@@ -168,12 +168,8 @@ export default function Schemas(): ReactElement {
       const dataObj = data as Record<string, unknown>;
       if (!("raw" in dataObj)) return;
 
-      const rawData = dataObj.raw as Record<string, unknown>;
-      const mergedData: Record<string, unknown> = {
-        ...rawData,
-        active: dataObj.active,
-        timestamp: dataObj.timestamp,
-      };
+      // Pass original session data structure as-is, without modifications
+      const mergedData: Record<string, unknown> = dataObj;
 
       // Find alias for this channel (required for data access)
       const aliasObj = channelAliases.find((a) => a.channelKey === channelKey);
