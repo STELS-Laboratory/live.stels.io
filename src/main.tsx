@@ -35,7 +35,7 @@ document.documentElement.setAttribute("data-theme", resolvedTheme);
 
 const rootElement = document.createElement("main");
 document.body.setAttribute("stels", "1.12.00");
-document.body.setAttribute("module", "sonar");
+document.body.setAttribute("module", "web");
 document.body.setAttribute("network", "testnet");
 document.body.setAttribute("session", generateId());
 rootElement.className = "sonar";

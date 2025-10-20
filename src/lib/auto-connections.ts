@@ -50,14 +50,89 @@ export function extractConnectionKeys(
 		return keys;
 	}
 
+	// Enhanced channel parsing for dynamic keys
+	if (nodeData.channel) {
+		const channel = nodeData.channel;
+		
+		// Parse complex channel structures like:
+		// testnet.runtime.connector.exchange.crypto.bybit.futures.BTC/USDT:USDT.ticker
+		// testnet.runtime.book.BTC/USDT.bybit.spot
+		// testnet.runtime.trades.SOL/USDT.bybit.spot
+		
+		// Extract exchange from various patterns
+		const exchangePatterns = [
+			/exchange\.(\w+)/,           // exchange.bybit
+			/\.(\w+)\.futures\./,        // .bybit.futures.
+			/\.(\w+)\.spot\./,           // .bybit.spot.
+			/\.(\w+)\.ticker$/,          // .bybit.ticker
+			/\.(\w+)\.book$/,            // .bybit.book
+			/\.(\w+)\.trades$/,          // .bybit.trades
+		];
+		
+		for (const pattern of exchangePatterns) {
+			const match = channel.match(pattern);
+			if (match) {
+				keys.exchange = match[1].toLowerCase();
+				break;
+			}
+		}
+		
+		// Extract market from various patterns
+		const marketPatterns = [
+			/\.([A-Z0-9]+\/[A-Z0-9]+:[A-Z0-9]+)\./,  // .BTC/USDT:USDT.
+			/\.([A-Z0-9]+\/[A-Z0-9]+)\./,             // .BTC/USDT.
+			/\.([A-Z0-9]+_[A-Z0-9]+)\./,              // .BTC_USDT.
+		];
+		
+		for (const pattern of marketPatterns) {
+			const match = channel.match(pattern);
+			if (match) {
+				keys.market = match[1];
+				// Parse trading pair
+				const marketStr = keys.market;
+				if (marketStr.includes("/")) {
+					const [base, quote] = marketStr.split("/");
+					keys.base = base?.toUpperCase();
+					keys.quote = quote?.toUpperCase();
+					keys.asset = base?.toUpperCase();
+				}
+				break;
+			}
+		}
+		
+		// Extract module type
+		const modulePatterns = [
+			/\.(ticker)$/,     // .ticker
+			/\.(book)$/,       // .book
+			/\.(trades)$/,     // .trades
+			/\.(candles)$/,    // .candles
+			/\.(orderbook)$/,  // .orderbook
+		];
+		
+		for (const pattern of modulePatterns) {
+			const match = channel.match(pattern);
+			if (match) {
+				keys.type = match[1];
+				break;
+			}
+		}
+		
+		// Extract module from path
+		const moduleMatch = channel.match(/\.(runtime|connector)\.([^.]+)/);
+		if (moduleMatch) {
+			keys.module = moduleMatch[2];
+		}
+	}
+
 	// Extract from sessionData (regular widgets)
 	if (nodeData.sessionData) {
-		const { sessionData } = nodeData;
+		const sessionData = nodeData.sessionData as Record<string, unknown>;
 		
 		// Extract exchange from raw data or module
-		if (sessionData.raw?.exchange) {
-			keys.exchange = sessionData.raw.exchange as string;
-		} else if (sessionData.module) {
+		const raw = sessionData.raw as Record<string, unknown> | undefined;
+		if (raw?.exchange && typeof raw.exchange === 'string') {
+			keys.exchange = raw.exchange;
+		} else if (sessionData.module && typeof sessionData.module === 'string') {
 			// Try to extract exchange from module name (e.g., "testnet.runtime.connector.exchange.crypto.bybit")
 			const exchangeMatch = sessionData.module.match(/exchange\.(\w+)/);
 			if (exchangeMatch) {
@@ -72,8 +147,8 @@ export function extractConnectionKeys(
 		}
 
 		// Extract market information
-		if (sessionData.raw?.market) {
-			keys.market = sessionData.raw.market as string;
+		if (raw?.market && typeof raw.market === 'string') {
+			keys.market = raw.market;
 			
 			// Parse trading pair if available
 			const marketStr = keys.market;
@@ -87,38 +162,16 @@ export function extractConnectionKeys(
 		}
 
 		// Extract widget type
-		if (sessionData.widget) {
+		if (sessionData.widget && typeof sessionData.widget === 'string') {
 			keys.type = sessionData.widget.split(".").pop() || sessionData.widget;
 		}
 
 		// Extract module
-		if (sessionData.module) {
+		if (sessionData.module && typeof sessionData.module === 'string') {
 			keys.module = sessionData.module;
 		}
 	}
 
-	// Extract from channel name as fallback
-	if (!keys.exchange && nodeData.channel) {
-		// Try to extract exchange from channel (e.g., "testnet.runtime.connector.exchange.crypto.bybit.futures.BTC/USDT:USDT.ticker")
-		const exchangeMatch = nodeData.channel.match(/exchange\.(\w+)/);
-		if (exchangeMatch) {
-			keys.exchange = exchangeMatch[1].toLowerCase();
-		}
-		
-		// Try to extract market from channel
-		const marketMatch = nodeData.channel.match(/\.([A-Z0-9]+\/[A-Z0-9]+:[A-Z0-9]+)\./);
-		if (marketMatch) {
-			keys.market = marketMatch[1];
-			// Parse trading pair
-			const marketStr = keys.market;
-			if (marketStr.includes("/")) {
-				const [base, quote] = marketStr.split("/");
-				keys.base = base?.toUpperCase();
-				keys.quote = quote?.toUpperCase();
-				keys.asset = base?.toUpperCase();
-			}
-		}
-	}
 
 	// Simple fallback for testing - use channel as type if no other keys found
 	if (Object.keys(keys).length === 0 && nodeData.channel) {
@@ -143,7 +196,8 @@ export function groupNodesByKeys(
 	});
 
 	nodes.forEach((node) => {
-		const keys = extractConnectionKeys(node.data);
+		// Use enhanced key extraction for better grouping
+		const keys = extractSmartConnectionKeys(node.data);
 		
 		config.groupByKeys.forEach((keyType) => {
 			const keyValue = keys[keyType];
@@ -155,6 +209,7 @@ export function groupNodesByKeys(
 				keyType,
 				keyValue,
 				keys,
+				channel: node.data.channel,
 			});
 			
 			if (!groups.has(groupKey)) {
@@ -240,6 +295,11 @@ function getEdgeColor(type: keyof ConnectionKeys): string {
 		quote: "#06b6d4",    // cyan-500
 		type: "#ef4444",     // red-500
 		module: "#84cc16",   // lime-500
+		// Enhanced keys
+		network: "#06b6d4",  // cyan-500
+		session: "#8b5cf6",  // violet-500
+		category: "#84cc16", // lime-500
+		dataType: "#f97316", // orange-500
 	};
 	
 	return colors[type] || "#6b7280"; // gray-500 as fallback
@@ -257,6 +317,11 @@ function getEdgeDashArray(type: keyof ConnectionKeys): string {
 		quote: "10,10",
 		type: "20,5",
 		module: "3,3",
+		// Enhanced keys
+		network: "2,8",
+		session: "8,2",
+		category: "4,4",
+		dataType: "12,3",
 	};
 	
 	return dashArrays[type] || "5,5";
@@ -283,17 +348,66 @@ export function filterAutoConnections(
 }
 
 /**
- * Default auto connection configuration
+ * Enhanced connection key extraction with smart grouping
+ */
+export function extractSmartConnectionKeys(nodeData: FlowNodeData): ConnectionKeys {
+	const keys = extractConnectionKeys(nodeData);
+	
+	// Add smart grouping based on channel patterns
+	if (nodeData.channel) {
+		const channel = nodeData.channel;
+		
+		// Group by network (testnet, mainnet)
+		const networkMatch = channel.match(/^(testnet|mainnet)/);
+		if (networkMatch) {
+			keys.network = networkMatch[1];
+		}
+		
+		// Group by data type (real-time vs historical)
+		if (channel.includes('runtime')) {
+			keys.dataType = 'realtime';
+		} else if (channel.includes('historical') || channel.includes('snapshot')) {
+			keys.dataType = 'historical';
+		}
+		
+		// Group by instrument category
+		if (channel.includes('crypto')) {
+			keys.category = 'crypto';
+		} else if (channel.includes('forex') || channel.includes('fx')) {
+			keys.category = 'forex';
+		} else if (channel.includes('stocks') || channel.includes('equity')) {
+			keys.category = 'stocks';
+		}
+		
+		// Group by trading session
+		if (channel.includes('futures')) {
+			keys.session = 'futures';
+		} else if (channel.includes('spot')) {
+			keys.session = 'spot';
+		} else if (channel.includes('options')) {
+			keys.session = 'options';
+		}
+	}
+	
+	return keys;
+}
+
+/**
+ * Default auto connection configuration with enhanced grouping
  */
 export const defaultAutoConnectionConfig: AutoConnectionConfig = {
 	enabled: true,
-	groupByKeys: ["exchange", "market", "asset"],
+	groupByKeys: ["exchange", "market", "asset", "type", "session"],
 	showLabels: true,
 	edgeStyles: {
 		exchange: "#f59e0b",
 		market: "#10b981",
 		asset: "#3b82f6",
 		type: "#ef4444",
+		session: "#8b5cf6",
+		network: "#06b6d4",
+		category: "#84cc16",
+		dataType: "#f97316",
 	},
 };
 
@@ -325,4 +439,70 @@ export function getConnectionStats(
 		groupCount: edgeGroups.length,
 		connectionsByType,
 	};
+}
+
+/**
+ * Get available connection keys from nodes data
+ */
+export function getAvailableConnectionKeys(nodes: FlowNode[]): string[] {
+	const keySet = new Set<string>();
+	
+	nodes.forEach((node) => {
+		const keys = extractSmartConnectionKeys(node.data);
+		Object.keys(keys).forEach((key) => {
+			if (keys[key as keyof ConnectionKeys]) {
+				keySet.add(key);
+			}
+		});
+	});
+	
+	// Return keys in a logical order
+	const orderedKeys = [
+		'exchange', 'market', 'asset', 'base', 'quote', 
+		'type', 'module', 'session', 'network', 'category', 'dataType'
+	];
+	
+	return orderedKeys.filter(key => keySet.has(key));
+}
+
+/**
+ * Debug function to analyze channel patterns and extract keys
+ */
+export function analyzeChannelPatterns(nodes: FlowNode[]): {
+	patterns: Record<string, number>;
+	examples: Record<string, string[]>;
+	extractedKeys: Record<string, ConnectionKeys>;
+	availableKeys: string[];
+} {
+	const patterns: Record<string, number> = {};
+	const examples: Record<string, string[]> = {};
+	const extractedKeys: Record<string, ConnectionKeys> = {};
+
+	nodes.forEach((node) => {
+		const channel = node.data.channel;
+		if (!channel) return;
+
+		// Extract pattern type
+		let patternType = "unknown";
+		if (channel.includes("runtime.ticker")) patternType = "runtime.ticker";
+		else if (channel.includes("runtime.book")) patternType = "runtime.book";
+		else if (channel.includes("runtime.trades")) patternType = "runtime.trades";
+		else if (channel.includes("connector.exchange")) patternType = "connector.exchange";
+		else if (channel.includes("snapshot")) patternType = "snapshot";
+		else if (channel.includes("historical")) patternType = "historical";
+
+		patterns[patternType] = (patterns[patternType] || 0) + 1;
+		
+		if (!examples[patternType]) examples[patternType] = [];
+		if (examples[patternType].length < 3) {
+			examples[patternType].push(channel);
+		}
+
+		// Extract keys for this node
+		extractedKeys[node.id] = extractSmartConnectionKeys(node.data);
+	});
+
+	const availableKeys = getAvailableConnectionKeys(nodes);
+
+	return { patterns, examples, extractedKeys, availableKeys };
 }

@@ -149,6 +149,11 @@ export interface ConnectionKeys {
 	quote?: string;
 	type?: string;
 	module?: string;
+	// Enhanced keys for better grouping
+	network?: string;
+	session?: string;
+	category?: string;
+	dataType?: string;
 }
 
 /**
@@ -158,12 +163,7 @@ export interface AutoConnectionConfig {
 	enabled: boolean;
 	groupByKeys: (keyof ConnectionKeys)[];
 	showLabels: boolean;
-	edgeStyles: {
-		exchange: string;
-		market: string;
-		asset: string;
-		type: string;
-	};
+	edgeStyles: Partial<Record<keyof ConnectionKeys, string>>;
 }
 
 /**

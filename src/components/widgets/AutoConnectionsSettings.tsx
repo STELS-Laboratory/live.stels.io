@@ -79,6 +79,10 @@ function AutoConnectionsSettings({
       quote: "💱",
       type: "🔧",
       module: "📦",
+      session: "⏰",
+      network: "🌐",
+      category: "📊",
+      dataType: "🔄",
     };
     return icons[key as keyof typeof icons] || "🔗";
   };
@@ -92,6 +96,10 @@ function AutoConnectionsSettings({
       quote: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
       type: "bg-red-500/20 text-red-400 border-red-500/30",
       module: "bg-lime-500/20 text-lime-400 border-lime-500/30",
+      session: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+      network: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
+      category: "bg-lime-500/20 text-lime-400 border-lime-500/30",
+      dataType: "bg-orange-500/20 text-orange-400 border-orange-500/30",
     };
     return colors[key as keyof typeof colors] ||
       "bg-muted/20 text-muted-foreground border-border/30";
@@ -180,32 +188,49 @@ function AutoConnectionsSettings({
 
         {/* Grouping Keys */}
         <div className="space-y-3">
-          <div className="flex items-center space-x-2 text-sm">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Group By</span>
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center space-x-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Group By</span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {availableKeys.length} available
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            {availableKeys.map((key) => (
-              <Button
-                key={key}
-                variant="ghost"
-                size="sm"
-                onClick={() => toggleGroupingKey(key)}
-                className={cn(
-                  "justify-start text-xs h-auto p-2 transition-all duration-200",
-                  config.groupByKeys.includes(
-                      key as keyof import("@/lib/canvas-types").ConnectionKeys,
-                    )
-                    ? getKeyColor(key)
-                    : "bg-muted/30 text-muted-foreground hover:bg-secondary/50 hover:text-muted-foreground",
-                )}
-              >
-                <span className="mr-2">{getKeyIcon(key)}</span>
-                <span className="capitalize">{key}</span>
-              </Button>
-            ))}
-          </div>
+          {availableKeys.length > 0
+            ? (
+              <div className="grid grid-cols-2 gap-2">
+                {availableKeys.map((key) => (
+                  <Button
+                    key={key}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleGroupingKey(key)}
+                    className={cn(
+                      "justify-start text-xs h-auto p-2 transition-all duration-200",
+                      config.groupByKeys.includes(
+                          key as keyof import("@/lib/canvas-types").ConnectionKeys,
+                        )
+                        ? getKeyColor(key)
+                        : "bg-muted/30 text-muted-foreground hover:bg-secondary/50 hover:text-muted-foreground",
+                    )}
+                  >
+                    <span className="mr-2">{getKeyIcon(key)}</span>
+                    <span className="capitalize">{key}</span>
+                  </Button>
+                ))}
+              </div>
+            )
+            : (
+              <div className="text-center py-4 text-sm text-muted-foreground">
+                <div className="mb-2">🔍</div>
+                <div>No connection keys found</div>
+                <div className="text-xs mt-1">
+                  Add nodes to see available grouping options
+                </div>
+              </div>
+            )}
         </div>
 
         <Separator className="bg-secondary" />

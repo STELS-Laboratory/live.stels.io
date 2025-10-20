@@ -37,6 +37,7 @@ import { DropZoneIndicator } from "@/components/widgets/DragPreview.tsx";
 import { useAutoConnections } from "@/hooks/useAutoConnections.ts";
 import GroupedEdge from "@/components/widgets/GroupedEdge.tsx";
 import AutoConnectionsSettings from "@/components/widgets/AutoConnectionsSettings.tsx";
+import { getAvailableConnectionKeys } from "@/lib/auto-connections.ts";
 
 // Define nodeTypes and edgeTypes outside component to avoid React Flow warnings
 const nodeTypes: NodeTypes = {
@@ -680,15 +681,7 @@ function FlowWithPanels(): React.ReactElement | null {
 						onToggle={toggleAutoConnections}
 						onUpdateConfig={updateAutoConnectionsConfig}
 						stats={connectionStats}
-						availableKeys={[
-							"exchange",
-							"market",
-							"asset",
-							"base",
-							"quote",
-							"type",
-							"module",
-						] as Array<keyof import("@/lib/canvas-types").ConnectionKeys>}
+						availableKeys={getAvailableConnectionKeys(nodes)}
 					/>
 				</div>
 			)}

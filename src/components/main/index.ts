@@ -3,13 +3,9 @@
  * Centralized export for core application components
  */
 
-export { AuthDebug } from "./AuthDebug";
 export { default as Header } from "./Header";
 export { default as Provider } from "./Provider";
 export { RouteLoader } from "./RouteLoader";
-export { RouterDebug } from "./RouterDebug";
 export { default as SplashScreen } from "./SplashScreen";
-export { default as SystemUpdateNotification } from "./SystemUpdateNotification";
 export { default as UpgradeScreen } from "./UpgradeScreen";
-export { UrlRouterDemo } from "./UrlRouterDemo";
 
