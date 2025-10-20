@@ -146,19 +146,18 @@ export function ConnectionProcess(
   return (
     <div className="w-full space-y-6">
       {/* Connection Process */}
-      <Card className="w-full max-w-2xl mx-auto bg-card border">
+      <Card className="w-full max-w-2xl mx-auto backdrop-blur-md bg-zinc-900/80 border border-zinc-800">
         <CardHeader className="text-center pb-4">
           <CardTitle className="flex items-center justify-center gap-3 text-xl font-bold">
             <div
-              className={`relative p-2 border-2 ${
+              className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                 connectionError
-                  ? "border-red-500/30 bg-red-500/10"
+                  ? "bg-gradient-to-br from-red-500 to-red-600"
                   : isConnected
-                  ? "border-green-500/30 bg-green-500/10"
-                  : "border-amber-500/30 bg-amber-500/10"
+                  ? "bg-gradient-to-br from-green-500 to-emerald-600"
+                  : "bg-gradient-to-br from-amber-500 to-orange-600"
               }`}
             >
-              <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-current" />
               {getStatusIcon()}
             </div>
             <span className={getStatusColor()}>
@@ -166,7 +165,7 @@ export function ConnectionProcess(
             </span>
           </CardTitle>
           <div className="flex items-center justify-center gap-2 mt-2">
-            <div className="flex items-center gap-2 px-2 py-1 bg-muted border border-border">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800/50 border border-zinc-700 rounded-lg">
               <Wifi className="h-3 w-3 text-amber-500" />
               <span className="text-xs text-foreground font-medium">
                 {selectedNetwork?.name}
@@ -196,14 +195,14 @@ export function ConnectionProcess(
               </div>
             </div>
 
-            <div className="relative w-full bg-muted h-2 border border-border overflow-hidden">
+            <div className="relative w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
               <div
-                className={`h-full transition-all duration-300 ${
+                className={`h-full transition-all duration-300 rounded-full ${
                   connectionError
-                    ? "bg-red-500"
+                    ? "bg-gradient-to-r from-red-500 to-red-600"
                     : isConnected
-                    ? "bg-green-500"
-                    : "bg-amber-500"
+                    ? "bg-gradient-to-r from-green-500 to-emerald-600"
+                    : "bg-gradient-to-r from-amber-500 to-orange-600"
                 }`}
                 style={{ width: `${progress}%` }}
               />
@@ -211,7 +210,7 @@ export function ConnectionProcess(
           </div>
 
           {/* Current Step */}
-          <div className="text-center p-4 bg-muted border border-border">
+          <div className="text-center p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
             <p className="text-sm text-foreground font-medium">
               {currentStep || (connectionError
                 ? "Connection failed"
@@ -252,12 +251,12 @@ export function ConnectionProcess(
                   >
                     <div className="relative">
                       <div
-                        className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${
+                        className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${
                           isCompleted
-                            ? "bg-green-500/10 border-green-500"
+                            ? "bg-green-500/20 border border-green-500/50"
                             : isCurrent
-                            ? "bg-amber-500/10 border-amber-500"
-                            : "bg-background border-border"
+                            ? "bg-amber-500/20 border border-amber-500/50"
+                            : "bg-zinc-800 border border-zinc-700"
                         }`}
                       >
                         {isCompleted
@@ -267,7 +266,7 @@ export function ConnectionProcess(
 
                       {/* Pulse for current step */}
                       {isCurrent && !isCompleted && (
-                        <div className="absolute -inset-0.5 border border-amber-500 animate-ping" />
+                        <div className="absolute inset-0 rounded-lg border border-amber-500 animate-ping" />
                       )}
                     </div>
 
@@ -293,10 +292,9 @@ export function ConnectionProcess(
 
           {/* Security Notice */}
           {!connectionError && (
-            <div className="relative p-4 bg-green-500/5 border border-green-500/30">
-              <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t border-l border-green-500/50" />
+            <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
               <div className="flex items-start gap-3">
-                <div className="p-1.5 border border-green-500/30 bg-green-500/10">
+                <div className="p-1.5 rounded-lg border border-green-500/30 bg-green-500/10">
                   <Shield className="h-4 w-4 text-green-500" />
                 </div>
                 <div>

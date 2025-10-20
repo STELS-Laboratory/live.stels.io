@@ -171,18 +171,19 @@ export function WalletCreator(
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <Card className="bg-card border">
+      <Card className="backdrop-blur-md bg-zinc-900/80 border border-zinc-800">
         <CardHeader className="text-center pb-4">
           <CardTitle className="flex items-center justify-center gap-3 text-xl font-bold">
             <div
-              className={`relative p-2 border-2 ${
+              className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                 walletType === "create"
-                  ? "border-amber-500/30 bg-amber-500/10"
-                  : "border-blue-500/30 bg-blue-500/10"
+                  ? "bg-gradient-to-br from-amber-500 to-orange-600"
+                  : "bg-gradient-to-br from-blue-500 to-purple-600"
               }`}
             >
-              <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-current" />
-              {content.icon}
+              {walletType === "create"
+                ? <Sparkles className="h-6 w-6 text-black" />
+                : <Key className="h-6 w-6 text-white" />}
             </div>
             <span className="text-foreground">
               {content.title}
@@ -195,7 +196,7 @@ export function WalletCreator(
 
         <CardContent className="px-6 pb-6 space-y-4">
           {/* Description */}
-          <div className="p-4 bg-muted border border-border">
+          <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
             <p className="text-muted-foreground text-sm">
               {content.description}
             </p>
@@ -291,10 +292,9 @@ export function WalletCreator(
           )}
 
           {/* Security Notice */}
-          <div className="relative p-4 bg-green-500/5 border border-green-500/30">
-            <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t border-l border-green-500/50" />
+          <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
             <div className="flex items-start gap-3">
-              <div className="p-1.5 border border-green-500/30 bg-green-500/10">
+              <div className="p-1.5 rounded-lg border border-green-500/30 bg-green-500/10">
                 <AlertCircle className="h-4 w-4 text-green-500" />
               </div>
               <div>

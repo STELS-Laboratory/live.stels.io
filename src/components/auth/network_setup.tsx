@@ -62,12 +62,11 @@ export function NetworkSetup(
   return (
     <div className="space-y-6">
       {/* Network Setup Card */}
-      <Card className="w-full max-w-2xl mx-auto bg-card border">
+      <Card className="w-full max-w-2xl mx-auto backdrop-blur-md bg-zinc-900/80 border border-zinc-800">
         <CardHeader className="text-center pb-4">
           <CardTitle className="flex items-center justify-center gap-3 text-xl font-bold">
-            <div className="relative p-2 border-2 border-amber-500/30 bg-amber-500/10">
-              <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-amber-500/50" />
-              <Network className="h-6 w-6 text-amber-500" />
+            <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
+              <Network className="h-6 w-6 text-black" />
             </div>
             <span className="text-foreground">
               Select Network
@@ -99,7 +98,7 @@ export function NetworkSetup(
             </div>
 
             {/* Network Selector */}
-            <div className="p-4 bg-muted border border-border">
+            <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
               <NetworkSelectorCompact />
             </div>
           </div>
@@ -119,17 +118,16 @@ export function NetworkSetup(
 
           {/* Selected Network Summary */}
           {selectedNetwork && (
-            <div className="relative p-4 bg-amber-500/5 border border-amber-500/30">
-              <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t border-l border-amber-500/50" />
+            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`p-2 border-2 ${
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                       selectedNetwork.id === "testnet"
-                        ? "border-blue-500/30 bg-blue-500/10"
+                        ? "bg-gradient-to-br from-blue-500 to-blue-600"
                         : selectedNetwork.id === "mainnet"
-                        ? "border-green-500/30 bg-green-500/10"
-                        : "border-purple-500/30 bg-purple-500/10"
+                        ? "bg-gradient-to-br from-green-500 to-emerald-600"
+                        : "bg-gradient-to-br from-purple-500 to-purple-600"
                     }`}
                   >
                     {getNetworkIcon(selectedNetwork)}
@@ -147,7 +145,7 @@ export function NetworkSetup(
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <div className="w-1.5 h-1.5 bg-green-500 animate-pulse" />
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
                   <span>Ready</span>
                 </div>
               </div>
@@ -155,10 +153,9 @@ export function NetworkSetup(
           )}
 
           {/* Security Information */}
-          <div className="relative p-4 bg-green-500/5 border border-green-500/30">
-            <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t border-l border-green-500/50" />
+          <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
             <div className="flex items-start gap-3">
-              <div className="p-1.5 border border-green-500/30 bg-green-500/10">
+              <div className="p-1.5 rounded-lg border border-green-500/30 bg-green-500/10">
                 <Shield className="h-4 w-4 text-green-500" />
               </div>
               <div>

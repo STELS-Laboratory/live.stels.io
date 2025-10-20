@@ -37,13 +37,12 @@ export const SessionExpiredModal: React.FC = (): React.ReactElement => {
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/95">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-950/95 backdrop-blur-sm">
       <div className="w-full max-w-lg mx-4">
-        <Card className="border bg-card">
+        <Card className="backdrop-blur-md bg-zinc-900/80 border border-zinc-800">
           <CardHeader className="text-center">
-            <div className="relative mx-auto mb-4 p-3 border-2 border-amber-500/30 bg-amber-500/10 inline-flex">
-              <div className="absolute -top-1 -left-1 w-2 h-2 border-t border-l border-amber-500/50" />
-              <AlertTriangle className="h-6 w-6 text-amber-500" />
+            <div className="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
+              <AlertTriangle className="h-7 w-7 text-black" />
             </div>
             <CardTitle className="text-xl text-foreground">
               Session Expired
@@ -55,10 +54,9 @@ export const SessionExpiredModal: React.FC = (): React.ReactElement => {
 
           <CardContent className="space-y-4">
             {/* Security Information */}
-            <div className="relative bg-blue-500/5 border border-blue-500/30 p-4">
-              <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t border-l border-blue-500/50" />
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
               <div className="flex items-start gap-3">
-                <div className="p-1.5 border border-blue-500/30 bg-blue-500/10">
+                <div className="p-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10">
                   <Shield className="h-4 w-4 text-blue-500" />
                 </div>
                 <div className="space-y-2">

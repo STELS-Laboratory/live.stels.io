@@ -67,7 +67,7 @@ export function NetworkSelectorCompact(
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="w-full justify-between h-10 border-border hover:bg-muted transition-colors"
+            className="w-full justify-between h-10 border-zinc-700 hover:bg-zinc-800/50 transition-colors"
           >
             <div className="flex items-center gap-3">
               {selectedNetwork
@@ -105,7 +105,7 @@ export function NetworkSelectorCompact(
 
         <DropdownMenuContent
           align="end"
-          className="w-80 bg-card border"
+          className="w-80 bg-zinc-900 border border-zinc-800"
         >
           <div className="p-3">
             <div className="text-sm font-medium text-card-foreground mb-3">
@@ -115,7 +115,7 @@ export function NetworkSelectorCompact(
               <DropdownMenuItem
                 key={network.id}
                 onClick={() => handleNetworkSelect(network)}
-                className="p-3 cursor-pointer hover:bg-muted transition-colors"
+                className="p-3 cursor-pointer hover:bg-zinc-800/50 rounded-lg transition-colors"
               >
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-3">
@@ -146,7 +146,7 @@ export function NetworkSelectorCompact(
             ))}
           </div>
 
-          <DropdownMenuSeparator className="bg-secondary/50" />
+          <DropdownMenuSeparator className="bg-zinc-800" />
 
           <div className="p-3">
             <div className="text-xs text-muted-foreground">

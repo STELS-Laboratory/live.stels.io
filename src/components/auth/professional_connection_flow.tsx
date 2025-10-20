@@ -129,9 +129,8 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
         return (
           <div className="text-center space-y-4 max-w-md mx-auto">
             <div className="flex justify-center">
-              <div className="relative p-4 border-2 border-green-500/30 bg-green-500/10">
-                <div className="absolute -top-1 -left-1 w-2 h-2 border-t border-l border-green-500/50" />
-                <CheckCircle className="h-12 w-12 text-green-500" />
+              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                <CheckCircle className="h-12 w-12 text-white" />
               </div>
             </div>
             <div>
@@ -142,7 +141,7 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
                 Your wallet is connected and ready to use
               </p>
             </div>
-            <Alert className="bg-green-500/5 border-green-500/30">
+            <Alert className="bg-green-500/10 border-green-500/30 rounded-lg">
               <CheckCircle className="h-4 w-4 text-green-500" />
               <AlertDescription className="text-muted-foreground text-xs">
                 You can now access all features of the STELS Web3 platform
@@ -220,9 +219,9 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
               {progress}%
             </span>
           </div>
-          <div className="w-full bg-muted border border-border h-2 overflow-hidden">
+          <div className="w-full bg-zinc-800 border border-zinc-700 h-2 rounded-full overflow-hidden">
             <div
-              className="bg-amber-500 h-full transition-all duration-300"
+              className="bg-gradient-to-r from-amber-500 to-orange-600 h-full transition-all duration-300 rounded-full"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -242,12 +241,10 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
               return (
                 <div key={item.step} className="flex flex-col items-center">
                   <div
-                    className={`w-2 h-2 border transition-all ${
+                    className={`w-2 h-2 rounded-full transition-all ${
                       isActive
-                        ? isCurrent
-                          ? "bg-amber-500 border-amber-500"
-                          : "bg-green-500 border-green-500"
-                        : "bg-background border-border"
+                        ? isCurrent ? "bg-amber-500" : "bg-green-500"
+                        : "bg-zinc-700"
                     }`}
                   />
                   <span

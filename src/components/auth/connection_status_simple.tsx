@@ -84,7 +84,11 @@ export function ConnectionStatusSimple(): React.ReactElement {
 		<SimpleDropdown
 			trigger={
 				<motion.div whileTap={{ scale: 0.96 }}>
-					<Button variant="ghost" size="sm" className="h-8 gap-2">
+					<Button
+						variant="ghost"
+						size="sm"
+						className="h-8 gap-2 hover:bg-zinc-800/50"
+					>
 						<motion.div
 							animate={{
 								scale: [1, 1.1, 1],
@@ -103,7 +107,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 							</span>
 							<Badge
 								variant="outline"
-								className={`text-xs ${getNetworkColor()}`}
+								className={`text-xs rounded-md ${getNetworkColor()}`}
 							>
 								{isConnected
 									? (
@@ -125,7 +129,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 				</motion.div>
 			}
 			align="end"
-			className="w-80"
+			className="w-80 bg-zinc-900 border-zinc-800"
 		>
 			<motion.div
 				className="p-3 space-y-3"
@@ -134,7 +138,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 				transition={{ duration: 0.3, delay: 0.1 }}
 			>
 				<motion.div
-					className="space-y-2"
+					className="space-y-2 p-3 bg-zinc-800/50 border border-zinc-700 rounded-lg"
 					initial={{ y: -5, opacity: 0 }}
 					animate={{ y: 0, opacity: 1 }}
 					transition={{ duration: 0.3, delay: 0.15 }}
@@ -152,7 +156,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 				</motion.div>
 
 				<motion.div
-					className="space-y-2"
+					className="space-y-2 p-3 bg-zinc-800/50 border border-zinc-700 rounded-lg"
 					initial={{ y: -5, opacity: 0 }}
 					animate={{ y: 0, opacity: 1 }}
 					transition={{ duration: 0.3, delay: 0.2 }}
@@ -176,14 +180,17 @@ export function ConnectionStatusSimple(): React.ReactElement {
 						animate={{ scale: 1, opacity: 1 }}
 						transition={{ duration: 0.3, delay: 0.25 }}
 					>
-						<Badge variant="outline" className="text-xs">
+						<Badge
+							variant="outline"
+							className="text-xs rounded-md bg-purple-500/10 border-purple-500/30 text-purple-400"
+						>
 							Developer
 						</Badge>
 					</motion.div>
 				)}
 			</motion.div>
 
-			<SimpleDropdownSeparator />
+			<SimpleDropdownSeparator className="bg-zinc-800" />
 
 			<motion.div
 				initial={{ opacity: 0 }}
