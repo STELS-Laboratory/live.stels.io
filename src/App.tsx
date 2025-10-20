@@ -1,4 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+	lazy,
+	Suspense,
+	useCallback,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
 import { useAppStore, useAuthStore } from "@/stores";
 import { ReactFlowProvider } from "reactflow";
 import SessionProvider from "@/components/main/Provider";
@@ -8,12 +15,15 @@ import { useAuthRestore } from "@/hooks/useAuthRestore";
 import { useHydration } from "@/hooks/useHydration";
 import { useTheme } from "@/hooks/useTheme";
 import { AnimatePresence, motion } from "framer-motion";
-import Welcome from "@/apps/Welcome";
-import Flow from "@/apps/Canvas/Flow";
-import Schemas from "@/apps/Schemas";
+// Lazy-loaded app modules
+const Welcome = lazy(() => import("@/apps/Welcome"));
+const Flow = lazy(() => import("@/apps/Canvas/Flow"));
+const Schemas = lazy(() => import("@/apps/Schemas"));
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Layout from "@/apps/Layout.tsx";
-import { AMIEditor } from "@/apps/Editor/AMIEditor";
+const Layout = lazy(() => import("@/apps/Layout.tsx"));
+const AMIEditor = lazy(() =>
+	import("@/apps/Editor/AMIEditor").then((m) => ({ default: m.AMIEditor }))
+);
 import SplashScreen from "./components/main/SplashScreen";
 import UpgradeScreen from "./components/main/UpgradeScreen";
 import { ProfessionalConnectionFlow } from "@/components/auth/ProfessionalConnectionFlow";
@@ -580,19 +590,59 @@ export default function Dashboard(): React.ReactElement {
 	const renderMainContent = (): React.ReactElement => {
 		switch (currentRoute) {
 			case "welcome":
-				return <Welcome />;
+				return (
+					<Suspense
+						fallback={
+							<div className="p-4 text-muted-foreground">Loading...</div>
+						}
+					>
+						<Welcome />
+					</Suspense>
+				);
 			case "editor":
-				return <AMIEditor />;
+				return (
+					<Suspense
+						fallback={
+							<div className="p-4 text-muted-foreground">Loading editor...</div>
+						}
+					>
+						<AMIEditor />
+					</Suspense>
+				);
 			case "canvas":
 				return (
-					<ReactFlowProvider>
-						<Flow />
-					</ReactFlowProvider>
+					<Suspense
+						fallback={
+							<div className="p-4 text-muted-foreground">Loading canvas...</div>
+						}
+					>
+						<ReactFlowProvider>
+							<Flow />
+						</ReactFlowProvider>
+					</Suspense>
 				);
 			case "schemas":
-				return <Schemas />;
+				return (
+					<Suspense
+						fallback={
+							<div className="p-4 text-muted-foreground">
+								Loading schemas...
+							</div>
+						}
+					>
+						<Schemas />
+					</Suspense>
+				);
 			default:
-				return <Welcome />;
+				return (
+					<Suspense
+						fallback={
+							<div className="p-4 text-muted-foreground">Loading...</div>
+						}
+					>
+						<Welcome />
+					</Suspense>
+				);
 		}
 	};
 
@@ -661,24 +711,32 @@ export default function Dashboard(): React.ReactElement {
 							: (
 								<div className="absolute w-[100%] h-[100%] top-0 bottom-0 overflow-hidden">
 									<RouteLoader>
-										<Layout>
-											<AnimatePresence mode="wait" initial={false}>
-												<motion.div
-													key={currentRoute}
-													variants={pageVariants}
-													initial="initial"
-													animate="animate"
-													exit="exit"
-													transition={{
-														duration: 0.2,
-														ease: [0.22, 1, 0.36, 1],
-													}}
-													className="h-full w-full"
-												>
-													{renderMainContent()}
-												</motion.div>
-											</AnimatePresence>
-										</Layout>
+										<Suspense
+											fallback={
+												<div className="p-4 text-muted-foreground">
+													Loading layout...
+												</div>
+											}
+										>
+											<Layout>
+												<AnimatePresence mode="wait" initial={false}>
+													<motion.div
+														key={currentRoute}
+														variants={pageVariants}
+														initial="initial"
+														animate="animate"
+														exit="exit"
+														transition={{
+															duration: 0.2,
+															ease: [0.22, 1, 0.36, 1],
+														}}
+														className="h-full w-full"
+													>
+														{renderMainContent()}
+													</motion.div>
+												</AnimatePresence>
+											</Layout>
+										</Suspense>
 									</RouteLoader>
 								</div>
 							)}
