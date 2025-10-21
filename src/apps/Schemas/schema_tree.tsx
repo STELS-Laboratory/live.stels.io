@@ -70,23 +70,23 @@ function TreeNodeView({
 }): ReactElement {
   const indent = level * 20;
   const Icon = node.type === "static" ? Box : Database;
-  const color = node.type === "static" ? "text-purple-400" : "text-blue-400";
+  const color = node.type === "static" ? "text-purple-700 dark:text-purple-400" : "text-blue-700 dark:text-blue-400";
 
   return (
     <div>
       <div
-        className="flex items-center gap-2 py-1.5 hover:bg-zinc-800/50 rounded transition-colors"
+        className="flex items-center gap-1.5 py-1 hover:bg-muted/50 rounded transition-colors"
         style={{ paddingLeft: `${indent}px` }}
       >
         {level > 0 && (
-          <span className="text-zinc-700">
-            {level === 1 ? "└─" : "├─"}
+          <span className="text-border text-[10px]">
+            {level === 1 ? "└" : "├"}
           </span>
         )}
-        <Icon className={`w-3 h-3 ${color}`} />
-        <span className="text-sm text-zinc-300">{node.name}</span>
+        <Icon className={`w-2.5 h-2.5 ${color}`} />
+        <span className="text-[11px] text-foreground">{node.name}</span>
         {node.children.length > 0 && (
-          <span className="text-xs text-zinc-600">
+          <span className="text-[9px] text-muted-foreground">
             ({node.children.length})
           </span>
         )}
@@ -124,16 +124,16 @@ export default function SchemaTree({
   }, [tree]);
 
   return (
-    <div className="p-3 bg-zinc-900/50 rounded border border-zinc-800">
-      <div className="flex items-center justify-between mb-3 pb-2 border-b border-zinc-800">
-        <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-amber-400" />
-          <span className="text-sm font-medium text-zinc-300">
-            Schema Hierarchy
+    <div className="p-2 bg-card/50 rounded border border-border">
+      <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-border">
+        <div className="flex items-center gap-1.5">
+          <Layers className="w-3 h-3 text-amber-700 dark:text-amber-400" />
+          <span className="text-[10px] font-semibold text-foreground uppercase tracking-wide">
+            Hierarchy
           </span>
         </div>
-        <span className="text-xs text-zinc-500">
-          {totalNodes} node{totalNodes !== 1 ? "s" : ""}
+        <span className="text-[10px] text-muted-foreground">
+          {totalNodes}
         </span>
       </div>
 
@@ -142,10 +142,8 @@ export default function SchemaTree({
       </div>
 
       {tree.children.length === 0 && (
-        <div className="text-xs text-zinc-500 italic mt-2">
-          {schema.type === "static"
-            ? "No nested schemas. Add them using Nested Schemas selector above."
-            : "Dynamic schema - no nesting support"}
+        <div className="text-[10px] text-muted-foreground italic mt-1">
+          {schema.type === "static" ? "No nested schemas" : "No nesting"}
         </div>
       )}
     </div>

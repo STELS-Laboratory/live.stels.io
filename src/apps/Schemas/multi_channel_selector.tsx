@@ -118,59 +118,62 @@ export default function MultiChannelSelector({
   }, []);
 
   return (
-    <div className="flex flex-col gap-3" key={refreshKey}>
+    <div className="flex flex-col gap-2" key={refreshKey}>
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-zinc-300">
-          Channels (Multi-select)
-        </label>
-        <div className="flex items-center gap-2">
-          {availableChannels.length > 0
-            ? (
-              <>
-                <button
-                  onClick={handleSelectAll}
-                  className="text-xs text-amber-500 hover:text-amber-400 transition-colors"
-                >
-                  Select All
-                </button>
-                <span className="text-xs text-zinc-600">•</span>
-                <button
-                  onClick={handleClearAll}
-                  className="text-xs text-zinc-500 hover:text-zinc-400 transition-colors"
-                >
-                  Clear
-                </button>
-                <span className="text-xs text-zinc-600">•</span>
-              </>
-            )
-            : null}
-          <button
+        <span className="text-[10px] text-foreground font-semibold uppercase tracking-wide">
+          Channels
+        </span>
+        <div className="flex items-center gap-1">
+          {availableChannels.length > 0 && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSelectAll}
+                className="h-5 px-1.5 text-[10px]"
+                title="Select all channels"
+              >
+                All
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearAll}
+                className="h-5 px-1.5 text-[10px]"
+                title="Clear selection"
+              >
+                Clear
+              </Button>
+            </>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handleRefresh}
-            className="text-xs text-blue-500 hover:text-blue-400 transition-colors flex items-center gap-1"
+            className="h-5 w-5 p-0"
             title="Refresh channel list"
           >
             <RefreshCw className="w-3 h-3" />
-            Refresh
-          </button>
+          </Button>
         </div>
       </div>
 
-      {/* Search */}
+      {/* Search - compact */}
       {availableChannels.length > 3 && (
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search channels..."
-            className="pl-9 pr-9 h-9 text-sm"
+            placeholder="Filter..."
+            className="pl-7 pr-7 h-6 text-[11px]"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3 h-3" />
             </button>
           )}
         </div>
@@ -182,7 +185,7 @@ export default function MultiChannelSelector({
             <div className="text-sm text-amber-500 font-semibold mb-2">
               ⚠️ No Channels Available
             </div>
-            <div className="text-xs text-amber-400 mb-3">
+            <div className="text-xs text-amber-700 dark:text-amber-400 mb-3">
               Session storage is empty. To use this dynamic schema, you need
               active data channels from WebSocket.
             </div>
@@ -193,7 +196,7 @@ export default function MultiChannelSelector({
                 size="sm"
                 variant="outline"
                 onClick={handleOpenMarkets}
-                className="flex items-center gap-1.5 text-xs border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                className="flex items-center gap-1.5 text-xs border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10"
               >
                 <ExternalLink className="w-3 h-3" />
                 Open Markets App
@@ -202,15 +205,15 @@ export default function MultiChannelSelector({
                 size="sm"
                 variant="outline"
                 onClick={handleRefresh}
-                className="flex items-center gap-1.5 text-xs border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                className="flex items-center gap-1.5 text-xs border-blue-500/30 text-blue-700 dark:text-blue-400 hover:bg-blue-500/10"
               >
                 <RefreshCw className="w-3 h-3" />
                 Refresh List
               </Button>
             </div>
 
-            <div className="text-xs text-zinc-400 space-y-1.5 mb-3">
-              <div className="font-semibold text-amber-400">
+            <div className="text-xs text-muted-foreground space-y-1.5 mb-3">
+              <div className="font-semibold text-amber-700 dark:text-amber-400">
                 Quick Start Guide:
               </div>
               <div className="flex items-start gap-2">
@@ -238,9 +241,9 @@ export default function MultiChannelSelector({
               </div>
             </div>
 
-            <div className="p-2 bg-zinc-900 rounded border border-zinc-700">
-              <div className="text-[10px] text-zinc-500">
-                💡 <strong className="text-zinc-400">Pro Tip:</strong>{" "}
+            <div className="p-2 bg-card rounded border border-border">
+              <div className="text-[10px] text-muted-foreground">
+                💡 <strong className="text-foreground">Pro Tip:</strong>{" "}
                 Dynamic schemas pull real-time data from session storage. Static
                 schemas (containers/routers) don't need channels.
               </div>
@@ -249,67 +252,63 @@ export default function MultiChannelSelector({
         )
         : filteredChannels.length === 0
         ? (
-          <div className="p-4 bg-zinc-800/50 rounded border border-zinc-700">
-            <p className="text-xs text-zinc-500">
+          <div className="p-4 bg-muted/50 rounded border border-border">
+            <p className="text-xs text-muted-foreground">
               No channels match "{searchQuery}"
             </p>
           </div>
         )
         : (
-          <div className="max-h-60 overflow-y-auto border border-zinc-700 rounded bg-zinc-900/50">
+          <div className="max-h-60 overflow-y-auto border border-border rounded bg-card/50">
             {Object.entries(groupedChannels).map(([type, channels]) => {
               if (channels.length === 0) return null;
 
               const typeColors: Record<string, string> = {
-                ticker: "text-blue-400",
-                book: "text-green-400",
-                trades: "text-purple-400",
-                other: "text-zinc-400",
+                ticker: "text-blue-700 dark:text-blue-400",
+                book: "text-green-700 dark:text-green-600",
+                trades: "text-purple-700 dark:text-purple-400",
+                other: "text-muted-foreground",
               };
 
               return (
                 <div key={type}>
-                  <div className="px-3 py-2 bg-zinc-900 border-b border-zinc-800">
+                  <div className="px-2 py-1 bg-card border-b border-border">
                     <span
-                      className={`text-xs font-semibold uppercase tracking-wider ${
+                      className={`text-[10px] font-semibold uppercase tracking-wider ${
                         typeColors[type]
                       }`}
                     >
                       {type} ({channels.length})
                     </span>
                   </div>
-                  <div className="divide-y divide-zinc-800">
+                  <div className="divide-y divide-border">
                     {channels.map((channelKey) => {
                       const isSelected = selectedChannels.includes(channelKey);
-                      const channelData = session?.[channelKey] as
-                        | Record<string, unknown>
-                        | null;
-                      const module = channelData?.module as string | undefined;
+                      const symbol = channelKey.match(
+                        /\.([A-Z]{3,10})(?:\/[A-Z]{3,10}|USDT)/,
+                      )?.[1];
 
                       return (
                         <label
                           key={channelKey}
-                          className="flex items-center gap-3 p-3 hover:bg-zinc-800/50 cursor-pointer transition-colors"
+                          className="flex items-center gap-2 px-2 py-1.5 hover:bg-muted/50 cursor-pointer transition-colors"
                         >
                           <Checkbox
                             checked={isSelected}
                             onCheckedChange={() => handleToggle(channelKey)}
                           />
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm text-zinc-300 font-mono truncate">
-                              {channelKey}
-                            </div>
-                            {module && (
-                              <div className="text-xs text-zinc-500 mt-0.5">
-                                Type: {module}
-                              </div>
+                          <div className="flex-1 min-w-0 flex items-center gap-2">
+                            {symbol && (
+                              <span className="text-[10px] font-mono text-amber-700 dark:text-amber-400 font-semibold">
+                                {symbol}
+                              </span>
                             )}
+                            <span className="text-[10px] text-muted-foreground font-mono truncate">
+                              {channelKey}
+                            </span>
                           </div>
                           {isSelected && (
-                            <span className="text-xs text-green-500 flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                              Selected
-                            </span>
+                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
                           )}
                         </label>
                       );
@@ -321,15 +320,15 @@ export default function MultiChannelSelector({
           </div>
         )}
 
-      <div className="flex items-center justify-between text-xs text-zinc-500">
+      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
         <span>
-          {selectedChannels.length} of {availableChannels.length} selected
-          {searchQuery && ` (${filteredChannels.length} shown)`}
+          {selectedChannels.length}/{availableChannels.length}
+          {searchQuery && ` (${filteredChannels.length})`}
         </span>
         {selectedChannels.length > 0 && (
-          <span className="text-green-500">
-            Data from {selectedChannels.length} channel
-            {selectedChannels.length !== 1 ? "s" : ""}
+          <span className="text-green-500 flex items-center gap-1">
+            <span className="w-1 h-1 bg-green-500 rounded-full" />
+            {selectedChannels.length}
           </span>
         )}
       </div>

@@ -20,7 +20,6 @@ import SchemaPreview from "./schema_preview";
 import SchemaManager from "./schema_manager";
 import MultiChannelSelector from "./multi_channel_selector";
 import SessionDataViewer from "./session_data_viewer";
-import SchemaActions from "./schema_actions";
 import CollapsibleSection from "./collapsible_section";
 import SchemaStats from "./schema_stats";
 import SchemaHelp from "./schema_help";
@@ -30,12 +29,19 @@ import ChannelAliasEditor from "./channel_alias_editor";
 import { ToastContainer, useToast } from "../../components/ui/toast.tsx";
 import type { ChannelAlias, ChannelData, SchemaProject } from "./types.ts";
 import {
+  collectNestedSchemasForExport,
   deleteSchema as deleteSchemaFromDB,
   extractSchemaRefsFromNode,
   getAllSchemas,
   saveSchema,
 } from "./db.ts";
-import { FileJson, Plus, Upload } from "lucide-react";
+import { FileJson, Plus, Upload, Save, Copy, Download, Book } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip.tsx";
 
 /**
  * Main Schema Constructor Component
@@ -63,6 +69,7 @@ export default function Schemas(): ReactElement {
   const [lastLoadedSchemaId, setLastLoadedSchemaId] = useState<string | null>(
     null,
   );
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   // Load schemas callback
   const loadSchemas = useCallback(async (): Promise<void> => {
@@ -608,65 +615,161 @@ export default function Schemas(): ReactElement {
   return (
     <UIEngineProvider>
       <ToastContainer toasts={toasts} onClose={closeToast} />
-      <div className="flex flex-col h-[100%] bg-zinc-950">
-        {/* Toolbar */}
-        <div className="flex items-center gap-4 p-4 border-b border-zinc-800 bg-zinc-900">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-zinc-300">
-              Schema Constructor
-            </span>
-            <span className="text-xs text-zinc-600">•</span>
-            <span className="flex items-center gap-1.5 text-xs text-amber-500 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20">
-              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
-              Real Session Data Only
-            </span>
-          </div>
+      <div className="flex flex-col h-[100%] overflow-y-scroll bg-background">
+        {/* Toolbar - Compact with API Reference */}
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-card">
+          <span className="text-xs font-semibold text-foreground">
+            Schema Constructor
+          </span>
+          <span className="flex items-center gap-1 text-[10px] text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded">
+            <span className="w-1 h-1 bg-amber-500 rounded-full animate-pulse" />
+            Live
+          </span>
 
           <div className="flex-1" />
 
-          {/* Quick Actions */}
-          {activeSchema && (
-            <SchemaActions
-              activeSchema={activeSchema}
-              schemaJson={schemaJson}
-              isValid={isValid}
-              onExport={handleExport}
-              onImport={handleImport}
-              onCopyJson={handleCopyJson}
-              onError={(message) => showToast("error", "Error", message)}
-            />
-          )}
+          <TooltipProvider>
+            <div className="flex items-center gap-1">
+              {/* API Reference Button */}
+              <Tooltip delayDuration={100}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsHelpOpen(!isHelpOpen)}
+                    className={`h-7 w-7 p-0 ${isHelpOpen ? "bg-blue-500/20 text-blue-700 dark:text-blue-400" : ""}`}
+                  >
+                    <Book className="w-3.5 h-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">API Reference</TooltipContent>
+              </Tooltip>
 
-          {/* Validation status */}
-          <div className="flex items-center gap-2">
-            {isValid
-              ? (
-                <span className="text-xs text-green-500 flex items-center gap-1">
-                  <span className="w-2 h-2 bg-green-500 rounded-full" />
-                  Valid
-                </span>
-              )
-              : (
-                <span className="text-xs text-red-500 flex items-center gap-1">
-                  <span className="w-2 h-2 bg-red-500 rounded-full" />
-                  Invalid
-                </span>
+              {/* Validation status */}
+              {isValid
+                ? (
+                  <span className="w-2 h-2 bg-green-500 rounded-full mx-1" title="Valid JSON" />
+                )
+                : (
+                  <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse mx-1" title="Invalid JSON" />
+                )}
+
+              {activeSchema && (
+                <>
+                  <Tooltip delayDuration={100}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleCopyJson}
+                        disabled={!schemaJson}
+                        className="h-7 w-7 p-0"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Copy JSON</TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip delayDuration={100}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={async () => {
+                          if (!activeSchema) return;
+                          try {
+                            const allSchemas = await collectNestedSchemasForExport(activeSchema.widgetKey);
+                            const exportData = {
+                              version: "1.0",
+                              exportedAt: new Date().toISOString(),
+                              mainSchema: activeSchema.widgetKey,
+                              schemas: allSchemas,
+                            };
+                            const dataStr = JSON.stringify(exportData, null, 2);
+                            const dataBlob = new Blob([dataStr], { type: "application/json" });
+                            const url = URL.createObjectURL(dataBlob);
+                            const link = document.createElement("a");
+                            link.href = url;
+                            const schemaCount = allSchemas.length;
+                            const suffix = schemaCount > 1 ? `+${schemaCount - 1}-nested` : "";
+                            link.download = `schema-${activeSchema.name.toLowerCase().replace(/\s+/g, "-")}${suffix}.json`;
+                            link.click();
+                            URL.revokeObjectURL(url);
+                            handleExport(allSchemas);
+                          } catch (error) {
+                            console.error("Failed to export:", error);
+                            showToast("error", "Error", "Failed to export schema");
+                          }
+                        }}
+                        disabled={!activeSchema || !isValid}
+                        className="h-7 w-7 p-0"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Export Schema</TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip delayDuration={100}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="h-7 w-7 p-0"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Import Schema</TooltipContent>
+                  </Tooltip>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/json,.json"
+                    onChange={handleImportFile}
+                    className="hidden"
+                  />
+
+                  <div className="w-px h-4 bg-border mx-0.5" />
+
+                  <Tooltip delayDuration={100}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={isSaving ? "ghost" : "default"}
+                        size="sm"
+                        onClick={handleSaveSchema}
+                        disabled={!activeSchema || !isValid || isSaving}
+                        className="h-7 px-2"
+                      >
+                        {isSaving ? (
+                          <>
+                            <div className="w-3 h-3 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin mr-1.5" />
+                            <span className="text-xs">Saving</span>
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-3.5 h-3.5 mr-1.5" />
+                            <span className="text-xs">Save</span>
+                            <kbd className="ml-1.5 px-1 py-0.5 text-[10px] bg-background/50 rounded border border-border">
+                              ⌘S
+                            </kbd>
+                          </>
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Save Schema (⌘S)</TooltipContent>
+                  </Tooltip>
+                </>
               )}
-          </div>
-
-          {/* Save button */}
-          <Button
-            variant="default"
-            size="sm"
-            onClick={handleSaveSchema}
-            disabled={!activeSchema || !isValid || isSaving}
-          >
-            {isSaving ? "Saving..." : "Save Schema"}
-          </Button>
+            </div>
+          </TooltipProvider>
         </div>
 
         {/* Schema Manager (Tabs) */}
-        <div className="flex-shrink-0 p-4 border-b border-zinc-800 bg-zinc-900/50">
+        <div className="flex-shrink-0 p-2 border-b border-border bg-card/50">
           <div className="space-y-3">
             <SchemaManager
               schemas={schemas}
@@ -679,9 +782,9 @@ export default function Schemas(): ReactElement {
               onDeleteSchema={handleDeleteSchema}
             />
 
-            {/* Schema Stats and Tree */}
+            {/* Schema Stats and Tree - compact */}
             {activeSchema && (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <SchemaStats
                   schema={activeSchema}
                   jsonLength={schemaJson.length}
@@ -695,8 +798,8 @@ export default function Schemas(): ReactElement {
         {/* Main content - split pane */}
         <div className="flex flex-1 overflow-hidden">
           {/* Left pane - Editor */}
-          <div className="flex flex-col w-1/2 border-r border-zinc-800">
-            <div className="flex-shrink-0 p-3 border-b border-zinc-800 bg-zinc-900 space-y-2">
+          <div className="flex flex-col w-1/2 border-r border-border">
+            <div className="flex-shrink-0 p-2 border-b border-border bg-card space-y-1">
               {/* Dynamic schemas - channel selection */}
               {activeSchema?.type === "dynamic" && (
                 <>
@@ -706,7 +809,7 @@ export default function Schemas(): ReactElement {
                     defaultOpen={selectedChannels.length === 0}
                     badge={selectedChannels.length}
                   >
-                    <div className="p-4">
+                    <div className="p-2">
                       <MultiChannelSelector
                         selectedChannels={selectedChannels}
                         onChange={setSelectedChannels}
@@ -721,21 +824,21 @@ export default function Schemas(): ReactElement {
                       defaultOpen={true}
                       badge={selectedChannels.length}
                     >
-                      <div className="p-4">
-                        <ChannelAliasEditor
-                          channelKeys={selectedChannels}
-                          aliases={channelAliases}
-                          onChange={setChannelAliases}
-                          selfChannelKey={selfChannelKey}
-                          onSelfChannelChange={(key) => {
-                            console.log(
-                              "[Schemas] User changed selfChannelKey to:",
-                              key,
-                            );
-                            setSelfChannelKey(key);
-                          }}
-                        />
-                      </div>
+                    <div className="p-2">
+                      <ChannelAliasEditor
+                        channelKeys={selectedChannels}
+                        aliases={channelAliases}
+                        onChange={setChannelAliases}
+                        selfChannelKey={selfChannelKey}
+                        onSelfChannelChange={(key) => {
+                          console.log(
+                            "[Schemas] User changed selfChannelKey to:",
+                            key,
+                          );
+                          setSelfChannelKey(key);
+                        }}
+                      />
+                    </div>
                     </CollapsibleSection>
                   )}
                 </>
@@ -752,7 +855,7 @@ export default function Schemas(): ReactElement {
                     badge={selectedNestedSchemas.length +
                       autoDetectedSchemas.length}
                   >
-                    <div className="p-4">
+                    <div className="p-2">
                       <NestedSchemaSelector
                         schemas={schemas}
                         currentSchemaId={activeSchemaId}
@@ -768,13 +871,13 @@ export default function Schemas(): ReactElement {
                     subtitle="Override 'self' for nested schemas"
                     defaultOpen={false}
                   >
-                    <div className="p-4">
+                    <div className="p-2">
                       <MultiChannelSelector
                         selectedChannels={selectedChannels}
                         onChange={setSelectedChannels}
                       />
                       {selectedChannels.length > 0 && (
-                        <div className="mt-3">
+                        <div className="mt-2">
                           <ChannelAliasEditor
                             channelKeys={selectedChannels}
                             aliases={[]}
@@ -795,8 +898,7 @@ export default function Schemas(): ReactElement {
                 </>
               )}
 
-              {/* Help panel */}
-              <SchemaHelp />
+              {/* Help sidebar trigger removed - now in top toolbar */}
             </div>
 
             <div className="flex-1 relative">
@@ -816,13 +918,13 @@ export default function Schemas(): ReactElement {
                           // Empty state - no schemas at all
                           <>
                             <div className="mb-6">
-                              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-800/50 border border-zinc-700 mb-4">
-                                <FileJson className="w-8 h-8 text-zinc-600" />
+                              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/50 border border-border mb-4">
+                                <FileJson className="w-8 h-8 text-muted-foreground" />
                               </div>
-                              <div className="text-zinc-400 text-xl font-semibold mb-2">
+                              <div className="text-foreground text-xl font-semibold mb-2">
                                 Welcome to Schema Constructor
                               </div>
-                              <div className="text-zinc-500 text-sm mb-6">
+                              <div className="text-muted-foreground text-sm mb-6">
                                 Create UI schemas and bind them to real-time
                                 session data.
                                 <br />
@@ -862,7 +964,7 @@ export default function Schemas(): ReactElement {
                             </div>
 
                             <div className="mt-8 p-4 bg-blue-500/10 rounded border border-blue-500/20">
-                              <div className="text-xs text-blue-400 text-left">
+                              <div className="text-xs text-blue-700 dark:text-blue-400 text-left">
                                 <div className="font-semibold mb-2">
                                   💡 Quick Start Tips
                                 </div>
@@ -885,10 +987,10 @@ export default function Schemas(): ReactElement {
                         : (
                           // Schema exists but none selected
                           <div>
-                            <div className="text-zinc-500 text-lg mb-2">
+                            <div className="text-muted-foreground text-lg mb-2">
                               No Schema Selected
                             </div>
-                            <div className="text-zinc-600 text-sm mb-4">
+                            <div className="text-muted-foreground text-sm mb-4">
                               Select a schema from the tabs above to start
                               editing
                             </div>
@@ -901,8 +1003,8 @@ export default function Schemas(): ReactElement {
 
             {/* Validation errors */}
             {!isValid && validationErrors.length > 0 && (
-              <div className="flex-shrink-0 p-3 bg-red-500/10 border-t border-red-500/20">
-                <div className="text-xs text-red-400 font-mono">
+              <div className="flex-shrink-0 p-3 bg-red-500/10 border-t border-red-500/30 rounded-b">
+                <div className="text-xs text-red-700 dark:text-red-400 font-mono">
                   {validationErrors.map((error, idx) => (
                     <div key={idx}>• {error}</div>
                   ))}
@@ -913,10 +1015,10 @@ export default function Schemas(): ReactElement {
 
           {/* Right pane - Preview */}
           <div className="flex flex-col w-1/2">
-            <div className="flex-shrink-0 p-3 border-b border-zinc-800 bg-zinc-900">
+            <div className="flex-shrink-0 px-3 py-2 border-b border-border bg-card">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-zinc-300">
+                  <span className="text-sm font-medium text-foreground">
                     Live Preview
                   </span>
                   {channelsData.length > 0 && (
@@ -928,7 +1030,7 @@ export default function Schemas(): ReactElement {
                   )}
                 </div>
                 {activeSchema && (
-                  <span className="text-xs text-zinc-500">
+                  <span className="text-xs text-muted-foreground">
                     {activeSchema.name}
                   </span>
                 )}
@@ -944,43 +1046,18 @@ export default function Schemas(): ReactElement {
               />
             </div>
 
-            {/* Session Data Viewer */}
-            {channelsData.length > 0 && (
-              <SessionDataViewer
-                channelsData={channelsData}
-                channelAliases={channelAliases}
-                selfChannelKey={selfChannelKey}
-              />
-            )}
-
-            {/* Info for static schemas without channels */}
-            {activeSchema?.type === "static" && channelsData.length === 0 && (
-              <div className="flex-shrink-0 border-t border-zinc-800 bg-zinc-900/50 p-4">
-                <div className="p-3 bg-purple-500/10 rounded border border-purple-500/20">
-                  <div className="text-xs text-purple-400 mb-2 font-semibold">
-                    📦 Static Schema (Container)
-                  </div>
-                  <div className="text-xs text-zinc-400">
-                    This is a static container schema. It doesn't bind to
-                    channels directly. Use{" "}
-                    <code className="text-amber-400 font-mono">schemaRef</code>
-                    {" "}
-                    to nest other schemas.
-                  </div>
-                  <div className="mt-2 text-xs text-zinc-500">
-                    Selected nested schemas:{" "}
-                    {activeSchema.nestedSchemas?.length || 0}
-                  </div>
-                  <div className="mt-2 text-xs text-blue-400">
-                    💡 Tip: Set a context channel to provide "self" for nested
-                    schemas
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Session Data Viewer - always shown for data inspection */}
+            <SessionDataViewer
+              channelsData={channelsData}
+              channelAliases={channelAliases}
+              selfChannelKey={selfChannelKey}
+            />
           </div>
         </div>
       </div>
+
+      {/* API Reference Sidebar */}
+      <SchemaHelp isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </UIEngineProvider>
   );
 }

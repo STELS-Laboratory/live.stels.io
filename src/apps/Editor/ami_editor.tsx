@@ -5,7 +5,6 @@ import {
 	AlertCircle,
 	ArrowDown,
 	ArrowUp,
-	Clock,
 	Code,
 	Cpu,
 	Crown,
@@ -13,7 +12,6 @@ import {
 	FileCode,
 	FileText,
 	Globe,
-	HardDrive,
 	Hash,
 	Layers,
 	Play,
@@ -31,7 +29,6 @@ import {
 	Zap,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert.tsx";
-import { Badge } from "@/components/ui/badge.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import { Textarea } from "@/components/ui/textarea.tsx";
@@ -54,6 +51,12 @@ import {
 	SelectValue,
 } from "@/components/ui/select.tsx";
 import Graphite from "@/components/ui/vectors/logos/graphite.tsx";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip.tsx";
 import { CreateWorkerDialog } from "./ami_editor/create_worker_dialog";
 import { LeaderInfoCard } from "./ami_editor/leader_info_card";
 import { WorkerStatsPanel } from "./ami_editor/worker_stats_panel";
@@ -66,7 +69,6 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/components/ui/tabs.tsx";
-import { getExecutionModeColor, getPriorityColor } from "./ami_editor/utils";
 
 export function AMIEditor(): JSX.Element {
 	const mobile = useMobile();
@@ -99,7 +101,6 @@ export function AMIEditor(): JSX.Element {
 	);
 	const [filterPriority, setFilterPriority] = useState<string | null>(null);
 	const [filterScope, setFilterScope] = useState<string | null>("local"); // Default: Local only
-	const [sortBy, setSortBy] = useState<"date" | "name" | "status">("date");
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
 	const [showStatsPanel, setShowStatsPanel] = useState(false);
@@ -536,8 +537,8 @@ export function AMIEditor(): JSX.Element {
 				matchesPriority && matchesScope;
 		})
 		.sort((a, b) => {
-			// Multi-level default sorting: Local > Active > Date
-			if (sortBy === "date") {
+			// Smart Sort: Local > Active > Date
+			if (sortOrder === "desc") {
 				// 1. Sort by scope (local first)
 				const scopeA = a.value.raw.scope || "local";
 				const scopeB = b.value.raw.scope || "local";
@@ -553,25 +554,11 @@ export function AMIEditor(): JSX.Element {
 				}
 
 				// 3. Sort by timestamp (newest first)
-				const comparison = b.value.raw.timestamp - a.value.raw.timestamp;
-				return sortOrder === "asc" ? -comparison : comparison;
+				return b.value.raw.timestamp - a.value.raw.timestamp;
 			}
 
-			// Other sorting modes
-			let comparison = 0;
-			switch (sortBy) {
-				case "name":
-					comparison = a.value.raw.sid.localeCompare(b.value.raw.sid);
-					break;
-				case "status":
-					comparison = (b.value.raw.active ? 1 : 0) -
-						(a.value.raw.active ? 1 : 0);
-					break;
-				default:
-					comparison = b.value.raw.timestamp - a.value.raw.timestamp;
-			}
-
-			return sortOrder === "asc" ? -comparison : comparison;
+			// Ascending: oldest first
+			return a.value.raw.timestamp - b.value.raw.timestamp;
 		});
 
 	const getTimeAgo = (timestamp: number) => {
@@ -588,9 +575,9 @@ export function AMIEditor(): JSX.Element {
 			<div className="h-full bg-background p-4 flex items-center justify-center">
 				<div className="text-center max-w-sm mx-auto">
 					<div className="w-16 h-16 bg-card rounded-xl flex items-center justify-center mb-4 mx-auto">
-						<Terminal className="w-8 h-8 text-amber-400" />
+						<Terminal className="w-8 h-8 text-amber-700 dark:text-amber-700 dark:text-amber-400" />
 					</div>
-					<h2 className="text-amber-400 font-mono text-lg font-bold mb-2">
+					<h2 className="text-amber-700 dark:text-amber-700 dark:text-amber-400 font-mono text-lg font-bold mb-2">
 						MARKET BROWSER
 					</h2>
 					<p className="text-muted-foreground font-mono text-sm">
@@ -608,9 +595,9 @@ export function AMIEditor(): JSX.Element {
 					<div className="relative mb-6">
 						<div className="w-16 h-16 border-4 border-border border-t-amber-400 rounded-full animate-spin mx-auto">
 						</div>
-						<Cpu className="w-6 h-6 text-amber-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+						<Cpu className="w-6 h-6 text-amber-700 dark:text-amber-700 dark:text-amber-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
 					</div>
-					<div className="text-amber-400 font-mono text-sm font-bold">
+					<div className="text-amber-700 dark:text-amber-700 dark:text-amber-400 font-mono text-sm font-bold">
 						LOADING PROTOCOL REGISTRY
 					</div>
 				</div>
@@ -630,70 +617,90 @@ export function AMIEditor(): JSX.Element {
 				>
 					{/* Left Panel - Workers Registry */}
 					<div className="h-full bg-card flex flex-col overflow-hidden">
-						{/* Header */}
-						<div className="p-4 border-b border-border bg-card">
-							<div className="flex items-center justify-between mb-4">
-								<div className="flex items-center gap-3">
-									<div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
-										<Database className="w-4 h-4 text-amber-400" />
-									</div>
-									<div>
-										<h2 className="text-amber-400 font-mono text-sm font-bold">
-											PROTOCOL REGISTRY
-										</h2>
-										<p className="text-muted-foreground text-xs font-mono">
-											Distributed execution platform
-										</p>
-									</div>
-								</div>
+						{/* Header - Compact */}
+						<div className="px-3 py-2 border-b border-border bg-card">
+							<div className="flex items-center justify-between mb-2">
 								<div className="flex items-center gap-2">
-									<Button
-										size="sm"
-										variant="outline"
-										onClick={() => setShowStatsPanel(!showStatsPanel)}
-										className="bg-muted border-border text-muted-foreground hover:bg-secondary hover:text-foreground font-mono text-xs h-8"
-									>
-										<Activity className="w-3 h-3 mr-1" />
-										STATS
-									</Button>
-									<Button
-										size="sm"
-										variant="outline"
-										onClick={() => setShowStopAllDialog(true)}
-										disabled={workers.filter((w) => w.value.raw.active)
-											.length === 0}
-										className="bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20 hover:text-red-300 font-mono text-xs h-8"
-									>
-										<Square className="w-3 h-3 mr-1" />
-										STOP ALL
-									</Button>
-									<Button
-										size="sm"
-										onClick={() => setShowCreateDialog(true)}
-										className="bg-amber-500 hover:bg-amber-600 text-black font-mono text-xs h-8 px-3"
-									>
-										<Plus className="w-3 h-3 mr-1" />
-										AI PROTOCOL
-									</Button>
+									<Database className="w-3.5 h-3.5 text-amber-700 dark:text-amber-700 dark:text-amber-400" />
+									<h2 className="text-amber-700 dark:text-amber-700 dark:text-amber-400 font-mono text-xs font-bold uppercase tracking-wide">
+										Protocol Registry
+									</h2>
 								</div>
+								<TooltipProvider>
+									<div className="flex items-center gap-1">
+										<Tooltip delayDuration={100}>
+											<TooltipTrigger asChild>
+												<Button
+													size="sm"
+													variant="ghost"
+													onClick={() => setShowStatsPanel(!showStatsPanel)}
+													className="h-6 w-6 p-0"
+												>
+													<Activity className="w-3.5 h-3.5" />
+												</Button>
+											</TooltipTrigger>
+											<TooltipContent side="bottom">
+												Worker Stats
+											</TooltipContent>
+										</Tooltip>
+
+										<Tooltip delayDuration={100}>
+											<TooltipTrigger asChild>
+												<Button
+													size="sm"
+													variant="ghost"
+													onClick={() => setShowStopAllDialog(true)}
+													disabled={workers.filter((w) => w.value.raw.active)
+														.length === 0}
+													className="h-6 w-6 p-0 text-red-700 dark:text-red-700 dark:text-red-400 hover:text-red-800 dark:text-red-300"
+												>
+													<Square className="w-3.5 h-3.5" />
+												</Button>
+											</TooltipTrigger>
+											<TooltipContent side="bottom">
+												Stop All Workers
+											</TooltipContent>
+										</Tooltip>
+
+										<div className="w-px h-4 bg-border mx-0.5" />
+
+										<Tooltip delayDuration={100}>
+											<TooltipTrigger asChild>
+												<Button
+													size="sm"
+													onClick={() => setShowCreateDialog(true)}
+													className="bg-amber-500 hover:bg-amber-600 text-zinc-950 dark:text-black h-6 px-2"
+												>
+													<Plus className="w-3 h-3 mr-1" />
+													<span className="text-[10px] font-mono font-bold">
+														NEW
+													</span>
+												</Button>
+											</TooltipTrigger>
+											<TooltipContent side="bottom">
+												Create Worker
+											</TooltipContent>
+										</Tooltip>
+									</div>
+								</TooltipProvider>
 							</div>
 
-							{/* Search and Filter */}
-							<div className="space-y-2">
+							{/* Search and Filters - Professional */}
+							<div className="space-y-1">
 								{/* Search */}
 								<div className="relative">
-									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+									<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-muted-foreground" />
 									<Input
-										placeholder="Search..."
+										placeholder="Search workers..."
 										value={searchTerm}
 										onChange={(e) => setSearchTerm(e.target.value)}
-										className="pl-9 pr-8 bg-muted border-border text-card-foreground placeholder-zinc-500 h-8 text-xs focus:border-amber-400 focus:ring-amber-400/20"
+										className="pl-7 pr-7 bg-input border-border text-foreground placeholder:text-muted-foreground h-6 text-[11px] focus:border-amber-500 focus:ring-amber-500/20"
 									/>
 									{searchTerm && (
 										<Button
 											size="sm"
 											variant="ghost"
-											className="absolute right-1.5 top-1/2 transform -translate-y-1/2 h-5 w-5 p-0 text-muted-foreground hover:text-card-foreground"
+											className="absolute right-1 top-1/2 transform -translate-y-1/2 h-4 w-4 p-0 text-muted-foreground hover:text-foreground"
 											onClick={() => setSearchTerm("")}
 										>
 											<X className="w-3 h-3" />
@@ -701,253 +708,207 @@ export function AMIEditor(): JSX.Element {
 									)}
 								</div>
 
-								{/* Compact Sort and Filters */}
-								<div className="flex items-center gap-1.5">
-									{/* Sort */}
-									<Select
-										value={`${sortBy}-${sortOrder}`}
-										onValueChange={(value) => {
-											const [by, order] = value.split("-") as [
-												typeof sortBy,
-												typeof sortOrder,
-											];
-											setSortBy(by);
-											setSortOrder(order);
-										}}
-									>
-										<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-7 w-[110px]">
-											<div className="flex items-center gap-1">
-												{sortOrder === "asc"
-													? <ArrowUp className="w-3 h-3" />
-													: <ArrowDown className="w-3 h-3" />}
-												<span className="capitalize">{sortBy}</span>
-											</div>
-										</SelectTrigger>
-										<SelectContent className="bg-muted border-border">
-											<SelectItem value="date-desc" className="text-xs">
-												<div className="flex flex-col gap-0.5">
-													<div className="flex items-center gap-2">
-														<ArrowDown className="w-3 h-3" />
-														Smart Sort (Default)
-													</div>
-													<span className="text-[10px] text-muted-foreground pl-5">
-														Local → Active → Newest
-													</span>
-												</div>
-											</SelectItem>
-											<SelectItem value="date-asc" className="text-xs">
-												<div className="flex items-center gap-2">
-													<ArrowUp className="w-3 h-3" />
-													Date (Oldest)
-												</div>
-											</SelectItem>
-											<SelectItem value="name-asc" className="text-xs">
-												<div className="flex items-center gap-2">
-													<ArrowUp className="w-3 h-3" />
-													Name (A-Z)
-												</div>
-											</SelectItem>
-											<SelectItem value="name-desc" className="text-xs">
-												<div className="flex items-center gap-2">
-													<ArrowDown className="w-3 h-3" />
-													Name (Z-A)
-												</div>
-											</SelectItem>
-											<SelectItem value="status-desc" className="text-xs">
-												<div className="flex items-center gap-2">
-													<ArrowDown className="w-3 h-3" />
-													Status (Active)
-												</div>
-											</SelectItem>
-											<SelectItem value="status-asc" className="text-xs">
-												<div className="flex items-center gap-2">
-													<ArrowUp className="w-3 h-3" />
-													Status (Inactive)
-												</div>
-											</SelectItem>
-										</SelectContent>
-									</Select>
-
+								{/* Professional Filters */}
+								<div className="flex items-center gap-1.5 flex-wrap">
 									{/* Status Filter */}
-									<Select
-										value={filterActive === null
-											? "all"
-											: filterActive
-											? "active"
-											: "inactive"}
-										onValueChange={(value) => {
-											if (value === "all") setFilterActive(null);
-											else if (value === "active") setFilterActive(true);
-											else setFilterActive(false);
-										}}
-									>
-										<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-7 w-[90px]">
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent className="bg-muted border-border">
-											<SelectItem value="all" className="text-xs">
-												All
-											</SelectItem>
-											<SelectItem
-												value="active"
-												className="text-xs text-green-400"
-											>
-												Active
-											</SelectItem>
-											<SelectItem
-												value="inactive"
-												className="text-xs text-red-400"
-											>
-												Inactive
-											</SelectItem>
-										</SelectContent>
-									</Select>
-
-									{/* Scope Filter */}
-									<Select
-										value={filterScope || "all-scope"}
-										onValueChange={(value) =>
-											setFilterScope(value === "all-scope" ? null : value)}
-									>
-										<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-7 w-[90px]">
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent className="bg-muted border-border">
-											<SelectItem value="all-scope" className="text-xs">
-												All Scope
-											</SelectItem>
-											<SelectItem
-												value="local"
-												className="text-xs text-blue-400"
-											>
-												<div className="flex items-center gap-1.5">
-													<Server className="w-3 h-3" />
-													Local
-												</div>
-											</SelectItem>
-											<SelectItem
-												value="network"
-												className="text-xs text-green-400"
-											>
-												<div className="flex items-center gap-1.5">
-													<Globe className="w-3 h-3" />
-													Network
-												</div>
-											</SelectItem>
-										</SelectContent>
-									</Select>
-
-									{/* Clear filters */}
-									{(searchTerm || filterActive !== null ||
-										filterExecutionMode || filterPriority || filterScope) && (
+									<div className="flex items-center gap-0.5 bg-muted/30 rounded px-1 py-0.5">
+										<span className="text-[9px] text-muted-foreground uppercase font-semibold mr-0.5">
+											Status
+										</span>
 										<Button
 											size="sm"
 											variant="ghost"
-											className="h-7 w-7 p-0 text-muted-foreground hover:text-amber-400"
-											onClick={() => {
-												setSearchTerm("");
-												setFilterActive(null);
-												setFilterExecutionMode(null);
-												setFilterPriority(null);
-												setFilterScope(null);
-											}}
+											onClick={() => setFilterActive(null)}
+											className={`h-5 px-1.5 text-[10px] ${
+												filterActive === null
+													? "bg-card text-foreground"
+													: "text-muted-foreground hover:text-foreground"
+											}`}
 										>
-											<X className="w-3.5 h-3.5" />
+											All
 										</Button>
-									)}
-								</div>
-
-								{/* Advanced Filters - Execution Mode & Priority */}
-								<div className="flex items-center justify-between gap-1.5">
-									<div className="flex items-center gap-1.5 flex-1">
-										<Select
-											value={filterExecutionMode || "all-modes"}
-											onValueChange={(value) =>
-												setFilterExecutionMode(
-													value === "all-modes" ? null : value,
-												)}
+										<Button
+											size="sm"
+											variant="ghost"
+											onClick={() => setFilterActive(true)}
+											className={`h-5 px-1.5 text-[10px] ${
+												filterActive === true
+													? "bg-green-500/20 text-green-700 dark:text-green-700 dark:text-green-600"
+													: "text-muted-foreground hover:text-green-700 dark:text-green-700 dark:text-green-600"
+											}`}
 										>
-											<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-7 flex-1">
-												<SelectValue placeholder="Mode" />
-											</SelectTrigger>
-											<SelectContent className="bg-muted border-border">
-												<SelectItem value="all-modes" className="text-xs">
-													All Modes
-												</SelectItem>
-												<SelectItem
-													value="parallel"
-													className="text-xs text-blue-400"
-												>
-													Parallel
-												</SelectItem>
-												<SelectItem
-													value="leader"
-													className="text-xs text-amber-400"
-												>
-													Leader
-												</SelectItem>
-												<SelectItem
-													value="exclusive"
-													className="text-xs text-purple-400"
-												>
-													Exclusive
-												</SelectItem>
-											</SelectContent>
-										</Select>
-
-										<Select
-											value={filterPriority || "all-priorities"}
-											onValueChange={(value) =>
-												setFilterPriority(
-													value === "all-priorities" ? null : value,
-												)}
+											<Play className="w-2.5 h-2.5 mr-0.5" />
+											Active
+										</Button>
+										<Button
+											size="sm"
+											variant="ghost"
+											onClick={() => setFilterActive(false)}
+											className={`h-5 px-1.5 text-[10px] ${
+												filterActive === false
+													? "bg-red-500/20 text-red-700 dark:text-red-700 dark:text-red-400"
+													: "text-muted-foreground hover:text-red-700 dark:text-red-700 dark:text-red-400"
+											}`}
 										>
-											<SelectTrigger className="bg-muted border-border text-card-foreground text-xs h-7 flex-1">
-												<SelectValue placeholder="Priority" />
-											</SelectTrigger>
-											<SelectContent className="bg-muted border-border">
-												<SelectItem value="all-priorities" className="text-xs">
-													All Priority
-												</SelectItem>
-												<SelectItem
-													value="critical"
-													className="text-xs text-red-400"
-												>
-													Critical
-												</SelectItem>
-												<SelectItem
-													value="high"
-													className="text-xs text-orange-400"
-												>
-													High
-												</SelectItem>
-												<SelectItem
-													value="normal"
-													className="text-xs text-green-400"
-												>
-													Normal
-												</SelectItem>
-												<SelectItem
-													value="low"
-													className="text-xs text-blue-400"
-												>
-													Low
-												</SelectItem>
-											</SelectContent>
-										</Select>
+											<Square className="w-2.5 h-2.5 mr-0.5" />
+											Stopped
+										</Button>
 									</div>
 
-									{/* Results counter */}
-									<div className="text-xs text-amber-400 bg-amber-400/10 px-2 py-1 rounded font-mono whitespace-nowrap">
-										{filteredWorkers.length}/{workers.length}
+									{/* Scope Filter */}
+									<div className="flex items-center gap-0.5 bg-muted/30 rounded px-1 py-0.5">
+										<span className="text-[9px] text-muted-foreground uppercase font-semibold mr-0.5">
+											Scope
+										</span>
+										<Button
+											size="sm"
+											variant="ghost"
+											onClick={() => setFilterScope(null)}
+											className={`h-5 px-1.5 text-[10px] ${
+												filterScope === null
+													? "bg-card text-foreground"
+													: "text-muted-foreground hover:text-foreground"
+											}`}
+										>
+											All
+										</Button>
+										<Button
+											size="sm"
+											variant="ghost"
+											onClick={() => setFilterScope("local")}
+											className={`h-5 px-1.5 text-[10px] ${
+												filterScope === "local"
+													? "bg-blue-500/20 text-blue-700 dark:text-blue-700 dark:text-blue-400"
+													: "text-muted-foreground hover:text-blue-700 dark:text-blue-700 dark:text-blue-400"
+											}`}
+										>
+											<Server className="w-2.5 h-2.5 mr-0.5" />
+											Local
+										</Button>
+										<Button
+											size="sm"
+											variant="ghost"
+											onClick={() => setFilterScope("network")}
+											className={`h-5 px-1.5 text-[10px] ${
+												filterScope === "network"
+													? "bg-green-500/20 text-green-700 dark:text-green-700 dark:text-green-600"
+													: "text-muted-foreground hover:text-green-700 dark:text-green-700 dark:text-green-600"
+											}`}
+										>
+											<Globe className="w-2.5 h-2.5 mr-0.5" />
+											Network
+										</Button>
+									</div>
+
+									{/* Execution Mode Filter */}
+									<div className="flex items-center gap-0.5 bg-muted/30 rounded px-1 py-0.5">
+										<span className="text-[9px] text-muted-foreground uppercase font-semibold mr-0.5">
+											Mode
+										</span>
+										<Button
+											size="sm"
+											variant="ghost"
+											onClick={() => setFilterExecutionMode(null)}
+											className={`h-5 px-1.5 text-[10px] ${
+												filterExecutionMode === null
+													? "bg-card text-foreground"
+													: "text-muted-foreground hover:text-foreground"
+											}`}
+										>
+											All
+										</Button>
+										<Button
+											size="sm"
+											variant="ghost"
+											onClick={() => setFilterExecutionMode("leader")}
+											className={`h-5 px-1.5 text-[10px] ${
+												filterExecutionMode === "leader"
+													? "bg-amber-500/20 text-amber-700 dark:text-amber-700 dark:text-amber-400"
+													: "text-muted-foreground hover:text-amber-700 dark:text-amber-700 dark:text-amber-400"
+											}`}
+										>
+											<Crown className="w-2.5 h-2.5 mr-0.5" />
+											Leader
+										</Button>
+										<Button
+											size="sm"
+											variant="ghost"
+											onClick={() => setFilterExecutionMode("parallel")}
+											className={`h-5 px-1.5 text-[10px] ${
+												filterExecutionMode === "parallel"
+													? "bg-blue-500/20 text-blue-700 dark:text-blue-700 dark:text-blue-400"
+													: "text-muted-foreground hover:text-blue-700 dark:text-blue-700 dark:text-blue-400"
+											}`}
+										>
+											<Cpu className="w-2.5 h-2.5 mr-0.5" />
+											Parallel
+										</Button>
+										<Button
+											size="sm"
+											variant="ghost"
+											onClick={() => setFilterExecutionMode("exclusive")}
+											className={`h-5 px-1.5 text-[10px] ${
+												filterExecutionMode === "exclusive"
+													? "bg-purple-500/20 text-purple-700 dark:text-purple-700 dark:text-purple-400"
+													: "text-muted-foreground hover:text-purple-700 dark:text-purple-700 dark:text-purple-400"
+											}`}
+										>
+											<Zap className="w-2.5 h-2.5 mr-0.5" />
+											Exclusive
+										</Button>
+									</div>
+
+									<div className="flex-1" />
+
+									{/* Sort & Clear */}
+									<div className="flex items-center gap-1">
+										<Button
+											size="sm"
+											variant="ghost"
+											onClick={() =>
+												setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+											className="h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground"
+											title={sortOrder === "asc"
+												? "Oldest first"
+												: "Newest first"}
+										>
+											{sortOrder === "asc"
+												? <ArrowUp className="w-3 h-3" />
+												: <ArrowDown className="w-3 h-3" />}
+										</Button>
+
+										{(searchTerm || filterActive !== null ||
+											filterExecutionMode || filterPriority ||
+											filterScope !== "local") && (
+											<Button
+												size="sm"
+												variant="ghost"
+												className="h-6 px-2 text-[10px] text-muted-foreground hover:text-amber-700 dark:text-amber-700 dark:text-amber-400"
+												onClick={() => {
+													setSearchTerm("");
+													setFilterActive(null);
+													setFilterExecutionMode(null);
+													setFilterPriority(null);
+													setFilterScope("local");
+												}}
+												title="Clear all filters"
+											>
+												<X className="w-3 h-3 mr-0.5" />
+												Clear
+											</Button>
+										)}
+
+										<div className="text-[10px] text-amber-700 dark:text-amber-700 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded font-mono">
+											{filteredWorkers.length}/{workers.length}
+										</div>
 									</div>
 								</div>
 							</div>
 						</div>
 
-						{/* Workers List */}
-						<ScrollArea className="flex-1 px-2 py-2 overflow-y-auto">
-							<div className="space-y-2">
+						{/* Workers List - File System Style */}
+						<ScrollArea className="flex-1 overflow-y-auto">
+							<div className="py-1">
 								{filteredWorkers.map((protocol, index) => {
 									const isNewlyCreated =
 										newlyCreatedWorker === protocol.value.raw.sid;
@@ -955,6 +916,9 @@ export function AMIEditor(): JSX.Element {
 										selectedWorker?.value.raw.sid === protocol.value.raw.sid;
 									const isLeaderMode =
 										protocol.value.raw.executionMode === "leader";
+									const scope = protocol.value.raw.scope || "local";
+									const execMode = protocol.value.raw.executionMode ||
+										"parallel";
 
 									// Create unique key using both key array and sid
 									const uniqueKey = `${
@@ -964,200 +928,137 @@ export function AMIEditor(): JSX.Element {
 									return (
 										<div
 											key={uniqueKey}
-											className={`group relative p-3 rounded border cursor-pointer transition-all duration-200 ${
+											className={`group flex flex-col px-2 py-1.5 cursor-pointer transition-colors ${
 												isSelected
-													? "border-amber-400 bg-amber-400/10 shadow-lg shadow-amber-400/20"
+													? "bg-amber-500/20"
 													: isNewlyCreated
-													? "border-green-400 bg-green-400/10 shadow-lg shadow-green-400/20 animate-pulse"
-													: "border-border bg-muted/50 hover:border-muted hover:bg-muted"
+													? "bg-green-500/10 animate-pulse"
+													: "hover:bg-muted/50"
 											}`}
 											onClick={() => handleSelectWorker(protocol)}
 										>
-											{/* Header */}
-											<div className="flex items-center justify-between mb-3">
-												<div className="flex items-center gap-2 flex-1 min-w-0">
-													<div className="relative">
-														<div
-															className={`w-8 h-8 rounded flex items-center justify-center ${
-																isNewlyCreated
-																	? "bg-green-400/20"
-																	: "bg-secondary/50"
+											{/* Main row */}
+											<div className="flex items-center gap-1.5">
+												{/* File Icon with Status */}
+												<div className="relative flex-shrink-0">
+													<FileCode
+														className={`w-4 h-4 ${
+															isNewlyCreated
+																? "text-green-700 dark:text-green-700 dark:text-green-600"
+																: isSelected
+																? "text-amber-700 dark:text-amber-700 dark:text-amber-400"
+																: protocol.value.raw.active
+																? "text-blue-700 dark:text-blue-700 dark:text-blue-400"
+																: "text-muted-foreground"
+														}`}
+													/>
+													{/* Active indicator */}
+													{protocol.value.raw.active && !isSelected && (
+														<div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+													)}
+													{/* Leader crown */}
+													{isLeaderMode && (
+														<Crown className="absolute -bottom-0.5 -right-0.5 w-2 h-2 text-amber-500" />
+													)}
+												</div>
+
+												{/* Filename and badges */}
+												<div className="flex-1 min-w-0 flex items-center gap-1.5">
+													<span
+														className={`font-mono text-[11px] font-semibold truncate ${
+															isSelected
+																? "text-amber-700 dark:text-amber-700 dark:text-amber-400"
+																: protocol.value.raw.active
+																? "text-green-700 dark:text-green-700 dark:text-green-600"
+																: "text-red-700 dark:text-red-700 dark:text-red-400"
+														}`}
+													>
+														{protocol.value.raw.sid}
+													</span>
+
+													{/* Inline badges */}
+													<div className="flex items-center gap-0.5">
+														<span
+															className={`text-[8px] px-0.5 rounded ${
+																scope === "network"
+																	? "bg-green-500/20 text-green-700 dark:text-green-700 dark:text-green-600"
+																	: "bg-blue-500/20 text-blue-700 dark:text-blue-700 dark:text-blue-400"
 															}`}
+															title={scope}
 														>
-															<FileCode
-																className={`w-4 h-4 ${
-																	isNewlyCreated
-																		? "text-green-400"
-																		: "text-amber-400"
-																}`}
-															/>
-														</div>
-														{protocol.value.raw.active && (
-															<div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse border-2 border-border" />
-														)}
-														{isLeaderMode && (
-															<div className="absolute -bottom-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-border flex items-center justify-center">
-																<Crown className="w-2 h-2 text-black" />
-															</div>
-														)}
-													</div>
-													<div className="flex-1 min-w-0">
-														<div
-															className={`font-mono text-sm font-bold truncate ${
-																isNewlyCreated
-																	? "text-green-300"
-																	: isSelected
-																	? "text-amber-300"
-																	: "text-card-foreground"
+															{scope === "network" ? "N" : "L"}
+														</span>
+														<span
+															className={`text-[8px] px-0.5 rounded ${
+																execMode === "leader"
+																	? "bg-amber-500/20 text-amber-700 dark:text-amber-700 dark:text-amber-400"
+																	: execMode === "parallel"
+																	? "bg-blue-500/20 text-blue-700 dark:text-blue-700 dark:text-blue-400"
+																	: "bg-purple-500/20 text-purple-700 dark:text-purple-700 dark:text-purple-400"
 															}`}
+															title={execMode}
 														>
-															{protocol.value.raw.sid}
-														</div>
-														{isNewlyCreated && (
-															<Badge className="text-xs bg-green-400/20 text-green-400 border-green-400">
-																NEW
-															</Badge>
-														)}
+															{execMode === "leader"
+																? "L"
+																: execMode === "parallel"
+																? "P"
+																: "E"}
+														</span>
 													</div>
 												</div>
-												<Badge
-													variant="outline"
-													className={`text-xs ${
-														protocol.value.raw.active
-															? "border-green-400 text-green-400 bg-green-400/10"
-															: "border-red-400 text-red-400 bg-red-400/10"
-													}`}
-												>
-													{protocol.value.raw.active ? "ACTIVE" : "INACTIVE"}
-												</Badge>
+
+												{/* Right side - Actions and time */}
+												<div className="flex items-center gap-1 flex-shrink-0">
+													{/* Migrate button */}
+													{scope === "local" && (
+														<Button
+															size="sm"
+															variant="ghost"
+															onClick={(e) => {
+																e.stopPropagation();
+																handleOpenMigrateDialog(protocol);
+															}}
+															className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-green-700 dark:text-green-700 dark:text-green-600"
+															title="Migrate to network"
+														>
+															<Upload className="w-2.5 h-2.5" />
+														</Button>
+													)}
+
+													{/* Time ago */}
+													<span className="text-[9px] text-muted-foreground font-mono min-w-[24px] text-right">
+														{getTimeAgo(protocol.value.raw.timestamp)}
+													</span>
+												</div>
 											</div>
 
-											{/* Note */}
+											{/* Description/Prompts - always visible if exists */}
 											{protocol.value.raw.note && (
-												<div className="mb-3 p-2 bg-card/50 rounded border border-border/50">
-													<p className="text-xs text-blue-300 line-clamp-2">
+												<div className="ml-5 mt-0.5">
+													<p className="text-[10px] text-muted-foreground line-clamp-1">
 														{protocol.value.raw.note}
 													</p>
 												</div>
 											)}
-
-											{/* Metadata Grid */}
-											<div className="grid grid-cols-2 gap-2 text-xs mb-2">
-												<div className="flex items-center gap-1">
-													<Server className="w-3 h-3 text-blue-400" />
-													<span className="text-blue-300 font-mono truncate">
-														{protocol.value.raw.nid}
-													</span>
-												</div>
-												<div className="flex items-center gap-1">
-													<Hash className="w-3 h-3 text-amber-400" />
-													<span className="text-amber-400 font-mono">
-														{protocol.value.raw.version}
-													</span>
-												</div>
-												<div className="flex items-center gap-1">
-													<Clock className="w-3 h-3 text-muted-foreground" />
-													<span className="text-muted-foreground">
-														{getTimeAgo(protocol.value.raw.timestamp)}
-													</span>
-												</div>
-												<div className="flex items-center gap-1">
-													<Database className="w-3 h-3 text-purple-400" />
-													<span className="text-purple-300 truncate">
-														{protocol.value.raw.dependencies.join(", ") ||
-															"none"}
-													</span>
-												</div>
-											</div>
-
-											{/* Mode & Priority Badges */}
-											<div className="flex items-center justify-between gap-1.5">
-												<div className="flex items-center gap-1.5 flex-wrap flex-1">
-													{(() => {
-														const scope = protocol.value.raw.scope || "local";
-														const execMode = protocol.value.raw.executionMode ||
-															"parallel";
-														const priority = protocol.value.raw.priority ||
-															"normal";
-														const mode = protocol.value.raw.mode ||
-															"loop";
-
-														return (
-															<>
-																<Badge
-																	variant="outline"
-																	className={`text-[10px] px-1.5 py-0 h-4 ${
-																		scope === "network"
-																			? "border-green-400/50 bg-green-400/10 text-green-400"
-																			: "border-blue-400/50 bg-blue-400/10 text-blue-400"
-																	}`}
-																>
-																	{scope}
-																</Badge>
-																<Badge
-																	variant="outline"
-																	className={`text-[10px] px-1.5 py-0 h-4 ${
-																		getExecutionModeColor(execMode)
-																	}`}
-																>
-																	{execMode}
-																</Badge>
-																<Badge
-																	variant="outline"
-																	className={`text-[10px] px-1.5 py-0 h-4 ${
-																		getPriorityColor(priority)
-																	}`}
-																>
-																	{priority}
-																</Badge>
-																<Badge
-																	variant="outline"
-																	className="text-[10px] px-1.5 py-0 h-4 border-muted/50 text-muted-foreground"
-																>
-																	{mode}
-																</Badge>
-															</>
-														);
-													})()}
-												</div>
-
-												{/* Migrate button for local workers */}
-												{(protocol.value.raw.scope || "local") === "local" && (
-													<Button
-														size="sm"
-														variant="ghost"
-														onClick={(e) => {
-															e.stopPropagation();
-															handleOpenMigrateDialog(protocol);
-														}}
-														className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-green-400"
-														title="Migrate to network"
-													>
-														<Upload className="w-3.5 h-3.5" />
-													</Button>
-												)}
-											</div>
 										</div>
 									);
 								})}
 							</div>
 						</ScrollArea>
 
-						{/* Footer - Status Summary */}
-						<div className="p-3 border-t border-border bg-card/50">
-							<div className="flex items-center justify-center gap-4 text-xs">
-								<div className="flex items-center gap-1.5">
-									<div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-									<span className="text-muted-foreground">Active:</span>
-									<span className="text-green-400 font-mono font-bold">
-										{workers.filter((w) => w.value.raw.active).length}
+						{/* Footer - File System Style */}
+						<div className="px-2 py-1 border-t border-border bg-card/50">
+							<div className="flex items-center justify-between text-[9px] font-mono text-muted-foreground">
+								<span>
+									{filteredWorkers.length} items
+								</span>
+								<div className="flex items-center gap-2">
+									<span className="text-green-700 dark:text-green-700 dark:text-green-600">
+										{workers.filter((w) => w.value.raw.active).length} active
 									</span>
-								</div>
-								<div className="flex items-center gap-1.5">
-									<div className="w-2 h-2 bg-red-400 rounded-full" />
-									<span className="text-muted-foreground">Inactive:</span>
-									<span className="text-red-400 font-mono font-bold">
-										{workers.filter((w) => !w.value.raw.active).length}
+									<span>•</span>
+									<span className="text-red-700 dark:text-red-700 dark:text-red-400">
+										{workers.filter((w) => !w.value.raw.active).length} stopped
 									</span>
 								</div>
 							</div>
@@ -1170,160 +1071,137 @@ export function AMIEditor(): JSX.Element {
 							? (
 								<div className="h-full flex flex-col">
 									{/* Editor Header - Compact */}
-									<div className="bg-card border-b border-border px-4 py-3">
+									<div className="bg-card border-b border-border px-3 py-2">
 										<div className="flex items-center justify-between">
-											<div className="flex items-center gap-3 flex-1 min-w-0">
-												<div className="w-9 h-9 bg-muted rounded flex items-center justify-center relative flex-shrink-0">
-													<Terminal className="w-4 h-4 text-amber-400" />
+											<div className="flex items-center gap-2 flex-1 min-w-0">
+												<div className="relative w-7 h-7 bg-muted rounded flex items-center justify-center flex-shrink-0">
+													<Terminal className="w-3.5 h-3.5 text-amber-700 dark:text-amber-700 dark:text-amber-400" />
 													{selectedWorker.value.raw.active && (
-														<div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse border-2 border-card" />
+														<div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
 													)}
 												</div>
 												<div className="flex-1 min-w-0">
-													<div className="flex items-center gap-1.5 flex-wrap">
-														<h3 className="text-foreground font-mono text-base font-bold truncate">
-															{selectedWorker.value.raw.sid}
-														</h3>
-														<Badge
-															variant="outline"
-															className={`text-[10px] px-1.5 py-0 h-4 flex-shrink-0 ${
-																selectedWorker.value.raw.active
-																	? "border-green-400/50 text-green-400 bg-green-400/10"
-																	: "border-red-400/50 text-red-400 bg-red-400/10"
-															}`}
-														>
-															{selectedWorker.value.raw.active ? "ON" : "OFF"}
-														</Badge>
-														<Badge
-															variant="outline"
-															className="text-[10px] px-1.5 py-0 h-4 border-amber-400/50 text-amber-400 bg-amber-400/10 flex-shrink-0"
-														>
-															v{selectedWorker.value.raw.version}
-														</Badge>
+													<h3 className="text-foreground font-mono text-[11px] font-bold truncate">
+														{selectedWorker.value.raw.sid}
+													</h3>
+													<div className="flex items-center gap-1.5 mt-0.5">
 														{(() => {
 															const scope = selectedWorker.value.raw.scope ||
 																"local";
-															const execMode = selectedWorker.value.raw
-																.executionMode || "parallel";
+															const execMode =
+																selectedWorker.value.raw.executionMode ||
+																"parallel";
 															const priority =
-																selectedWorker.value.raw.priority ||
-																"normal";
-															const mode = selectedWorker.value.raw.mode ||
-																"loop";
+																selectedWorker.value.raw.priority || "normal";
 
 															return (
 																<>
-																	<Badge
-																		variant="outline"
-																		className={`text-[10px] px-1.5 py-0 h-4 flex-shrink-0 ${
+																	<span
+																		className={`text-[9px] px-1 py-0.5 rounded font-mono ${
 																			scope === "network"
-																				? "border-green-400/50 bg-green-400/10 text-green-400"
-																				: "border-blue-400/50 bg-blue-400/10 text-blue-400"
+																				? "bg-green-500/10 text-green-700 dark:text-green-700 dark:text-green-600"
+																				: "bg-blue-500/10 text-blue-700 dark:text-blue-700 dark:text-blue-400"
 																		}`}
 																	>
-																		{scope}
-																	</Badge>
-																	<Badge
-																		variant="outline"
-																		className={`text-[10px] px-1.5 py-0 h-4 flex-shrink-0 ${
-																			getExecutionModeColor(execMode)
+																		{scope === "network" ? "NET" : "LOC"}
+																	</span>
+																	<span
+																		className={`text-[9px] px-1 py-0.5 rounded font-mono ${
+																			execMode === "leader"
+																				? "bg-amber-500/10 text-amber-700 dark:text-amber-700 dark:text-amber-400"
+																				: execMode === "parallel"
+																				? "bg-blue-500/10 text-blue-700 dark:text-blue-700 dark:text-blue-400"
+																				: "bg-purple-500/10 text-purple-700 dark:text-purple-700 dark:text-purple-400"
 																		}`}
 																	>
-																		{execMode === "leader" && (
-																			<Crown className="w-2.5 h-2.5 mr-0.5" />
-																		)}
-																		{execMode}
-																	</Badge>
-																	<Badge
-																		variant="outline"
-																		className={`text-[10px] px-1.5 py-0 h-4 flex-shrink-0 ${
-																			getPriorityColor(priority)
+																		{execMode === "leader"
+																			? "LDR"
+																			: execMode === "parallel"
+																			? "PAR"
+																			: "EXC"}
+																	</span>
+																	<span
+																		className={`text-[9px] px-1 py-0.5 rounded font-mono ${
+																			priority === "critical"
+																				? "bg-red-500/10 text-red-700 dark:text-red-700 dark:text-red-400"
+																				: priority === "high"
+																				? "bg-orange-500/10 text-orange-700 dark:text-orange-700 dark:text-orange-400"
+																				: priority === "normal"
+																				? "bg-green-500/10 text-green-700 dark:text-green-700 dark:text-green-600"
+																				: "bg-blue-500/10 text-blue-700 dark:text-blue-700 dark:text-blue-400"
 																		}`}
 																	>
-																		{priority}
-																	</Badge>
-																	<Badge
-																		variant="outline"
-																		className="text-[10px] px-1.5 py-0 h-4 border-muted/50 text-muted-foreground flex-shrink-0"
-																	>
-																		{mode}
-																	</Badge>
+																		{priority === "critical"
+																			? "CRT"
+																			: priority === "high"
+																			? "HI"
+																			: priority === "normal"
+																			? "NRM"
+																			: "LOW"}
+																	</span>
+																	<span className="text-[9px] text-muted-foreground">
+																		v{selectedWorker.value.raw.version}
+																	</span>
 																</>
 															);
 														})()}
 													</div>
-													<div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
-														<span className="flex items-center gap-1">
-															<Server className="w-2.5 h-2.5" />
-															{selectedWorker.value.raw.nid}
-														</span>
-														<span className="flex items-center gap-1">
-															<Clock className="w-2.5 h-2.5" />
-															{getTimeAgo(selectedWorker.value.raw.timestamp)}
-														</span>
-														<span className="flex items-center gap-1">
-															<HardDrive className="w-2.5 h-2.5" />
-															{selectedWorker.value.raw.script.length}
-														</span>
-														{selectedWorker.value.raw.accountId && (
-															<span className="flex items-center gap-1">
-																<Code className="w-2.5 h-2.5" />
-																{selectedWorker.value.raw.accountId}
-															</span>
-														)}
-													</div>
 												</div>
 											</div>
 
-											<div className="flex items-center gap-2">
-												{/* Migrate button for local workers */}
-												{(selectedWorker.value.raw.scope || "local") ===
-														"local" && (
-													<Button
-														onClick={() =>
-															handleOpenMigrateDialog(selectedWorker)}
-														size="sm"
-														variant="outline"
-														className="px-3 py-1.5 font-mono text-xs h-8 flex-shrink-0 bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300"
-													>
-														<Upload className="w-3.5 h-3.5 mr-1.5" />
-														MIGRATE
-													</Button>
-												)}
+											<TooltipProvider>
+												<div className="flex items-center gap-1">
+													{/* Migrate button for local workers */}
+													{(selectedWorker.value.raw.scope || "local") ===
+															"local" && (
+														<Tooltip delayDuration={100}>
+															<TooltipTrigger asChild>
+																<Button
+																	onClick={() =>
+																		handleOpenMigrateDialog(selectedWorker)}
+																	size="sm"
+																	variant="ghost"
+																	className="h-6 w-6 p-0 text-blue-700 dark:text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:text-blue-300"
+																>
+																	<Upload className="w-3 h-3" />
+																</Button>
+															</TooltipTrigger>
+															<TooltipContent side="bottom">
+																Migrate to Network
+															</TooltipContent>
+														</Tooltip>
+													)}
 
-												{/* Start/Stop button */}
-												<Button
-													onClick={handleToggleWorkerStatus}
-													size="sm"
-													disabled={updating}
-													className={`px-3 py-1.5 font-mono text-xs h-8 flex-shrink-0 ${
-														selectedWorker.value.raw.active
-															? "bg-red-500 hover:bg-red-600 text-white"
-															: "bg-green-500 hover:bg-green-600 text-white"
-													}`}
-												>
-													{updating
-														? (
-															<>
-																<Settings className="animate-spin mr-1.5 w-3.5 h-3.5" />
-																...
-															</>
-														)
-														: selectedWorker.value.raw.active
-														? (
-															<>
-																<PowerOff className="w-3.5 h-3.5 mr-1.5" />
-																STOP
-															</>
-														)
-														: (
-															<>
-																<Play className="w-3.5 h-3.5 mr-1.5" />
-																START
-															</>
-														)}
-												</Button>
-											</div>
+													{/* Start/Stop button */}
+													<Tooltip delayDuration={100}>
+														<TooltipTrigger asChild>
+															<Button
+																onClick={handleToggleWorkerStatus}
+																size="sm"
+																disabled={updating}
+																className={`h-6 w-6 p-0 ${
+																	selectedWorker.value.raw.active
+																		? "bg-red-500 hover:bg-red-600 text-white dark:text-white"
+																		: "bg-green-500 hover:bg-green-600 text-white dark:text-white"
+																}`}
+															>
+																{updating
+																	? (
+																		<Settings className="animate-spin w-3 h-3" />
+																	)
+																	: selectedWorker.value.raw.active
+																	? <PowerOff className="w-3 h-3" />
+																	: <Play className="w-3 h-3" />}
+															</Button>
+														</TooltipTrigger>
+														<TooltipContent side="bottom">
+															{selectedWorker.value.raw.active
+																? "Stop Worker"
+																: "Start Worker"}
+														</TooltipContent>
+													</Tooltip>
+												</div>
+											</TooltipProvider>
 										</div>
 									</div>
 
@@ -1333,78 +1211,95 @@ export function AMIEditor(): JSX.Element {
 										onValueChange={setActiveTab}
 										className="flex-1 flex flex-col min-h-0 p-0 m-0 gap-0"
 									>
-										<div className="bg-card border-b border-border px-4 py-3">
+										<div className="bg-card border-b border-border px-2 py-1.5">
 											<div className="flex items-center justify-between">
-												<TabsList className="bg-muted/30 p-0.5 h-8">
+												<TabsList className="bg-muted/30 p-0.5 h-7">
 													<TabsTrigger
 														value="code"
-														className="text-xs h-7 px-3"
+														className="text-[11px] h-6 px-2"
 													>
-														<Code className="w-3 h-3 mr-1.5" />
+														<Code className="w-3 h-3 mr-1" />
 														Code
 													</TabsTrigger>
 													<TabsTrigger
 														value="config"
-														className="text-xs h-7 px-3"
+														className="text-[11px] h-6 px-2"
 													>
-														<Settings className="w-3 h-3 mr-1.5" />
+														<Settings className="w-3 h-3 mr-1" />
 														Config
 													</TabsTrigger>
 													<TabsTrigger
-														value="notes"
-														className="text-xs h-7 px-3"
+														value="prompts"
+														className="text-[11px] h-6 px-2"
 													>
-														<FileText className="w-3 h-3 mr-1.5" />
-														Notes
+														<FileText className="w-3 h-3 mr-1" />
+														Prompts
 													</TabsTrigger>
 													<TabsTrigger
 														value="logs"
-														className="text-xs h-7 px-3"
+														className="text-[11px] h-6 px-2"
 													>
-														<Terminal className="w-3 h-3 mr-1.5" />
+														<Terminal className="w-3 h-3 mr-1" />
 														Logs
 													</TabsTrigger>
 													{selectedWorker.value.raw.executionMode ===
 															"leader" && (
 														<TabsTrigger
 															value="leader"
-															className="text-xs h-7 px-3"
+															className="text-[11px] h-6 px-2"
 														>
-															<Crown className="w-3 h-3 mr-1.5" />
+															<Crown className="w-3 h-3 mr-1" />
 															Leader
 														</TabsTrigger>
 													)}
 												</TabsList>
 
 												{(isEditing || isEditingNote || isEditingConfig) && (
-													<div className="flex items-center gap-2">
-														<Button
-															onClick={() => {
-																resetScript();
-																resetNote();
-																resetConfig();
-															}}
-															variant="ghost"
-															size="sm"
-															className="text-xs h-7 px-2 text-muted-foreground hover:text-amber-400"
-														>
-															<RotateCcw className="w-3 h-3 mr-1" />
-															Revert
-														</Button>
-														<Button
-															onClick={handleSaveAll}
-															size="sm"
-															className="text-xs h-7 px-3 bg-amber-500 hover:bg-amber-600 text-black"
-															disabled={updating}
-															title="Save all changes (⌘S / Ctrl+S)"
-														>
-															<Save className="w-3 h-3 mr-1" />
-															Save All
-															<kbd className="ml-2 px-1.5 py-0.5 text-[10px] bg-black/20 rounded border border-black/30">
-																⌘S
-															</kbd>
-														</Button>
-													</div>
+													<TooltipProvider>
+														<div className="flex items-center gap-1">
+															<Tooltip delayDuration={100}>
+																<TooltipTrigger asChild>
+																	<Button
+																		onClick={() => {
+																			resetScript();
+																			resetNote();
+																			resetConfig();
+																		}}
+																		variant="ghost"
+																		size="sm"
+																		className="h-6 w-6 p-0 text-muted-foreground hover:text-amber-700 dark:text-amber-700 dark:text-amber-400"
+																	>
+																		<RotateCcw className="w-3 h-3" />
+																	</Button>
+																</TooltipTrigger>
+																<TooltipContent side="bottom">
+																	Revert Changes
+																</TooltipContent>
+															</Tooltip>
+
+															<Tooltip delayDuration={100}>
+																<TooltipTrigger asChild>
+																	<Button
+																		onClick={handleSaveAll}
+																		size="sm"
+																		className="h-6 px-2 bg-amber-500 hover:bg-amber-600 text-zinc-950 dark:text-black"
+																		disabled={updating}
+																	>
+																		<Save className="w-3 h-3 mr-1" />
+																		<span className="text-[10px] font-bold">
+																			SAVE
+																		</span>
+																		<kbd className="ml-1 px-1 py-0.5 text-[9px] bg-muted/50 rounded border border-border/50">
+																			⌘S
+																		</kbd>
+																	</Button>
+																</TooltipTrigger>
+																<TooltipContent side="bottom">
+																	Save All (⌘S)
+																</TooltipContent>
+															</Tooltip>
+														</div>
+													</TooltipProvider>
 												)}
 											</div>
 										</div>
@@ -1423,14 +1318,14 @@ export function AMIEditor(): JSX.Element {
 										{/* Tab: Configuration */}
 										<TabsContent
 											value="config"
-											className="flex-1 m-0 p-4 overflow-y-auto bg-surface"
+											className="flex-1 m-0 p-2 overflow-y-auto bg-surface"
 										>
-											<div className="max-w-2xl mx-auto space-y-3 bg-muted p-4 border rounded">
+											<div className="max-w-2xl mx-auto space-y-2 bg-muted p-3 border rounded">
 												{/* Validation Error */}
 												{validationError && (
 													<Alert className="border-red-500/30 bg-red-500/10">
 														<AlertCircle className="h-4 w-4 text-red-500" />
-														<AlertDescription className="text-red-400">
+														<AlertDescription className="text-red-700 dark:text-red-700 dark:text-red-400">
 															{validationError}
 														</AlertDescription>
 													</Alert>
@@ -1452,7 +1347,7 @@ export function AMIEditor(): JSX.Element {
 														<SelectContent>
 															<SelectItem value="local">
 																<div className="flex items-center gap-2">
-																	<Server className="w-4 h-4 text-blue-400" />
+																	<Server className="w-4 h-4 text-blue-700 dark:text-blue-700 dark:text-blue-400" />
 																	<span>Local</span>
 																	<span className="text-xs text-muted-foreground">
 																		(This node only)
@@ -1461,7 +1356,7 @@ export function AMIEditor(): JSX.Element {
 															</SelectItem>
 															<SelectItem value="network">
 																<div className="flex items-center gap-2">
-																	<Cpu className="w-4 h-4 text-green-400" />
+																	<Cpu className="w-4 h-4 text-green-700 dark:text-green-700 dark:text-green-600" />
 																	<span>Network</span>
 																	<span className="text-xs text-muted-foreground">
 																		(All nodes in network)
@@ -1481,7 +1376,7 @@ export function AMIEditor(): JSX.Element {
 																			handleOpenMigrateDialog(selectedWorker);
 																		}
 																	}}
-																	className="text-blue-400 hover:text-blue-300 underline font-medium"
+																	className="text-blue-700 dark:text-blue-700 dark:text-blue-400 hover:text-blue-500 underline font-medium"
 																>
 																	Migrate to Network
 																</button>{" "}
@@ -1496,7 +1391,7 @@ export function AMIEditor(): JSX.Element {
 												{currentConfig.scope === "local" && (
 													<Alert className="border-blue-500/30 bg-blue-500/10">
 														<AlertCircle className="h-4 w-4 text-blue-500" />
-														<AlertDescription className="text-blue-400 text-xs">
+														<AlertDescription className="text-blue-700 dark:text-blue-700 dark:text-blue-400 text-xs">
 															<strong>Local scope:</strong>{" "}
 															Worker executes only on this node in leader mode.
 															Parallel and exclusive modes are only available
@@ -1736,16 +1631,16 @@ export function AMIEditor(): JSX.Element {
 											</div>
 										</TabsContent>
 
-										{/* Tab: Notes */}
-										<TabsContent value="notes" className="flex-1 m-0 p-4">
+										{/* Tab: Prompts */}
+										<TabsContent value="prompts" className="flex-1 m-0 p-2">
 											<div className="max-w-2xl mx-auto">
 												<Textarea
 													value={currentNote}
 													onChange={(
 														e: React.ChangeEvent<HTMLTextAreaElement>,
 													) => handleNoteChange(e.target.value)}
-													placeholder="Add notes about this worker..."
-													className="bg-muted border-border text-card-foreground placeholder-zinc-500 text-sm resize-none min-h-[200px] focus:border-blue-400 focus:ring-blue-400/20"
+													placeholder="Worker prompts and instructions..."
+													className="bg-input border-border text-foreground placeholder:text-muted-foreground text-[11px] resize-none min-h-[200px] focus:border-blue-500 focus:ring-blue-500/20"
 												/>
 											</div>
 										</TabsContent>
@@ -1761,11 +1656,10 @@ export function AMIEditor(): JSX.Element {
 										</TabsContent>
 
 										{/* Tab: Leader Info */}
-										{selectedWorker.value.raw.executionMode ===
-												"leader" && (
+										{selectedWorker.value.raw.executionMode === "leader" && (
 											<TabsContent
 												value="leader"
-												className="flex-1 m-0 p-4 overflow-y-auto"
+												className="flex-1 m-0 p-2 overflow-y-auto"
 											>
 												<div className="max-w-2xl mx-auto">
 													<LeaderInfoCard
@@ -1783,9 +1677,9 @@ export function AMIEditor(): JSX.Element {
 								<div className="h-full flex items-center justify-center">
 									<div className="text-center max-w-md">
 										<div className="w-20 h-20 bg-muted rounded flex items-center justify-center mb-6 mx-auto">
-											<Code className="w-10 h-10 text-amber-400" />
+											<Code className="w-10 h-10 text-amber-700 dark:text-amber-700 dark:text-amber-400" />
 										</div>
-										<h3 className="text-amber-400 font-mono text-xl font-bold mb-2">
+										<h3 className="text-amber-700 dark:text-amber-700 dark:text-amber-400 font-mono text-xl font-bold mb-2">
 											CODE EDITOR
 										</h3>
 										<p className="text-muted-foreground text-sm mb-6">
@@ -1828,7 +1722,7 @@ export function AMIEditor(): JSX.Element {
 
 				{/* Stats Panel */}
 				{showStatsPanel && (
-					<div className="fixed inset-0 bg-black/80 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+					<div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
 						<div className="w-full max-w-3xl">
 							<div className="flex justify-end mb-2">
 								<Button
@@ -1856,7 +1750,7 @@ export function AMIEditor(): JSX.Element {
 						<div className="absolute inset-0" />
 					</div>
 
-					<h2 className="text-amber-400 font-mono text-2xl font-bold mb-3">
+					<h2 className="text-amber-700 dark:text-amber-700 dark:text-amber-400 font-mono text-2xl font-bold mb-3">
 						WALLET REQUIRED
 					</h2>
 
@@ -1868,7 +1762,7 @@ export function AMIEditor(): JSX.Element {
 						<div className="bg-card/50 border border-border rounded p-4">
 							<div className="flex items-center gap-3 mb-3">
 								<div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
-									<Database className="w-4 h-4 text-blue-400" />
+									<Database className="w-4 h-4 text-blue-700 dark:text-blue-700 dark:text-blue-400" />
 								</div>
 								<span className="text-card-foreground font-mono text-sm font-bold">
 									PROTOCOL REGISTRY
@@ -1882,7 +1776,7 @@ export function AMIEditor(): JSX.Element {
 						<div className="bg-card/50 border border-border rounded p-4">
 							<div className="flex items-center gap-3 mb-3">
 								<div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
-									<Code className="w-4 h-4 text-green-400" />
+									<Code className="w-4 h-4 text-green-700 dark:text-green-700 dark:text-green-600" />
 								</div>
 								<span className="text-card-foreground font-mono text-sm font-bold">
 									CODE EDITOR
@@ -1896,7 +1790,7 @@ export function AMIEditor(): JSX.Element {
 
 					<Button
 						onClick={() => setRoute("wallet")}
-						className="mt-8 bg-amber-500 hover:bg-amber-600 text-black font-mono text-sm font-bold px-8 py-3 rounded shadow-lg shadow-amber-400/20 transition-all duration-200 hover:shadow-amber-400/30"
+						className="mt-8 bg-amber-500 hover:bg-amber-600 text-zinc-950 dark:text-black font-mono text-sm font-bold px-8 py-3 rounded shadow-lg shadow-amber-400/20 transition-all duration-200 hover:shadow-amber-400/30"
 					>
 						<Zap className="w-4 h-4 mr-2" />
 						CONNECT WALLET

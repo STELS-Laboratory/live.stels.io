@@ -111,7 +111,7 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
 				<div className="flex space-x-2">
 					<button
 						onClick={handleClose}
-						className="w-3 h-3 cursor-pointer bg-background hover:bg-red-500 rounded-full flex items-center justify-center transition-colors"
+						className="w-3 h-3 cursor-pointer bg-muted hover:bg-red-500 rounded-full flex items-center justify-center transition-colors"
 						title="Close"
 					>
 						<X size={6} />
@@ -120,7 +120,7 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
 						onClick={handleMinimize}
 						className={`w-3 h-3 cursor-pointer transition-colors ${
 							!nodeState.minimized
-								? "bg-background hover:bg-yellow-500"
+								? "bg-muted hover:bg-yellow-500"
 								: "bg-amber-600"
 						} rounded-full flex items-center justify-center`}
 						title={nodeState.minimized ? "Restore" : "Minimize"}
@@ -131,7 +131,7 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
 						onClick={handleMaximize}
 						className={`w-3 h-3 cursor-pointer transition-colors ${
 							!nodeState.maximized
-								? "bg-background hover:bg-green-500"
+								? "bg-muted hover:bg-green-500"
 								: "bg-green-600"
 						} rounded-full flex items-center justify-center`}
 						title={nodeState.maximized ? "Restore" : "Maximize"}

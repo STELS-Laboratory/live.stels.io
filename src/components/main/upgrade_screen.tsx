@@ -137,7 +137,7 @@ const UpgradeScreen = ({ onComplete, endDate }: UpgradeScreenProps) => {
 						<p className="text-lg text-card-foreground font-medium">
 							STELS Network
 						</p>
-						<p className="text-sm text-amber-400 font-mono">
+						<p className="text-sm text-amber-700 dark:text-amber-400 font-mono">
 							Version {version}
 						</p>
 					</motion.div>

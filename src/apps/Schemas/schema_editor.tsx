@@ -36,7 +36,7 @@ export default function SchemaEditor({
       editorRef.current = editor;
       monacoRef.current = monacoInstance;
 
-      // Define custom theme
+      // Define custom dark theme
       monacoInstance.editor.defineTheme("schema-dark", {
         base: "vs-dark",
         inherit: true,
@@ -47,15 +47,33 @@ export default function SchemaEditor({
           { token: "keyword.json", foreground: "66d9ef" },
         ],
         colors: {
-          "editor.background": "#18181b",
+          "editor.background": "#09090b",
           "editor.foreground": "#fafafa",
           "editor.lineHighlightBackground": "#27272a",
           "editor.selectionBackground": "#3f3f46",
         },
       });
 
+      // Define custom light theme
+      monacoInstance.editor.defineTheme("schema-light", {
+        base: "vs",
+        inherit: true,
+        rules: [
+          { token: "string.key.json", foreground: "d97706", fontStyle: "bold" },
+          { token: "string.value.json", foreground: "16a34a" },
+          { token: "number", foreground: "9333ea" },
+          { token: "keyword.json", foreground: "0284c7" },
+        ],
+        colors: {
+          "editor.background": "#ffffff",
+          "editor.foreground": "#09090b",
+          "editor.lineHighlightBackground": "#f4f4f5",
+          "editor.selectionBackground": "#e4e4e7",
+        },
+      });
+
       monacoInstance.editor.setTheme(
-        resolvedTheme === "light" ? "vs" : "schema-dark",
+        resolvedTheme === "light" ? "schema-light" : "schema-dark",
       );
 
       // Format on paste
@@ -85,7 +103,9 @@ export default function SchemaEditor({
   useEffect(() => {
     if (!editorRef.current || !monacoRef.current) return;
 
-    const themeName = resolvedTheme === "light" ? "vs" : "schema-dark";
+    const themeName = resolvedTheme === "light"
+      ? "schema-light"
+      : "schema-dark";
     monacoRef.current.editor.setTheme(themeName);
   }, [resolvedTheme]);
 
@@ -94,7 +114,7 @@ export default function SchemaEditor({
       width="100%"
       height="100%"
       language="json"
-      theme={resolvedTheme === "light" ? "vs" : "schema-dark"}
+      theme={resolvedTheme === "light" ? "schema-light" : "schema-dark"}
       value={value}
       onChange={(val) => onChange(val || "")}
       onMount={handleEditorDidMount}

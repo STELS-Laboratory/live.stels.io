@@ -248,7 +248,7 @@ export function CustomSSEExample(): React.ReactElement {
           </Button>
         </div>
 
-        <div className="bg-black text-green-400 p-4 rounded font-mono text-xs h-96 overflow-auto">
+        <div className="bg-black text-green-700 dark:text-green-600 p-4 rounded font-mono text-xs h-96 overflow-auto">
           {logs.map((log, index) => <div key={index}>{log}</div>)}
         </div>
       </Card>

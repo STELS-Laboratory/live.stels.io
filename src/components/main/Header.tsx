@@ -29,7 +29,7 @@ function Header(
 					variant="outline"
 					className={cn(
 						"px-3 py-1 border-green-500/30 bg-green-500/10",
-						"text-green-400 hover:bg-green-500/20",
+						"text-green-700 dark:text-green-600 hover:bg-green-500/20",
 					)}
 				>
 					<div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse" />

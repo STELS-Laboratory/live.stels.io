@@ -149,11 +149,11 @@ export const getExecutionModeColor = (
 ): string => {
 	switch (mode) {
 		case "parallel":
-			return "border-blue-400/50 bg-blue-400/10 text-blue-400";
+			return "border-blue-400/50 bg-blue-400/10 text-blue-700 dark:text-blue-400";
 		case "leader":
-			return "border-amber-400/50 bg-amber-400/10 text-amber-400";
+			return "border-amber-400/50 bg-amber-400/10 text-amber-700 dark:text-amber-400";
 		case "exclusive":
-			return "border-purple-400/50 bg-purple-400/10 text-purple-400";
+			return "border-purple-400/50 bg-purple-400/10 text-purple-700 dark:text-purple-400";
 		default:
 			return "border-muted/50 bg-muted/10 text-muted-foreground";
 	}
@@ -167,13 +167,13 @@ export const getPriorityColor = (
 ): string => {
 	switch (priority) {
 		case "critical":
-			return "border-red-400/50 bg-red-400/10 text-red-400";
+			return "border-red-400/50 bg-red-400/10 text-red-700 dark:text-red-400";
 		case "high":
-			return "border-orange-400/50 bg-orange-400/10 text-orange-400";
+			return "border-orange-400/50 bg-orange-400/10 text-orange-700 dark:text-orange-400";
 		case "normal":
-			return "border-green-400/50 bg-green-400/10 text-green-400";
+			return "border-green-400/50 bg-green-400/10 text-green-700 dark:text-green-600";
 		case "low":
-			return "border-blue-400/50 bg-blue-400/10 text-blue-400";
+			return "border-blue-400/50 bg-blue-400/10 text-blue-700 dark:text-blue-400";
 		default:
 			return "border-muted/50 bg-muted/10 text-muted-foreground";
 	}
@@ -185,9 +185,9 @@ export const getPriorityColor = (
 export const getScopeColor = (scope: "local" | "network"): string => {
 	switch (scope) {
 		case "network":
-			return "border-green-400/50 bg-green-400/10 text-green-400";
+			return "border-green-400/50 bg-green-400/10 text-green-700 dark:text-green-600";
 		case "local":
-			return "border-blue-400/50 bg-blue-400/10 text-blue-400";
+			return "border-blue-400/50 bg-blue-400/10 text-blue-700 dark:text-blue-400";
 		default:
 			return "border-muted/50 bg-muted/10 text-muted-foreground";
 	}

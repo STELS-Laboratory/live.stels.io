@@ -14,7 +14,7 @@ export function WalletTypeSelector(
 ): React.ReactElement {
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <Card className="backdrop-blur-md bg-zinc-900/80 border border-zinc-800">
+      <Card className="backdrop-blur-md bg-card/80 border border-border">
         <CardHeader className="text-center pb-6">
           <CardTitle className="flex items-center justify-center gap-3 text-2xl font-bold">
             <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
@@ -34,7 +34,7 @@ export function WalletTypeSelector(
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Create New Wallet */}
             <div
-              className="group cursor-pointer bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden hover:border-amber-500/50 transition-all"
+              className="group cursor-pointer bg-card rounded-lg border border-border overflow-hidden hover:border-amber-500/50 transition-all"
               onClick={() => onSelectType("create")}
               role="button"
               tabIndex={0}
@@ -75,7 +75,7 @@ export function WalletTypeSelector(
 
             {/* Import Existing Wallet */}
             <div
-              className="group cursor-pointer bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden hover:border-blue-500/50 transition-all"
+              className="group cursor-pointer bg-card rounded-lg border border-border overflow-hidden hover:border-blue-500/50 transition-all"
               onClick={() => onSelectType("import")}
               role="button"
               tabIndex={0}

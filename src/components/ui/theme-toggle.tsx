@@ -105,7 +105,7 @@ export function ThemeToggle(): React.ReactElement {
         <TooltipContent>
           <p className="font-medium">{getThemeLabel(theme)}</p>
           {theme === "system" && (
-            <p className="text-xs text-amber-400 mt-1">
+            <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
               Using {resolvedTheme} (from system)
             </p>
           )}

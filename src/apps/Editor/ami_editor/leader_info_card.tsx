@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card.tsx";
-import { Badge } from "@/components/ui/badge.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import {
   AlertCircle,
@@ -18,7 +17,6 @@ import {
   Clock,
   Crown,
   RefreshCw,
-  Server,
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 import type { LeaderInfo } from "../store.ts";
@@ -115,10 +113,10 @@ export function LeaderInfoCard({
           <div className="flex items-start gap-2">
             <AlertCircle className="h-4 w-4 text-red-500 mt-0.5" />
             <div>
-              <p className="text-xs text-red-400 font-medium mb-1">
+              <p className="text-xs text-red-700 dark:text-red-400 font-medium mb-1">
                 Failed to load leader info
               </p>
-              <p className="text-xs text-red-300">{error}</p>
+              <p className="text-xs text-red-800 dark:text-red-300">{error}</p>
             </div>
           </div>
         </CardContent>
@@ -145,113 +143,77 @@ export function LeaderInfoCard({
         leaderInfo.hasLeader ? "border-green-500/30" : "border-orange-500/30",
       )}
     >
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2 pt-3 px-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <div
+          <CardTitle className="flex items-center gap-1.5 text-[11px]">
+            <Crown
               className={cn(
-                "relative p-1.5 border",
-                leaderInfo.hasLeader
-                  ? "border-green-500/30 bg-green-500/10"
-                  : "border-orange-500/30 bg-orange-500/10",
+                "h-3 w-3",
+                leaderInfo.hasLeader ? "text-green-500" : "text-orange-500",
               )}
-            >
-              {leaderInfo.hasLeader && (
-                <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-green-500/50" />
-              )}
-              <Crown
-                className={cn(
-                  "h-3.5 w-3.5",
-                  leaderInfo.hasLeader ? "text-green-500" : "text-orange-500",
-                )}
-              />
-            </div>
-            <span className="text-foreground">Leader Election</span>
+            />
+            <span className="text-foreground font-semibold uppercase tracking-wide">
+              Leader Election
+            </span>
           </CardTitle>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setAutoRefresh(!autoRefresh)}
-              className={cn(
-                "h-7 w-7 p-0",
-                autoRefresh ? "text-green-400" : "text-muted-foreground",
-              )}
-            >
-              <RefreshCw
-                className={cn(
-                  "h-3.5 w-3.5",
-                  autoRefresh && "animate-spin",
-                )}
-              />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            className={cn(
+              "h-5 w-5 p-0",
+              autoRefresh ? "text-green-700 dark:text-green-600" : "text-muted-foreground",
+            )}
+            title={autoRefresh ? "Auto-refresh ON" : "Auto-refresh OFF"}
+          >
+            <RefreshCw
+              className={cn("h-3 w-3", autoRefresh && "animate-spin")}
+            />
+          </Button>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2 px-3 pb-3">
         {/* Status */}
         <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">Status</span>
-          <Badge
-            variant="outline"
-            className={cn(
-              "text-xs",
-              leaderInfo.hasLeader
-                ? "border-green-500/30 bg-green-500/10 text-green-400"
-                : "border-orange-500/30 bg-orange-500/10 text-orange-400",
-            )}
-          >
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
+            Status
+          </span>
+          <div className="flex items-center gap-1">
             {leaderInfo.hasLeader
-              ? (
-                <>
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  Leader Active
-                </>
-              )
-              : (
-                <>
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  No Leader
-                </>
-              )}
-          </Badge>
+              ? <CheckCircle className="h-3 w-3 text-green-700 dark:text-green-600" />
+              : <AlertCircle className="h-3 w-3 text-orange-700 dark:text-orange-400" />}
+            <span
+              className={`text-[10px] font-mono ${
+                leaderInfo.hasLeader ? "text-green-700 dark:text-green-600" : "text-orange-700 dark:text-orange-400"
+              }`}
+            >
+              {leaderInfo.hasLeader ? "Active" : "No Leader"}
+            </span>
+          </div>
         </div>
 
         {/* Leader Node */}
         {leaderInfo.hasLeader && leaderInfo.leader && (
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              Leader Node
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
+              Node
             </span>
-            <div className="flex items-center gap-1.5">
-              <Server className="h-3 w-3 text-green-400" />
-              <span className="text-xs text-green-400 font-mono">
-                {leaderInfo.leader}
-              </span>
-            </div>
+            <span className="text-[10px] text-green-700 dark:text-green-600 font-mono">
+              {leaderInfo.leader}
+            </span>
           </div>
         )}
 
-        {/* Elected At */}
+        {/* Elected / Renewed */}
         {leaderInfo.hasLeader && (
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Elected At</span>
-            <span className="text-xs text-card-foreground font-mono">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
+              Elected
+            </span>
+            <span className="text-[10px] text-foreground font-mono">
               {formatTimestamp(leaderInfo.timestamp)}
-            </span>
-          </div>
-        )}
-
-        {/* Last Renewed */}
-        {leaderInfo.hasLeader && (
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              Last Renewed
-            </span>
-            <span className="text-xs text-card-foreground font-mono">
-              {formatTimestamp(leaderInfo.renewedAt)}
             </span>
           </div>
         )}
@@ -259,49 +221,43 @@ export function LeaderInfoCard({
         {/* Expires In */}
         {leaderInfo.hasLeader && !leaderInfo.isExpired && (
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              Expires In
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+              <Clock className="h-2.5 w-2.5" />
+              Expires
             </span>
-            <Badge
-              variant="outline"
+            <span
               className={cn(
-                "text-xs font-mono",
+                "text-[10px] font-mono",
                 leaderInfo.expiresIn < 30000
-                  ? "border-red-500/30 bg-red-500/10 text-red-400"
+                  ? "text-red-700 dark:text-red-400"
                   : leaderInfo.expiresIn < 45000
-                  ? "border-orange-500/30 bg-orange-500/10 text-orange-400"
-                  : "border-green-500/30 bg-green-500/10 text-green-400",
+                  ? "text-orange-700 dark:text-orange-400"
+                  : "text-green-700 dark:text-green-600",
               )}
             >
               {formatExpiresIn(leaderInfo.expiresIn)}
-            </Badge>
+            </span>
           </div>
         )}
 
-        {/* Expired Status */}
-        {leaderInfo.isExpired && (
-          <div className="relative p-2 bg-red-500/5 border border-red-500/30">
-            <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-red-500/50" />
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-red-500" />
-              <div className="text-xs">
-                <p className="text-red-400 font-bold mb-0.5">Lease Expired</p>
-                <p className="text-red-300">
-                  Re-election in progress...
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Info Box */}
-        <div className="relative p-2 bg-blue-500/5 border border-blue-500/30">
-          <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-blue-500/50" />
-          <p className="text-xs text-muted-foreground">
-            {leaderInfo.hasLeader
-              ? "Leader election ensures only one node executes this worker"
-              : "Waiting for leader election to complete"}
+        {/* Status message */}
+        <div
+          className={`p-1.5 rounded border ${
+            leaderInfo.isExpired
+              ? "bg-red-500/10 border-red-500/30"
+              : "bg-blue-500/10 border-blue-500/30"
+          }`}
+        >
+          <p
+            className={`text-[10px] ${
+              leaderInfo.isExpired ? "text-red-700 dark:text-red-400" : "text-blue-700 dark:text-blue-400"
+            }`}
+          >
+            {leaderInfo.isExpired
+              ? "⚠️ Lease expired - re-election in progress"
+              : leaderInfo.hasLeader
+              ? "✓ Single-node execution guaranteed"
+              : "⏳ Waiting for election"}
           </p>
         </div>
       </CardContent>

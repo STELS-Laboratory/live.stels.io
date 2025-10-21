@@ -7,13 +7,10 @@ import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card.tsx";
-import { Badge } from "@/components/ui/badge.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { Progress } from "@/components/ui/progress.tsx";
 import {
   Activity,
   AlertCircle,
@@ -116,35 +113,29 @@ export function WorkerStatsPanel({
 
   return (
     <Card className="bg-card border-border">
-      <CardHeader>
+      <CardHeader className="pb-2 pt-3 px-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="relative p-1.5 border border-amber-500/30 bg-amber-500/10">
-              <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-amber-500/50" />
-              <Activity className="h-4 w-4 text-amber-500" />
-            </div>
-            <div>
-              <CardTitle className="text-sm text-foreground">
-                Worker Statistics
-              </CardTitle>
-              <CardDescription className="text-xs mt-0.5">
-                Real-time execution metrics
-              </CardDescription>
-            </div>
+          <div className="flex items-center gap-1.5">
+            <Activity className="h-3.5 w-3.5 text-amber-500" />
+            <CardTitle className="text-[11px] text-foreground font-semibold uppercase tracking-wide">
+              Worker Statistics
+            </CardTitle>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setAutoRefresh(!autoRefresh)}
               className={cn(
-                "h-7 w-7 p-0",
-                autoRefresh ? "text-green-400" : "text-muted-foreground",
+                "h-5 w-5 p-0",
+                autoRefresh
+                  ? "text-green-700 dark:text-green-700 dark:text-green-600"
+                  : "text-muted-foreground",
               )}
             >
               <RefreshCw
-                className={cn("h-3.5 w-3.5", autoRefresh && "animate-spin")}
+                className={cn("h-3 w-3", autoRefresh && "animate-spin")}
               />
             </Button>
             <Button
@@ -152,73 +143,70 @@ export function WorkerStatsPanel({
               size="sm"
               onClick={loadStats}
               disabled={loading}
-              className="h-7 px-2"
+              className="h-5 w-5 p-0"
             >
-              <RefreshCw
-                className={cn("h-3.5 w-3.5 mr-1", loading && "animate-spin")}
-              />
-              <span className="text-xs">Refresh</span>
+              <RefreshCw className={cn("h-3 w-3", loading && "animate-spin")} />
             </Button>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 px-3 pb-3">
         {/* Overall Statistics */}
-        <div className="grid grid-cols-4 gap-3">
-          <div className="relative p-3 bg-muted/30 border border-border">
-            <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-border" />
-            <div className="text-xs text-muted-foreground mb-1">RUNNING</div>
-            <div className="flex items-center gap-2">
-              <Play className="h-4 w-4 text-green-400" />
-              <span className="text-lg font-bold text-green-400">
+        <div className="grid grid-cols-4 gap-2">
+          <div className="relative p-2 bg-muted/30 border border-border rounded">
+            <div className="text-[9px] text-muted-foreground mb-1 uppercase tracking-wide">
+              Running
+            </div>
+            <div className="flex items-center gap-1">
+              <Play className="h-3 w-3 text-green-700 dark:text-green-700 dark:text-green-600" />
+              <span className="text-sm font-bold text-green-700 dark:text-green-700 dark:text-green-600">
                 {totals.running}
               </span>
-              <span className="text-xs text-muted-foreground">
-                / {stats.length}
+              <span className="text-[10px] text-muted-foreground">
+                /{stats.length}
               </span>
             </div>
           </div>
 
-          <div className="relative p-3 bg-muted/30 border border-border">
-            <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-border" />
-            <div className="text-xs text-muted-foreground mb-1">
-              EXECUTIONS
+          <div className="relative p-2 bg-muted/30 border border-border rounded">
+            <div className="text-[9px] text-muted-foreground mb-1 uppercase tracking-wide">
+              Exec
             </div>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-blue-400" />
-              <span className="text-lg font-bold text-blue-400">
+            <div className="flex items-center gap-1">
+              <TrendingUp className="h-3 w-3 text-blue-700 dark:text-blue-400" />
+              <span className="text-sm font-bold text-blue-700 dark:text-blue-400">
                 {totals.executions.toLocaleString()}
               </span>
             </div>
           </div>
 
-          <div className="relative p-3 bg-muted/30 border border-border">
-            <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-border" />
-            <div className="text-xs text-muted-foreground mb-1">ERRORS</div>
-            <div className="flex items-center gap-2">
-              <XCircle className="h-4 w-4 text-red-400" />
-              <span className="text-lg font-bold text-red-400">
+          <div className="relative p-2 bg-muted/30 border border-border rounded">
+            <div className="text-[9px] text-muted-foreground mb-1 uppercase tracking-wide">
+              Errors
+            </div>
+            <div className="flex items-center gap-1">
+              <XCircle className="h-3 w-3 text-red-700 dark:text-red-700 dark:text-red-400" />
+              <span className="text-sm font-bold text-red-700 dark:text-red-700 dark:text-red-400">
                 {totals.errors}
               </span>
             </div>
           </div>
 
-          <div className="relative p-3 bg-muted/30 border border-border">
-            <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-border" />
-            <div className="text-xs text-muted-foreground mb-1">
-              ERROR RATE
+          <div className="relative p-2 bg-muted/30 border border-border rounded">
+            <div className="text-[9px] text-muted-foreground mb-1 uppercase tracking-wide">
+              Rate
             </div>
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-orange-400" />
+            <div className="flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3 text-orange-700 dark:text-orange-700 dark:text-orange-400" />
               <span
                 className={cn(
-                  "text-lg font-bold",
+                  "text-sm font-bold",
                   avgErrorRate < 5
-                    ? "text-green-400"
+                    ? "text-green-700 dark:text-green-700 dark:text-green-600"
                     : avgErrorRate < 15
-                    ? "text-orange-400"
-                    : "text-red-400",
+                    ? "text-orange-700 dark:text-orange-700 dark:text-orange-400"
+                    : "text-red-700 dark:text-red-700 dark:text-red-400",
                 )}
               >
                 {avgErrorRate.toFixed(1)}%
@@ -236,8 +224,10 @@ export function WorkerStatsPanel({
             <div className="grid grid-cols-2 gap-2">
               <div className="flex items-center justify-between p-2 bg-orange-500/5 border border-orange-500/30">
                 <div className="flex items-center gap-1.5">
-                  <AlertCircle className="h-3 w-3 text-orange-400" />
-                  <span className="text-xs text-orange-400">Network</span>
+                  <AlertCircle className="h-3 w-3 text-orange-700 dark:text-orange-700 dark:text-orange-400" />
+                  <span className="text-xs text-orange-700 dark:text-orange-700 dark:text-orange-400">
+                    Network
+                  </span>
                 </div>
                 <span className="text-xs text-orange-300 font-mono">
                   {totals.networkErrors}
@@ -246,10 +236,12 @@ export function WorkerStatsPanel({
 
               <div className="flex items-center justify-between p-2 bg-red-500/5 border border-red-500/30">
                 <div className="flex items-center gap-1.5">
-                  <XCircle className="h-3 w-3 text-red-400" />
-                  <span className="text-xs text-red-400">Critical</span>
+                  <XCircle className="h-3 w-3 text-red-700 dark:text-red-700 dark:text-red-400" />
+                  <span className="text-xs text-red-700 dark:text-red-700 dark:text-red-400">
+                    Critical
+                  </span>
                 </div>
-                <span className="text-xs text-red-300 font-mono">
+                <span className="text-xs text-red-800 dark:text-red-300 font-mono">
                   {totals.criticalErrors}
                 </span>
               </div>
@@ -259,96 +251,67 @@ export function WorkerStatsPanel({
 
         {/* Individual Worker Stats */}
         {stats.length > 0 && (
-          <div className="space-y-2">
-            <div className="text-xs text-muted-foreground font-medium">
+          <div className="space-y-1.5">
+            <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">
               Individual Workers
             </div>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
+            <div className="space-y-1.5 max-h-48 overflow-y-auto">
               {stats.map((stat) => (
                 <div
                   key={stat.sid}
-                  className="relative p-2 bg-muted/30 border border-border"
+                  className="relative p-1.5 bg-muted/30 border border-border rounded"
                 >
-                  <div className="absolute -top-0.5 -left-0.5 w-0.5 h-0.5 border-t border-l border-border" />
-
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
                       <div
                         className={cn(
-                          "w-2 h-2 rounded-full",
+                          "w-1.5 h-1.5 rounded-full",
                           stat.isRunning
                             ? "bg-green-400 animate-pulse"
                             : "bg-muted-foreground",
                         )}
                       />
-                      <span className="text-xs text-foreground font-mono">
+                      <span className="text-[10px] text-foreground font-mono truncate">
                         {stat.sid}
                       </span>
                     </div>
-                    <Badge
-                      variant="outline"
+                    <span
                       className={cn(
-                        "text-xs",
+                        "text-[9px] px-1 py-0.5 rounded",
                         stat.isRunning
-                          ? "border-green-500/30 bg-green-500/10 text-green-400"
-                          : "border-muted text-muted-foreground",
+                          ? "bg-green-500/10 text-green-700 dark:text-green-700 dark:text-green-600"
+                          : "bg-muted text-muted-foreground",
                       )}
                     >
-                      {stat.isRunning ? "Running" : "Stopped"}
-                    </Badge>
+                      {stat.isRunning ? "ON" : "OFF"}
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Exec:</span>
-                      <span className="text-card-foreground font-mono">
-                        {stat.executions}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Err:</span>
-                      <span className="text-red-400 font-mono">
-                        {stat.errors}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Rate:</span>
-                      <span
-                        className={cn(
-                          "font-mono",
-                          stat.errorRate < 5
-                            ? "text-green-400"
-                            : stat.errorRate < 15
-                            ? "text-orange-400"
-                            : "text-red-400",
-                        )}
-                      >
-                        {stat.errorRate.toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Error Rate Progress */}
-                  <div className="mt-2">
-                    <Progress
-                      value={Math.min(stat.errorRate, 100)}
+                  <div className="flex items-center gap-2 text-[10px] mt-1">
+                    <span className="text-muted-foreground">
+                      {stat.executions}
+                    </span>
+                    <span className="text-red-700 dark:text-red-700 dark:text-red-400">
+                      {stat.errors}
+                    </span>
+                    <span
                       className={cn(
-                        "h-1",
+                        "font-mono",
                         stat.errorRate < 5
-                          ? "[&>div]:bg-green-400"
+                          ? "text-green-700 dark:text-green-700 dark:text-green-600"
                           : stat.errorRate < 15
-                          ? "[&>div]:bg-orange-400"
-                          : "[&>div]:bg-red-400",
+                          ? "text-orange-700 dark:text-orange-700 dark:text-orange-400"
+                          : "text-red-700 dark:text-red-700 dark:text-red-400",
                       )}
-                    />
+                    >
+                      {stat.errorRate.toFixed(1)}%
+                    </span>
+                    {stat.lastExecution && (
+                      <span className="text-muted-foreground ml-auto">
+                        {formatTimeAgo(stat.lastExecution)}
+                      </span>
+                    )}
                   </div>
-
-                  {/* Last Execution */}
-                  {stat.lastExecution && (
-                    <div className="mt-2 text-xs text-muted-foreground">
-                      Last: {formatTimeAgo(stat.lastExecution)}
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
@@ -384,10 +347,12 @@ export function WorkerStatsPanel({
             <div className="flex items-start gap-2">
               <AlertCircle className="h-4 w-4 text-red-500 mt-0.5" />
               <div>
-                <p className="text-xs text-red-400 font-medium mb-1">
+                <p className="text-xs text-red-700 dark:text-red-700 dark:text-red-400 font-medium mb-1">
                   Failed to load statistics
                 </p>
-                <p className="text-xs text-red-300">{error}</p>
+                <p className="text-xs text-red-800 dark:text-red-300">
+                  {error}
+                </p>
               </div>
             </div>
           </div>

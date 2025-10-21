@@ -171,7 +171,7 @@ export function WalletCreator(
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <Card className="backdrop-blur-md bg-zinc-900/80 border border-zinc-800">
+      <Card className="backdrop-blur-md bg-card/80 border border-border">
         <CardHeader className="text-center pb-4">
           <CardTitle className="flex items-center justify-center gap-3 text-xl font-bold">
             <div
@@ -196,7 +196,7 @@ export function WalletCreator(
 
         <CardContent className="px-6 pb-6 space-y-4">
           {/* Description */}
-          <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+          <div className="p-4 bg-muted/50 border border-border rounded-lg">
             <p className="text-muted-foreground text-sm">
               {content.description}
             </p>
@@ -255,8 +255,8 @@ export function WalletCreator(
                   id="private-key-validation"
                   className={`flex items-center gap-2 text-sm transition-all duration-150 ${
                     validationState.type === "error"
-                      ? "text-red-400"
-                      : "text-green-400"
+                      ? "text-red-700 dark:text-red-400"
+                      : "text-green-700 dark:text-green-600"
                   }`}
                   role="alert"
                   aria-live="polite"

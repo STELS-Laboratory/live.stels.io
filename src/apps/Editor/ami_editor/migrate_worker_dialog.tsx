@@ -137,7 +137,7 @@ export function MigrateWorkerDialog({
                   <span className="text-xs text-muted-foreground">Scope:</span>
                   <Badge
                     variant="outline"
-                    className="text-xs border-blue-400/50 bg-blue-400/10 text-blue-400"
+                    className="text-xs border-blue-400/50 bg-blue-400/10 text-blue-700 dark:text-blue-400"
                   >
                     <Server className="w-3 h-3 mr-1" />
                     {currentScope}
@@ -149,8 +149,8 @@ export function MigrateWorkerDialog({
                     variant="outline"
                     className={`text-xs ${
                       worker.value.raw.active
-                        ? "border-green-400/50 bg-green-400/10 text-green-400"
-                        : "border-red-400/50 bg-red-400/10 text-red-400"
+                        ? "border-green-400/50 bg-green-400/10 text-green-700 dark:text-green-600"
+                        : "border-red-400/50 bg-red-400/10 text-red-700 dark:text-red-400"
                     }`}
                   >
                     {worker.value.raw.active ? "Active" : "Inactive"}
@@ -161,19 +161,19 @@ export function MigrateWorkerDialog({
 
             {/* Arrow */}
             <div className="flex justify-center">
-              <ArrowRight className="w-6 h-6 text-amber-400" />
+              <ArrowRight className="w-6 h-6 text-amber-700 dark:text-amber-400" />
             </div>
 
             {/* New Worker Info */}
             <div className="relative p-3 bg-green-500/5 border border-green-500/30 rounded">
               <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-green-500/50" />
-              <div className="text-xs text-green-400 mb-2 font-bold">
+              <div className="text-xs text-green-700 dark:text-green-600 mb-2 font-bold">
                 New Worker (Network)
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">ID:</span>
-                  <span className="text-xs text-green-400 font-mono">
+                  <span className="text-xs text-green-700 dark:text-green-600 font-mono">
                     New UUID (generated)
                   </span>
                 </div>
@@ -181,7 +181,7 @@ export function MigrateWorkerDialog({
                   <span className="text-xs text-muted-foreground">Scope:</span>
                   <Badge
                     variant="outline"
-                    className="text-xs border-green-400/50 bg-green-400/10 text-green-400"
+                    className="text-xs border-green-400/50 bg-green-400/10 text-green-700 dark:text-green-600"
                   >
                     <Globe className="w-3 h-3 mr-1" />
                     network
@@ -191,7 +191,7 @@ export function MigrateWorkerDialog({
                   <span className="text-xs text-muted-foreground">Status:</span>
                   <Badge
                     variant="outline"
-                    className="text-xs border-red-400/50 bg-red-400/10 text-red-400"
+                    className="text-xs border-red-400/50 bg-red-400/10 text-red-700 dark:text-red-400"
                   >
                     Inactive (requires activation)
                   </Badge>
@@ -202,7 +202,7 @@ export function MigrateWorkerDialog({
             {/* Warning */}
             <Alert className="border-orange-500/30 bg-orange-500/10">
               <AlertTriangle className="h-4 w-4 text-orange-500" />
-              <AlertDescription className="text-orange-400 text-xs">
+              <AlertDescription className="text-orange-700 dark:text-orange-400 text-xs">
                 <strong>Important:</strong>{" "}
                 The worker will be created with a new ID and inactive status.
                 The original local worker will remain unchanged. You can delete
@@ -217,7 +217,7 @@ export function MigrateWorkerDialog({
           <div className="space-y-4 py-4">
             <Alert className="border-green-500/30 bg-green-500/10">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <AlertDescription className="text-green-400">
+              <AlertDescription className="text-green-700 dark:text-green-600">
                 Worker successfully migrated to network scope!
               </AlertDescription>
             </Alert>
@@ -229,7 +229,7 @@ export function MigrateWorkerDialog({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">New ID:</span>
-                  <span className="text-xs text-green-400 font-mono">
+                  <span className="text-xs text-green-700 dark:text-green-600 font-mono">
                     {result.value.raw.sid}
                   </span>
                 </div>
@@ -237,7 +237,7 @@ export function MigrateWorkerDialog({
                   <span className="text-xs text-muted-foreground">Scope:</span>
                   <Badge
                     variant="outline"
-                    className="text-xs border-green-400/50 bg-green-400/10 text-green-400"
+                    className="text-xs border-green-400/50 bg-green-400/10 text-green-700 dark:text-green-600"
                   >
                     <Globe className="w-3 h-3 mr-1" />
                     network
@@ -253,7 +253,7 @@ export function MigrateWorkerDialog({
           <div className="py-4">
             <Alert className="border-red-500/30 bg-red-500/10">
               <AlertCircle className="h-4 w-4 text-red-500" />
-              <AlertDescription className="text-red-400">
+              <AlertDescription className="text-red-700 dark:text-red-400">
                 {error}
               </AlertDescription>
             </Alert>
@@ -279,7 +279,7 @@ export function MigrateWorkerDialog({
                   {isMigrating
                     ? (
                       <>
-                        <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                        <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2" />
                         Migrating...
                       </>
                     )

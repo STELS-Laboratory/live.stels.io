@@ -130,7 +130,7 @@ export function StopAllDialog({
               className="border-orange-500/30 bg-orange-500/10"
             >
               <AlertTriangle className="h-4 w-4 text-orange-500" />
-              <AlertDescription className="text-orange-400">
+              <AlertDescription className="text-orange-700 dark:text-orange-400">
                 This will stop <strong>{activeWorkersCount}</strong>{" "}
                 active worker{activeWorkersCount !== 1 ? "s" : ""}.
               </AlertDescription>
@@ -144,7 +144,7 @@ export function StopAllDialog({
                 <ul className="text-muted-foreground text-xs space-y-1 pl-4">
                   <li>
                     • Setting{" "}
-                    <code className="text-amber-400">active: false</code>
+                    <code className="text-amber-700 dark:text-amber-400">active: false</code>
                   </li>
                   <li>• Execution will halt immediately</li>
                   <li>• You can restart them individually later</li>
@@ -162,23 +162,23 @@ export function StopAllDialog({
               <div className="relative p-3 bg-muted/30 border border-border">
                 <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-border" />
                 <div className="text-xs text-muted-foreground mb-1">TOTAL</div>
-                <div className="text-2xl font-bold text-blue-400">
+                <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
                   {result.total}
                 </div>
               </div>
 
               <div className="relative p-3 bg-green-500/5 border border-green-500/30">
                 <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-green-500/50" />
-                <div className="text-xs text-green-400 mb-1">STOPPED</div>
-                <div className="text-2xl font-bold text-green-400">
+                <div className="text-xs text-green-700 dark:text-green-600 mb-1">STOPPED</div>
+                <div className="text-2xl font-bold text-green-700 dark:text-green-600">
                   {result.stopped}
                 </div>
               </div>
 
               <div className="relative p-3 bg-red-500/5 border border-red-500/30">
                 <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-red-500/50" />
-                <div className="text-xs text-red-400 mb-1">FAILED</div>
-                <div className="text-2xl font-bold text-red-400">
+                <div className="text-xs text-red-700 dark:text-red-400 mb-1">FAILED</div>
+                <div className="text-2xl font-bold text-red-700 dark:text-red-400">
                   {result.failed}
                 </div>
               </div>
@@ -189,7 +189,7 @@ export function StopAllDialog({
               ? (
                 <Alert className="border-green-500/30 bg-green-500/10">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <AlertDescription className="text-green-400">
+                  <AlertDescription className="text-green-700 dark:text-green-600">
                     All {result.stopped} worker{result.stopped !== 1 ? "s" : ""}
                     {" "}
                     stopped successfully
@@ -199,7 +199,7 @@ export function StopAllDialog({
               : (
                 <Alert className="border-orange-500/30 bg-orange-500/10">
                   <AlertTriangle className="h-4 w-4 text-orange-500" />
-                  <AlertDescription className="text-orange-400">
+                  <AlertDescription className="text-orange-700 dark:text-orange-400">
                     Stopped {result.stopped}{" "}
                     worker{result.stopped !== 1 ? "s" : ""}, {result.failed}
                     {" "}
@@ -218,7 +218,7 @@ export function StopAllDialog({
               className="border-red-500/30 bg-red-500/10"
             >
               <AlertCircle className="h-4 w-4 text-red-500" />
-              <AlertDescription className="text-red-400">
+              <AlertDescription className="text-red-700 dark:text-red-400">
                 {error}
               </AlertDescription>
             </Alert>
@@ -244,7 +244,7 @@ export function StopAllDialog({
                   {isProcessing
                     ? (
                       <>
-                        <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                        <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2" />
                         Stopping...
                       </>
                     )

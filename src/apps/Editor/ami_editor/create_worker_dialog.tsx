@@ -72,11 +72,11 @@ function getExecutionModeColor(
 ): string {
   switch (mode) {
     case "parallel":
-      return "text-blue-400";
+      return "text-blue-700 dark:text-blue-700 dark:text-blue-400";
     case "leader":
-      return "text-amber-400";
+      return "text-amber-700 dark:text-amber-700 dark:text-amber-400";
     case "exclusive":
-      return "text-purple-400";
+      return "text-purple-700 dark:text-purple-700 dark:text-purple-400";
     default:
       return "text-muted-foreground";
   }
@@ -110,13 +110,13 @@ function getPriorityColor(
 ): string {
   switch (priority) {
     case "critical":
-      return "text-red-400";
+      return "text-red-700 dark:text-red-700 dark:text-red-400";
     case "high":
-      return "text-orange-400";
+      return "text-orange-700 dark:text-orange-700 dark:text-orange-400";
     case "normal":
-      return "text-green-400";
+      return "text-green-700 dark:text-green-700 dark:text-green-600";
     case "low":
-      return "text-blue-400";
+      return "text-blue-700 dark:text-blue-700 dark:text-blue-400";
     default:
       return "text-muted-foreground";
   }
@@ -274,13 +274,17 @@ export function CreateWorkerDialog({
                         className={cn(
                           "text-xs",
                           template.category === "trading" &&
-                            "border-green-500/30 bg-green-500/10 text-green-400",
+                            "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-700 dark:text-green-600",
                           template.category === "monitoring" &&
-                            "border-blue-500/30 bg-blue-500/10 text-blue-400",
+                            "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-700 dark:text-blue-400",
                           template.category === "analytics" &&
-                            "border-purple-500/30 bg-purple-500/10 text-purple-400",
+                            "border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-700 dark:text-purple-400",
                           template.category === "maintenance" &&
-                            "border-orange-500/30 bg-orange-500/10 text-orange-400",
+                            "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-700 dark:text-orange-400",
+                          template.category === "integration" &&
+                            "border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-400",
+                          template.category === "notification" &&
+                            "border-pink-500/30 bg-pink-500/10 text-pink-700 dark:text-pink-400",
                         )}
                       >
                         {template.category}
@@ -349,7 +353,7 @@ export function CreateWorkerDialog({
                   <SelectContent>
                     <SelectItem value="local">
                       <div className="flex items-center gap-2">
-                        <Server className="w-4 h-4 text-blue-400" />
+                        <Server className="w-4 h-4 text-blue-700 dark:text-blue-700 dark:text-blue-400" />
                         <span>Local</span>
                         <span className="text-xs text-muted-foreground">
                           (This node only)
@@ -358,7 +362,7 @@ export function CreateWorkerDialog({
                     </SelectItem>
                     <SelectItem value="network">
                       <div className="flex items-center gap-2">
-                        <Cpu className="w-4 h-4 text-green-400" />
+                        <Cpu className="w-4 h-4 text-green-700 dark:text-green-700 dark:text-green-600" />
                         <span>Network</span>
                         <span className="text-xs text-muted-foreground">
                           (All nodes in network)
@@ -397,7 +401,7 @@ export function CreateWorkerDialog({
                         disabled={formData.scope === "local"}
                       >
                         <div className="flex items-center gap-2">
-                          <Boxes className="w-4 h-4 text-blue-400" />
+                          <Boxes className="w-4 h-4 text-blue-700 dark:text-blue-700 dark:text-blue-400" />
                           <span>Parallel</span>
                           <span className="text-xs text-muted-foreground">
                             {formData.scope === "local"
@@ -408,7 +412,7 @@ export function CreateWorkerDialog({
                       </SelectItem>
                       <SelectItem value="leader">
                         <div className="flex items-center gap-2">
-                          <Zap className="w-4 h-4 text-amber-400" />
+                          <Zap className="w-4 h-4 text-amber-700 dark:text-amber-700 dark:text-amber-400" />
                           <span>Leader</span>
                           <span className="text-xs text-muted-foreground">
                             (Single node)
@@ -420,7 +424,7 @@ export function CreateWorkerDialog({
                         disabled={formData.scope === "local"}
                       >
                         <div className="flex items-center gap-2">
-                          <Server className="w-4 h-4 text-purple-400" />
+                          <Server className="w-4 h-4 text-purple-700 dark:text-purple-700 dark:text-purple-400" />
                           <span>Exclusive</span>
                           <span className="text-xs text-muted-foreground">
                             {formData.scope === "local"
@@ -448,7 +452,7 @@ export function CreateWorkerDialog({
                     <SelectContent>
                       <SelectItem value="critical">
                         <div className="flex items-center gap-2">
-                          <Rocket className="w-4 h-4 text-red-400" />
+                          <Rocket className="w-4 h-4 text-red-700 dark:text-red-700 dark:text-red-400" />
                           <span>Critical</span>
                           <span className="text-xs text-muted-foreground">
                             (50 errors, 1ms)
@@ -457,7 +461,7 @@ export function CreateWorkerDialog({
                       </SelectItem>
                       <SelectItem value="high">
                         <div className="flex items-center gap-2">
-                          <Zap className="w-4 h-4 text-orange-400" />
+                          <Zap className="w-4 h-4 text-orange-700 dark:text-orange-700 dark:text-orange-400" />
                           <span>High</span>
                           <span className="text-xs text-muted-foreground">
                             (20 errors, 10ms)
@@ -466,7 +470,7 @@ export function CreateWorkerDialog({
                       </SelectItem>
                       <SelectItem value="normal">
                         <div className="flex items-center gap-2">
-                          <Layers className="w-4 h-4 text-green-400" />
+                          <Layers className="w-4 h-4 text-green-700 dark:text-green-700 dark:text-green-600" />
                           <span>Normal</span>
                           <span className="text-xs text-muted-foreground">
                             (10 errors, 100ms)
@@ -475,7 +479,7 @@ export function CreateWorkerDialog({
                       </SelectItem>
                       <SelectItem value="low">
                         <div className="flex items-center gap-2">
-                          <Server className="w-4 h-4 text-blue-400" />
+                          <Server className="w-4 h-4 text-blue-700 dark:text-blue-700 dark:text-blue-400" />
                           <span>Low</span>
                           <span className="text-xs text-muted-foreground">
                             (5 errors, 1s)
@@ -624,8 +628,8 @@ export function CreateWorkerDialog({
                       <span className="font-medium">Scope:</span>{" "}
                       <span
                         className={formData.scope === "network"
-                          ? "text-green-400"
-                          : "text-blue-400"}
+                          ? "text-green-700 dark:text-green-700 dark:text-green-600"
+                          : "text-blue-700 dark:text-blue-700 dark:text-blue-400"}
                       >
                         {formData.scope}
                       </span>{" "}

@@ -158,8 +158,8 @@ export default function SchemaPreview({
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="text-zinc-500 text-lg">No schema loaded</div>
-          <div className="text-zinc-600 text-sm mt-2">
+          <div className="text-muted-foreground text-lg">No schema loaded</div>
+          <div className="text-muted-foreground text-sm mt-2">
             Create a new schema to get started
           </div>
         </div>
@@ -175,7 +175,7 @@ export default function SchemaPreview({
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-          <div className="text-zinc-500 text-sm">
+          <div className="text-muted-foreground text-sm">
             Resolving nested schemas...
           </div>
         </div>
@@ -196,23 +196,9 @@ export default function SchemaPreview({
   }
 
   return (
-    <div className="h-full overflow-auto p-4 bg-zinc-950">
+    <div className="h-full overflow-auto p-2 bg-background">
       <ErrorBoundary key={JSON.stringify(resolvedSchema || schema)}>
-        <div className="flex flex-col gap-4">
-          {/* Channel info - show all data sources */}
-          {allChannelsData.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {allChannelsData.map((channel, idx) => (
-                <span
-                  key={idx}
-                  className="text-xs px-2 py-1 bg-green-500/10 text-green-500 rounded border border-green-500/20 font-mono"
-                >
-                  {channel.key}
-                </span>
-              ))}
-            </div>
-          )}
-
+        <div className="flex flex-col gap-2">
           {/* Rendered UI */}
           <div className="flex items-center justify-center">
             <UIRenderer schema={resolvedSchema || schema} data={mergedData} />

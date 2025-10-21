@@ -53,9 +53,9 @@ export function NetworkSelectorCompact(
   const getNetworkColor = (network: NetworkConfig) => {
     switch (network.id) {
       case "testnet":
-        return "text-blue-400";
+        return "text-blue-700 dark:text-blue-400";
       case "localnet":
-        return "text-purple-400";
+        return "text-purple-700 dark:text-purple-400";
       default:
         return "text-muted-foreground";
     }
@@ -67,7 +67,7 @@ export function NetworkSelectorCompact(
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="w-full justify-between h-10 border-zinc-700 hover:bg-zinc-800/50 transition-colors"
+            className="w-full justify-between h-10 transition-colors"
           >
             <div className="flex items-center gap-3">
               {selectedNetwork
@@ -105,7 +105,7 @@ export function NetworkSelectorCompact(
 
         <DropdownMenuContent
           align="end"
-          className="w-80 bg-zinc-900 border border-zinc-800"
+          className="w-80 bg-popover border border-border"
         >
           <div className="p-3">
             <div className="text-sm font-medium text-card-foreground mb-3">
@@ -115,7 +115,7 @@ export function NetworkSelectorCompact(
               <DropdownMenuItem
                 key={network.id}
                 onClick={() => handleNetworkSelect(network)}
-                className="p-3 cursor-pointer hover:bg-zinc-800/50 rounded-lg transition-colors"
+                className="p-3 cursor-pointer hover:bg-accent rounded-lg transition-colors"
               >
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-3">
@@ -138,7 +138,7 @@ export function NetworkSelectorCompact(
                       </Badge>
                     )}
                     {selectedNetwork?.id === network.id && (
-                      <CheckCircle className="h-4 w-4 text-amber-400" />
+                      <CheckCircle className="h-4 w-4 text-amber-700 dark:text-amber-400" />
                     )}
                   </div>
                 </div>
@@ -146,7 +146,7 @@ export function NetworkSelectorCompact(
             ))}
           </div>
 
-          <DropdownMenuSeparator className="bg-zinc-800" />
+          <DropdownMenuSeparator className="bg-border" />
 
           <div className="p-3">
             <div className="text-xs text-muted-foreground">

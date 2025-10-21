@@ -219,7 +219,7 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
               {progress}%
             </span>
           </div>
-          <div className="w-full bg-zinc-800 border border-zinc-700 h-2 rounded-full overflow-hidden">
+          <div className="w-full bg-muted border border-border h-2 rounded-full overflow-hidden">
             <div
               className="bg-gradient-to-r from-amber-500 to-orange-600 h-full transition-all duration-300 rounded-full"
               style={{ width: `${progress}%` }}
@@ -244,7 +244,7 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
                     className={`w-2 h-2 rounded-full transition-all ${
                       isActive
                         ? isCurrent ? "bg-amber-500" : "bg-green-500"
-                        : "bg-zinc-700"
+                        : "bg-border"
                     }`}
                   />
                   <span

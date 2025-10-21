@@ -47,9 +47,9 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/95 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
       <div className="w-full max-w-md mx-4">
-        <Card className="backdrop-blur-md bg-zinc-900/80 border border-zinc-800">
+        <Card className="backdrop-blur-md bg-card/80 border border-border">
           <CardHeader className="text-center">
             <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
               <AlertTriangle className="h-6 w-6 text-black" />

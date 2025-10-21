@@ -96,7 +96,7 @@ function DockItem(
 		<div className="group relative flex flex-col items-center">
 			<div
 				className={cn(
-					"absolute bottom-full mb-2 rounded-md bg-popover/95 px-2 py-1 text-xs text-foreground opacity-0 transition-opacity border border-border/50",
+					"absolute bottom-full mb-2 rounded-md bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 transition-opacity border border-border",
 					(isHovered || isActive) && "opacity-100",
 				)}
 			>
@@ -108,13 +108,13 @@ function DockItem(
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
 				className={cn(
-					"flex h-12 w-12 items-center justify-center rounded-full bg-white/10 backdrop-blur-md transition-all duration-200 hover:scale-110 hover:bg-white/20",
-					isActive && "bg-white/30",
+					"flex h-12 w-12 items-center justify-center rounded-full bg-foreground/10 backdrop-blur-md transition-all duration-200 hover:scale-110 hover:bg-foreground/20",
+					isActive && "bg-foreground/30",
 				)}
 			>
 				{icon}
 			</button>
-			{isActive && <div className="mt-1 h-1 w-1 rounded-full bg-white" />}
+			{isActive && <div className="mt-1 h-1 w-1 rounded-full bg-foreground" />}
 		</div>
 	);
 }
@@ -518,7 +518,7 @@ function FlowWithPanels(): React.ReactElement | null {
 				{/* Panel transition overlay */}
 				{isPanelTransitioning && (
 					<div className="absolute inset-0 z-50 bg-background/60 backdrop-blur-sm flex items-center justify-center">
-						<div className="bg-card/95 rounded px-6 py-4 shadow-lg border border-border">
+						<div className="bg-card rounded px-6 py-4 border border-border">
 							<div className="flex items-center space-x-3">
 								<div className="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-500">
 								</div>
@@ -599,7 +599,7 @@ function FlowWithPanels(): React.ReactElement | null {
 						<div>
 							<Graphite size={3} primary="gray" />
 						</div>
-						<div className="mt-4 text-xl font-semibold text-zinc-800/60">
+						<div className="mt-4 text-xl font-semibold text-muted-foreground/60">
 							STELS
 						</div>
 						<div className="mt-0 text-sm text-muted-foreground/30">

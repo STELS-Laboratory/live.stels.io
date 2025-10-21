@@ -45,22 +45,22 @@ export default class ErrorBoundary extends Component<Props, State> {
           <div className="max-w-md">
             <div className="flex items-center gap-3 mb-3">
               <AlertCircle className="w-6 h-6 text-red-500" />
-              <h3 className="text-lg font-semibold text-red-400">
+              <h3 className="text-lg font-semibold text-red-700 dark:text-red-400">
                 Render Error
               </h3>
             </div>
 
             <div className="p-4 bg-red-500/10 rounded border border-red-500/20">
-              <div className="text-sm text-red-400 mb-2">
+              <div className="text-sm text-red-700 dark:text-red-400 mb-2">
                 The schema contains errors and cannot be rendered:
               </div>
-              <div className="text-xs text-zinc-400 font-mono bg-zinc-950 p-3 rounded overflow-auto max-h-40">
+              <div className="text-xs text-muted-foreground font-mono bg-background p-3 rounded overflow-auto max-h-40">
                 {this.state.error?.message || "Unknown error"}
               </div>
             </div>
 
             <div className="mt-4 p-3 bg-blue-500/10 rounded border border-blue-500/20">
-              <div className="text-xs text-blue-400">
+              <div className="text-xs text-blue-700 dark:text-blue-400">
                 💡 <strong>Fix the error in the editor</strong>{" "}
                 and the preview will update automatically
               </div>

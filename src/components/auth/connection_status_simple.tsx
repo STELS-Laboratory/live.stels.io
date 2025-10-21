@@ -56,18 +56,18 @@ export function ConnectionStatusSimple(): React.ReactElement {
 
 	const getNetworkColor = () => {
 		if (!connectionSession) {
-			return "bg-red-500/20 text-red-400 border-red-500/30";
+			return "bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30";
 		}
 
 		switch (connectionSession.network) {
 			case "testnet":
-				return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+				return "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30";
 			case "mainnet":
-				return "bg-green-500/20 text-green-400 border-green-500/30";
+				return "bg-green-500/20 text-green-700 dark:text-green-600 border-green-500/30";
 			case "localnet":
-				return "bg-purple-500/20 text-purple-400 border-purple-500/30";
+				return "bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30";
 			default:
-				return "bg-zinc-500/20 text-muted-foreground border-zinc-500/30";
+				return "bg-muted/20 text-muted-foreground border-border";
 		}
 	};
 
@@ -75,7 +75,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 		return (
 			<div className="flex items-center gap-2">
 				<AlertCircle className="h-4 w-4 text-red-500" />
-				<span className="text-sm text-red-400">Not Connected</span>
+				<span className="text-sm text-red-700 dark:text-red-400">Not Connected</span>
 			</div>
 		);
 	}
@@ -87,7 +87,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 					<Button
 						variant="ghost"
 						size="sm"
-						className="h-8 gap-2 hover:bg-zinc-800/50"
+						className="h-8 gap-2"
 					>
 						<motion.div
 							animate={{
@@ -129,7 +129,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 				</motion.div>
 			}
 			align="end"
-			className="w-80 bg-zinc-900 border-zinc-800"
+			className="w-80 bg-popover border-border"
 		>
 			<motion.div
 				className="p-3 space-y-3"
@@ -138,7 +138,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 				transition={{ duration: 0.3, delay: 0.1 }}
 			>
 				<motion.div
-					className="space-y-2 p-3 bg-zinc-800/50 border border-zinc-700 rounded-lg"
+					className="space-y-2 p-3 bg-muted/50 border border-border rounded-lg"
 					initial={{ y: -5, opacity: 0 }}
 					animate={{ y: 0, opacity: 1 }}
 					transition={{ duration: 0.3, delay: 0.15 }}
@@ -156,7 +156,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 				</motion.div>
 
 				<motion.div
-					className="space-y-2 p-3 bg-zinc-800/50 border border-zinc-700 rounded-lg"
+					className="space-y-2 p-3 bg-muted/50 border border-border rounded-lg"
 					initial={{ y: -5, opacity: 0 }}
 					animate={{ y: 0, opacity: 1 }}
 					transition={{ duration: 0.3, delay: 0.2 }}
@@ -182,7 +182,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 					>
 						<Badge
 							variant="outline"
-							className="text-xs rounded-md bg-purple-500/10 border-purple-500/30 text-purple-400"
+							className="text-xs rounded-md bg-purple-500/10 border-purple-500/30 text-purple-700 dark:text-purple-400"
 						>
 							Developer
 						</Badge>
@@ -190,7 +190,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 				)}
 			</motion.div>
 
-			<SimpleDropdownSeparator className="bg-zinc-800" />
+			<SimpleDropdownSeparator className="bg-border" />
 
 			<motion.div
 				initial={{ opacity: 0 }}
@@ -199,7 +199,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 			>
 				<SimpleDropdownItem
 					onClick={handleDisconnect}
-					className="text-orange-400 hover:text-orange-300"
+					className="text-orange-700 dark:text-orange-400 hover:text-orange-300"
 				>
 					<Network className="h-4 w-4 mr-2" />
 					Disconnect
@@ -207,7 +207,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 
 				<SimpleDropdownItem
 					onClick={handleLogout}
-					className="text-red-400 hover:text-red-300"
+					className="text-red-700 dark:text-red-400 hover:text-red-800 dark:text-red-300"
 				>
 					<LogOut className="h-4 w-4 mr-2" />
 					Logout

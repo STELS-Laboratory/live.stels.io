@@ -10,12 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card.tsx";
-import { Badge } from "@/components/ui/badge.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import {
   AlertCircle,
-  CheckCircle,
   Download,
   Pause,
   Play,
@@ -237,104 +235,62 @@ export function WorkerLogsPanel({
 
   return (
     <Card className="bg-card flex flex-col h-full gap-0 p-0 m-0">
-      <CardHeader className="pb-3 pt-3">
+      <CardHeader className="pb-2 pt-2 px-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div
+          <div className="flex items-center gap-1.5">
+            <Terminal
               className={cn(
-                "relative p-1.5 border",
-                connected
-                  ? "border-green-500/30 bg-green-500/10"
-                  : "border-red-500/30 bg-red-500/10",
+                "h-3.5 w-3.5",
+                connected ? "text-green-500" : "text-red-500",
               )}
-            >
-              <div
-                className={cn(
-                  "absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l",
-                  connected ? "border-green-500/50" : "border-red-500/50",
-                )}
-              />
-              <Terminal
-                className={cn(
-                  "h-3.5 w-3.5",
-                  connected ? "text-green-500" : "text-red-500",
-                )}
-              />
-            </div>
+            />
             <div>
-              <CardTitle className="text-sm text-foreground">
+              <CardTitle className="text-[11px] text-foreground font-semibold uppercase tracking-wide">
                 Worker Logs
               </CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-[10px] text-muted-foreground font-mono truncate max-w-xs">
                 {workerId}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Badge
-              variant="outline"
+          <div className="flex items-center gap-1">
+            <div
               className={cn(
-                "text-xs",
-                connected
-                  ? "border-green-500/30 bg-green-500/10 text-green-400"
-                  : "border-red-500/30 bg-red-500/10 text-red-400",
+                "w-1.5 h-1.5 rounded-full",
+                connected ? "bg-green-400 animate-pulse" : "bg-red-400",
               )}
-            >
-              {connected
-                ? (
-                  <>
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Connected
-                  </>
-                )
-                : (
-                  <>
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    Disconnected
-                  </>
-                )}
-            </Badge>
+              title={connected ? "Connected" : "Disconnected"}
+            />
 
             {onClose && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground"
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-3 w-3" />
               </Button>
             )}
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center gap-2 mt-3">
+        {/* Controls - Compact */}
+        <div className="flex items-center gap-1 mt-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={toggleFollow}
             className={cn(
-              "h-7 px-2 text-xs",
-              following
-                ? "bg-green-500/10 text-green-400 border border-green-500/30"
-                : "text-muted-foreground",
+              "h-5 w-5 p-0",
+              following ? "text-green-700 dark:text-green-600" : "text-muted-foreground",
             )}
+            title={following ? "Following" : "Paused"}
           >
             {following
-              ? (
-                <>
-                  <Pause className="h-3 w-3 mr-1" />
-                  Following
-                </>
-              )
-              : (
-                <>
-                  <Play className="h-3 w-3 mr-1" />
-                  Paused
-                </>
-              )}
+              ? <Pause className="h-3 w-3" />
+              : <Play className="h-3 w-3" />}
           </Button>
 
           <Button
@@ -342,14 +298,14 @@ export function WorkerLogsPanel({
             size="sm"
             onClick={() => setAutoScroll(!autoScroll)}
             className={cn(
-              "h-7 px-2 text-xs",
-              autoScroll ? "text-blue-400" : "text-muted-foreground",
+              "h-5 w-5 p-0",
+              autoScroll ? "text-blue-700 dark:text-blue-400" : "text-muted-foreground",
             )}
+            title="Auto-scroll"
           >
             <RefreshCw
-              className={cn("h-3 w-3 mr-1", autoScroll && "animate-spin")}
+              className={cn("h-3 w-3", autoScroll && "animate-spin")}
             />
-            Auto-scroll
           </Button>
 
           <Button
@@ -357,10 +313,10 @@ export function WorkerLogsPanel({
             size="sm"
             onClick={clearLogs}
             disabled={logs.length === 0}
-            className="h-7 px-2 text-xs text-muted-foreground hover:text-red-400"
+            className="h-5 w-5 p-0 text-muted-foreground hover:text-red-700 dark:text-red-400"
+            title="Clear logs"
           >
-            <Trash2 className="h-3 w-3 mr-1" />
-            Clear
+            <Trash2 className="h-3 w-3" />
           </Button>
 
           <Button
@@ -368,14 +324,14 @@ export function WorkerLogsPanel({
             size="sm"
             onClick={downloadLogs}
             disabled={logs.length === 0}
-            className="h-7 px-2 text-xs text-muted-foreground hover:text-green-400"
+            className="h-5 w-5 p-0 text-muted-foreground hover:text-green-700 dark:text-green-600"
+            title="Download logs"
           >
-            <Download className="h-3 w-3 mr-1" />
-            Download
+            <Download className="h-3 w-3" />
           </Button>
 
-          <div className="ml-auto text-xs text-muted-foreground font-mono">
-            {logs.length} lines
+          <div className="ml-auto text-[10px] text-muted-foreground font-mono">
+            {logs.length}
           </div>
         </div>
       </CardHeader>
@@ -387,10 +343,10 @@ export function WorkerLogsPanel({
             <div className="flex items-start gap-2">
               <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-xs text-red-400 font-medium mb-1">
+                <p className="text-xs text-red-700 dark:text-red-400 font-medium mb-1">
                   Stream Error
                 </p>
-                <p className="text-xs text-red-300">{error}</p>
+                <p className="text-xs text-red-800 dark:text-red-300">{error}</p>
               </div>
             </div>
           </div>
@@ -402,15 +358,15 @@ export function WorkerLogsPanel({
           <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(0deg,rgba(0,255,0,0.03),rgba(0,255,0,0.03)_1px,transparent_1px,transparent_2px)] z-10" />
 
           {/* Terminal content */}
-          <div className="relative bg-black p-4 font-mono text-sm leading-relaxed">
+          <div className="relative bg-zinc-950 dark:bg-black p-3 font-mono text-[11px] leading-relaxed">
             {/* Terminal header */}
-            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-green-500/20">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                <div className="w-3 h-3 rounded-full bg-green-500/80" />
+            <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-green-500/20">
+              <div className="flex gap-1">
+                <div className="w-2 h-2 rounded-full bg-red-500/80" />
+                <div className="w-2 h-2 rounded-full bg-yellow-500/80" />
+                <div className="w-2 h-2 rounded-full bg-green-500/80" />
               </div>
-              <span className="text-green-400 text-xs">
+              <span className="text-green-700 dark:text-green-600 text-[10px]">
                 worker@stels:~/{workerId.slice(0, 8)}$
               </span>
             </div>
@@ -418,7 +374,7 @@ export function WorkerLogsPanel({
             {/* Terminal logs */}
             {logs.length === 0
               ? (
-                <div className="text-green-400/60 py-4">
+                <div className="text-green-700 dark:text-green-600/60 py-4">
                   {connected
                     ? (
                       <div className="flex items-center gap-2">
@@ -450,17 +406,17 @@ export function WorkerLogsPanel({
                         className={cn(
                           "whitespace-pre-wrap break-all leading-relaxed",
                           // Terminal color scheme
-                          isComment && "text-cyan-400 font-bold", // Cyan for comments
-                          isError && "text-red-400 font-semibold", // Red for errors
-                          isWarn && "text-yellow-400", // Yellow for warnings
-                          isInfo && "text-green-300", // Green for info (classic terminal)
+                          isComment && "text-cyan-700 dark:text-cyan-400 font-bold", // Cyan for comments
+                          isError && "text-red-700 dark:text-red-400 font-semibold", // Red for errors
+                          isWarn && "text-yellow-700 dark:text-yellow-400", // Yellow for warnings
+                          isInfo && "text-green-800 dark:text-green-300", // Green for info (classic terminal)
                           isDebug && "text-green-600/70", // Dim green for debug
                           !isComment &&
                             !isError &&
                             !isWarn &&
                             !isInfo &&
                             !isDebug &&
-                            "text-green-400", // Default terminal green
+                            "text-green-700 dark:text-green-600", // Default terminal green
                         )}
                       >
                         {/* Add terminal prompt for non-comment lines */}

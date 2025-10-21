@@ -101,7 +101,7 @@ export default function SchemaManager({
       nestedSchemas: [],
       schema: {
         type: "div",
-        className: "p-4 bg-zinc-900 rounded border border-zinc-700",
+        className: "p-4 bg-card rounded border border-border",
         children: [
           {
             type: "div",
@@ -162,13 +162,10 @@ export default function SchemaManager({
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Schema tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto">
+      {/* Schema tabs - compact */}
+      <div className="flex items-center gap-1 overflow-x-auto">
         {schemas.map((schema) => {
           const typeIcon = schema.type === "static" ? "📦" : "📊";
-          const typeColor = schema.type === "static"
-            ? "text-purple-400"
-            : "text-blue-400";
           const count = schema.type === "static"
             ? (schema.nestedSchemas?.length || 0)
             : schema.channelKeys.length;
@@ -178,75 +175,70 @@ export default function SchemaManager({
               key={schema.id}
               onClick={() => onSelectSchema(schema.id)}
               className={`
-                flex items-center gap-2 px-4 py-2 rounded-t border-b-2 transition-all whitespace-nowrap
+                flex items-center gap-1.5 px-3 py-1.5 rounded border transition-all whitespace-nowrap
                 ${
                 activeSchemaId === schema.id
-                  ? "bg-zinc-900 border-amber-500 text-white"
-                  : "bg-zinc-800/50 border-transparent text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800"
+                  ? "bg-amber-500/10 border-amber-500/30 text-foreground"
+                  : "bg-muted/30 border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
               }
               `}
             >
-              <span className="text-sm">{typeIcon}</span>
-              <span className="text-sm font-medium">{schema.name}</span>
-              <span
-                className={`text-xs ${
-                  activeSchemaId === schema.id ? typeColor : "text-zinc-500"
-                }`}
-              >
-                ({count})
-              </span>
+              <span className="text-xs">{typeIcon}</span>
+              <span className="text-xs font-medium">{schema.name}</span>
+              {count > 0 && (
+                <span className="text-[10px] px-1 py-0.5 bg-background/50 rounded">
+                  {count}
+                </span>
+              )}
             </button>
           );
         })}
 
         {schemas.length === 0 && (
-          <div className="text-sm text-zinc-500 italic px-4 py-2">
-            No schemas yet. Create one to get started.
+          <div className="text-[11px] text-muted-foreground italic px-3 py-1.5">
+            No schemas yet
           </div>
         )}
       </div>
 
-      {/* Action buttons */}
-      <div className="flex items-center gap-2 p-2 bg-zinc-900 rounded border border-zinc-800">
+      {/* Action buttons - compact icon bar */}
+      <div className="flex items-center gap-1">
         <Button
           size="sm"
           variant="outline"
           onClick={handleCreateClick}
-          className="flex items-center gap-2"
+          className="h-6 px-2 text-[10px]"
         >
-          <Plus className="w-4 h-4" />
-          Create Schema
+          <Plus className="w-3 h-3 mr-1" />
+          New
         </Button>
 
         {activeSchema && (
           <>
             <Button
               size="sm"
-              variant="outline"
+              variant="ghost"
               onClick={handleEditClick}
-              className="flex items-center gap-2"
+              className="h-6 w-6 p-0"
+              title="Edit schema info"
             >
-              <Edit2 className="w-4 h-4" />
-              Edit Info
+              <Edit2 className="w-3 h-3" />
             </Button>
 
             <Button
               size="sm"
-              variant="outline"
+              variant="ghost"
               onClick={handleDeleteClick}
-              className="flex items-center gap-2 text-red-500 hover:text-red-400 border-red-500/30"
+              className="h-6 w-6 p-0 text-red-500 hover:text-red-700 dark:text-red-400"
+              title="Delete schema"
             >
-              <Trash2 className="w-4 h-4" />
-              Delete
+              <Trash2 className="w-3 h-3" />
             </Button>
 
             <div className="flex-1" />
 
-            <div className="text-xs text-zinc-500">
-              Widget Key:{" "}
-              <span className="font-mono text-zinc-400">
-                {activeSchema.widgetKey}
-              </span>
+            <div className="text-[10px] text-muted-foreground font-mono truncate max-w-xs">
+              {activeSchema.widgetKey}
             </div>
           </>
         )}
@@ -261,7 +253,7 @@ export default function SchemaManager({
           <div className="flex flex-col gap-4 py-4">
             {/* Schema Type Selection */}
             <div className="flex flex-col gap-2">
-              <Label className="text-sm font-medium text-zinc-300">
+              <Label className="text-sm font-medium text-foreground">
                 Schema Type *
               </Label>
               <div className="grid grid-cols-2 gap-3">
@@ -271,15 +263,15 @@ export default function SchemaManager({
                     flex flex-col items-center gap-2 p-4 rounded border transition-all
                     ${
                     formType === "dynamic"
-                      ? "bg-blue-500/20 border-blue-500 text-blue-400"
-                      : "bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                      ? "bg-blue-500/20 border-blue-500 text-blue-700 dark:text-blue-400"
+                      : "bg-card border-border text-muted-foreground hover:border-muted"
                   }
                   `}
                 >
                   <Database className="w-6 h-6" />
                   <div className="text-center">
                     <div className="text-sm font-semibold">Dynamic</div>
-                    <div className="text-xs text-zinc-500">
+                    <div className="text-xs text-muted-foreground">
                       Widget with data
                     </div>
                   </div>
@@ -290,25 +282,25 @@ export default function SchemaManager({
                     flex flex-col items-center gap-2 p-4 rounded border transition-all
                     ${
                     formType === "static"
-                      ? "bg-purple-500/20 border-purple-500 text-purple-400"
-                      : "bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                      ? "bg-purple-500/20 border-purple-500 text-purple-700 dark:text-purple-400"
+                      : "bg-card border-border text-muted-foreground hover:border-muted"
                   }
                   `}
                 >
                   <Box className="w-6 h-6" />
                   <div className="text-center">
                     <div className="text-sm font-semibold">Static</div>
-                    <div className="text-xs text-zinc-500">
+                    <div className="text-xs text-muted-foreground">
                       Container/Router
                     </div>
                   </div>
                 </button>
               </div>
-              <div className="p-3 bg-zinc-900 rounded border border-zinc-700">
-                <div className="text-xs text-zinc-400 mb-1">
+              <div className="p-3 bg-card rounded border border-border">
+                <div className="text-xs text-muted-foreground mb-1">
                   About this type:
                 </div>
-                <div className="text-xs text-zinc-500">
+                <div className="text-xs text-muted-foreground">
                   {formType === "dynamic"
                     ? (
                       <>
@@ -316,31 +308,31 @@ export default function SchemaManager({
                           📊 Dynamic schemas bind to session channels for
                           real-time data.
                         </div>
-                        <div className="text-amber-400 font-semibold mb-1">
+                        <div className="text-amber-700 dark:text-amber-400 font-semibold mb-1">
                           Two ways to use:
                         </div>
                         <div className="space-y-2 ml-2">
                           <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20">
-                            <div className="font-semibold text-blue-400 mb-1">
+                            <div className="font-semibold text-blue-700 dark:text-blue-400 mb-1">
                               Universal (recommended):
                             </div>
                             <div>
                               Use{" "}
-                              <code className="text-green-400">
+                              <code className="text-green-700 dark:text-green-600">
                                 {"{"}self.raw.data.last{"}"}
                               </code>
                             </div>
-                            <div className="text-xs text-zinc-600 mt-1">
+                            <div className="text-xs text-muted-foreground mt-1">
                               One schema works for any channel!
                             </div>
                           </div>
-                          <div className="p-2 bg-zinc-800/50 rounded">
-                            <div className="font-semibold text-zinc-400 mb-1">
+                          <div className="p-2 bg-muted/50 rounded">
+                            <div className="font-semibold text-foreground mb-1">
                               Multi-channel:
                             </div>
                             <div>
                               Select channels, set aliases, use{" "}
-                              <code className="text-green-400">
+                              <code className="text-green-700 dark:text-green-600">
                                 {"{"}btc_ticker.raw.data.last{"}"}
                               </code>
                             </div>
@@ -354,7 +346,7 @@ export default function SchemaManager({
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label className="text-sm font-medium text-zinc-300">
+              <Label className="text-sm font-medium text-foreground">
                 Schema Name *
               </Label>
               <Input
@@ -368,7 +360,7 @@ export default function SchemaManager({
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label className="text-sm font-medium text-zinc-300">
+              <Label className="text-sm font-medium text-foreground">
                 Description
               </Label>
               <Textarea
@@ -381,7 +373,7 @@ export default function SchemaManager({
 
             {formType === "static" && (
               <div className="flex flex-col gap-2">
-                <Label className="text-sm font-medium text-zinc-300">
+                <Label className="text-sm font-medium text-foreground">
                   Widget Key * (without 'widget.' prefix)
                 </Label>
                 <Input
@@ -390,9 +382,9 @@ export default function SchemaManager({
                   placeholder="e.g., markets or dashboard.overview"
                   className="w-full font-mono text-sm"
                 />
-                <div className="text-xs text-zinc-500">
+                <div className="text-xs text-muted-foreground">
                   Result:{" "}
-                  <span className="font-mono text-amber-400">
+                  <span className="font-mono text-amber-700 dark:text-amber-400">
                     widget.{formWidgetKey || "..."}
                   </span>
                 </div>
@@ -428,7 +420,7 @@ export default function SchemaManager({
           </DialogHeader>
           <div className="flex flex-col gap-4 py-4">
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-zinc-300">
+              <label className="text-sm font-medium text-foreground">
                 Schema Name *
               </label>
               <Input
@@ -440,7 +432,7 @@ export default function SchemaManager({
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-zinc-300">
+              <label className="text-sm font-medium text-foreground">
                 Description
               </label>
               <Textarea

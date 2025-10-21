@@ -85,248 +85,145 @@ export default function ChannelAliasEditor({
 
   if (channelKeys.length === 0) {
     return (
-      <div className="p-3 bg-blue-500/10 rounded border border-blue-500/20">
-        <div className="flex items-center gap-2 mb-2">
-          <Info className="w-4 h-4 text-blue-400" />
-          <div className="text-xs text-blue-400 font-semibold">
-            Universal Schema Mode
-          </div>
+      <div className="p-2 bg-blue-500/10 rounded border border-blue-500/30">
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <Info className="w-3 h-3 text-blue-700 dark:text-blue-400" />
+          <span className="text-[10px] text-blue-700 dark:text-blue-400 font-semibold uppercase tracking-wide">
+            Universal Mode
+          </span>
         </div>
-        <div className="text-xs text-zinc-300 mb-2">
-          No channels selected - creating <strong>universal schema</strong>{" "}
-          that works for any channel.
-        </div>
-        <div className="space-y-1 mt-2">
-          <code className="text-xs text-green-400 font-mono block bg-zinc-950 px-3 py-2 rounded">
-            {"{self.raw.data.last}"} — use "self" to access current channel
-          </code>
-          <code className="text-xs text-blue-400 font-mono block bg-zinc-950 px-3 py-2 rounded">
-            {"{self.raw.exchange} - {self.raw.market}"}
-          </code>
-        </div>
-        <div className="mt-2 text-xs text-zinc-500">
-          💡 One schema can be reused for BTC, SOL, ETH - any ticker with same
-          structure!
-        </div>
+        <code className="text-[10px] text-green-700 dark:text-green-600 font-mono block bg-background/50 px-2 py-1 rounded border border-border">
+          {"{self.raw.data.last}"} • {"{self.raw.exchange}"}
+        </code>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="p-3 bg-blue-500/10 rounded border border-blue-500/20">
-        <div className="flex items-center gap-2 mb-2">
-          <Info className="w-4 h-4 text-blue-400" />
-          <div className="text-xs text-blue-400 font-semibold">
-            Data Access Options
-          </div>
+    <div className="flex flex-col gap-2">
+      <div className="p-2 bg-blue-500/10 rounded border border-blue-500/30">
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <Info className="w-3 h-3 text-blue-700 dark:text-blue-400" />
+          <span className="text-[10px] text-blue-700 dark:text-blue-400 font-semibold uppercase tracking-wide">
+            Data Access
+          </span>
         </div>
-        <div className="text-xs text-zinc-300 mb-2">
-          Choose your approach:
+        <div className="flex gap-2">
+          <code className="flex-1 text-[10px] text-green-700 dark:text-green-600 font-mono block bg-background/50 px-2 py-1 rounded border border-border">
+            {"{self.raw.data.last}"}
+          </code>
+          <code className="flex-1 text-[10px] text-blue-700 dark:text-blue-400 font-mono block bg-background/50 px-2 py-1 rounded border border-border">
+            {`{${getAlias(channelKeys[0]) || "alias"}.raw...}`}
+          </code>
         </div>
-        <div className="space-y-2 mt-2">
-          <div className="p-2 bg-green-500/10 rounded border border-green-500/20">
-            <div className="font-semibold text-green-400 mb-1 text-xs">
-              ✨ Universal (no aliases needed):
-            </div>
-            <code className="text-xs text-green-400 font-mono block bg-zinc-950 px-2 py-1 rounded">
-              {"{self.raw.data.last} {self.raw.exchange}"}
-            </code>
-            <div className="text-[10px] text-zinc-500 mt-1">
-              First channel = "self" (works for any channel!)
-            </div>
-          </div>
-          <div className="p-2 bg-zinc-800/50 rounded border border-zinc-700">
-            <div className="font-semibold text-zinc-400 mb-1 text-xs">
-              📊 Multi-channel (with aliases):
-            </div>
-            <code className="text-xs text-blue-400 font-mono block bg-zinc-950 px-2 py-1 rounded">
-              {`{${getAlias(channelKeys[0]) || "alias"}.raw.data.last}`}
-            </code>
-            <div className="text-[10px] text-zinc-500 mt-1">
-              Set aliases below for each channel
-            </div>
-          </div>
-        </div>
-        {channelKeys.length > 1 && (
-          <div className="text-xs text-amber-400 mt-2 bg-amber-500/10 px-2 py-1 rounded">
-            ⚠️ Set unique aliases for all {channelKeys.length} channels below
-          </div>
-        )}
       </div>
 
-      {/* Self Channel Selector */}
+      {/* Self Channel Selector - Compact */}
       {channelKeys.length > 0 && onSelfChannelChange && (
-        <div className="p-3 bg-green-500/10 rounded border border-green-500/20">
-          <div className="flex items-center gap-2 mb-2">
-            <Info className="w-4 h-4 text-green-400" />
-            <div className="text-xs text-green-400 font-semibold">
-              Select "self" Channel (Optional)
-            </div>
+        <div className="p-2 bg-green-500/10 rounded border border-green-500/30">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <div className="w-1 h-1 bg-green-500 rounded-full" />
+            <span className="text-[10px] text-green-700 dark:text-green-600 font-semibold uppercase tracking-wide">
+              Self Channel
+            </span>
           </div>
-          <div className="text-xs text-zinc-300 mb-2">
-            Choose which channel will be available as{" "}
-            <code className="text-green-400">self</code> for universal access:
-          </div>
-          <div className="space-y-1">
+          <div className="flex flex-wrap gap-1">
             {channelKeys.map((channelKey) => {
               const isSelf = selfChannelKey === channelKey;
+              const symbol =
+                channelKey.match(/\.([A-Z]{3,10})(?:\/|USDT)/)?.[1] ||
+                channelKey.split(".").pop()?.slice(0, 6);
               return (
-                <label
+                <button
                   key={channelKey}
-                  className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
+                  onClick={() => onSelfChannelChange(channelKey)}
+                  className={`px-2 py-1 text-[10px] font-mono rounded border transition-all ${
                     isSelf
-                      ? "bg-green-500/20 border border-green-500/30"
-                      : "bg-zinc-900/50 hover:bg-zinc-800/50 border border-zinc-700"
+                      ? "bg-green-500/20 border-green-500/50 text-green-800 dark:text-green-300"
+                      : "bg-card border-border text-muted-foreground hover:border-green-500/30"
                   }`}
+                  title={channelKey}
                 >
-                  <input
-                    type="radio"
-                    name="selfChannel"
-                    checked={isSelf}
-                    onChange={() => onSelfChannelChange(channelKey)}
-                    className="w-3 h-3"
-                  />
-                  <span className="text-xs text-zinc-300 font-mono flex-1 truncate">
-                    {channelKey}
-                  </span>
-                  {isSelf && (
-                    <span className="text-[10px] px-1.5 py-0.5 bg-green-500/30 text-green-300 rounded font-semibold">
-                      SELF
-                    </span>
-                  )}
-                </label>
+                  {symbol}
+                </button>
               );
             })}
-          </div>
-          <div className="text-xs text-zinc-500 mt-2">
-            💡 This channel will be accessible as{" "}
-            <code className="text-green-400">
-              {"{"}"self.raw.data.last{"}"}
-            </code>{" "}
-            in your schema
           </div>
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Tag className="w-4 h-4 text-amber-500" />
-          <span className="text-xs text-zinc-300 font-semibold">
-            Channel Aliases (Optional)
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-1.5">
+          <Tag className="w-3 h-3 text-amber-500" />
+          <span className="text-[10px] text-foreground font-semibold uppercase tracking-wide">
+            Aliases
           </span>
         </div>
-        <span className="text-xs text-green-500">
-          Click "Use" to auto-fill
+        <span className="text-[9px] text-green-500">
+          Click chip to auto-fill
         </span>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {channelKeys.map((channelKey, idx) => {
           const currentAlias = getAlias(channelKey);
           const suggested = suggestAlias(channelKey);
-
-          // Check if this suggestion is already used
           const isSuggestedTaken = aliases.some(
             (a) => a.alias === suggested && a.channelKey !== channelKey,
           );
+          const symbol = channelKey.match(/\.([A-Z]{3,10})(?:\/|USDT)/)?.[1];
 
           return (
             <div
               key={channelKey}
-              className="flex flex-col gap-2 p-3 bg-zinc-900/50 rounded border border-zinc-800"
+              className="flex items-center gap-1.5 p-1.5 bg-card/50 rounded border border-border"
             >
-              <div className="flex items-center justify-between">
-                <div className="text-xs text-zinc-500 font-mono truncate flex-1">
-                  {channelKey}
-                </div>
-                {currentAlias && (
-                  <span className="text-xs text-green-500 flex items-center gap-1 ml-2">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                    Active
-                  </span>
-                )}
+              {/* Channel symbol/indicator */}
+              <div
+                className={`px-1.5 py-0.5 text-[10px] font-mono rounded ${
+                  currentAlias
+                    ? "bg-green-500/20 text-green-700 dark:text-green-600 border border-green-500/30"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                {symbol || idx + 1}
               </div>
-              <div className="flex items-center gap-2">
-                <Input
-                  value={currentAlias}
-                  onChange={(e) =>
-                    handleAliasChange(channelKey, e.target.value)}
-                  placeholder={`e.g., ${suggested || `channel${idx + 1}`}`}
-                  className="flex-1 h-8 text-sm font-mono"
-                />
-                {!currentAlias && suggested && !isSuggestedTaken && (
-                  <button
-                    onClick={() => handleAutoSuggest(channelKey)}
-                    className="text-xs text-amber-500 hover:text-amber-400 px-2 py-1 rounded border border-amber-500/30 bg-amber-500/10 transition-colors whitespace-nowrap"
-                  >
-                    Use "{suggested}"
-                  </button>
-                )}
-              </div>
-              {currentAlias && (
-                <div className="text-xs text-green-500 bg-green-500/10 px-2 py-1 rounded border border-green-500/20 space-y-1">
-                  <div>
-                    ✓ Access with:{" "}
-                    <code className="font-mono text-green-400">
-                      {`{${currentAlias}.raw.data.last}`}
-                    </code>
-                  </div>
-                  <div className="text-zinc-400">
-                    or{" "}
-                    <code className="font-mono text-blue-400">
-                      {`{${currentAlias}.raw.exchange}`}
-                    </code>
-                  </div>
-                </div>
-              )}
-              {!currentAlias && (
-                <div className="text-xs text-red-500 bg-red-500/10 px-2 py-1 rounded border border-red-500/20">
-                  ⚠️ Alias required - click "Use" button or enter manually
-                </div>
+
+              {/* Alias input */}
+              <Input
+                value={currentAlias}
+                onChange={(e) => handleAliasChange(channelKey, e.target.value)}
+                placeholder={suggested || `ch${idx + 1}`}
+                className="h-6 text-[11px] font-mono flex-1"
+              />
+
+              {/* Auto-suggest chip */}
+              {!currentAlias && suggested && !isSuggestedTaken && (
+                <button
+                  onClick={() => handleAutoSuggest(channelKey)}
+                  className="px-1.5 py-0.5 text-[10px] text-amber-500 hover:text-amber-700 dark:text-amber-400 rounded border border-amber-500/30 bg-amber-500/10 transition-colors font-mono"
+                  title={`Use "${suggested}"`}
+                >
+                  {suggested}
+                </button>
               )}
             </div>
           );
         })}
       </div>
 
+      {/* Active aliases preview - compact */}
       {aliases.length > 0 && (
-        <div className="p-3 bg-green-500/10 rounded border border-green-500/20">
-          <div className="text-xs text-green-400 mb-2 font-semibold">
-            ✓ Ready to use in schema:
-          </div>
-          <div className="text-xs text-zinc-400 space-y-2">
-            {aliases.slice(0, 3).map((alias) => (
-              <div key={alias.alias}>
-                <div className="text-zinc-500 mb-0.5 text-[10px]">
-                  // {alias.channelKey}
-                </div>
-                <div className="space-y-1">
-                  <code className="text-green-400 font-mono block bg-zinc-950 px-2 py-1 rounded">
-                    {`{${alias.alias}.raw.data.last}`}
-                  </code>
-                  <code className="text-blue-400 font-mono block bg-zinc-950 px-2 py-1 rounded">
-                    {`{${alias.alias}.raw.exchange} {${alias.alias}.raw.market}`}
-                  </code>
-                </div>
-              </div>
-            ))}
-            {aliases.length > 3 && (
-              <div className="text-zinc-600 italic">
-                +{aliases.length - 3} more...
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {channelKeys.length > 0 && aliases.length < channelKeys.length && (
-        <div className="p-3 bg-amber-500/10 rounded border border-amber-500/20">
-          <div className="text-xs text-amber-500">
-            ⚠️ {channelKeys.length - aliases.length} channel
-            {channelKeys.length - aliases.length !== 1 ? "s" : ""}{" "}
-            need aliases. Click "Use" buttons above to auto-fill.
-          </div>
+        <div className="flex flex-wrap gap-1">
+          {aliases.map((alias) => (
+            <code
+              key={alias.alias}
+              className="text-[10px] text-green-700 dark:text-green-600 font-mono bg-green-500/10 px-1.5 py-0.5 rounded border border-green-500/30"
+              title={alias.channelKey}
+            >
+              {alias.alias}
+            </code>
+          ))}
         </div>
       )}
     </div>

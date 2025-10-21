@@ -132,10 +132,10 @@ export default function SchemaActions({
   return (
     <div className="flex items-center gap-2">
       {/* Keyboard shortcuts hint */}
-      <div className="flex items-center gap-2 px-3 py-1 bg-zinc-800/50 rounded border border-zinc-700">
-        <Keyboard className="w-3 h-3 text-zinc-500" />
-        <span className="text-xs text-zinc-500">
-          <kbd className="px-1 py-0.5 bg-zinc-900 rounded border border-zinc-600 text-zinc-400">
+      <div className="flex items-center gap-2 px-3 py-1 bg-muted/50 rounded border border-border">
+        <Keyboard className="w-3 h-3 text-muted-foreground" />
+        <span className="text-xs text-muted-foreground">
+          <kbd className="px-1 py-0.5 bg-background rounded border border-border text-foreground">
             ⌘S
           </kbd>{" "}
           to save
@@ -189,9 +189,9 @@ export default function SchemaActions({
 
       {/* Schema info */}
       {activeSchema && (
-        <div className="flex items-center gap-2 px-3 py-1 bg-zinc-800/50 rounded border border-zinc-700">
-          <FileJson className="w-3 h-3 text-zinc-500" />
-          <span className="text-xs text-zinc-400">
+        <div className="flex items-center gap-2 px-3 py-1 bg-muted/50 rounded border border-border">
+          <FileJson className="w-3 h-3 text-muted-foreground" />
+          <span className="text-xs text-foreground">
             {schemaJson.length} chars
           </span>
         </div>

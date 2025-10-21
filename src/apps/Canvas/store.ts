@@ -105,7 +105,7 @@ function createDefaultPanel(name: string, description?: string): Panel {
 			grid: {
 				enabled: true,
 				size: 20,
-				color: "#e5e5e5",
+				color: "var(--border)",
 			},
 			snapToGrid: true,
 			autoLayout: false,

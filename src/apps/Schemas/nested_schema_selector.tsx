@@ -5,8 +5,8 @@
 
 import type { ReactElement } from "react";
 import { useMemo, useState } from "react";
-import { Checkbox, Input } from "@/components/ui";
-import { Layers, Search, X } from "lucide-react";
+import { Button, Checkbox, Input } from "@/components/ui";
+import { Search, X } from "lucide-react";
 import type { SchemaProject } from "./types.ts";
 
 interface NestedSchemaSelectorProps {
@@ -84,48 +84,51 @@ export default function NestedSchemaSelector({
   };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-zinc-300">
+        <span className="text-[10px] text-foreground font-semibold uppercase tracking-wide">
           Nested Schemas
-        </label>
-        <div className="flex items-center gap-2">
+        </span>
+        <div className="flex items-center gap-1">
           {availableSchemas.length > 0 && (
             <>
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={handleSelectAll}
-                className="text-xs text-amber-500 hover:text-amber-400 transition-colors"
+                className="h-5 px-1.5 text-[10px]"
               >
-                Select All
-              </button>
-              <span className="text-xs text-zinc-600">•</span>
-              <button
+                All
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={handleClearAll}
-                className="text-xs text-zinc-500 hover:text-zinc-400 transition-colors"
+                className="h-5 px-1.5 text-[10px]"
               >
                 Clear
-              </button>
+              </Button>
             </>
           )}
         </div>
       </div>
 
-      {/* Search */}
+      {/* Search - compact */}
       {availableSchemas.length > 3 && (
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search schemas..."
-            className="pl-9 pr-9 h-9 text-sm"
+            placeholder="Filter..."
+            className="pl-7 pr-7 h-6 text-[11px]"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3 h-3" />
             </button>
           )}
         </div>
@@ -141,20 +144,20 @@ export default function NestedSchemaSelector({
         )
         : filteredSchemas.length === 0
         ? (
-          <div className="p-4 bg-zinc-800/50 rounded border border-zinc-700">
-            <p className="text-xs text-zinc-500">
+          <div className="p-4 bg-muted/50 rounded border border-border">
+            <p className="text-xs text-muted-foreground">
               No schemas match "{searchQuery}"
             </p>
           </div>
         )
         : (
-          <div className="max-h-60 overflow-y-auto border border-zinc-700 rounded bg-zinc-900/50">
+          <div className="max-h-60 overflow-y-auto border border-border rounded bg-card/50">
             {Object.entries(groupedSchemas).map(([type, schemasList]) => {
               if (schemasList.length === 0) return null;
 
               const typeColors: Record<string, string> = {
-                static: "text-purple-400",
-                dynamic: "text-blue-400",
+                static: "text-purple-700 dark:text-purple-400",
+                dynamic: "text-blue-700 dark:text-blue-400",
               };
 
               const typeIcons: Record<string, string> = {
@@ -164,16 +167,16 @@ export default function NestedSchemaSelector({
 
               return (
                 <div key={type}>
-                  <div className="px-3 py-2 bg-zinc-900 border-b border-zinc-800">
+                  <div className="px-2 py-1 bg-card border-b border-border">
                     <span
-                      className={`text-xs font-semibold uppercase tracking-wider ${
+                      className={`text-[10px] font-semibold uppercase tracking-wider ${
                         typeColors[type]
                       }`}
                     >
                       {typeIcons[type]} {type} ({schemasList.length})
                     </span>
                   </div>
-                  <div className="divide-y divide-zinc-800">
+                  <div className="divide-y divide-border">
                     {schemasList.map((schema) => {
                       const isSelected = selectedSchemas.includes(
                         schema.widgetKey,
@@ -185,10 +188,10 @@ export default function NestedSchemaSelector({
                       return (
                         <label
                           key={schema.id}
-                          className={`flex items-center gap-3 p-3 transition-colors ${
+                          className={`flex items-center gap-2 px-2 py-1.5 transition-colors ${
                             isAutoDetected
                               ? "bg-blue-500/10 cursor-default"
-                              : "hover:bg-zinc-800/50 cursor-pointer"
+                              : "hover:bg-muted/50 cursor-pointer"
                           }`}
                         >
                           <Checkbox
@@ -198,39 +201,23 @@ export default function NestedSchemaSelector({
                               !isAutoDetected && handleToggle(schema.widgetKey)}
                           />
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm text-zinc-300 font-medium flex items-center gap-2">
+                            <div className="text-[11px] text-foreground font-medium flex items-center gap-1.5">
                               {schema.name}
                               {isAutoDetected && (
-                                <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded uppercase font-semibold">
+                                <span className="text-[9px] px-1 py-0.5 bg-blue-500/20 text-blue-700 dark:text-blue-400 rounded uppercase font-semibold">
                                   Auto
                                 </span>
                               )}
+                              {schema.channelKeys.length > 0 && (
+                                <span className="text-[9px] text-muted-foreground">
+                                  ({schema.channelKeys.length})
+                                </span>
+                              )}
                             </div>
-                            <div className="text-xs text-zinc-500 font-mono truncate mt-0.5">
-                              {schema.widgetKey}
-                            </div>
-                            {schema.channelKeys.length > 0 && (
-                              <div className="text-xs text-zinc-600 mt-0.5">
-                                {schema.channelKeys.length} channel
-                                {schema.channelKeys.length !== 1 ? "s" : ""}
-                              </div>
-                            )}
                           </div>
-                          {isAutoDetected
-                            ? (
-                              <span className="text-xs text-blue-400 flex items-center gap-1">
-                                <Layers className="w-3 h-3" />
-                                schemaRef
-                              </span>
-                            )
-                            : isSelected
-                            ? (
-                              <span className="text-xs text-green-500 flex items-center gap-1">
-                                <Layers className="w-3 h-3" />
-                                Nested
-                              </span>
-                            )
-                            : null}
+                          {isSelected && !isAutoDetected && (
+                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                          )}
                         </label>
                       );
                     })}
@@ -241,27 +228,25 @@ export default function NestedSchemaSelector({
           </div>
         )}
 
-      <div className="flex flex-col gap-2">
-        {autoDetectedSchemas.length > 0 && (
-          <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20">
-            <div className="text-xs text-blue-400 flex items-center gap-1">
-              <Layers className="w-3 h-3" />
-              {autoDetectedSchemas.length} auto-detected from schemaRef in UI
-            </div>
-          </div>
-        )}
-        <div className="flex items-center justify-between text-xs text-zinc-500">
-          <span>
-            {selectedSchemas.length} manually selected
-            {searchQuery && ` (${filteredSchemas.length} shown)`}
-          </span>
-          {selectedSchemas.length + autoDetectedSchemas.length > 0 && (
-            <span className="text-purple-400 flex items-center gap-1">
-              <Layers className="w-3 h-3" />
-              {selectedSchemas.length + autoDetectedSchemas.length} total
+      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+        <span>
+          {selectedSchemas.length}/{availableSchemas.length}
+          {searchQuery && ` (${filteredSchemas.length})`}
+        </span>
+        <span className="flex items-center gap-1.5">
+          {autoDetectedSchemas.length > 0 && (
+            <span className="text-blue-700 dark:text-blue-400 flex items-center gap-1">
+              <span className="w-1 h-1 bg-blue-400 rounded-full" />
+              {autoDetectedSchemas.length} auto
             </span>
           )}
-        </div>
+          {selectedSchemas.length > 0 && (
+            <span className="text-purple-700 dark:text-purple-400 flex items-center gap-1">
+              <span className="w-1 h-1 bg-purple-400 rounded-full" />
+              {selectedSchemas.length + autoDetectedSchemas.length}
+            </span>
+          )}
+        </span>
       </div>
     </div>
   );

@@ -45,31 +45,31 @@ export default function SchemaStats({
       icon: Calendar,
       label: "Created",
       value: formatDate(schema.createdAt),
-      color: "text-zinc-500",
+      color: "text-muted-foreground",
     },
     {
       icon: Clock,
       label: "Updated",
       value: formatDate(schema.updatedAt),
-      color: "text-zinc-500",
+      color: "text-muted-foreground",
     },
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-3">
+    <div className="grid grid-cols-4 gap-2">
       {stats.map((stat) => {
         const Icon = stat.icon;
         return (
           <div
             key={stat.label}
-            className="flex items-center gap-2 p-2 bg-zinc-900/50 rounded border border-zinc-800"
+            className="flex items-center gap-1.5 p-1.5 bg-card/50 rounded border border-border"
           >
             <Icon className={`w-3 h-3 ${stat.color}`} />
             <div className="flex flex-col">
-              <span className="text-[10px] text-zinc-600 uppercase">
+              <span className="text-[9px] text-muted-foreground uppercase tracking-wide">
                 {stat.label}
               </span>
-              <span className="text-xs text-zinc-300 font-medium">
+              <span className="text-[10px] text-foreground font-medium">
                 {stat.value}
               </span>
             </div>

@@ -41,25 +41,25 @@ const colors: Record<
   success: {
     bg: "bg-green-500/20",
     border: "border-green-500/30",
-    text: "text-green-400",
+    text: "text-green-700 dark:text-green-600",
     icon: "text-green-500",
   },
   error: {
     bg: "bg-red-500/20",
     border: "border-red-500/30",
-    text: "text-red-400",
+    text: "text-red-700 dark:text-red-400",
     icon: "text-red-500",
   },
   warning: {
     bg: "bg-amber-500/20",
     border: "border-amber-500/30",
-    text: "text-amber-400",
+    text: "text-amber-700 dark:text-amber-400",
     icon: "text-amber-500",
   },
   info: {
     bg: "bg-blue-500/20",
     border: "border-blue-500/30",
-    text: "text-blue-400",
+    text: "text-blue-700 dark:text-blue-400",
     icon: "text-blue-500",
   },
 };

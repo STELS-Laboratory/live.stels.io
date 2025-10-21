@@ -51,16 +51,16 @@ async function execute(ctx) {
 return execute;`;
 
 /**
- * Default empty note
+ * Default empty prompt
  */
-export const DEFAULT_NOTE = "No notes";
+export const DEFAULT_PROMPT = "No prompts";
 
 /**
  * Status badge colors
  */
 export const STATUS_COLORS = {
 	active: "bg-green-500",
-	inactive: "bg-zinc-600",
+	inactive: "bg-muted",
 	error: "bg-red-500",
 	pending: "bg-yellow-500",
 } as const;
@@ -81,9 +81,9 @@ export const BRAIN_COLORS: Record<string, string> = {
  * Worker type colors
  */
 export const WORKER_TYPE_COLORS: Record<string, string> = {
-	continuous: "text-blue-400",
-	periodic: "text-green-400",
-	triggered: "text-yellow-400",
-	scheduled: "text-purple-400",
+	continuous: "text-blue-700 dark:text-blue-400",
+	periodic: "text-green-700 dark:text-green-600",
+	triggered: "text-yellow-700 dark:text-yellow-400",
+	scheduled: "text-purple-700 dark:text-purple-400",
 };
 

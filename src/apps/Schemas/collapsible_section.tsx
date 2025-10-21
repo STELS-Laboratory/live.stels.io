@@ -27,28 +27,32 @@ export default function CollapsibleSection({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="border border-zinc-800 rounded bg-zinc-900/50">
+    <div className="border border-border rounded bg-card/50">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-3 hover:bg-zinc-800/50 transition-colors"
+        className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-muted/50 transition-colors"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {isOpen
-            ? <ChevronDown className="w-4 h-4 text-zinc-400" />
-            : <ChevronRight className="w-4 h-4 text-zinc-400" />}
-          <span className="text-sm font-medium text-zinc-300">{title}</span>
+            ? <ChevronDown className="w-3 h-3 text-muted-foreground" />
+            : <ChevronRight className="w-3 h-3 text-muted-foreground" />}
+          <span className="text-[11px] font-medium text-foreground">
+            {title}
+          </span>
           {subtitle && (
-            <span className="text-xs text-zinc-500">— {subtitle}</span>
+            <span className="text-[10px] text-muted-foreground">
+              · {subtitle}
+            </span>
           )}
         </div>
         {badge !== undefined && (
-          <span className="px-2 py-0.5 text-xs bg-amber-500/20 text-amber-500 rounded border border-amber-500/30">
+          <span className="px-1.5 py-0.5 text-[10px] bg-amber-500/20 text-amber-500 rounded">
             {badge}
           </span>
         )}
       </button>
 
-      {isOpen && <div className="border-t border-zinc-800">{children}</div>}
+      {isOpen && <div className="border-t border-border">{children}</div>}
     </div>
   );
 }

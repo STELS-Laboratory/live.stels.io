@@ -98,8 +98,8 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						className={cn(
 							"flex items-center gap-2 w-full justify-start transition-all duration-150",
 							isActive
-								? "bg-amber-500/20 text-amber-400 border-amber-500/30"
-								: "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+								? "bg-zinc-200 dark:bg-zinc-700 text-amber-700 dark:text-amber-400"
+								: "text-zinc-700 dark:text-zinc-400 hover:text-amber-700 dark:hover:text-amber-400 hover:bg-muted/50",
 						)}
 						onClick={() => {
 							navigateTo(item.key);
@@ -134,10 +134,10 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								onClick={() => navigateTo(item.key)}
 								className={cn(
 									"cursor-pointer flex flex-1 items-center p-3 m-1 justify-center text-sm transition-all duration-150 outline-none rounded",
-									"hover:bg-amber-500/10 hover:text-amber-400",
+									"hover:bg-amber-500/10",
 									isActive
-										? "text-amber-400 bg-amber-500/20 ring-1 ring-amber-500/30 shadow-sm"
-										: "text-muted-foreground",
+										? "text-amber-700 dark:text-amber-400 bg-zinc-200 dark:bg-zinc-800"
+										: "text-zinc-700 dark:text-zinc-400 hover:text-amber-700 dark:hover:text-amber-400",
 								)}
 								aria-current={isActive ? "page" : undefined}
 								whileHover={{
@@ -166,7 +166,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 									<Icon
 										className={cn(
 											"size-5 shrink-0 transition-colors",
-											isActive ? "text-amber-400" : "",
+											isActive ? "text-amber-700 dark:text-amber-400" : "",
 										)}
 									/>
 								</motion.div>
@@ -199,7 +199,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						animate={{ x: 0, opacity: 1 }}
 						transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
 					>
-						<div className="flex h-30 w-full items-center justify-center border-b border-border/50">
+						<div className="flex h-20 w-full items-center justify-center">
 							<motion.button
 								onClick={() => navigateTo("welcome")}
 								className="flex items-center justify-center p-2 cursor-pointer"
@@ -221,13 +221,13 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 										ease: "easeInOut",
 									}}
 								>
-									<Graphite size={3} />
+									<Graphite size={2.8} primary="orange" />
 								</motion.div>
 							</motion.button>
 						</div>
 
 						<div className="flex-1 text-center overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-							<nav className="p-2 space-y-8">
+							<nav className="p-1 space-y-8">
 								<div>
 									<div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
 										Stels
@@ -271,10 +271,10 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 							>
 								<Badge
 									variant="outline"
-									className="w-full justify-center text-amber-400 border-amber-500/30 bg-amber-500/5"
+									className="w-full justify-center text-amber-700 dark:text-amber-400 border-amber-500/30 bg-amber-500/5"
 								>
 									<motion.span
-										className="font-medium"
+										className="font-medium text-foreground"
 										animate={{
 											opacity: [0.8, 1, 0.8],
 										}}
@@ -284,7 +284,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 											ease: "easeInOut",
 										}}
 									>
-										TEST
+										DEV
 									</motion.span>
 								</Badge>
 							</motion.div>
@@ -493,7 +493,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 
 						{routeLoading && (
 							<div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-								<div className="bg-card/90 backdrop-blur-sm rounded p-4 border shadow-lg">
+								<div className="bg-card backdrop-blur-sm rounded p-4 border border-border">
 									<div className="flex items-center gap-3">
 										<div className="size-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
 										<span className="text-sm text-muted-foreground">

@@ -125,11 +125,11 @@ export function ConnectionProcess(
 
   const getStatusColor = () => {
     if (connectionError) {
-      return "text-red-400";
+      return "text-red-700 dark:text-red-400";
     } else if (isConnected) {
-      return "text-green-400";
+      return "text-green-700 dark:text-green-600";
     } else {
-      return "text-amber-400";
+      return "text-amber-700 dark:text-amber-400";
     }
   };
 
@@ -146,7 +146,7 @@ export function ConnectionProcess(
   return (
     <div className="w-full space-y-6">
       {/* Connection Process */}
-      <Card className="w-full max-w-2xl mx-auto backdrop-blur-md bg-zinc-900/80 border border-zinc-800">
+      <Card className="w-full max-w-2xl mx-auto backdrop-blur-md bg-card/80 border border-border">
         <CardHeader className="text-center pb-4">
           <CardTitle className="flex items-center justify-center gap-3 text-xl font-bold">
             <div
@@ -165,7 +165,7 @@ export function ConnectionProcess(
             </span>
           </CardTitle>
           <div className="flex items-center justify-center gap-2 mt-2">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 border border-border rounded-lg">
               <Wifi className="h-3 w-3 text-amber-500" />
               <span className="text-xs text-foreground font-medium">
                 {selectedNetwork?.name}
@@ -195,7 +195,7 @@ export function ConnectionProcess(
               </div>
             </div>
 
-            <div className="relative w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
+            <div className="relative w-full bg-muted h-2 rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 rounded-full ${
                   connectionError
@@ -210,7 +210,7 @@ export function ConnectionProcess(
           </div>
 
           {/* Current Step */}
-          <div className="text-center p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+          <div className="text-center p-4 bg-muted/50 border border-border rounded-lg">
             <p className="text-sm text-foreground font-medium">
               {currentStep || (connectionError
                 ? "Connection failed"
@@ -256,7 +256,7 @@ export function ConnectionProcess(
                             ? "bg-green-500/20 border border-green-500/50"
                             : isCurrent
                             ? "bg-amber-500/20 border border-amber-500/50"
-                            : "bg-zinc-800 border border-zinc-700"
+                            : "bg-muted border border-border"
                         }`}
                       >
                         {isCompleted

@@ -147,11 +147,11 @@ function Welcome(): ReactElement {
   if (selectedSchema) {
     return (
       <UIEngineProvider>
-        <div className="h-screen w-screen bg-zinc-950 relative">
+        <div className="h-screen w-screen bg-background relative">
           {/* Close button */}
           <button
             onClick={handleCloseApp}
-            className="fixed top-4 right-4 z-50 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg border border-zinc-700 transition-colors flex items-center gap-2"
+            className="fixed top-4 right-4 z-50 px-4 py-2 bg-card hover:bg-muted text-foreground rounded-lg border border-border transition-colors flex items-center gap-2"
           >
             <span>← Back to Store</span>
           </button>
@@ -162,14 +162,14 @@ function Welcome(): ReactElement {
               {isResolving
                 ? (
                   <div className="flex items-center justify-center h-full">
-                    <div className="text-zinc-500">Loading app...</div>
+                    <div className="text-muted-foreground">Loading app...</div>
                   </div>
                 )
                 : resolvedSchema
                 ? <UIRenderer schema={resolvedSchema} data={mergedData} />
                 : (
                   <div className="flex items-center justify-center h-full">
-                    <div className="text-red-500">Failed to load app</div>
+                    <div className="text-destructive">Failed to load app</div>
                   </div>
                 )}
             </ErrorBoundary>
@@ -182,16 +182,16 @@ function Welcome(): ReactElement {
   // Store view
   return (
     <UIEngineProvider>
-      <div className="min-h-screen bg-zinc-950 p-8">
+      <div className="min-h-screen bg-background p-8">
         {/* Header */}
         <div className="max-w-7xl mx-auto mb-8">
           <div className="flex items-center gap-3 mb-4">
             <Package className="w-8 h-8 text-amber-500" />
-            <h1 className="text-3xl font-bold text-zinc-100">
+            <h1 className="text-3xl font-bold text-foreground">
               Web3 App Store
             </h1>
           </div>
-          <p className="text-zinc-400 text-lg">
+          <p className="text-muted-foreground text-lg">
             Browse and launch ready-made applications built with Schema
             Constructor
           </p>
@@ -200,23 +200,23 @@ function Welcome(): ReactElement {
         {/* Loading */}
         {isLoading && (
           <div className="max-w-7xl mx-auto flex items-center justify-center py-20">
-            <div className="text-zinc-500">Loading apps...</div>
+            <div className="text-muted-foreground">Loading apps...</div>
           </div>
         )}
 
         {/* No apps */}
         {!isLoading && routerSchemas.length === 0 && (
           <div className="max-w-7xl mx-auto">
-            <div className="p-12 bg-zinc-900 rounded-lg border border-zinc-800 text-center">
-              <Package className="w-16 h-16 text-zinc-600 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-zinc-400 mb-2">
+            <div className="p-12 bg-card rounded-lg border border-border text-center">
+              <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-muted-foreground mb-2">
                 No Apps Available
               </h2>
-              <p className="text-zinc-500 mb-4">
+              <p className="text-muted-foreground mb-4">
                 Create static router schemas in Schema Constructor to see them
                 here
               </p>
-              <p className="text-xs text-zinc-600">
+              <p className="text-xs text-muted-foreground">
                 Tip: Create a schema with type "static" and widgetKey containing
                 "router", "app", or "apps"
               </p>
@@ -324,16 +324,16 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
   }, [schema.updatedAt]);
 
   return (
-    <div className="group bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden hover:border-amber-500/50 transition-all">
+    <div className="group bg-card rounded-lg border border-border overflow-hidden hover:border-amber-500/50 transition-all">
       {/* Preview */}
-      <div className="aspect-video bg-zinc-950 border-b border-zinc-800 overflow-hidden relative">
+      <div className="aspect-video bg-background border-b border-border overflow-hidden relative">
         <div className="absolute inset-0 scale-50 overflow-auto">
           <ErrorBoundary>
             {previewSchema
               ? <UIRenderer schema={previewSchema} data={previewData} />
               : (
                 <div className="flex items-center justify-center h-full">
-                  <div className="text-zinc-600 text-xs">
+                  <div className="text-muted-foreground text-xs">
                     Loading preview...
                   </div>
                 </div>
@@ -342,7 +342,7 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
         </div>
 
         {/* Overlay on hover */}
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <button
             onClick={() => onLaunch(schema)}
             className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-lg transition-colors flex items-center gap-2"
@@ -355,18 +355,18 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
 
       {/* Info */}
       <div className="p-4">
-        <h3 className="text-lg font-semibold text-zinc-100 mb-1">
+        <h3 className="text-lg font-semibold text-foreground mb-1">
           {schema.name}
         </h3>
 
         {schema.description && (
-          <p className="text-sm text-zinc-400 mb-3 line-clamp-2">
+          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
             {schema.description}
           </p>
         )}
 
         {/* Meta */}
-        <div className="flex flex-wrap gap-3 text-xs text-zinc-500">
+        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <Calendar className="w-3 h-3" />
             {formattedDate}
@@ -381,8 +381,8 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
         </div>
 
         {/* Widget Key */}
-        <div className="mt-3 pt-3 border-t border-zinc-800">
-          <div className="text-xs font-mono text-zinc-600 truncate">
+        <div className="mt-3 pt-3 border-t border-border">
+          <div className="text-xs font-mono text-muted-foreground truncate">
             {schema.widgetKey}
           </div>
         </div>

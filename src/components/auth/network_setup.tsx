@@ -49,20 +49,20 @@ export function NetworkSetup(
   const getNetworkStatusColor = (network: NetworkConfig) => {
     switch (network.id) {
       case "testnet":
-        return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+        return "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30";
       case "mainnet":
-        return "bg-green-500/20 text-green-400 border-green-500/30";
+        return "bg-green-500/20 text-green-700 dark:text-green-600 border-green-500/30";
       case "localnet":
-        return "bg-purple-500/20 text-purple-400 border-purple-500/30";
+        return "bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30";
       default:
-        return "bg-zinc-500/20 text-muted-foreground border-zinc-500/30";
+        return "bg-muted/20 text-muted-foreground border-border";
     }
   };
 
   return (
     <div className="space-y-6">
       {/* Network Setup Card */}
-      <Card className="w-full max-w-2xl mx-auto backdrop-blur-md bg-zinc-900/80 border border-zinc-800">
+      <Card className="w-full max-w-2xl mx-auto backdrop-blur-md bg-card/80 border border-border">
         <CardHeader className="text-center pb-4">
           <CardTitle className="flex items-center justify-center gap-3 text-xl font-bold">
             <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
@@ -83,7 +83,7 @@ export function NetworkSetup(
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-card-foreground flex items-center gap-2">
-                <Wifi className="h-5 w-5 text-amber-400" />
+                <Wifi className="h-5 w-5 text-amber-700 dark:text-amber-400" />
                 Network Selection
               </h3>
               {selectedNetwork && (
@@ -98,7 +98,7 @@ export function NetworkSetup(
             </div>
 
             {/* Network Selector */}
-            <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+            <div className="p-4 bg-muted/50 border border-border rounded-lg">
               <NetworkSelectorCompact />
             </div>
           </div>
