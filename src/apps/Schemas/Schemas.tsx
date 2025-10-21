@@ -25,6 +25,7 @@ import SchemaHelp from "./schema_help";
 import NestedSchemaSelector from "./nested_schema_selector";
 import SchemaTree from "./schema_tree";
 import ChannelAliasEditor from "./channel_alias_editor";
+import SessionDataViewer from "./session_data_viewer";
 import { ToastContainer, useToast } from "../../components/ui/toast.tsx";
 import type { ChannelAlias, ChannelData, SchemaProject } from "./types.ts";
 import {
@@ -39,6 +40,7 @@ import {
   Copy,
   Download,
   FileJson,
+  Layout as LayoutIcon,
   Plus,
   Save,
   Upload,
@@ -49,12 +51,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip.tsx";
+import { useMobile } from "@/hooks/use_mobile.ts";
 
 /**
  * Main Schema Constructor Component
  * CRUD operations with IndexedDB storage
  */
 export default function Schemas(): ReactElement {
+  const mobile = useMobile();
   const session = useSessionStoreSync() as Record<string, unknown> | null;
   const { toasts, showToast, closeToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -619,6 +623,47 @@ export default function Schemas(): ReactElement {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [activeSchema, isValid, handleSaveSchema]);
 
+  // Mobile warning - desktop interface required
+  if (mobile) {
+    return (
+      <div className="h-full bg-background p-4 flex items-center justify-center">
+        <div className="text-center max-w-sm mx-auto">
+          <div className="w-16 h-16 bg-card rounded-xl flex items-center justify-center mb-4 mx-auto">
+            <LayoutIcon className="w-8 h-8 text-amber-700 dark:text-amber-400" />
+          </div>
+          <h2 className="text-amber-700 dark:text-amber-400 font-mono text-lg font-bold mb-2">
+            SCHEMA MANAGER
+          </h2>
+          <p className="text-muted-foreground font-mono text-sm mb-6">
+            Desktop interface required
+          </p>
+          <div className="p-4 bg-card/50 border border-border rounded-lg text-left">
+            <p className="text-xs text-muted-foreground mb-3">
+              The Schema Manager requires a desktop display for optimal workflow:
+            </p>
+            <ul className="text-xs text-muted-foreground space-y-2">
+              <li className="flex items-start gap-2">
+                <span className="text-amber-500">•</span>
+                <span>Visual schema editor with JSON preview</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-amber-500">•</span>
+                <span>Multi-panel layout for complex schemas</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-amber-500">•</span>
+                <span>Channel selector and alias management</span>
+              </li>
+            </ul>
+          </div>
+          <p className="text-xs text-muted-foreground mt-4">
+            Please open STELS on a desktop browser to access the Schema Manager
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <UIEngineProvider>
       <ToastContainer toasts={toasts} onClose={closeToast} />
@@ -1050,7 +1095,7 @@ export default function Schemas(): ReactElement {
             )}
           </div>
 
-          {/* Right pane - Preview Only */}
+          {/* Right pane - Preview and Session Data */}
           <div className="flex flex-col w-1/2">
             <div className="flex-1 overflow-hidden">
               <SchemaPreview
@@ -1060,6 +1105,15 @@ export default function Schemas(): ReactElement {
                 isStaticSchema={activeSchema?.type === "static"}
               />
             </div>
+
+            {/* Session Data Viewer - Show channel data in JSON format */}
+            {activeSchema && channelsData.length > 0 && (
+              <SessionDataViewer
+                channelsData={channelsData}
+                channelAliases={channelAliases}
+                selfChannelKey={selfChannelKey}
+              />
+            )}
           </div>
         </div>
       </div>

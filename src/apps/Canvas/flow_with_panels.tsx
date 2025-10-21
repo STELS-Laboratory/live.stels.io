@@ -20,7 +20,7 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import useSessionStoreSync from "@/hooks/use_session_store_sync.ts";
 import MacOSNode from "@/apps/canvas/macos_node.tsx";
-import { Network, Settings, ShoppingBag } from "lucide-react";
+import { Boxes, Network, Settings, ShoppingBag } from "lucide-react";
 import { cleanBrands, cn } from "@/lib/utils.ts";
 import Graphite from "@/components/ui/vectors/logos/graphite.tsx";
 import {
@@ -38,6 +38,7 @@ import { useAutoConnections } from "@/hooks/use_auto_connections.ts";
 import GroupedEdge from "@/components/widgets/grouped_edge.tsx";
 import AutoConnectionsSettings from "@/components/widgets/auto_connections_settings.tsx";
 import { getAvailableConnectionKeys } from "@/lib/auto-connections.ts";
+import { useMobile } from "@/hooks/use_mobile.ts";
 
 // Define nodeTypes and edgeTypes outside component to avoid React Flow warnings
 const nodeTypes: NodeTypes = {
@@ -163,6 +164,7 @@ function MacOSDock(
  * Main Flow Component with Panels
  */
 function FlowWithPanels(): React.ReactElement | null {
+	const mobile = useMobile();
 	const [nodes, setNodes, onNodesChange] = useNodesState<FlowNodeData>([]);
 	const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
@@ -500,6 +502,49 @@ function FlowWithPanels(): React.ReactElement | null {
 	}, [nodes]);
 
 	if (!session) return null;
+
+	// Mobile warning - desktop interface required
+	if (mobile) {
+		return (
+			<div className="h-full bg-background p-4 flex items-center justify-center">
+				<div className="text-center max-w-sm mx-auto">
+					<div className="w-16 h-16 bg-card rounded-xl flex items-center justify-center mb-4 mx-auto">
+						<Boxes className="w-8 h-8 text-amber-700 dark:text-amber-400" />
+					</div>
+					<h2 className="text-amber-700 dark:text-amber-400 font-mono text-lg font-bold mb-2">
+						VISUAL WORKSPACE
+					</h2>
+					<p className="text-muted-foreground font-mono text-sm mb-6">
+						Desktop interface required
+					</p>
+					<div className="p-4 bg-card/50 border border-border rounded-lg text-left">
+						<p className="text-xs text-muted-foreground mb-3">
+							The Visual Workspace requires a desktop display for optimal
+							workflow:
+						</p>
+						<ul className="text-xs text-muted-foreground space-y-2">
+							<li className="flex items-start gap-2">
+								<span className="text-amber-500">•</span>
+								<span>Drag-and-drop canvas with ReactFlow</span>
+							</li>
+							<li className="flex items-start gap-2">
+								<span className="text-amber-500">•</span>
+								<span>Multi-panel support for complex workflows</span>
+							</li>
+							<li className="flex items-start gap-2">
+								<span className="text-amber-500">•</span>
+								<span>100+ widgets with real-time visualization</span>
+							</li>
+						</ul>
+					</div>
+					<p className="text-xs text-muted-foreground mt-4">
+						Please open STELS on a desktop browser to access the Visual
+						Workspace
+					</p>
+				</div>
+			</div>
+		);
+	}
 
 	const activePanel = getActivePanel();
 

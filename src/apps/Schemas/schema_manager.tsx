@@ -81,15 +81,13 @@ export default function SchemaManager({
       return;
     }
 
-    if (formType === "static" && !formWidgetKey.trim()) {
-      alert("Please enter a widget key for static schema");
+    if (!formWidgetKey.trim()) {
+      alert("Please enter a widget key");
       return;
     }
 
     const now = Date.now();
-    const widgetKey = formType === "static"
-      ? `widget.${formWidgetKey.trim()}`
-      : `widget.custom.${Date.now()}`;
+    const widgetKey = `widget.${formWidgetKey.trim()}`;
 
     const newSchema: SchemaProject = {
       id: generateSchemaId(),
@@ -340,7 +338,13 @@ export default function SchemaManager({
                         </div>
                       </>
                     )
-                    : "📦 Static schemas are containers for composing other schemas. After creating, select nested schemas in the Nested Schemas panel to build your layout."}
+                    : (
+                      <>
+                        📦 Static schemas are containers for composing other
+                        schemas. After creating, select nested schemas in the
+                        Nested Schemas panel to build your layout.
+                      </>
+                    )}
                 </div>
               </div>
             </div>
@@ -371,25 +375,35 @@ export default function SchemaManager({
               />
             </div>
 
-            {formType === "static" && (
-              <div className="flex flex-col gap-2">
-                <Label className="text-sm font-medium text-foreground">
-                  Widget Key * (without 'widget.' prefix)
-                </Label>
-                <Input
-                  value={formWidgetKey}
-                  onChange={(e) => setFormWidgetKey(e.target.value)}
-                  placeholder="e.g., markets or dashboard.overview"
-                  className="w-full font-mono text-sm"
-                />
-                <div className="text-xs text-muted-foreground">
-                  Result:{" "}
-                  <span className="font-mono text-amber-700 dark:text-amber-400">
-                    widget.{formWidgetKey || "..."}
-                  </span>
-                </div>
+            <div className="flex flex-col gap-2">
+              <Label className="text-sm font-medium text-foreground">
+                Widget Key * (without 'widget.' prefix)
+              </Label>
+              <Input
+                value={formWidgetKey}
+                onChange={(e) => setFormWidgetKey(e.target.value)}
+                placeholder={formType === "static"
+                  ? "e.g., markets or dashboard.overview"
+                  : "e.g., ticker.btc or custom.mywidget"}
+                className="w-full font-mono text-sm"
+              />
+              <div className="text-xs text-muted-foreground">
+                Result:{" "}
+                <span className="font-mono text-amber-700 dark:text-amber-400">
+                  widget.{formWidgetKey || "..."}
+                </span>
               </div>
-            )}
+              {formType === "dynamic" && (
+                <div className="p-2 bg-blue-500/10 rounded border border-blue-500/20">
+                  <p className="text-xs text-blue-700 dark:text-blue-400">
+                    <strong>Tip:</strong>{" "}
+                    For universal widgets, use descriptive keys like{" "}
+                    <code className="font-mono">ticker.universal</code> or{" "}
+                    <code className="font-mono">book.viewer</code>
+                  </p>
+                </div>
+              )}
+            </div>
 
             <div className="flex gap-2 justify-end">
               <Button

@@ -73,8 +73,8 @@ export function NetworkSetup(
             </span>
           </CardTitle>
           <p className="text-muted-foreground text-sm mt-2">
-            Your wallet is ready. Choose a network to connect to the STELS Web3
-            platform.
+            Your wallet is ready. Choose a network to connect to the STELS Web 5
+            platform and begin building autonomous web agents.
           </p>
         </CardHeader>
 

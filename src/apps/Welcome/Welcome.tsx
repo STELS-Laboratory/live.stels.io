@@ -1,6 +1,6 @@
 /**
- * Welcome App Store
- * Browse and launch ready-made static router schemas
+ * STELS Application Hub
+ * Development laboratory for building and launching autonomous AI web agents
  */
 
 import {
@@ -15,7 +15,19 @@ import type { UINode } from "@/lib/gui/ui.ts";
 import { getAllSchemas, getSchemaByWidgetKey } from "@/apps/schemas/db.ts";
 import type { SchemaProject } from "@/apps/schemas/types.ts";
 import useSessionStoreSync from "@/hooks/use_session_store_sync.ts";
-import { Calendar, Layers, Package, Play } from "lucide-react";
+import {
+  ArrowRight,
+  Boxes,
+  Calendar,
+  Code,
+  FileText,
+  Layers,
+  Layout as LayoutIcon,
+  Package,
+  Play,
+  X,
+} from "lucide-react";
+import { navigateTo } from "@/lib/router.ts";
 import {
   collectRequiredChannels,
   resolveSchemaRefs,
@@ -23,7 +35,7 @@ import {
 import ErrorBoundary from "@/apps/schemas/error_boundary.tsx";
 
 /**
- * Web3 App Store - Browse and launch static router schemas
+ * STELS Application Hub - Build and launch autonomous AI web agents
  */
 function Welcome(): ReactElement {
   const session = useSessionStoreSync() as Record<string, unknown> | null;
@@ -147,17 +159,21 @@ function Welcome(): ReactElement {
   if (selectedSchema) {
     return (
       <UIEngineProvider>
-        <div className="h-screen w-screen bg-background relative">
-          {/* Close button */}
+        <div className="fixed inset-0 bg-background overflow-hidden">
+          {/* Compact close button */}
           <button
             onClick={handleCloseApp}
-            className="fixed top-4 right-4 z-50 px-4 py-2 bg-card hover:bg-muted text-foreground rounded-lg border border-border transition-colors flex items-center gap-2"
+            className="fixed top-3 right-3 z-50 w-9 h-9 bg-card/80 hover:bg-card backdrop-blur-sm text-foreground rounded-full border border-border transition-all flex items-center justify-center group hover:w-auto hover:px-4 hover:gap-2"
+            title="Close app"
           >
-            <span>← Back to Store</span>
+            <X className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden group-hover:inline text-sm font-medium whitespace-nowrap">
+              Back to Hub
+            </span>
           </button>
 
           {/* Render app */}
-          <div className="h-full w-full overflow-auto">
+          <div className="w-full h-full overflow-auto">
             <ErrorBoundary>
               {isResolving
                 ? (
@@ -188,12 +204,12 @@ function Welcome(): ReactElement {
           <div className="flex items-center gap-3 mb-4">
             <Package className="w-8 h-8 text-amber-500" />
             <h1 className="text-3xl font-bold text-foreground">
-              Web3 App Store
+              STELS Application Hub
             </h1>
           </div>
           <p className="text-muted-foreground text-lg">
-            Browse and launch ready-made applications built with Schema
-            Constructor
+            Developer laboratory for Web 5: Build and launch autonomous AI web
+            agents using schemas and protocols
           </p>
         </div>
 
@@ -204,29 +220,137 @@ function Welcome(): ReactElement {
           </div>
         )}
 
-        {/* No apps */}
+        {/* System Apps - Always visible */}
+        <div className="max-w-7xl mx-auto mb-8">
+          <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+            <span>Development Tools</span>
+            <span className="text-sm text-muted-foreground font-normal">
+              Build Autonomous Web Agents
+            </span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Canvas */}
+            <button
+              onClick={() => navigateTo("canvas")}
+              className="group bg-card rounded-lg border border-border overflow-hidden hover:border-blue-500/50 transition-all text-left"
+            >
+              <div className="aspect-video bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-b border-border flex items-center justify-center">
+                <Boxes className="w-16 h-16 text-blue-700 dark:text-blue-400 group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-foreground mb-1">
+                  Visual Workspace
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Compose agent workflows with drag-and-drop interface
+                </p>
+                <div className="flex items-center gap-1 text-xs text-blue-700 dark:text-blue-400 font-semibold">
+                  Open Canvas <ArrowRight className="w-3 h-3" />
+                </div>
+              </div>
+            </button>
+
+            {/* Editor */}
+            <button
+              onClick={() => navigateTo("editor")}
+              className="group bg-card rounded-lg border border-border overflow-hidden hover:border-amber-500/50 transition-all text-left"
+            >
+              <div className="aspect-video bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-b border-border flex items-center justify-center">
+                <Code className="w-16 h-16 text-amber-700 dark:text-amber-400 group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-foreground mb-1">
+                  Protocol Editor
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Write and deploy workers across the heterogeneous network
+                </p>
+                <div className="flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400 font-semibold">
+                  Open Editor <ArrowRight className="w-3 h-3" />
+                </div>
+              </div>
+            </button>
+
+            {/* Schemas */}
+            <button
+              onClick={() => navigateTo("schemas")}
+              className="group bg-card rounded-lg border border-border overflow-hidden hover:border-green-500/50 transition-all text-left"
+            >
+              <div className="aspect-video bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-b border-border flex items-center justify-center">
+                <LayoutIcon className="w-16 h-16 text-green-700 dark:text-green-400 group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-foreground mb-1">
+                  Schema Manager
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Define data structures and channels for your web agents
+                </p>
+                <div className="flex items-center gap-1 text-xs text-green-700 dark:text-green-400 font-semibold">
+                  Open Manager <ArrowRight className="w-3 h-3" />
+                </div>
+              </div>
+            </button>
+
+            {/* Documentation */}
+            <button
+              onClick={() => navigateTo("docs")}
+              className="group bg-card rounded-lg border border-border overflow-hidden hover:border-zinc-500/50 transition-all text-left"
+            >
+              <div className="aspect-video bg-gradient-to-br from-zinc-500/10 to-slate-500/10 border-b border-border flex items-center justify-center">
+                <FileText className="w-16 h-16 text-zinc-700 dark:text-zinc-400 group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-foreground mb-1">
+                  Documentation
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Platform overview, updates, and technical documentation
+                </p>
+                <div className="flex items-center gap-1 text-xs text-zinc-700 dark:text-zinc-400 font-semibold">
+                  Open Docs <ArrowRight className="w-3 h-3" />
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* User Apps from Schema Store */}
         {!isLoading && routerSchemas.length === 0 && (
           <div className="max-w-7xl mx-auto">
-            <div className="p-12 bg-card rounded-lg border border-border text-center">
+            <h2 className="text-xl font-semibold text-foreground mb-4">
+              Your Web Agents
+            </h2>
+            <div className="p-12 bg-card rounded-lg border border-dashed border-border text-center">
               <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-muted-foreground mb-2">
-                No Apps Available
-              </h2>
-              <p className="text-muted-foreground mb-4">
-                Create static router schemas in Schema Constructor to see them
-                here
+              <h3 className="text-xl font-semibold text-foreground mb-2">
+                No Custom Agents Yet
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Use Schema Manager to define data structures for your autonomous
+                web agents
               </p>
-              <p className="text-xs text-muted-foreground">
+              <button
+                onClick={() => navigateTo("schemas")}
+                className="px-6 py-3 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg transition-colors inline-flex items-center gap-2"
+              >
+                <LayoutIcon className="w-5 h-5" />
+                Create First Agent
+              </button>
+              <p className="text-xs text-muted-foreground mt-4">
                 Tip: Create a schema with type "static" and widgetKey containing
-                "router", "app", or "apps"
+                "app"
               </p>
             </div>
           </div>
         )}
 
-        {/* App Grid */}
+        {/* User Apps Grid */}
         {!isLoading && routerSchemas.length > 0 && (
           <div className="max-w-7xl mx-auto">
+            <h2 className="text-xl font-semibold text-foreground mb-4">
+              Your Web Agents
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {routerSchemas.map((schema) => (
                 <AppCard

@@ -48,9 +48,6 @@ export interface AuthState {
 	connectionSession: ConnectionSession | null;
 	connectionError: string | null;
 	
-	// User preferences
-	developerMode: boolean;
-	
 	// UI state
 	isAuthenticated: boolean;
 	showNetworkSelector: boolean;
@@ -76,9 +73,6 @@ export interface AuthActions {
 	connectToNode: () => Promise<boolean>;
 	disconnectFromNode: () => Promise<void>;
 	restoreConnection: () => Promise<boolean>;
-	
-	// User preferences
-	setDeveloperMode: (enabled: boolean) => void;
 	
 	// UI operations
 	setShowNetworkSelector: (show: boolean) => void;
@@ -140,7 +134,6 @@ export const useAuthStore = create<AuthStore>()(
 		isConnecting: false,
 		connectionSession: null,
 		connectionError: null,
-		developerMode: false,
 		isAuthenticated: false,
 		showNetworkSelector: false,
 		showSecurityWarning: false,
@@ -193,7 +186,6 @@ export const useAuthStore = create<AuthStore>()(
 						isConnecting: false,
 						connectionSession: null,
 						connectionError: null,
-						developerMode: false,
 						isAuthenticated: false,
 						showNetworkSelector: false
 					});
@@ -423,18 +415,12 @@ export const useAuthStore = create<AuthStore>()(
 						});
 						// Clear invalid session data
 						localStorage.removeItem('private-store');
-						return false;
-					}
-				},
-				
-				// User preferences
-				setDeveloperMode: (enabled: boolean) => {
-					set({ developerMode: enabled });
-					console.log('[Auth] Developer mode set to:', enabled);
-				},
-				
-				// UI operations
-				setShowNetworkSelector: (show: boolean) => {
+					return false;
+				}
+			},
+			
+			// UI operations
+			setShowNetworkSelector: (show: boolean) => {
 					set({ showNetworkSelector: show });
 				},
 				
@@ -471,19 +457,18 @@ export const useAuthStore = create<AuthStore>()(
 						console.error('[Auth] ❌ Error clearing sessionStorage:', error);
 					}
 					
-					// 3. Reset auth state
-					set({
-						wallet: null,
-						isWalletCreated: false,
-						selectedNetwork: null,
-						isConnected: false,
-						isConnecting: false,
-						connectionSession: null,
-						connectionError: null,
-						developerMode: false,
-						isAuthenticated: false,
-						showNetworkSelector: false
-					});
+				// 3. Reset auth state
+				set({
+					wallet: null,
+					isWalletCreated: false,
+					selectedNetwork: null,
+					isConnected: false,
+					isConnecting: false,
+					connectionSession: null,
+					connectionError: null,
+					isAuthenticated: false,
+					showNetworkSelector: false
+				});
 					
 					// 4. Clear all storage
 					try {
@@ -508,8 +493,7 @@ export const useAuthStore = create<AuthStore>()(
 					availableNetworks: state.availableNetworks,
 					connectionSession: state.connectionSession,
 					isConnected: state.isConnected,
-					isAuthenticated: state.isAuthenticated,
-					developerMode: state.developerMode
+					isAuthenticated: state.isAuthenticated
 				}),
 				onRehydrateStorage: () => (state) => {
 					if (state) {

@@ -7,12 +7,10 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckCircle,
-  Code,
   Copy,
   Eye,
   EyeOff,
   Shield,
-  User,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/modules/auth.store";
 
@@ -30,12 +28,11 @@ export function WalletConfirmation({
   onConfirm,
   onBack,
 }: WalletConfirmationProps): React.ReactElement {
-  const { wallet, setDeveloperMode } = useAuthStore();
+  const { wallet } = useAuthStore();
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [copiedPublicKey, setCopiedPublicKey] = useState(false);
   const [showPublicKey, setShowPublicKey] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
-  const [isDeveloperMode, setIsDeveloperMode] = useState(false);
 
   if (!wallet) {
     return (
@@ -49,8 +46,6 @@ export function WalletConfirmation({
   }
 
   const handleConfirm = (): void => {
-    // Set developer mode in the store before confirming
-    setDeveloperMode(isDeveloperMode);
     onConfirm();
   };
 
@@ -93,7 +88,8 @@ export function WalletConfirmation({
         subtitle: "Your Wallet has been successfully generated",
         badge: {
           text: "New Wallet",
-          className: "bg-green-500/20 text-green-700 dark:text-green-600 border-green-500/30",
+          className:
+            "bg-green-500/20 text-green-700 dark:text-green-600 border-green-500/30",
         },
         icon: <CheckCircle className="h-6 w-6 text-green-500" />,
       };
@@ -103,7 +99,8 @@ export function WalletConfirmation({
         subtitle: "Your existing Wallet has been successfully imported",
         badge: {
           text: "Imported",
-          className: "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30",
+          className:
+            "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30",
         },
         icon: <CheckCircle className="h-6 w-6 text-blue-500" />,
       };
@@ -232,104 +229,6 @@ export function WalletConfirmation({
             </div>
           </div>
 
-          {/* Developer Mode Selection */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-card-foreground flex items-center gap-2">
-              <Code className="h-5 w-5 text-purple-700 dark:text-purple-400" />
-              Access Mode
-            </h3>
-
-            <div className="grid grid-cols-2 gap-4">
-              {/* User Mode */}
-              <div
-                onClick={() => setIsDeveloperMode(false)}
-                className={`p-4 border rounded-lg transition-all cursor-pointer ${
-                  !isDeveloperMode
-                    ? "bg-green-500/10 border-green-500/30"
-                    : "bg-muted/50 border-border hover:border-muted-foreground/30"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`p-2 rounded-lg border ${
-                      !isDeveloperMode
-                        ? "border-green-500/30 bg-green-500/10"
-                        : "border-border bg-background"
-                    }`}
-                  >
-                    <User
-                      className={`h-5 w-5 ${
-                        !isDeveloperMode
-                          ? "text-green-500"
-                          : "text-muted-foreground"
-                      }`}
-                    />
-                  </div>
-                  <div>
-                    <div className="font-bold text-sm text-foreground">
-                      User Mode
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      Standard access with production networks
-                    </div>
-                  </div>
-                </div>
-                {!isDeveloperMode && (
-                  <div className="flex items-center gap-1.5 mt-2">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                    <span className="text-xs text-green-500 font-medium">
-                      Selected
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Developer Mode */}
-              <div
-                onClick={() => setIsDeveloperMode(true)}
-                className={`p-4 border rounded-lg transition-all cursor-pointer ${
-                  isDeveloperMode
-                    ? "bg-purple-500/10 border-purple-500/30"
-                    : "bg-muted/50 border-border hover:border-muted-foreground/30"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`p-2 rounded-lg border ${
-                      isDeveloperMode
-                        ? "border-purple-500/30 bg-purple-500/10"
-                        : "border-border bg-background"
-                    }`}
-                  >
-                    <Code
-                      className={`h-5 w-5 ${
-                        isDeveloperMode
-                          ? "text-purple-500"
-                          : "text-muted-foreground"
-                      }`}
-                    />
-                  </div>
-                  <div>
-                    <div className="font-bold text-sm text-foreground">
-                      Developer
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      Access to test networks and dev tools
-                    </div>
-                  </div>
-                </div>
-                {isDeveloperMode && (
-                  <div className="flex items-center gap-1.5 mt-2">
-                    <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse" />
-                    <span className="text-xs text-purple-500 font-medium">
-                      Selected
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
           {/* Security Notice */}
           <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
             <div className="flex items-start gap-3">
@@ -365,7 +264,7 @@ export function WalletConfirmation({
             >
               I have securely saved my private key and understand that losing it
               will result in permanent loss of access to my wallet and all
-              associated funds. I also confirm my selected access mode.
+              associated funds.
             </label>
           </div>
 

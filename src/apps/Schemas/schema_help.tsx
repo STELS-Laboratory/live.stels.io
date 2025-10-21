@@ -28,7 +28,7 @@ const API_REFERENCE: Snippet[] = [
     category: "Basics",
     code: `{
   "type": "div",
-  "className": "p-4 bg-card rounded",
+  "className": "p-4 bg-zinc-900 rounded border border-zinc-700",
   "text": "Hello World"
 }`,
   },
@@ -38,8 +38,8 @@ const API_REFERENCE: Snippet[] = [
     category: "Basics",
     code: `{
   "type": "div",
-  "text": "{channel_alias.raw.market}",
-  "className": "text-foreground font-bold"
+  "text": "{market}",
+  "className": "text-white font-bold"
 }`,
   },
   {
@@ -58,35 +58,27 @@ const API_REFERENCE: Snippet[] = [
 
   // Data Access
   {
-    title: "Universal Schema (self)",
-    description: "Use 'self' to create reusable schemas for any channel",
+    title: "Direct Data Access",
+    description: "Access data fields directly from the data object",
     category: "Data Access",
     code: `{
   "type": "div",
   "className": "p-4 bg-card border rounded",
   "children": [
-    {"type": "div", "text": "{self.raw.market}"},
-    {"type": "div", "text": "$\\{self.raw.data.last}", "format": {"type": "number", "decimals": 2}}
+    {"type": "div", "text": "{market}"},
+    {"type": "div", "text": "{exchange}"},
+    {"type": "div", "text": "\${data.last}", "format": {"type": "number", "decimals": 2}}
   ]
 }`,
   },
   {
-    title: "Channel Alias Access",
-    description: "Access specific channel data using alias",
+    title: "Array Index Access",
+    description: "Access array elements with bracket notation",
     category: "Data Access",
     code: `{
   "type": "div",
-  "text": "$\\{btc_ticker.raw.data.last}",
+  "text": "\${data.bids[0][0]}",
   "format": {"type": "number", "decimals": 2}
-}`,
-  },
-  {
-    title: "Nested Data Paths",
-    description: "Access deep nested properties with dot notation",
-    category: "Data Access",
-    code: `{
-  "type": "div",
-  "text": "{channel.raw.data.bids[0][0]}"
 }`,
   },
 
@@ -97,7 +89,7 @@ const API_REFERENCE: Snippet[] = [
     category: "Formatting",
     code: `{
   "type": "div",
-  "text": "$\\{data.price}",
+  "text": "\${data.price}",
   "format": {
     "type": "number",
     "decimals": 2
@@ -145,17 +137,18 @@ const API_REFERENCE: Snippet[] = [
     category: "Math",
     code: `{
   "type": "div",
-  "text": "$\\{btc.raw.data.last * 2 + 100}",
+  "text": "\${data.last * 2 + 100}",
   "format": {"type": "number", "decimals": 2}
 }`,
   },
   {
-    title: "Cross-Channel Math",
-    description: "Calculate using multiple channel data",
+    title: "Array Math",
+    description: "Calculate using array elements",
     category: "Math",
     code: `{
   "type": "div",
-  "text": "$\\{sol.raw.data.last / btc.raw.data.last}",
+  "text": "\${data.asks[0][0] - data.bids[0][0]}",
+  "format": {"type": "number", "decimals": 2},
   "className": "text-lg font-bold"
 }`,
   },
@@ -181,7 +174,8 @@ const API_REFERENCE: Snippet[] = [
     category: "Conditionals",
     code: `{
   "type": "span",
-  "text": "$\\{data.change}",
+  "text": "\${data.change}",
+  "format": {"type": "number", "decimals": 2},
   "style": {
     "color": {
       "condition": {
@@ -189,8 +183,31 @@ const API_REFERENCE: Snippet[] = [
         "operator": ">",
         "value": 0
       },
-      "true": "#22c55e",
-      "false": "#ef4444"
+      "true": "#00C853",
+      "false": "#D50000"
+    }
+  }
+}`,
+  },
+  {
+    title: "Conditional Style in Iteration",
+    description: "Apply conditional styles to iterated items",
+    category: "Conditionals",
+    code: `{
+  "type": "span",
+  "iterate": {"source": "data"},
+  "text": "{$item.side}",
+  "className": "px-2 py-0.5 rounded text-xs font-semibold",
+  "style": {
+    "backgroundColor": {
+      "condition": {"key": "$item.side", "operator": "===", "value": "buy"},
+      "true": "rgba(0, 200, 83, 0.15)",
+      "false": "rgba(213, 0, 0, 0.15)"
+    },
+    "color": {
+      "condition": {"key": "$item.side", "operator": "===", "value": "buy"},
+      "true": "#00C853",
+      "false": "#D50000"
     }
   }
 }`,
@@ -208,7 +225,7 @@ const API_REFERENCE: Snippet[] = [
     "limit": 10
   },
   "children": [
-    {"type": "span", "text": "$\\{$item[0]}"}
+    {"type": "span", "text": "\${$item[0]}", "format": {"type": "number", "decimals": 2}}
   ]
 }`,
   },
@@ -224,19 +241,34 @@ const API_REFERENCE: Snippet[] = [
     "reverse": true
   },
   "children": [
-    {"type": "div", "text": "{$item.price}"}
+    {"type": "div", "text": "\${$item[0]}", "format": {"type": "number", "decimals": 2}}
   ]
 }`,
   },
   {
-    title: "Item Properties",
-    description: "Access nested properties in iteration",
+    title: "Item Math Operations",
+    description: "Calculate using $item in iteration",
     category: "Iteration",
     code: `{
   "type": "div",
-  "iterate": {"source": "trades"},
+  "iterate": {"source": "data.bids"},
   "children": [
-    {"type": "div", "text": "{$item.price} x {$item.amount}"}
+    {"type": "div", "text": "\${$item[0] * $item[1]}", "format": {"type": "number", "decimals": 2}}
+  ]
+}`,
+  },
+  {
+    title: "Object Item Access",
+    description: "Access object properties in iteration",
+    category: "Iteration",
+    code: `{
+  "type": "tr",
+  "iterate": {"source": "data", "limit": 20},
+  "className": "border-b border-zinc-850",
+  "children": [
+    {"type": "td", "text": "{$item.timestamp}", "format": {"type": "time"}, "className": "px-1 py-1.5 text-xs"},
+    {"type": "td", "text": "\${$item.price}", "format": {"type": "number", "decimals": 2}, "className": "px-1 py-1.5 text-right"},
+    {"type": "td", "text": "{$item.amount}", "format": {"type": "number", "decimals": 4}, "className": "px-1 py-1.5 text-right"}
   ]
 }`,
   },
@@ -250,8 +282,8 @@ const API_REFERENCE: Snippet[] = [
   "type": "div",
   "className": "grid grid-cols-2 gap-4",
   "children": [
-    {"schemaRef": "widget.ticker.btc"},
-    {"schemaRef": "widget.ticker.sol"}
+    {"schemaRef": "widget.testnet.runtime.ticker.BTC/USDT.bybit.spot"},
+    {"schemaRef": "widget.testnet.runtime.ticker.SOL/USDT.bybit.spot"}
   ]
 }`,
   },
@@ -271,16 +303,18 @@ const API_REFERENCE: Snippet[] = [
     category: "Events",
     code: `{
   "type": "div",
-  "className": "cursor-pointer",
-  "text": "View Details",
+  "className": "cursor-pointer hover:bg-zinc-800/50 p-2 rounded",
+  "text": "📊 Click to view Order Book",
   "events": {
     "onClick": {
       "type": "openModal",
       "payload": {
-        "channel": "runtime.book.BTC/USDT",
+        "channel": "testnet.runtime.book.BTC/USDT.bybit.spot",
         "modalId": "orderbook-modal",
-        "width": "600px",
-        "backdrop": "blur",
+        "width": "500px",
+        "height": "auto",
+        "maxHeight": "80vh",
+        "backdrop": "dark",
         "closeOnBackdrop": true
       }
     }
@@ -288,19 +322,56 @@ const API_REFERENCE: Snippet[] = [
 }`,
   },
   {
+    title: "Modal Backdrop Options",
+    description: "Available backdrop styles: dark, light, blur",
+    category: "Events",
+    code: `// Dark backdrop
+"backdrop": "dark"
+
+// Light backdrop  
+"backdrop": "light"
+
+// Blur backdrop
+"backdrop": "blur"`,
+  },
+  {
     title: "Percentage Calculation",
     description: "Calculate width as percentage for progress bars",
     category: "Advanced",
     code: `{
   "type": "div",
-  "className": "bg-green-500/20",
+  "className": "bg-green-500/8",
   "style": {
     "width": {
       "calculate": "percentage",
-      "value": "{$item.size}",
-      "max": "{maxVolume}"
+      "value": "{$item[1]}",
+      "max": "{data.volume[0]}"
     }
   }
+}`,
+  },
+  {
+    title: "Relative Positioning",
+    description: "Create overlays with absolute positioning",
+    category: "Advanced",
+    code: `{
+  "type": "div",
+  "className": "flex relative py-1",
+  "children": [
+    {
+      "type": "div",
+      "className": "absolute top-0 right-0 bottom-0 bg-green-500/8",
+      "style": {
+        "width": {"calculate": "percentage", "value": "{$item[1]}", "max": "{data.volume[0]}"}
+      }
+    },
+    {
+      "type": "div",
+      "className": "relative z-10",
+      "text": "\${$item[0]}",
+      "format": {"type": "number", "decimals": 2}
+    }
+  ]
 }`,
   },
 
@@ -310,13 +381,16 @@ const API_REFERENCE: Snippet[] = [
     description: "Available: ===, >, <, >=, <=",
     category: "Operators",
     code: `// Equal
-{"key": "price", "operator": "===", "value": 100}
+{"key": "data.price", "operator": "===", "value": 100}
 
 // Greater than
-{"key": "volume", "operator": ">", "value": 1000}
+{"key": "data.volume", "operator": ">", "value": 1000}
 
 // Less or equal
-{"key": "change", "operator": "<=", "value": 0}`,
+{"key": "data.change", "operator": "<=", "value": 0}
+
+// Greater or equal
+{"key": "data.last", "operator": ">=", "value": 50000}`,
   },
 ];
 

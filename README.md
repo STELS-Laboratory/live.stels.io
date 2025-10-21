@@ -1,15 +1,51 @@
-# STELS Web3 OS
+# STELS Web OS
 
 **Version:** 0.12.8\
-**Type:** Professional Web3 Trading Platform\
-**License:** © 2024 Gliesereum Ukraine. All rights reserved.
+**Type:** Distributed Web Operating System\
+**License:** © 2025 Gliesereum Ukraine. All rights reserved.
+
+> **The world's first distributed Web OS built on heterogeneous networks.**\
+> A professional laboratory for Web 5 developers to program and manage
+> autonomous AI web agents.
 
 ## Overview
 
-STELS Web3 OS is a professional-grade decentralized trading platform built on
-React and Web3 technologies. It provides real-time market analysis, algorithmic
-trading capabilities, and blockchain wallet management through a modular,
-extensible architecture.
+STELS is a **fully decentralized programming and management system** for
+building autonomous web agents that operate across a global heterogeneous
+network. Each web agent is a programmable application—a pure web service
+leveraging modern browser technologies and distributed execution across hundreds
+of heterogeneous nodes (heterogens) installed on diverse servers worldwide.
+
+As a **Web Operating System**, STELS provides developers with:
+
+- **Schemas and Workers**: Tools for creating intelligent web agents with
+  structured data flows and programmable execution logic
+- **Distributed Execution**: Protocol-driven operations that run collectively
+  across the heterogeneous network
+- **Reactive Visualization**: High-speed UI with minimal latency for real-time
+  monitoring and control
+- **Secure by Design**: Cryptographic identity and transaction signing for all
+  operations
+- **Network as API**: The entire heterogeneous network as a single unified
+  execution environment
+
+### What You Can Build
+
+STELS enables development of sophisticated autonomous systems:
+
+- **Trading Agents**: Algorithmic trading across multiple exchanges with
+  real-time market analysis
+- **Intelligence Networks**: Distributed data aggregation and pattern
+  recognition
+- **Network Operations**: Automated monitoring and management of distributed
+  infrastructure
+- **Custom Web Services**: Programmable APIs and services that scale across the
+  network
+
+The platform combines professional-grade trading tools, a visual workspace for
+composing agent workflows, a Monaco-based protocol editor, and comprehensive
+network management—all accessible through a modern React-based interface with
+Tailwind CSS styling.
 
 ## Core Features
 
@@ -64,7 +100,7 @@ extensible architecture.
 ## Project Structure
 
 ```
-web3/
+stels/
 ├── src/
 │   ├── apps/              # Application modules
 │   │   ├── Canvas/        # Visual workspace builder
@@ -74,7 +110,7 @@ web3/
 │   │   ├── Markets/       # Multi-exchange terminal
 │   │   ├── OrderBook/     # Order book aggregator
 │   │   ├── Scanner/       # Liquidity scanner
-│   │   ├── Wallet/        # Web3 wallet
+│   │   ├── Wallet/        # Gliesereum blockchain wallet
 │   │   └── Welcome/       # Application launcher
 │   ├── components/        # Reusable UI components
 │   │   ├── auth/          # Authentication flow

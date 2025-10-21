@@ -135,16 +135,17 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
             </div>
             <div>
               <h2 className="text-xl font-bold text-foreground mb-2">
-                Welcome to STELS Web3
+                Welcome to STELS
               </h2>
               <p className="text-muted-foreground text-sm">
-                Your wallet is connected and ready to use
+                Your wallet is connected to the heterogeneous network
               </p>
             </div>
             <Alert className="bg-green-500/10 border-green-500/30 rounded-lg">
               <CheckCircle className="h-4 w-4 text-green-500" />
               <AlertDescription className="text-muted-foreground text-xs">
-                You can now access all features of the STELS Web3 platform
+                You now have access to the distributed Web OS and can begin
+                building autonomous web agents
               </AlertDescription>
             </Alert>
           </div>
@@ -202,10 +203,10 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
         {/* Header */}
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold text-foreground">
-            Web3 Platform
+            STELS Web 5 Platform
           </h1>
           <p className="text-muted-foreground text-lg">
-            Secure cryptocurrency wallet and trading platform
+            Decentralized Web OS for autonomous AI agents
           </p>
         </div>
 

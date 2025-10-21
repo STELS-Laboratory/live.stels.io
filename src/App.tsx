@@ -25,6 +25,9 @@ import { SessionExpiredModal } from "@/components/auth/session_expired_modal";
 const Welcome = lazy(() => import("@/apps/welcome"));
 const Flow = lazy(() => import("@/apps/canvas/flow"));
 const Schemas = lazy(() => import("@/apps/schemas"));
+const Docs = lazy(() =>
+	import("@/apps/docs").then((m) => ({ default: m.Docs }))
+);
 import { TooltipProvider } from "@/components/ui/tooltip";
 const Layout = lazy(() => import("@/apps/layout.tsx"));
 const AMIEditor = lazy(() =>
@@ -632,6 +635,18 @@ export default function Dashboard(): React.ReactElement {
 						}
 					>
 						<Schemas />
+					</Suspense>
+				);
+			case "docs":
+				return (
+					<Suspense
+						fallback={
+							<div className="p-4 text-muted-foreground">
+								Loading documentation...
+							</div>
+						}
+					>
+						<Docs />
 					</Suspense>
 				);
 			default:

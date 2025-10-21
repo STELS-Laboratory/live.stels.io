@@ -69,10 +69,12 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/components/ui/tabs.tsx";
+import { DeveloperAccessRequestDialog } from "@/components/auth/developer_access_request";
+import { navigateTo } from "@/lib/router";
 
 export function AMIEditor(): JSX.Element {
 	const mobile = useMobile();
-	const { wallet } = useAuthStore();
+	const { wallet, connectionSession } = useAuthStore();
 	const { setRoute } = useAppStore();
 	const listWorkers = useEditorStore((state) => state.listWorkers);
 	const createWorker = useEditorStore((state) => state.createWorker);
@@ -107,6 +109,9 @@ export function AMIEditor(): JSX.Element {
 	const [showStopAllDialog, setShowStopAllDialog] = useState(false);
 	const [showMigrateDialog, setShowMigrateDialog] = useState(false);
 	const [workerToMigrate, setWorkerToMigrate] = useState<Worker | null>(null);
+	const [showDeveloperAccessDialog, setShowDeveloperAccessDialog] = useState(
+		false,
+	);
 	const [newlyCreatedWorker, setNewlyCreatedWorker] = useState<string | null>(
 		null,
 	);
@@ -123,8 +128,30 @@ export function AMIEditor(): JSX.Element {
 	});
 	const [activeTab, setActiveTab] = useState("code");
 
+	// Check developer access on mount
+	useEffect(() => {
+		if (wallet && connectionSession) {
+			// Check if user has developer permissions
+			const isDeveloper = connectionSession.developer || false;
+
+			if (!isDeveloper) {
+				console.log(
+					"[AMIEditor] User does not have developer permissions, showing access request dialog",
+				);
+				setShowDeveloperAccessDialog(true);
+				setLoading(false);
+			}
+		}
+	}, [wallet, connectionSession]);
+
 	// Load workers
 	const loadWorkers = async () => {
+		// Only load workers if user has developer permissions
+		if (!connectionSession?.developer) {
+			setLoading(false);
+			return;
+		}
+
 		setLoading(true);
 		try {
 			await listWorkers();
@@ -497,6 +524,15 @@ export function AMIEditor(): JSX.Element {
 		setShowMigrateDialog(true);
 	};
 
+	const handleCloseDeveloperAccessDialog = (open: boolean): void => {
+		setShowDeveloperAccessDialog(open);
+		// If dialog is being closed and user doesn't have developer access,
+		// navigate back to welcome (App Store)
+		if (!open && !connectionSession?.developer) {
+			navigateTo("welcome");
+		}
+	};
+
 	const filteredWorkers = workers
 		.filter((protocol) => {
 			// Search filter
@@ -575,13 +611,36 @@ export function AMIEditor(): JSX.Element {
 			<div className="h-full bg-background p-4 flex items-center justify-center">
 				<div className="text-center max-w-sm mx-auto">
 					<div className="w-16 h-16 bg-card rounded-xl flex items-center justify-center mb-4 mx-auto">
-						<Terminal className="w-8 h-8 text-amber-700 dark:text-amber-700 dark:text-amber-400" />
+						<Code className="w-8 h-8 text-amber-700 dark:text-amber-400" />
 					</div>
-					<h2 className="text-amber-700 dark:text-amber-700 dark:text-amber-400 font-mono text-lg font-bold mb-2">
-						MARKET BROWSER
+					<h2 className="text-amber-700 dark:text-amber-400 font-mono text-lg font-bold mb-2">
+						PROTOCOL EDITOR
 					</h2>
-					<p className="text-muted-foreground font-mono text-sm">
+					<p className="text-muted-foreground font-mono text-sm mb-6">
 						Desktop interface required
+					</p>
+					<div className="p-4 bg-card/50 border border-border rounded-lg text-left">
+						<p className="text-xs text-muted-foreground mb-3">
+							The Protocol Editor requires a desktop display for optimal
+							workflow:
+						</p>
+						<ul className="text-xs text-muted-foreground space-y-2">
+							<li className="flex items-start gap-2">
+								<span className="text-amber-500">•</span>
+								<span>Monaco code editor with syntax highlighting</span>
+							</li>
+							<li className="flex items-start gap-2">
+								<span className="text-amber-500">•</span>
+								<span>Split-panel layout for code and worker list</span>
+							</li>
+							<li className="flex items-start gap-2">
+								<span className="text-amber-500">•</span>
+								<span>Real-time execution logs and statistics</span>
+							</li>
+						</ul>
+					</div>
+					<p className="text-xs text-muted-foreground mt-4">
+						Please open STELS on a desktop browser to access the Protocol Editor
 					</p>
 				</div>
 			</div>
@@ -1738,6 +1797,12 @@ export function AMIEditor(): JSX.Element {
 						</div>
 					</div>
 				)}
+
+				{/* Developer Access Request Dialog */}
+				<DeveloperAccessRequestDialog
+					open={showDeveloperAccessDialog}
+					onOpenChange={handleCloseDeveloperAccessDialog}
+				/>
 			</div>
 		)
 		: (
@@ -1755,7 +1820,8 @@ export function AMIEditor(): JSX.Element {
 					</h2>
 
 					<p className="text-muted-foreground text-sm mb-8 leading-relaxed">
-						Connect your wallet to access the protocol registry and code editor
+						Connect your wallet to access the Protocol Editor and build
+						autonomous web agents
 					</p>
 
 					<div className="space-y-4">
@@ -1769,7 +1835,7 @@ export function AMIEditor(): JSX.Element {
 								</span>
 							</div>
 							<p className="text-muted-foreground text-xs">
-								Manage distributed execution protocols
+								Create and manage distributed protocols for autonomous agents
 							</p>
 						</div>
 
@@ -1783,7 +1849,7 @@ export function AMIEditor(): JSX.Element {
 								</span>
 							</div>
 							<p className="text-muted-foreground text-xs">
-								Write and deploy smart contracts
+								Write and deploy workers across the heterogeneous network
 							</p>
 						</div>
 					</div>
@@ -1799,7 +1865,7 @@ export function AMIEditor(): JSX.Element {
 					<div className="mt-6 px-4 py-2 bg-muted/50 rounded inline-block">
 						<div className="text-xs text-muted-foreground font-mono flex items-center gap-2">
 							<Server className="w-3 h-3" />
-							Secure Web3 connection required
+							Secure cryptographic connection required
 						</div>
 					</div>
 				</div>

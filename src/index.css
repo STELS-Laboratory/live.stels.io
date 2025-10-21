@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
 @plugin 'tailwindcss-animate';
+@plugin '@tailwindcss/typography';
 
 /* Custom utility classes for panel animations */
 .hover\:scale-102:hover {
@@ -48,7 +49,7 @@
     --route-transition-duration: 0.15s;
     --route-transition-offset: 8px;
 
-    /* Container max-widths following Web3 standards */
+    /* Container max-widths following Web 5 standards */
     --container-sm: 640px;
     --container-md: 768px;
     --container-lg: 1024px;
@@ -265,7 +266,7 @@
     }
 }
 
-/* Full-width container for Web3 applications */
+/* Full-width container for Web 5 applications */
 .container-full {
     width: 100%;
     margin-left: auto;
