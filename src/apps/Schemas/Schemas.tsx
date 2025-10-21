@@ -19,7 +19,6 @@ import SchemaEditor from "./schema_editor";
 import SchemaPreview from "./schema_preview";
 import SchemaManager from "./schema_manager";
 import MultiChannelSelector from "./multi_channel_selector";
-import SessionDataViewer from "./session_data_viewer";
 import CollapsibleSection from "./collapsible_section";
 import SchemaStats from "./schema_stats";
 import SchemaHelp from "./schema_help";
@@ -35,7 +34,15 @@ import {
   getAllSchemas,
   saveSchema,
 } from "./db.ts";
-import { FileJson, Plus, Upload, Save, Copy, Download, Book } from "lucide-react";
+import {
+  Book,
+  Copy,
+  Download,
+  FileJson,
+  Plus,
+  Save,
+  Upload,
+} from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -637,7 +644,11 @@ export default function Schemas(): ReactElement {
                     variant="ghost"
                     size="sm"
                     onClick={() => setIsHelpOpen(!isHelpOpen)}
-                    className={`h-7 w-7 p-0 ${isHelpOpen ? "bg-blue-500/20 text-blue-700 dark:text-blue-400" : ""}`}
+                    className={`h-7 w-7 p-0 ${
+                      isHelpOpen
+                        ? "bg-blue-500/20 text-blue-700 dark:text-blue-400"
+                        : ""
+                    }`}
                   >
                     <Book className="w-3.5 h-3.5" />
                   </Button>
@@ -648,10 +659,16 @@ export default function Schemas(): ReactElement {
               {/* Validation status */}
               {isValid
                 ? (
-                  <span className="w-2 h-2 bg-green-500 rounded-full mx-1" title="Valid JSON" />
+                  <span
+                    className="w-2 h-2 bg-green-500 rounded-full mx-1"
+                    title="Valid JSON"
+                  />
                 )
                 : (
-                  <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse mx-1" title="Invalid JSON" />
+                  <span
+                    className="w-2 h-2 bg-red-500 rounded-full animate-pulse mx-1"
+                    title="Invalid JSON"
+                  />
                 )}
 
               {activeSchema && (
@@ -679,7 +696,10 @@ export default function Schemas(): ReactElement {
                         onClick={async () => {
                           if (!activeSchema) return;
                           try {
-                            const allSchemas = await collectNestedSchemasForExport(activeSchema.widgetKey);
+                            const allSchemas =
+                              await collectNestedSchemasForExport(
+                                activeSchema.widgetKey,
+                              );
                             const exportData = {
                               version: "1.0",
                               exportedAt: new Date().toISOString(),
@@ -687,19 +707,32 @@ export default function Schemas(): ReactElement {
                               schemas: allSchemas,
                             };
                             const dataStr = JSON.stringify(exportData, null, 2);
-                            const dataBlob = new Blob([dataStr], { type: "application/json" });
+                            const dataBlob = new Blob([dataStr], {
+                              type: "application/json",
+                            });
                             const url = URL.createObjectURL(dataBlob);
                             const link = document.createElement("a");
                             link.href = url;
                             const schemaCount = allSchemas.length;
-                            const suffix = schemaCount > 1 ? `+${schemaCount - 1}-nested` : "";
-                            link.download = `schema-${activeSchema.name.toLowerCase().replace(/\s+/g, "-")}${suffix}.json`;
+                            const suffix = schemaCount > 1
+                              ? `+${schemaCount - 1}-nested`
+                              : "";
+                            link.download = `schema-${
+                              activeSchema.name.toLowerCase().replace(
+                                /\s+/g,
+                                "-",
+                              )
+                            }${suffix}.json`;
                             link.click();
                             URL.revokeObjectURL(url);
                             handleExport(allSchemas);
                           } catch (error) {
                             console.error("Failed to export:", error);
-                            showToast("error", "Error", "Failed to export schema");
+                            showToast(
+                              "error",
+                              "Error",
+                              "Failed to export schema",
+                            );
                           }
                         }}
                         disabled={!activeSchema || !isValid}
@@ -744,23 +777,27 @@ export default function Schemas(): ReactElement {
                         disabled={!activeSchema || !isValid || isSaving}
                         className="h-7 px-2"
                       >
-                        {isSaving ? (
-                          <>
-                            <div className="w-3 h-3 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin mr-1.5" />
-                            <span className="text-xs">Saving</span>
-                          </>
-                        ) : (
-                          <>
-                            <Save className="w-3.5 h-3.5 mr-1.5" />
-                            <span className="text-xs">Save</span>
-                            <kbd className="ml-1.5 px-1 py-0.5 text-[10px] bg-background/50 rounded border border-border">
-                              ⌘S
-                            </kbd>
-                          </>
-                        )}
+                        {isSaving
+                          ? (
+                            <>
+                              <div className="w-3 h-3 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin mr-1.5" />
+                              <span className="text-xs">Saving</span>
+                            </>
+                          )
+                          : (
+                            <>
+                              <Save className="w-3.5 h-3.5 mr-1.5" />
+                              <span className="text-xs">Save</span>
+                              <kbd className="ml-1.5 px-1 py-0.5 text-[10px] bg-background/50 rounded border border-border">
+                                ⌘S
+                              </kbd>
+                            </>
+                          )}
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent side="bottom">Save Schema (⌘S)</TooltipContent>
+                    <TooltipContent side="bottom">
+                      Save Schema (⌘S)
+                    </TooltipContent>
                   </Tooltip>
                 </>
               )}
@@ -824,21 +861,21 @@ export default function Schemas(): ReactElement {
                       defaultOpen={true}
                       badge={selectedChannels.length}
                     >
-                    <div className="p-2">
-                      <ChannelAliasEditor
-                        channelKeys={selectedChannels}
-                        aliases={channelAliases}
-                        onChange={setChannelAliases}
-                        selfChannelKey={selfChannelKey}
-                        onSelfChannelChange={(key) => {
-                          console.log(
-                            "[Schemas] User changed selfChannelKey to:",
-                            key,
-                          );
-                          setSelfChannelKey(key);
-                        }}
-                      />
-                    </div>
+                      <div className="p-2">
+                        <ChannelAliasEditor
+                          channelKeys={selectedChannels}
+                          aliases={channelAliases}
+                          onChange={setChannelAliases}
+                          selfChannelKey={selfChannelKey}
+                          onSelfChannelChange={(key) => {
+                            console.log(
+                              "[Schemas] User changed selfChannelKey to:",
+                              key,
+                            );
+                            setSelfChannelKey(key);
+                          }}
+                        />
+                      </div>
                     </CollapsibleSection>
                   )}
                 </>
@@ -1013,30 +1050,8 @@ export default function Schemas(): ReactElement {
             )}
           </div>
 
-          {/* Right pane - Preview */}
+          {/* Right pane - Preview Only */}
           <div className="flex flex-col w-1/2">
-            <div className="flex-shrink-0 px-3 py-2 border-b border-border bg-card">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-foreground">
-                    Live Preview
-                  </span>
-                  {channelsData.length > 0 && (
-                    <span className="flex items-center gap-1 text-xs text-green-500">
-                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                      {channelsData.length}{" "}
-                      channel{channelsData.length !== 1 ? "s" : ""}
-                    </span>
-                  )}
-                </div>
-                {activeSchema && (
-                  <span className="text-xs text-muted-foreground">
-                    {activeSchema.name}
-                  </span>
-                )}
-              </div>
-            </div>
-
             <div className="flex-1 overflow-hidden">
               <SchemaPreview
                 schema={parsedSchema}
@@ -1045,13 +1060,6 @@ export default function Schemas(): ReactElement {
                 isStaticSchema={activeSchema?.type === "static"}
               />
             </div>
-
-            {/* Session Data Viewer - always shown for data inspection */}
-            <SessionDataViewer
-              channelsData={channelsData}
-              channelAliases={channelAliases}
-              selfChannelKey={selfChannelKey}
-            />
           </div>
         </div>
       </div>
