@@ -234,10 +234,10 @@ function WidgetItem({
         onTouchEnd={handleTouchEnd}
         onDragEnd={handleDragEnd}
         className={cn(
-          "flex items-center p-2 rounded-md transition-all duration-200",
+          "flex items-center p-3 rounded-lg transition-all duration-200 border",
           isInCanvas
-            ? "bg-muted text-muted-foreground cursor-not-allowed opacity-60"
-            : "bg-amber-600 text-black dark:text-black cursor-grab active:cursor-grabbing hover:bg-amber-500 hover:scale-105",
+            ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 cursor-not-allowed opacity-60 border-zinc-200/60 dark:border-zinc-800/60"
+            : "bg-zinc-50/50 dark:bg-zinc-900/50 text-foreground cursor-grab active:cursor-grabbing hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80 hover:scale-102 border-zinc-200/60 dark:border-zinc-800/60 shadow-sm hover:shadow-md",
           dragState.isDragging && "opacity-50 scale-95",
           isMobile && "touch-manipulation",
         )}
@@ -272,10 +272,10 @@ function WidgetItem({
       onTouchEnd={handleTouchEnd}
       onDragEnd={handleDragEnd}
       className={cn(
-        "transition-all duration-200",
+        "transition-all duration-200 border",
         isInCanvas
-          ? "cursor-not-allowed opacity-60 bg-secondary dark:bg-muted"
-          : "cursor-grab active:cursor-grabbing hover:shadow-md hover:scale-105",
+          ? "cursor-not-allowed opacity-60 bg-zinc-100 dark:bg-zinc-800 border-zinc-200/60 dark:border-zinc-800/60"
+          : "cursor-grab active:cursor-grabbing hover:shadow-md hover:scale-[1.02] bg-white dark:bg-zinc-900 border-zinc-200/60 dark:border-zinc-800/60 shadow-sm",
         dragState.isDragging && "opacity-50 scale-95",
         isMobile && "touch-manipulation",
       )}
@@ -285,7 +285,7 @@ function WidgetItem({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {getWidgetIcon(widgetType)}
-            <CardTitle className="text-sm font-medium truncate">
+            <CardTitle className="text-sm font-medium truncate text-zinc-900 dark:text-zinc-100">
               {widget.module}
             </CardTitle>
           </div>
@@ -298,13 +298,16 @@ function WidgetItem({
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-2">
-          <div className="text-xs text-muted-foreground dark:text-muted-foreground">
+          <div className="text-xs text-zinc-600 dark:text-zinc-400">
             Channel: {widget.channel}
           </div>
-          <div className="text-xs text-muted-foreground dark:text-muted-foreground">
+          <div className="text-xs text-zinc-600 dark:text-zinc-400">
             Type: {widgetType}
           </div>
-          <Badge variant="secondary" className="text-xs">
+          <Badge
+            variant="secondary"
+            className="text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200/60 dark:border-zinc-800/60"
+          >
             {extractCategory(keyStore)}
           </Badge>
         </div>
@@ -329,23 +332,27 @@ function GroupHeader({
     <div
       onClick={onToggle}
       className={cn(
-        "flex items-center justify-between p-3 cursor-pointer hover:bg-secondary dark:hover:bg-muted transition-colors",
+        "flex items-center justify-between p-3 cursor-pointer transition-colors",
         level === 0
-          ? "bg-secondary/50 dark:bg-secondary/50"
-          : "bg-secondary/30 dark:bg-muted/50",
+          ? "bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200/80 dark:hover:bg-zinc-700/80"
+          : "bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800",
         level === 0 && "sticky top-0 z-10",
         isMobile && "p-2",
         isTablet && "p-2.5",
       )}
-      style={{ paddingLeft: `${level * 8 + 8}px` }}
+      style={{ paddingLeft: `${level * 8 + 12}px` }}
     >
       <div className="flex items-center">
         {isOpen
-          ? <ChevronDown className="h-4 w-4 mr-2 text-muted-foreground" />
-          : <ChevronRight className="h-4 w-4 mr-2 text-muted-foreground" />}
+          ? (
+            <ChevronDown className="h-4 w-4 mr-2 text-zinc-500 dark:text-zinc-400" />
+          )
+          : (
+            <ChevronRight className="h-4 w-4 mr-2 text-zinc-500 dark:text-zinc-400" />
+          )}
         <span
           className={cn(
-            "font-medium",
+            "font-medium text-zinc-700 dark:text-zinc-300",
             level === 0 ? "text-sm" : "text-xs",
             isMobile && "text-xs",
             isTablet && "text-sm",
@@ -354,7 +361,10 @@ function GroupHeader({
           {title}
         </span>
       </div>
-      <Badge variant="secondary" className="text-xs">
+      <Badge
+        variant="secondary"
+        className="text-xs bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border-zinc-300/60 dark:border-zinc-700/60"
+      >
         {count}
       </Badge>
     </div>
@@ -375,20 +385,20 @@ function FilterBar({
   isTablet,
 }: FilterBarProps): React.ReactElement {
   return (
-    <div className="space-y-3 p-3 border-b bg-muted/30 dark:bg-muted/50">
-      {/* Search */}
+    <div className="space-y-3 p-4 border-b border-zinc-200/60 dark:border-zinc-800/60 bg-white dark:bg-zinc-900">
+      {/* Search - Soft Style */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
         <Input
           type="text"
           placeholder="Search widgets..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9 bg-white dark:bg-secondary"
+          className="pl-9 bg-zinc-50 dark:bg-zinc-800 border-zinc-200/60 dark:border-zinc-800/60 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
         />
       </div>
 
-      {/* Controls */}
+      {/* Controls - Soft Buttons */}
       <div
         className={cn(
           "flex flex-wrap gap-2",
@@ -402,7 +412,7 @@ function FilterBar({
           size={isMobile ? "sm" : isTablet ? "sm" : "sm"}
           onClick={() =>
             onSortDirectionChange(sortDirection === "asc" ? "desc" : "asc")}
-          className="whitespace-nowrap"
+          className="whitespace-nowrap bg-zinc-50 dark:bg-zinc-800 border-zinc-200/60 dark:border-zinc-800/60 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
         >
           {sortDirection === "asc"
             ? <SortAsc className="h-4 w-4" />
@@ -415,7 +425,7 @@ function FilterBar({
           size={isMobile ? "sm" : isTablet ? "sm" : "sm"}
           onClick={() =>
             onViewModeChange(viewMode === "grid" ? "list" : "grid")}
-          className="whitespace-nowrap"
+          className="whitespace-nowrap bg-zinc-50 dark:bg-zinc-800 border-zinc-200/60 dark:border-zinc-800/60 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
         >
           {viewMode === "grid"
             ? <Grid3X3 className="h-4 w-4" />
@@ -821,35 +831,50 @@ export function WidgetStore({
   return (
     <div
       className={cn(
-        "absolute top-0 bottom-0 right-0 z-50 border bg-background/95 overflow-hidden transition-all duration-300 transform backdrop-blur-md",
+        "absolute top-0 bottom-0 right-0 z-50 overflow-hidden transition-all duration-300 transform",
+        "bg-zinc-50 dark:bg-zinc-900",
+        "border-l border-zinc-200/60 dark:border-zinc-800/60",
+        "shadow-2xl",
         isMobile ? "w-1/2 h-full" : isTablet ? "w-1/2 h-full" : "w-1/3 h-full",
       )}
     >
-      {/* Header */}
-      <div className="border-b p-3 flex justify-between items-center bg-muted/80">
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center">
-            <Grid3X3 className="h-4 w-4 mr-2" />
-            <h3 className="font-semibold">Widget Store</h3>
+      {/* Header - Document Style */}
+      <div className="border-b border-zinc-200/60 dark:border-zinc-800/60 p-4 bg-white dark:bg-zinc-900">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-2">
+            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+              <Grid3X3 className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            </div>
+            <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
+              Widget Store
+            </h3>
           </div>
-          <div className="flex items-center space-x-2 text-xs text-muted-foreground dark:text-muted-foreground">
-            <Badge variant="secondary" className="text-xs">
-              {widgetStats.available} available
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              {widgetStats.inCanvas} in canvas
-            </Badge>
+          <div className="flex space-x-1.5">
+            <button
+              className="h-3 w-3 rounded-full bg-amber-400 hover:bg-amber-500 transition-colors"
+              onClick={() => {}}
+              title="Minimize"
+            />
+            <button
+              className="h-3 w-3 rounded-full bg-red-400 hover:bg-red-500 transition-colors"
+              onClick={onClose}
+              title="Close"
+            />
           </div>
         </div>
-        <div className="flex space-x-2">
-          <button
-            className="h-3 w-3 rounded-full bg-[#febc2e]"
-            onClick={() => {}}
-          />
-          <button
-            className="h-3 w-3 rounded-full bg-[#ff5f57]"
-            onClick={onClose}
-          />
+        <div className="flex items-center space-x-2 text-xs">
+          <Badge
+            variant="secondary"
+            className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200/60 dark:border-zinc-800/60"
+          >
+            {widgetStats.available} available
+          </Badge>
+          <Badge
+            variant="outline"
+            className="border-zinc-300/60 dark:border-zinc-700/60 text-zinc-600 dark:text-zinc-400"
+          >
+            {widgetStats.inCanvas} in canvas
+          </Badge>
         </div>
       </div>
 

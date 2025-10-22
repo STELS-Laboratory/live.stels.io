@@ -75,6 +75,12 @@ interface CanvasStoreActions {
 	clearAllPanels: () => void;
 	movePanelUp: (panelId: string) => void;
 	movePanelDown: (panelId: string) => void;
+	
+	// Export/Import Actions
+	exportPanel: (panelId: string) => string;
+	exportAllPanels: () => string;
+	importPanel: (jsonData: string) => string | null;
+	importAllPanels: (jsonData: string) => boolean;
 }
 
 /**
@@ -435,6 +441,105 @@ export const useCanvasStore = create<CanvasStore>()(
 						};
 					});
 				},
+
+				// Export/Import Actions
+				exportPanel: (panelId: string): string => {
+					const state = get();
+					const panel = state.getPanelById(panelId);
+					const panelData = state.getPanelData(panelId);
+
+					if (!panel || !panelData) {
+						throw new Error("Panel not found");
+					}
+
+					const exportData = {
+						version: "1.0",
+						panel,
+						panelData,
+						exportedAt: Date.now(),
+					};
+
+					return JSON.stringify(exportData, null, 2);
+				},
+
+				exportAllPanels: (): string => {
+					const state = get();
+					const panels = state.panels.panels;
+					const panelData = state.panels.panelData;
+
+					const exportData = {
+						version: "1.0",
+						panels,
+						panelData,
+						exportedAt: Date.now(),
+					};
+
+					return JSON.stringify(exportData, null, 2);
+				},
+
+				importPanel: (jsonData: string): string | null => {
+					try {
+						const importData = JSON.parse(jsonData);
+
+						if (!importData.panel || !importData.panelData) {
+							throw new Error("Invalid panel data format");
+						}
+
+						const newPanel = {
+							...importData.panel,
+							id: generatePanelId(),
+							name: `${importData.panel.name} (Imported)`,
+							isActive: false,
+							createdAt: Date.now(),
+							updatedAt: Date.now(),
+						};
+
+						const newPanelData = {
+							...importData.panelData,
+							panelId: newPanel.id,
+						};
+
+						set((state) => ({
+							panels: {
+								...state.panels,
+								panels: [...state.panels.panels, newPanel],
+								panelData: {
+									...state.panels.panelData,
+									[newPanel.id]: newPanelData,
+								},
+							},
+						}));
+
+						return newPanel.id;
+					} catch (error) {
+						console.error("Failed to import panel:", error);
+						return null;
+					}
+				},
+
+				importAllPanels: (jsonData: string): boolean => {
+					try {
+						const importData = JSON.parse(jsonData);
+
+						if (!importData.panels || !importData.panelData) {
+							throw new Error("Invalid panels data format");
+						}
+
+						set({
+							panels: {
+								panels: importData.panels,
+								activePanelId:
+									importData.panels.length > 0 ? importData.panels[0].id : null,
+								panelData: importData.panelData,
+							},
+						});
+
+						return true;
+					} catch (error) {
+						console.error("Failed to import panels:", error);
+						return false;
+					}
+				},
 			}),
 			{
 				name: "canvas-store",
@@ -483,5 +588,9 @@ export const usePanelActions = () =>
 		clearAllPanels: state.clearAllPanels,
 		movePanelUp: state.movePanelUp,
 		movePanelDown: state.movePanelDown,
+		exportPanel: state.exportPanel,
+		exportAllPanels: state.exportAllPanels,
+		importPanel: state.importPanel,
+		importAllPanels: state.importAllPanels,
 	}));
 

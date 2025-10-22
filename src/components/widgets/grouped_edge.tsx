@@ -43,7 +43,7 @@ function GroupedEdge({
 
   // Color intensity based on connection count
   const colorIntensity = Math.min((data?.connectionCount || 1) / 5, 1);
-  const baseColor = style.stroke as string || "#f59e0b"; // fallback to amber
+  const baseColor = style.stroke as string || "#c9995a"; // fallback to custom amber
   const adjustedColor = adjustColorOpacity(baseColor, colorIntensity);
 
   console.log("GroupedEdge rendering:", {

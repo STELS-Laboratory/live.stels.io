@@ -240,13 +240,13 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 				{/* Desktop Sidebar - Only for developers */}
 				{isDeveloper && (
 					<motion.aside
-						className="hidden lg:flex lg:flex-col border-r h-full bg-card/50 backdrop-blur-sm overflow-hidden"
+						className="hidden lg:flex lg:flex-col border-r border-border h-full bg-card/30 backdrop-blur-md overflow-hidden shadow-sm"
 						aria-label="Primary navigation"
 						initial={{ x: -80, opacity: 0 }}
 						animate={{ x: 0, opacity: 1 }}
 						transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
 					>
-						<div className="flex h-20 w-full items-center justify-center">
+						<div className="flex h-16 w-full items-center justify-center">
 							<motion.button
 								onClick={() => navigateTo("welcome")}
 								className="flex items-center justify-center p-2 cursor-pointer"
@@ -274,9 +274,9 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						</div>
 
 						<div className="flex-1 text-center overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-							<nav className="p-1 space-y-8">
+							<nav className="p-2 space-y-6">
 								<div>
-									<div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
+									<div className="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
 										Stels
 									</div>
 									<div className="space-y-1">
@@ -285,7 +285,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								</div>
 
 								<div>
-									<div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
+									<div className="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
 										Apps
 									</div>
 									<div className="space-y-1">
@@ -296,7 +296,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						</div>
 
 						<motion.div
-							className="p-4 h-16"
+							className="p-3 h-14"
 							initial={{ opacity: 0, y: 30 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{
@@ -341,10 +341,10 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 
 				{/* Main Content Area */}
 				<div className="flex flex-col min-w-0 h-[100%] overflow-hidden">
-					<header className="shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+					<header className="shrink-0 border-b border-border bg-card/50 backdrop-blur-md shadow-sm">
 						{/* Mobile Header - iOS Style */}
 						<div className="lg:hidden">
-							<div className="flex items-center justify-between px-4 h-14 border-b border-border/50">
+							<div className="flex items-center justify-between px-4 h-16 border-b border-border/50">
 								<div className="flex items-center gap-2">
 									<Graphite size={1.5} />
 									<span className="text-sm font-semibold text-foreground">
@@ -375,8 +375,8 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 
 							{/* Mobile Navigation Menu for Developers */}
 							{isDeveloper && currentRoute === "welcome" && (
-								<div className="px-4 py-3 border-t border-border/50">
-									<div className="grid grid-cols-3 gap-2">
+								<div className="px-4 py-2 border-t border-border/50">
+									<div className="grid grid-cols-3 gap-3">
 										{systemNav.map((item) => {
 											const Icon = item.icon;
 											return (
@@ -408,7 +408,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								ease: [0.16, 1, 0.3, 1],
 							}}
 						>
-							<div className="flex items-center justify-between px-6 h-16">
+							<div className="flex items-center justify-between px-6 h-[4rem]">
 								<div className="flex items-center gap-4">
 									{!isDeveloper && (
 										<div className="flex items-center gap-2">
@@ -573,8 +573,8 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						)}
 					</main>
 
-					<footer className="h-12 border-t border-border bg-card/30">
-						<div className="h-full px-4 flex items-center justify-between">
+					<footer className="h-[3rem] border-t border-border bg-card/50 backdrop-blur-sm shadow-inner">
+						<div className="h-full px-6 flex items-center justify-between">
 							<span className="text-[10px] text-muted-foreground">
 								© 2025 Gliesereum Ukraine
 							</span>

@@ -53,14 +53,14 @@ export function useDragAndDrop() {
 				
 				dragImage.innerHTML = `
 					<div style="
-						background: #f59e0b;
+						background: #c9995a;
 						color: black;
 						padding: 8px 12px;
 						border-radius: 6px;
 						font-size: 12px;
 						font-weight: 500;
 						box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-						border: 2px solid #fbbf24;
+						border: 2px solid #d9ad66;
 					">
 						${displayText}
 					</div>

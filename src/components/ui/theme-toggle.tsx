@@ -64,7 +64,7 @@ export function ThemeToggle(): React.ReactElement {
               }}
               className="absolute inset-0 flex items-center justify-center"
             >
-              <Sun className="h-4 w-4 text-amber-500" />
+              <Sun className="h-[18px] w-[18px] text-primary" />
             </motion.div>
 
             {/* Moon icon for dark theme */}
@@ -81,7 +81,7 @@ export function ThemeToggle(): React.ReactElement {
               }}
               className="absolute inset-0 flex items-center justify-center"
             >
-              <Moon className="h-4 w-4 text-amber-500" />
+              <Moon className="h-[18px] w-[18px] text-primary" />
             </motion.div>
 
             {/* Monitor icon for system theme */}
@@ -98,14 +98,14 @@ export function ThemeToggle(): React.ReactElement {
               }}
               className="absolute inset-0 flex items-center justify-center"
             >
-              <Monitor className="h-4 w-4 text-amber-500" />
+              <Monitor className="h-[18px] w-[18px] text-primary" />
             </motion.div>
           </Button>
         </TooltipTrigger>
         <TooltipContent>
           <p className="font-medium">{getThemeLabel(theme)}</p>
           {theme === "system" && (
-            <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
+            <p className="text-xs text-primary mt-1">
               Using {resolvedTheme} (from system)
             </p>
           )}
@@ -146,7 +146,7 @@ export function ThemeToggleCompact(): React.ReactElement {
         }}
         className="absolute"
       >
-        <Sun className="h-4 w-4 text-amber-500" />
+        <Sun className="h-[18px] w-[18px] text-primary" />
       </motion.div>
 
       {/* Moon icon for dark theme */}
@@ -163,7 +163,7 @@ export function ThemeToggleCompact(): React.ReactElement {
         }}
         className="absolute"
       >
-        <Moon className="h-4 w-4 text-amber-500" />
+        <Moon className="h-[18px] w-[18px] text-primary" />
       </motion.div>
 
       {/* Monitor icon for system theme */}
@@ -180,7 +180,7 @@ export function ThemeToggleCompact(): React.ReactElement {
         }}
         className="absolute"
       >
-        <Monitor className="h-4 w-4 text-amber-500" />
+        <Monitor className="h-[18px] w-[18px] text-primary" />
       </motion.div>
     </button>
   );

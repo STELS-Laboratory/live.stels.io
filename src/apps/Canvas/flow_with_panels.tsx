@@ -20,8 +20,8 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import useSessionStoreSync from "@/hooks/use_session_store_sync.ts";
 import MacOSNode from "@/apps/canvas/macos_node.tsx";
-import { Boxes, Network, Settings, ShoppingBag } from "lucide-react";
-import { cleanBrands, cn } from "@/lib/utils.ts";
+import { Boxes } from "lucide-react";
+import { cleanBrands } from "@/lib/utils.ts";
 import Graphite from "@/components/ui/vectors/logos/graphite.tsx";
 import {
 	type FlowNode,
@@ -29,16 +29,21 @@ import {
 	type SessionStore,
 } from "@/lib/canvas-types.ts";
 import { useCanvasStore } from "./store.ts";
-import { PanelTabs } from "@/components/panels/panel_tabs.tsx";
+import PanelTabsPro from "@/components/panels/panel_tabs_pro.tsx";
 import { PanelManager } from "@/components/panels/panel_manager.tsx";
 import { WidgetStore } from "@/components/widgets/widget_store.tsx";
 import { useDragAndDrop } from "@/hooks/use_drag_and_drop.ts";
-import { DropZoneIndicator } from "@/components/widgets/drag_preview.tsx";
-import { useAutoConnections } from "@/hooks/use_auto_connections.ts";
+import { useDynamicAutoConnections } from "@/hooks/use_dynamic_auto_connections.ts";
 import GroupedEdge from "@/components/widgets/grouped_edge.tsx";
-import AutoConnectionsSettings from "@/components/widgets/auto_connections_settings.tsx";
-import { getAvailableConnectionKeys } from "@/lib/auto-connections.ts";
+import { AutoConnectionsPanel } from "@/components/canvas/auto_connections_panel.tsx";
+import { analyzeNodeChannels } from "@/lib/auto-connections-dynamic.ts";
 import { useMobile } from "@/hooks/use_mobile.ts";
+import { CanvasControls } from "@/components/canvas/canvas_controls.tsx";
+import {
+	EmptyCanvasState,
+	EnhancedDropZone,
+	PanelTransitionOverlay,
+} from "@/components/canvas/canvas_overlays.tsx";
 
 // Define nodeTypes and edgeTypes outside component to avoid React Flow warnings
 const nodeTypes: NodeTypes = {
@@ -48,117 +53,6 @@ const nodeTypes: NodeTypes = {
 const edgeTypes = {
 	grouped: GroupedEdge,
 };
-
-/**
- * Props for the DockItem component
- */
-interface DockItemProps {
-	/** Icon to display in the dock */
-	icon: React.ReactNode;
-	/** Label to display in the tooltip */
-	label: string;
-	/** Whether the item is currently active */
-	isActive?: boolean;
-	/** Callback when the item is clicked */
-	onClick: () => void;
-}
-
-/**
- * Props for the MacOSDock component
- */
-interface MacOSDockProps {
-	/** Callback to open the widget store */
-	onOpenWidgetStore: () => void;
-	/** Whether the widget store is currently open */
-	isWidgetStoreOpen: boolean;
-	/** Callback to open panel manager */
-	onOpenPanelManager: () => void;
-	/** Whether panel manager is open */
-	isPanelManagerOpen: boolean;
-	/** Callback to toggle auto connections */
-	onToggleAutoConnections?: () => void;
-	/** Whether auto connections are enabled */
-	isAutoConnectionsEnabled: boolean;
-	/** Callback to toggle auto connections settings */
-	onToggleAutoConnectionsSettings: () => void;
-	/** Whether auto connections settings are open */
-	isAutoConnectionsSettingsOpen: boolean;
-}
-
-/**
- * Dock Item Component
- */
-function DockItem(
-	{ icon, label, isActive = false, onClick }: DockItemProps,
-): React.ReactElement {
-	const [isHovered, setIsHovered] = React.useState<boolean>(false);
-
-	return (
-		<div className="group relative flex flex-col items-center">
-			<div
-				className={cn(
-					"absolute bottom-full mb-2 rounded-md bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 transition-opacity border border-border",
-					(isHovered || isActive) && "opacity-100",
-				)}
-			>
-				{label}
-			</div>
-
-			<button
-				onClick={onClick}
-				onMouseEnter={() => setIsHovered(true)}
-				onMouseLeave={() => setIsHovered(false)}
-				className={cn(
-					"flex h-12 w-12 items-center justify-center rounded-full bg-foreground/10 backdrop-blur-md transition-all duration-200 hover:scale-110 hover:bg-foreground/20",
-					isActive && "bg-foreground/30",
-				)}
-			>
-				{icon}
-			</button>
-			{isActive && <div className="mt-1 h-1 w-1 rounded-full bg-foreground" />}
-		</div>
-	);
-}
-
-/**
- * macOS Dock Component
- */
-function MacOSDock(
-	{
-		onOpenWidgetStore,
-		isWidgetStoreOpen,
-		onOpenPanelManager,
-		isPanelManagerOpen,
-		isAutoConnectionsEnabled,
-		onToggleAutoConnectionsSettings,
-		isAutoConnectionsSettingsOpen,
-	}: MacOSDockProps,
-): React.ReactElement {
-	return (
-		<div className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-2xl bg-background/80 p-2 backdrop-blur-lg border border-border/30">
-			<div className="flex items-center space-x-2">
-				<DockItem
-					icon={<ShoppingBag className="h-6 w-6" />}
-					label="Widget Store"
-					isActive={isWidgetStoreOpen}
-					onClick={onOpenWidgetStore}
-				/>
-				<DockItem
-					icon={<Network className="h-6 w-6" />}
-					label="Auto Connections"
-					isActive={isAutoConnectionsEnabled || isAutoConnectionsSettingsOpen}
-					onClick={onToggleAutoConnectionsSettings}
-				/>
-				<DockItem
-					icon={<Settings className="h-6 w-6" />}
-					label="Panel Manager"
-					isActive={isPanelManagerOpen}
-					onClick={onOpenPanelManager}
-				/>
-			</div>
-		</div>
-	);
-}
 
 /**
  * Main Flow Component with Panels
@@ -186,7 +80,7 @@ function FlowWithPanels(): React.ReactElement | null {
 	// Enhanced drag and drop
 	const { dragState, handleDragOver, handleDragLeave } = useDragAndDrop();
 
-	// Auto connections hook
+	// Dynamic auto connections hook
 	const {
 		isEnabled: isAutoConnectionsEnabled,
 		toggleAutoConnections,
@@ -194,7 +88,7 @@ function FlowWithPanels(): React.ReactElement | null {
 		stats: connectionStats,
 		config: autoConnectionsConfig,
 		updateConfig: updateAutoConnectionsConfig,
-	} = useAutoConnections(nodes, edges);
+	} = useDynamicAutoConnections(nodes, edges);
 
 	const session = useSessionStoreSync() as SessionStore | null;
 	const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
@@ -364,6 +258,37 @@ function FlowWithPanels(): React.ReactElement | null {
 		cleanBrands();
 	}, []);
 
+	// Keyboard shortcuts for canvas controls
+	useEffect(() => {
+		const handleKeyPress = (event: KeyboardEvent): void => {
+			// Ignore if user is typing in input field
+			if (
+				event.target instanceof HTMLInputElement ||
+				event.target instanceof HTMLTextAreaElement
+			) {
+				return;
+			}
+
+			switch (event.key.toLowerCase()) {
+				case "s":
+					toggleWidgetStore();
+					break;
+				case "a":
+					toggleAutoConnections();
+					break;
+				case "p":
+					setIsPanelManagerOpen((prev) => !prev);
+					break;
+				case "?":
+					// Keyboard shortcuts help is handled in CanvasControls
+					break;
+			}
+		};
+
+		document.addEventListener("keydown", handleKeyPress);
+		return () => document.removeEventListener("keydown", handleKeyPress);
+	}, [toggleWidgetStore, toggleAutoConnections]);
+
 	const onConnect = useCallback(
 		(params: Edge | Connection) => {
 			setEdges((eds) => {
@@ -501,6 +426,27 @@ function FlowWithPanels(): React.ReactElement | null {
 		return nodes.map((node) => node.data.channel).filter(Boolean);
 	}, [nodes]);
 
+	// Analyze channels for dynamic grouping
+	const channelAnalysis = useMemo(() => {
+		const analysis = analyzeNodeChannels(nodes);
+
+		// Debug: log channel analysis
+		console.log("[Canvas] Channel Analysis:", {
+			nodeCount: nodes.length,
+			blocksDetected: analysis.blocks.length,
+			blocks: analysis.blocks.map((b) => ({
+				position: b.position,
+				label: b.label,
+				valueCount: b.values.size,
+				values: Array.from(b.values),
+			})),
+			suggestedBlocks: analysis.suggestedBlocks,
+			channels: nodes.map((n) => n.data.channel),
+		});
+
+		return analysis;
+	}, [nodes]);
+
 	if (!session) return null;
 
 	// Mobile warning - desktop interface required
@@ -549,31 +495,17 @@ function FlowWithPanels(): React.ReactElement | null {
 	const activePanel = getActivePanel();
 
 	return (
-		<div className="absolute w-[100%] h-[100%] top-0 left-0 flex flex-col transition-all duration-300 ease-in-out">
-			{/* Panel tabs */}
-			<PanelTabs className="flex-shrink-0" />
+		<div className="absolute w-[100%] h-[100%] top-0 left-0 flex flex-col bg-zinc-50 dark:bg-zinc-950">
+			{/* Panel tabs - Professional */}
+			<PanelTabsPro className="flex-shrink-0" />
 
-			{/* Main Canvas area */}
-			<div
-				className={cn(
-					"flex-1 relative transition-all duration-300 ease-in-out",
-					isPanelTransitioning ? "opacity-60" : "opacity-100",
-				)}
-			>
-				{/* Panel transition overlay */}
-				{isPanelTransitioning && (
-					<div className="absolute inset-0 z-50 bg-background/60 backdrop-blur-sm flex items-center justify-center">
-						<div className="bg-card rounded px-6 py-4 border border-border">
-							<div className="flex items-center space-x-3">
-								<div className="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-500">
-								</div>
-								<span className="text-sm font-medium text-card-foreground">
-									Loading panel...
-								</span>
-							</div>
-						</div>
-					</div>
-				)}
+			{/* Main Canvas area - Document Style Background */}
+			<div className="flex-1 relative bg-zinc-100 dark:bg-zinc-900">
+				{/* Panel transition overlay - Professional design */}
+				<PanelTransitionOverlay
+					isTransitioning={isPanelTransitioning}
+					panelName={activePanel?.name}
+				/>
 
 				<ReactFlow
 					nodes={nodes}
@@ -674,31 +606,43 @@ function FlowWithPanels(): React.ReactElement | null {
 						<div className="mt-1 text-xs text-muted-foreground/30">
 							Auto enabled: {isAutoConnectionsEnabled ? "Yes" : "No"}
 						</div>
+						{/* Channel analysis debug */}
+						<div className="mt-1 text-xs text-muted-foreground/30">
+							Blocks detected: {channelAnalysis.blocks.length}
+						</div>
+						{/* Selected blocks debug */}
+						<div className="mt-1 text-xs text-muted-foreground/30">
+							Selected blocks:
+							[{autoConnectionsConfig.selectedBlocks?.join(", ") || "none"}]
+						</div>
 					</div>
 				</ReactFlow>
 
-				{/* Drop Zone Indicator */}
-				<DropZoneIndicator
+				{/* Enhanced Drop Zone - Professional */}
+				<EnhancedDropZone
 					isActive={dragState.dropZoneActive && dragState.isDragging}
-					position={dragState.mousePosition
-						? {
-							x: dragState.mousePosition.x - 50,
-							y: dragState.mousePosition.y - 25,
-							width: 100,
-							height: 50,
-						}
-						: undefined}
+					mousePosition={dragState.mousePosition || undefined}
 				/>
 
-				<MacOSDock
-					onOpenWidgetStore={toggleWidgetStore}
+				{/* Empty Canvas State - Professional */}
+				{nodes.length === 0 && !isPanelTransitioning && (
+					<EmptyCanvasState onAddWidget={toggleWidgetStore} />
+				)}
+
+				{/* Canvas Controls - Professional Design */}
+				<CanvasControls
 					isWidgetStoreOpen={isWidgetStoreOpen}
-					onOpenPanelManager={() => setIsPanelManagerOpen(true)}
+					onToggleWidgetStore={toggleWidgetStore}
 					isPanelManagerOpen={isPanelManagerOpen}
+					onTogglePanelManager={() =>
+						setIsPanelManagerOpen(!isPanelManagerOpen)}
 					isAutoConnectionsEnabled={isAutoConnectionsEnabled}
+					onToggleAutoConnections={toggleAutoConnections}
+					isAutoConnectionsSettingsOpen={isAutoConnectionsSettingsOpen}
 					onToggleAutoConnectionsSettings={() =>
 						setIsAutoConnectionsSettingsOpen(!isAutoConnectionsSettingsOpen)}
-					isAutoConnectionsSettingsOpen={isAutoConnectionsSettingsOpen}
+					connectionStats={connectionStats}
+					nodeCount={nodes.length}
 				/>
 			</div>
 
@@ -717,16 +661,17 @@ function FlowWithPanels(): React.ReactElement | null {
 				existingWidgets={existingWidgets}
 			/>
 
-			{/* Auto Connections Settings */}
+			{/* Auto Connections Settings Panel - Professional */}
 			{isAutoConnectionsSettingsOpen && (
-				<div className="absolute top-4 right-4 z-30 space-y-4">
-					<AutoConnectionsSettings
+				<div className="absolute top-14 right-4 z-30">
+					<AutoConnectionsPanel
 						config={autoConnectionsConfig}
 						isEnabled={isAutoConnectionsEnabled}
 						onToggle={toggleAutoConnections}
 						onUpdateConfig={updateAutoConnectionsConfig}
 						stats={connectionStats}
-						availableKeys={getAvailableConnectionKeys(nodes)}
+						availableBlocks={channelAnalysis.blocks}
+						onClose={() => setIsAutoConnectionsSettingsOpen(false)}
 					/>
 				</div>
 			)}

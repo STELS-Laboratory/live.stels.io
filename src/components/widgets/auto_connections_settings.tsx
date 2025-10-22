@@ -89,28 +89,35 @@ function AutoConnectionsSettings({
 
   const getKeyColor = (key: string) => {
     const colors = {
-      exchange: "bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30",
-      market: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-      asset: "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30",
+      exchange:
+        "bg-zinc-200/80 dark:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100 border-zinc-300/60 dark:border-zinc-700/60",
+      market:
+        "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+      asset:
+        "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30",
       base: "bg-violet-500/20 text-violet-400 border-violet-500/30",
-      quote: "bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 border-cyan-500/30",
+      quote:
+        "bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 border-cyan-500/30",
       type: "bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30",
       module: "bg-lime-500/20 text-lime-400 border-lime-500/30",
-      session: "bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30",
-      network: "bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 border-cyan-500/30",
+      session:
+        "bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30",
+      network:
+        "bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 border-cyan-500/30",
       category: "bg-lime-500/20 text-lime-400 border-lime-500/30",
-      dataType: "bg-orange-500/20 text-orange-700 dark:text-orange-400 border-orange-500/30",
+      dataType:
+        "bg-orange-500/20 text-orange-700 dark:text-orange-400 border-orange-500/30",
     };
     return colors[key as keyof typeof colors] ||
       "bg-muted/20 text-muted-foreground border-border/30";
   };
 
   return (
-    <Card className="w-full max-w-md bg-card/95 backdrop-blur-sm border-border">
+    <Card className="w-full max-w-md bg-card/95 backdrop-blur-sm border-border/60">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Network className="h-5 w-5 text-amber-500" />
+            <Network className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
             <CardTitle className="text-lg text-foreground">
               Auto Connections
             </CardTitle>
@@ -122,7 +129,7 @@ function AutoConnectionsSettings({
             className={cn(
               "transition-all duration-200",
               isEnabled
-                ? "bg-amber-500/20 text-amber-700 dark:text-amber-400 hover:bg-amber-500/30"
+                ? "bg-zinc-200/80 dark:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-300/80 dark:hover:bg-zinc-700/80"
                 : "bg-secondary/50 text-muted-foreground hover:bg-muted/50",
             )}
           >

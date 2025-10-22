@@ -50,7 +50,7 @@ export function DragPreview({
     <div
       className={cn(
         "fixed pointer-events-none transition-all duration-200",
-        "bg-amber-500 text-black dark:text-black rounded shadow-lg border-2 border-amber-400",
+        "bg-zinc-900 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-900 rounded shadow-lg border-2 border-zinc-700/60 dark:border-zinc-300/60",
       )}
       style={{
         left: position.x,
@@ -85,7 +85,7 @@ export function DropZoneIndicator({
 
   return (
     <div
-      className="fixed pointer-events-none border-2 border-dashed border-amber-500 bg-amber-500/10 rounded transition-all duration-200"
+      className="fixed pointer-events-none border-2 border-dashed border-zinc-400/60 dark:border-zinc-600/60 bg-zinc-100/10 dark:bg-zinc-800/10 rounded transition-all duration-200"
       style={{
         left: position.x,
         top: position.y,
@@ -94,7 +94,7 @@ export function DropZoneIndicator({
       }}
     >
       <div className="flex items-center justify-center h-full">
-        <div className="text-amber-500 text-sm font-medium">
+        <div className="text-zinc-700 dark:text-zinc-300 text-sm font-medium">
           Drop widget here
         </div>
       </div>

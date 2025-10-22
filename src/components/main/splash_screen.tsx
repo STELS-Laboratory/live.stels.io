@@ -54,7 +54,7 @@ const SplashScreen = (
 					}}
 					className="relative"
 				>
-					<Graphite primary="#f59e0b" size={8} />
+					<Graphite primary="#c9995a" size={8} />
 
 					{/* Glow effect */}
 					<motion.div

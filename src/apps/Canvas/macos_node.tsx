@@ -85,9 +85,16 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
 
 	return (
 		<div
-			className={`border transition-all cursor-auto bg-card rounded overflow-hidden
+			className={`
+        transition-all cursor-auto 
+        bg-white dark:bg-zinc-900
+        border border-zinc-200/60 dark:border-zinc-800/60
+        rounded-xl
+        shadow-sm hover:shadow-md
+        overflow-hidden
         ${nodeState.maximized ? "w-full h-full" : "w-auto h-auto"} 
-        ${nodeState.minimized ? "h-8" : ""}`}
+        ${nodeState.minimized ? "h-10" : ""}
+      `}
 		>
 			{/* Auto connection handles */}
 			<Handle
@@ -102,45 +109,60 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
 				id="auto-target"
 				className="opacity-0 w-0 h-0"
 			/>
-			<div className="flex relative items-center border-b bg-card justify-between px-2 py-1 cursor-move drag-handle">
-				<div className="flex items-center space-x-1">
-					<span className="text-xs text-muted-foreground truncate max-w-32">
+
+			{/* Header - Document Style */}
+			<div className="flex relative items-center justify-between px-3 py-2 border-b border-zinc-200/60 dark:border-zinc-800/60 bg-zinc-50/50 dark:bg-zinc-900/50 cursor-move drag-handle">
+				<div className="flex items-center space-x-2 flex-1 min-w-0">
+					<span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 truncate">
 						{props.data.label}
 					</span>
 				</div>
-				<div className="flex space-x-2">
+
+				{/* Window Controls - Soft Colors */}
+				<div className="flex space-x-1.5">
 					<button
 						onClick={handleClose}
-						className="w-3 h-3 cursor-pointer bg-muted hover:bg-red-500 rounded-full flex items-center justify-center transition-colors"
+						className="w-3 h-3 cursor-pointer bg-zinc-200/80 dark:bg-zinc-800/80 hover:bg-red-400/90 dark:hover:bg-red-500/80 rounded-full flex items-center justify-center transition-all duration-200"
 						title="Close"
 					>
-						<X size={6} />
+						<X size={6} className="text-zinc-600/80 dark:text-zinc-400/80" />
 					</button>
 					<button
 						onClick={handleMinimize}
-						className={`w-3 h-3 cursor-pointer transition-colors ${
+						className={`w-3 h-3 cursor-pointer transition-all duration-200 rounded-full flex items-center justify-center ${
 							!nodeState.minimized
-								? "bg-muted hover:bg-yellow-500"
-								: "bg-amber-600"
-						} rounded-full flex items-center justify-center`}
+								? "bg-zinc-200/80 dark:bg-zinc-800/80 hover:bg-amber-500/90 dark:hover:bg-amber-600/90"
+								: "bg-amber-500/90 dark:bg-amber-600/90"
+						}`}
 						title={nodeState.minimized ? "Restore" : "Minimize"}
 					>
-						<Minus size={6} />
+						<Minus
+							size={6}
+							className={nodeState.minimized
+								? "text-white"
+								: "text-zinc-600/80 dark:text-zinc-400/80"}
+						/>
 					</button>
 					<button
 						onClick={handleMaximize}
-						className={`w-3 h-3 cursor-pointer transition-colors ${
+						className={`w-3 h-3 cursor-pointer transition-all duration-200 rounded-full flex items-center justify-center ${
 							!nodeState.maximized
-								? "bg-muted hover:bg-green-500"
-								: "bg-green-600"
-						} rounded-full flex items-center justify-center`}
+								? "bg-zinc-200/80 dark:bg-zinc-800/80 hover:bg-emerald-500/90 dark:hover:bg-emerald-600/90"
+								: "bg-emerald-500/90 dark:bg-emerald-600/90"
+						}`}
 						title={nodeState.maximized ? "Restore" : "Maximize"}
 					>
-						<Square size={6} />
+						<Square
+							size={6}
+							className={nodeState.maximized
+								? "text-white"
+								: "text-zinc-600/80 dark:text-zinc-400/80"}
+						/>
 					</button>
 				</div>
 			</div>
 
+			{/* Content */}
 			{!nodeState.minimized && <NodeFlow {...props} />}
 		</div>
 	);
