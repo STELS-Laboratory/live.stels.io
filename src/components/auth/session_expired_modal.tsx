@@ -41,8 +41,8 @@ export const SessionExpiredModal: React.FC = (): React.ReactElement => {
       <div className="w-full max-w-lg mx-4">
         <Card className="backdrop-blur-md bg-card/80 border border-border">
           <CardHeader className="text-center">
-            <div className="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
-              <AlertTriangle className="h-7 w-7 text-black" />
+            <div className="icon-container-md mx-auto mb-4 bg-primary rounded-lg flex items-center justify-center">
+              <AlertTriangle className="icon-lg text-primary-foreground" />
             </div>
             <CardTitle className="text-xl text-foreground">
               Session Expired

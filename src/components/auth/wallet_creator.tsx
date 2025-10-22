@@ -147,7 +147,7 @@ export function WalletCreator(
       return {
         title: "Create New Wallet",
         subtitle: "Generate a secure Wallet with a unique private key",
-        icon: <Sparkles className="h-6 w-6 text-amber-500" />,
+        icon: <Sparkles className="icon-lg text-primary" />,
         description:
           "We'll generate a cryptographically secure private key for your new Wallet. This process is completely secure and happens locally in your browser.",
         actionText: "Generate Wallet",
@@ -157,7 +157,7 @@ export function WalletCreator(
       return {
         title: "Import Existing Wallet",
         subtitle: "Restore your Wallet using your private key",
-        icon: <Key className="h-6 w-6 text-blue-500" />,
+        icon: <Key className="icon-lg text-blue-500" />,
         description:
           "Enter your 64-character hexadecimal private key to restore access to your existing Wallet and funds.",
         actionText: "Import Wallet",
@@ -175,15 +175,13 @@ export function WalletCreator(
         <CardHeader className="text-center pb-4">
           <CardTitle className="flex items-center justify-center gap-3 text-xl font-bold">
             <div
-              className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                walletType === "create"
-                  ? "bg-gradient-to-br from-amber-500 to-orange-600"
-                  : "bg-gradient-to-br from-blue-500 to-purple-600"
+              className={`icon-container-md rounded-lg flex items-center justify-center ${
+                walletType === "create" ? "bg-primary" : "bg-blue-500"
               }`}
             >
               {walletType === "create"
-                ? <Sparkles className="h-6 w-6 text-black" />
-                : <Key className="h-6 w-6 text-white" />}
+                ? <Sparkles className="icon-lg text-primary-foreground" />
+                : <Key className="icon-lg text-white" />}
             </div>
             <span className="text-foreground">
               {content.title}
@@ -240,12 +238,12 @@ export function WalletCreator(
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowPrivateKey(!showPrivateKey)}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 icon-container-sm p-0"
                   disabled={isLoading}
                 >
                   {showPrivateKey
-                    ? <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    : <Eye className="h-4 w-4 text-muted-foreground" />}
+                    ? <EyeOff className="icon-md text-muted-foreground" />
+                    : <Eye className="icon-md text-muted-foreground" />}
                 </Button>
               </div>
 

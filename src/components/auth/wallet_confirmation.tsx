@@ -91,7 +91,7 @@ export function WalletConfirmation({
           className:
             "bg-green-500/20 text-green-700 dark:text-green-600 border-green-500/30",
         },
-        icon: <CheckCircle className="h-6 w-6 text-green-500" />,
+        icon: <CheckCircle className="icon-lg text-emerald-500" />,
       };
     } else {
       return {
@@ -102,7 +102,7 @@ export function WalletConfirmation({
           className:
             "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30",
         },
-        icon: <CheckCircle className="h-6 w-6 text-blue-500" />,
+        icon: <CheckCircle className="icon-lg text-blue-500" />,
       };
     }
   };
@@ -116,15 +116,11 @@ export function WalletConfirmation({
         <CardHeader className="text-center pb-4">
           <CardTitle className="flex items-center justify-center gap-3 text-xl font-bold">
             <div
-              className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                walletType === "create"
-                  ? "bg-gradient-to-br from-green-500 to-emerald-600"
-                  : "bg-gradient-to-br from-blue-500 to-purple-600"
+              className={`icon-container-md rounded-lg flex items-center justify-center ${
+                walletType === "create" ? "bg-emerald-500" : "bg-blue-500"
               }`}
             >
-              {walletType === "create"
-                ? <CheckCircle className="h-6 w-6 text-white" />
-                : <CheckCircle className="h-6 w-6 text-white" />}
+              <CheckCircle className="icon-lg text-white" />
             </div>
             <span className="text-foreground">
               {typeInfo.title}

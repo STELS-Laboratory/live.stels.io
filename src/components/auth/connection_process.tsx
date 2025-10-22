@@ -115,11 +115,11 @@ export function ConnectionProcess(
 
   const getStatusIcon = () => {
     if (connectionError) {
-      return <AlertCircle className="h-6 w-6 text-red-500" />;
+      return <AlertCircle className="icon-lg text-destructive" />;
     } else if (isConnected) {
-      return <CheckCircle className="h-6 w-6 text-green-500" />;
+      return <CheckCircle className="icon-lg text-emerald-500" />;
     } else {
-      return <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />;
+      return <Loader2 className="icon-lg text-primary animate-spin" />;
     }
   };
 
@@ -150,12 +150,12 @@ export function ConnectionProcess(
         <CardHeader className="text-center pb-4">
           <CardTitle className="flex items-center justify-center gap-3 text-xl font-bold">
             <div
-              className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+              className={`icon-container-md rounded-lg flex items-center justify-center ${
                 connectionError
-                  ? "bg-gradient-to-br from-red-500 to-red-600"
+                  ? "bg-destructive"
                   : isConnected
-                  ? "bg-gradient-to-br from-green-500 to-emerald-600"
-                  : "bg-gradient-to-br from-amber-500 to-orange-600"
+                  ? "bg-emerald-500"
+                  : "bg-primary"
               }`}
             >
               {getStatusIcon()}
@@ -199,10 +199,10 @@ export function ConnectionProcess(
               <div
                 className={`h-full transition-all duration-300 rounded-full ${
                   connectionError
-                    ? "bg-gradient-to-r from-red-500 to-red-600"
+                    ? "bg-destructive"
                     : isConnected
-                    ? "bg-gradient-to-r from-green-500 to-emerald-600"
-                    : "bg-gradient-to-r from-amber-500 to-orange-600"
+                    ? "bg-emerald-500"
+                    : "bg-primary"
                 }`}
                 style={{ width: `${progress}%` }}
               />
@@ -251,7 +251,7 @@ export function ConnectionProcess(
                   >
                     <div className="relative">
                       <div
-                        className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${
+                        className={`icon-container-sm rounded-lg flex items-center justify-center transition-all ${
                           isCompleted
                             ? "bg-green-500/20 border border-green-500/50"
                             : isCurrent

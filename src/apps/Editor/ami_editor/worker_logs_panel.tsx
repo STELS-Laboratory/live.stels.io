@@ -284,7 +284,9 @@ export function WorkerLogsPanel({
             onClick={toggleFollow}
             className={cn(
               "h-5 w-5 p-0",
-              following ? "text-green-700 dark:text-green-600" : "text-muted-foreground",
+              following
+                ? "text-green-700 dark:text-green-600"
+                : "text-muted-foreground",
             )}
             title={following ? "Following" : "Paused"}
           >
@@ -299,7 +301,9 @@ export function WorkerLogsPanel({
             onClick={() => setAutoScroll(!autoScroll)}
             className={cn(
               "h-5 w-5 p-0",
-              autoScroll ? "text-blue-700 dark:text-blue-400" : "text-muted-foreground",
+              autoScroll
+                ? "text-blue-700 dark:text-blue-400"
+                : "text-muted-foreground",
             )}
             title="Auto-scroll"
           >
@@ -346,7 +350,9 @@ export function WorkerLogsPanel({
                 <p className="text-xs text-red-700 dark:text-red-400 font-medium mb-1">
                   Stream Error
                 </p>
-                <p className="text-xs text-red-800 dark:text-red-300">{error}</p>
+                <p className="text-xs text-red-800 dark:text-red-300">
+                  {error}
+                </p>
               </div>
             </div>
           </div>
@@ -354,9 +360,6 @@ export function WorkerLogsPanel({
 
         {/* Logs Terminal - Linux Style */}
         <ScrollArea className="h-[100%] relative p-0 m-0" ref={scrollAreaRef}>
-          {/* Terminal scanlines effect */}
-          <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(0deg,rgba(0,255,0,0.03),rgba(0,255,0,0.03)_1px,transparent_1px,transparent_2px)] z-10" />
-
           {/* Terminal content */}
           <div className="relative bg-zinc-950 dark:bg-black p-3 font-mono text-[11px] leading-relaxed">
             {/* Terminal header */}
@@ -406,8 +409,10 @@ export function WorkerLogsPanel({
                         className={cn(
                           "whitespace-pre-wrap break-all leading-relaxed",
                           // Terminal color scheme
-                          isComment && "text-cyan-700 dark:text-cyan-400 font-bold", // Cyan for comments
-                          isError && "text-red-700 dark:text-red-400 font-semibold", // Red for errors
+                          isComment &&
+                            "text-cyan-700 dark:text-cyan-400 font-bold", // Cyan for comments
+                          isError &&
+                            "text-red-700 dark:text-red-400 font-semibold", // Red for errors
                           isWarn && "text-yellow-700 dark:text-yellow-400", // Yellow for warnings
                           isInfo && "text-green-800 dark:text-green-300", // Green for info (classic terminal)
                           isDebug && "text-green-600/70", // Dim green for debug

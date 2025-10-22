@@ -129,8 +129,8 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
         return (
           <div className="text-center space-y-4 max-w-md mx-auto">
             <div className="flex justify-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                <CheckCircle className="h-12 w-12 text-white" />
+              <div className="icon-container-xl bg-emerald-500 rounded-lg flex items-center justify-center">
+                <CheckCircle className="icon-2xl text-white" />
               </div>
             </div>
             <div>
@@ -222,7 +222,7 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
           </div>
           <div className="w-full bg-muted border border-border h-2 rounded-full overflow-hidden">
             <div
-              className="bg-gradient-to-r from-amber-500 to-orange-600 h-full transition-all duration-300 rounded-full"
+              className="bg-primary h-full transition-all duration-300 rounded-full"
               style={{ width: `${progress}%` }}
             />
           </div>

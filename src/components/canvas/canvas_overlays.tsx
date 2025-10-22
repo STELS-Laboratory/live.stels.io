@@ -196,7 +196,7 @@ export const EmptyCanvasState: React.FC<EmptyCanvasStateProps> = ({
           "animate-in fade-in zoom-in-95 duration-500",
         )}
       >
-        {/* Icon - soft gradient */}
+        {/* Icon */}
         <div className="mb-6">
           <div
             className={cn(

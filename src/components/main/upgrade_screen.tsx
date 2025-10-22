@@ -75,7 +75,7 @@ const UpgradeScreen = ({ onComplete, endDate }: UpgradeScreenProps) => {
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
-			className="flex items-center justify-center bg-gradient-to-br from-background via-background to-background"
+			className="flex items-center justify-center bg-background"
 		>
 			<div className="flex flex-col items-center space-y-8 max-w-md w-full mt-60">
 				{/* Logo with Upgrade Animation */}
@@ -104,7 +104,7 @@ const UpgradeScreen = ({ onComplete, endDate }: UpgradeScreenProps) => {
 							repeat: Infinity,
 							ease: "easeInOut",
 						}}
-						className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-500/30 to-orange-500/30 blur-2xl"
+						className="absolute inset-0 rounded-full bg-primary/20 blur-2xl"
 					/>
 
 					{/* Upgrade Badge */}
@@ -112,7 +112,7 @@ const UpgradeScreen = ({ onComplete, endDate }: UpgradeScreenProps) => {
 						initial={{ scale: 0, opacity: 0 }}
 						animate={{ scale: 1, opacity: 1 }}
 						transition={{ delay: 0.3, duration: 0.3 }}
-						className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-500 to-orange-500 text-black dark:text-black text-xs font-bold px-2 py-1 rounded-full"
+						className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full"
 					>
 						TESTNET
 					</motion.div>
@@ -125,7 +125,7 @@ const UpgradeScreen = ({ onComplete, endDate }: UpgradeScreenProps) => {
 					transition={{ delay: 0.2, duration: 0.4 }}
 					className="text-center space-y-3"
 				>
-					<h1 className="text-5xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
+					<h1 className="text-5xl font-bold text-primary">
 						UPGRADE
 					</h1>
 					<motion.div
@@ -163,7 +163,7 @@ const UpgradeScreen = ({ onComplete, endDate }: UpgradeScreenProps) => {
 								delay: i * 0.1,
 								ease: "easeInOut",
 							}}
-							className="w-2 h-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full"
+							className="w-2 h-2 bg-primary rounded-full shrink-0"
 						/>
 					))}
 				</motion.div>
@@ -207,9 +207,6 @@ const UpgradeScreen = ({ onComplete, endDate }: UpgradeScreenProps) => {
 					}}
 					className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-500/8 rounded-full blur-3xl"
 				/>
-
-				{/* Grid Pattern */}
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(245,158,11,0.1)_1px,transparent_1px)] bg-[length:50px_50px] opacity-20" />
 			</div>
 		</motion.div>
 	);

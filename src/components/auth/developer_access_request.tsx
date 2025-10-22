@@ -221,8 +221,8 @@ export function DeveloperAccessRequestDialog({
               <div className="space-y-3">
                 <div className="bg-card/50 border border-border rounded-lg p-4">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
-                      <Database className="w-4 h-4 text-blue-700 dark:text-blue-400" />
+                    <div className="icon-container-sm bg-muted rounded flex items-center justify-center">
+                      <Database className="icon-md text-blue-600 dark:text-blue-400" />
                     </div>
                     <span className="text-card-foreground font-mono text-sm font-bold">
                       PROTOCOL REGISTRY
@@ -235,8 +235,8 @@ export function DeveloperAccessRequestDialog({
 
                 <div className="bg-card/50 border border-border rounded-lg p-4">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
-                      <Code className="w-4 h-4 text-green-700 dark:text-green-600" />
+                    <div className="icon-container-sm bg-muted rounded flex items-center justify-center">
+                      <Code className="icon-md text-green-600 dark:text-green-500" />
                     </div>
                     <span className="text-card-foreground font-mono text-sm font-bold">
                       CODE EDITOR
@@ -261,7 +261,7 @@ export function DeveloperAccessRequestDialog({
           {requestStatus === "pending" && (
             <>
               <div className="flex flex-col items-center justify-center py-6">
-                <Loader2 className="w-12 h-12 text-amber-500 animate-spin mb-4" />
+                <Loader2 className="icon-2xl text-primary animate-spin mb-4" />
                 <p className="text-sm text-muted-foreground">
                   Sending request to node...
                 </p>
@@ -283,7 +283,7 @@ export function DeveloperAccessRequestDialog({
               </Alert>
 
               <div className="flex flex-col items-center justify-center py-4">
-                <CheckCircle className="w-16 h-16 text-green-500 mb-3" />
+                <CheckCircle className="icon-2xl text-emerald-500 mb-3" />
                 <p className="text-sm text-muted-foreground">
                   Reloading application...
                 </p>

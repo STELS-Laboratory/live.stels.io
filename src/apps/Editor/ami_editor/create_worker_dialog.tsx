@@ -610,7 +610,7 @@ export function CreateWorkerDialog({
 										{formData.scriptContent}
                   </pre>
                   {formData.scriptContent.split("\n").length > 6 && (
-                    <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-muted to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 h-12 bg-muted/50" />
                   )}
                 </div>
               </div>

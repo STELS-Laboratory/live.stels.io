@@ -157,7 +157,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 							animate={isActive ? { rotate: [0, -8, 8, 0] } : {}}
 							transition={{ duration: 0.5, ease: "easeInOut" }}
 						>
-							<Icon className="size-4 shrink-0" />
+							<Icon className="icon-md shrink-0" />
 						</motion.div>
 						<span className="text-sm">{item.label}</span>
 					</Button>
@@ -365,8 +365,8 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 										onClick={handleBackToWelcome}
 										className="flex items-center gap-1 text-amber-500 active:opacity-60 transition-opacity duration-100"
 									>
-										<CircleX className="w-10 h-6" strokeWidth={1.5} />
-										<span className="text-base font-normal">
+										<CircleX className="icon-lg" strokeWidth={1.5} />
+										<span className="text-sm font-medium">
 											Close
 										</span>
 									</button>
@@ -385,7 +385,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 													onClick={() => navigateTo(item.key)}
 													className="flex flex-col items-center gap-2 p-3 rounded-lg border border-border bg-card/50 hover:bg-card active:scale-95 transition-all"
 												>
-													<Icon className="w-6 h-6 text-amber-500" />
+													<Icon className="icon-lg text-amber-500" />
 													<span className="text-xs font-medium text-foreground">
 														{item.label}
 													</span>
@@ -443,10 +443,10 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 														ease: "easeInOut",
 													}}
 												>
-													<CircleX className="w-10 h-" strokeWidth={1.5} />
+													<CircleX className="icon-lg" strokeWidth={1.5} />
 												</motion.div>
 												<motion.span
-													className="text-base font-normal tracking-tight"
+													className="text-sm font-medium tracking-tight"
 													animate={{
 														opacity: [1, 0.9, 1],
 													}}
@@ -563,9 +563,9 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 							<div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
 								<div className="bg-card backdrop-blur-sm rounded p-4 border border-border">
 									<div className="flex items-center gap-3">
-										<div className="size-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+										<div className="icon-md border-2 border-primary border-t-transparent rounded-full animate-spin" />
 										<span className="text-sm text-muted-foreground">
-											Loading…
+											Loading...
 										</span>
 									</div>
 								</div>
@@ -588,26 +588,26 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 
 								return (
 									<div className="flex items-center gap-3 relative">
-										<div className="flex items-center gap-1.5 text-[10px]">
-											<Activity className="w-3 h-3 text-blue-700 dark:text-blue-400" />
+										<div className="flex items-center gap-1.5 text-xs">
+											<Activity className="icon-xs text-blue-600 dark:text-blue-400" />
 											<span className="text-foreground font-semibold">
 												{operations?.total.toLocaleString()}
 											</span>
-											<span className="text-muted-foreground text-[9px]">
+											<span className="text-muted-foreground">
 												ops
 											</span>
 										</div>
 
-										<div className="flex items-center gap-1.5 text-[10px]">
-											<Play className="w-3 h-3 text-green-700 dark:text-green-400" />
-											<span className="text-green-700 dark:text-green-400 font-semibold">
+										<div className="flex items-center gap-1.5 text-xs">
+											<Play className="icon-xs text-green-600 dark:text-green-400" />
+											<span className="text-green-600 dark:text-green-400 font-semibold">
 												{workers?.active || 0}
 											</span>
 										</div>
 
-										<div className="flex items-center gap-1.5 text-[10px]">
-											<Square className="w-3 h-3 text-red-700 dark:text-red-400" />
-											<span className="text-red-700 dark:text-red-400 font-semibold">
+										<div className="flex items-center gap-1.5 text-xs">
+											<Square className="icon-xs text-red-600 dark:text-red-400" />
+											<span className="text-red-600 dark:text-red-400 font-semibold">
 												{Math.abs(workers?.stopped || 0)}
 											</span>
 										</div>
@@ -624,7 +624,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 																showNodeInfo ? "bg-muted" : ""
 															}`}
 														>
-															<MoreHorizontal className="w-3 h-3" />
+															<MoreHorizontal className="icon-xs" />
 														</Button>
 													</TooltipTrigger>
 													<TooltipContent side="top">Node Info</TooltipContent>
@@ -637,18 +637,18 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 											<div className="absolute bottom-6 right-0 w-64 bg-popover border border-border rounded shadow-lg p-3 z-50">
 												<div className="flex items-center justify-between mb-2 pb-2 border-b border-border">
 													<div className="flex items-center gap-2">
-														<Server className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+														<Server className="icon-sm text-blue-600 dark:text-blue-400" />
 														<span className="text-xs font-semibold text-foreground">
-															Node Info
+															Node Information
 														</span>
 													</div>
 													<Button
 														variant="ghost"
 														size="sm"
 														onClick={() => setShowNodeInfo(false)}
-														className="h-4 w-4 p-0"
+														className="h-auto w-auto p-1"
 													>
-														<CircleX className="w-3 h-3" />
+														<CircleX className="icon-xs" />
 													</Button>
 												</div>
 

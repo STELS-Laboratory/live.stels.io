@@ -17,8 +17,8 @@ export function WalletTypeSelector(
       <Card className="backdrop-blur-md bg-card/80 border border-border">
         <CardHeader className="text-center pb-6">
           <CardTitle className="flex items-center justify-center gap-3 text-2xl font-bold">
-            <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
-              <Wallet className="h-6 w-6 text-black" />
+            <div className="icon-container-md bg-primary rounded-lg flex items-center justify-center">
+              <Wallet className="icon-lg text-primary-foreground" />
             </div>
             <span className="text-foreground">
               Choose Setup Method
@@ -50,8 +50,8 @@ export function WalletTypeSelector(
                 <div className="text-center space-y-4">
                   {/* Icon */}
                   <div className="flex justify-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
-                      <Sparkles className="h-8 w-8 text-black" />
+                    <div className="icon-container-lg bg-primary rounded-lg flex items-center justify-center">
+                      <Sparkles className="icon-xl text-primary-foreground" />
                     </div>
                   </div>
 
@@ -91,8 +91,8 @@ export function WalletTypeSelector(
                 <div className="text-center space-y-4">
                   {/* Icon */}
                   <div className="flex justify-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                      <Key className="h-8 w-8 text-white" />
+                    <div className="icon-container-lg bg-blue-500 rounded-lg flex items-center justify-center">
+                      <Key className="icon-xl text-white" />
                     </div>
                   </div>
 

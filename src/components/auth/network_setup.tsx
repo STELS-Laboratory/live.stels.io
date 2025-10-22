@@ -65,8 +65,8 @@ export function NetworkSetup(
       <Card className="w-full max-w-2xl mx-auto backdrop-blur-md bg-card/80 border border-border">
         <CardHeader className="text-center pb-4">
           <CardTitle className="flex items-center justify-center gap-3 text-xl font-bold">
-            <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
-              <Network className="h-6 w-6 text-black" />
+            <div className="icon-container-md bg-primary rounded-lg flex items-center justify-center">
+              <Network className="icon-lg text-primary-foreground" />
             </div>
             <span className="text-foreground">
               Select Network
@@ -122,12 +122,12 @@ export function NetworkSetup(
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    className={`icon-container-sm rounded-lg flex items-center justify-center ${
                       selectedNetwork.id === "testnet"
-                        ? "bg-gradient-to-br from-blue-500 to-blue-600"
+                        ? "bg-blue-500"
                         : selectedNetwork.id === "mainnet"
-                        ? "bg-gradient-to-br from-green-500 to-emerald-600"
-                        : "bg-gradient-to-br from-purple-500 to-purple-600"
+                        ? "bg-emerald-500"
+                        : "bg-purple-500"
                     }`}
                   >
                     {getNetworkIcon(selectedNetwork)}

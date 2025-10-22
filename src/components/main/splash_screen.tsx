@@ -39,7 +39,7 @@ const SplashScreen = (
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
-			className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-background via-background to-background"
+			className="fixed inset-0 z-50 flex items-center justify-center bg-background"
 		>
 			<div className="flex flex-col items-center space-y-8">
 				{/* Logo Animation */}
@@ -100,7 +100,7 @@ const SplashScreen = (
 				>
 					<div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
 						<motion.div
-							className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full"
+							className="h-full bg-primary rounded-full"
 							style={{ width: `${progress}%` }}
 							transition={{ duration: 0.1 }}
 						/>
@@ -136,7 +136,7 @@ const SplashScreen = (
 								delay: i * 0.1,
 								ease: "easeInOut",
 							}}
-							className="w-2 h-2 bg-amber-500 rounded-full"
+							className="w-2 h-2 bg-primary rounded-full shrink-0"
 						/>
 					))}
 				</motion.div>
@@ -154,8 +154,8 @@ const SplashScreen = (
 
 			{/* Background Pattern */}
 			<div className="absolute inset-0 overflow-hidden pointer-events-none">
-				<div className="absolute top-1/4 left-1/4 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl" />
-				<div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl" />
+				<div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+				<div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/3 rounded-full blur-3xl" />
 			</div>
 		</motion.div>
 	);

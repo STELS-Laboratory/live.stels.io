@@ -94,43 +94,57 @@
     --height-button-lg: 2.75rem; /* 44px - large button */
     --height-header: 4rem;       /* 64px - header height */
     --height-footer: 3rem;       /* 48px - footer height */
+    
+    /* Icon size scale - normalized and consistent */
+    --icon-xs: 0.875rem;   /* 14px - extra small icons */
+    --icon-sm: 1rem;       /* 16px - small icons */
+    --icon-md: 1.25rem;    /* 20px - medium icons (default) */
+    --icon-lg: 1.5rem;     /* 24px - large icons */
+    --icon-xl: 2rem;       /* 32px - extra large icons */
+    --icon-2xl: 3rem;      /* 48px - hero icons */
+    
+    /* Icon container sizes - standardized */
+    --icon-container-sm: 2.5rem;   /* 40px - small container */
+    --icon-container-md: 3rem;     /* 48px - medium container (default) */
+    --icon-container-lg: 4rem;     /* 64px - large container */
+    --icon-container-xl: 5rem;     /* 80px - extra large container */
 
-    /* Light theme - Professional Document Design */
-    --background: #fafaf9;
-    --foreground: #1a1a1a;
+    /* Light theme - Soft Professional Design with Warm Tones */
+    --background: #f9f8f6;
+    --foreground: #3f3f3f;
     --card: #ffffff;
-    --card-foreground: #1a1a1a;
+    --card-foreground: #3f3f3f;
     --popover: #ffffff;
-    --popover-foreground: #1a1a1a;
-    --primary: #d97706;
+    --popover-foreground: #3f3f3f;
+    --primary: #c9995a;
     --primary-foreground: #ffffff;
-    --secondary: #f5f5f4;
-    --secondary-foreground: #292524;
-    --muted: #f5f5f4;
-    --muted-foreground: #78716c;
-    --accent: #fef3c7;
-    --accent-foreground: #92400e;
-    --destructive: #dc2626;
+    --secondary: #f3f1ee;
+    --secondary-foreground: #5a5a5a;
+    --muted: #f3f1ee;
+    --muted-foreground: #8a8a8a;
+    --accent: #f8f3ea;
+    --accent-foreground: #6b5d4f;
+    --destructive: #d89090;
     --destructive-foreground: #ffffff;
-    --border: #e7e5e4;
-    --input: #e7e5e4;
+    --border: #e8e4df;
+    --input: #e8e4df;
     --input-background: #ffffff;
-    --switch-background: #e7e5e4;
-    --ring: #d97706;
-    --chart-1: #d97706;
-    --chart-2: #f59e0b;
-    --chart-3: #fbbf24;
-    --chart-4: #fde047;
-    --chart-5: #fef08a;
+    --switch-background: #e8e4df;
+    --ring: #c9995a;
+    --chart-1: #c9995a;
+    --chart-2: #d4a76a;
+    --chart-3: #e0b97a;
+    --chart-4: #ecc98a;
+    --chart-5: #f5d99a;
     --radius: 6px;
-    --sidebar: #fafaf9;
-    --sidebar-foreground: #1a1a1a;
-    --sidebar-primary: #d97706;
+    --sidebar: #f9f8f6;
+    --sidebar-foreground: #3f3f3f;
+    --sidebar-primary: #c9995a;
     --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #f5f5f4;
-    --sidebar-accent-foreground: #292524;
-    --sidebar-border: #e7e5e4;
-    --sidebar-ring: #d97706;
+    --sidebar-accent: #f3f1ee;
+    --sidebar-accent-foreground: #5a5a5a;
+    --sidebar-border: #e8e4df;
+    --sidebar-ring: #c9995a;
     
     /* Document shadows - subtle and professional */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
@@ -141,95 +155,95 @@
 }
 
 .light {
-    /* Light theme - Professional Document Design */
-    --background: #fafaf9;
-    --foreground: #1a1a1a;
+    /* Light theme - Enhanced Soft Professional Design */
+    --background: #fafaf8;
+    --foreground: #2d2d2d;
     --card: #ffffff;
-    --card-foreground: #1a1a1a;
+    --card-foreground: #2d2d2d;
     --popover: #ffffff;
-    --popover-foreground: #1a1a1a;
-    --primary: #d97706;
+    --popover-foreground: #2d2d2d;
+    --primary: #d4a574;
     --primary-foreground: #ffffff;
-    --secondary: #f5f5f4;
-    --secondary-foreground: #292524;
-    --muted: #f5f5f4;
-    --muted-foreground: #78716c;
-    --accent: #fef3c7;
-    --accent-foreground: #92400e;
-    --destructive: #dc2626;
+    --secondary: #f5f3f0;
+    --secondary-foreground: #505050;
+    --muted: #f5f3f0;
+    --muted-foreground: #7a7a7a;
+    --accent: #f9f5ed;
+    --accent-foreground: #5d4e3f;
+    --destructive: #d88080;
     --destructive-foreground: #ffffff;
-    --border: #e7e5e4;
-    --input: #e7e5e4;
+    --border: #e9e7e3;
+    --input: #e9e7e3;
     --input-background: #ffffff;
-    --switch-background: #e7e5e4;
-    --ring: #d97706;
-    --chart-1: #d97706;
-    --chart-2: #f59e0b;
-    --chart-3: #fbbf24;
-    --chart-4: #fde047;
-    --chart-5: #fef08a;
+    --switch-background: #e9e7e3;
+    --ring: #d4a574;
+    --chart-1: #d4a574;
+    --chart-2: #ddb380;
+    --chart-3: #e6c18c;
+    --chart-4: #efcf98;
+    --chart-5: #f8dda4;
     --radius: 6px;
-    --sidebar: #fafaf9;
-    --sidebar-foreground: #1a1a1a;
-    --sidebar-primary: #d97706;
+    --sidebar: #fafaf8;
+    --sidebar-foreground: #2d2d2d;
+    --sidebar-primary: #d4a574;
     --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #f5f5f4;
-    --sidebar-accent-foreground: #292524;
-    --sidebar-border: #e7e5e4;
-    --sidebar-ring: #d97706;
+    --sidebar-accent: #f5f3f0;
+    --sidebar-accent-foreground: #505050;
+    --sidebar-border: #e9e7e3;
+    --sidebar-ring: #d4a574;
     
-    /* Document shadows */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.08);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+    /* Document shadows - softer */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.06);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.07), 0 8px 10px -6px rgba(0, 0, 0, 0.07);
 }
 
 .dark {
-    /* Dark theme - Professional Document Design */
-    --background: #0a0a0a;
-    --foreground: #fafaf9;
-    --card: #141414;
-    --card-foreground: #fafaf9;
-    --popover: #1a1a1a;
-    --popover-foreground: #fafaf9;
-    --primary: #f59e0b;
-    --primary-foreground: #1a1a1a;
-    --secondary: #262626;
-    --secondary-foreground: #fafaf9;
-    --muted: #262626;
-    --muted-foreground: #a8a29e;
-    --accent: #451a03;
-    --accent-foreground: #fbbf24;
-    --destructive: #ef4444;
-    --destructive-foreground: #fafaf9;
-    --border: #262626;
-    --input: #262626;
-    --input-background: #141414;
-    --switch-background: #3f3f46;
-    --ring: #f59e0b;
-    --chart-1: #f59e0b;
-    --chart-2: #fbbf24;
-    --chart-3: #fde047;
-    --chart-4: #fef08a;
-    --chart-5: #fef9c3;
+    /* Dark theme - Enhanced Soft Professional Design */
+    --background: #1c1a18;
+    --foreground: #ebe9e6;
+    --card: #252321;
+    --card-foreground: #ebe9e6;
+    --popover: #2b2927;
+    --popover-foreground: #ebe9e6;
+    --primary: #ddb380;
+    --primary-foreground: #2b2927;
+    --secondary: #312f2c;
+    --secondary-foreground: #d8d6d3;
+    --muted: #312f2c;
+    --muted-foreground: #b0aea8;
+    --accent: #3d3a35;
+    --accent-foreground: #e6c18c;
+    --destructive: #da8888;
+    --destructive-foreground: #ebe9e6;
+    --border: #3d3a35;
+    --input: #3d3a35;
+    --input-background: #252321;
+    --switch-background: #4d4a45;
+    --ring: #ddb380;
+    --chart-1: #ddb380;
+    --chart-2: #e6c18c;
+    --chart-3: #efcf98;
+    --chart-4: #f8dda4;
+    --chart-5: #ffebb0;
     --radius: 6px;
-    --sidebar: #0a0a0a;
-    --sidebar-foreground: #fafaf9;
-    --sidebar-primary: #f59e0b;
-    --sidebar-primary-foreground: #1a1a1a;
-    --sidebar-accent: #262626;
-    --sidebar-accent-foreground: #fafaf9;
-    --sidebar-border: #262626;
-    --sidebar-ring: #f59e0b;
+    --sidebar: #1c1a18;
+    --sidebar-foreground: #ebe9e6;
+    --sidebar-primary: #ddb380;
+    --sidebar-primary-foreground: #2b2927;
+    --sidebar-accent: #312f2c;
+    --sidebar-accent-foreground: #d8d6d3;
+    --sidebar-border: #3d3a35;
+    --sidebar-ring: #ddb380;
     
-    /* Document shadows - stronger for dark theme */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
-    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.7), 0 1px 2px -1px rgba(0, 0, 0, 0.7);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.8), 0 2px 4px -2px rgba(0, 0, 0, 0.8);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.9), 0 4px 6px -4px rgba(0, 0, 0, 0.9);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.95), 0 8px 10px -6px rgba(0, 0, 0, 0.95);
+    /* Document shadows - softer for dark theme */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.6);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7);
 }
 
 /* Reduced motion - complete override */
@@ -697,6 +711,58 @@
         ring-color: var(--ring);
         ring-offset: 2px;
         ring-offset-color: var(--background);
+    }
+
+    /* Standardized icon sizes */
+    .icon-xs {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+
+    .icon-sm {
+        width: var(--icon-sm);
+        height: var(--icon-sm);
+    }
+
+    .icon-md, .icon {
+        width: var(--icon-md);
+        height: var(--icon-md);
+    }
+
+    .icon-lg {
+        width: var(--icon-lg);
+        height: var(--icon-lg);
+    }
+
+    .icon-xl {
+        width: var(--icon-xl);
+        height: var(--icon-xl);
+    }
+
+    .icon-2xl {
+        width: var(--icon-2xl);
+        height: var(--icon-2xl);
+    }
+
+    /* Standardized icon container sizes */
+    .icon-container-sm {
+        width: var(--icon-container-sm);
+        height: var(--icon-container-sm);
+    }
+
+    .icon-container-md, .icon-container {
+        width: var(--icon-container-md);
+        height: var(--icon-container-md);
+    }
+
+    .icon-container-lg {
+        width: var(--icon-container-lg);
+        height: var(--icon-container-lg);
+    }
+
+    .icon-container-xl {
+        width: var(--icon-container-xl);
+        height: var(--icon-container-xl);
     }
 }
 

@@ -492,21 +492,11 @@ export default function Dashboard(): React.ReactElement {
 					>
 						<div className="w-full bg-muted rounded-full h-2 overflow-hidden">
 							<motion.div
-								className="bg-gradient-to-r from-amber-500 to-blue-500 h-2 rounded-full"
+								className="bg-primary h-2 rounded-full"
 								initial={{ width: "0%" }}
 								animate={{ width: `${transitionProgress}%` }}
 								transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-							>
-								<motion.div
-									className="h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent"
-									animate={{ x: ["-100%", "100%"] }}
-									transition={{
-										duration: 2.5,
-										repeat: Infinity,
-										ease: "easeInOut",
-									}}
-								/>
-							</motion.div>
+							/>
 						</div>
 						<motion.p
 							className="text-xs text-muted-foreground"

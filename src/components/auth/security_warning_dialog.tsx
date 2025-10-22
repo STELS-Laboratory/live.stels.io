@@ -51,8 +51,8 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
       <div className="w-full max-w-md mx-4">
         <Card className="backdrop-blur-md bg-card/80 border border-border">
           <CardHeader className="text-center">
-            <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
-              <AlertTriangle className="h-6 w-6 text-black" />
+            <div className="icon-container-md mx-auto mb-3 bg-primary rounded-lg flex items-center justify-center">
+              <AlertTriangle className="icon-lg text-primary-foreground" />
             </div>
             <CardTitle className="text-lg text-foreground">
               Security Notice

@@ -234,8 +234,8 @@ function Welcome(): ReactElement {
               onClick={() => navigateTo("canvas")}
               className="group bg-card rounded-lg border border-border overflow-hidden hover:border-blue-500/50 transition-all text-left"
             >
-              <div className="aspect-video bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-b border-border flex items-center justify-center">
-                <Boxes className="w-16 h-16 text-blue-700 dark:text-blue-400 group-hover:scale-110 transition-transform" />
+              <div className="aspect-video bg-blue-500/5 border-b border-border flex items-center justify-center">
+                <Boxes className="icon-2xl text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform" />
               </div>
               <div className="p-4">
                 <h3 className="text-lg font-semibold text-foreground mb-1">
@@ -255,8 +255,8 @@ function Welcome(): ReactElement {
               onClick={() => navigateTo("editor")}
               className="group bg-card rounded-lg border border-border overflow-hidden hover:border-amber-500/50 transition-all text-left"
             >
-              <div className="aspect-video bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-b border-border flex items-center justify-center">
-                <Code className="w-16 h-16 text-amber-700 dark:text-amber-400 group-hover:scale-110 transition-transform" />
+              <div className="aspect-video bg-amber-500/5 border-b border-border flex items-center justify-center">
+                <Code className="icon-2xl text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
               </div>
               <div className="p-4">
                 <h3 className="text-lg font-semibold text-foreground mb-1">
@@ -276,8 +276,8 @@ function Welcome(): ReactElement {
               onClick={() => navigateTo("schemas")}
               className="group bg-card rounded-lg border border-border overflow-hidden hover:border-green-500/50 transition-all text-left"
             >
-              <div className="aspect-video bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-b border-border flex items-center justify-center">
-                <LayoutIcon className="w-16 h-16 text-green-700 dark:text-green-400 group-hover:scale-110 transition-transform" />
+              <div className="aspect-video bg-green-500/5 border-b border-border flex items-center justify-center">
+                <LayoutIcon className="icon-2xl text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform" />
               </div>
               <div className="p-4">
                 <h3 className="text-lg font-semibold text-foreground mb-1">
@@ -297,8 +297,8 @@ function Welcome(): ReactElement {
               onClick={() => navigateTo("docs")}
               className="group bg-card rounded-lg border border-border overflow-hidden hover:border-zinc-500/50 transition-all text-left"
             >
-              <div className="aspect-video bg-gradient-to-br from-zinc-500/10 to-slate-500/10 border-b border-border flex items-center justify-center">
-                <FileText className="w-16 h-16 text-zinc-700 dark:text-zinc-400 group-hover:scale-110 transition-transform" />
+              <div className="aspect-video bg-zinc-500/5 border-b border-border flex items-center justify-center">
+                <FileText className="icon-2xl text-zinc-600 dark:text-zinc-400 group-hover:scale-110 transition-transform" />
               </div>
               <div className="p-4">
                 <h3 className="text-lg font-semibold text-foreground mb-1">
