@@ -30,7 +30,7 @@ const Docs = lazy(() =>
 	import("@/apps/docs").then((m) => ({ default: m.Docs }))
 );
 import { TooltipProvider } from "@/components/ui/tooltip";
-const Layout = lazy(() => import("@/apps/Layout"));
+const Layout = lazy(() => import("@/apps/layout"));
 const AMIEditor = lazy(() =>
 	import("@/apps/editor/ami_editor").then((m) => ({ default: m.AMIEditor }))
 );

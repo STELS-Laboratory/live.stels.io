@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import "@/index.css";
-import App from "@/app";
+import App from "@/App";
 import { registerSW } from "virtual:pwa-register";
 import { initThemeColor } from "@/lib/theme-color";
 import {
