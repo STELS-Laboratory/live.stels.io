@@ -677,7 +677,6 @@ export default function Dashboard(): React.ReactElement {
 			// Show authentication flow with smooth transition
 			return (
 				<motion.div
-					className="bg-background"
 					initial={{ opacity: 0, scale: 0.95 }}
 					animate={{ opacity: 1, scale: 1 }}
 					exit={{ opacity: 0, scale: 0.95 }}

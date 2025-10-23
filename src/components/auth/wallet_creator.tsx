@@ -173,7 +173,7 @@ export function WalletCreator(
 
   return (
     <div className="w-full">
-      <Card className="backdrop-blur-md bg-card/80 border border-border">
+      <Card className="bg-transparent border-0">
         <CardHeader className="text-center pb-2 sm:pb-3 md:pb-4 px-3 sm:px-4 md:px-6">
           {/* Lottie Animation */}
           <div className="flex h-20 sm:h-24 md:h-32 items-center justify-center mb-2 sm:mb-3">
@@ -335,8 +335,7 @@ export function WalletCreator(
               disabled={isLoading}
             >
               <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
-              <span className="hidden xs:inline">Back</span>
-              <span className="xs:hidden">←</span>
+              <span className="">Back</span>
             </Button>
             <Button
               onClick={content.actionHandler}

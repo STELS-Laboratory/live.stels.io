@@ -148,7 +148,7 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
               </p>
             </div>
 
-            <Alert className="bg-accent/10 border-accent-foreground/30 rounded-lg text-left">
+            <Alert className="bg-accent/10 border-accent-foreground/30 rounded text-left">
               <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent-foreground" />
               <AlertDescription className="text-muted-foreground text-[10px] sm:text-xs md:text-sm leading-relaxed">
                 You now have access to the distributed Web OS and can begin

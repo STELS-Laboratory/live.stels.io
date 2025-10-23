@@ -11,7 +11,7 @@ function Header(
 	return (
 		<div className="flex items-center justify-between px-6 py-6 border-b border-border bg-card/30 backdrop-blur-sm">
 			<div className="flex items-center space-x-4">
-				<div className="icon-container-md bg-primary rounded-lg flex items-center justify-center">
+				<div className="icon-container-md bg-primary rounded flex items-center justify-center">
 					<BarChart3 className="icon-lg text-primary-foreground" />
 				</div>
 				<div className="space-y-1">

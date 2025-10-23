@@ -232,7 +232,7 @@ function Welcome(): ReactElement {
             {/* Canvas */}
             <button
               onClick={() => navigateTo("canvas")}
-              className="group bg-card rounded-lg border border-border overflow-hidden hover:border-blue-500/50 transition-all text-left"
+              className="group bg-card rounded border border-border overflow-hidden hover:border-blue-500/50 transition-all text-left"
             >
               <div className="aspect-video bg-blue-500/5 border-b border-border flex items-center justify-center">
                 <Boxes className="icon-2xl text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform" />
@@ -253,7 +253,7 @@ function Welcome(): ReactElement {
             {/* Editor */}
             <button
               onClick={() => navigateTo("editor")}
-              className="group bg-card rounded-lg border border-border overflow-hidden hover:border-amber-500/50 transition-all text-left"
+              className="group bg-card rounded border border-border overflow-hidden hover:border-amber-500/50 transition-all text-left"
             >
               <div className="aspect-video bg-amber-500/5 border-b border-border flex items-center justify-center">
                 <Code className="icon-2xl text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
@@ -274,7 +274,7 @@ function Welcome(): ReactElement {
             {/* Schemas */}
             <button
               onClick={() => navigateTo("schemas")}
-              className="group bg-card rounded-lg border border-border overflow-hidden hover:border-green-500/50 transition-all text-left"
+              className="group bg-card rounded border border-border overflow-hidden hover:border-green-500/50 transition-all text-left"
             >
               <div className="aspect-video bg-green-500/5 border-b border-border flex items-center justify-center">
                 <LayoutIcon className="icon-2xl text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform" />
@@ -295,7 +295,7 @@ function Welcome(): ReactElement {
             {/* Documentation */}
             <button
               onClick={() => navigateTo("docs")}
-              className="group bg-card rounded-lg border border-border overflow-hidden hover:border-zinc-500/50 transition-all text-left"
+              className="group bg-card rounded border border-border overflow-hidden hover:border-zinc-500/50 transition-all text-left"
             >
               <div className="aspect-video bg-zinc-500/5 border-b border-border flex items-center justify-center">
                 <FileText className="icon-2xl text-zinc-600 dark:text-zinc-400 group-hover:scale-110 transition-transform" />
@@ -321,7 +321,7 @@ function Welcome(): ReactElement {
             <h2 className="text-xl font-semibold text-foreground mb-4">
               Your Web Agents
             </h2>
-            <div className="p-12 bg-card rounded-lg border border-dashed border-border text-center">
+            <div className="p-12 bg-card rounded border border-dashed border-border text-center">
               <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-foreground mb-2">
                 No Custom Agents Yet
@@ -332,7 +332,7 @@ function Welcome(): ReactElement {
               </p>
               <button
                 onClick={() => navigateTo("schemas")}
-                className="px-6 py-3 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg transition-colors inline-flex items-center gap-2"
+                className="px-6 py-3 bg-green-600 hover:bg-green-500 text-white font-semibold rounded transition-colors inline-flex items-center gap-2"
               >
                 <LayoutIcon className="w-5 h-5" />
                 Create First Agent
@@ -448,7 +448,7 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
   }, [schema.updatedAt]);
 
   return (
-    <div className="group bg-card rounded-lg border border-border overflow-hidden hover:border-amber-500/50 transition-all">
+    <div className="group bg-card rounded border border-border overflow-hidden hover:border-amber-500/50 transition-all">
       {/* Preview */}
       <div className="aspect-video bg-background border-b border-border overflow-hidden relative">
         <div className="absolute inset-0 scale-50 overflow-auto">
@@ -469,7 +469,7 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
         <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <button
             onClick={() => onLaunch(schema)}
-            className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-lg transition-colors flex items-center gap-2"
+            className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded transition-colors flex items-center gap-2"
           >
             <Play className="w-5 h-5" />
             Launch App
