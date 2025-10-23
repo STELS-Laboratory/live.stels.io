@@ -211,7 +211,7 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
           className={cn(
             "flex items-center",
             "border border-border bg-card/80",
-            "rounded-xl",
+            "rounded",
             "backdrop-blur-sm",
             "p-1",
           )}
@@ -341,7 +341,7 @@ const KeyboardShortcutsOverlay: React.FC<KeyboardShortcutsOverlayProps> = ({
       onClick={onClose}
     >
       <div
-        className="border border-border bg-card rounded-2xl backdrop-blur-sm p-8 max-w-3xl w-full mx-4"
+        className="border border-border bg-card rounded backdrop-blur-sm p-8 max-w-3xl w-full mx-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

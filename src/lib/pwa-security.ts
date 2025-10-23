@@ -4,6 +4,20 @@
  * Utilities for detecting browser extensions and enforcing security policies
  */
 
+/**
+ * Extended Navigator interface with iOS standalone property
+ */
+interface NavigatorWithStandalone extends Navigator {
+  standalone?: boolean;
+}
+
+/**
+ * Extended Window interface for extension detection
+ */
+interface WindowWithExtensions extends Window {
+  [key: string]: unknown;
+}
+
 export interface SecurityCheckResult {
   isStandalone: boolean;
   isTrustedContext: boolean;
@@ -19,7 +33,7 @@ export function isStandalonePWA(): boolean {
   const isStandaloneDisplay = window.matchMedia('(display-mode: standalone)').matches;
   
   // Check iOS standalone
-  const isIOSStandalone = (window.navigator as any).standalone === true;
+  const isIOSStandalone = (window.navigator as NavigatorWithStandalone).standalone === true;
   
   // Check Android TWA
   const isAndroidTWA = document.referrer.includes('android-app://');
@@ -44,7 +58,7 @@ export function detectExtensions(): string[] {
   ];
   
   for (const global of extensionGlobals) {
-    if ((window as any)[global] && !isStandalonePWA()) {
+    if ((window as WindowWithExtensions)[global] && !isStandalonePWA()) {
       suspiciousExtensions.push(global);
     }
   }

@@ -3,11 +3,8 @@ import useSessionStoreSync from "@/hooks/use_session_store_sync.ts";
 import type { SessionStore } from "@/lib/canvas-types.ts";
 import { UIEngineProvider, UIRenderer } from "@/lib/gui/ui.ts";
 import type { UINode } from "@/lib/gui/ui.ts";
-import ErrorBoundary from "@/apps/schemas/error_boundary.tsx";
-import {
-	findSchemaByChannelKey,
-	getSchemaByWidgetKey,
-} from "@/apps/schemas/db";
+import ErrorBoundary from "@/apps/schemas/error_boundary";
+import { getSchemaByWidgetKey } from "@/apps/schemas/db";
 import {
 	collectRequiredChannels,
 	resolveSchemaRefs,
@@ -74,34 +71,48 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
 					// Prepare data with aliases from the schema itself
 					const data: Record<string, unknown> = {};
 
-					// IMPORTANT: Add current session data as "self" for universal schemas
+					// 1. IMPORTANT: Add current session data as "self" for universal schemas
 					// This allows using same schema for different channels
-					data["self"] = sessionData;
+					if (
+						schemaProject.selfChannelKey &&
+						session?.[schemaProject.selfChannelKey]
+					) {
+						// Use explicitly set selfChannelKey from schema
+						data["self"] = session[schemaProject.selfChannelKey];
+					} else {
+						// Fallback to current channel
+						data["self"] = sessionData;
+					}
 
-					// Add data for schema's own channels (with aliases)
+					// 2. Add data for schema's own channels (with aliases)
 					if (
 						schemaProject.channelAliases &&
 						schemaProject.channelAliases.length > 0
 					) {
-						schemaProject.channelAliases.forEach(({ channelKey, alias }) => {
-							if (session?.[channelKey]) {
-								data[alias] = session[channelKey];
-							}
-						});
+						schemaProject.channelAliases.forEach(
+							(
+								{ channelKey, alias }: { channelKey: string; alias: string },
+							) => {
+								if (session?.[channelKey]) {
+									data[alias] = session[channelKey];
+								}
+							},
+						);
 					}
 
-					// Collect nested channels and aliases
+					// 3. Collect nested channels and aliases from all nested schemas
+					// collectRequiredChannels already returns correct aliases!
 					const requiredChannels = await collectRequiredChannels(
 						schemaProject.schema,
 						schemaStore,
 					);
 
-					for (const { channelKey } of requiredChannels) {
-						const ownerSchema = await findSchemaByChannelKey(channelKey);
-						const aliasObj = ownerSchema?.channelAliases?.find(
-							(a) => a.channelKey === channelKey,
-						);
-						const alias = aliasObj?.alias || channelKey;
+					// Add all nested channel data using their proper aliases
+					for (const { channelKey, alias } of requiredChannels) {
+						// Skip if this alias already exists (avoid duplicates)
+						if (data[alias]) {
+							continue;
+						}
 
 						if (session?.[channelKey]) {
 							data[alias] = session[channelKey];
@@ -127,7 +138,7 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
 		return () => {
 			cancelled = true;
 		};
-	}, [widgetKey, session, schemaStore]);
+	}, [widgetKey, session, sessionData, schemaStore]);
 
 	if (!session || !sessionData) {
 		return (

@@ -13,15 +13,15 @@ import {
   Shield,
   XCircle,
 } from "lucide-react";
-import { Button } from "@/components/ui/button.tsx";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog.tsx";
-import { Alert, AlertDescription } from "@/components/ui/alert.tsx";
+} from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuthStore } from "@/stores/modules/auth.store.ts";
 import { createSignedTransaction } from "@/lib/gliesereum";
 
@@ -222,7 +222,7 @@ export function DeveloperAccessRequestDialog({
               </Alert>
 
               <div className="space-y-2 sm:space-y-3">
-                <div className="bg-card/50 border border-border rounded p-2.5 sm:p-3 md:p-4">
+                <div className="bg-card/10 border border-border rounded p-2.5 sm:p-3 md:p-4">
                   <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 bg-muted rounded flex items-center justify-center flex-shrink-0">
                       <Database className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" />
@@ -236,7 +236,7 @@ export function DeveloperAccessRequestDialog({
                   </p>
                 </div>
 
-                <div className="bg-card/50 border border-border rounded p-2.5 sm:p-3 md:p-4">
+                <div className="bg-card/10 border border-border rounded p-2.5 sm:p-3 md:p-4">
                   <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 bg-muted rounded flex items-center justify-center flex-shrink-0">
                       <Code className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600 dark:text-green-500" />

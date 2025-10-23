@@ -101,7 +101,7 @@ export function SimpleDropdown({
           <motion.div
             ref={dropdownRef}
             className={cn(
-              "fixed z-[9999] min-w-[8rem] overflow-hidden rounded-md border border-border bg-popover/95 backdrop-blur-md p-1 text-popover-foreground",
+              "fixed z-[9999] min-w-[8rem] overflow-hidden rounded border border-border bg-card/95 backdrop-blur-md p-1 text-popover-foreground",
               className,
             )}
             style={{

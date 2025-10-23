@@ -151,7 +151,7 @@ export default function NestedSchemaSelector({
           </div>
         )
         : (
-          <div className="max-h-60 overflow-y-auto border border-border rounded bg-card/50">
+          <div className="max-h-60 overflow-y-auto border border-border rounded bg-card/10">
             {Object.entries(groupedSchemas).map(([type, schemasList]) => {
               if (schemasList.length === 0) return null;
 

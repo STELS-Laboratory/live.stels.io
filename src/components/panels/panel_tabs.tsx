@@ -254,18 +254,42 @@ const PanelTab: React.FC<PanelTabProps> = ({
  * Panel tabs container component with professional toolbar
  */
 export const PanelTabs: React.FC<PanelTabsProps> = ({ className }) => {
-	const panels = useCanvasStore((state) => state.panels.panels);
-	const activePanelId = useCanvasStore((state) => state.panels.activePanelId);
-	const panelData = useCanvasStore((state) => state.panels.panelData);
-	const setActivePanel = useCanvasStore((state) => state.setActivePanel);
-	const updatePanel = useCanvasStore((state) => state.updatePanel);
-	const deletePanel = useCanvasStore((state) => state.deletePanel);
-	const createPanel = useCanvasStore((state) => state.createPanel);
-	const duplicatePanel = useCanvasStore((state) => state.duplicatePanel);
-	const exportPanel = useCanvasStore((state) => state.exportPanel);
-	const exportAllPanels = useCanvasStore((state) => state.exportAllPanels);
-	const importPanel = useCanvasStore((state) => state.importPanel);
-	const importAllPanels = useCanvasStore((state) => state.importAllPanels);
+	const panels = useCanvasStore((state): Panel[] => state.panels.panels);
+	const activePanelId = useCanvasStore((state): string | null =>
+		state.panels.activePanelId
+	);
+	const panelData = useCanvasStore((
+		state,
+	): Record<string, import("@/lib/panel-types").PanelData> =>
+		state.panels.panelData
+	);
+	const setActivePanel = useCanvasStore((state): (panelId: string) => void =>
+		state.setActivePanel
+	);
+	const updatePanel = useCanvasStore((
+		state,
+	): (panelId: string, updates: Partial<Panel>) => void => state.updatePanel);
+	const deletePanel = useCanvasStore((state): (panelId: string) => void =>
+		state.deletePanel
+	);
+	const createPanel = useCanvasStore((
+		state,
+	): (name: string, description?: string) => string => state.createPanel);
+	const duplicatePanel = useCanvasStore((state): (panelId: string) => string =>
+		state.duplicatePanel
+	);
+	const exportPanel = useCanvasStore((state): (panelId: string) => string =>
+		state.exportPanel
+	);
+	const exportAllPanels = useCanvasStore((state): () => string =>
+		state.exportAllPanels
+	);
+	const importPanel = useCanvasStore((
+		state,
+	): (jsonData: string) => string | null => state.importPanel);
+	const importAllPanels = useCanvasStore((
+		state,
+	): (jsonData: string) => boolean => state.importAllPanels);
 
 	const [editingPanelId, setEditingPanelId] = useState<string | null>(null);
 	const [editName, setEditName] = useState("");
@@ -315,7 +339,7 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({ className }) => {
 		(panelId: string) => {
 			try {
 				const jsonData = exportPanel(panelId);
-				const panel = panels.find((p) => p.id === panelId);
+				const panel = panels.find((p: Panel) => p.id === panelId);
 				const filename = `panel-${panel?.name || "export"}-${Date.now()}.json`;
 				downloadJSON(filename, jsonData);
 			} catch (error) {
@@ -434,7 +458,9 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({ className }) => {
 			// Ctrl/Cmd + Tab: Next panel
 			if ((event.ctrlKey || event.metaKey) && event.key === "Tab") {
 				event.preventDefault();
-				const currentIndex = panels.findIndex((p) => p.id === activePanelId);
+				const currentIndex = panels.findIndex((p: Panel) =>
+					p.id === activePanelId
+				);
 				const nextIndex = (currentIndex + 1) % panels.length;
 				setActivePanel(panels[nextIndex].id);
 			}
@@ -446,7 +472,9 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({ className }) => {
 				event.key === "Tab"
 			) {
 				event.preventDefault();
-				const currentIndex = panels.findIndex((p) => p.id === activePanelId);
+				const currentIndex = panels.findIndex((p: Panel) =>
+					p.id === activePanelId
+				);
 				const prevIndex = currentIndex === 0
 					? panels.length - 1
 					: currentIndex - 1;
@@ -474,7 +502,7 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({ className }) => {
 		>
 			{/* Panel tabs - scrollable */}
 			<div className="flex items-stretch flex-1 min-w-0 overflow-x-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-				{panels.map((panel) =>
+				{panels.map((panel: Panel) =>
 					editingPanelId === panel.id
 						? (
 							// Inline edit mode

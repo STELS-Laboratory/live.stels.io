@@ -9,6 +9,13 @@
 // Track if types have been loaded to prevent multiple loads
 let typesLoaded = false;
 
+// Support HMR (Hot Module Replacement) - reset state on module reload
+if (import.meta.hot) {
+  import.meta.hot.accept(() => {
+    typesLoaded = false;
+  });
+}
+
 /**
  * Load Worker SDK type definitions into Monaco Editor
  * @param monaco - Monaco editor instance
@@ -801,6 +808,16 @@ logger.info('Latest candle:', {
 
 // Track completion provider registration
 let completionProviderRegistered: any = null;
+
+// Support HMR - reset completion provider on module reload
+if (import.meta.hot) {
+  import.meta.hot.accept(() => {
+    if (completionProviderRegistered) {
+      completionProviderRegistered.dispose?.();
+      completionProviderRegistered = null;
+    }
+  });
+}
 
 /**
  * Register custom completion provider for worker context

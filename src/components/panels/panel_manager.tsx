@@ -181,14 +181,28 @@ const PanelCard: React.FC<PanelCardProps> = ({
 export const PanelManager: React.FC<PanelManagerProps> = (
 	{ isOpen, onClose },
 ) => {
-	const panels = useCanvasStore((state) => state.panels.panels);
-	const createPanel = useCanvasStore((state) => state.createPanel);
-	const updatePanel = useCanvasStore((state) => state.updatePanel);
-	const duplicatePanel = useCanvasStore((state) => state.duplicatePanel);
-	const deletePanel = useCanvasStore((state) => state.deletePanel);
-	const clearAllPanels = useCanvasStore((state) => state.clearAllPanels);
-	const movePanelUp = useCanvasStore((state) => state.movePanelUp);
-	const movePanelDown = useCanvasStore((state) => state.movePanelDown);
+	const panels = useCanvasStore((state): Panel[] => state.panels.panels);
+	const createPanel = useCanvasStore((
+		state,
+	): (name: string, description?: string) => string => state.createPanel);
+	const updatePanel = useCanvasStore((
+		state,
+	): (panelId: string, updates: Partial<Panel>) => void => state.updatePanel);
+	const duplicatePanel = useCanvasStore((state): (panelId: string) => string =>
+		state.duplicatePanel
+	);
+	const deletePanel = useCanvasStore((state): (panelId: string) => void =>
+		state.deletePanel
+	);
+	const clearAllPanels = useCanvasStore((state): () => void =>
+		state.clearAllPanels
+	);
+	const movePanelUp = useCanvasStore((state): (panelId: string) => void =>
+		state.movePanelUp
+	);
+	const movePanelDown = useCanvasStore((state): (panelId: string) => void =>
+		state.movePanelDown
+	);
 
 	const [showCreateForm, setShowCreateForm] = useState(false);
 	const [editingPanel, setEditingPanel] = useState<Panel | null>(null);
@@ -271,7 +285,7 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 
 	return (
 		<div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-			<Card className="w-full max-w-4xl max-h-[80vh] overflow-hidden rounded-2xl">
+			<Card className="w-full max-w-4xl max-h-[80vh] overflow-hidden rounded">
 				<CardHeader className="border-b">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center space-x-2">
@@ -407,7 +421,7 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 					{panels.length === 0
 						? (
 							<div className="text-center py-12 px-4">
-								<div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center">
+								<div className="w-16 h-16 mx-auto mb-4 rounded flex items-center justify-center">
 									<Grid3X3 className="h-8 w-8" />
 								</div>
 								<p className="font-medium mb-1">
@@ -426,7 +440,7 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 										"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4",
 								)}
 							>
-								{panels.map((panel, index) => (
+								{panels.map((panel: Panel, index: number) => (
 									<PanelCard
 										key={panel.id}
 										panel={panel}

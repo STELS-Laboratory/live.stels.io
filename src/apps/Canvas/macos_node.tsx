@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { Handle, type NodeProps, Position, useReactFlow } from "reactflow";
 import { Minus, Square, X } from "lucide-react";
-import NodeFlow from "@/apps/canvas/node_flow.tsx";
+import NodeFlow from "@/apps/canvas/node_flow";
 import type { FlowNodeData, NodeState } from "@/lib/canvas-types.ts";
 
 interface MacOSNodeProps extends NodeProps {
@@ -124,7 +124,7 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
 						className="w-3 h-3 cursor-pointer hover:bg-red-400/90 dark:hover:bg-red-500/80 rounded-full flex items-center justify-center transition-all duration-200"
 						title="Close"
 					>
-						<X size={6}/>
+						<X size={6} />
 					</button>
 					<button
 						onClick={handleMinimize}
@@ -137,9 +137,7 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
 					>
 						<Minus
 							size={6}
-							className={nodeState.minimized
-								? "text-white"
-								: ""}
+							className={nodeState.minimized ? "text-white" : ""}
 						/>
 					</button>
 					<button
@@ -153,9 +151,7 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
 					>
 						<Square
 							size={6}
-							className={nodeState.maximized
-								? "text-white"
-								: ""}
+							className={nodeState.maximized ? "text-white" : ""}
 						/>
 					</button>
 				</div>

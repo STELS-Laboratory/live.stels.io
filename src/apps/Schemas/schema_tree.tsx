@@ -124,7 +124,7 @@ export default function SchemaTree({
   }, [tree]);
 
   return (
-    <div className="p-2 bg-card/50 rounded border border-border">
+    <div className="p-2 bg-card/10 rounded border border-border">
       <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-border">
         <div className="flex items-center gap-1.5">
           <Layers className="w-3 h-3 text-amber-700 dark:text-amber-400" />

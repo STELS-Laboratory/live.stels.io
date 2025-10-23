@@ -53,14 +53,14 @@ export function SecurityWarningExtensions(): React.ReactElement {
 
   const handleInstall = (): void => {
     // Trigger browser install prompt if available
-    const installPrompt = (window as any).deferredPrompt;
+    const installPrompt = (window as WindowWithPWA).deferredPrompt;
     if (installPrompt) {
       installPrompt.prompt();
-      installPrompt.userChoice.then((choiceResult: any) => {
+      installPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === "accepted") {
           console.log("[PWA] User accepted install");
         }
-        (window as any).deferredPrompt = null;
+        (window as WindowWithPWA).deferredPrompt = null;
       });
     } else {
       alert(
@@ -85,7 +85,7 @@ export function SecurityWarningExtensions(): React.ReactElement {
             Security Notice
           </DialogTitle>
           <DialogDescription className="space-y-4 pt-4">
-            <div className="rounded-lg bg-amber-500/10 p-4 border border-amber-500/20">
+            <div className="rounded bg-amber-500/10 p-4 border border-amber-500/20">
               <p className="text-sm text-amber-200">
                 <strong>Browser extensions detected</strong>
               </p>
@@ -112,7 +112,7 @@ export function SecurityWarningExtensions(): React.ReactElement {
               </div>
             )}
 
-            <div className="rounded-lg bg-green-500/10 p-4 border border-green-500/20">
+            <div className="rounded bg-green-500/10 p-4 border border-green-500/20">
               <div className="flex items-start gap-3">
                 <Shield className="h-5 w-5 text-green-500 mt-0.5" />
                 <div className="space-y-2">

@@ -173,7 +173,7 @@ export default function SessionDataViewer({
   };
 
   return (
-    <div className="flex-shrink-0 border-t border-border bg-card/50">
+    <div className="flex-shrink-0 border-t border-border bg-card/10">
       <div className="flex items-center justify-between px-2 py-1 border-b border-border">
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-semibold text-foreground uppercase tracking-wide">
@@ -220,7 +220,7 @@ export default function SessionDataViewer({
             return (
               <div
                 key={channel.key}
-                className="border border-border rounded bg-card/50"
+                className="border border-border rounded bg-card/10"
               >
                 <button
                   onClick={() => toggleChannel(channel.key)}

@@ -3,7 +3,7 @@
  * Show how to access data from selected channels
  */
 
-import { type ReactElement } from "react";
+import { type ReactElement, useState } from "react";
 import { Input } from "@/components/ui";
 import { Info, Tag } from "lucide-react";
 import type { ChannelAlias } from "./types.ts";
@@ -26,11 +26,21 @@ export default function ChannelAliasEditor({
   selfChannelKey,
   onSelfChannelChange,
 }: ChannelAliasEditorProps): ReactElement {
+  // Local state for uncontrolled input during typing
+  const [localValues, setLocalValues] = useState<Record<string, string>>({});
+
   const getAlias = (channelKey: string): string => {
+    // First check local state (during typing), then saved aliases
+    if (localValues[channelKey] !== undefined) {
+      return localValues[channelKey] || "";
+    }
     return aliases.find((a) => a.channelKey === channelKey)?.alias || "";
   };
 
   const handleAliasChange = (channelKey: string, alias: string): void => {
+    // Store raw input value locally (allows typing uppercase, symbols, etc.)
+    setLocalValues((prev) => ({ ...prev, [channelKey]: alias }));
+
     const sanitized = alias.toLowerCase().replace(/[^a-z0-9_]/g, "");
 
     // Check for duplicate aliases
@@ -45,6 +55,15 @@ export default function ChannelAliasEditor({
     }
 
     onChange(updated);
+  };
+
+  const handleBlur = (channelKey: string): void => {
+    // Clear local state on blur to show sanitized value
+    setLocalValues((prev) => {
+      const newState = { ...prev };
+      delete newState[channelKey];
+      return newState;
+    });
   };
 
   // Extract symbol from channel key (e.g., BTC/USDT → btc, SOL/USDT → sol)
@@ -176,7 +195,7 @@ export default function ChannelAliasEditor({
           return (
             <div
               key={channelKey}
-              className="flex items-center gap-1.5 p-1.5 bg-card/50 rounded border border-border"
+              className="flex items-center gap-1.5 p-1.5 bg-card/10 rounded border border-border"
             >
               {/* Channel symbol/indicator */}
               <div
@@ -193,6 +212,7 @@ export default function ChannelAliasEditor({
               <Input
                 value={currentAlias}
                 onChange={(e) => handleAliasChange(channelKey, e.target.value)}
+                onBlur={() => handleBlur(channelKey)}
                 placeholder={suggested || `ch${idx + 1}`}
                 className="h-6 text-[11px] font-mono flex-1"
               />

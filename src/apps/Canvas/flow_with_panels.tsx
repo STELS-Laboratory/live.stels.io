@@ -19,30 +19,30 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import useSessionStoreSync from "@/hooks/use_session_store_sync.ts";
-import MacOSNode from "@/apps/canvas/macos_node.tsx";
+import MacOSNode from "@/apps/canvas/macos_node";
 import { Boxes } from "lucide-react";
 import { cleanBrands } from "@/lib/utils.ts";
-import Graphite from "@/components/ui/vectors/logos/graphite.tsx";
+import Graphite from "@/components/ui/vectors/logos/graphite";
 import {
 	type FlowNode,
 	type FlowNodeData,
 	type SessionStore,
 } from "@/lib/canvas-types.ts";
 import { useCanvasStore } from "./store.ts";
-import PanelTabsPro from "@/components/panels/panel_tabs_pro.tsx";
-import { PanelManager } from "@/components/panels/panel_manager.tsx";
-import { WidgetStore } from "@/components/widgets/widget_store.tsx";
+import PanelTabsPro from "@/components/panels/panel_tabs_pro";
+import { PanelManager } from "@/components/panels/panel_manager";
+import { WidgetStore } from "@/components/widgets/widget_store";
 import { useDragAndDrop } from "@/hooks/use_drag_and_drop.ts";
 import { useDynamicAutoConnections } from "@/hooks/use_dynamic_auto_connections.ts";
-import GroupedEdge from "@/components/widgets/grouped_edge.tsx";
-import { AutoConnectionsPanel } from "@/components/canvas/auto_connections_panel.tsx";
+import GroupedEdge from "@/components/widgets/grouped_edge";
+import { AutoConnectionsPanel } from "@/components/canvas/auto_connections_panel";
 import { analyzeNodeChannels } from "@/lib/auto-connections-dynamic.ts";
 import { useMobile } from "@/hooks/use_mobile.ts";
-import { CanvasControls } from "@/components/canvas/canvas_controls.tsx";
+import { CanvasControls } from "@/components/canvas/canvas_controls";
 import {
 	EmptyCanvasState,
 	EnhancedDropZone,
-} from "@/components/canvas/canvas_overlays.tsx";
+} from "@/components/canvas/canvas_overlays";
 
 // Define nodeTypes and edgeTypes outside component to avoid React Flow warnings
 const nodeTypes: NodeTypes = {
@@ -66,7 +66,6 @@ function FlowWithPanels(): React.ReactElement | null {
 	const toggleWidgetStore = useCanvasStore((state) => state.toggleWidgetStore);
 	const panels = useCanvasStore((state) => state.panels.panels);
 	const activePanelId = useCanvasStore((state) => state.panels.activePanelId);
-	const getActivePanel = useCanvasStore((state) => state.getActivePanel);
 	const getPanelData = useCanvasStore((state) => state.getPanelData);
 	const updatePanelData = useCanvasStore((state) => state.updatePanelData);
 	const createPanel = useCanvasStore((state) => state.createPanel);
@@ -453,7 +452,7 @@ function FlowWithPanels(): React.ReactElement | null {
 		return (
 			<div className="h-full bg-background p-4 flex items-center justify-center">
 				<div className="text-center max-w-sm mx-auto">
-					<div className="w-16 h-16 bg-card rounded-xl flex items-center justify-center mb-4 mx-auto">
+					<div className="w-16 h-16 bg-card rounded flex items-center justify-center mb-4 mx-auto">
 						<Boxes className="w-8 h-8 text-amber-700 dark:text-amber-400" />
 					</div>
 					<h2 className="text-amber-700 dark:text-amber-400 font-mono text-lg font-bold mb-2">
@@ -462,7 +461,7 @@ function FlowWithPanels(): React.ReactElement | null {
 					<p className="text-muted-foreground font-mono text-sm mb-6">
 						Desktop interface required
 					</p>
-					<div className="p-4 bg-card/50 border border-border rounded text-left">
+					<div className="p-4 bg-card/10 border border-border rounded text-left">
 						<p className="text-xs text-muted-foreground mb-3">
 							The Visual Workspace requires a desktop display for optimal
 							workflow:
@@ -490,8 +489,6 @@ function FlowWithPanels(): React.ReactElement | null {
 			</div>
 		);
 	}
-
-	const activePanel = getActivePanel();
 
 	return (
 		<div className="absolute w-[100%] h-[100%] top-0 left-0 flex flex-col">
@@ -576,43 +573,9 @@ function FlowWithPanels(): React.ReactElement | null {
 						<div className="mt-0 text-sm text-muted-foreground/30">
 							Artificial Market Intelligence
 						</div>
-						{activePanel && (
-							<div className="mt-2 text-xs text-muted-foreground/50">
-								Panel: {activePanel.name}
-							</div>
-						)}
-						{isAutoConnectionsEnabled && connectionStats && (
-							<div className="mt-2 text-xs text-muted-foreground/50">
-								Connections: {connectionStats.edgeCount} total,{" "}
-								{connectionStats.groupCount} groups
-							</div>
-						)}
-						{/* Debug info */}
-						<div className="mt-1 text-xs text-muted-foreground/30">
-							Nodes: {nodes.length}, Auto edges:{" "}
-							{allEdges.length - edges.length}
-						</div>
-						{/* Session debug */}
-						<div className="mt-1 text-xs text-muted-foreground/30">
-							Session keys: {session ? Object.keys(session).length : 0}
-						</div>
-						{/* Auto connections debug */}
-						<div className="mt-1 text-xs text-muted-foreground/30">
-							Auto enabled: {isAutoConnectionsEnabled ? "Yes" : "No"}
-						</div>
-						{/* Channel analysis debug */}
-						<div className="mt-1 text-xs text-muted-foreground/30">
-							Blocks detected: {channelAnalysis.blocks.length}
-						</div>
-						{/* Selected blocks debug */}
-						<div className="mt-1 text-xs text-muted-foreground/30">
-							Selected blocks:
-							[{autoConnectionsConfig.selectedBlocks?.join(", ") || "none"}]
-						</div>
 					</div>
 				</ReactFlow>
 
-				{/* Enhanced Drop Zone - Professional */}
 				<EnhancedDropZone
 					isActive={dragState.dropZoneActive && dragState.isDragging}
 					mousePosition={dragState.mousePosition || undefined}

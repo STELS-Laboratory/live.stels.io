@@ -105,7 +105,7 @@ export function NetworkSelectorCompact(
 
         <DropdownMenuContent
           align="end"
-          className="w-72 sm:w-80 bg-popover border border-border"
+          className="w-72 sm:w-80 bg-card border border-border"
         >
           <div className="p-2 sm:p-3">
             <div className="text-xs sm:text-sm font-medium text-card-foreground mb-2 sm:mb-3">

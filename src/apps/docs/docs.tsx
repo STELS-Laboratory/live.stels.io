@@ -438,7 +438,7 @@ export function Docs(): React.ReactElement {
             <>
               {/* Header */}
               <div
-                className={`border-b border-border bg-card/50 flex-shrink-0 ${
+                className={`border-b border-border bg-card/10 flex-shrink-0 ${
                   isMobile ? "px-4 py-4" : "px-8 py-5"
                 }`}
               >

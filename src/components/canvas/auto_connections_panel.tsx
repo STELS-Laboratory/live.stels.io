@@ -226,7 +226,7 @@ export const AutoConnectionsPanel: React.FC<AutoConnectionsPanelProps> = ({
       className={cn(
         "w-96",
         "border ",
-        "rounded-2xl",
+        "rounded",
         "backdrop-blur-sm",
         "overflow-hidden",
       )}

@@ -28,11 +28,11 @@ import {
 	X,
 	Zap,
 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert.tsx";
-import { Button } from "@/components/ui/button.tsx";
-import { ScrollArea } from "@/components/ui/scroll-area.tsx";
-import { Textarea } from "@/components/ui/textarea.tsx";
-import EditorComponent from "@/components/editor/editor_component.tsx";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import EditorComponent from "@/components/editor/editor_component";
 import {
 	useEditorStore,
 	type Worker,
@@ -42,33 +42,28 @@ import { useAuthStore } from "@/stores/modules/auth.store.ts";
 import { useAppStore } from "@/stores/modules/app.store.ts";
 import { useMobile } from "@/hooks/use_mobile.ts";
 import type { JSX } from "react/jsx-runtime";
-import { Input } from "@/components/ui/input.tsx";
+import { Input } from "@/components/ui/input";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from "@/components/ui/select.tsx";
-import Graphite from "@/components/ui/vectors/logos/graphite.tsx";
+} from "@/components/ui/select";
+import Graphite from "@/components/ui/vectors/logos/graphite";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
-} from "@/components/ui/tooltip.tsx";
+} from "@/components/ui/tooltip";
 import { CreateWorkerDialog } from "./ami_editor/create_worker_dialog";
 import { LeaderInfoCard } from "./ami_editor/leader_info_card";
 import { WorkerStatsPanel } from "./ami_editor/worker_stats_panel";
 import { WorkerLogsPanel } from "./ami_editor/worker_logs_panel";
 import { StopAllDialog } from "./ami_editor/stop_all_dialog";
 import { MigrateWorkerDialog } from "./ami_editor/migrate_worker_dialog";
-import {
-	Tabs,
-	TabsContent,
-	TabsList,
-	TabsTrigger,
-} from "@/components/ui/tabs.tsx";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DeveloperAccessRequestDialog } from "@/components/auth/developer_access_request";
 import { navigateTo } from "@/lib/router";
 
@@ -610,7 +605,7 @@ export function AMIEditor(): JSX.Element {
 		return (
 			<div className="h-full bg-background p-4 flex items-center justify-center">
 				<div className="text-center max-w-sm mx-auto">
-					<div className="w-16 h-16 bg-card rounded-xl flex items-center justify-center mb-4 mx-auto">
+					<div className="w-16 h-16 bg-card rounded flex items-center justify-center mb-4 mx-auto">
 						<Code className="w-8 h-8 text-amber-700 dark:text-amber-400" />
 					</div>
 					<h2 className="text-amber-700 dark:text-amber-400 font-mono text-lg font-bold mb-2">
@@ -619,7 +614,7 @@ export function AMIEditor(): JSX.Element {
 					<p className="text-muted-foreground font-mono text-sm mb-6">
 						Desktop interface required
 					</p>
-					<div className="p-4 bg-card/50 border border-border rounded text-left">
+					<div className="p-4 bg-card/10 border border-border rounded text-left">
 						<p className="text-xs text-muted-foreground mb-3">
 							The Protocol Editor requires a desktop display for optimal
 							workflow:
@@ -1106,7 +1101,7 @@ export function AMIEditor(): JSX.Element {
 						</ScrollArea>
 
 						{/* Footer - File System Style */}
-						<div className="px-2 py-1 border-t border-border bg-card/50">
+						<div className="px-2 py-1 border-t border-border bg-card/10">
 							<div className="flex items-center justify-between text-[9px] font-mono text-muted-foreground">
 								<span>
 									{filteredWorkers.length} items
@@ -1809,7 +1804,7 @@ export function AMIEditor(): JSX.Element {
 			<div className="h-full bg-background flex items-center justify-center">
 				<div className="text-center max-w-md mx-auto p-8">
 					<div className="w-24 h-24 flex items-center justify-center mb-8 mx-auto relative">
-						<div className="w-16 h-16 rounded-xl flex items-center justify-center">
+						<div className="w-16 h-16 rounded flex items-center justify-center">
 							<Graphite size={6} primary="gray" />
 						</div>
 						<div className="absolute inset-0" />
@@ -1825,7 +1820,7 @@ export function AMIEditor(): JSX.Element {
 					</p>
 
 					<div className="space-y-4">
-						<div className="bg-card/50 border border-border rounded p-4">
+						<div className="bg-card/10 border border-border rounded p-4">
 							<div className="flex items-center gap-3 mb-3">
 								<div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
 									<Database className="w-4 h-4 text-blue-700 dark:text-blue-700 dark:text-blue-400" />
@@ -1839,7 +1834,7 @@ export function AMIEditor(): JSX.Element {
 							</p>
 						</div>
 
-						<div className="bg-card/50 border border-border rounded p-4">
+						<div className="bg-card/10 border border-border rounded p-4">
 							<div className="flex items-center gap-3 mb-3">
 								<div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
 									<Code className="w-4 h-4 text-green-700 dark:text-green-700 dark:text-green-600" />

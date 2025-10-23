@@ -26,7 +26,7 @@ import NestedSchemaSelector from "./nested_schema_selector";
 import SchemaTree from "./schema_tree";
 import ChannelAliasEditor from "./channel_alias_editor";
 import SessionDataViewer from "./session_data_viewer";
-import { ToastContainer, useToast } from "../../components/ui/toast.tsx";
+import { ToastContainer, useToast } from "../../components/ui/toast";
 import type { ChannelAlias, ChannelData, SchemaProject } from "./types.ts";
 import {
   collectNestedSchemasForExport,
@@ -50,7 +50,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip.tsx";
+} from "@/components/ui/tooltip";
 import { useMobile } from "@/hooks/use_mobile.ts";
 
 /**
@@ -607,7 +607,7 @@ export default function Schemas(): ReactElement {
     [handleImport, showToast],
   );
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts and page reload prevention
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
       // Ctrl/Cmd + S to save
@@ -617,18 +617,49 @@ export default function Schemas(): ReactElement {
           handleSaveSchema();
         }
       }
+
+      // Prevent page reload shortcuts when editor is active
+      // Ctrl+R / Cmd+R (reload)
+      if ((e.ctrlKey || e.metaKey) && e.key === "r") {
+        e.preventDefault();
+        showToast(
+          "info",
+          "Reload Disabled",
+          "Page reload is disabled in Schema Editor. Use ⌘S to save.",
+        );
+      }
+
+      // F5 (reload)
+      if (e.key === "F5") {
+        e.preventDefault();
+        showToast(
+          "info",
+          "Reload Disabled",
+          "Page reload is disabled in Schema Editor. Use ⌘S to save.",
+        );
+      }
+
+      // Ctrl+Shift+R / Cmd+Shift+R (hard reload)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "r") {
+        e.preventDefault();
+        showToast(
+          "info",
+          "Reload Disabled",
+          "Page reload is disabled in Schema Editor.",
+        );
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeSchema, isValid, handleSaveSchema]);
+  }, [activeSchema, isValid, handleSaveSchema, showToast]);
 
   // Mobile warning - desktop interface required
   if (mobile) {
     return (
       <div className="h-full bg-background p-4 flex items-center justify-center">
         <div className="text-center max-w-sm mx-auto">
-          <div className="w-16 h-16 bg-card rounded-xl flex items-center justify-center mb-4 mx-auto">
+          <div className="w-16 h-16 bg-card rounded flex items-center justify-center mb-4 mx-auto">
             <LayoutIcon className="w-8 h-8 text-amber-700 dark:text-amber-400" />
           </div>
           <h2 className="text-amber-700 dark:text-amber-400 font-mono text-lg font-bold mb-2">
@@ -637,9 +668,10 @@ export default function Schemas(): ReactElement {
           <p className="text-muted-foreground font-mono text-sm mb-6">
             Desktop interface required
           </p>
-          <div className="p-4 bg-card/50 border border-border rounded text-left">
+          <div className="p-4 bg-card/10 border border-border rounded text-left">
             <p className="text-xs text-muted-foreground mb-3">
-              The Schema Manager requires a desktop display for optimal workflow:
+              The Schema Manager requires a desktop display for optimal
+              workflow:
             </p>
             <ul className="text-xs text-muted-foreground space-y-2">
               <li className="flex items-start gap-2">
@@ -851,7 +883,7 @@ export default function Schemas(): ReactElement {
         </div>
 
         {/* Schema Manager (Tabs) */}
-        <div className="flex-shrink-0 p-2 border-b border-border bg-card/50">
+        <div className="flex-shrink-0 p-2 border-b border-border bg-card/10">
           <div className="space-y-3">
             <SchemaManager
               schemas={schemas}
@@ -962,8 +994,8 @@ export default function Schemas(): ReactElement {
                         <div className="mt-2">
                           <ChannelAliasEditor
                             channelKeys={selectedChannels}
-                            aliases={[]}
-                            onChange={() => {}}
+                            aliases={channelAliases}
+                            onChange={setChannelAliases}
                             selfChannelKey={selfChannelKey}
                             onSelfChannelChange={(key) => {
                               console.log(

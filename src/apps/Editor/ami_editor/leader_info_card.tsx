@@ -4,13 +4,8 @@
  */
 
 import { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card.tsx";
-import { Button } from "@/components/ui/button.tsx";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   AlertCircle,
   CheckCircle,
@@ -95,7 +90,7 @@ export function LeaderInfoCard({
 
   if (loading && !leaderInfo) {
     return (
-      <Card className="bg-card/50 border-border/50">
+      <Card className="bg-card/10 border-border/50">
         <CardContent className="p-4 flex items-center justify-center">
           <div className="flex items-center gap-2 text-muted-foreground">
             <div className="animate-spin w-4 h-4 border-2 border-muted-foreground border-t-transparent rounded-full" />
@@ -126,7 +121,7 @@ export function LeaderInfoCard({
 
   if (!leaderInfo) {
     return (
-      <Card className="bg-card/50 border-border/50">
+      <Card className="bg-card/10 border-border/50">
         <CardContent className="p-4">
           <p className="text-xs text-muted-foreground text-center">
             No leader info available
@@ -163,7 +158,9 @@ export function LeaderInfoCard({
             onClick={() => setAutoRefresh(!autoRefresh)}
             className={cn(
               "h-5 w-5 p-0",
-              autoRefresh ? "text-green-700 dark:text-green-600" : "text-muted-foreground",
+              autoRefresh
+                ? "text-green-700 dark:text-green-600"
+                : "text-muted-foreground",
             )}
             title={autoRefresh ? "Auto-refresh ON" : "Auto-refresh OFF"}
           >
@@ -182,11 +179,17 @@ export function LeaderInfoCard({
           </span>
           <div className="flex items-center gap-1">
             {leaderInfo.hasLeader
-              ? <CheckCircle className="h-3 w-3 text-green-700 dark:text-green-600" />
-              : <AlertCircle className="h-3 w-3 text-orange-700 dark:text-orange-400" />}
+              ? (
+                <CheckCircle className="h-3 w-3 text-green-700 dark:text-green-600" />
+              )
+              : (
+                <AlertCircle className="h-3 w-3 text-orange-700 dark:text-orange-400" />
+              )}
             <span
               className={`text-[10px] font-mono ${
-                leaderInfo.hasLeader ? "text-green-700 dark:text-green-600" : "text-orange-700 dark:text-orange-400"
+                leaderInfo.hasLeader
+                  ? "text-green-700 dark:text-green-600"
+                  : "text-orange-700 dark:text-orange-400"
               }`}
             >
               {leaderInfo.hasLeader ? "Active" : "No Leader"}
@@ -250,7 +253,9 @@ export function LeaderInfoCard({
         >
           <p
             className={`text-[10px] ${
-              leaderInfo.isExpired ? "text-red-700 dark:text-red-400" : "text-blue-700 dark:text-blue-400"
+              leaderInfo.isExpired
+                ? "text-red-700 dark:text-red-400"
+                : "text-blue-700 dark:text-blue-400"
             }`}
           >
             {leaderInfo.isExpired

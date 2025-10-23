@@ -56,7 +56,7 @@ export const EnhancedDropZone: React.FC<EnhancedDropZoneProps> = ({
         {/* Central indicator */}
         <div
           className={cn(
-            "w-10 h-10 rounded-xl",
+            "w-10 h-10 rounded",
             "flex items-center justify-center",
             "animate-in zoom-in duration-200",
           )}
@@ -110,7 +110,7 @@ export const PanelTransitionOverlay: React.FC<
       <div
         className={cn(
           "border",
-          "rounded-2xl backdrop-blur-sm",
+          "rounded backdrop-blur-sm",
           "p-8 min-w-[300px]",
           "animate-in zoom-in-95 slide-in-from-bottom-4 duration-300",
         )}
@@ -129,7 +129,7 @@ export const PanelTransitionOverlay: React.FC<
             {/* Inner icon */}
             <div
               className={cn(
-                "w-10 h-10 rounded-xl",
+                "w-10 h-10 rounded",
                 "flex items-center justify-center",
               )}
             >
@@ -183,7 +183,7 @@ export const EmptyCanvasState: React.FC<EmptyCanvasStateProps> = ({
       <div
         className={cn(
           "border ",
-          "rounded-2xl backdrop-blur-sm",
+          "rounded backdrop-blur-sm",
           "p-10 max-w-md",
           "text-center",
           "pointer-events-auto",
@@ -195,7 +195,7 @@ export const EmptyCanvasState: React.FC<EmptyCanvasStateProps> = ({
           <div
             className={cn(
               "w-16 h-16 mx-auto",
-              "rounded-2xl",
+              "rounded",
               "flex items-center justify-center",
             )}
           >

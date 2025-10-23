@@ -11,9 +11,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog.tsx";
-import { Button } from "@/components/ui/button.tsx";
-import { Alert, AlertDescription } from "@/components/ui/alert.tsx";
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertCircle,
   AlertTriangle,
@@ -22,7 +22,7 @@ import {
   Globe,
   Server,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge.tsx";
+import { Badge } from "@/components/ui/badge";
 import type { Worker } from "../store.ts";
 
 interface MigrateWorkerDialogProps {

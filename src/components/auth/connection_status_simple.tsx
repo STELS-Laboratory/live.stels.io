@@ -107,7 +107,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 							</span>
 							<Badge
 								variant="outline"
-								className={`text-xs rounded-md ${getNetworkColor()}`}
+								className={`text-xs rounded ${getNetworkColor()}`}
 							>
 								{isConnected
 									? (
@@ -129,7 +129,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 				</motion.div>
 			}
 			align="end"
-			className="w-80 bg-popover border-border"
+			className="w-80 bg-card border-border"
 		>
 			<motion.div
 				className="p-3 space-y-3"
@@ -182,7 +182,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 					>
 						<Badge
 							variant="outline"
-							className="text-xs rounded-md bg-purple-500/10 border-purple-500/30 text-purple-700 dark:text-purple-400"
+							className="text-xs rounded bg-purple-500/10 border-purple-500/30 text-purple-700 dark:text-purple-400"
 						>
 							Developer
 						</Badge>

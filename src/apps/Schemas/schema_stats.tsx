@@ -62,7 +62,7 @@ export default function SchemaStats({
         return (
           <div
             key={stat.label}
-            className="flex items-center gap-1.5 p-1.5 bg-card/50 rounded border border-border"
+            className="flex items-center gap-1.5 p-1.5 bg-card/10 rounded border border-border"
           >
             <Icon className={`w-3 h-3 ${stat.color}`} />
             <div className="flex flex-col">

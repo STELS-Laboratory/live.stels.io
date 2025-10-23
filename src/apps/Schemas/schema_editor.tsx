@@ -78,6 +78,39 @@ export default function SchemaEditor({
         : "schema-dark";
       monacoInstance.editor.setTheme(currentTheme);
 
+      // Prevent default browser shortcuts that could reload the page
+      editor.onKeyDown((e) => {
+        const { keyCode, ctrlKey, metaKey, shiftKey } = e;
+
+        // Prevent Ctrl+R / Cmd+R (reload)
+        if ((ctrlKey || metaKey) && keyCode === monacoInstance.KeyCode.KeyR) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        // Prevent F5 (reload)
+        if (keyCode === monacoInstance.KeyCode.F5) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        // Prevent Ctrl+Shift+R / Cmd+Shift+R (hard reload)
+        if (
+          (ctrlKey || metaKey) &&
+          shiftKey &&
+          keyCode === monacoInstance.KeyCode.KeyR
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        // Prevent Ctrl+W / Cmd+W (close tab) - optional
+        if ((ctrlKey || metaKey) && keyCode === monacoInstance.KeyCode.KeyW) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
+
       // Format on paste
       editor.onDidPaste(() => {
         editor.getAction("editor.action.formatDocument")?.run();

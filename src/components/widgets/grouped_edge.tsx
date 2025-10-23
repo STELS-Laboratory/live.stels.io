@@ -78,7 +78,7 @@ function GroupedEdge({
         >
           {/* Main label */}
           <div
-            className="px-1 py-0.5 rounded text-xs font-medium text-foreground bg-popover/90 backdrop-blur-sm border border-border/50 transition-all duration-200 group-hover:bg-popover group-hover:scale-105"
+            className="px-1 py-0.5 rounded text-xs font-medium text-foreground bg-card/90 backdrop-blur-sm border border-border/50 transition-all duration-200 group-hover:bg-card group-hover:scale-105"
             style={{
               color: adjustedColor,
               borderColor: adjustedColor + "40",
@@ -102,7 +102,7 @@ function GroupedEdge({
 
           {/* Tooltip on hover */}
           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-            <div className="bg-popover/95 text-foreground text-xs rounded px-3 py-2 backdrop-blur-sm border border-border/50 whitespace-nowrap">
+            <div className="bg-card/95 text-foreground text-xs rounded px-3 py-2 backdrop-blur-sm border border-border/50 whitespace-nowrap">
               <div className="font-medium mb-1">
                 {data?.groupType || "Unknown"}: {data?.groupKey || "Connection"}
               </div>

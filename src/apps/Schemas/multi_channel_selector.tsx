@@ -259,7 +259,7 @@ export default function MultiChannelSelector({
           </div>
         )
         : (
-          <div className="max-h-60 overflow-y-auto border border-border rounded bg-card/50">
+          <div className="max-h-60 overflow-y-auto border border-border rounded bg-card/10">
             {Object.entries(groupedChannels).map(([type, channels]) => {
               if (channels.length === 0) return null;
 

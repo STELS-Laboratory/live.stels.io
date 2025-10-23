@@ -29,5 +29,31 @@ import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
   }
 };
 
+// Import monaco dynamically to configure it
+import('monaco-editor').then((monaco) => {
+  // Enable semantic highlighting for JavaScript/TypeScript
+  monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+    noSemanticValidation: false,
+    noSyntaxValidation: false,
+  });
+
+  monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+    target: monaco.languages.typescript.ScriptTarget.ES2020,
+    allowNonTsExtensions: true,
+    allowJs: true,
+    checkJs: false,
+  });
+
+  monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+    noSemanticValidation: false,
+    noSyntaxValidation: false,
+  });
+
+  monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+    target: monaco.languages.typescript.ScriptTarget.ES2020,
+    allowNonTsExtensions: true,
+  });
+});
+
 export {};
 

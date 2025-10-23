@@ -6,8 +6,8 @@
 
 import { useState } from "react";
 import { WorkerLogsPanel } from "./worker_logs_panel";
-import { Button } from "@/components/ui/button.tsx";
-import { Card } from "@/components/ui/card.tsx";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 /**
  * Example 1: Basic Usage

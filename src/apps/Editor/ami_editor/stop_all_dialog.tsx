@@ -11,9 +11,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog.tsx";
-import { Button } from "@/components/ui/button.tsx";
-import { Alert, AlertDescription } from "@/components/ui/alert.tsx";
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertCircle,
   AlertTriangle,
@@ -144,7 +144,9 @@ export function StopAllDialog({
                 <ul className="text-muted-foreground text-xs space-y-1 pl-4">
                   <li>
                     • Setting{" "}
-                    <code className="text-amber-700 dark:text-amber-400">active: false</code>
+                    <code className="text-amber-700 dark:text-amber-400">
+                      active: false
+                    </code>
                   </li>
                   <li>• Execution will halt immediately</li>
                   <li>• You can restart them individually later</li>
@@ -169,7 +171,9 @@ export function StopAllDialog({
 
               <div className="relative p-3 bg-green-500/5 border border-green-500/30">
                 <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-green-500/50" />
-                <div className="text-xs text-green-700 dark:text-green-600 mb-1">STOPPED</div>
+                <div className="text-xs text-green-700 dark:text-green-600 mb-1">
+                  STOPPED
+                </div>
                 <div className="text-2xl font-bold text-green-700 dark:text-green-600">
                   {result.stopped}
                 </div>
@@ -177,7 +181,9 @@ export function StopAllDialog({
 
               <div className="relative p-3 bg-red-500/5 border border-red-500/30">
                 <div className="absolute -top-0.5 -left-0.5 w-1 h-1 border-t border-l border-red-500/50" />
-                <div className="text-xs text-red-700 dark:text-red-400 mb-1">FAILED</div>
+                <div className="text-xs text-red-700 dark:text-red-400 mb-1">
+                  FAILED
+                </div>
                 <div className="text-2xl font-bold text-red-700 dark:text-red-400">
                   {result.failed}
                 </div>

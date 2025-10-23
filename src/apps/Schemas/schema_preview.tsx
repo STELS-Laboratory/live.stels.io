@@ -32,7 +32,6 @@ export default function SchemaPreview({
   schema,
   channelsData,
   error,
-  isStaticSchema: _isStaticSchema = false,
 }: SchemaPreviewProps): ReactElement {
   const session = useSessionStoreSync() as Record<string, unknown> | null;
   const [resolvedSchema, setResolvedSchema] = useState<UINode | null>(null);
@@ -196,7 +195,7 @@ export default function SchemaPreview({
   }
 
   return (
-    <div className="h-full overflow-auto p-2 bg-background">
+    <div className="relative h-full overflow-auto p-2 bg-background">
       <ErrorBoundary key={JSON.stringify(resolvedSchema || schema)}>
         <div className="flex flex-col gap-2">
           {/* Rendered UI */}
