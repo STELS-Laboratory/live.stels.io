@@ -194,55 +194,58 @@ export function DeveloperAccessRequestDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent showCloseButton={false} className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
-            <Shield className="w-5 h-5" />
+      <DialogContent
+        showCloseButton={false}
+        className="sm:max-w-md max-w-[calc(100vw-24px)] mx-3"
+      >
+        <DialogHeader className="px-3 sm:px-4 md:px-6">
+          <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-amber-700 dark:text-amber-400 text-sm sm:text-base">
+            <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
             Developer Access Required
           </DialogTitle>
-          <DialogDescription className="text-muted-foreground">
+          <DialogDescription className="text-muted-foreground text-[10px] sm:text-xs md:text-sm leading-relaxed">
             You need developer permissions to access the Protocol Editor. This
             dialog cannot be closed until access is granted or an error occurs.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-3 sm:space-y-4 py-3 sm:py-4 px-3 sm:px-4 md:px-6">
           {/* Status: Idle */}
           {requestStatus === "idle" && (
             <>
               <Alert className="border-amber-500/30 bg-amber-500/10">
-                <AlertCircle className="h-4 w-4 text-amber-500" />
-                <AlertDescription className="text-amber-700 dark:text-amber-400 text-sm">
+                <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-500" />
+                <AlertDescription className="text-amber-700 dark:text-amber-400 text-[10px] sm:text-xs md:text-sm leading-relaxed">
                   To work with protocols and scripts, you must be in the node's
                   developer list.
                 </AlertDescription>
               </Alert>
 
-              <div className="space-y-3">
-                <div className="bg-card/50 border border-border rounded-lg p-4">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="icon-container-sm bg-muted rounded flex items-center justify-center">
-                      <Database className="icon-md text-blue-600 dark:text-blue-400" />
+              <div className="space-y-2 sm:space-y-3">
+                <div className="bg-card/50 border border-border rounded p-2.5 sm:p-3 md:p-4">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 bg-muted rounded flex items-center justify-center flex-shrink-0">
+                      <Database className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <span className="text-card-foreground font-mono text-sm font-bold">
+                    <span className="text-card-foreground font-mono text-xs sm:text-sm font-bold">
                       PROTOCOL REGISTRY
                     </span>
                   </div>
-                  <p className="text-muted-foreground text-xs">
+                  <p className="text-muted-foreground text-[10px] sm:text-xs leading-relaxed">
                     Create and manage distributed execution protocols
                   </p>
                 </div>
 
-                <div className="bg-card/50 border border-border rounded-lg p-4">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="icon-container-sm bg-muted rounded flex items-center justify-center">
-                      <Code className="icon-md text-green-600 dark:text-green-500" />
+                <div className="bg-card/50 border border-border rounded p-2.5 sm:p-3 md:p-4">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 bg-muted rounded flex items-center justify-center flex-shrink-0">
+                      <Code className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600 dark:text-green-500" />
                     </div>
-                    <span className="text-card-foreground font-mono text-sm font-bold">
+                    <span className="text-card-foreground font-mono text-xs sm:text-sm font-bold">
                       CODE EDITOR
                     </span>
                   </div>
-                  <p className="text-muted-foreground text-xs">
+                  <p className="text-muted-foreground text-[10px] sm:text-xs leading-relaxed">
                     Write and deploy workers across the heterogeneous network
                   </p>
                 </div>
@@ -250,7 +253,7 @@ export function DeveloperAccessRequestDialog({
 
               <Button
                 onClick={handleRequestAccess}
-                className="w-full bg-amber-500 hover:bg-amber-600 text-zinc-950 dark:text-black font-semibold"
+                className="w-full bg-amber-500 hover:bg-amber-600 text-zinc-950 dark:text-black font-semibold h-9 sm:h-10 text-xs sm:text-sm"
               >
                 Request Developer Access
               </Button>
@@ -260,9 +263,9 @@ export function DeveloperAccessRequestDialog({
           {/* Status: Pending */}
           {requestStatus === "pending" && (
             <>
-              <div className="flex flex-col items-center justify-center py-6">
-                <Loader2 className="icon-2xl text-primary animate-spin mb-4" />
-                <p className="text-sm text-muted-foreground">
+              <div className="flex flex-col items-center justify-center py-4 sm:py-6">
+                <Loader2 className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 text-primary animate-spin mb-3 sm:mb-4" />
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Sending request to node...
                 </p>
               </div>
@@ -273,8 +276,8 @@ export function DeveloperAccessRequestDialog({
           {requestStatus === "success" && (
             <>
               <Alert className="border-green-500/30 bg-green-500/10">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <AlertDescription className="text-green-700 dark:text-green-600 text-sm">
+                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
+                <AlertDescription className="text-green-700 dark:text-green-600 text-[10px] sm:text-xs md:text-sm leading-relaxed">
                   <strong>Access Granted!</strong>
                   <br />
                   Your developer permissions have been activated. The
@@ -282,9 +285,9 @@ export function DeveloperAccessRequestDialog({
                 </AlertDescription>
               </Alert>
 
-              <div className="flex flex-col items-center justify-center py-4">
-                <CheckCircle className="icon-2xl text-emerald-500 mb-3" />
-                <p className="text-sm text-muted-foreground">
+              <div className="flex flex-col items-center justify-center py-3 sm:py-4">
+                <CheckCircle className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 text-emerald-500 mb-2 sm:mb-3" />
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Reloading application...
                 </p>
               </div>
@@ -295,8 +298,8 @@ export function DeveloperAccessRequestDialog({
           {requestStatus === "error" && (
             <>
               <Alert className="border-red-500/30 bg-red-500/10">
-                <XCircle className="h-4 w-4 text-red-500" />
-                <AlertDescription className="text-red-700 dark:text-red-400 text-sm">
+                <XCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-500" />
+                <AlertDescription className="text-red-700 dark:text-red-400 text-[10px] sm:text-xs md:text-sm leading-relaxed">
                   <strong>Request Failed</strong>
                   <br />
                   {errorMessage || "An unknown error occurred"}
@@ -307,13 +310,13 @@ export function DeveloperAccessRequestDialog({
                 <Button
                   variant="outline"
                   onClick={handleClose}
-                  className="flex-1"
+                  className="flex-1 h-9 sm:h-10 text-xs sm:text-sm"
                 >
                   Back to Hub
                 </Button>
                 <Button
                   onClick={handleRequestAccess}
-                  className="flex-1 bg-amber-500 hover:bg-amber-600 text-zinc-950 dark:text-black"
+                  className="flex-1 bg-amber-500 hover:bg-amber-600 text-zinc-950 dark:text-black h-9 sm:h-10 text-xs sm:text-sm"
                 >
                   Try Again
                 </Button>
@@ -324,8 +327,8 @@ export function DeveloperAccessRequestDialog({
 
         {/* Footer info */}
         {requestStatus === "idle" && (
-          <div className="pt-4 border-t border-border">
-            <p className="text-xs text-muted-foreground">
+          <div className="pt-3 sm:pt-4 border-t border-border px-3 sm:px-4 md:px-6">
+            <p className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed">
               <strong>Note:</strong>{" "}
               Developer access enables you to create and manage distributed
               protocols, deploy workers across the heterogeneous network, and

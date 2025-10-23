@@ -85,9 +85,7 @@ const PanelTab: React.FC<PanelTabProps> = ({
 				"group relative flex items-center min-w-0 cursor-pointer select-none",
 				"transition-all duration-200 ease-out",
 				"border-r border-border/50",
-				isActive
-					? "bg-amber-500/10 dark:bg-amber-500/10"
-					: "bg-transparent hover:bg-muted/50 dark:hover:bg-muted/30",
+				isActive ? "bg-primary/10" : "bg-transparent hover:bg-muted/50",
 			)}
 			onClick={onClick}
 			onContextMenu={onContextMenu}
@@ -96,7 +94,7 @@ const PanelTab: React.FC<PanelTabProps> = ({
 		>
 			{/* Active indicator */}
 			{isActive && (
-				<div className="absolute top-0 left-0 right-0 h-0.5 bg-amber-500" />
+				<div className="absolute top-0 left-0 right-0 h-0.5 bg-primary" />
 			)}
 
 			{/* Content */}
@@ -115,9 +113,7 @@ const PanelTab: React.FC<PanelTabProps> = ({
 				<span
 					className={cn(
 						"text-xs font-medium truncate transition-colors",
-						isActive
-							? "text-amber-600 dark:text-amber-400"
-							: "text-muted-foreground",
+						isActive ? "text-primary" : "text-muted-foreground",
 					)}
 					title={panel.name}
 				>
@@ -133,7 +129,7 @@ const PanelTab: React.FC<PanelTabProps> = ({
 									className={cn(
 										"text-[10px] px-1.5 py-0.5 rounded-full font-mono transition-colors flex-shrink-0",
 										isActive
-											? "bg-amber-500/20 text-amber-600 dark:text-amber-400"
+											? "bg-primary/20 text-primary"
 											: "bg-muted text-muted-foreground",
 									)}
 								>

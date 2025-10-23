@@ -90,7 +90,7 @@ function buildBookData({ orderBook, ts }) {
       type: "div",
       refreshInterval: 100,
       className:
-        "flex flex-col gap-0 p-5 bg-zinc-900 rounded-lg border border-zinc-700 font-mono min-w-[400px]",
+        "flex flex-col gap-0 p-5 bg-zinc-900 rounded border border-zinc-700 font-mono min-w-[400px]",
       children: [
         {
           type: "div",

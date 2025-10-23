@@ -298,7 +298,7 @@ export function Docs(): React.ReactElement {
         <button
           onClick={() =>
             isMobile ? setMobileMenuOpen(true) : setSidebarOpen(true)}
-          className="fixed top-4 left-4 z-10 p-2.5 bg-card border border-border rounded-lg hover:bg-muted active:scale-95 transition-all shadow-lg"
+          className="fixed top-4 left-4 z-10 p-2.5 bg-card border border-border rounded hover:bg-muted active:scale-95 transition-all shadow-lg"
         >
           <Layers className="w-5 h-5 text-amber-500" />
         </button>
@@ -376,7 +376,7 @@ export function Docs(): React.ReactElement {
                     setSelectedDoc(doc);
                     if (isMobile) setMobileMenuOpen(false);
                   }}
-                  className={`group w-full text-left p-3.5 rounded-lg mb-1.5 transition-all active:scale-98 ${
+                  className={`group w-full text-left p-3.5 rounded mb-1.5 transition-all active:scale-98 ${
                     selectedDoc?.path === doc.path
                       ? "bg-amber-500/10 border border-amber-500/20"
                       : "hover:bg-muted/70 border border-transparent"
@@ -483,7 +483,7 @@ export function Docs(): React.ReactElement {
                     )}
 
                     {!isMobile && (
-                      <div className="flex items-center gap-1 border border-border rounded-lg p-0.5">
+                      <div className="flex items-center gap-1 border border-border rounded p-0.5">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -651,7 +651,7 @@ export function Docs(): React.ReactElement {
 
                             if (!inline && match) {
                               return (
-                                <div className="my-6 rounded-lg border border-border shadow-sm overflow-hidden">
+                                <div className="my-6 rounded border border-border shadow-sm overflow-hidden">
                                   <div className="bg-muted px-3 py-1.5 border-b border-border">
                                     <span className="text-xs text-muted-foreground font-mono">
                                       {match[1]}
@@ -742,7 +742,7 @@ export function Docs(): React.ReactElement {
                           },
                           table: ({ children }) => (
                             <div
-                              className={`overflow-x-auto my-8 rounded-lg border border-border ${
+                              className={`overflow-x-auto my-8 rounded border border-border ${
                                 isMobile ? "-mx-4" : ""
                               }`}
                             >

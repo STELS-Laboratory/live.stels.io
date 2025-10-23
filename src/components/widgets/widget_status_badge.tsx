@@ -56,9 +56,8 @@ export function WidgetStatusBadge({
 
   return (
     <Badge
-      variant="outline"
+      variant="success"
       className={cn(
-        "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-700 dark:text-green-600 dark:border-green-800",
         sizeClasses[size],
         className,
       )}

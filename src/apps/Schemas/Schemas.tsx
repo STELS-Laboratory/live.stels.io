@@ -637,7 +637,7 @@ export default function Schemas(): ReactElement {
           <p className="text-muted-foreground font-mono text-sm mb-6">
             Desktop interface required
           </p>
-          <div className="p-4 bg-card/50 border border-border rounded-lg text-left">
+          <div className="p-4 bg-card/50 border border-border rounded text-left">
             <p className="text-xs text-muted-foreground mb-3">
               The Schema Manager requires a desktop display for optimal workflow:
             </p>

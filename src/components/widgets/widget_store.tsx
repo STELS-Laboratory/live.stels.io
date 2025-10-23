@@ -234,10 +234,10 @@ function WidgetItem({
         onTouchEnd={handleTouchEnd}
         onDragEnd={handleDragEnd}
         className={cn(
-          "flex items-center p-3 rounded-lg transition-all duration-200 border",
+          "flex items-center p-3 rounded transition-all duration-200 border",
           isInCanvas
-            ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 cursor-not-allowed opacity-60 border-zinc-200/60 dark:border-zinc-800/60"
-            : "bg-zinc-50/50 dark:bg-zinc-900/50 text-foreground cursor-grab active:cursor-grabbing hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80 hover:scale-102 border-zinc-200/60 dark:border-zinc-800/60 shadow-sm hover:shadow-md",
+            ? "cursor-not-allowed opacity-60"
+            : "text-foreground cursor-grab active:cursor-grabbing hover:scale-102",
           dragState.isDragging && "opacity-50 scale-95",
           isMobile && "touch-manipulation",
         )}
@@ -274,8 +274,8 @@ function WidgetItem({
       className={cn(
         "transition-all duration-200 border",
         isInCanvas
-          ? "cursor-not-allowed opacity-60 bg-zinc-100 dark:bg-zinc-800 border-zinc-200/60 dark:border-zinc-800/60"
-          : "cursor-grab active:cursor-grabbing hover:shadow-md hover:scale-[1.02] bg-white dark:bg-zinc-900 border-zinc-200/60 dark:border-zinc-800/60 shadow-sm",
+          ? "cursor-not-allowed opacity-60"
+          : "cursor-grab active:cursor-grabbing hover:scale-[1.02]",
         dragState.isDragging && "opacity-50 scale-95",
         isMobile && "touch-manipulation",
       )}
@@ -285,7 +285,7 @@ function WidgetItem({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {getWidgetIcon(widgetType)}
-            <CardTitle className="text-sm font-medium truncate text-zinc-900 dark:text-zinc-100">
+            <CardTitle className="text-sm font-medium truncate ">
               {widget.module}
             </CardTitle>
           </div>
@@ -298,15 +298,15 @@ function WidgetItem({
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-2">
-          <div className="text-xs text-zinc-600 dark:text-zinc-400">
+          <div className="text-xs ">
             Channel: {widget.channel}
           </div>
-          <div className="text-xs text-zinc-600 dark:text-zinc-400">
+          <div className="text-xs ">
             Type: {widgetType}
           </div>
           <Badge
             variant="secondary"
-            className="text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200/60 dark:border-zinc-800/60"
+            className="text-xs"
           >
             {extractCategory(keyStore)}
           </Badge>
@@ -333,9 +333,7 @@ function GroupHeader({
       onClick={onToggle}
       className={cn(
         "flex items-center justify-between p-3 cursor-pointer transition-colors",
-        level === 0
-          ? "bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200/80 dark:hover:bg-zinc-700/80"
-          : "bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800",
+        level === 0 ? "" : "",
         level === 0 && "sticky top-0 z-10",
         isMobile && "p-2",
         isTablet && "p-2.5",
@@ -344,15 +342,11 @@ function GroupHeader({
     >
       <div className="flex items-center">
         {isOpen
-          ? (
-            <ChevronDown className="h-4 w-4 mr-2 text-zinc-500 dark:text-zinc-400" />
-          )
-          : (
-            <ChevronRight className="h-4 w-4 mr-2 text-zinc-500 dark:text-zinc-400" />
-          )}
+          ? <ChevronDown className="h-4 w-4 mr-2 " />
+          : <ChevronRight className="h-4 w-4 mr-2 " />}
         <span
           className={cn(
-            "font-medium text-zinc-700 dark:text-zinc-300",
+            "font-medium ",
             level === 0 ? "text-sm" : "text-xs",
             isMobile && "text-xs",
             isTablet && "text-sm",
@@ -363,7 +357,7 @@ function GroupHeader({
       </div>
       <Badge
         variant="secondary"
-        className="text-xs bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border-zinc-300/60 dark:border-zinc-700/60"
+        className="text-xs"
       >
         {count}
       </Badge>
@@ -385,16 +379,16 @@ function FilterBar({
   isTablet,
 }: FilterBarProps): React.ReactElement {
   return (
-    <div className="space-y-3 p-4 border-b border-zinc-200/60 dark:border-zinc-800/60 bg-white dark:bg-zinc-900">
+    <div className="space-y-3 p-4 border-b">
       {/* Search - Soft Style */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 " />
         <Input
           type="text"
           placeholder="Search widgets..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9 bg-zinc-50 dark:bg-zinc-800 border-zinc-200/60 dark:border-zinc-800/60 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+          className="pl-9 "
         />
       </div>
 
@@ -412,7 +406,7 @@ function FilterBar({
           size={isMobile ? "sm" : isTablet ? "sm" : "sm"}
           onClick={() =>
             onSortDirectionChange(sortDirection === "asc" ? "desc" : "asc")}
-          className="whitespace-nowrap bg-zinc-50 dark:bg-zinc-800 border-zinc-200/60 dark:border-zinc-800/60 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+          className="whitespace-nowrap"
         >
           {sortDirection === "asc"
             ? <SortAsc className="h-4 w-4" />
@@ -425,7 +419,7 @@ function FilterBar({
           size={isMobile ? "sm" : isTablet ? "sm" : "sm"}
           onClick={() =>
             onViewModeChange(viewMode === "grid" ? "list" : "grid")}
-          className="whitespace-nowrap bg-zinc-50 dark:bg-zinc-800 border-zinc-200/60 dark:border-zinc-800/60 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+          className="whitespace-nowrap "
         >
           {viewMode === "grid"
             ? <Grid3X3 className="h-4 w-4" />
@@ -831,32 +825,30 @@ export function WidgetStore({
   return (
     <div
       className={cn(
-        "absolute top-0 bottom-0 right-0 z-50 overflow-hidden transition-all duration-300 transform",
-        "bg-zinc-50 dark:bg-zinc-900",
-        "border-l border-zinc-200/60 dark:border-zinc-800/60",
-        "shadow-2xl",
+        "bg-card absolute top-0 bottom-0 right-0 z-50 overflow-hidden transition-all duration-300 transform",
+        "border-l border-border",
         isMobile ? "w-1/2 h-full" : isTablet ? "w-1/2 h-full" : "w-1/3 h-full",
       )}
     >
       {/* Header - Document Style */}
-      <div className="border-b border-zinc-200/60 dark:border-zinc-800/60 p-4 bg-white dark:bg-zinc-900">
+      <div className="border-b border-border p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
-            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-              <Grid3X3 className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <div className="p-1.5 bg-accent rounded">
+              <Grid3X3 className="h-4 w-4 text-accent-foreground" />
             </div>
-            <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
+            <h3 className="font-semibold text-foreground">
               Widget Store
             </h3>
           </div>
           <div className="flex space-x-1.5">
             <button
-              className="h-3 w-3 rounded-full bg-amber-400 hover:bg-amber-500 transition-colors"
+              className="h-3 w-3 rounded-full bg-primary hover:bg-primary/80 transition-colors"
               onClick={() => {}}
               title="Minimize"
             />
             <button
-              className="h-3 w-3 rounded-full bg-red-400 hover:bg-red-500 transition-colors"
+              className="h-3 w-3 rounded-full bg-destructive hover:bg-destructive/80 transition-colors"
               onClick={onClose}
               title="Close"
             />
@@ -865,13 +857,13 @@ export function WidgetStore({
         <div className="flex items-center space-x-2 text-xs">
           <Badge
             variant="secondary"
-            className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200/60 dark:border-zinc-800/60"
+            className=""
           >
             {widgetStats.available} available
           </Badge>
           <Badge
             variant="outline"
-            className="border-zinc-300/60 dark:border-zinc-700/60 text-zinc-600 dark:text-zinc-400"
+            className=""
           >
             {widgetStats.inCanvas} in canvas
           </Badge>

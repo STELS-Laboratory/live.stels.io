@@ -71,40 +71,37 @@ const ControlButton: React.FC<ControlButtonProps> = ({
               "group relative",
               "flex items-center justify-center",
               "w-9 h-9",
-              "rounded-lg",
+              "rounded",
               "transition-all duration-200 ease-out",
               "disabled:opacity-40 disabled:cursor-not-allowed",
               // Default variant
               !isActive && variant === "default" && [
-                "bg-transparent",
-                "text-zinc-500 dark:text-zinc-400",
-                "hover:bg-zinc-100/80 dark:hover:bg-zinc-800/50",
-                "hover:text-zinc-900 dark:hover:text-zinc-50",
+                "bg-transparent text-foreground hover:bg-accent",
               ],
-              // Success variant (emerald for active connections)
+              // Success variant (accent for active connections)
               !isActive && variant === "success" && [
-                "bg-emerald-500/10",
-                "text-emerald-600 dark:text-emerald-400",
-                "hover:bg-emerald-500/15",
+                "bg-accent/50",
+                "text-accent-foreground",
+                "hover:bg-accent/70",
               ],
-              // Primary variant (zinc for settings)
+              // Primary variant (primary for settings)
               !isActive && variant === "primary" && [
-                "bg-zinc-200/80 dark:bg-zinc-800/80",
-                "text-zinc-700 dark:text-zinc-300",
-                "hover:bg-zinc-300/80 dark:hover:bg-zinc-700/80",
+                "bg-secondary/80",
+                "text-secondary-foreground",
+                "hover:bg-secondary",
               ],
-              // Active states - soft glow
+              // Active states
               isActive && variant === "default" && [
-                "bg-zinc-900/95 dark:bg-zinc-100/95",
-                "text-zinc-50 dark:text-zinc-900",
+                "bg-primary",
+                "text-primary-foreground",
               ],
               isActive && variant === "success" && [
-                "bg-emerald-500/90",
-                "text-white",
+                "bg-accent",
+                "text-accent-foreground",
               ],
               isActive && variant === "primary" && [
-                "bg-zinc-800/90 dark:bg-zinc-200/90",
-                "text-zinc-100 dark:text-zinc-900",
+                "bg-primary",
+                "text-primary-foreground",
               ],
             )}
           >
@@ -119,8 +116,7 @@ const ControlButton: React.FC<ControlButtonProps> = ({
                   "flex items-center justify-center",
                   "rounded-full",
                   "text-[9px] font-semibold tabular-nums",
-                  "bg-zinc-800/90 dark:bg-zinc-200/90 text-zinc-100 dark:text-zinc-900",
-                  "border border-white/20 dark:border-zinc-950/20",
+                  "border",
                 )}
               >
                 {badge}
@@ -130,12 +126,12 @@ const ControlButton: React.FC<ControlButtonProps> = ({
         </TooltipTrigger>
         <TooltipContent
           side="top"
-          className="bg-zinc-900/95 dark:bg-zinc-50/95 text-zinc-50 dark:text-zinc-900 border-zinc-800/60 dark:border-zinc-200/60 px-3 py-1.5"
+          className="px-3 py-1.5"
         >
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium">{tooltip}</span>
             {shortcut && (
-              <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-zinc-800/80 dark:bg-zinc-200/80 rounded border border-zinc-700/60 dark:border-zinc-300/60">
+              <kbd className="px-1.5 py-0.5 text-[10px] font-mono rounded border">
                 {shortcut}
               </kbd>
             )}
@@ -158,19 +154,18 @@ const StatsDisplay: React.FC<{
       className={cn(
         "flex items-center gap-3",
         "px-3 py-1",
-        "bg-zinc-50/50 dark:bg-zinc-900/50",
-        "border border-zinc-200/60 dark:border-zinc-800/60",
-        "rounded-lg",
+        "border border-border",
+        "rounded",
         "text-[10px] font-medium tabular-nums",
-        "text-zinc-600 dark:text-zinc-400",
+        "text-muted-foreground",
       )}
     >
       <div className="flex items-center gap-1">
         <Network className="h-3 w-3" />
         <span>{edgeCount}</span>
       </div>
-      <div className="w-px h-3 bg-zinc-300/60 dark:bg-zinc-700/60" />
-      <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+      <div className="w-px h-3 bg-border" />
+      <div className="flex items-center gap-1 text-accent-foreground">
         <Zap className="h-3 w-3" />
         <span>{groupCount}</span>
       </div>
@@ -215,8 +210,7 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
         <div
           className={cn(
             "flex items-center",
-            "bg-white/95 dark:bg-zinc-950/95",
-            "border border-zinc-200/60 dark:border-zinc-800/60",
+            "border border-border bg-card/80",
             "rounded-xl",
             "backdrop-blur-sm",
             "p-1",
@@ -232,7 +226,7 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
               onClick={onToggleWidgetStore}
             />
 
-            <div className="w-px h-5 bg-zinc-200/60 dark:bg-zinc-800/60 mx-1" />
+            <div className="w-px h-5 mx-1 bg-border" />
 
             {/* Auto Connections */}
             <ControlButton
@@ -257,7 +251,7 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
               variant={isAutoConnectionsSettingsOpen ? "primary" : "default"}
             />
 
-            <div className="w-px h-5 bg-zinc-200/60 dark:bg-zinc-800/60 mx-1" />
+            <div className="w-px h-5 mx-1 bg-border" />
 
             {/* Panel Manager */}
             <ControlButton
@@ -280,7 +274,7 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
               />
             )}
 
-            <div className="w-px h-5 bg-zinc-200/60 dark:bg-zinc-800/60 mx-1" />
+            <div className="w-px h-5 mx-1 bg-border" />
 
             {/* Keyboard Shortcuts */}
             <ControlButton
@@ -343,34 +337,34 @@ const KeyboardShortcutsOverlay: React.FC<KeyboardShortcutsOverlayProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-zinc-900/60 dark:bg-zinc-950/80 backdrop-blur-sm flex items-center justify-center"
+      className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center"
       onClick={onClose}
     >
       <div
-        className="bg-white/95 dark:bg-zinc-900/95 border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl backdrop-blur-sm p-8 max-w-3xl w-full mx-4"
+        className="border border-border bg-card rounded-2xl backdrop-blur-sm p-8 max-w-3xl w-full mx-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-zinc-100/80 dark:bg-zinc-800/80 rounded-lg">
-              <Keyboard className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
+            <div className="p-2 rounded bg-accent">
+              <Keyboard className="h-5 w-5 text-accent-foreground" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+              <h2 className="text-xl font-semibold text-foreground">
                 Keyboard Shortcuts
               </h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <p className="text-sm text-muted-foreground">
                 Boost your workflow
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             Press{" "}
-            <kbd className="px-1.5 py-0.5 bg-zinc-100/80 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700/60 rounded text-[10px] font-mono text-zinc-700 dark:text-zinc-300">
+            <kbd className="px-1.5 py-0.5 border border-border rounded text-[10px] font-mono bg-secondary">
               Esc
             </kbd>
           </button>
@@ -380,7 +374,7 @@ const KeyboardShortcutsOverlay: React.FC<KeyboardShortcutsOverlayProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {shortcuts.map((category) => (
             <div key={category.category}>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 mb-4">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-4">
                 {category.category}
               </h3>
               <div className="space-y-3">
@@ -389,7 +383,7 @@ const KeyboardShortcutsOverlay: React.FC<KeyboardShortcutsOverlayProps> = ({
                     key={idx}
                     className="flex items-center justify-between gap-4"
                   >
-                    <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                    <span className="text-sm text-foreground">
                       {item.description}
                     </span>
                     <div className="flex items-center gap-1">
@@ -398,16 +392,16 @@ const KeyboardShortcutsOverlay: React.FC<KeyboardShortcutsOverlayProps> = ({
                           <kbd
                             className={cn(
                               "px-2 py-1 text-xs font-mono font-medium",
-                              "bg-zinc-100/80 dark:bg-zinc-800/80",
-                              "border border-zinc-200/60 dark:border-zinc-700/60",
+                              "border border-border bg-secondary",
                               "rounded",
-                              "text-zinc-700 dark:text-zinc-300",
                             )}
                           >
                             {key}
                           </kbd>
                           {keyIdx < item.keys.length - 1 && (
-                            <span className="text-zinc-400 text-xs">+</span>
+                            <span className="text-muted-foreground text-xs">
+                              +
+                            </span>
                           )}
                         </React.Fragment>
                       ))}
@@ -420,10 +414,10 @@ const KeyboardShortcutsOverlay: React.FC<KeyboardShortcutsOverlayProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="mt-8 pt-6 border-t border-zinc-200/60 dark:border-zinc-700/60">
-          <p className="text-xs text-center text-zinc-500 dark:text-zinc-400">
+        <div className="mt-8 pt-6 border-t border-border">
+          <p className="text-xs text-center text-muted-foreground">
             Pro tip: Combine shortcuts for faster workflow. Press{" "}
-            <kbd className="px-1 py-0.5 bg-zinc-100/80 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700/60 rounded text-[10px] text-zinc-700 dark:text-zinc-300">
+            <kbd className="px-1 py-0.5 rounded text-[10px] border border-border bg-secondary">
               ?
             </kbd>{" "}
             anytime to show this panel.

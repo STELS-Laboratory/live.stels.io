@@ -37,38 +37,38 @@ export const SessionExpiredModal: React.FC = (): React.ReactElement => {
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/95 backdrop-blur-sm">
-      <div className="w-full max-w-lg mx-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/95 backdrop-blur-sm p-3 sm:p-4">
+      <div className="w-full max-w-lg">
         <Card className="backdrop-blur-md bg-card/80 border border-border">
-          <CardHeader className="text-center">
-            <div className="icon-container-md mx-auto mb-4 bg-primary rounded-lg flex items-center justify-center">
-              <AlertTriangle className="icon-lg text-primary-foreground" />
+          <CardHeader className="text-center px-3 sm:px-4 md:px-6 pt-4 sm:pt-5 md:pt-6 pb-3 sm:pb-4">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mx-auto mb-3 sm:mb-4 bg-primary rounded flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-primary-foreground" />
             </div>
-            <CardTitle className="text-xl text-foreground">
+            <CardTitle className="text-lg sm:text-xl md:text-2xl text-foreground">
               Session Expired
             </CardTitle>
-            <CardDescription className="text-muted-foreground text-sm">
+            <CardDescription className="text-muted-foreground text-xs sm:text-sm mt-1.5 sm:mt-2">
               Your session has been terminated
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 sm:space-y-4 px-3 sm:px-4 md:px-6 pb-4 sm:pb-5 md:pb-6">
             {/* Security Information */}
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <div className="p-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10">
-                  <Shield className="h-4 w-4 text-blue-500" />
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded p-2.5 sm:p-3 md:p-4">
+              <div className="flex items-start gap-2 sm:gap-2.5 md:gap-3">
+                <div className="p-1 sm:p-1.5 rounded border border-blue-500/30 bg-blue-500/10 flex-shrink-0">
+                  <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-500" />
                 </div>
-                <div className="space-y-2">
-                  <p className="text-foreground text-xs font-bold">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <p className="text-foreground text-[11px] sm:text-xs font-bold">
                     Security Testing Notice
                   </p>
-                  <p className="text-muted-foreground text-xs">
+                  <p className="text-muted-foreground text-[10px] sm:text-xs leading-relaxed">
                     Our security team is currently testing session management
                     mechanisms to protect against unauthorized access and cyber
                     attacks. This testing ensures your account remains secure.
                   </p>
-                  <p className="text-muted-foreground text-xs">
+                  <p className="text-muted-foreground text-[10px] sm:text-xs leading-relaxed">
                     Please click "OK" to proceed with re-authentication.
                   </p>
                 </div>
@@ -78,14 +78,14 @@ export const SessionExpiredModal: React.FC = (): React.ReactElement => {
             <div className="text-center">
               <Button
                 onClick={handleOkClick}
-                className="bg-amber-500 hover:bg-amber-600 text-black font-bold px-8 h-10"
+                className="bg-amber-500 hover:bg-amber-600 text-black font-bold px-6 sm:px-8 h-9 sm:h-10 text-xs sm:text-sm"
               >
                 OK
               </Button>
             </div>
 
             <div className="text-center">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">
                 This message will not disappear until you click OK
               </p>
             </div>

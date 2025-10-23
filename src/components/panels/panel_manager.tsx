@@ -54,9 +54,7 @@ const PanelCard: React.FC<PanelCardProps> = ({
 		<Card
 			className={cn(
 				"group cursor-pointer transition-all duration-200 border",
-				isActive
-					? "ring-2 ring-zinc-400/60 dark:ring-zinc-600/60 bg-zinc-50/50 dark:bg-zinc-900/50 border-zinc-300/60 dark:border-zinc-700/60 shadow-md"
-					: "bg-white dark:bg-zinc-900 border-zinc-200/60 dark:border-zinc-800/60 hover:shadow-md hover:scale-[1.02] shadow-sm",
+				isActive ? "ring-2 ring-primary" : "hover:scale-[1.02]",
 			)}
 		>
 			<CardHeader className="pb-2">
@@ -65,9 +63,7 @@ const PanelCard: React.FC<PanelCardProps> = ({
 						<CardTitle
 							className={cn(
 								"text-sm font-medium truncate",
-								isActive
-									? "text-zinc-900 dark:text-zinc-100"
-									: "text-zinc-700 dark:text-zinc-300",
+								isActive ? "" : "",
 							)}
 						>
 							{panel.name}
@@ -76,9 +72,7 @@ const PanelCard: React.FC<PanelCardProps> = ({
 							<p
 								className={cn(
 									"text-xs mt-1 line-clamp-2",
-									isActive
-										? "text-zinc-600 dark:text-zinc-400"
-										: "text-zinc-500 dark:text-zinc-500",
+									isActive ? "" : "",
 								)}
 							>
 								{panel.description}
@@ -90,27 +84,27 @@ const PanelCard: React.FC<PanelCardProps> = ({
 						<Button
 							variant="ghost"
 							size="sm"
-							className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+							className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
 							onClick={(e) => {
 								e.stopPropagation();
 								onMoveUp();
 							}}
 							disabled={!canMoveUp}
 						>
-							<ArrowUp className="h-3 w-3 text-zinc-600 dark:text-zinc-400" />
+							<ArrowUp className="h-3 w-3 text-muted-foreground" />
 						</Button>
 
 						<Button
 							variant="ghost"
 							size="sm"
-							className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+							className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
 							onClick={(e) => {
 								e.stopPropagation();
 								onMoveDown();
 							}}
 							disabled={!canMoveDown}
 						>
-							<ArrowDown className="h-3 w-3 text-zinc-600 dark:text-zinc-400" />
+							<ArrowDown className="h-3 w-3 text-muted-foreground" />
 						</Button>
 					</div>
 				</div>
@@ -123,9 +117,7 @@ const PanelCard: React.FC<PanelCardProps> = ({
 							variant={isActive ? "default" : "secondary"}
 							className={cn(
 								"text-xs",
-								isActive
-									? "bg-zinc-800 dark:bg-zinc-200 text-zinc-100 dark:text-zinc-900 border-zinc-700/60 dark:border-zinc-300/60"
-									: "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200/60 dark:border-zinc-800/60",
+								isActive ? "" : "",
 							)}
 						>
 							{isActive ? "Active" : "Inactive"}
@@ -133,10 +125,7 @@ const PanelCard: React.FC<PanelCardProps> = ({
 
 						<span
 							className={cn(
-								"text-xs",
-								isActive
-									? "text-zinc-600 dark:text-zinc-400"
-									: "text-zinc-500 dark:text-zinc-500",
+								"text-xs text-muted-foreground",
 							)}
 						>
 							Created {new Date(panel.createdAt).toLocaleDateString()}
@@ -147,25 +136,25 @@ const PanelCard: React.FC<PanelCardProps> = ({
 						<Button
 							variant="ghost"
 							size="sm"
-							className="h-6 w-6 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+							className="h-6 w-6 p-0"
 							onClick={(e) => {
 								e.stopPropagation();
 								onEdit();
 							}}
 						>
-							<Settings className="h-3 w-3 text-zinc-600 dark:text-zinc-400" />
+							<Settings className="h-3 w-3" />
 						</Button>
 
 						<Button
 							variant="ghost"
 							size="sm"
-							className="h-6 w-6 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+							className="h-6 w-6 p-0"
 							onClick={(e) => {
 								e.stopPropagation();
 								onDuplicate();
 							}}
 						>
-							<Copy className="h-3 w-3 text-zinc-600 dark:text-zinc-400" />
+							<Copy className="h-3 w-3" />
 						</Button>
 
 						<Button
@@ -281,15 +270,15 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 	if (!isOpen) return null;
 
 	return (
-		<div className="fixed inset-0 z-50 bg-zinc-900/60 dark:bg-zinc-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-			<Card className="w-full max-w-4xl max-h-[80vh] bg-white dark:bg-zinc-900 border-zinc-200/60 dark:border-zinc-800/60 shadow-2xl overflow-hidden rounded-2xl">
-				<CardHeader className="border-b border-zinc-200/60 dark:border-zinc-800/60 bg-zinc-50 dark:bg-zinc-900/50">
+		<div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+			<Card className="w-full max-w-4xl max-h-[80vh] overflow-hidden rounded-2xl">
+				<CardHeader className="border-b">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center space-x-2">
-							<div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-								<Grid3X3 className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+							<div className="p-1.5 bg-accent rounded">
+								<Grid3X3 className="h-4 w-4 text-accent-foreground" />
 							</div>
-							<CardTitle className="text-zinc-900 dark:text-zinc-100">
+							<CardTitle className="text-foreground">
 								Panel Manager
 							</CardTitle>
 						</div>
@@ -300,7 +289,7 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 								size="sm"
 								onClick={() =>
 									setViewMode(viewMode === "grid" ? "list" : "grid")}
-								className="bg-zinc-50 dark:bg-zinc-800 border-zinc-200/60 dark:border-zinc-800/60 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+								className="bg-zinc-50"
 							>
 								{viewMode === "grid"
 									? <List className="h-4 w-4" />
@@ -311,7 +300,7 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 								variant="outline"
 								size="sm"
 								onClick={onClose}
-								className="bg-zinc-50 dark:bg-zinc-800 border-zinc-200/60 dark:border-zinc-800/60 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+								className="bg-zinc-50"
 							>
 								Close
 							</Button>
@@ -319,7 +308,7 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 					</div>
 				</CardHeader>
 
-				<CardContent className="space-y-4 bg-zinc-50 dark:bg-zinc-900/50 p-6">
+				<CardContent className="space-y-4 p-6">
 					{/* Actions */}
 					<div className="flex items-center justify-between">
 						<div className="flex items-center space-x-2">
@@ -346,7 +335,7 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 
 						<Badge
 							variant="secondary"
-							className="bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border-zinc-300/60 dark:border-zinc-700/60"
+							className=""
 						>
 							{panels.length} panel{panels.length !== 1 ? "s" : ""}
 						</Badge>
@@ -354,13 +343,13 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 
 					{/* Create/Edit form */}
 					{(showCreateForm || editingPanel) && (
-						<Card className="bg-white dark:bg-zinc-800 border-zinc-200/60 dark:border-zinc-800/60 shadow-sm">
+						<Card>
 							<CardContent className="p-4">
 								<div className="space-y-3">
 									<div>
 										<Label
 											htmlFor="panel-name"
-											className="text-zinc-700 dark:text-zinc-300"
+											className=""
 										>
 											Panel Name
 										</Label>
@@ -369,14 +358,14 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 											value={newPanelName}
 											onChange={(e) => setNewPanelName(e.target.value)}
 											placeholder="Enter panel name"
-											className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200/60 dark:border-zinc-800/60 text-zinc-900 dark:text-zinc-100"
+											className=""
 										/>
 									</div>
 
 									<div>
 										<Label
 											htmlFor="panel-description"
-											className="text-zinc-700 dark:text-zinc-300"
+											className=""
 										>
 											Description (optional)
 										</Label>
@@ -386,7 +375,7 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 											onChange={(e) => setNewPanelDescription(e.target.value)}
 											placeholder="Enter panel description"
 											rows={2}
-											className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200/60 dark:border-zinc-800/60 text-zinc-900 dark:text-zinc-100"
+											className=""
 										/>
 									</div>
 
@@ -404,7 +393,7 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 										<Button
 											variant="outline"
 											onClick={handleCancelEdit}
-											className="bg-zinc-50 dark:bg-zinc-800 border-zinc-200/60 dark:border-zinc-800/60 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+											className=""
 										>
 											Cancel
 										</Button>
@@ -418,13 +407,13 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 					{panels.length === 0
 						? (
 							<div className="text-center py-12 px-4">
-								<div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-									<Grid3X3 className="h-8 w-8 text-zinc-400 dark:text-zinc-500" />
+								<div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center">
+									<Grid3X3 className="h-8 w-8" />
 								</div>
-								<p className="text-zinc-700 dark:text-zinc-300 font-medium mb-1">
+								<p className="font-medium mb-1">
 									No panels created yet
 								</p>
-								<p className="text-sm text-zinc-500 dark:text-zinc-400">
+								<p className="text-sm ">
 									Create your first panel to get started
 								</p>
 							</div>

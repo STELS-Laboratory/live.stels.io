@@ -52,7 +52,6 @@ const BlockItem: React.FC<{
   onToggle: () => void;
   showDetails: boolean;
 }> = ({ block, isSelected, onToggle, showDetails }) => {
-  const blockColor = getBlockColor(block.position);
   const valueArray = Array.from(block.values);
 
   // Position icons - elegant circles
@@ -69,19 +68,13 @@ const BlockItem: React.FC<{
               className={cn(
                 "w-full group",
                 "flex items-center gap-3 px-3 py-2.5",
-                "rounded-lg",
+                "rounded",
                 "transition-all duration-200",
                 "border",
                 !isSelected && [
-                  "border-zinc-200/60 dark:border-zinc-800/60",
                   "bg-transparent",
-                  "hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50",
-                  "hover:border-zinc-300/60 dark:hover:border-zinc-700/60",
                 ],
-                isSelected && [
-                  "border-zinc-900/80 dark:border-zinc-100/80",
-                  "bg-zinc-50/50 dark:bg-zinc-900/50",
-                ],
+                isSelected && [],
               )}
             >
               {/* Icon */}
@@ -92,8 +85,8 @@ const BlockItem: React.FC<{
                   "text-sm font-medium",
                   "transition-colors",
                   isSelected
-                    ? "text-zinc-900 dark:text-zinc-50"
-                    : "text-zinc-400 dark:text-zinc-600 group-hover:text-zinc-600 dark:group-hover:text-zinc-400",
+                    ? ""
+                    : "",
                 )}
               >
                 {icon}
@@ -106,8 +99,8 @@ const BlockItem: React.FC<{
                     className={cn(
                       "text-sm font-medium",
                       isSelected
-                        ? "text-zinc-900 dark:text-zinc-50"
-                        : "text-zinc-700 dark:text-zinc-300",
+                        ? ""
+                        : "",
                     )}
                   >
                     Position {block.position}
@@ -116,8 +109,6 @@ const BlockItem: React.FC<{
                     variant="outline"
                     className={cn(
                       "text-[9px] px-1.5 py-0 h-4 font-mono",
-                      "border-zinc-300/60 dark:border-zinc-700/60",
-                      "text-zinc-500 dark:text-zinc-400",
                     )}
                   >
                     {block.values.size}
@@ -127,8 +118,8 @@ const BlockItem: React.FC<{
                   className={cn(
                     "text-xs font-mono truncate",
                     isSelected
-                      ? "text-zinc-600 dark:text-zinc-400"
-                      : "text-zinc-500 dark:text-zinc-500",
+                      ? ""
+                      : "",
                   )}
                 >
                   {valueArray.slice(0, 2).join(", ")}
@@ -138,13 +129,13 @@ const BlockItem: React.FC<{
 
               {/* Check Icon */}
               {isSelected && (
-                <Check className="h-4 w-4 text-zinc-900 dark:text-zinc-50 flex-shrink-0" />
+                <Check className="h-4 w-4 flex-shrink-0" />
               )}
             </button>
           </TooltipTrigger>
           <TooltipContent
             side="left"
-            className="max-w-sm bg-zinc-900/95 dark:bg-zinc-50/95 text-zinc-50 dark:text-zinc-900 border-zinc-800/60 dark:border-zinc-200/60"
+            className="max-w-sm"
           >
             <div className="space-y-2">
               <p className="font-semibold font-mono text-sm">
@@ -155,7 +146,7 @@ const BlockItem: React.FC<{
                   {block.values.size}{" "}
                   unique value{block.values.size !== 1 ? "s" : ""}
                 </p>
-                <div className="text-xs font-mono bg-zinc-800/80 dark:bg-zinc-100/80 px-2 py-1 rounded">
+                <div className="text-xs font-mono px-2 py-1 rounded">
                   {valueArray.slice(0, 5).join(", ")}
                   {block.values.size > 5 && ` +${block.values.size - 5} more`}
                 </div>
@@ -170,7 +161,7 @@ const BlockItem: React.FC<{
 
       {/* Expandable Details - Soft */}
       {showDetails && isSelected && (
-        <div className="mt-2 ml-9 p-3 bg-zinc-50/50 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-800/60 rounded-lg">
+        <div className="mt-2 ml-9 p-3 rounded">
           <div className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 mb-2">
             All values at position {block.position}:
           </div>
@@ -178,18 +169,18 @@ const BlockItem: React.FC<{
             {valueArray.map((value) => (
               <code
                 key={value}
-                className="px-2 py-1 text-[10px] font-mono bg-white/80 dark:bg-zinc-950/80 border border-zinc-200/60 dark:border-zinc-800/60 rounded text-zinc-700 dark:text-zinc-300"
+                className="px-2 py-1 text-[10px] font-mono "
               >
                 {value}
               </code>
             ))}
           </div>
           {block.examples[0] && (
-            <div className="mt-3 pt-3 border-t border-zinc-200/60 dark:border-zinc-800/60">
-              <div className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
+            <div className="mt-3 pt-3 border-t">
+              <div className="text-[10px] font-medium mb-1.5">
                 Example channel:
               </div>
-              <code className="block text-[10px] font-mono text-zinc-600 dark:text-zinc-400 bg-white/80 dark:bg-zinc-950/80 px-2 py-1.5 rounded border border-zinc-200/60 dark:border-zinc-800/60 break-all">
+              <code className="block text-[10px] font-mono px-2 py-1.5 rounded border">
                 {block.examples[0]}
               </code>
             </div>
@@ -234,8 +225,7 @@ export const AutoConnectionsPanel: React.FC<AutoConnectionsPanelProps> = ({
     <div
       className={cn(
         "w-96",
-        "bg-white/95 dark:bg-zinc-950/95",
-        "border border-zinc-200/60 dark:border-zinc-800/60",
+        "border ",
         "rounded-2xl",
         "backdrop-blur-sm",
         "overflow-hidden",
@@ -245,28 +235,28 @@ export const AutoConnectionsPanel: React.FC<AutoConnectionsPanelProps> = ({
       <div
         className={cn(
           "flex items-center justify-between px-4 py-3",
-          "border-b border-zinc-200/60 dark:border-zinc-800/60",
+          "border-b",
           isEnabled
-            ? "bg-emerald-50/50 dark:bg-emerald-950/20"
-            : "bg-zinc-50/50 dark:bg-zinc-900/50",
+            ? ""
+            : "",
         )}
       >
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "p-1.5 rounded-lg",
+              "p-1.5 rounded",
               isEnabled
                 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                : "bg-zinc-200/80 dark:bg-zinc-800/80 text-zinc-500 dark:text-zinc-400",
+                : "bg-zinc-200/80  text-zinc-500 ",
             )}
           >
             <Network className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+            <h3 className="text-sm font-semibold ">
               Auto Connections
             </h3>
-            <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
+            <p className="text-[10px]">
               {isEnabled ? "Active" : "Disabled"}
             </p>
           </div>
@@ -276,21 +266,21 @@ export const AutoConnectionsPanel: React.FC<AutoConnectionsPanelProps> = ({
           {/* Expand/Collapse */}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1.5 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80 rounded-lg transition-colors"
+            className="p-1.5 rounded transition-colors"
           >
             {isExpanded
-              ? <ChevronUp className="h-4 w-4 text-zinc-500" />
-              : <ChevronDown className="h-4 w-4 text-zinc-500" />}
+              ? <ChevronUp className="h-4 w-4 " />
+              : <ChevronDown className="h-4 w-4 " />}
           </button>
 
           {/* Toggle */}
           <button
             onClick={onToggle}
             className={cn(
-              "p-1.5 rounded-lg transition-colors",
+              "p-1.5 rounded transition-colors",
               isEnabled
                 ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25"
-                : "bg-zinc-100/80 dark:bg-zinc-800/80 text-zinc-500 hover:bg-zinc-200/80 dark:hover:bg-zinc-700/80",
+                : "bg-zinc-100/80",
             )}
           >
             {isEnabled
@@ -301,7 +291,7 @@ export const AutoConnectionsPanel: React.FC<AutoConnectionsPanelProps> = ({
           {/* Close */}
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80 rounded-lg transition-colors"
+            className="p-1.5 rounded transition-colors"
           >
             <X className="h-4 w-4 text-zinc-500" />
           </button>
@@ -314,23 +304,23 @@ export const AutoConnectionsPanel: React.FC<AutoConnectionsPanelProps> = ({
           {/* Stats - Soft Grid */}
           {stats && isEnabled && (
             <div className="grid grid-cols-3 gap-2">
-              <div className="text-center p-3 bg-zinc-50/50 dark:bg-zinc-900/50 rounded-lg border border-zinc-200/60 dark:border-zinc-800/60">
-                <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
+              <div className="text-center p-3  rounded border">
+                <div className="text-xs mb-1">
                   Nodes
                 </div>
-                <div className="text-lg font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">
+                <div className="text-lg font-semibold tabular-nums">
                   {stats.nodeCount}
                 </div>
               </div>
-              <div className="text-center p-3 bg-zinc-50/50 dark:bg-zinc-900/50 rounded-lg border border-zinc-200/60 dark:border-zinc-800/60">
-                <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
+              <div className="text-center p-3 rounded border ">
+                <div className="text-xs mb-1">
                   Edges
                 </div>
-                <div className="text-lg font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">
+                <div className="text-lg font-semibold tabular-nums">
                   {stats.edgeCount}
                 </div>
               </div>
-              <div className="text-center p-3 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-lg border border-emerald-200/60 dark:border-emerald-900/30">
+              <div className="text-center p-3 bg-emerald-50/50 dark:bg-emerald-950/20 rounded border border-emerald-200/60 dark:border-emerald-900/30">
                 <div className="text-xs text-emerald-600 dark:text-emerald-400 mb-1">
                   Groups
                 </div>
@@ -344,11 +334,11 @@ export const AutoConnectionsPanel: React.FC<AutoConnectionsPanelProps> = ({
           {/* Block Selection */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+              <h4 className="text-xs font-semibold uppercase tracking-wide">
                 Select Positions
               </h4>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-zinc-500 dark:text-zinc-400 tabular-nums">
+                <span className="text-[10px] tabular-nums">
                   {selectedPositions.length} / {availableBlocks.length}
                 </span>
                 {availableBlocks.length > 0 && (
@@ -378,13 +368,13 @@ export const AutoConnectionsPanel: React.FC<AutoConnectionsPanelProps> = ({
               )
               : (
                 <div className="text-center py-8 px-4">
-                  <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-zinc-100/80 dark:bg-zinc-900/80 flex items-center justify-center">
-                    <Sparkles className="h-5 w-5 text-zinc-400 dark:text-zinc-600" />
+                  <div className="w-12 h-12 mx-auto mb-3 rounded-full  flex items-center justify-center">
+                    <Sparkles className="h-5 w-5 " />
                   </div>
-                  <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                  <p className="text-sm font-medium mb-1">
                     No blocks found
                   </p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className="text-xs">
                     Add nodes to canvas to analyze channels
                   </p>
                 </div>
@@ -393,11 +383,11 @@ export const AutoConnectionsPanel: React.FC<AutoConnectionsPanelProps> = ({
 
           {/* Display Options */}
           {availableBlocks.length > 0 && (
-            <div className="pt-4 border-t border-zinc-200/60 dark:border-zinc-800/60">
+            <div className="pt-4 border-t ">
               <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
-                  <Eye className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
-                  <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                  <Eye className="h-3.5 w-3.5" />
+                  <span className="text-sm ">
                     Show Labels
                   </span>
                 </div>
@@ -414,10 +404,10 @@ export const AutoConnectionsPanel: React.FC<AutoConnectionsPanelProps> = ({
           {stats &&
             isEnabled &&
             Object.keys(stats.connectionsByType).length > 0 && (
-            <div className="pt-4 border-t border-zinc-200/60 dark:border-zinc-800/60">
+            <div className="pt-4 border-t">
               <div className="flex items-center gap-2 mb-3">
-                <Info className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
-                <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                <Info className="h-3.5 w-3.5" />
+                <span className="text-xs font-semibold uppercase tracking-wide ">
                   Active
                 </span>
               </div>
@@ -462,8 +452,8 @@ export const AutoConnectionsPanel: React.FC<AutoConnectionsPanelProps> = ({
 
           {/* Helper - Soft Design */}
           {availableBlocks.length > 0 && (
-            <div className="pt-4 border-t border-zinc-200/60 dark:border-zinc-800/60">
-              <div className="flex items-start gap-2 p-3 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/30 rounded-lg">
+            <div className="pt-4 border-t">
+              <div className="flex items-start gap-2 p-3  border border-amber-200/60  rounded">
                 <Info className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                 <div className="text-[11px] text-amber-900 dark:text-amber-200 leading-relaxed">
                   <p className="font-medium mb-1">Dynamic Block Grouping</p>

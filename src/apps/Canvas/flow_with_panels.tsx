@@ -42,7 +42,6 @@ import { CanvasControls } from "@/components/canvas/canvas_controls.tsx";
 import {
 	EmptyCanvasState,
 	EnhancedDropZone,
-	PanelTransitionOverlay,
 } from "@/components/canvas/canvas_overlays.tsx";
 
 // Define nodeTypes and edgeTypes outside component to avoid React Flow warnings
@@ -463,7 +462,7 @@ function FlowWithPanels(): React.ReactElement | null {
 					<p className="text-muted-foreground font-mono text-sm mb-6">
 						Desktop interface required
 					</p>
-					<div className="p-4 bg-card/50 border border-border rounded-lg text-left">
+					<div className="p-4 bg-card/50 border border-border rounded text-left">
 						<p className="text-xs text-muted-foreground mb-3">
 							The Visual Workspace requires a desktop display for optimal
 							workflow:
@@ -495,18 +494,13 @@ function FlowWithPanels(): React.ReactElement | null {
 	const activePanel = getActivePanel();
 
 	return (
-		<div className="absolute w-[100%] h-[100%] top-0 left-0 flex flex-col bg-zinc-50 dark:bg-zinc-950">
+		<div className="absolute w-[100%] h-[100%] top-0 left-0 flex flex-col">
 			{/* Panel tabs - Professional */}
 			<PanelTabsPro className="flex-shrink-0" />
 
 			{/* Main Canvas area - Document Style Background */}
-			<div className="flex-1 relative bg-zinc-100 dark:bg-zinc-900">
+			<div className="flex-1 relative">
 				{/* Panel transition overlay - Professional design */}
-				<PanelTransitionOverlay
-					isTransitioning={isPanelTransitioning}
-					panelName={activePanel?.name}
-				/>
-
 				<ReactFlow
 					nodes={nodes}
 					edges={allEdges}

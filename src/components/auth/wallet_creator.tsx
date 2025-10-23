@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/modules/auth.store";
+import { LOTTIE_ANIMATIONS, LOTTIE_SIZES } from "./lottie_config";
 
 interface WalletCreatorProps {
   walletType: "create" | "import";
@@ -157,7 +159,7 @@ export function WalletCreator(
       return {
         title: "Import Existing Wallet",
         subtitle: "Restore your Wallet using your private key",
-        icon: <Key className="icon-lg text-blue-500" />,
+        icon: <Key className="icon-lg text-secondary-foreground" />,
         description:
           "Enter your 64-character hexadecimal private key to restore access to your existing Wallet and funds.",
         actionText: "Import Wallet",
@@ -170,44 +172,47 @@ export function WalletCreator(
   const content = getContent();
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full">
       <Card className="backdrop-blur-md bg-card/80 border border-border">
-        <CardHeader className="text-center pb-4">
-          <CardTitle className="flex items-center justify-center gap-3 text-xl font-bold">
-            <div
-              className={`icon-container-md rounded-lg flex items-center justify-center ${
-                walletType === "create" ? "bg-primary" : "bg-blue-500"
-              }`}
-            >
-              {walletType === "create"
-                ? <Sparkles className="icon-lg text-primary-foreground" />
-                : <Key className="icon-lg text-white" />}
-            </div>
+        <CardHeader className="text-center pb-2 sm:pb-3 md:pb-4 px-3 sm:px-4 md:px-6">
+          {/* Lottie Animation */}
+          <div className="flex h-20 sm:h-24 md:h-32 items-center justify-center mb-2 sm:mb-3">
+            <DotLottieReact
+              src={walletType === "create"
+                ? LOTTIE_ANIMATIONS.creating
+                : LOTTIE_ANIMATIONS.importing}
+              loop
+              autoplay
+              style={LOTTIE_SIZES.small}
+            />
+          </div>
+
+          <CardTitle className="flex flex-col items-center justify-center gap-1 sm:gap-2 text-base sm:text-lg md:text-xl font-bold">
             <span className="text-foreground">
               {content.title}
             </span>
           </CardTitle>
-          <p className="text-muted-foreground text-sm mt-2">
+          <p className="text-muted-foreground text-xs sm:text-sm mt-1.5 sm:mt-2 px-2">
             {content.subtitle}
           </p>
         </CardHeader>
 
-        <CardContent className="px-6 pb-6 space-y-4">
+        <CardContent className="px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 md:pb-6 space-y-3 sm:space-y-4">
           {/* Description */}
-          <div className="p-4 bg-muted/50 border border-border rounded-lg">
-            <p className="text-muted-foreground text-sm">
+          <div className="p-2.5 sm:p-3 md:p-4 bg-muted/50 border border-border rounded">
+            <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
               {content.description}
             </p>
           </div>
 
           {/* Enhanced Private Key Input (only for import) */}
           {content.showInput && (
-            <div className="space-y-4">
+            <div className="space-y-2 sm:space-y-3">
               <Label
                 htmlFor="privateKey"
-                className="text-sm font-semibold text-card-foreground flex items-center gap-2"
+                className="text-xs sm:text-sm font-semibold text-card-foreground flex items-center gap-1.5 sm:gap-2"
               >
-                <Key className="h-4 w-4" />
+                <Key className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Private Key
               </Label>
 
@@ -218,7 +223,7 @@ export function WalletCreator(
                   placeholder="Enter your 64-character hex private key..."
                   value={privateKey}
                   onChange={(e) => setPrivateKey(e.target.value)}
-                  className={`h-10 font-mono text-sm transition-colors ${
+                  className={`h-9 sm:h-10 font-mono text-xs sm:text-sm transition-colors ${
                     validationState.type === "error"
                       ? "border-red-500/30 focus:border-red-500 bg-red-500/5"
                       : validationState.type === "success"
@@ -251,7 +256,7 @@ export function WalletCreator(
               {validationState.message && (
                 <div
                   id="private-key-validation"
-                  className={`flex items-center gap-2 text-sm transition-all duration-150 ${
+                  className={`flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm transition-all duration-150 ${
                     validationState.type === "error"
                       ? "text-red-700 dark:text-red-400"
                       : "text-green-700 dark:text-green-600"
@@ -260,15 +265,27 @@ export function WalletCreator(
                   aria-live="polite"
                 >
                   {validationState.type === "error"
-                    ? <AlertCircle className="h-4 w-4" aria-hidden="true" />
-                    : <CheckCircle className="h-4 w-4" aria-hidden="true" />}
-                  {validationState.message}
+                    ? (
+                      <AlertCircle
+                        className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                        aria-hidden="true"
+                      />
+                    )
+                    : (
+                      <CheckCircle
+                        className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                        aria-hidden="true"
+                      />
+                    )}
+                  <span className="leading-tight">
+                    {validationState.message}
+                  </span>
                 </div>
               )}
 
               <p
                 id="private-key-help"
-                className="text-xs text-muted-foreground"
+                className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed"
               >
                 Your private key is 64 hexadecimal characters (0-9, a-f). It's
                 processed securely in your browser.
@@ -290,16 +307,16 @@ export function WalletCreator(
           )}
 
           {/* Security Notice */}
-          <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
-            <div className="flex items-start gap-3">
-              <div className="p-1.5 rounded-lg border border-green-500/30 bg-green-500/10">
-                <AlertCircle className="h-4 w-4 text-green-500" />
+          <div className="p-2.5 sm:p-3 md:p-4 bg-green-500/10 border border-green-500/30 rounded">
+            <div className="flex items-start gap-2 sm:gap-2.5 md:gap-3">
+              <div className="p-1 sm:p-1.5 rounded border border-green-500/30 bg-green-500/10 flex-shrink-0">
+                <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
               </div>
               <div>
-                <div className="font-bold text-foreground mb-1 text-xs">
+                <div className="font-bold text-foreground mb-0.5 sm:mb-1 text-[11px] sm:text-xs">
                   Maximum Security
                 </div>
-                <div className="text-muted-foreground text-xs">
+                <div className="text-muted-foreground text-[10px] sm:text-xs leading-relaxed">
                   Your private key is processed locally in your browser using
                   advanced cryptographic functions. We never have access to your
                   private keys, and all operations happen securely on your
@@ -310,40 +327,45 @@ export function WalletCreator(
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-2 sm:gap-3 pt-2 sm:pt-3 md:pt-4">
             <Button
               onClick={onBack}
               variant="outline"
-              className="flex-1 h-10"
+              className="flex-1 h-9 sm:h-10 text-xs sm:text-sm"
               disabled={isLoading}
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
+              <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+              <span className="hidden xs:inline">Back</span>
+              <span className="xs:hidden">←</span>
             </Button>
             <Button
               onClick={content.actionHandler}
               disabled={isLoading ||
                 (content.showInput &&
                   (!privateKey.trim() || !validationState.isValid))}
-              className={`flex-1 h-10 font-bold ${
+              className={`flex-1 h-9 sm:h-10 font-bold text-xs sm:text-sm ${
                 walletType === "create"
-                  ? "bg-amber-500 hover:bg-amber-600 text-black"
-                  : "bg-blue-500 hover:bg-blue-600 text-white"
+                  ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                  : "bg-secondary hover:bg-secondary/90 text-secondary-foreground"
               }`}
             >
               {isLoading
                 ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 animate-spin" />
                     {walletType === "create" ? "Generating..." : "Importing..."}
                   </>
                 )
                 : (
                   <>
-                    {content.actionText}
+                    <span className="truncate">{content.actionText}</span>
                     {walletType === "create"
-                      ? <Sparkles className="h-4 w-4 ml-2" />
-                      : <Key className="h-4 w-4 ml-2" />}
+                      ? (
+                        <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1.5 sm:ml-2 flex-shrink-0" />
+                      )
+                      : (
+                        <Key className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1.5 sm:ml-2 flex-shrink-0" />
+                      )}
                   </>
                 )}
             </Button>

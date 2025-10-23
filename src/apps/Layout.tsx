@@ -383,7 +383,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 												<button
 													key={item.key}
 													onClick={() => navigateTo(item.key)}
-													className="flex flex-col items-center gap-2 p-3 rounded-lg border border-border bg-card/50 hover:bg-card active:scale-95 transition-all"
+													className="flex flex-col items-center gap-2 p-3 rounded border border-border bg-card/50 hover:bg-card active:scale-95 transition-all"
 												>
 													<Icon className="icon-lg text-amber-500" />
 													<span className="text-xs font-medium text-foreground">
@@ -408,7 +408,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								ease: [0.16, 1, 0.3, 1],
 							}}
 						>
-							<div className="flex items-center justify-between px-6 h-[4rem]">
+							<div className="flex items-center justify-between px-6 h-12">
 								<div className="flex items-center gap-4">
 									{!isDeveloper && (
 										<div className="flex items-center gap-2">

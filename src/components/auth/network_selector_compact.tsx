@@ -67,22 +67,22 @@ export function NetworkSelectorCompact(
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="w-full justify-between h-10 transition-colors"
+            className="w-full justify-between h-9 sm:h-10 transition-colors text-xs sm:text-sm"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               {selectedNetwork
                 ? (
                   <>
                     {getNetworkIcon(selectedNetwork)}
-                    <div className="text-left">
+                    <div className="text-left min-w-0 flex-1">
                       <div
-                        className={`font-medium ${
+                        className={`font-medium truncate ${
                           getNetworkColor(selectedNetwork)
                         }`}
                       >
                         {selectedNetwork.name}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-[10px] sm:text-xs text-muted-foreground truncate">
                         {selectedNetwork.developer
                           ? "Development"
                           : "Test Network"}
@@ -92,53 +92,58 @@ export function NetworkSelectorCompact(
                 )
                 : (
                   <>
-                    <Network className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">
+                    <Network className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground truncate">
                       Select Network
                     </span>
                   </>
                 )}
             </div>
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            <ChevronDown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0 ml-2" />
           </Button>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent
           align="end"
-          className="w-80 bg-popover border border-border"
+          className="w-72 sm:w-80 bg-popover border border-border"
         >
-          <div className="p-3">
-            <div className="text-sm font-medium text-card-foreground mb-3">
+          <div className="p-2 sm:p-3">
+            <div className="text-xs sm:text-sm font-medium text-card-foreground mb-2 sm:mb-3">
               Choose Network
             </div>
             {availableNetworks.map((network) => (
               <DropdownMenuItem
                 key={network.id}
                 onClick={() => handleNetworkSelect(network)}
-                className="p-3 cursor-pointer hover:bg-accent rounded-lg transition-colors"
+                className="p-2 sm:p-3 cursor-pointer hover:bg-accent rounded transition-colors"
               >
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between w-full gap-2">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                     {getNetworkIcon(network)}
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <div
-                        className={`font-medium ${getNetworkColor(network)}`}
+                        className={`font-medium text-xs sm:text-sm truncate ${
+                          getNetworkColor(network)
+                        }`}
                       >
                         {network.name}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-[10px] sm:text-xs text-muted-foreground truncate">
                         {network.description}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                     {network.developer && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] sm:text-xs"
+                      >
                         Dev
                       </Badge>
                     )}
                     {selectedNetwork?.id === network.id && (
-                      <CheckCircle className="h-4 w-4 text-amber-700 dark:text-amber-400" />
+                      <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-700 dark:text-amber-400" />
                     )}
                   </div>
                 </div>
@@ -148,8 +153,8 @@ export function NetworkSelectorCompact(
 
           <DropdownMenuSeparator className="bg-border" />
 
-          <div className="p-3">
-            <div className="text-xs text-muted-foreground">
+          <div className="p-2 sm:p-3">
+            <div className="text-[10px] sm:text-xs text-muted-foreground">
               All networks are secure and encrypted
             </div>
           </div>

@@ -11,7 +11,7 @@ function Header(
 	return (
 		<div className="flex items-center justify-between px-6 py-6 border-b border-border bg-card/30 backdrop-blur-sm">
 			<div className="flex items-center space-x-4">
-				<div className="icon-container-md bg-primary rounded-lg flex items-center justify-center shadow-md">
+				<div className="icon-container-md bg-primary rounded-lg flex items-center justify-center">
 					<BarChart3 className="icon-lg text-primary-foreground" />
 				</div>
 				<div className="space-y-1">
@@ -26,14 +26,12 @@ function Header(
 			</div>
 			<div className="flex items-center space-x-3">
 				<Badge
-					variant="outline"
+					variant="success"
 					className={cn(
-						"px-2 py-1 border-emerald-500/20 bg-emerald-500/5",
-						"text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10",
-						"shadow-sm",
+						"px-2 py-1",
 					)}
 				>
-					<div className="w-2 h-2 bg-emerald-500 rounded-full mr-1.5 animate-pulse shadow-sm shadow-emerald-500/30" />
+					<div className="w-2 h-2 bg-accent-foreground rounded-full mr-1.5 animate-pulse" />
 					<span className="font-semibold text-xs">LIVE</span>
 				</Badge>
 			</div>

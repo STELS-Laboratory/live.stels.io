@@ -25,6 +25,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@lottiefiles/dotlottie-react": "^0.17.5",
     "@monaco-editor/react": "^4.7.0",
     "@noble/hashes": "^1.8.0",
     "@paper-design/shaders-react": "^0.0.46",

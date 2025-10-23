@@ -39,16 +39,16 @@ export function ConnectionStatusSimple(): React.ReactElement {
 
 	const getNetworkIcon = () => {
 		if (!connectionSession) {
-			return <AlertCircle className="h-4 w-4 text-red-500" />;
+			return <AlertCircle className="h-4 w-4 text-destructive" />;
 		}
 
 		switch (connectionSession.network) {
 			case "testnet":
-				return <Shield className="h-4 w-4 text-blue-500" />;
+				return <Shield className="h-4 w-4 text-primary" />;
 			case "mainnet":
-				return <Network className="h-4 w-4 text-green-500" />;
+				return <Network className="h-4 w-4 text-accent-foreground" />;
 			case "localnet":
-				return <Network className="h-4 w-4 text-purple-500" />;
+				return <Network className="h-4 w-4 text-secondary-foreground" />;
 			default:
 				return <Network className="h-4 w-4 text-muted-foreground" />;
 		}
@@ -56,16 +56,16 @@ export function ConnectionStatusSimple(): React.ReactElement {
 
 	const getNetworkColor = () => {
 		if (!connectionSession) {
-			return "bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30";
+			return "bg-destructive/20 text-destructive border-destructive/30";
 		}
 
 		switch (connectionSession.network) {
 			case "testnet":
-				return "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30";
+				return "bg-primary/20 text-primary border-primary/30";
 			case "mainnet":
-				return "bg-green-500/20 text-green-700 dark:text-green-600 border-green-500/30";
+				return "bg-accent text-accent-foreground border-accent-foreground/30";
 			case "localnet":
-				return "bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30";
+				return "bg-secondary text-secondary-foreground border-secondary-foreground/30";
 			default:
 				return "bg-muted/20 text-muted-foreground border-border";
 		}
@@ -74,8 +74,8 @@ export function ConnectionStatusSimple(): React.ReactElement {
 	if (!isConnected || !connectionSession || !wallet) {
 		return (
 			<div className="flex items-center gap-2">
-				<AlertCircle className="h-4 w-4 text-red-500" />
-				<span className="text-sm text-red-700 dark:text-red-400">Not Connected</span>
+				<AlertCircle className="h-4 w-4 text-destructive" />
+				<span className="text-sm text-destructive">Not Connected</span>
 			</div>
 		);
 	}
@@ -138,7 +138,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 				transition={{ duration: 0.3, delay: 0.1 }}
 			>
 				<motion.div
-					className="space-y-2 p-3 bg-muted/50 border border-border rounded-lg"
+					className="space-y-2 p-3 bg-muted/50 border border-border rounded"
 					initial={{ y: -5, opacity: 0 }}
 					animate={{ y: 0, opacity: 1 }}
 					transition={{ duration: 0.3, delay: 0.15 }}
@@ -156,7 +156,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 				</motion.div>
 
 				<motion.div
-					className="space-y-2 p-3 bg-muted/50 border border-border rounded-lg"
+					className="space-y-2 p-3 bg-muted/50 border border-border rounded"
 					initial={{ y: -5, opacity: 0 }}
 					animate={{ y: 0, opacity: 1 }}
 					transition={{ duration: 0.3, delay: 0.2 }}

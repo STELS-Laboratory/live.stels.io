@@ -334,7 +334,7 @@ const ModalPortal: React.FC<{ modal: ModalState }> = ({ modal }) => {
       "div",
       {
         className:
-          "bg-zinc-900 rounded-lg shadow-2xl border border-zinc-700 animate-in zoom-in-95 duration-200",
+          "bg-zinc-900 rounded shadow-2xl border border-zinc-700 animate-in zoom-in-95 duration-200",
         style: {
           width: modal.config?.width,
           height: modal.config?.height,

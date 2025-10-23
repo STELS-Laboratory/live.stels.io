@@ -37,7 +37,7 @@ function buildTradesData({ tradesArray, ts }) {
             type: "div",
             refreshInterval: 100,
             className:
-                "flex flex-col gap-0 p-5 bg-zinc-900 rounded-lg border border-zinc-700 font-mono min-w-[600px]",
+                "flex flex-col gap-0 p-5 bg-zinc-900 rounded border border-zinc-700 font-mono min-w-[600px]",
             children: [
                 {
                     type: "div",

@@ -39,28 +39,28 @@ const colors: Record<
   { bg: string; border: string; text: string; icon: string }
 > = {
   success: {
-    bg: "bg-green-500/20",
-    border: "border-green-500/30",
-    text: "text-green-700 dark:text-green-600",
-    icon: "text-green-500",
+    bg: "bg-accent",
+    border: "border-accent-foreground/30",
+    text: "text-accent-foreground",
+    icon: "text-accent-foreground",
   },
   error: {
-    bg: "bg-red-500/20",
-    border: "border-red-500/30",
-    text: "text-red-700 dark:text-red-400",
-    icon: "text-red-500",
+    bg: "bg-destructive/20",
+    border: "border-destructive/30",
+    text: "text-destructive-foreground",
+    icon: "text-destructive",
   },
   warning: {
-    bg: "bg-amber-500/20",
-    border: "border-amber-500/30",
-    text: "text-amber-700 dark:text-amber-400",
-    icon: "text-amber-500",
+    bg: "bg-primary/20",
+    border: "border-primary/30",
+    text: "text-primary-foreground dark:text-primary",
+    icon: "text-primary",
   },
   info: {
-    bg: "bg-blue-500/20",
-    border: "border-blue-500/30",
-    text: "text-blue-700 dark:text-blue-400",
-    icon: "text-blue-500",
+    bg: "bg-secondary",
+    border: "border-secondary-foreground/30",
+    text: "text-secondary-foreground",
+    icon: "text-secondary-foreground",
   },
 };
 
@@ -87,9 +87,9 @@ function ToastItem({ toast, onClose }: ToastProps): ReactElement {
       exit={{ opacity: 0, x: 100, scale: 0.95 }}
       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       className={`
-        flex items-start gap-3 p-4 rounded-lg border backdrop-blur-sm
+        flex items-start gap-3 p-4 rounded border backdrop-blur-sm
         ${colorScheme.bg} ${colorScheme.border}
-        shadow-lg min-w-[320px] max-w-md
+        min-w-[320px] max-w-md
       `}
     >
       <div className={`flex-shrink-0 ${colorScheme.icon}`}>
@@ -101,13 +101,15 @@ function ToastItem({ toast, onClose }: ToastProps): ReactElement {
           {toast.title}
         </div>
         {toast.message && (
-          <div className="text-xs text-zinc-400 mt-1">{toast.message}</div>
+          <div className="text-xs text-muted-foreground mt-1">
+            {toast.message}
+          </div>
         )}
       </div>
 
       <button
         onClick={() => onClose(toast.id)}
-        className="flex-shrink-0 text-zinc-500 hover:text-zinc-300 transition-colors"
+        className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
       >
         <X className="w-4 h-4" />
       </button>

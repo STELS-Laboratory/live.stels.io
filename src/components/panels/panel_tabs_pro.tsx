@@ -80,12 +80,12 @@ const PanelTab: React.FC<PanelTabProps> = ({
     <div
       className={cn(
         "group relative flex items-center gap-2 px-3 py-2",
-        "border-r border-zinc-200/60 dark:border-zinc-800/60",
+        "border-r",
         "transition-colors duration-150",
         "cursor-pointer select-none",
         isActive
-          ? "bg-white dark:bg-zinc-950"
-          : "bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-900",
+          ? ""
+          : "",
       )}
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
@@ -102,8 +102,8 @@ const PanelTab: React.FC<PanelTabProps> = ({
           "text-sm font-medium truncate max-w-[120px]",
           "transition-colors",
           isActive
-            ? "text-zinc-900 dark:text-zinc-50"
-            : "text-zinc-600 dark:text-zinc-400",
+            ? ""
+            : "",
         )}
         title={panel.name}
       >
@@ -122,7 +122,7 @@ const PanelTab: React.FC<PanelTabProps> = ({
                   "tabular-nums",
                   isActive
                     ? "bg-amber-500/15 text-amber-700 dark:bg-amber-400/15 dark:text-amber-300"
-                    : "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400",
+                    : "",
                 )}
               >
                 {nodeCount}
@@ -147,7 +147,7 @@ const PanelTab: React.FC<PanelTabProps> = ({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded transition-colors"
+              className="p-1 rounded transition-colors"
               onClick={(e) => e.stopPropagation()}
             >
               <MoreHorizontal className="h-3.5 w-3.5 text-zinc-500" />
@@ -207,7 +207,7 @@ const PanelTab: React.FC<PanelTabProps> = ({
 
         {/* Close button */}
         <button
-          className="p-1 hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 rounded transition-colors"
+          className="p-1 rounded transition-colors"
           onClick={(e) => {
             e.stopPropagation();
             onClose();
@@ -406,8 +406,8 @@ export const PanelTabsPro: React.FC<PanelTabsProps> = ({ className }) => {
     <div
       className={cn(
         "flex items-stretch",
-        "bg-zinc-50/50 dark:bg-zinc-900/50",
-        "border-b border-zinc-200/60 dark:border-zinc-800/60",
+        "",
+        "border-b ",
         className,
       )}
     >
@@ -419,7 +419,7 @@ export const PanelTabsPro: React.FC<PanelTabsProps> = ({ className }) => {
               // Inline edit
               <div
                 key={panel.id}
-                className="flex items-center gap-2 px-3 py-2 border-r border-zinc-200/60 dark:border-zinc-800/60 bg-white dark:bg-zinc-950"
+                className="flex items-center gap-2 px-3 py-2 border-r"
               >
                 <Input
                   type="text"
@@ -461,7 +461,7 @@ export const PanelTabsPro: React.FC<PanelTabsProps> = ({ className }) => {
       </div>
 
       {/* Toolbar - Professional */}
-      <div className="flex items-stretch border-l border-zinc-200/60 dark:border-zinc-800/60">
+      <div className="flex items-stretch border-l ">
         {/* New panel */}
         <TooltipProvider delayDuration={200}>
           <Tooltip>
@@ -470,9 +470,6 @@ export const PanelTabsPro: React.FC<PanelTabsProps> = ({ className }) => {
                 onClick={() => createPanel("New Panel")}
                 className={cn(
                   "px-3 h-full",
-                  "text-zinc-500 hover:text-zinc-900",
-                  "dark:text-zinc-400 dark:hover:text-zinc-50",
-                  "hover:bg-zinc-100 dark:hover:bg-zinc-800",
                   "transition-colors",
                 )}
               >
@@ -493,10 +490,7 @@ export const PanelTabsPro: React.FC<PanelTabsProps> = ({ className }) => {
                 <DropdownMenuTrigger asChild>
                   <button
                     className={cn(
-                      "px-3 h-full border-l border-zinc-200/60 dark:border-zinc-800/60",
-                      "text-zinc-500 hover:text-zinc-900",
-                      "dark:text-zinc-400 dark:hover:text-zinc-50",
-                      "hover:bg-zinc-100 dark:hover:bg-zinc-800",
+                      "px-3 h-full border-l",
                       "transition-colors",
                     )}
                   >

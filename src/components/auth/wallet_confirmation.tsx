@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/modules/auth.store";
+import { LOTTIE_ANIMATIONS, LOTTIE_SIZES } from "./lottie_config";
 
 interface WalletConfirmationProps {
   walletType: "create" | "import";
@@ -36,9 +38,9 @@ export function WalletConfirmation({
 
   if (!wallet) {
     return (
-      <Card className="w-full max-w-2xl mx-auto backdrop-blur-sm bg-card/80 border-border/50 shadow-2xl">
+      <Card className="w-full max-w-2xl mx-auto backdrop-blur-sm bg-card/80 border-border/50">
         <CardContent className="p-6 text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
           <p className="text-muted-foreground">No wallet data available</p>
         </CardContent>
       </Card>
@@ -89,9 +91,9 @@ export function WalletConfirmation({
         badge: {
           text: "New Wallet",
           className:
-            "bg-green-500/20 text-green-700 dark:text-green-600 border-green-500/30",
+            "bg-accent text-accent-foreground border-accent-foreground/30",
         },
-        icon: <CheckCircle className="icon-lg text-emerald-500" />,
+        icon: <CheckCircle className="icon-lg text-accent-foreground" />,
       };
     } else {
       return {
@@ -100,9 +102,9 @@ export function WalletConfirmation({
         badge: {
           text: "Imported",
           className:
-            "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30",
+            "bg-secondary text-secondary-foreground border-secondary-foreground/30",
         },
-        icon: <CheckCircle className="icon-lg text-blue-500" />,
+        icon: <CheckCircle className="icon-lg text-secondary-foreground" />,
       };
     }
   };
@@ -110,87 +112,95 @@ export function WalletConfirmation({
   const typeInfo = getWalletTypeInfo();
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-3 sm:space-y-4">
       {/* Wallet Confirmation Card */}
-      <Card className="w-full max-w-2xl mx-auto backdrop-blur-md bg-card/80 border border-border">
-        <CardHeader className="text-center pb-4">
-          <CardTitle className="flex items-center justify-center gap-3 text-xl font-bold">
-            <div
-              className={`icon-container-md rounded-lg flex items-center justify-center ${
-                walletType === "create" ? "bg-emerald-500" : "bg-blue-500"
-              }`}
-            >
-              <CheckCircle className="icon-lg text-white" />
-            </div>
+      <Card className="w-full backdrop-blur-md bg-card/80 border border-border">
+        <CardHeader className="text-center pb-2 sm:pb-3 md:pb-4 px-3 sm:px-4 md:px-6">
+          {/* Lottie Animation - Success Checkmark */}
+          <div className="flex h-20 sm:h-24 md:h-32 items-center justify-center mb-2 sm:mb-3">
+            <DotLottieReact
+              src={LOTTIE_ANIMATIONS.success}
+              loop
+              speed={0.5}
+              autoplay
+              style={LOTTIE_SIZES.small}
+            />
+          </div>
+
+          <CardTitle className="flex flex-col items-center justify-center gap-1 sm:gap-2 text-base sm:text-lg md:text-xl font-bold">
             <span className="text-foreground">
               {typeInfo.title}
             </span>
           </CardTitle>
-          <p className="text-muted-foreground text-sm mt-2">
+          <p className="text-muted-foreground text-xs sm:text-sm mt-1.5 sm:mt-2 px-2">
             {typeInfo.subtitle}
           </p>
-          <Badge className={`mx-auto mt-2 ${typeInfo.badge.className}`}>
+          <Badge
+            className={`mx-auto mt-1.5 sm:mt-2 text-xs ${typeInfo.badge.className}`}
+          >
             {typeInfo.badge.text}
           </Badge>
         </CardHeader>
 
-        <CardContent className="px-6 pb-6 space-y-4">
+        <CardContent className="px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 md:pb-6 space-y-3 sm:space-y-4">
           {/* Wallet Information Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-card-foreground flex items-center gap-2">
-              <Shield className="h-5 w-5 text-amber-700 dark:text-amber-400" />
+          <div className="space-y-2 sm:space-y-3">
+            <h3 className="text-sm sm:text-base md:text-lg font-semibold text-card-foreground flex items-center gap-1.5 sm:gap-2">
+              <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-amber-700 dark:text-amber-400" />
               Wallet Details
             </h3>
 
-            <div className="p-4 bg-muted/50 border border-border rounded-lg space-y-3">
+            <div className="p-2.5 sm:p-3 md:p-4 bg-muted/50 border border-border rounded space-y-2 sm:space-y-3">
               {/* Wallet Address */}
-              <div className="space-y-2">
+              <div className="space-y-1.5 sm:space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-muted-foreground">
+                  <label className="text-xs sm:text-sm font-medium text-muted-foreground">
                     Wallet Address
                   </label>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleCopyAddress}
-                    className="h-8 px-2 text-xs"
+                    className="h-7 sm:h-8 px-1.5 sm:px-2 text-xs"
                   >
                     {copiedAddress
-                      ? <CheckCircle className="h-3 w-3 text-green-500" />
+                      ? (
+                        <CheckCircle className="h-3 w-3 text-accent-foreground" />
+                      )
                       : <Copy className="h-3 w-3" />}
                   </Button>
                 </div>
-                <div className="p-2 bg-background border border-border rounded">
-                  <div className="font-mono text-xs text-foreground break-all">
+                <div className="p-1.5 sm:p-2 bg-background border border-border rounded">
+                  <div className="font-mono text-[10px] sm:text-xs text-foreground break-all leading-tight">
                     {wallet.address}
                   </div>
                 </div>
               </div>
 
               {/* Card Number */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-medium text-muted-foreground">
                   Card Number
                 </label>
-                <div className="p-2 bg-background border border-border rounded">
-                  <div className="font-mono text-sm text-foreground">
+                <div className="p-1.5 sm:p-2 bg-background border border-border rounded">
+                  <div className="font-mono text-xs sm:text-sm text-foreground">
                     {wallet.number}
                   </div>
                 </div>
               </div>
 
               {/* Public Key */}
-              <div className="space-y-2">
+              <div className="space-y-1.5 sm:space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-muted-foreground">
+                  <label className="text-xs sm:text-sm font-medium text-muted-foreground">
                     Private Key
                   </label>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5 sm:gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowPublicKey(!showPublicKey)}
-                      className="h-8 px-2 text-xs"
+                      className="h-7 sm:h-8 px-1.5 sm:px-2 text-xs"
                     >
                       {showPublicKey
                         ? <EyeOff className="h-3 w-3" />
@@ -200,23 +210,25 @@ export function WalletConfirmation({
                       variant="ghost"
                       size="sm"
                       onClick={handleCopyPublicKey}
-                      className="h-8 px-2 text-xs"
+                      className="h-7 sm:h-8 px-1.5 sm:px-2 text-xs"
                     >
                       {copiedPublicKey
-                        ? <CheckCircle className="h-3 w-3 text-green-500" />
+                        ? (
+                          <CheckCircle className="h-3 w-3 text-accent-foreground" />
+                        )
                         : <Copy className="h-3 w-3" />}
                     </Button>
                   </div>
                 </div>
-                <div className="p-2 bg-background border border-border rounded">
+                <div className="p-1.5 sm:p-2 bg-background border border-border rounded">
                   {showPublicKey
                     ? (
-                      <div className="font-mono text-xs text-foreground break-all">
+                      <div className="font-mono text-[10px] sm:text-xs text-foreground break-all leading-tight">
                         {wallet.privateKey}
                       </div>
                     )
                     : (
-                      <div className="font-mono text-xs text-muted-foreground">
+                      <div className="font-mono text-[10px] sm:text-xs text-muted-foreground">
                         •••••••••••••••••••••••••••••••
                       </div>
                     )}
@@ -226,16 +238,16 @@ export function WalletConfirmation({
           </div>
 
           {/* Security Notice */}
-          <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-            <div className="flex items-start gap-3">
-              <div className="p-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10">
-                <AlertCircle className="h-4 w-4 text-amber-500" />
+          <div className="p-2.5 sm:p-3 md:p-4 bg-primary/10 border border-primary/30 rounded">
+            <div className="flex items-start gap-2 sm:gap-2.5 md:gap-3">
+              <div className="p-1 sm:p-1.5 rounded border border-primary/30 bg-primary/10 flex-shrink-0">
+                <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
               </div>
               <div>
-                <div className="font-bold text-foreground mb-1 text-xs">
+                <div className="font-bold text-foreground mb-0.5 sm:mb-1 text-[11px] sm:text-xs">
                   Important Security Notice
                 </div>
-                <div className="text-muted-foreground text-xs">
+                <div className="text-muted-foreground text-[10px] sm:text-xs leading-relaxed">
                   Please save your private key securely. If you lose it, you
                   will permanently lose access to your wallet and funds.
                   Consider using a secure password manager or hardware wallet
@@ -246,17 +258,17 @@ export function WalletConfirmation({
           </div>
 
           {/* Confirmation Checkbox */}
-          <div className="flex items-start gap-3 p-3 bg-muted/50 border border-border rounded-lg">
+          <div className="flex items-start gap-2 sm:gap-2.5 md:gap-3 p-2.5 sm:p-3 bg-muted/50 border border-border rounded">
             <input
               type="checkbox"
               id="confirmWallet"
               checked={isConfirmed}
               onChange={(e) => setIsConfirmed(e.target.checked)}
-              className="w-4 h-4 text-amber-500 bg-secondary border-muted rounded focus:ring-amber-500 focus:ring-2 mt-0.5"
+              className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary bg-secondary border-muted rounded focus:ring-primary focus:ring-2 mt-0.5"
             />
             <label
               htmlFor="confirmWallet"
-              className="text-sm text-card-foreground leading-relaxed"
+              className="text-[11px] sm:text-xs md:text-sm text-card-foreground leading-relaxed"
             >
               I have securely saved my private key and understand that losing it
               will result in permanent loss of access to my wallet and all
@@ -265,22 +277,26 @@ export function WalletConfirmation({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-2 sm:gap-3 pt-2 sm:pt-3 md:pt-4">
             <Button
               onClick={onBack}
               variant="outline"
-              className="flex-1 h-10"
+              className="flex-1 h-9 sm:h-10 text-xs sm:text-sm"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
+              <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+              <span className="hidden xs:inline">Back</span>
+              <span className="xs:hidden">←</span>
             </Button>
             <Button
               onClick={handleConfirm}
               disabled={!isConfirmed}
-              className="flex-1 h-10 bg-amber-500 hover:bg-amber-600 text-black font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 h-9 sm:h-10 bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Continue to Network Setup
-              <ArrowRight className="h-4 w-4 ml-2" />
+              <span className="hidden sm:inline">
+                Continue to Network Setup
+              </span>
+              <span className="sm:hidden">Continue</span>
+              <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1.5 sm:ml-2 flex-shrink-0" />
             </Button>
           </div>
         </CardContent>
