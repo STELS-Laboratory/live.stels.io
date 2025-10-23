@@ -32,7 +32,7 @@ export default defineConfig({
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
-        categories: ['finance', 'productivity', 'utilities'],
+        categories: ['web', 'webos', 'webtocken', 'webagent', 'webai', 'productivity', 'utilities'],
         iarc_rating_id: 'e84b072d-71b3-4d3e-86ae-31a8ce4e53b7',
         prefer_related_applications: false,
         icons: [
@@ -76,7 +76,25 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,txt,woff2}'],
+        globIgnores: [
+          '**/assets/*worker*.js', // Exclude Monaco Editor workers from precache
+        ],
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB limit for large assets
         runtimeCaching: [
+          {
+            urlPattern: /.*\.worker.*\.js$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'monaco-workers-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
           {
             urlPattern: /^https:\/\/live\.stels\.io\/.*/i,
             handler: 'NetworkFirst',
@@ -133,11 +151,43 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 1000, // Increase warning limit to 1MB
     rollupOptions: {
       external: (id) => {
         // Exclude CCXT test files
         if (id.includes('/ccxt/ts/src/test/')) return true;
         return false;
+      },
+      output: {
+        manualChunks: (id) => {
+          // Monaco Editor in separate chunk
+          if (id.includes('monaco-editor')) {
+            return 'monaco-editor';
+          }
+          // React and related libraries
+          if (id.includes('node_modules/react') || 
+              id.includes('node_modules/react-dom') ||
+              id.includes('node_modules/react-is') ||
+              id.includes('node_modules/scheduler')) {
+            return 'react-vendor';
+          }
+          // CCXT library
+          if (id.includes('node_modules') && id.includes('/ccxt/')) {
+            return 'ccxt-vendor';
+          }
+          // Other large UI libraries
+          if (id.includes('node_modules/@radix-ui') ||
+              id.includes('node_modules/framer-motion') ||
+              id.includes('node_modules/reactflow')) {
+            return 'ui-vendor';
+          }
+          // Crypto libraries
+          if (id.includes('node_modules/@noble') ||
+              id.includes('node_modules/elliptic') ||
+              id.includes('node_modules/bs58')) {
+            return 'crypto-vendor';
+          }
+        }
       }
     }
   }
