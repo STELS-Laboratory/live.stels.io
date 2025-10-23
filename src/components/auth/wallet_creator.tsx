@@ -183,7 +183,7 @@ export function WalletCreator(
                 : LOTTIE_ANIMATIONS.importing}
               loop
               autoplay
-              style={LOTTIE_SIZES.small}
+              style={LOTTIE_SIZES.medium}
             />
           </div>
 

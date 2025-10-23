@@ -356,7 +356,7 @@ export function getBlockColor(position: number): string {
 /**
  * Get icon for block position - simple numeric indicators
  */
-export function getBlockIcon(label: string, position?: number): string {
+export function getBlockIcon(_label: string, position?: number): string {
 	// Simple numbered emoji indicators, no hardcode
 	const icons = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"];
 	

@@ -25,7 +25,7 @@ export function WalletTypeSelector(
               loop
               speed={0.5}
               autoplay
-              style={LOTTIE_SIZES.small}
+              style={LOTTIE_SIZES.large}
             />
           </div>
 

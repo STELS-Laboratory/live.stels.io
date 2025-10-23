@@ -7,12 +7,10 @@ import type { Edge } from "reactflow";
 import type {
 	FlowNode,
 	GroupedEdgeData,
-	ConnectionKeys,
 	AutoConnectionConfig,
 } from "@/lib/canvas-types";
 import {
 	analyzeChannels,
-	extractDynamicConnectionKey,
 	getBlockColor,
 	getBlockValue,
 	groupNodesByBlocks,
