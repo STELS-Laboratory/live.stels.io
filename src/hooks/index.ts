@@ -11,6 +11,7 @@ export { useHydration } from "./use_hydration";
 export { useMobile, useScreenWidth, useOrientation, useDeviceType } from "./use_mobile.ts";
 export { default as useSessionStoreSync } from "./use_session_store_sync";
 export { useTheme } from "./use_theme";
+export { useThemeColor } from "./use_theme_color";
 export { useUrlRouter } from "./use_url_router";
 export { default as useWebSocketStore } from "./use_web_socket_store";
 

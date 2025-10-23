@@ -49,6 +49,7 @@ Tailwind CSS styling.
 
 ## Core Features
 
+- **Progressive Web App** - Install on any device, works offline, auto-updates
 - **Multi-Exchange Trading Terminal** - Unified interface for multiple
   cryptocurrency exchanges
 - **Advanced Market Analysis** - Real-time liquidity scanning, order book
@@ -69,6 +70,7 @@ Tailwind CSS styling.
 - **React 19.1.0** - UI framework with functional components and hooks
 - **TypeScript 5.8.3** - Strict type safety with explicit return types
 - **Vite 7.0.4** - Build tool and development server
+- **vite-plugin-pwa** - Progressive Web App support with service workers
 
 ### UI Components
 
@@ -798,6 +800,7 @@ npm run dev
 - Runs on `http://localhost:5173` (accessible from network via `--host`)
 - Hot module replacement enabled
 - Source maps for debugging
+- PWA enabled in development mode
 
 ### Production Build
 
@@ -809,6 +812,19 @@ npm run build
 - Vite production build
 - Output directory: `dist/`
 - Optimized and minified
+- PWA assets generated (manifest, service worker)
+- 257 files precached for offline support
+
+### Preview Production Build
+
+```bash
+npm run preview
+```
+
+- Test production build locally
+- PWA functionality available
+- Install app from browser
+- Test offline mode
 
 ### Linting
 
@@ -819,6 +835,29 @@ npm run lint
 - ESLint with TypeScript rules
 - React Hooks rules
 - Custom project rules
+
+### PWA Features
+
+**STELS Web 5 is a Progressive Web App:**
+
+- ✅ **Installable** - Install on desktop and mobile devices
+- ✅ **Offline Support** - Works without internet connection
+- ✅ **Auto-Update** - Automatic updates when new version is available
+- ✅ **Fast Loading** - Cached assets for instant loading
+- ✅ **Native-Like** - Runs in standalone mode
+- 🔒 **Secure** - Multi-layer security with extension protection
+
+**Installation:**
+
+- **Desktop**: Click install button in browser address bar
+- **Android**: Use "Add to Home Screen" in Chrome
+- **iOS**: Use "Add to Home Screen" in Safari
+
+**Documentation:**
+
+- [PWA.md](./PWA.md) - PWA setup and configuration
+- [PWA_SECURITY.md](./PWA_SECURITY.md) - Security and extension protection
+- [SECURITY_QUICK_START.md](./SECURITY_QUICK_START.md) - Quick security guide
 
 ## Environment Configuration
 

@@ -19,6 +19,7 @@ import SplashScreen from "./components/main/splash_screen";
 import UpgradeScreen from "./components/main/upgrade_screen";
 import { ProfessionalConnectionFlow } from "@/components/auth/professional_connection_flow";
 import { SecurityWarningDialog } from "@/components/auth/security_warning_dialog";
+import { SecurityWarningExtensions } from "@/components/auth/security_warning_extensions";
 import { SessionExpiredModal } from "@/components/auth/session_expired_modal";
 
 // Lazy-loaded app modules
@@ -746,6 +747,8 @@ export default function Dashboard(): React.ReactElement {
 								</div>
 							)}
 						<SecurityWarningDialog />
+						{/* Extension detection and security warning */}
+						<SecurityWarningExtensions />
 						{/* Session expired blocking modal */}
 						<SessionExpiredModal />
 					</TooltipProvider>

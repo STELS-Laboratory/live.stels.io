@@ -942,3 +942,27 @@
 .scrollbar-track-transparent::-webkit-scrollbar-track {
     background: transparent;
 }
+
+/* macOS-style text selection - Light theme */
+:root::selection,
+.light ::selection {
+    background-color: rgba(10, 132, 255, 0.3);
+    color: #1a1817;
+}
+
+:root::-moz-selection,
+.light ::-moz-selection {
+    background-color: rgba(10, 132, 255, 0.3);
+    color: #1a1817;
+}
+
+/* macOS-style text selection - Dark theme */
+.dark ::selection {
+    background-color: rgba(10, 132, 255, 0.45);
+    color: #f0eeec;
+}
+
+.dark ::-moz-selection {
+    background-color: rgba(10, 132, 255, 0.45);
+    color: #f0eeec;
+}

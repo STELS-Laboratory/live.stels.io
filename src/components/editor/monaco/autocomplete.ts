@@ -6,11 +6,19 @@
  * Monaco Editor (npm:monaco-editor or @monaco-editor/react) should be installed separately.
  */
 
+// Track if types have been loaded to prevent multiple loads
+let typesLoaded = false;
+
 /**
  * Load Worker SDK type definitions into Monaco Editor
  * @param monaco - Monaco editor instance
  */
 export function loadWorkerSDKTypes(monaco: any): void {
+  // Only load types once to prevent editor hanging
+  if (typesLoaded) {
+    return;
+  }
+
   // Add extra TypeScript libraries for autocomplete
   monaco.languages.typescript.javascriptDefaults.addExtraLib(
     WORKER_SDK_TYPES,
@@ -21,6 +29,8 @@ export function loadWorkerSDKTypes(monaco: any): void {
     WORKER_SDK_TYPES,
     "file:///worker-sdk.d.ts",
   );
+
+  typesLoaded = true;
 }
 
 /**
@@ -789,13 +799,21 @@ logger.info('Latest candle:', {
   ];
 }
 
+// Track completion provider registration
+let completionProviderRegistered: any = null;
+
 /**
  * Register custom completion provider for worker context
  */
 export function registerWorkerCompletionProvider(
   monaco: any,
 ): any {
-  return monaco.languages.registerCompletionItemProvider("javascript", {
+  // Only register once to prevent duplicate providers
+  if (completionProviderRegistered) {
+    return completionProviderRegistered;
+  }
+
+  completionProviderRegistered = monaco.languages.registerCompletionItemProvider("javascript", {
     triggerCharacters: [".", " "],
     provideCompletionItems: (_model: any, _position: any) => {
       const suggestions = getWorkerSnippets();
@@ -805,6 +823,8 @@ export function registerWorkerCompletionProvider(
       };
     },
   });
+
+  return completionProviderRegistered;
 }
 
 /**

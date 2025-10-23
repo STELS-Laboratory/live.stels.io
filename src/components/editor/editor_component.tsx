@@ -25,9 +25,11 @@ export default function EditorComponent(
 		editorRef.current = editor;
 		monacoRef.current = monacoInstance;
 
-		// Setup Worker SDK autocomplete and types
+		// Setup Worker SDK autocomplete and types (only once)
 		const { disposables } = setupWorkerMonacoEditor(monacoInstance, {
-			theme: resolvedTheme === "light" ? "vs-light" : "vs-dark",
+			theme: document.documentElement.classList.contains("light")
+				? "vs-light"
+				: "vs-dark",
 			fontSize: 14,
 			minimap: true,
 		});
@@ -156,7 +158,7 @@ export default function EditorComponent(
 		editor.onDidDispose(() => {
 			disposablesRef.current.forEach((d) => d.dispose());
 		});
-	}, [resolvedTheme]);
+	}, []); // Empty dependency array - only mount once
 
 	// Update Monaco theme when app theme changes
 	useEffect(() => {

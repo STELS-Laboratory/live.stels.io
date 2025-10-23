@@ -36,7 +36,7 @@ export default function SchemaEditor({
       editorRef.current = editor;
       monacoRef.current = monacoInstance;
 
-      // Define custom dark theme
+      // Define custom dark theme (only once)
       monacoInstance.editor.defineTheme("schema-dark", {
         base: "vs-dark",
         inherit: true,
@@ -54,7 +54,7 @@ export default function SchemaEditor({
         },
       });
 
-      // Define custom light theme
+      // Define custom light theme (only once)
       monacoInstance.editor.defineTheme("schema-light", {
         base: "vs",
         inherit: true,
@@ -72,9 +72,11 @@ export default function SchemaEditor({
         },
       });
 
-      monacoInstance.editor.setTheme(
-        resolvedTheme === "light" ? "schema-light" : "schema-dark",
-      );
+      // Set initial theme
+      const currentTheme = document.documentElement.classList.contains("light")
+        ? "schema-light"
+        : "schema-dark";
+      monacoInstance.editor.setTheme(currentTheme);
 
       // Format on paste
       editor.onDidPaste(() => {
@@ -97,7 +99,7 @@ export default function SchemaEditor({
         onValidation(errors.length === 0, errors);
       });
     },
-    [resolvedTheme, onValidation],
+    [onValidation], // Keep onValidation but remove resolvedTheme
   );
 
   useEffect(() => {
