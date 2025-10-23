@@ -14,7 +14,7 @@ interface NavigatorWithStandalone extends Navigator {
 /**
  * Extended Window interface for extension detection
  */
-interface WindowWithExtensions extends Window {
+interface WindowWithExtensions {
   [key: string]: unknown;
 }
 
@@ -58,7 +58,7 @@ export function detectExtensions(): string[] {
   ];
   
   for (const global of extensionGlobals) {
-    if ((window as WindowWithExtensions)[global] && !isStandalonePWA()) {
+    if ((window as unknown as WindowWithExtensions)[global] && !isStandalonePWA()) {
       suspiciousExtensions.push(global);
     }
   }

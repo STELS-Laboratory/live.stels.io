@@ -13,6 +13,15 @@ import {
   type SecurityCheckResult,
 } from "@/lib/pwa-security";
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
+interface WindowWithPWA extends Window {
+  deferredPrompt: BeforeInstallPromptEvent | null;
+}
+
 /**
  * Security Warning for Browser Extensions
  *
@@ -53,14 +62,14 @@ export function SecurityWarningExtensions(): React.ReactElement {
 
   const handleInstall = (): void => {
     // Trigger browser install prompt if available
-    const installPrompt = (window as WindowWithPWA).deferredPrompt;
+    const installPrompt = (window as unknown as WindowWithPWA).deferredPrompt;
     if (installPrompt) {
       installPrompt.prompt();
       installPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === "accepted") {
           console.log("[PWA] User accepted install");
         }
-        (window as WindowWithPWA).deferredPrompt = null;
+        (window as unknown as WindowWithPWA).deferredPrompt = null;
       });
     } else {
       alert(

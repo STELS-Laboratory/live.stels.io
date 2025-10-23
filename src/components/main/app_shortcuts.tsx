@@ -20,11 +20,11 @@ export default function AppShortcuts(): null {
   const { apps, activeAppId, setActiveApp } = useOpenAppsStore();
   const currentRoute = useAppStore((state) => state.currentRoute);
 
-  const goToHome = (): void => {
+  const goToHome = useCallback((): void => {
     // Clear active app to return to hub view
     setActiveApp("");
     navigateTo("welcome");
-  };
+  }, [setActiveApp]);
 
   const switchToApp = useCallback(
     (appId: string): void => {

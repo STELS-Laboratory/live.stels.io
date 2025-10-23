@@ -26,7 +26,6 @@ import {
   Layout as LayoutIcon,
   Package,
   Play,
-  X,
 } from "lucide-react";
 import { navigateTo } from "@/lib/router.ts";
 import {
@@ -53,16 +52,14 @@ function Welcome(): ReactElement {
     Array<{ channelKey: string; alias: string }>
   >([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isResolving, setIsResolving] = useState(false);
   const [launchStep, setLaunchStep] = useState(0);
   const [isLaunching, setIsLaunching] = useState(false);
   const openApp = useOpenAppsStore((state) => state.openApp);
-  const closeApp = useOpenAppsStore((state) => state.closeApp);
   const apps = useOpenAppsStore((state) => state.apps);
   const activeAppId = useOpenAppsStore((state) => state.activeAppId);
 
   // Restore open apps from previous session
-  const { isRestoring: isRestoringApps } = useRestoreOpenApps();
+  useRestoreOpenApps();
 
   // Auto-open active app on mount or when activeAppId changes
   useEffect(() => {
@@ -321,8 +318,9 @@ function Welcome(): ReactElement {
             className="w-full h-full overflow-auto"
           >
             <ErrorBoundary>
-              {isResolving
-                ? (
+              {resolvedSchema
+                ? <UIRenderer schema={resolvedSchema} data={mergedData} />
+                : (
                   <div className="flex items-center justify-center h-full">
                     <motion.div
                       initial={{ opacity: 0, scale: 0.9 }}
@@ -332,13 +330,6 @@ function Welcome(): ReactElement {
                     >
                       Loading app...
                     </motion.div>
-                  </div>
-                )
-                : resolvedSchema
-                ? <UIRenderer schema={resolvedSchema} data={mergedData} />
-                : (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="text-destructive">Failed to load app</div>
                   </div>
                 )}
             </ErrorBoundary>
@@ -567,7 +558,7 @@ function Welcome(): ReactElement {
               }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
-              {routerSchemas.map((schema, index) => (
+              {routerSchemas.map((schema) => (
                 <motion.div
                   key={schema.id}
                   variants={{
@@ -729,7 +720,7 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
         duration: 0.2,
         ease: [0.16, 1, 0.3, 1],
       }}
-      className={`group bg-card rounded-lg border overflow-hidden transition-all duration-200 relative ${
+      className={`group bg-card rounded border overflow-hidden transition-all duration-200 relative ${
         isRunning
           ? "border-green-500/50 hover:border-green-500/70 shadow-green-500/20 shadow-md"
           : "border-border hover:border-amber-500/30 hover:shadow-md"
@@ -740,7 +731,7 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
         <motion.div
           animate={{ opacity: [0.3, 0.6, 0.3] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -inset-px bg-green-500/10 rounded-lg -z-10"
+          className="absolute -inset-px bg-green-500/10 rounded -z-10"
         />
       )}
       {/* Preview */}

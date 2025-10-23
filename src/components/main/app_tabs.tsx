@@ -81,7 +81,7 @@ export default function AppTabs(): ReactElement {
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
               className={`
-                flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-200
+                flex items-center justify-center w-8 h-8 rounded transition-colors duration-200
                 ${
                 isOnWelcome
                   ? "bg-amber-500/20 text-amber-700 dark:text-amber-400"
@@ -120,7 +120,7 @@ export default function AppTabs(): ReactElement {
                       whileTap={{ scale: 0.95 }}
                       transition={{ duration: 0.15, ease: "easeOut" }}
                       className={`
-                        relative flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-200
+                        relative flex items-center justify-center w-8 h-8 rounded transition-colors duration-200
                         ${
                         isActive
                           ? "bg-muted text-foreground"
@@ -178,7 +178,7 @@ export default function AppTabs(): ReactElement {
                   whileTap={{ scale: 0.98 }}
                   transition={{ duration: 0.15, ease: "easeOut" }}
                   className={`
-                    group relative flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200
+                    group relative flex items-center gap-2 px-3 py-2 rounded transition-colors duration-200
                     ${
                     isActive
                       ? "bg-muted text-foreground"

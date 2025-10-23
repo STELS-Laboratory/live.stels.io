@@ -76,7 +76,7 @@ export default function AppLauncher({
           className="relative max-w-md w-full mx-4"
         >
           {/* Main card - document style */}
-          <div className="bg-card border border-border rounded-lg shadow-2xl overflow-hidden">
+          <div className="bg-card border border-border rounded shadow-2xl overflow-hidden">
             {/* Header */}
             <div className="px-6 py-4 border-b border-border">
               <div className="flex items-center gap-3">
@@ -84,7 +84,7 @@ export default function AppLauncher({
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.05, duration: 0.2, ease: "easeOut" }}
-                  className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center"
+                  className="w-10 h-10 bg-muted rounded flex items-center justify-center"
                 >
                   <AppIcon className="w-5 h-5 text-foreground" />
                 </motion.div>

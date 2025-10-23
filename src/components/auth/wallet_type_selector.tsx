@@ -195,7 +195,7 @@ export function WalletTypeSelector(
                 </a>
 
                 <a
-                  href="https://t.me/stelsio"
+                  href="https://t.me/c/2328305982/8"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-card/80 border border-border hover:border-blue-400/50 hover:bg-blue-400/5 rounded transition-all duration-300 active:scale-95 w-full sm:w-auto justify-center"
