@@ -259,15 +259,17 @@ function Welcome(): ReactElement {
     if (
       selectedSchema.channelAliases && selectedSchema.channelAliases.length > 0
     ) {
-      selectedSchema.channelAliases.forEach(({ channelKey, alias }) => {
-        const sessionData = session[channelKey];
-        if (!sessionData || typeof sessionData !== "object") return;
+      selectedSchema.channelAliases.forEach(
+        ({ channelKey, alias }: { channelKey: string; alias: string }) => {
+          const sessionData = session[channelKey];
+          if (!sessionData || typeof sessionData !== "object") return;
 
-        const dataObj = sessionData as Record<string, unknown>;
-        if (!("raw" in dataObj)) return;
+          const dataObj = sessionData as Record<string, unknown>;
+          if (!("raw" in dataObj)) return;
 
-        data[alias] = dataObj;
-      });
+          data[alias] = dataObj;
+        },
+      );
     }
 
     // 3. Add nested channels with their aliases

@@ -30,7 +30,9 @@ export function useRestoreOpenApps(): {
 
         // Validate that schemas still exist
         const allSchemas = await getAllSchemas();
-        const schemaIds = new Set(allSchemas.map((s) => s.id));
+        const schemaIds = new Set(
+          allSchemas.map((s: { id: string }) => s.id),
+        );
 
         // Filter out apps whose schemas no longer exist
         const validApps = apps.filter((app) => schemaIds.has(app.schemaId));
