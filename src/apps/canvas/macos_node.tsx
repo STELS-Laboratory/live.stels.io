@@ -110,10 +110,10 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
 			/>
 
 			{/* Header - Document Style */}
-			<div className="flex min-w-[250px] bg-card relative items-center justify-between p-1 border-b cursor-move drag-handle">
+			<div className="flex min-w-[250px] bg-card h-6 relative items-center justify-between p-1 border-b cursor-move drag-handle">
 				<div className="flex items-center space-x-2 flex-1 min-w-0">
 					<span className="text-xs font-medium truncate">
-						{props.data.label.slice(0, 20)}
+						{/*{props.data.label.slice(0, 10)}*/}
 					</span>
 				</div>
 

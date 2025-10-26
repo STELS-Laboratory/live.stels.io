@@ -73,6 +73,16 @@ export default function AppShortcuts(): null {
           navigateTo("docs");
           return;
         }
+        if (e.key === "T" || e.key === "t") {
+          e.preventDefault();
+          navigateTo("template");
+          return;
+        }
+        if (e.key === "B" || e.key === "b") {
+          e.preventDefault();
+          navigateTo("token-builder");
+          return;
+        }
       }
 
       // Cmd/Ctrl + 1-9: Switch to user agent by index

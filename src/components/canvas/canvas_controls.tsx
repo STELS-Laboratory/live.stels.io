@@ -111,11 +111,11 @@ const ControlButton: React.FC<ControlButtonProps> = ({
             {badge !== undefined && (
               <div
                 className={cn(
-                  "absolute -top-1 -right-1",
-                  "min-w-[16px] h-4 px-1",
+                  "absolute -top-1 -right-1 bg-amber-700",
+                  "min-w-4 h-4 px-0",
                   "flex items-center justify-center",
                   "rounded-full",
-                  "text-[9px] font-semibold tabular-nums",
+                  "text-[8px] font-semibold tabular-nums",
                   "border",
                 )}
               >

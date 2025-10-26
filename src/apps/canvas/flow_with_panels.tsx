@@ -563,7 +563,7 @@ function FlowWithPanels(): React.ReactElement | null {
 						gap={10}
 						size={1}
 					/>
-					<div className="absolute z-1 flex justify-center items-center flex-col w-60 h-60 bottom-0 right-0">
+					<div className="absolute z-1 flex justify-center items-center flex-col w-60 h-40 bottom-0 right-0">
 						<div>
 							<Graphite size={3} primary="gray" />
 						</div>

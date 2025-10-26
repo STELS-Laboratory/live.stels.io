@@ -7,7 +7,9 @@ import type { ReactElement } from "react";
 import {
   Boxes,
   Code,
+  Coins,
   Database,
+  FileCode,
   FileText,
   Home,
   Layers,
@@ -37,6 +39,8 @@ const DEV_TOOLS: DevTool[] = [
   { key: "canvas", name: "Canvas", icon: Boxes, shortcut: "C" },
   { key: "schemas", name: "Schemas", icon: LayoutIcon, shortcut: "S" },
   { key: "docs", name: "Docs", icon: FileText, shortcut: "D" },
+  { key: "template", name: "Template", icon: FileCode, shortcut: "T" },
+  { key: "token-builder", name: "Token Builder", icon: Coins, shortcut: "B" },
 ];
 
 /**
@@ -172,13 +176,13 @@ export default function AppTabs(): ReactElement {
           return (
             <Tooltip key={app.id} delayDuration={300}>
               <TooltipTrigger asChild>
-                <motion.button
+                <motion.div
                   onClick={() => handleTabClick(app.id)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ duration: 0.15, ease: "easeOut" }}
                   className={`
-                    group relative flex items-center gap-2 px-3 py-2 rounded transition-colors duration-200
+                    group relative flex items-center gap-2 px-3 py-2 rounded transition-colors duration-200 cursor-pointer
                     ${
                     isActive
                       ? "bg-muted text-foreground"
@@ -223,7 +227,7 @@ export default function AppTabs(): ReactElement {
                       {shortcut}
                     </span>
                   )}
-                </motion.button>
+                </motion.div>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">
                 <div className="flex flex-col gap-1">

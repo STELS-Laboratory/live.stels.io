@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -93,7 +92,7 @@ export function SecurityWarningExtensions(): React.ReactElement {
             <AlertTriangle className="h-5 w-5 text-amber-500" />
             Security Notice
           </DialogTitle>
-          <DialogDescription className="space-y-4 pt-4">
+          <div className="space-y-4 pt-4">
             <div className="rounded bg-amber-500/10 p-4 border border-amber-500/20">
               <p className="text-sm text-amber-200">
                 <strong>Browser extensions detected</strong>
@@ -156,7 +155,7 @@ export function SecurityWarningExtensions(): React.ReactElement {
             <p className="text-xs text-zinc-500 text-center">
               You can also disable extensions manually for this site
             </p>
-          </DialogDescription>
+          </div>
         </DialogHeader>
       </DialogContent>
     </Dialog>

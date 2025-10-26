@@ -29,6 +29,8 @@ const Schemas = lazy(() => import("@/apps/schemas"));
 const Docs = lazy(() =>
 	import("@/apps/docs").then((m) => ({ default: m.Docs }))
 );
+const Template = lazy(() => import("@/apps/template"));
+const TokenBuilder = lazy(() => import("@/apps/token-builder"));
 import { TooltipProvider } from "@/components/ui/tooltip";
 const Layout = lazy(() => import("@/apps/layout"));
 const AMIEditor = lazy(() =>
@@ -638,6 +640,30 @@ export default function Dashboard(): React.ReactElement {
 						}
 					>
 						<Docs />
+					</Suspense>
+				);
+			case "template":
+				return (
+					<Suspense
+						fallback={
+							<div className="p-4 text-muted-foreground">
+								Loading template...
+							</div>
+						}
+					>
+						<Template />
+					</Suspense>
+				);
+			case "token-builder":
+				return (
+					<Suspense
+						fallback={
+							<div className="p-4 text-muted-foreground">
+								Loading token builder...
+							</div>
+						}
+					>
+						<TokenBuilder />
 					</Suspense>
 				);
 			default:
