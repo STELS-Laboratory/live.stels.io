@@ -51,9 +51,9 @@ export async function signTokenSchema(
   const tokenId = `token:sha256:${hash}`;
 
   // Create sign domain for token genesis
-  const signDomain = [
+  const signDomain: string[] = [
     "STELS-TOKEN-GENESIS",
-    2,
+    "2",
     "v1",
     `chain:${schema.technical?.chainId || 2}`,
   ];

@@ -4,7 +4,6 @@
  */
 
 export { default } from "./template-app";
-export type { TemplateAppProps } from "./template-app";
 export { useTemplateStore } from "./store";
 export type { TemplateStore, TemplateData } from "./types";
 
