@@ -86,6 +86,7 @@ export {
 	luhnChecksum,
 	getAddressFromPublicKey,
 	verifyPublicKeyAddress,
+	getUncompressedPublicKey, // Export directly without local import
 } from "./wallet";
 
 // Re-export validation functions

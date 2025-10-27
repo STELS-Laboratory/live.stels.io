@@ -29,6 +29,11 @@ export function CertificateHistory({
     (state) => state.certificateHistory,
   );
 
+  // Filter only genesis-compliant certificates (new format)
+  const genesisCompliantHistory = certificateHistory.filter(
+    (cert) => cert.token !== undefined,
+  );
+
   if (!isOpen) return null;
 
   /**
@@ -40,7 +45,7 @@ export function CertificateHistory({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `token-${cert.schema.metadata.symbol}-${Date.now()}.json`;
+    a.download = `token-${cert.token.metadata.symbol}-${Date.now()}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -53,7 +58,7 @@ export function CertificateHistory({
   const handleClearHistory = (): void => {
     if (
       confirm(
-        `Delete all ${certificateHistory.length} certificates from history? This cannot be undone.`,
+        `Delete all ${genesisCompliantHistory.length} certificates from history? This cannot be undone.`,
       )
     ) {
       useTokenBuilderStore.setState({ certificateHistory: [] });
@@ -75,8 +80,8 @@ export function CertificateHistory({
                   Certificate History
                 </h2>
                 <p className="text-xs text-muted-foreground">
-                  {certificateHistory.length} token
-                  {certificateHistory.length === 1 ? "" : "s"} created
+                  {genesisCompliantHistory.length} token
+                  {genesisCompliantHistory.length === 1 ? "" : "s"} created
                 </p>
               </div>
             </div>
@@ -93,12 +98,12 @@ export function CertificateHistory({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-4 py-4">
-          {certificateHistory.length === 0
+          {genesisCompliantHistory.length === 0
             ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <FileJson className="w-12 h-12 text-muted-foreground mb-3" />
                 <p className="text-sm text-muted-foreground">
-                  No certificates created yet
+                  No genesis-compliant certificates created yet
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Create your first token to see it here
@@ -106,21 +111,21 @@ export function CertificateHistory({
               </div>
             )
             : (
-            <div className="space-y-3">
-              {certificateHistory.map((cert) => (
-                <Card
-                    key={cert.id}
+              <div className="space-y-3">
+                {genesisCompliantHistory.map((cert) => (
+                  <Card
+                    key={cert.token.id}
                     className="border-border hover:bg-muted/30 transition-colors"
                   >
                     <CardContent className="p-3">
                       <div className="flex items-start gap-3">
                         {/* Token Icon */}
                         <div className="w-12 h-12 border border-border rounded overflow-hidden bg-muted flex items-center justify-center flex-shrink-0">
-                          {cert.schema.metadata.icon
+                          {cert.token.metadata.icon
                             ? (
                               <img
-                                src={cert.schema.metadata.icon}
-                                alt={cert.schema.metadata.symbol}
+                                src={cert.token.metadata.icon}
+                                alt={cert.token.metadata.symbol}
                                 className="w-full h-full object-contain"
                               />
                             )
@@ -132,16 +137,16 @@ export function CertificateHistory({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2">
                             <h3 className="text-sm font-semibold text-foreground">
-                              {cert.schema.metadata.name}
+                              {cert.token.metadata.name}
                             </h3>
                             <Badge variant="outline" className="text-xs">
-                              {cert.schema.metadata.symbol}
+                              {cert.token.metadata.symbol}
                             </Badge>
                             <Badge
                               variant="outline"
                               className="text-[10px] bg-blue-500/10 border-blue-500/30 text-blue-600"
                             >
-                              {cert.schema.standard}
+                              {cert.token.standard}
                             </Badge>
                           </div>
 
@@ -149,7 +154,16 @@ export function CertificateHistory({
                             <div className="flex items-center gap-2">
                               <span className="text-muted-foreground">ID:</span>
                               <span className="truncate">
-                                {cert.id.substring(0, 48)}...
+                                {cert.token.id.substring(0, 48)}...
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground">
+                                Network:
+                              </span>
+                              <span>
+                                {cert.network.name}{" "}
+                                (chain:{cert.network.chain_id})
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
@@ -157,7 +171,8 @@ export function CertificateHistory({
                                 Created:
                               </span>
                               <span>
-                                {new Date(cert.createdAt).toLocaleString()}
+                                {new Date(cert.token.created_at)
+                                  .toLocaleString()}
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
@@ -165,7 +180,7 @@ export function CertificateHistory({
                                 Supply:
                               </span>
                               <span>
-                                {cert.schema.economics.supply.initial}
+                                {cert.token.economics.supply.initial}
                               </span>
                             </div>
                           </div>
@@ -191,7 +206,7 @@ export function CertificateHistory({
         {/* Footer */}
         <div className="border-t border-border bg-muted/20 px-4 py-3 flex items-center justify-between flex-shrink-0">
           <div>
-            {certificateHistory.length > 0 && (
+            {genesisCompliantHistory.length > 0 && (
               <Button
                 variant="ghost"
                 size="sm"

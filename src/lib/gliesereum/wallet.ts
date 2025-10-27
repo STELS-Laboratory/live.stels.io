@@ -98,7 +98,7 @@ export function importWallet(privateKey: string): Wallet {
 	}
 
 	const keyPair = EC.keyFromPrivate(privateKey, "hex");
-	const publicKey = keyPair.getPublic(true, "hex");
+	const publicKey = keyPair.getPublic(true, "hex"); // Compressed (66 chars)
 	const publicKeyBytes = hexToUint8Array(publicKey);
 	const address = getAddress(publicKeyBytes);
 
@@ -109,6 +109,22 @@ export function importWallet(privateKey: string): Wallet {
 		biometric: null,
 		number: cardNumber(address),
 	};
+}
+
+/**
+ * Get uncompressed public key from private key
+ * Used for WebFix requests that require uncompressed format (130 chars)
+ * 
+ * @param privateKey - Private key hex string (64 chars)
+ * @returns Uncompressed public key hex string (130 chars, starts with "04")
+ */
+export function getUncompressedPublicKey(privateKey: string): string {
+	if (!/^[0-9a-fA-F]{64}$/.test(privateKey)) {
+		throw new Error("Invalid private key format");
+	}
+
+	const keyPair = EC.keyFromPrivate(privateKey, "hex");
+	return keyPair.getPublic(false, "hex"); // Uncompressed (130 chars)
 }
 
 /**

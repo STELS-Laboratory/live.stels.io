@@ -83,8 +83,14 @@ export function createChecksum(bytes: Uint8Array): Uint8Array {
 }
 
 /**
- * Deterministic JSON stringify for consistent hashing
- * ⚠️ CRITICAL: Must match server-side implementation
+ * Deterministic JSON stringify for consistent hashing (gls-det-1)
+ * ⚠️ CRITICAL: Must match server-side implementation EXACTLY
+ * 
+ * SPECIFICATION (gls-det-1):
+ * - Missing keys are NOT serialized (absence, not null)
+ * - undefined values ARE serialized as null
+ * - Keys are sorted lexicographically
+ * - No whitespace
  */
 export function deterministicStringify(obj: unknown): string {
 	if (obj === null || typeof obj !== "object") return JSON.stringify(obj);
@@ -92,15 +98,21 @@ export function deterministicStringify(obj: unknown): string {
 		return `[${obj.map(deterministicStringify).join(",")}]`;
 	}
 	const keys = Object.keys(obj as Record<string, unknown>).sort();
-	return `{${
-		keys.map((key) =>
-			`"${key}":${
-				deterministicStringify(
-					(obj as Record<string, unknown>)[key] ?? null,
-				)
-			}`
-		).join(",")
-	}}`;
+	const pairs: string[] = [];
+	for (const key of keys) {
+		const value = (obj as Record<string, unknown>)[key];
+		// CRITICAL: Check if key exists using hasOwnProperty
+		// Missing keys are NOT serialized (absence)
+		if (Object.prototype.hasOwnProperty.call(obj, key)) {
+			if (value === undefined) {
+				// undefined -> null (per gls-det-1 spec)
+				pairs.push(`"${key}":null`);
+			} else {
+				pairs.push(`"${key}":${deterministicStringify(value)}`);
+			}
+		}
+	}
+	return `{${pairs.join(",")}}`;
 }
 
 /**

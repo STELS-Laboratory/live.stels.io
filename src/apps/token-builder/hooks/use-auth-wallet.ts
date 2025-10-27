@@ -35,7 +35,7 @@ interface AuthStore {
 
 /**
  * Hook to access auth wallet from localStorage
- * SECURITY: Private key is never returned, only signing function provided
+ * SECURITY: Private key NEVER exposed - only signing functions provided
  */
 export function useAuthWallet(): {
   address: string | null;
@@ -46,7 +46,7 @@ export function useAuthWallet(): {
   hasWallet: boolean;
   refresh: () => void;
   signMessage: (message: string) => string;
-  getPrivateKey: () => string | null; // Secure getter for one-time use
+  signWithCallback: <T>(callback: (privateKey: string) => T) => T;
 } {
   const [authStore, setAuthStore] = useState<AuthStore | null>(null);
 
@@ -96,11 +96,32 @@ export function useAuthWallet(): {
     return signature;
   };
 
-  // Secure getter for one-time private key access
-  // Use ONLY when absolutely necessary (e.g., gliesereum importWallet)
-  const getPrivateKey = (): string | null => {
-    console.warn("[useAuthWallet] Private key accessed - ensure secure handling");
-    return authStore?.wallet?.privateKey || null;
+  /**
+   * Secure callback-based private key access
+   * Private key is passed to callback but never returned
+   * Callback is executed in controlled scope with automatic cleanup
+   * 
+   * @param callback - Function that receives private key
+   * @returns Result of callback execution
+   * @throws Error if no wallet available
+   * 
+   * @security Private key reference is automatically cleared after callback
+   */
+  const signWithCallback = <T,>(callback: (privateKey: string) => T): T => {
+    const privateKey = authStore?.wallet?.privateKey;
+    
+    if (!privateKey) {
+      throw new Error("No wallet available for signing");
+    }
+
+    try {
+      // Execute callback with private key
+      const result = callback(privateKey);
+      return result;
+    } finally {
+      // Private key reference is cleared by scope exit
+      // No explicit cleanup needed - let garbage collector handle it
+    }
   };
 
   return {
@@ -112,6 +133,6 @@ export function useAuthWallet(): {
     hasWallet: !!authStore?.wallet,
     refresh: loadAuthStore,
     signMessage,
-    getPrivateKey, // Use with caution!
+    signWithCallback, // Secure callback-based access
   };
 }

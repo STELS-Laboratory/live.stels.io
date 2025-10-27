@@ -19,7 +19,11 @@ import {
   XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { exportCertificate, verifyTokenCertificate } from "../signing";
+import {
+  detectCertificateType,
+  exportCertificate,
+  verifyTokenCertificate,
+} from "../signing";
 import type { TokenGenesisCertificate } from "../types";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
@@ -91,18 +95,6 @@ export function CertificateValidator({
   };
 
   // Detect certificate type
-  const detectType = (
-    cert: Record<string, unknown>,
-  ): "token" | "genesis" | "unknown" => {
-    if (cert.genesis && cert.network && cert.protocol) {
-      return "genesis";
-    }
-    if (cert.id && cert.schema && cert.issuer) {
-      return "token";
-    }
-    return "unknown";
-  };
-
   // Validate certificate
   const handleValidate = async (): Promise<void> => {
     if (!certificate) {
@@ -117,16 +109,43 @@ export function CertificateValidator({
     const errors: string[] = [];
 
     try {
-      // Detect certificate type
-      const certType = detectType(
+      // Detect certificate type using centralized function
+      const certType = detectCertificateType(
         certificate as unknown as Record<string, unknown>,
       );
 
-      // Handle genesis.json
+      // Handle genesis.json (network genesis document)
       if (certType === "genesis") {
+        // Genesis documents have different structure validation
+        const genesisErrors: string[] = [];
+
+        const cert = certificate as unknown as Record<string, unknown>;
+
+        // Validate genesis-specific fields
+        if (!cert.genesis) genesisErrors.push("Missing genesis data");
+        if (!cert.network) genesisErrors.push("Missing network configuration");
+        if (!cert.protocol) {
+          genesisErrors.push("Missing protocol configuration");
+        }
+        if (!cert.content) genesisErrors.push("Missing content hash");
+        if (!cert.signatures) genesisErrors.push("Missing signatures");
+
+        // Check genesis.id format
+        if (cert.genesis && typeof cert.genesis === "object") {
+          const genesisObj = cert.genesis as Record<string, unknown>;
+          if (!genesisObj.id) {
+            genesisErrors.push("Genesis: Missing ID");
+          } else if (
+            typeof genesisObj.id === "string" &&
+            !genesisObj.id.startsWith("genesis:")
+          ) {
+            genesisErrors.push("Genesis: ID must start with 'genesis:'");
+          }
+        }
+
         setValidationResult({
-          valid: true,
-          errors: [],
+          valid: genesisErrors.length === 0,
+          errors: genesisErrors,
           type: "genesis",
         });
         setValidating(false);
@@ -138,7 +157,8 @@ export function CertificateValidator({
         setValidationResult({
           valid: false,
           errors: [
-            "Unknown certificate format - not a token or genesis certificate",
+            "Unknown certificate format",
+            "Expected: Token Certificate (token.id) or Genesis Document (genesis.id)",
           ],
           type: "unknown",
         });
@@ -146,37 +166,43 @@ export function CertificateValidator({
         return;
       }
 
-      // Basic structure validation for token certificates
-      if (!certificate.id) errors.push("Missing certificate ID");
-      if (!certificate.createdAt) errors.push("Missing creation timestamp");
-      if (!certificate.issuer) errors.push("Missing issuer information");
-      if (!certificate.schema) errors.push("Missing token schema");
-      if (!certificate.signatures || certificate.signatures.length === 0) {
+      // Basic structure validation for token certificates (NEW genesis-compliant structure)
+      if (!certificate.token) errors.push("Missing token data");
+      if (!certificate.network) errors.push("Missing network configuration");
+      if (!certificate.protocol) errors.push("Missing protocol configuration");
+      if (
+        !certificate.signatures || !certificate.signatures.signers ||
+        certificate.signatures.signers.length === 0
+      ) {
         errors.push("Missing signatures");
       }
 
-      // Schema validation
-      if (certificate.schema) {
-        if (!certificate.schema.version) {
-          errors.push("Schema: Missing version");
+      // Token data validation
+      if (certificate.token) {
+        if (!certificate.token.id) errors.push("Token: Missing ID");
+        if (!certificate.token.created_at) {
+          errors.push("Token: Missing creation timestamp");
         }
-        if (!certificate.schema.standard) {
-          errors.push("Schema: Missing token standard");
+        if (!certificate.token.issuer) {
+          errors.push("Token: Missing issuer information");
         }
-        if (!certificate.schema.metadata) {
-          errors.push("Schema: Missing metadata");
+        if (!certificate.token.standard) {
+          errors.push("Token: Missing token standard");
+        }
+        if (!certificate.token.metadata) {
+          errors.push("Token: Missing metadata");
         } else {
-          if (!certificate.schema.metadata.name) {
-            errors.push("Schema: Missing token name");
+          if (!certificate.token.metadata.name) {
+            errors.push("Token: Missing token name");
           }
-          if (!certificate.schema.metadata.symbol) {
-            errors.push("Schema: Missing token symbol");
+          if (!certificate.token.metadata.symbol) {
+            errors.push("Token: Missing token symbol");
           }
         }
-        if (!certificate.schema.economics) {
-          errors.push("Schema: Missing economics");
-        } else if (!certificate.schema.economics.supply) {
-          errors.push("Schema: Missing supply configuration");
+        if (!certificate.token.economics) {
+          errors.push("Token: Missing economics");
+        } else if (!certificate.token.economics.supply) {
+          errors.push("Token: Missing supply configuration");
         }
       }
 
@@ -377,41 +403,107 @@ export function CertificateValidator({
                         ? (
                           <div>
                             <p className="text-xs text-blue-600 dark:text-blue-400 mb-2">
-                              ℹ️ Genesis Certificate Detected
+                              ℹ️ Genesis Document Detected
                             </p>
-                            <p className="text-xs text-muted-foreground mb-2">
-                              This is a STELS Network Genesis certificate
-                              (genesis.json), not a token certificate. Genesis
-                              certificates use a different signing protocol.
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              ✓ Structure validation passed<br />
-                              ⚠ Cryptographic verification requires
-                              genesis-specific tools
-                            </p>
+                            <div className="text-xs text-muted-foreground mb-3 space-y-1">
+                              <p>
+                                This is a{" "}
+                                <strong>
+                                  STELS Network Genesis certificate
+                                </strong>{" "}
+                                (genesis.json), not a token certificate.
+                              </p>
+                              <p className="font-mono text-[10px] bg-blue-500/10 p-1.5 rounded">
+                                Structure: genesis.id (network genesis)
+                              </p>
+                              <p>
+                                Genesis certificates use a different signing
+                                protocol than token certificates.
+                              </p>
+                            </div>
+                            <div className="p-2 bg-muted/30 rounded border border-border">
+                              <p className="text-xs text-muted-foreground">
+                                ✓ Structure validation passed
+                                {validationResult.errors.length === 0 && (
+                                  <>
+                                    <br />
+                                    ⚠ Cryptographic verification requires
+                                    genesis-specific tools
+                                  </>
+                                )}
+                              </p>
+                            </div>
                           </div>
                         )
                         : validationResult.valid
                         ? (
                           <div>
-                            <p className="text-xs text-muted-foreground mb-2">
-                              ✓ All required fields are present and valid.
-                              {validationResult.skippedCrypto
-                                ? " Structure validation passed."
-                                : " The signature is cryptographically verified and matches the schema content."}
+                            <p className="text-xs text-green-600 dark:text-green-500 mb-2">
+                              ℹ️ Token Certificate Validated
                             </p>
-                            {validationResult.skippedCrypto && (
-                              <p className="text-xs text-amber-600 dark:text-amber-500">
-                                ⚠️ Cryptographic verification was skipped
+                            <div className="text-xs text-muted-foreground mb-3 space-y-1">
+                              <p>
+                                This is a{" "}
+                                <strong>Token Genesis Certificate</strong>{" "}
+                                created with Token Builder.
                               </p>
-                            )}
+                              <p className="font-mono text-[10px] bg-green-500/10 p-1.5 rounded">
+                                Structure: token.id (token certificate)
+                              </p>
+                            </div>
+                            <div className="p-2 bg-muted/30 rounded border border-border">
+                              <p className="text-xs text-muted-foreground">
+                                ✓ All required fields are present and valid.
+                                {validationResult.skippedCrypto
+                                  ? " Structure validation passed."
+                                  : " The signature is cryptographically verified and matches the schema content."}
+                              </p>
+                              {validationResult.skippedCrypto && (
+                                <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
+                                  ⚠️ Cryptographic verification was skipped
+                                </p>
+                              )}
+                            </div>
                           </div>
                         )
                         : (
                           <div>
-                            <p className="text-xs text-muted-foreground mb-2">
-                              The following issues were found:
-                            </p>
+                            {validationResult.type === "unknown"
+                              ? (
+                                <div>
+                                  <p className="text-xs text-red-600 dark:text-red-500 mb-2">
+                                    ⚠️ Unknown Document Format
+                                  </p>
+                                  <div className="text-xs text-muted-foreground mb-3 space-y-1">
+                                    <p>
+                                      The document does not match known
+                                      certificate formats.
+                                    </p>
+                                    <p className="font-semibold">
+                                      Expected formats:
+                                    </p>
+                                    <div className="space-y-1 ml-2">
+                                      <p className="font-mono text-[10px] bg-muted/50 p-1.5 rounded">
+                                        • Token Certificate:{" "}
+                                        <span className="text-green-600">
+                                          token.id
+                                        </span>
+                                      </p>
+                                      <p className="font-mono text-[10px] bg-muted/50 p-1.5 rounded">
+                                        • Genesis Document:{" "}
+                                        <span className="text-blue-600">
+                                          genesis.id
+                                        </span>
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                              : (
+                                <p className="text-xs text-muted-foreground mb-2">
+                                  The following issues were found:
+                                </p>
+                              )}
                             <ul className="space-y-1">
                               {validationResult.errors.map((error, idx) => (
                                 <li
@@ -448,7 +540,7 @@ export function CertificateValidator({
                         Token Name
                       </div>
                       <div className="text-sm font-semibold text-foreground">
-                        {certificate.schema.metadata.name}
+                        {certificate.token.metadata.name}
                       </div>
                     </div>
 
@@ -457,7 +549,7 @@ export function CertificateValidator({
                         Symbol
                       </div>
                       <div className="text-sm font-semibold text-foreground">
-                        {certificate.schema.metadata.symbol}
+                        {certificate.token.metadata.symbol}
                       </div>
                     </div>
 
@@ -466,7 +558,7 @@ export function CertificateValidator({
                         Standard
                       </div>
                       <Badge variant="outline" className="text-xs">
-                        {certificate.schema.standard}
+                        {certificate.token.standard}
                       </Badge>
                     </div>
 
@@ -475,7 +567,7 @@ export function CertificateValidator({
                         Initial Supply
                       </div>
                       <div className="text-sm font-mono text-foreground">
-                        {certificate.schema.economics.supply.initial}
+                        {certificate.token.economics.supply.initial}
                       </div>
                     </div>
                   </div>
@@ -489,19 +581,33 @@ export function CertificateValidator({
                       <div className="flex justify-between">
                         <span>ID:</span>
                         <span className="text-foreground">
-                          {certificate.id.substring(0, 32)}...
+                          {certificate.token.id.substring(0, 32)}...
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Network:</span>
+                        <span className="text-foreground">
+                          {certificate.network.name}{" "}
+                          (chain:{certificate.network.chain_id})
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Protocol:</span>
+                        <span className="text-foreground">
+                          {certificate.protocol.tx_version}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span>Created:</span>
                         <span className="text-foreground">
-                          {new Date(certificate.createdAt).toLocaleString()}
+                          {new Date(certificate.token.created_at)
+                            .toLocaleString()}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span>Issuer:</span>
                         <span className="text-foreground">
-                          {certificate.issuer.address.substring(0, 16)}...
+                          {certificate.token.issuer.address.substring(0, 16)}...
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -519,7 +625,7 @@ export function CertificateValidator({
                       <div className="flex justify-between">
                         <span>Signatures:</span>
                         <span className="text-foreground">
-                          {certificate.signatures.length}
+                          {certificate.signatures.signers.length}
                         </span>
                       </div>
                     </div>
@@ -528,9 +634,9 @@ export function CertificateValidator({
                   {/* Signatures */}
                   <div className="p-3 bg-background rounded border border-border">
                     <div className="text-xs font-semibold text-foreground mb-2">
-                      Signatures ({certificate.signatures.length})
+                      Signatures ({certificate.signatures.signers.length})
                     </div>
-                    {certificate.signatures.map((sig, idx) => (
+                    {certificate.signatures.signers.map((sig, idx) => (
                       <div
                         key={idx}
                         className="mb-2 last:mb-0 p-2 bg-muted/30 rounded"
@@ -603,7 +709,7 @@ export function CertificateValidator({
           <div className="flex items-center gap-2">
             {certificate && (
               <Badge variant="outline" className="text-xs">
-                {certificate.schema.metadata.symbol}
+                {certificate.token.metadata.symbol}
               </Badge>
             )}
           </div>

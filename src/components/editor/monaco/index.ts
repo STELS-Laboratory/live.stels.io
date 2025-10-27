@@ -10,4 +10,4 @@ export {
   registerWorkerCompletionProvider,
   setupWorkerMonacoEditor,
   WORKER_TEMPLATES,
-} from "./autocomplete.ts";
+} from "./autocomplete";

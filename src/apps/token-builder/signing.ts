@@ -3,43 +3,90 @@
  * Sign token schemas using STELS cryptographic standards
  * 
  * SECURITY: Uses ECDSA secp256k1 signatures with deterministic canonicalization
+ * COMPLIANCE: Creates genesis.json-compliant certificate structure
  */
 
 import type { TokenSchema, TokenGenesisCertificate } from "./types";
-import { importWallet, sign, verify, deterministicStringify } from "@/lib/gliesereum";
+import { 
+  sign, 
+  verify, 
+  deterministicStringify,
+  getUncompressedPublicKey,
+  getAddressFromPublicKey,
+} from "@/lib/gliesereum";
+import {
+  NETWORK_CONFIG,
+  PROTOCOL_CONFIG,
+  WALLET_PROTOCOL,
+  ADDRESSING_SPEC,
+  NETWORK_PARAMETERS,
+  SECURITY_REQUIREMENTS,
+  TOKEN_SIGN_DOMAIN,
+  ACTIVATION_DELAY_MS,
+  TOKEN_SCHEMA_URL,
+  AVAILABLE_NETWORKS,
+} from "./constants";
+import { getDecimalsByStandard } from "./utils";
 
 /**
  * Sign token schema and create genesis certificate
- * Creates a cryptographically signed birth certificate for a token
+ * Creates a FULL genesis.json-compliant certificate for network consensus
  * 
  * @param schema - Complete token schema to sign
  * @param privateKey - Private key for signing (64 hex chars)
- * @returns Signed token genesis certificate with ECDSA signature
+ * @returns Signed token genesis certificate (genesis.json-compliant)
  * @throws Error if schema is invalid or signing fails
  * 
  * @security Private key is never logged or stored
+ * @compliance Includes ALL required fields from genesis.json for consensus acceptance
  */
 export async function signTokenSchema(
   schema: TokenSchema,
   privateKey: string,
 ): Promise<TokenGenesisCertificate> {
-  // Import wallet from private key
-  const wallet = importWallet(privateKey);
+  // Get UNCOMPRESSED public key (130 chars)
+  // CRITICAL: WebFix requires UNCOMPRESSED format for ALL public keys!
+  // Used in: issuer.public_key, signatures.signers[0].kid, body.publicKey
+  const publicKeyUncompressed = getUncompressedPublicKey(privateKey);
 
-  // Prepare signing view (canonical representation)
-  const signingView = {
-    version: schema.version,
+  // CRITICAL: Generate address from the SAME uncompressed key used in document
+  // getAddressFromPublicKey will automatically compress it internally (via ensureCompressedKey)
+  // This ensures address matches the public_key field in the document
+  const address = getAddressFromPublicKey(publicKeyUncompressed);
+
+  // Get network configuration from schema or use default
+  const networkId = schema.technical?.networkId || "testnet";
+  const network = AVAILABLE_NETWORKS[networkId] || NETWORK_CONFIG;
+  
+  // Use network constants (based on genesis.json structure example)
+  // These are NETWORK parameters, not token parameters
+  const protocol = PROTOCOL_CONFIG;
+  const walletProtocol = WALLET_PROTOCOL;
+  const addressing = ADDRESSING_SPEC;
+  const parameters = NETWORK_PARAMETERS; // Always from constants (network parameters)
+  const security = SECURITY_REQUIREMENTS; // Always from constants (network security)
+  const signDomain = TOKEN_SIGN_DOMAIN;
+
+  // Prepare token data (signing view - user-defined token information)
+  // CRITICAL: Set decimals based on token standard for genesis.json compliance
+  // - NFT tokens (non-fungible, semi-fungible, soulbound): decimals = 0
+  // - Fungible tokens: decimals = 6 (TST standard)
+  const decimals = getDecimalsByStandard(schema.standard);
+  
+  const tokenData = {
     standard: schema.standard,
-    metadata: schema.metadata,
+    metadata: {
+      ...schema.metadata,
+      decimals, // Automatically set based on token standard
+    },
     economics: schema.economics,
     transferRestrictions: schema.transferRestrictions,
     governance: schema.governance,
     customFields: schema.customFields,
-    technical: schema.technical,
   };
 
-  // Create canonical string
-  const canonicalString = deterministicStringify(signingView);
+  // Create canonical string for hash
+  const canonicalString = deterministicStringify(tokenData);
   const contentBytes = new TextEncoder().encode(canonicalString);
 
   // Calculate hash
@@ -50,89 +97,202 @@ export async function signTokenSchema(
   // Create token ID
   const tokenId = `token:sha256:${hash}`;
 
-  // Create sign domain for token genesis
-  const signDomain: string[] = [
-    "STELS-TOKEN-GENESIS",
-    "2",
-    "v1",
-    `chain:${schema.technical?.chainId || 2}`,
-  ];
-
-  // Create timestamp (IMPORTANT: must be consistent for signing and verification)
+  // Create timestamps
   const now = Date.now();
   const createdAt = new Date(now).toISOString();
+  const activationTime = new Date(now + ACTIVATION_DELAY_MS).toISOString();
 
-  // Prepare message to sign
-  const message = {
-    domain: signDomain,
-    tokenId: tokenId,
-    hash: hash,
-    timestamp: now, // Use the exact timestamp
-    schema: signingView,
-  };
-
-  const messageString = deterministicStringify(message);
-
-  console.log("[Signing] Message to sign:", messageString.substring(0, 100));
-  console.log("[Signing] Timestamp:", now);
-
-  // Sign the message
-  const signature = sign(messageString, privateKey);
-
-  console.log("[Signing] Signature created:", signature.substring(0, 32) + "...");
-
-  // Get public key and address from wallet
-  const publicKey = wallet.publicKey;
-  const address = wallet.address;
-
-  // Create genesis certificate
-  const certificate: TokenGenesisCertificate = {
-    id: tokenId,
-    createdAt: createdAt, // Use the ISO string from the same timestamp
-    activationTime: schema.technical?.network?.includes("testnet")
-      ? new Date(Date.now() + 60000).toISOString() // 1 min for testnet
-      : new Date(Date.now() + 3600000).toISOString(), // 1 hour for mainnet
-    issuer: {
-      address: address,
-      publicKey: publicKey,
-      org: schema.metadata?.name || "Unknown",
+  // CRITICAL: Create FULL certificate WITHOUT signatures first (per CLIENT_ISSUE_SUMMARY.md)
+  // "Создаем документ БЕЗ signatures"
+  const certificateWithoutSignatures = {
+    // JSON Schema reference
+    $schema: TOKEN_SCHEMA_URL,
+    
+    // Version
+    version: schema.version,
+    
+    // Network configuration (from genesis.json)
+    network: network,
+    
+    // Protocol configuration (from genesis.json)
+    protocol: protocol,
+    
+    // Wallet protocol specification (from genesis.json)
+    wallet_protocol: walletProtocol,
+    
+    // Addressing specification (from genesis.json)
+    addressing: addressing,
+    
+    // Token-specific data
+    token: {
+      id: tokenId,
+      created_at: createdAt,
+      activation_time: activationTime,
+      issuer: {
+        address: address,
+        public_key: publicKeyUncompressed, // CRITICAL: Use UNCOMPRESSED (130 chars) for WebFix!
+        // Use token name as org (fallback to empty string, not "Unknown")
+        org: schema.metadata?.name || "",
+        ...(schema.metadata?.contact && { contact: schema.metadata.contact }),
+      },
+      standard: schema.standard,
+      metadata: {
+        ...schema.metadata,
+        decimals, // Automatically determined by token standard
+      },
+      economics: schema.economics,
+      // CRITICAL: Only include optional fields if they exist (gls-det-1 absence rule)
+      ...(schema.governance && { governance: schema.governance }),
+      ...(schema.transferRestrictions && { transferRestrictions: schema.transferRestrictions }),
+      ...(schema.customFields && { customFields: schema.customFields }),
     },
-    schema: schema,
+    
+    // Content hash (for integrity verification)
     content: {
-      hashAlg: "sha256",
+      hash_alg: "sha256" as const,
       hash: `sha256:${hash}`,
       size: contentBytes.length,
     },
-    signatures: [
-      {
-        kid: publicKey,
-        alg: "ecdsa-secp256k1",
-        sig: signature,
+    
+    // Network parameters (from genesis.json)
+    parameters: parameters,
+    
+    // Security requirements (from genesis.json)
+    security: security,
+    
+    // NOTE: signatures field is NOT included here - will be added after signing
+  };
+
+  // CRITICAL SIGNING PROCESS (per gls-det-1 spec):
+  
+  // Step 1: Canonical serialization of entire document (WITHOUT signatures)
+  const canonicalDocument = deterministicStringify(certificateWithoutSignatures);
+
+  // Step 2: Add domain separator as STRING PREFIX (not part of JSON!)
+  const domainStr = signDomain.join(":");  // "STELS-TOKEN-GENESIS:2:v1:chain:2"
+  const messageString = `${domainStr}:${canonicalDocument}`;
+
+  // DEBUG: Log signing details for verification
+  console.log("[Signing] ═══════════════════════════════════════");
+  console.log("[Signing] Domain:", domainStr);
+  console.log("[Signing] Canonical document length:", canonicalDocument.length);
+  console.log("[Signing] Canonical document (first 200):", canonicalDocument.substring(0, 200));
+  console.log("[Signing] Message (first 250):", messageString.substring(0, 250));
+  console.log("[Signing] Message length:", messageString.length);
+  console.log("[Signing] ═══════════════════════════════════════");
+
+  // Step 3: Sign the message
+  const signature = sign(messageString, privateKey);
+  
+  console.log("[Signing] Signature:", signature);
+  console.log("[Signing] Public Key (uncompressed):", publicKeyUncompressed);
+
+  // Step 4: Create final certificate WITH signatures
+  const certificate: TokenGenesisCertificate = {
+    ...certificateWithoutSignatures,
+    signatures: {
+      threshold: {
+        type: "single",
       },
-    ],
-    signDomain: signDomain,
+      signers: [
+        {
+          kid: publicKeyUncompressed, // CRITICAL: Use UNCOMPRESSED (130 chars) like in example!
+          alg: "ecdsa-secp256k1",
+          sig: signature,
+        },
+      ],
+    },
   };
 
   return certificate;
 }
 
 /**
+ * Type guard for genesis certificate
+ */
+function isGenesisCertificate(cert: Record<string, unknown>): boolean {
+  try {
+    if (!cert.genesis || typeof cert.genesis !== "object") return false;
+    if (!cert.network || typeof cert.network !== "object") return false;
+    if (!cert.protocol || typeof cert.protocol !== "object") return false;
+    if (!cert.content || typeof cert.content !== "object") return false;
+    if (!cert.signatures || typeof cert.signatures !== "object") return false;
+
+    const genesis = cert.genesis as Record<string, unknown>;
+    return (
+      typeof genesis.id === "string" &&
+      genesis.id.startsWith("genesis:") &&
+      typeof genesis.created_at === "string"
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Type guard for new token certificate (genesis-compliant)
+ */
+function isNewTokenCertificate(cert: Record<string, unknown>): boolean {
+  try {
+    if (!cert.token || typeof cert.token !== "object") return false;
+    if (!cert.network || typeof cert.network !== "object") return false;
+    if (!cert.protocol || typeof cert.protocol !== "object") return false;
+    if (!cert.signatures || typeof cert.signatures !== "object") return false;
+
+    const token = cert.token as Record<string, unknown>;
+    return (
+      typeof token.id === "string" &&
+      token.id.startsWith("token:") &&
+      typeof token.standard === "string" &&
+      typeof token.metadata === "object" &&
+      token.metadata !== null
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Type guard for legacy token certificate
+ */
+function isLegacyTokenCertificate(cert: Record<string, unknown>): boolean {
+  try {
+    return (
+      typeof cert.id === "string" &&
+      cert.id.startsWith("token:") &&
+      cert.schema !== undefined &&
+      cert.issuer !== undefined &&
+      cert.signatures !== undefined &&
+      typeof cert.signatures === "object"
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Detect certificate type from structure
  * Automatically identifies token certificates vs genesis certificates
+ * Uses proper type guards for robust validation
  * 
  * @param cert - Certificate object to analyze
  * @returns Certificate type: "token", "genesis", or "unknown"
  */
-function detectCertificateType(
+export function detectCertificateType(
   cert: Record<string, unknown>,
 ): "token" | "genesis" | "unknown" {
-  // Check if it's a genesis.json
-  if (cert.genesis && cert.network && cert.protocol && cert.content) {
+  // Check if it's a genesis.json (network genesis)
+  if (isGenesisCertificate(cert)) {
     return "genesis";
   }
 
-  // Check if it's a token certificate
-  if (cert.id && cert.schema && cert.issuer && cert.signatures) {
+  // Check if it's a NEW genesis-compliant token certificate
+  if (isNewTokenCertificate(cert)) {
+    return "token";
+  }
+
+  // Check if it's an OLD token certificate (legacy format)
+  if (isLegacyTokenCertificate(cert)) {
     return "token";
   }
 
@@ -150,8 +310,6 @@ async function verifyGenesisCertificate(
   genesis: Record<string, unknown>,
 ): Promise<boolean> {
   try {
-    console.log("[Validator] Verifying genesis certificate...");
-
     // For genesis.json, we skip cryptographic verification
     // because it requires the full genesis signing protocol
     // which is more complex than token certificates
@@ -160,19 +318,12 @@ async function verifyGenesisCertificate(
     const required = ["genesis", "network", "protocol", "content", "signatures"];
     for (const field of required) {
       if (!genesis[field]) {
-        console.error(`[Validator] Missing required field: ${field}`);
         return false;
       }
     }
-
-    console.log("[Validator] ✓ Genesis certificate structure is valid");
-    console.log("[Validator] Note: Full cryptographic verification of genesis.json");
-    console.log("[Validator]       requires genesis-specific signing protocol.");
-    console.log("[Validator]       Use this validator for token certificates only.");
     
     return true;
-  } catch (error) {
-    console.error("[Validator] Genesis verification error:", error);
+  } catch {
     return false;
   }
 }
@@ -195,113 +346,64 @@ export async function verifyTokenCertificate(
   certificate: TokenGenesisCertificate | Record<string, unknown>,
 ): Promise<boolean> {
   try {
-    console.log("[Validator] Starting certificate verification...");
-
     // Detect certificate type
     const certType = detectCertificateType(certificate as Record<string, unknown>);
-    console.log("[Validator] Certificate type:", certType);
 
     // Handle genesis.json separately
     if (certType === "genesis") {
-      console.log("[Validator] Detected genesis.json format");
-      console.log("[Validator] Note: This validator is designed for token certificates.");
-      console.log("[Validator]       Genesis certificates have different signing protocol.");
-      
       return verifyGenesisCertificate(certificate as Record<string, unknown>);
     }
 
-    // Verify token certificate
+    // Verify token certificate (genesis-compliant structure)
     const tokenCert = certificate as TokenGenesisCertificate;
     
-    if (!tokenCert.id || !tokenCert.schema || !tokenCert.signatures) {
-      console.error("[Validator] Invalid token certificate structure");
+    // Check for required fields
+    if (!tokenCert.token || !tokenCert.signatures) {
       return false;
     }
 
-    console.log("[Validator] Certificate ID:", tokenCert.id);
+    // CRITICAL VERIFICATION PROCESS (per CLIENT_ISSUE_SUMMARY.md):
+    // "Создаем документ БЕЗ signatures"
+    
+    // Step 1: Reconstruct certificate WITHOUT signatures (same as signing)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { signatures: _signatures, ...certificateWithoutSignatures } = tokenCert;
 
-    // Reconstruct signing view (exclude signatures and other metadata)
-    const signingView = {
-      version: tokenCert.schema.version,
-      standard: tokenCert.schema.standard,
-      metadata: tokenCert.schema.metadata,
-      economics: tokenCert.schema.economics,
-      transferRestrictions: tokenCert.schema.transferRestrictions,
-      governance: tokenCert.schema.governance,
-      customFields: tokenCert.schema.customFields,
-      technical: tokenCert.schema.technical,
-    };
+    // Step 2: Canonical serialization of entire document (WITHOUT signatures)
+    const canonicalDocument = deterministicStringify(certificateWithoutSignatures);
 
-    console.log("[Validator] Reconstructed signing view");
+    // Step 3: Add domain separator as STRING PREFIX (not part of JSON!)
+    const domainStr = tokenCert.protocol.sign_domains.token.join(":");
+    const messageString = `${domainStr}:${canonicalDocument}`;
 
-    // Verify content hash
-    const canonicalString = deterministicStringify(signingView);
-    const contentBytes = new TextEncoder().encode(canonicalString);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", contentBytes);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+    // DEBUG: Log verification details
+    console.log("[Verification] ═══════════════════════════════════════");
+    console.log("[Verification] Domain:", domainStr);
+    console.log("[Verification] Canonical document (first 200):", canonicalDocument.substring(0, 200));
+    console.log("[Verification] Message (first 250):", messageString.substring(0, 250));
+    console.log("[Verification] Message length:", messageString.length);
+    console.log("[Verification] ═══════════════════════════════════════");
 
-    console.log("[Validator] Calculated hash:", hash);
-    console.log("[Validator] Expected hash:", tokenCert.content.hash);
-
-    const expectedHash = tokenCert.content.hash.replace("sha256:", "");
-    if (expectedHash !== hash) {
-      console.error("[Validator] Hash mismatch!");
-      console.error("[Validator] Expected:", expectedHash);
-      console.error("[Validator] Calculated:", hash);
-      return false;
-    }
-
-    console.log("[Validator] ✓ Hash verification passed");
-
-    // Verify each signature
-    console.log(`[Validator] Verifying ${tokenCert.signatures.length} signature(s)...`);
-
-    for (const sig of tokenCert.signatures) {
-      console.log(`[Validator] Verifying signature for ${sig.kid.substring(0, 16)}...`);
-
-      // Reconstruct the exact message that was signed
-      const message = {
-        domain: tokenCert.signDomain,
-        tokenId: tokenCert.id,
-        hash: hash,
-        timestamp: new Date(tokenCert.createdAt).getTime(),
-        schema: signingView,
-      };
-
-      const messageString = deterministicStringify(message);
-
-      console.log("[Validator] Message to verify (first 100 chars):", messageString.substring(0, 100));
-      console.log("[Validator] Signature:", sig.sig.substring(0, 32) + "...");
-      console.log("[Validator] Public key:", sig.kid);
+    // Step 4: Verify each signature
+    for (const sig of tokenCert.signatures.signers) {
+      console.log("[Verification] Verifying signature:", sig.sig.substring(0, 40) + "...");
+      console.log("[Verification] Public Key:", sig.kid);
 
       const isValid = verify(messageString, sig.sig, sig.kid);
-
-      console.log(`[Validator] Signature verification result:`, isValid);
+      
+      console.log("[Verification] Result:", isValid);
 
       if (!isValid) {
-        console.error(`[Validator] ✗ Signature verification failed for ${sig.kid}`);
-        
-        // Additional debugging
-        console.error("[Validator] Debug info:");
-        console.error("  - Message length:", messageString.length);
-        console.error("  - Signature length:", sig.sig.length);
-        console.error("  - Algorithm:", sig.alg);
-        
+        console.error("[Verification] ❌ Signature verification FAILED!");
+        console.error("[Verification] Expected to verify document without 'signatures' field");
         return false;
       }
-
-      console.log(`[Validator] ✓ Signature verified for ${sig.kid.substring(0, 16)}...`);
+      
+      console.log("[Verification] ✅ Signature verification PASSED!");
     }
 
-    console.log("[Validator] ✓ All signatures verified successfully");
     return true;
-  } catch (error) {
-    console.error("[Validator] Certificate verification error:", error);
-    if (error instanceof Error) {
-      console.error("[Validator] Error message:", error.message);
-      console.error("[Validator] Error stack:", error.stack);
-    }
+  } catch {
     return false;
   }
 }
@@ -341,41 +443,63 @@ function formatReadableCertificate(
 ): string {
   const lines = [
     "════════════════════════════════════════════════════════════════",
-    "                  STELS TOKEN GENESIS CERTIFICATE",
+    "           STELS TOKEN GENESIS CERTIFICATE (v1.0)",
     "════════════════════════════════════════════════════════════════",
     "",
-    `Token ID:        ${certificate.id}`,
-    `Token Name:      ${certificate.schema.metadata.name}`,
-    `Token Symbol:    ${certificate.schema.metadata.symbol}`,
-    `Token Standard:  ${certificate.schema.standard}`,
+    "─────────────────────────────── NETWORK ────────────────────────────────",
+    `Network:         ${certificate.network.name}`,
+    `Network ID:      ${certificate.network.id}`,
+    `Chain ID:        ${certificate.network.chain_id}`,
+    `Environment:     ${certificate.network.environment}`,
     "",
-    `Created:         ${certificate.createdAt}`,
-    `Activation:      ${certificate.activationTime || "Immediate"}`,
+    "─────────────────────────────── PROTOCOL ───────────────────────────────",
+    `TX Version:      ${certificate.protocol.tx_version}`,
+    `VM Version:      ${certificate.protocol.vm_version}`,
+    `Canon:           ${certificate.protocol.canonicalization}`,
+    `Encoding:        ${certificate.protocol.encoding}`,
     "",
-    `Issuer Address:  ${certificate.issuer.address}`,
-    `Issuer Org:      ${certificate.issuer.org || "N/A"}`,
+    "───────────────────────────────── TOKEN ────────────────────────────────",
+    `Token ID:        ${certificate.token.id}`,
+    `Name:            ${certificate.token.metadata.name}`,
+    `Symbol:          ${certificate.token.metadata.symbol}`,
+    `Standard:        ${certificate.token.standard}`,
     "",
+    `Created:         ${certificate.token.created_at}`,
+    `Activation:      ${certificate.token.activation_time}`,
+    "",
+    `Issuer Address:  ${certificate.token.issuer.address}`,
+    `Issuer Org:      ${certificate.token.issuer.org || "N/A"}`,
+    "",
+    "──────────────────────────────── ECONOMICS ─────────────────────────────",
+    `Initial Supply:  ${certificate.token.economics.supply.initial}`,
+    `Max Supply:      ${certificate.token.economics.supply.max || "Unlimited"}`,
+    `Minting Policy:  ${certificate.token.economics.supply.mintingPolicy}`,
+    "",
+    "─────────────────────────────── PARAMETERS ─────────────────────────────",
+    `Currency:        ${certificate.parameters.currency.symbol}`,
+    `Decimals:        ${certificate.parameters.currency.decimals}`,
+    `Base Fee:        ${certificate.parameters.fees.base} ${certificate.parameters.fees.currency}`,
+    `Treasury:        ${certificate.parameters.treasury_address}`,
+    "",
+    "────────────────────────────── CONTENT HASH ────────────────────────────",
+    `Hash Algorithm:  ${certificate.content.hash_alg}`,
     `Content Hash:    ${certificate.content.hash}`,
     `Content Size:    ${certificate.content.size} bytes`,
     "",
-    "─────────────────────────────── ECONOMICS ──────────────────────────────",
-    `Initial Supply:  ${certificate.schema.economics.supply.initial}`,
-    `Max Supply:      ${certificate.schema.economics.supply.max || "Unlimited"}`,
-    `Minting Policy:  ${certificate.schema.economics.supply.mintingPolicy}`,
-    "",
     "─────────────────────────────── SIGNATURES ─────────────────────────────",
+    `Threshold:       ${certificate.signatures.threshold?.type || "single"}`,
   ];
 
-  certificate.signatures.forEach((sig, i) => {
+  certificate.signatures.signers.forEach((sig, i) => {
     lines.push(`Signature ${i + 1}:`);
-    lines.push(`  Public Key: ${sig.kid.substring(0, 32)}...`);
+    lines.push(`  Public Key: ${sig.kid.substring(0, 48)}...`);
     lines.push(`  Algorithm:  ${sig.alg}`);
-    lines.push(`  Signature:  ${sig.sig.substring(0, 32)}...`);
+    lines.push(`  Signature:  ${sig.sig.substring(0, 48)}...`);
     lines.push("");
   });
 
   lines.push("════════════════════════════════════════════════════════════════");
-  lines.push("     This certificate is cryptographically verifiable");
+  lines.push("   Genesis.json-Compliant | Cryptographically Verifiable");
   lines.push("════════════════════════════════════════════════════════════════");
 
   return lines.join("\n");

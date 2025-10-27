@@ -19,12 +19,13 @@ import type {
 } from "./types";
 import { validateTokenSchema } from "./validation";
 import { signTokenSchema } from "./signing";
+import { getDecimalsByStandard } from "./utils";
 
 const INITIAL_STEPS: WizardStep[] = [
   {
     id: "type",
     title: "Token Type",
-    description: "Choose token standard and type",
+    description: "Choose token standard and network",
     completed: false,
     valid: false,
   },
@@ -45,14 +46,14 @@ const INITIAL_STEPS: WizardStep[] = [
   {
     id: "advanced",
     title: "Advanced Settings",
-    description: "Governance, restrictions, and custom fields",
+    description: "Governance and restrictions (optional)",
     completed: false,
     valid: false,
   },
   {
     id: "review",
     title: "Review & Sign",
-    description: "Review schema and create certificate",
+    description: "Review and create certificate",
     completed: false,
     valid: false,
   },
@@ -66,6 +67,7 @@ const INITIAL_SCHEMA: Partial<TokenSchema> = {
     protocol: "smart-1.0",
     encoding: "utf-8",
     hashAlgorithm: "sha256",
+    networkId: "testnet", // Default network
   },
 };
 
@@ -107,18 +109,39 @@ export const useTokenBuilderStore = create<TokenBuilderStore>()(
         },
 
         updateSchema: (updates: Partial<TokenSchema>): void => {
-          set((state) => ({
-            schema: { ...state.schema, ...updates },
-          }));
+          set((state) => {
+            const newSchema = { ...state.schema, ...updates };
+            
+            // If standard changed, update decimals automatically
+            if (updates.standard && updates.standard !== state.schema.standard) {
+              const decimals = getDecimalsByStandard(updates.standard);
+              newSchema.metadata = {
+                ...newSchema.metadata,
+                decimals,
+              } as TokenMetadata;
+            }
+            
+            return { schema: newSchema };
+          });
         },
 
         updateMetadata: (metadata: Partial<TokenMetadata>): void => {
-          set((state) => ({
-            schema: {
-              ...state.schema,
-              metadata: { ...state.schema.metadata, ...metadata } as TokenMetadata,
-            },
-          }));
+          set((state) => {
+            // Automatically set decimals based on token standard
+            const decimals = getDecimalsByStandard(state.schema.standard);
+            
+            return {
+              schema: {
+                ...state.schema,
+                metadata: {
+                  ...state.schema.metadata,
+                  ...metadata,
+                  // Auto-set decimals: 0 for NFTs, 6 for fungible tokens
+                  decimals,
+                } as TokenMetadata,
+              },
+            };
+          });
         },
 
         updateEconomics: (economics: Partial<TokenEconomics>): void => {
@@ -151,7 +174,7 @@ export const useTokenBuilderStore = create<TokenBuilderStore>()(
 
           // Update errors in state
           const errorsByField: Record<string, string[]> = {};
-          errors.forEach((error) => {
+          errors.forEach((error: ValidationError) => {
             if (!errorsByField[error.field]) {
               errorsByField[error.field] = [];
             }

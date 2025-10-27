@@ -155,14 +155,15 @@ function Welcome(): ReactElement {
     loadSchemas();
   }, []);
 
-  // Filter static router schemas
+  // Filter static router schemas (exclude Development Tools)
   const routerSchemas = useMemo(() => {
     return schemas.filter(
       (schema) =>
         schema.type === "static" &&
         (schema.widgetKey.includes(".router") ||
-          schema.widgetKey.includes(".app.") ||
-          schema.widgetKey.includes(".apps.")),
+          schema.widgetKey.includes(".app.")) &&
+        // EXCLUDE Development Tools (widget.apps.*)
+        !schema.widgetKey.startsWith("widget.apps."),
     );
   }, [schemas]);
 

@@ -47,7 +47,7 @@ export interface TransferRestrictions {
  */
 export interface GovernanceSettings {
   enabled: boolean;
-  votingPower?: "balance" | "quadratic" | "custom";
+  votingPower?: "balance" | "staked" | "quadratic" | "custom";
   proposalThreshold?: string; // Min tokens to create proposal
   quorumThreshold?: string; // Min votes for valid proposal
   votingPeriod?: number; // Voting period in milliseconds
@@ -62,6 +62,7 @@ export interface TokenMetadata {
   description?: string;
   decimals?: number;
   icon?: string; // Data URL (base64), URL, or IPFS hash - max 128KB
+  contact?: string; // Contact email for token issuer (optional, included in genesis certificate)
   website?: string;
   social?: {
     twitter?: string;
@@ -116,6 +117,7 @@ export interface TokenSchema {
   governance?: GovernanceSettings;
   customFields?: Record<string, unknown>;
   technical?: {
+    networkId?: string; // Network ID (testnet, mainnet, localnet)
     network: string;
     chainId: number;
     protocol: string;
@@ -125,30 +127,169 @@ export interface TokenSchema {
 }
 
 /**
- * Token genesis certificate (final signed document)
+ * Network configuration (from genesis.json)
+ */
+export interface NetworkConfig {
+  id: string; // "testnet" | "mainnet" | "localnet"
+  name: string; // Network name
+  environment: "runtime" | "production" | "development" | "test";
+  chain_id: number; // 1 for mainnet, 2 for testnet, 3 for localnet
+}
+
+/**
+ * Protocol configuration (from genesis.json)
+ */
+export interface ProtocolConfig {
+  tx_version: string; // e.g., "smart-1.0"
+  vm_version: string; // e.g., "intrinsics-1"
+  canonicalization: "gls-det-1";
+  encoding: "utf-8";
+  sign_domains: {
+    token: string[]; // Sign domain for tokens
+  };
+}
+
+/**
+ * Wallet protocol specification (from genesis.json)
+ */
+export interface WalletProtocol {
+  name: "gliesereum-core";
+  version: "1.0";
+  sign_alg: "ecdsa-secp256k1";
+  hash_alg: "sha256";
+  sig_encoding: "der-hex(lowS,canonical)";
+  ecdsa_nonce: "rfc6979";
+  message_canon: "gls-det-1";
+  pubkey_format: "secp256k1-compressed-hex";
+}
+
+/**
+ * Addressing specification (from genesis.json)
+ */
+export interface AddressingSpec {
+  version_byte: 98;
+  pubkey_format: "secp256k1-compressed-hex";
+  address_encoding: ["base58"];
+  preferred_encoding: "base58";
+  payload: string; // Algorithm description
+  checksum: string; // Checksum algorithm
+}
+
+/**
+ * Fee configuration (from genesis.json parameters)
+ */
+export interface FeeConfig {
+  base: string; // Base fee
+  per_byte: string; // Per-byte fee
+  raw_per_byte: string; // Raw data per-byte fee
+  currency: string; // Fee currency (e.g., "TST")
+}
+
+/**
+ * Currency specification (from genesis.json parameters)
+ */
+export interface CurrencySpec {
+  symbol: string; // Currency symbol
+  decimals: number; // Decimal places
+  fee_unit: string; // Fee unit description
+}
+
+/**
+ * Network parameters (from genesis.json)
+ */
+export interface NetworkParameters {
+  fees: FeeConfig;
+  currency: CurrencySpec;
+  limits: {
+    max_tx_size: number;
+    max_signatures: number;
+  };
+  treasury_address: string;
+}
+
+/**
+ * Security requirements (from genesis.json)
+ */
+export interface SecurityRequirements {
+  der_requirements: {
+    lowS: boolean;
+    canonical_DER: boolean;
+  };
+}
+
+/**
+ * Token data (user-defined token information)
+ */
+export interface TokenData {
+  id: string; // token:sha256:<hash>
+  created_at: string; // ISO 8601 timestamp
+  activation_time: string; // ISO 8601 timestamp
+  issuer: {
+    address: string; // Base58 address
+    public_key: string; // UNCOMPRESSED hex public key (130 chars, starts with "04")
+    org?: string; // Organization name
+    contact?: string; // Contact email
+  };
+  standard: TokenStandard;
+  metadata: TokenMetadata;
+  economics: TokenEconomics;
+  governance?: GovernanceSettings;
+  transferRestrictions?: TransferRestrictions;
+  customFields?: Record<string, unknown>;
+}
+
+/**
+ * Token genesis certificate (FULL genesis.json-compliant structure)
+ * This structure matches network consensus requirements
  */
 export interface TokenGenesisCertificate {
-  id: string; // Unique token ID
-  createdAt: string; // ISO timestamp
-  activationTime?: string; // When token becomes active
-  issuer: {
-    address: string;
-    publicKey: string;
-    org?: string;
-    contact?: string;
-  };
-  schema: TokenSchema;
+  // JSON Schema reference
+  $schema: string;
+  
+  // Version (semantic versioning)
+  version: string;
+  
+  // Network configuration (from genesis.json)
+  network: NetworkConfig;
+  
+  // Protocol configuration (from genesis.json)
+  protocol: ProtocolConfig;
+  
+  // Wallet protocol specification (from genesis.json)
+  wallet_protocol: WalletProtocol;
+  
+  // Addressing specification (from genesis.json)
+  addressing: AddressingSpec;
+  
+  // Token-specific data
+  token: TokenData;
+  
+  // Content hash (for integrity verification)
   content: {
-    hashAlg: string;
-    hash: string;
-    size: number;
+    hash_alg: "sha256";
+    hash: string; // sha256:<hash>
+    size: number; // Content size in bytes
   };
-  signatures: Array<{
-    kid: string;
-    alg: string;
-    sig: string;
-  }>;
-  signDomain: string[];
+  
+  // Network parameters (from genesis.json)
+  parameters: NetworkParameters;
+  
+  // Security requirements (from genesis.json)
+  security: SecurityRequirements;
+  
+  // Cryptographic signatures
+  signatures: {
+    threshold?: {
+      type: "single" | "k-of-n";
+      k?: number;
+      n?: number;
+    };
+    signers: Array<{
+      kid: string; // UNCOMPRESSED hex public key (130 chars, starts with "04")
+      alg: "ecdsa-secp256k1";
+      sig: string; // DER hex signature
+    }>;
+  };
 }
 
 /**

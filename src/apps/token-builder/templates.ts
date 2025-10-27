@@ -12,7 +12,7 @@ export const TOKEN_TEMPLATES: TokenTemplate[] = [
   {
     id: "fungible-standard",
     name: "Standard Fungible Token",
-    description: "Classic ERC-20 style token for currencies and utility",
+    description: "Classic fungible token for currencies, rewards, and utility",
     standard: "fungible",
     popular: true,
     icon: "🪙",
@@ -21,12 +21,12 @@ export const TOKEN_TEMPLATES: TokenTemplate[] = [
       metadata: {
         name: "",
         symbol: "",
-        description: "A standard fungible token",
+        description: "Standard fungible token for general purpose use",
         decimals: 6,
       },
       economics: {
         supply: {
-          initial: "1000000",
+          initial: "100000000",
           mintingPolicy: "fixed",
         },
       },
@@ -35,7 +35,7 @@ export const TOKEN_TEMPLATES: TokenTemplate[] = [
   {
     id: "governance-token",
     name: "Governance Token",
-    description: "Token with built-in voting and governance capabilities",
+    description: "DAO governance token with voting rights and proposal mechanisms",
     standard: "governance",
     popular: true,
     icon: "🗳️",
@@ -44,20 +44,20 @@ export const TOKEN_TEMPLATES: TokenTemplate[] = [
       metadata: {
         name: "",
         symbol: "",
-        description: "Governance token with voting rights",
+        description: "Governance token with voting and proposal rights",
         decimals: 6,
       },
       economics: {
         supply: {
-          initial: "1000000",
+          initial: "50000000",
           mintingPolicy: "fixed",
         },
       },
       governance: {
         enabled: true,
         votingPower: "balance",
-        proposalThreshold: "10000",
-        quorumThreshold: "100000",
+        proposalThreshold: "100000",
+        quorumThreshold: "5000000",
         votingPeriod: 604800000, // 7 days
       },
     },
@@ -65,7 +65,7 @@ export const TOKEN_TEMPLATES: TokenTemplate[] = [
   {
     id: "utility-token",
     name: "Utility Token",
-    description: "Token for accessing services and features",
+    description: "Platform utility token for accessing services and features",
     standard: "utility",
     popular: true,
     icon: "🔧",
@@ -74,12 +74,12 @@ export const TOKEN_TEMPLATES: TokenTemplate[] = [
       metadata: {
         name: "",
         symbol: "",
-        description: "Utility token for platform services",
+        description: "Utility token for platform services and features",
         decimals: 6,
       },
       economics: {
         supply: {
-          initial: "10000000",
+          initial: "500000000",
           mintingPolicy: "mintable-burnable",
         },
         feeStructure: {
@@ -91,7 +91,7 @@ export const TOKEN_TEMPLATES: TokenTemplate[] = [
   {
     id: "nft-collection",
     name: "NFT Collection",
-    description: "Non-fungible token collection (ERC-721 style)",
+    description: "Unique digital collectibles and art NFTs",
     standard: "non-fungible",
     icon: "🎨",
     schema: {
@@ -139,7 +139,7 @@ export const TOKEN_TEMPLATES: TokenTemplate[] = [
   {
     id: "wrapped-asset",
     name: "Wrapped Asset",
-    description: "Wrapped representation of an external asset",
+    description: "Wrapped representation of external blockchain assets",
     standard: "wrapped",
     icon: "📦",
     schema: {
@@ -148,7 +148,7 @@ export const TOKEN_TEMPLATES: TokenTemplate[] = [
         name: "",
         symbol: "",
         description: "Wrapped asset token",
-        decimals: 8,
+        decimals: 6,
       },
       economics: {
         supply: {
@@ -161,7 +161,7 @@ export const TOKEN_TEMPLATES: TokenTemplate[] = [
   {
     id: "security-token",
     name: "Security Token",
-    description: "Regulated security token with compliance features",
+    description: "Regulated security token for digital securities and assets",
     standard: "security",
     icon: "🛡️",
     schema: {
@@ -169,13 +169,13 @@ export const TOKEN_TEMPLATES: TokenTemplate[] = [
       metadata: {
         name: "",
         symbol: "",
-        description: "Compliant security token",
-        decimals: 2,
+        description: "Security token with compliance features",
+        decimals: 6,
       },
       economics: {
         supply: {
-          initial: "1000000",
-          max: "10000000",
+          initial: "10000000",
+          max: "100000000",
           mintingPolicy: "mintable",
         },
       },
@@ -210,7 +210,7 @@ export const TOKEN_TEMPLATES: TokenTemplate[] = [
   {
     id: "vesting-token",
     name: "Vesting Token",
-    description: "Token with built-in vesting schedules",
+    description: "Token with built-in time-locked vesting schedules",
     standard: "fungible",
     icon: "⏳",
     schema: {
@@ -223,13 +223,13 @@ export const TOKEN_TEMPLATES: TokenTemplate[] = [
       },
       economics: {
         supply: {
-          initial: "10000000",
+          initial: "100000000",
           mintingPolicy: "fixed",
         },
         distribution: [
           {
             address: "",
-            amount: "3000000",
+            amount: "30000000",
             vesting: {
               cliff: 15552000000, // 180 days
               duration: 63072000000, // 2 years
@@ -243,7 +243,7 @@ export const TOKEN_TEMPLATES: TokenTemplate[] = [
   {
     id: "deflationary-token",
     name: "Deflationary Token",
-    description: "Token with automatic burning mechanism",
+    description: "Self-reducing supply token with automatic burn mechanism",
     standard: "fungible",
     icon: "🔥",
     schema: {
@@ -251,12 +251,12 @@ export const TOKEN_TEMPLATES: TokenTemplate[] = [
       metadata: {
         name: "",
         symbol: "",
-        description: "Deflationary token with burn mechanism",
+        description: "Deflationary token with automatic burn mechanism",
         decimals: 6,
       },
       economics: {
         supply: {
-          initial: "100000000",
+          initial: "1000000000",
           mintingPolicy: "burnable",
           burnRate: "0.01", // 1% per transaction
         },

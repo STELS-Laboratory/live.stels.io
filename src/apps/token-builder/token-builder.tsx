@@ -26,7 +26,6 @@ import {
   Coins,
   Download,
   FileJson,
-  Lock,
   RefreshCw,
   Shield,
   Smartphone,
@@ -35,18 +34,23 @@ import {
 import { cn } from "@/lib/utils";
 import { useTokenBuilderStore } from "./store";
 import { TOKEN_TEMPLATES } from "./templates";
-import { exportCertificate } from "./signing";
 import { sanitizeInput } from "./validation";
 import { CertificateValidator } from "./components/certificate-validator";
 import { CertificateHistory } from "./components/certificate-history";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import {
-  oneDark,
-  oneLight,
-} from "react-syntax-highlighter/dist/esm/styles/prism";
-import { useTheme } from "@/hooks/use_theme";
-import { useAuthWallet } from "./hooks/use-auth-wallet";
+import { AVAILABLE_NETWORKS, PROTOCOL_CONFIG } from "./constants";
+import { HISTORY_DISPLAY, readFileAsDataURL, validateIconFile } from "./utils";
+import { useExportCertificate } from "./hooks/use-export-certificate";
+import { useTokenToast } from "./hooks/use-token-toast";
 import type { TokenGenesisCertificate, TokenStandard } from "./types";
+import ErrorBoundary from "./components/ErrorBoundary";
+
+// Review step components
+import {
+  CertificateDisplay,
+  SchemaPreview,
+  SigningSection,
+  ValidationStatus,
+} from "./components/review";
 
 /**
  * Step 1: Token Type Selection
@@ -62,37 +66,76 @@ const TypeStep = React.memo(function TypeStep(): React.ReactElement {
   );
   const [showAllHistory, setShowAllHistory] = useState(false);
 
+  const { exportCert } = useExportCertificate();
+  const { showCertificateExported, showError } = useTokenToast();
+
   /**
    * Export certificate from history
    */
   const handleExportFromHistory = (cert: TokenGenesisCertificate): void => {
-    const json = exportCertificate(cert, "json");
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `token-${cert.schema.metadata.symbol}-${Date.now()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    if (exportCert(cert)) {
+      showCertificateExported();
+    } else {
+      showError("Failed to export certificate");
+    }
   };
 
-  // Show first 3 certificates by default
+  // Filter only genesis-compliant certificates (new format)
+  // Old certificates don't have 'token' field, so filter them out
+  const genesisCompliantHistory = certificateHistory.filter(
+    (cert) => cert.token !== undefined,
+  );
+
+  // Show first N certificates by default
   const displayedHistory = showAllHistory
-    ? certificateHistory
-    : certificateHistory.slice(0, 3);
+    ? genesisCompliantHistory
+    : genesisCompliantHistory.slice(0, HISTORY_DISPLAY.DEFAULT_LIMIT);
 
   return (
     <div className="space-y-4">
+      {/* Network Selector */}
+      <div>
+        <Label htmlFor="network" className="text-xs font-semibold mb-1.5 block">
+          Target Network
+        </Label>
+        <Select
+          value={schema.technical?.networkId || "testnet"}
+          onValueChange={(networkId) => {
+            const network = AVAILABLE_NETWORKS[networkId];
+            updateSchema({
+              technical: {
+                ...schema.technical,
+                networkId: networkId,
+                network: network.name,
+                chainId: network.chain_id,
+                protocol: PROTOCOL_CONFIG.tx_version,
+                encoding: "utf-8",
+                hashAlgorithm: "sha256",
+              },
+            });
+          }}
+        >
+          <SelectTrigger id="network" className="h-9 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(AVAILABLE_NETWORKS).map(([id, network]) => (
+              <SelectItem key={id} value={id}>
+                {network.name} (chain:{network.chain_id})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Recently Created Tokens */}
-      {certificateHistory.length > 0 && (
+      {genesisCompliantHistory.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-semibold text-foreground">
               Recently Created Tokens
             </h3>
-            {certificateHistory.length > 3 && (
+            {genesisCompliantHistory.length > HISTORY_DISPLAY.DEFAULT_LIMIT && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -101,25 +144,25 @@ const TypeStep = React.memo(function TypeStep(): React.ReactElement {
               >
                 {showAllHistory
                   ? "Show Less"
-                  : `View All (${certificateHistory.length})`}
+                  : `View All (${genesisCompliantHistory.length})`}
               </Button>
             )}
           </div>
           <div className="space-y-2">
             {displayedHistory.map((cert) => (
               <Card
-                key={cert.id}
+                key={cert.token.id}
                 className="border-border hover:bg-muted/30 transition-colors"
               >
                 <CardContent className="p-2.5">
                   <div className="flex items-center gap-2">
                     {/* Token Icon */}
                     <div className="w-8 h-8 border border-border rounded overflow-hidden bg-muted flex items-center justify-center flex-shrink-0">
-                      {cert.schema.metadata.icon
+                      {cert.token.metadata.icon
                         ? (
                           <img
-                            src={cert.schema.metadata.icon}
-                            alt={cert.schema.metadata.symbol}
+                            src={cert.token.metadata.icon}
+                            alt={cert.token.metadata.symbol}
                             className="w-full h-full object-contain"
                           />
                         )
@@ -128,24 +171,24 @@ const TypeStep = React.memo(function TypeStep(): React.ReactElement {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-sm font-semibold text-foreground truncate">
-                          {cert.schema.metadata.name}
+                          {cert.token.metadata.name}
                         </span>
                         <Badge variant="outline" className="text-[10px]">
-                          {cert.schema.metadata.symbol}
+                          {cert.token.metadata.symbol}
                         </Badge>
                         <Badge
                           variant="outline"
                           className="text-[9px] bg-blue-500/10 border-blue-500/30 text-blue-600"
                         >
-                          {cert.schema.standard}
+                          {cert.token.standard}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
                         <span>
-                          {new Date(cert.createdAt).toLocaleDateString()}
+                          {new Date(cert.token.created_at).toLocaleDateString()}
                         </span>
                         <span>
-                          Supply: {cert.schema.economics.supply.initial}
+                          Supply: {cert.token.economics.supply.initial}
                         </span>
                       </div>
                     </div>
@@ -238,6 +281,8 @@ const MetadataStep = React.memo(function MetadataStep(): React.ReactElement {
     schema.metadata?.icon || null,
   );
 
+  const { showIconUploaded, showError } = useTokenToast();
+
   /**
    * Handle icon file upload
    * Validates size (max 128KB) and converts to Data URL
@@ -248,41 +293,26 @@ const MetadataStep = React.memo(function MetadataStep(): React.ReactElement {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      alert("Please upload an image file");
-      return;
-    }
-
-    // Validate file size (128KB)
-    const maxSizeInBytes = 128 * 1024;
-    if (file.size > maxSizeInBytes) {
-      alert(
-        `Icon size (${
-          Math.round(file.size / 1024)
-        }KB) exceeds maximum allowed size (128KB). Please upload a smaller image.`,
-      );
+    // Validate file
+    const validation = validateIconFile(file);
+    if (!validation.valid) {
+      showError(validation.error || "Invalid file");
       return;
     }
 
     setIconLoading(true);
 
     try {
-      const reader = new FileReader();
-      reader.onload = (event): void => {
-        const dataUrl = event.target?.result as string;
-        setIconPreview(dataUrl);
-        updateMetadata({ icon: dataUrl });
-        setIconLoading(false);
-      };
-      reader.onerror = (): void => {
-        alert("Failed to read file");
-        setIconLoading(false);
-      };
-      reader.readAsDataURL(file);
+      const dataUrl = await readFileAsDataURL(file);
+      setIconPreview(dataUrl);
+      updateMetadata({ icon: dataUrl });
+      showIconUploaded();
     } catch (error) {
-      console.error("Icon upload error:", error);
-      alert("Failed to upload icon");
+      console.error("[MetadataStep] Icon upload error:", error);
+      showError(
+        error instanceof Error ? error.message : "Failed to upload icon",
+      );
+    } finally {
       setIconLoading(false);
     }
   };
@@ -358,6 +388,43 @@ const MetadataStep = React.memo(function MetadataStep(): React.ReactElement {
       </div>
 
       <div>
+        <Label htmlFor="contact" className="text-xs">
+          Contact Email (Optional)
+        </Label>
+        <Input
+          id="contact"
+          type="email"
+          value={schema.metadata?.contact || ""}
+          onChange={(e) =>
+            updateMetadata({ contact: sanitizeInput(e.target.value) })}
+          placeholder="your@email.com"
+          className="h-8 text-xs"
+          maxLength={128}
+        />
+        {errors["metadata.contact"] && (
+          <p className="text-xs text-red-500 mt-1">
+            {errors["metadata.contact"][0]}
+          </p>
+        )}
+      </div>
+
+      <div>
+        <Label htmlFor="website" className="text-xs">
+          Website (Optional)
+        </Label>
+        <Input
+          id="website"
+          type="url"
+          value={schema.metadata?.website || ""}
+          onChange={(e) =>
+            updateMetadata({ website: sanitizeInput(e.target.value) })}
+          placeholder="https://yourproject.com"
+          className="h-8 text-xs"
+          maxLength={256}
+        />
+      </div>
+
+      <div>
         <Label htmlFor="icon" className="text-xs">
           Token Icon (max 128KB)
         </Label>
@@ -405,29 +472,13 @@ const MetadataStep = React.memo(function MetadataStep(): React.ReactElement {
           PNG, JPG, GIF, or SVG. Max 128KB.
         </p>
       </div>
-
-      <div>
-        <Label htmlFor="decimals" className="text-xs">
-          Decimals
-        </Label>
-        <Input
-          id="decimals"
-          type="number"
-          value={schema.metadata?.decimals || 6}
-          onChange={(e) =>
-            updateMetadata({ decimals: parseInt(e.target.value) || 0 })}
-          min={0}
-          max={18}
-          className="h-8 text-xs"
-        />
-      </div>
     </div>
   );
 });
 
 /**
  * Step 3: Token Economics
- * Configure token supply and minting policy
+ * Configure token supply, distribution, and fees
  */
 const EconomicsStep = React.memo(function EconomicsStep(): React.ReactElement {
   const schema = useTokenBuilderStore((state) => state.schema);
@@ -435,9 +486,55 @@ const EconomicsStep = React.memo(function EconomicsStep(): React.ReactElement {
   const updateEconomics = useTokenBuilderStore((state) =>
     state.updateEconomics
   );
+  const [showDistribution, setShowDistribution] = useState(
+    (schema.economics?.distribution?.length || 0) > 0,
+  );
+
+  /**
+   * Add distribution entry
+   */
+  const addDistribution = (): void => {
+    const current = schema.economics?.distribution || [];
+    updateEconomics({
+      ...schema.economics,
+      distribution: [
+        ...current,
+        { address: "", amount: "", vesting: undefined },
+      ],
+    });
+  };
+
+  /**
+   * Remove distribution entry
+   */
+  const removeDistribution = (index: number): void => {
+    const current = schema.economics?.distribution || [];
+    updateEconomics({
+      ...schema.economics,
+      distribution: current.filter((_, i) => i !== index),
+    });
+  };
+
+  /**
+   * Update distribution entry
+   */
+  const updateDistribution = (
+    index: number,
+    field: string,
+    value: string,
+  ): void => {
+    const current = schema.economics?.distribution || [];
+    const updated = [...current];
+    updated[index] = { ...updated[index], [field]: value };
+    updateEconomics({
+      ...schema.economics,
+      distribution: updated,
+    });
+  };
 
   return (
     <div className="space-y-3">
+      {/* Supply Configuration */}
       <div>
         <Label htmlFor="initial" className="text-xs">
           Initial Supply *
@@ -445,15 +542,23 @@ const EconomicsStep = React.memo(function EconomicsStep(): React.ReactElement {
         <Input
           id="initial"
           value={schema.economics?.supply?.initial || ""}
-          onChange={(e) =>
+          onChange={(e) => {
+            const mintingPolicy = schema.economics?.supply?.mintingPolicy ||
+              "fixed";
+            const initial = e.target.value;
+
             updateEconomics({
               supply: {
                 ...schema.economics?.supply,
-                initial: e.target.value,
-                mintingPolicy: schema.economics?.supply?.mintingPolicy ||
-                  "fixed",
+                initial: initial,
+                mintingPolicy: mintingPolicy,
+                // For fixed supply, max must equal initial
+                max: mintingPolicy === "fixed"
+                  ? initial
+                  : schema.economics?.supply?.max,
               },
-            })}
+            });
+          }}
           placeholder="e.g., 1000000"
           className="h-8 text-xs"
         />
@@ -464,27 +569,46 @@ const EconomicsStep = React.memo(function EconomicsStep(): React.ReactElement {
         )}
       </div>
 
-      <div>
-        <Label htmlFor="max" className="text-xs">
-          Maximum Supply (optional)
-        </Label>
-        <Input
-          id="max"
-          value={schema.economics?.supply?.max || ""}
-          onChange={(e) =>
-            updateEconomics({
-              supply: {
-                ...schema.economics?.supply,
-                initial: schema.economics?.supply?.initial || "0",
-                max: e.target.value,
-                mintingPolicy: schema.economics?.supply?.mintingPolicy ||
-                  "fixed",
-              },
-            })}
-          placeholder="Leave empty for unlimited"
-          className="h-8 text-xs"
-        />
-      </div>
+      {/* Max Supply - только для non-fixed policies */}
+      {schema.economics?.supply?.mintingPolicy !== "fixed" && (
+        <div>
+          <Label htmlFor="max" className="text-xs">
+            Maximum Supply (optional)
+          </Label>
+          <Input
+            id="max"
+            value={schema.economics?.supply?.max || ""}
+            onChange={(e) =>
+              updateEconomics({
+                supply: {
+                  ...schema.economics?.supply,
+                  initial: schema.economics?.supply?.initial || "0",
+                  max: e.target.value,
+                  mintingPolicy: schema.economics?.supply?.mintingPolicy ||
+                    "fixed",
+                },
+              })}
+            placeholder="Leave empty for unlimited"
+            className="h-8 text-xs"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            {schema.economics?.supply?.mintingPolicy === "mintable"
+              ? "Maximum tokens that can be minted"
+              : "Maximum total supply (initial + minting)"}
+          </p>
+        </div>
+      )}
+
+      {/* Info for fixed supply */}
+      {schema.economics?.supply?.mintingPolicy === "fixed" && (
+        <div className="p-2 bg-blue-500/5 border border-blue-500/30 rounded">
+          <p className="text-xs text-muted-foreground">
+            <strong>Fixed Supply:</strong> Maximum supply automatically set to
+            {" "}
+            {schema.economics?.supply?.initial || "0"} (no additional minting)
+          </p>
+        </div>
+      )}
 
       <div>
         <Label htmlFor="minting" className="text-xs">
@@ -492,18 +616,26 @@ const EconomicsStep = React.memo(function EconomicsStep(): React.ReactElement {
         </Label>
         <Select
           value={schema.economics?.supply?.mintingPolicy || "fixed"}
-          onValueChange={(value) =>
+          onValueChange={(value) => {
+            const policy = value as
+              | "fixed"
+              | "mintable"
+              | "burnable"
+              | "mintable-burnable";
+            const initial = schema.economics?.supply?.initial || "0";
+
             updateEconomics({
               supply: {
                 ...schema.economics?.supply,
-                initial: schema.economics?.supply?.initial || "0",
-                mintingPolicy: value as
-                  | "fixed"
-                  | "mintable"
-                  | "burnable"
-                  | "mintable-burnable",
+                initial: initial,
+                mintingPolicy: policy,
+                // For fixed supply, max must equal initial
+                max: policy === "fixed"
+                  ? initial
+                  : schema.economics?.supply?.max,
               },
-            })}
+            });
+          }}
         >
           <SelectTrigger id="minting" className="h-8 text-xs">
             <SelectValue />
@@ -517,6 +649,196 @@ const EconomicsStep = React.memo(function EconomicsStep(): React.ReactElement {
             </SelectItem>
           </SelectContent>
         </Select>
+        <p className="text-xs text-muted-foreground mt-1">
+          {schema.economics?.supply?.mintingPolicy === "fixed" &&
+            "No additional tokens can be minted"}
+          {schema.economics?.supply?.mintingPolicy === "mintable" &&
+            "New tokens can be minted after launch"}
+          {schema.economics?.supply?.mintingPolicy === "burnable" &&
+            "Tokens can be permanently burned"}
+          {schema.economics?.supply?.mintingPolicy === "mintable-burnable" &&
+            "Tokens can be minted and burned"}
+        </p>
+      </div>
+
+      {/* Burn Rate (for burnable tokens) */}
+      {(schema.economics?.supply?.mintingPolicy === "burnable" ||
+        schema.economics?.supply?.mintingPolicy === "mintable-burnable") && (
+        <div>
+          <Label htmlFor="burnRate" className="text-xs">
+            Burn Rate % (optional)
+          </Label>
+          <Input
+            id="burnRate"
+            value={schema.economics?.supply?.burnRate || ""}
+            onChange={(e) =>
+              updateEconomics({
+                supply: {
+                  ...schema.economics?.supply,
+                  initial: schema.economics?.supply?.initial || "0",
+                  mintingPolicy: schema.economics?.supply?.mintingPolicy ||
+                    "fixed",
+                  burnRate: e.target.value,
+                },
+              })}
+            placeholder="e.g., 0.01 (1% per tx)"
+            className="h-8 text-xs"
+          />
+        </div>
+      )}
+
+      {/* Initial Distribution */}
+      <div className="pt-3 border-t border-border">
+        <div className="flex items-center justify-between mb-2">
+          <Label className="text-xs font-semibold">
+            Initial Distribution (optional)
+          </Label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowDistribution(!showDistribution)}
+            className="h-6 text-xs"
+          >
+            {showDistribution ? "Hide" : "Configure"}
+          </Button>
+        </div>
+
+        {showDistribution && (
+          <div className="space-y-2">
+            {schema.economics?.distribution?.map((dist, idx) => (
+              <div
+                key={idx}
+                className="p-2 border border-border rounded space-y-2"
+              >
+                <div className="flex items-start gap-2">
+                  <div className="flex-1 space-y-2">
+                    <Input
+                      value={dist.address}
+                      onChange={(e) =>
+                        updateDistribution(idx, "address", e.target.value)}
+                      placeholder="Recipient address (base58)"
+                      className="h-7 text-xs font-mono"
+                    />
+                    <Input
+                      value={dist.amount}
+                      onChange={(e) =>
+                        updateDistribution(idx, "amount", e.target.value)}
+                      placeholder="Amount"
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeDistribution(idx)}
+                    className="h-7 w-7 p-0 text-red-500"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addDistribution}
+              className="h-7 text-xs w-full"
+            >
+              + Add Distribution Entry
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Fee Structure */}
+      <div className="pt-3 border-t border-border">
+        <Label className="text-xs font-semibold mb-2 block">
+          Fee Structure (optional)
+        </Label>
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <Label htmlFor="transferFee" className="text-xs">
+              Transfer %
+            </Label>
+            <Input
+              id="transferFee"
+              value={schema.economics?.feeStructure?.transfer || ""}
+              onChange={(e) =>
+                updateEconomics({
+                  ...schema.economics,
+                  feeStructure: {
+                    ...schema.economics?.feeStructure,
+                    transfer: e.target.value,
+                  },
+                })}
+              placeholder="0.001"
+              className="h-7 text-xs"
+            />
+          </div>
+          <div>
+            <Label htmlFor="mintFee" className="text-xs">
+              Mint %
+            </Label>
+            <Input
+              id="mintFee"
+              value={schema.economics?.feeStructure?.mint || ""}
+              onChange={(e) =>
+                updateEconomics({
+                  ...schema.economics,
+                  feeStructure: {
+                    ...schema.economics?.feeStructure,
+                    mint: e.target.value,
+                  },
+                })}
+              placeholder="0.001"
+              className="h-7 text-xs"
+            />
+          </div>
+          <div>
+            <Label htmlFor="burnFee" className="text-xs">
+              Burn %
+            </Label>
+            <Input
+              id="burnFee"
+              value={schema.economics?.feeStructure?.burn || ""}
+              onChange={(e) =>
+                updateEconomics({
+                  ...schema.economics,
+                  feeStructure: {
+                    ...schema.economics?.feeStructure,
+                    burn: e.target.value,
+                  },
+                })}
+              placeholder="0.001"
+              className="h-7 text-xs"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Treasury Address */}
+      <div>
+        <Label htmlFor="treasury" className="text-xs">
+          Treasury Address (optional)
+        </Label>
+        <Input
+          id="treasury"
+          value={schema.economics?.treasury || ""}
+          onChange={(e) =>
+            updateEconomics({
+              ...schema.economics,
+              treasury: e.target.value,
+            })}
+          placeholder="Base58 address for treasury"
+          className="h-8 text-xs font-mono"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          Address that receives fees and treasury allocations
+        </p>
       </div>
     </div>
   );
@@ -598,7 +920,114 @@ const AdvancedStep = React.memo(function AdvancedStep(): React.ReactElement {
               className="h-8 text-xs"
             />
           </div>
+
+          <div>
+            <Label htmlFor="votingPower" className="text-xs">
+              Voting Power Method
+            </Label>
+            <Select
+              value={schema.governance?.votingPower || "balance"}
+              onValueChange={(value) =>
+                updateSchema({
+                  governance: {
+                    ...schema.governance,
+                    enabled: true,
+                    votingPower: value as
+                      | "balance"
+                      | "staked"
+                      | "quadratic"
+                      | "custom",
+                  },
+                })}
+            >
+              <SelectTrigger id="votingPower" className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="balance">Token Balance</SelectItem>
+                <SelectItem value="staked">Staked Balance</SelectItem>
+                <SelectItem value="quadratic">Quadratic Voting</SelectItem>
+                <SelectItem value="custom">Custom Formula</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="votingPeriod" className="text-xs">
+              Voting Period (days)
+            </Label>
+            <Input
+              id="votingPeriod"
+              type="number"
+              value={schema.governance?.votingPeriod
+                ? Math.floor(schema.governance.votingPeriod / 86400000)
+                : 7}
+              onChange={(e) =>
+                updateSchema({
+                  governance: {
+                    ...schema.governance,
+                    enabled: true,
+                    votingPeriod: parseInt(e.target.value) * 86400000 ||
+                      604800000,
+                  },
+                })}
+              placeholder="7"
+              className="h-8 text-xs"
+              min={1}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Duration for voting on proposals
+            </p>
+          </div>
         </>
+      )}
+
+      {/* Transfer Restrictions */}
+      <div className="pt-3 border-t border-border">
+        <Label className="text-xs flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={schema.transferRestrictions?.enabled || false}
+            onChange={(e) =>
+              updateSchema({
+                transferRestrictions: {
+                  ...schema.transferRestrictions,
+                  enabled: e.target.checked,
+                },
+              })}
+            className="w-4 h-4"
+          />
+          Enable Transfer Restrictions
+        </Label>
+      </div>
+
+      {schema.transferRestrictions?.enabled && (
+        <div>
+          <Label htmlFor="timelock" className="text-xs">
+            Timelock Period (hours)
+          </Label>
+          <Input
+            id="timelock"
+            type="number"
+            value={schema.transferRestrictions?.timelock
+              ? Math.floor(schema.transferRestrictions.timelock / 3600000)
+              : 0}
+            onChange={(e) =>
+              updateSchema({
+                transferRestrictions: {
+                  ...schema.transferRestrictions,
+                  enabled: true,
+                  timelock: parseInt(e.target.value) * 3600000 || 0,
+                },
+              })}
+            placeholder="24"
+            className="h-8 text-xs"
+            min={0}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Required waiting period before transfers (0 = no timelock)
+          </p>
+        </div>
       )}
     </div>
   );
@@ -609,364 +1038,21 @@ const AdvancedStep = React.memo(function AdvancedStep(): React.ReactElement {
  * Review schema and create signed certificate
  */
 const ReviewStep = React.memo(function ReviewStep(): React.ReactElement {
-  const { resolvedTheme } = useTheme();
-  const {
-    address,
-    hasWallet,
-    network,
-    getPrivateKey, // Secure getter - use only when needed
-  } = useAuthWallet();
-
-  const schema = useTokenBuilderStore((state) => state.schema);
-  const certificate = useTokenBuilderStore((state) => state.certificate);
-  const errors = useTokenBuilderStore((state) => state.errors);
   const validateSchema = useTokenBuilderStore((state) => state.validateSchema);
-  const signSchema = useTokenBuilderStore((state) => state.signSchema);
-  const exportSchema = useTokenBuilderStore((state) => state.exportSchema);
-
-  const [showPreview, setShowPreview] = useState(false);
-  const [signing, setSigning] = useState(false);
-  const [useAuthKey, setUseAuthKey] = useState(true);
-  const [manualKey, setManualKey] = useState("");
-  const [lastSignTime, setLastSignTime] = useState(0);
-
-  // Rate limiting constant
-  const SIGN_COOLDOWN = 2000; // 2 seconds between signing attempts
+  const errors = useTokenBuilderStore((state) => state.errors);
 
   useEffect(() => {
     validateSchema();
   }, [validateSchema]);
 
-  const handleSign = async (): Promise<void> => {
-    // SECURITY: Rate limiting to prevent abuse
-    const now = Date.now();
-    if (now - lastSignTime < SIGN_COOLDOWN) {
-      alert(
-        `Please wait ${
-          Math.ceil((SIGN_COOLDOWN - (now - lastSignTime)) / 1000)
-        } seconds before signing again.`,
-      );
-      return;
-    }
-
-    // Get private key securely - only when needed, never stored
-    let privateKey: string | null = null;
-
-    try {
-      if (useAuthKey) {
-        privateKey = getPrivateKey();
-        if (!privateKey) {
-          alert(
-            "No wallet connected. Please connect wallet or use manual key.",
-          );
-          return;
-        }
-      } else {
-        if (!manualKey) {
-          alert("Please enter your private key");
-          return;
-        }
-        privateKey = manualKey;
-      }
-
-      setSigning(true);
-      setLastSignTime(now); // Update rate limit timestamp
-
-      // Sign with the private key
-      await signSchema(privateKey);
-
-      // SECURITY: Clear all references to private key immediately
-      privateKey = null;
-      setManualKey("");
-
-      alert("Token certificate created successfully!");
-    } catch (error) {
-      console.error("Signing error:", error);
-      alert(error instanceof Error ? error.message : "Failed to sign schema");
-    } finally {
-      // SECURITY: Ensure cleanup even on error
-      privateKey = null;
-      setManualKey("");
-      setSigning(false);
-    }
-  };
-
-  /**
-   * Export certificate to JSON file
-   */
-  const handleExport = (): void => {
-    if (!certificate) {
-      alert("No certificate to export");
-      return;
-    }
-
-    const json = exportCertificate(certificate, "json");
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `token-${schema.metadata?.symbol || "TOKEN"}-certificate.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  /**
-   * Create another token
-   * Exports current certificate and resets wizard for new token
-   */
-  const handleCreateAnother = (): void => {
-    // Auto-export current certificate before starting new one
-    if (certificate) {
-      handleExport();
-    }
-
-    // Get reset function from store
-    const resetBuilder = useTokenBuilderStore.getState().resetBuilder;
-
-    // Reset to start new token creation
-    resetBuilder();
-
-    // Show confirmation
-    setTimeout(() => {
-      alert("Previous certificate exported. Ready to create new token!");
-    }, 100);
-  };
+  const hasErrors = Object.keys(errors).length > 0;
 
   return (
     <div className="space-y-3">
-      {/* Schema Preview */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-xs font-semibold text-foreground">
-            Token Schema
-          </h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowPreview(!showPreview)}
-            className="h-6 text-xs"
-          >
-            <FileJson className="w-3 h-3 mr-1" />
-            {showPreview ? "Hide" : "Show"} JSON
-          </Button>
-        </div>
-
-        {showPreview && (
-          <div className="rounded border border-border overflow-hidden">
-            <SyntaxHighlighter
-              language="json"
-              style={resolvedTheme === "dark" ? oneDark : oneLight}
-              customStyle={{
-                margin: 0,
-                padding: "8px",
-                fontSize: "10px",
-                lineHeight: "1.4",
-                background: resolvedTheme === "dark" ? "#1a1a1a" : "#fafafa",
-              }}
-              wrapLongLines={true}
-            >
-              {exportSchema("json")}
-            </SyntaxHighlighter>
-          </div>
-        )}
-      </div>
-
-      {/* Validation Status */}
-      <Card className="border-blue-500/30 bg-blue-500/5">
-        <CardContent className="p-3">
-          <div className="flex items-start gap-2">
-            <Shield className="w-4 h-4 text-blue-500 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-xs font-semibold text-foreground mb-1">
-                Validation Status
-              </p>
-              {Object.keys(errors).length === 0
-                ? (
-                  <p className="text-xs text-green-600">
-                    ✓ Schema is valid and ready to sign
-                  </p>
-                )
-                : (
-                  <div className="text-xs text-red-600">
-                    <p>✗ Please fix the following errors:</p>
-                    <ul className="list-disc list-inside mt-1">
-                      {Object.entries(errors).map(([field, messages]) => (
-                        <li key={field}>
-                          {field}: {messages[0]}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Sign Section */}
-      {!certificate && Object.keys(errors).length === 0 && (
-        <Card className="border-amber-500/30 bg-amber-500/5">
-          <CardContent className="p-3">
-            <div className="flex items-start gap-2">
-              <Lock className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
-              <div className="flex-1 space-y-2">
-                <p className="text-xs font-semibold text-foreground">
-                  Sign Certificate
-                </p>
-
-                {/* Wallet Info */}
-                {hasWallet && (
-                  <div className="p-2 bg-green-500/10 border border-green-500/30 rounded">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Check className="w-3 h-3 text-green-500" />
-                      <span className="text-xs font-semibold text-green-600 dark:text-green-500">
-                        Wallet Connected
-                      </span>
-                    </div>
-                    <div className="text-xs font-mono text-muted-foreground space-y-0.5">
-                      <div>Address: {address}</div>
-                      <div>Network: {network?.name || "Unknown"}</div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Key Source Selection */}
-                <div className="space-y-2">
-                  {hasWallet && (
-                    <label className="flex items-center gap-2 cursor-pointer p-2 bg-muted/30 rounded border border-border">
-                      <input
-                        type="radio"
-                        checked={useAuthKey}
-                        onChange={() => setUseAuthKey(true)}
-                        className="w-3.5 h-3.5"
-                      />
-                      <div className="flex-1">
-                        <span className="text-xs text-foreground font-medium">
-                          Use connected wallet
-                        </span>
-                        <p className="text-[10px] text-muted-foreground">
-                          Sign with {address?.substring(0, 12)}...
-                        </p>
-                      </div>
-                    </label>
-                  )}
-
-                  <label className="flex items-center gap-2 cursor-pointer p-2 bg-muted/30 rounded border border-border">
-                    <input
-                      type="radio"
-                      checked={!useAuthKey}
-                      onChange={() => setUseAuthKey(false)}
-                      className="w-3.5 h-3.5"
-                    />
-                    <div className="flex-1">
-                      <span className="text-xs text-foreground font-medium">
-                        Use manual private key
-                      </span>
-                      <p className="text-[10px] text-muted-foreground">
-                        Enter private key manually
-                      </p>
-                    </div>
-                  </label>
-                </div>
-
-                {/* Manual Key Input */}
-                {!useAuthKey && (
-                  <Input
-                    type="password"
-                    value={manualKey}
-                    onChange={(e) => setManualKey(e.target.value)}
-                    placeholder="Enter private key..."
-                    className="h-8 text-xs font-mono"
-                  />
-                )}
-
-                {/* Sign Button */}
-                <Button
-                  onClick={handleSign}
-                  disabled={signing || (!useAuthKey && !manualKey) ||
-                    (useAuthKey && !hasWallet)}
-                  size="sm"
-                  className="h-7 text-xs w-full bg-amber-500 hover:bg-amber-600 text-black font-bold"
-                >
-                  {signing ? "Signing..." : "Sign & Create Certificate"}
-                </Button>
-
-                {/* Warning if no wallet */}
-                {!hasWallet && (
-                  <div className="p-2 bg-blue-500/10 border border-blue-500/30 rounded">
-                    <p className="text-xs text-blue-600 dark:text-blue-400">
-                      ℹ️ No wallet connected. You can enter private key manually
-                      or connect wallet in the sidebar.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Certificate Display */}
-      {certificate && (
-        <Card className="border-green-500/30 bg-green-500/5">
-          <CardContent className="p-3">
-            <div className="flex items-start gap-2">
-              <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-              <div className="flex-1">
-                <div className="flex items-start gap-3 mb-2">
-                  {/* Token Icon */}
-                  {schema.metadata?.icon && (
-                    <div className="w-12 h-12 border border-green-500/30 rounded overflow-hidden bg-background flex items-center justify-center flex-shrink-0">
-                      <img
-                        src={schema.metadata.icon}
-                        alt={schema.metadata.symbol || "Token"}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold text-green-600 mb-1">
-                      ✓ Certificate Created Successfully!
-                    </p>
-                    <div className="text-xs font-mono text-muted-foreground space-y-1">
-                      <div>ID: {certificate.id.substring(0, 40)}...</div>
-                      <div>
-                        Created:{" "}
-                        {new Date(certificate.createdAt).toLocaleString()}
-                      </div>
-                      <div>
-                        Token: {schema.metadata?.name} (
-                        {schema.metadata?.symbol})
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={handleExport}
-                    size="sm"
-                    className="h-7 text-xs flex-1"
-                  >
-                    <Download className="w-3 h-3 mr-1" />
-                    Export Certificate
-                  </Button>
-                  <Button
-                    onClick={handleCreateAnother}
-                    variant="outline"
-                    size="sm"
-                    className="h-7 text-xs flex-1"
-                  >
-                    <Coins className="w-3 h-3 mr-1" />
-                    Create Another
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <SchemaPreview />
+      <ValidationStatus />
+      <SigningSection hasErrors={hasErrors} />
+      <CertificateDisplay />
     </div>
   );
 });
@@ -982,9 +1068,19 @@ function TokenBuilder(): React.ReactElement {
   const currentStep = useTokenBuilderStore((state) => state.currentStep);
   const steps = useTokenBuilderStore((state) => state.steps);
   const errors = useTokenBuilderStore((state) => state.errors);
+  const schema = useTokenBuilderStore((state) => state.schema);
   const certificateHistory = useTokenBuilderStore(
     (state) => state.certificateHistory,
   );
+
+  // Filter only genesis-compliant certificates
+  const genesisCompliantHistory = certificateHistory.filter(
+    (cert) => cert.token !== undefined,
+  );
+
+  // Get selected network
+  const selectedNetworkId = schema.technical?.networkId || "testnet";
+  const selectedNetwork = AVAILABLE_NETWORKS[selectedNetworkId];
 
   // Store actions
   const nextStep = useTokenBuilderStore((state) => state.nextStep);
@@ -1054,22 +1150,27 @@ function TokenBuilder(): React.ReactElement {
                 <h1 className="text-base font-bold text-foreground">
                   Web Token Builder
                 </h1>
-                {certificateHistory.length > 0 && (
+                {genesisCompliantHistory.length > 0 && (
                   <Badge
                     variant="outline"
                     className="text-[10px] bg-green-500/10 border-green-500/30 text-green-600"
                   >
-                    {certificateHistory.length} created
+                    {genesisCompliantHistory.length} created
                   </Badge>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Create STELS network token certificates
-              </p>
+              <div>
+                <p className="text-xs text-muted-foreground">
+                  Create genesis.json-compliant token certificates
+                </p>
+                <p className="text-[10px] text-muted-foreground/80">
+                  {selectedNetwork.name} (chain:{selectedNetwork.chain_id})
+                </p>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {certificateHistory.length > 0 && (
+            {genesisCompliantHistory.length > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -1077,7 +1178,7 @@ function TokenBuilder(): React.ReactElement {
                 className="h-7 text-xs"
               >
                 <FileJson className="w-3 h-3 mr-1" />
-                History ({certificateHistory.length})
+                History ({genesisCompliantHistory.length})
               </Button>
             )}
             <Button
@@ -1144,7 +1245,16 @@ function TokenBuilder(): React.ReactElement {
           </div>
 
           <Card>
-            <CardContent className="p-4">{renderStep()}</CardContent>
+            <CardContent className="p-4">
+              <ErrorBoundary
+                onReset={() => {
+                  // Optionally reset to first step on error
+                  console.log("[TokenBuilder] Error boundary reset");
+                }}
+              >
+                {renderStep()}
+              </ErrorBoundary>
+            </CardContent>
           </Card>
         </div>
       </div>

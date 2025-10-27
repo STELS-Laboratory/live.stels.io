@@ -16,6 +16,7 @@ import {
 	Boxes,
 	CircleX,
 	Code,
+	Coins,
 	FileText,
 	Home,
 	Layout as LayoutIcon,
@@ -124,6 +125,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 		{ key: "editor", label: "Editor", icon: Code },
 		{ key: "schemas", label: "Schemas", icon: LayoutIcon },
 		{ key: "docs", label: "Docs", icon: FileText },
+		{ key: "token-builder", label: "Token Builder", icon: Coins },
 	].filter((i) => allowedRoutes.includes(i.key));
 
 	const renderNavItem = (
