@@ -87,24 +87,34 @@ export const ADDRESSING_SPEC: AddressingSpec = {
 /**
  * Network parameters (fees, currency, limits)
  * Based on genesis.json example structure
+ * 
+ * ⚠️ IMPORTANT: These are NETWORK fees, NOT token fees!
+ * - Network fees are paid in TST (system currency)
+ * - Network fees go to system treasury (gohgoWbJK7dMf5MUKKtthRJdCAMmoVqDMo)
+ * - These fees apply to ALL transactions in the network
+ * 
+ * Token-specific fees are defined in token.economics.feeStructure:
+ * - Token fees are paid in the token itself
+ * - Token fees go to token's treasury (token.economics.treasury)
+ * - These fees apply only to this specific token's operations
  */
 export const NETWORK_PARAMETERS: NetworkParameters = {
   fees: {
-    base: "0.00005",
-    per_byte: "0.0000001",
-    raw_per_byte: "0.0000003",
-    currency: "TST",
+    base: "0.00005",           // Base network fee in TST
+    per_byte: "0.0000001",     // Per-byte network fee in TST
+    raw_per_byte: "0.0000003", // Raw data per-byte fee in TST
+    currency: "TST",           // System currency (not user token!)
   },
   currency: {
-    symbol: "TST",
+    symbol: "TST",             // System currency symbol
     decimals: 6,
     fee_unit: "10^-6 TST",
   },
   limits: {
-    max_tx_size: 65536,
-    max_signatures: 8,
+    max_tx_size: 65536,        // Maximum transaction size in bytes
+    max_signatures: 8,         // Maximum number of signatures per transaction
   },
-  treasury_address: "gohgoWbJK7dMf5MUKKtthRJdCAMmoVqDMo",
+  treasury_address: "gohgoWbJK7dMf5MUKKtthRJdCAMmoVqDMo", // System treasury (receives network fees)
 };
 
 /**

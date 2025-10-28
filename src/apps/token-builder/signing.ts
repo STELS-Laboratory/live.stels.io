@@ -13,7 +13,9 @@ import {
   deterministicStringify,
   getUncompressedPublicKey,
   getAddressFromPublicKey,
+  toHex,
 } from "@/lib/gliesereum";
+import { sha256 } from "@noble/hashes/sha256";
 import {
   NETWORK_CONFIG,
   PROTOCOL_CONFIG,
@@ -98,10 +100,9 @@ export async function signTokenSchema(
   const canonicalString = deterministicStringify(tokenData);
   const contentBytes = new TextEncoder().encode(canonicalString);
 
-  // Calculate hash
-  const hashBuffer = await crypto.subtle.digest("SHA-256", contentBytes);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  // Calculate hash using @noble/hashes (matches gliesereum crypto)
+  const hashBytes = sha256(contentBytes);
+  const hash = toHex(hashBytes);
 
   // Create token ID
   const tokenId = `token:sha256:${hash}`;

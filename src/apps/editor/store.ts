@@ -171,18 +171,18 @@ export const useEditorStore = create<EditorStore>()(
 					throw new Error(`HTTP error! status: ${response.status}`);
 				}
 
-				const data = await response.json();
+			const data = await response.json();
 
-				if (data && Array.isArray(data)) {
-					set({
-						workers: data,
-						workersLoading: false,
-						workersError: null,
-					});
-				} else {
-					throw new Error("Invalid response format");
-				}
-			} catch (error) {
+			if (data && Array.isArray(data)) {
+				set({
+					workers: data,
+					workersLoading: false,
+					workersError: null,
+				});
+			} else {
+				throw new Error("Invalid response format");
+			}
+		} catch (error) {
 				console.error("Failed to fetch workers:", error);
 				set({
 					workersError:

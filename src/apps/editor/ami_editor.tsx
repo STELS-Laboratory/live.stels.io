@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Split from "react-split";
 import {
 	Activity,
 	AlertCircle,
+	AlignJustify,
 	ArrowDown,
 	ArrowUp,
 	Code,
@@ -85,7 +86,12 @@ export function AMIEditor(): JSX.Element {
 	const [loading, setLoading] = useState(true);
 	const [updating, setUpdating] = useState(false);
 	const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
-	const [currentScript, setCurrentScript] = useState<string>("");
+	const [currentScript, setCurrentScriptInternal] = useState<string>("");
+
+	// Wrapper for setCurrentScript
+	const setCurrentScript = useCallback((value: string) => {
+		setCurrentScriptInternal(value);
+	}, []);
 	const [currentNote, setCurrentNote] = useState<string>("");
 	const [isEditing, setIsEditing] = useState(false);
 	const [isEditingNote, setIsEditingNote] = useState(false);
@@ -122,6 +128,10 @@ export function AMIEditor(): JSX.Element {
 		nid: "",
 	});
 	const [activeTab, setActiveTab] = useState("code");
+	const [formatCodeFn, setFormatCodeFn] = useState<(() => void) | null>(null);
+
+	// Cache for formatted scripts (sid -> formatted code)
+	const formattedScriptsCache = useRef<Map<string, string>>(new Map());
 
 	// Check developer access on mount
 	useEffect(() => {
@@ -203,7 +213,7 @@ export function AMIEditor(): JSX.Element {
 			const newWorker: Worker = created;
 			setWorkers((prev) => [newWorker, ...prev]);
 			setSelectedWorker(newWorker);
-			setCurrentScript(newWorker.value.raw.script);
+			setCurrentScript(newWorker.value.raw.script); // Monaco will auto-format if minified
 			setCurrentNote(newWorker.value.raw.note);
 			setIsEditing(false);
 			setIsEditingNote(false);
@@ -213,7 +223,13 @@ export function AMIEditor(): JSX.Element {
 
 	const handleSelectWorker = (protocol: Worker) => {
 		setSelectedWorker(protocol);
-		setCurrentScript(protocol.value.raw.script);
+
+		// Check if we have a formatted version in cache
+		const cachedFormatted = formattedScriptsCache.current.get(
+			protocol.value.raw.sid,
+		);
+
+		setCurrentScript(cachedFormatted || protocol.value.raw.script);
 		setCurrentNote(protocol.value.raw.note);
 
 		const scope = protocol.value.raw.scope || "local";
@@ -247,6 +263,12 @@ export function AMIEditor(): JSX.Element {
 	const handleEditorChange = (value: string | undefined) => {
 		if (value !== undefined) {
 			setCurrentScript(value);
+
+			// Save formatted version to cache for current worker
+			if (selectedWorker) {
+				formattedScriptsCache.current.set(selectedWorker.value.raw.sid, value);
+			}
+
 			setIsEditing(
 				selectedWorker ? value !== selectedWorker.value.raw.script : false,
 			);
@@ -454,7 +476,9 @@ export function AMIEditor(): JSX.Element {
 					)
 				);
 				setSelectedWorker(result);
-				setCurrentScript(result.value.raw.script);
+				// DON'T update currentScript - keep the formatted version in editor!
+				// Server returns minified code, but user is still editing formatted version
+				// setCurrentScript(result.value.raw.script); // ❌ This would replace formatted code
 				setCurrentNote(result.value.raw.note);
 				setCurrentConfig({
 					scope: result.value.raw.scope || "local",
@@ -1308,53 +1332,76 @@ export function AMIEditor(): JSX.Element {
 													)}
 												</TabsList>
 
-												{(isEditing || isEditingNote || isEditingConfig) && (
-													<TooltipProvider>
-														<div className="flex items-center gap-1">
+												<TooltipProvider>
+													<div className="flex items-center gap-1">
+														{/* Format button - always visible */}
+														{activeTab === "code" && formatCodeFn && (
 															<Tooltip delayDuration={100}>
 																<TooltipTrigger asChild>
 																	<Button
-																		onClick={() => {
-																			resetScript();
-																			resetNote();
-																			resetConfig();
-																		}}
+																		onClick={() =>
+																			formatCodeFn()}
 																		variant="ghost"
 																		size="sm"
-																		className="h-6 w-6 p-0 text-muted-foreground hover:text-amber-700 dark:text-amber-700 dark:text-amber-400"
+																		className="h-6 w-6 p-0 text-muted-foreground hover:text-blue-700 dark:text-blue-400"
 																	>
-																		<RotateCcw className="w-3 h-3" />
+																		<AlignJustify className="w-3 h-3" />
 																	</Button>
 																</TooltipTrigger>
 																<TooltipContent side="bottom">
-																	Revert Changes
+																	Format Code (Prettify)
 																</TooltipContent>
 															</Tooltip>
+														)}
 
-															<Tooltip delayDuration={100}>
-																<TooltipTrigger asChild>
-																	<Button
-																		onClick={handleSaveAll}
-																		size="sm"
-																		className="h-6 px-2 bg-amber-500 hover:bg-amber-600 text-zinc-950 dark:text-black"
-																		disabled={updating}
-																	>
-																		<Save className="w-3 h-3 mr-1" />
-																		<span className="text-[10px] font-bold">
-																			SAVE
-																		</span>
-																		<kbd className="ml-1 px-1 py-0.5 text-[9px] bg-muted/50 rounded border border-border/50">
-																			⌘S
-																		</kbd>
-																	</Button>
-																</TooltipTrigger>
-																<TooltipContent side="bottom">
-																	Save All (⌘S)
-																</TooltipContent>
-															</Tooltip>
-														</div>
-													</TooltipProvider>
-												)}
+														{(isEditing || isEditingNote || isEditingConfig) &&
+															(
+																<>
+																	<Tooltip delayDuration={100}>
+																		<TooltipTrigger asChild>
+																			<Button
+																				onClick={() => {
+																					resetScript();
+																					resetNote();
+																					resetConfig();
+																				}}
+																				variant="ghost"
+																				size="sm"
+																				className="h-6 w-6 p-0 text-muted-foreground hover:text-amber-700 dark:text-amber-700 dark:text-amber-400"
+																			>
+																				<RotateCcw className="w-3 h-3" />
+																			</Button>
+																		</TooltipTrigger>
+																		<TooltipContent side="bottom">
+																			Revert Changes
+																		</TooltipContent>
+																	</Tooltip>
+
+																	<Tooltip delayDuration={100}>
+																		<TooltipTrigger asChild>
+																			<Button
+																				onClick={handleSaveAll}
+																				size="sm"
+																				className="h-6 px-2 bg-amber-500 hover:bg-amber-600 text-zinc-950 dark:text-black"
+																				disabled={updating}
+																			>
+																				<Save className="w-3 h-3 mr-1" />
+																				<span className="text-[10px] font-bold">
+																					SAVE
+																				</span>
+																				<kbd className="ml-1 px-1 py-0.5 text-[9px] bg-muted/50 rounded border border-border/50">
+																					⌘S
+																				</kbd>
+																			</Button>
+																		</TooltipTrigger>
+																		<TooltipContent side="bottom">
+																			Save All (⌘S)
+																		</TooltipContent>
+																	</Tooltip>
+																</>
+															)}
+													</div>
+												</TooltipProvider>
 											</div>
 										</div>
 
@@ -1366,6 +1413,8 @@ export function AMIEditor(): JSX.Element {
 											<EditorComponent
 												script={currentScript}
 												handleEditorChange={handleEditorChange}
+												onEditorReady={(formatFn) =>
+													setFormatCodeFn(() => formatFn)}
 											/>
 										</TabsContent>
 

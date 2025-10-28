@@ -4,20 +4,38 @@ import { useCallback, useEffect, useRef } from "react";
 import type * as monaco from "monaco-editor";
 import { useThemeStore } from "@/stores";
 import { setupWorkerMonacoEditor } from "./monaco/autocomplete.ts";
+import { isMinified } from "@/lib/code-formatter";
 
 interface EditorComponentProps {
 	script: string | undefined;
 	handleEditorChange: (value: string | undefined) => void;
+	onEditorReady?: (formatCode: () => void) => void;
 }
 
 export default function EditorComponent({
 	script,
 	handleEditorChange,
+	onEditorReady,
 }: EditorComponentProps): ReactElement {
 	const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 	const monacoRef = useRef<typeof import("monaco-editor") | null>(null);
 	const disposablesRef = useRef<monaco.IDisposable[]>([]);
+	const formattedScriptsRef = useRef<Set<string>>(new Set()); // Track formatted scripts
+	const isFormattingRef = useRef<boolean>(false); // Track if we're currently formatting
 	const { resolvedTheme } = useThemeStore();
+
+	// Clear formatted scripts cache on mount
+	useEffect(() => {
+		formattedScriptsRef.current.clear();
+	}, []);
+
+	// Wrapper for handleEditorChange that ignores changes during auto-formatting
+	const handleEditorChangeWrapper = useCallback((value: string | undefined) => {
+		// Ignore changes during auto-formatting
+		if (isFormattingRef.current) return;
+
+		handleEditorChange(value);
+	}, [handleEditorChange]);
 
 	// Add global styles for function call highlighting (once on mount)
 	useEffect(() => {
@@ -644,6 +662,14 @@ export default function EditorComponent({
 					},
 				);
 
+				// Provide format function to parent component
+				if (onEditorReady) {
+					const formatCode = (): void => {
+						editor.getAction("editor.action.formatDocument")?.run();
+					};
+					onEditorReady(formatCode);
+				}
+
 				// Cleanup disposables on unmount
 				editor.onDidDispose(() => {
 					disposablesRef.current.forEach((d) => d.dispose());
@@ -653,8 +679,8 @@ export default function EditorComponent({
 				// Prevent page reload on error
 			}
 		},
-		[],
-	); // Empty dependency array - only mount once
+		[onEditorReady],
+	);
 
 	// Update Monaco theme when app theme changes
 	useEffect(() => {
@@ -667,6 +693,49 @@ export default function EditorComponent({
 		console.log("[Monaco] Theme changed to:", themeName);
 	}, [resolvedTheme]);
 
+	// Auto-format minified code when script changes
+	useEffect(() => {
+		if (!script || !editorRef.current) return;
+
+		// Create hash of script to track if it's been formatted
+		const scriptHash = script.substring(0, 50) + script.length +
+			script.substring(script.length - 50);
+
+		// Skip if already formatted this exact script
+		if (formattedScriptsRef.current.has(scriptHash)) {
+			return;
+		}
+
+		// Check if code is minified
+		if (!isMinified(script)) {
+			return;
+		}
+
+		// Mark this script as formatted
+		formattedScriptsRef.current.add(scriptHash);
+
+		// Format after Monaco is ready
+		const formatTimer = setTimeout(() => {
+			if (editorRef.current && monacoRef.current) {
+				// Block onChange events during formatting
+				isFormattingRef.current = true;
+
+				// Format the code
+				editorRef.current.getAction("editor.action.formatDocument")?.run();
+
+				// Update parent with formatted code after formatting completes
+				setTimeout(() => {
+					if (editorRef.current) {
+						handleEditorChange(editorRef.current.getValue());
+					}
+					isFormattingRef.current = false;
+				}, 200);
+			}
+		}, 100);
+
+		return () => clearTimeout(formatTimer);
+	}, [script, handleEditorChange]);
+
 	return (
 		<MonacoEditor
 			width="100%"
@@ -674,7 +743,7 @@ export default function EditorComponent({
 			language="javascript"
 			theme={resolvedTheme === "light" ? "molokai-light" : "molokai-dark"}
 			value={script}
-			onChange={handleEditorChange}
+			onChange={handleEditorChangeWrapper}
 			onMount={handleEditorDidMount}
 			options={{
 				// Appearance - Xcode-inspired professional look

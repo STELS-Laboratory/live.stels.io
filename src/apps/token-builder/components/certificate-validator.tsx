@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
   AlertCircle,
+  Bug,
   Check,
   CheckCircle,
   FileJson,
@@ -24,6 +25,7 @@ import {
   exportCertificate,
   verifyTokenCertificate,
 } from "../signing";
+import { recreateSignatureVerificationData } from "../utils/signature-debugger";
 import type { TokenGenesisCertificate } from "../types";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
@@ -60,6 +62,16 @@ export function CertificateValidator({
       errors: string[];
       type?: "token" | "genesis" | "unknown";
       skippedCrypto?: boolean;
+    } | null
+  >(null);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
+  const [debugData, setDebugData] = useState<
+    {
+      canonical: string;
+      domain: string;
+      message: string;
+      publicKey: string;
+      signature: string;
     } | null
   >(null);
 
@@ -232,6 +244,52 @@ export function CertificateValidator({
     }
   };
 
+  // Debug signature verification data
+  const handleDebugSignature = (): void => {
+    if (!certificate) {
+      console.warn("[Debug] No certificate loaded");
+      return;
+    }
+
+    console.log("\n🔍 === SIGNATURE DEBUG MODE ===");
+
+    // Recreate verification data
+    const data = recreateSignatureVerificationData(certificate);
+    setDebugData(data);
+    setShowDebugInfo(true);
+
+    console.log("Canonical length:", data.canonical.length);
+    console.log("Canonical (first 200):", data.canonical.substring(0, 200));
+    console.log("Domain:", data.domain);
+    console.log("Message length:", data.message.length);
+    console.log("Message (first 300):", data.message.substring(0, 300));
+    console.log("Public Key:", data.publicKey);
+    console.log("Signature:", data.signature);
+
+    // Copy to clipboard for comparison with server
+    const debugOutput = JSON.stringify(
+      {
+        canonical: data.canonical,
+        canonicalLength: data.canonical.length,
+        domain: data.domain,
+        messageLength: data.message.length,
+        messageFirst300: data.message.substring(0, 300),
+        publicKey: data.publicKey,
+        publicKeyLength: data.publicKey.length,
+        signature: data.signature,
+        signatureLength: data.signature.length,
+      },
+      null,
+      2,
+    );
+
+    navigator.clipboard.writeText(debugOutput).then(() => {
+      console.log("✅ Debug data copied to clipboard!");
+    }).catch(() => {
+      console.warn("Failed to copy to clipboard");
+    });
+  };
+
   // Clear all
   const handleClear = (): void => {
     setJsonInput("");
@@ -342,7 +400,17 @@ export function CertificateValidator({
                     className="flex-1 h-7 text-xs bg-blue-500 hover:bg-blue-600 text-white"
                   >
                     <Shield className="w-3 h-3 mr-1" />
-                    {validating ? "Validating..." : "Validate Certificate"}
+                    {validating ? "Validating..." : "Validate"}
+                  </Button>
+                  <Button
+                    onClick={handleDebugSignature}
+                    disabled={!certificate}
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                  >
+                    <Bug className="w-3 h-3 mr-1" />
+                    Debug
                   </Button>
                   <Button
                     onClick={handleClear}
@@ -696,6 +764,113 @@ export function CertificateValidator({
                       >
                         {exportCertificate(certificate, "readable")}
                       </SyntaxHighlighter>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Debug Info */}
+            {showDebugInfo && debugData && (
+              <Card className="border-amber-500/50 bg-amber-500/5">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Bug className="w-4 h-4 text-amber-500" />
+                      Signature Debug Information
+                    </CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowDebugInfo(false)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="space-y-2 text-xs">
+                    <div className="p-2 bg-muted/30 rounded border border-border">
+                      <div className="text-muted-foreground mb-1 font-medium">
+                        Domain:
+                      </div>
+                      <code className="text-foreground font-mono">
+                        {debugData.domain}
+                      </code>
+                    </div>
+
+                    <div className="p-2 bg-muted/30 rounded border border-border">
+                      <div className="text-muted-foreground mb-1 font-medium">
+                        Canonical (length: {debugData.canonical.length}):
+                      </div>
+                      <div className="max-h-32 overflow-y-auto">
+                        <code className="text-[10px] text-foreground font-mono break-all">
+                          {debugData.canonical.substring(0, 500)}
+                          {debugData.canonical.length > 500 && "..."}
+                        </code>
+                      </div>
+                    </div>
+
+                    <div className="p-2 bg-muted/30 rounded border border-border">
+                      <div className="text-muted-foreground mb-1 font-medium">
+                        Message (length: {debugData.message.length}):
+                      </div>
+                      <div className="max-h-32 overflow-y-auto">
+                        <code className="text-[10px] text-foreground font-mono break-all">
+                          {debugData.message.substring(0, 500)}
+                          {debugData.message.length > 500 && "..."}
+                        </code>
+                      </div>
+                    </div>
+
+                    <div className="p-2 bg-muted/30 rounded border border-border">
+                      <div className="text-muted-foreground mb-1 font-medium">
+                        Public Key (kid, length: {debugData.publicKey.length}):
+                      </div>
+                      <code className="text-[10px] text-foreground font-mono break-all">
+                        {debugData.publicKey}
+                      </code>
+                      {debugData.publicKey.length === 130 &&
+                          debugData.publicKey.startsWith("04")
+                        ? (
+                          <div className="text-green-600 dark:text-green-400 mt-1 font-medium">
+                            ✅ Uncompressed format (130 chars, starts with 04)
+                          </div>
+                        )
+                        : (
+                          <div className="text-red-600 dark:text-red-400 mt-1 font-medium">
+                            ❌ Wrong format! Expected 130 chars starting with 04
+                          </div>
+                        )}
+                    </div>
+
+                    <div className="p-2 bg-muted/30 rounded border border-border">
+                      <div className="text-muted-foreground mb-1 font-medium">
+                        Signature (DER hex, length:{" "}
+                        {debugData.signature.length}):
+                      </div>
+                      <code className="text-[10px] text-foreground font-mono break-all">
+                        {debugData.signature}
+                      </code>
+                    </div>
+
+                    <div className="p-3 bg-amber-500/10 rounded border border-amber-500/30">
+                      <p className="text-xs font-medium text-amber-700 dark:text-amber-400 mb-2">
+                        📋 Debug data copied to clipboard!
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Compare this output with server logs to find
+                        discrepancies in:
+                      </p>
+                      <ul className="text-xs text-muted-foreground ml-4 mt-1 space-y-0.5">
+                        <li>
+                          • Canonical serialization (deterministicStringify)
+                        </li>
+                        <li>• Domain separator format</li>
+                        <li>• Public key format (must be uncompressed)</li>
+                        <li>• Message construction (domain + canonical)</li>
+                      </ul>
                     </div>
                   </div>
                 </CardContent>
