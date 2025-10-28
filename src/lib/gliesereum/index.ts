@@ -35,6 +35,7 @@ import {
 	cardNumber as walletCardNumber,
 	getAddressFromPublicKey,
 	verifyPublicKeyAddress as walletVerifyPublicKeyAddress,
+	getUncompressedPublicKey,
 } from "./wallet";
 import {
 	validateFeeFormat,
@@ -106,6 +107,7 @@ export {
 /**
  * Creates a signed transaction
  * ⚠️ CRITICAL: Must match server-side validation exactly
+ * ⚠️ WebFix protocol requires UNCOMPRESSED public keys (130 chars)
  */
 export function createSignedTransaction(
 	wallet: Wallet,
@@ -127,9 +129,12 @@ export function createSignedTransaction(
 		throw new Error("Data size exceeds limit");
 	}
 
+	// CRITICAL: Use UNCOMPRESSED public key for WebFix protocol (130 chars)
+	const uncompressedPubKey = getUncompressedPublicKey(wallet.privateKey);
+
 	const transaction: Omit<Transaction, "signature" | "hash"> = {
 		from: {
-			publicKey: wallet.publicKey,
+			publicKey: uncompressedPubKey,
 			address: wallet.address,
 			number: wallet.number,
 		},

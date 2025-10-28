@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { createWallet, importWallet, createSignedTransaction, type Wallet } from '@/lib/gliesereum';
+import { createWallet, importWallet, createSignedTransaction, getUncompressedPublicKey, type Wallet } from '@/lib/gliesereum';
 import { clearAllStorage, clearAppStorage } from '@/lib/storage-cleaner';
 import { useWebSocketStore } from '@/hooks/use_web_socket_store';
 
@@ -251,25 +251,36 @@ export const useAuthStore = create<AuthStore>()(
 							JSON.stringify(loginData) // data
 						);
 						
-						// Prepare connection payload
-						const connectionPayload = {
-							webfix: "1.0",
-							method: "connectionNode",
-							params: ["gliesereum"],
-							body: {
-								network: selectedNetwork.id,
-								title: "heterogen",
-								nid: generateNodeId(),
-								payload: {
-									webfix: "1.0",
-									method: "connectionNode",
-									params: ["gliesereum"],
-									body: {
-										transaction: signedTransaction,
-										walletAddress: wallet.address,
-										publicKey: wallet.publicKey
-									}
-								},
+					// CRITICAL: Use UNCOMPRESSED public key (130 chars) for WebFix protocol
+					// WebFix requires uncompressed format for signature verification
+					const uncompressedPublicKey = getUncompressedPublicKey(wallet.privateKey);
+					
+					console.log('[Auth] ═══════════════════════════════════════');
+					console.log('[Auth] Wallet public key (compressed):', wallet.publicKey);
+					console.log('[Auth] Uncompressed public key:', uncompressedPublicKey);
+					console.log('[Auth] Compressed length:', wallet.publicKey.length);
+					console.log('[Auth] Uncompressed length:', uncompressedPublicKey.length);
+					console.log('[Auth] ═══════════════════════════════════════');
+					
+					// Prepare connection payload
+					const connectionPayload = {
+						webfix: "1.0",
+						method: "connectionNode",
+						params: ["gliesereum"],
+						body: {
+							network: selectedNetwork.id,
+							title: "heterogen",
+							nid: generateNodeId(),
+							payload: {
+								webfix: "1.0",
+								method: "connectionNode",
+								params: ["gliesereum"],
+								body: {
+									transaction: signedTransaction,
+									walletAddress: wallet.address,
+									publicKey: uncompressedPublicKey
+								}
+							},
 								transport: "websocket",
 								connector: {
 									protocols: ["webfix"],
