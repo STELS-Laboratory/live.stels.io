@@ -92,6 +92,23 @@ export function usePublishCertificate(): PublishState & {
           network: certificate.network.name,
           apiUrl: connectionSession.api,
         });
+        
+        console.log("[PublishCertificate] ═══════════════════════════════════════");
+        console.log("[PublishCertificate] Request body.publicKey:", request.body.publicKey);
+        console.log("[PublishCertificate] Request body.publicKey length:", request.body.publicKey.length);
+        console.log("[PublishCertificate] Request body.signature:", request.body.signature);
+        console.log("[PublishCertificate] Request body.address:", request.body.address);
+        console.log("[PublishCertificate] genesis.token.issuer.public_key:", certificate.token.issuer.public_key);
+        console.log("[PublishCertificate] genesis.signatures.signers[0].kid:", certificate.signatures.signers[0].kid);
+        console.log("[PublishCertificate] genesis.signatures.signers[0].sig:", certificate.signatures.signers[0].sig);
+        console.log("[PublishCertificate] All three public keys match:", 
+          request.body.publicKey === certificate.token.issuer.public_key &&
+          certificate.token.issuer.public_key === certificate.signatures.signers[0].kid
+        );
+        console.log("[PublishCertificate] Signatures match:", 
+          request.body.signature === certificate.signatures.signers[0].sig
+        );
+        console.log("[PublishCertificate] ═══════════════════════════════════════");
 
         // Send to server with session header
         const response = await fetch(connectionSession.api, {

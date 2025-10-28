@@ -25,7 +25,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { navigateTo } from "@/lib/router.ts";
-import { useAppStore } from "@/stores";
+import { useAppStore, useAuthStore } from "@/stores";
+import { useMobile } from "@/hooks/use_mobile";
 
 interface DevTool {
   key: string;
@@ -49,6 +50,9 @@ const DEV_TOOLS: DevTool[] = [
 export default function AppTabs(): ReactElement {
   const { apps, activeAppId, setActiveApp, closeApp } = useOpenAppsStore();
   const { currentRoute, allowedRoutes } = useAppStore();
+  const connectionSession = useAuthStore((state) => state.connectionSession);
+  const isDeveloper = connectionSession?.developer ?? false;
+  const mobile = useMobile();
 
   const handleTabClick = (appId: string): void => {
     // Set as active - Welcome will auto-open it
@@ -75,7 +79,7 @@ export default function AppTabs(): ReactElement {
 
   return (
     <TooltipProvider>
-      <div className="flex items-center gap-1 px-2 py-1.5 border-b border-border bg-card/30">
+      <div className="flex items-center gap-1 px-2 h-12 border-b border-border bg-card/30 overflow-x-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
         {/* Home button - Widget Store */}
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
@@ -85,7 +89,7 @@ export default function AppTabs(): ReactElement {
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
               className={`
-                flex items-center justify-center w-8 h-8 rounded transition-colors duration-200
+                flex items-center justify-center w-8 h-8 rounded transition-colors duration-200 flex-shrink-0
                 ${
                 isOnWelcome
                   ? "bg-amber-500/20 text-amber-700 dark:text-amber-400"
@@ -96,18 +100,20 @@ export default function AppTabs(): ReactElement {
               <Home className="w-4 h-4" />
             </motion.button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">
-            <div className="flex flex-col gap-1">
-              <span className="font-semibold">Widget Store</span>
-              <span className="text-muted-foreground">
-                Browse and launch apps · ⌘0
-              </span>
-            </div>
-          </TooltipContent>
+          {!mobile && (
+            <TooltipContent side="bottom">
+              <div className="flex flex-col gap-1">
+                <span className="font-semibold">Widget Store</span>
+                <span className="text-muted-foreground">
+                  Browse and launch apps · ⌘0
+                </span>
+              </div>
+            </TooltipContent>
+          )}
         </Tooltip>
 
-        {/* Development Tools */}
-        {availableDevTools.length > 0 && (
+        {/* Development Tools - Only for developers */}
+        {isDeveloper && availableDevTools.length > 0 && (
           <>
             <div className="h-6 w-px bg-border mx-1" />
 
@@ -124,7 +130,7 @@ export default function AppTabs(): ReactElement {
                       whileTap={{ scale: 0.95 }}
                       transition={{ duration: 0.15, ease: "easeOut" }}
                       className={`
-                        relative flex items-center justify-center w-8 h-8 rounded transition-colors duration-200
+                        relative flex items-center justify-center w-8 h-8 rounded transition-colors duration-200 flex-shrink-0
                         ${
                         isActive
                           ? "bg-muted text-foreground"
@@ -146,16 +152,18 @@ export default function AppTabs(): ReactElement {
                       )}
                     </motion.button>
                   </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    <div className="flex flex-col gap-1">
-                      <span className="font-semibold">{tool.name}</span>
-                      {tool.shortcut && (
-                        <span className="text-muted-foreground">
-                          Development Tool · ⌘⇧{tool.shortcut}
-                        </span>
-                      )}
-                    </div>
-                  </TooltipContent>
+                  {!mobile && (
+                    <TooltipContent side="bottom">
+                      <div className="flex flex-col gap-1">
+                        <span className="font-semibold">{tool.name}</span>
+                        {tool.shortcut && (
+                          <span className="text-muted-foreground">
+                            Development Tool · ⌘⇧{tool.shortcut}
+                          </span>
+                        )}
+                      </div>
+                    </TooltipContent>
+                  )}
                 </Tooltip>
               );
             })}
@@ -163,7 +171,9 @@ export default function AppTabs(): ReactElement {
         )}
 
         {/* Separator before user agents */}
-        {apps.length > 0 && <div className="h-6 w-px bg-border mx-1" />}
+        {apps.length > 0 && (
+          <div className="h-6 w-px bg-border mx-1 flex-shrink-0" />
+        )}
 
         {/* User Agent tabs */}
         {apps.map((app, index) => {
@@ -182,7 +192,7 @@ export default function AppTabs(): ReactElement {
                   whileTap={{ scale: 0.98 }}
                   transition={{ duration: 0.15, ease: "easeOut" }}
                   className={`
-                    group relative flex items-center gap-2 px-3 py-2 rounded transition-colors duration-200 cursor-pointer
+                    group relative flex items-center gap-2 px-3 py-2 rounded transition-colors duration-200 cursor-pointer flex-shrink-0
                     ${
                     isActive
                       ? "bg-muted text-foreground"
@@ -195,7 +205,7 @@ export default function AppTabs(): ReactElement {
 
                   {/* App name */}
                   <span className="text-xs font-medium max-w-[100px] truncate">
-                    {app.name}
+                    {app.displayName || app.name}
                   </span>
 
                   {/* Active indicator */}
@@ -215,30 +225,38 @@ export default function AppTabs(): ReactElement {
                     }}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    className="p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-150 hover:bg-red-500/20 hover:text-red-500"
+                    className={`p-0.5 rounded transition-opacity duration-150 hover:bg-red-500/20 hover:text-red-500 ${
+                      mobile
+                        ? "opacity-100"
+                        : "opacity-0 group-hover:opacity-100"
+                    }`}
                     title="Close agent"
                   >
                     <X className="w-3 h-3" />
                   </motion.button>
 
-                  {/* Keyboard shortcut badge */}
-                  {shortcut && !isActive && (
+                  {/* Keyboard shortcut badge - hide on mobile */}
+                  {!mobile && shortcut && !isActive && (
                     <span className="text-[9px] text-muted-foreground font-mono opacity-0 group-hover:opacity-50 transition-opacity duration-150">
                       {shortcut}
                     </span>
                   )}
                 </motion.div>
               </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-xs">
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold">{app.name}</span>
-                  <span className="text-muted-foreground">
-                    User Agent ·{" "}
-                    {app.type === "static" ? "Container" : "Widget"}
-                    {shortcut && ` · ${shortcut}`}
-                  </span>
-                </div>
-              </TooltipContent>
+              {!mobile && (
+                <TooltipContent side="bottom" className="text-xs">
+                  <div className="flex flex-col gap-1">
+                    <span className="font-semibold">
+                      {app.displayName || app.name}
+                    </span>
+                    <span className="text-muted-foreground">
+                      User Agent ·{" "}
+                      {app.type === "static" ? "Container" : "Widget"}
+                      {shortcut && ` · ${shortcut}`}
+                    </span>
+                  </div>
+                </TooltipContent>
+              )}
             </Tooltip>
           );
         })}

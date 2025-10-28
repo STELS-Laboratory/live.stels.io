@@ -76,7 +76,8 @@ export async function resolveSchemaRefs(
   node: UINode,
   store: SchemaStore,
   depth: number = 0,
-  maxDepth: number = 10
+  maxDepth: number = 10,
+  parentSelfChannel?: string
 ): Promise<UINode> {
   // Prevent infinite recursion
   if (depth >= maxDepth) {
@@ -99,12 +100,16 @@ export async function resolveSchemaRefs(
         };
       }
 
+      // Determine self channel for nested schema
+      const nestedSelfChannel = node.selfChannel || parentSelfChannel;
+
       // Recursively resolve the loaded schema
       const resolvedChild = await resolveSchemaRefs(
         schemaData.schema,
         store,
         depth + 1,
         maxDepth,
+        nestedSelfChannel
       );
 
       // Merge parent node's className and style with resolved schema
@@ -140,7 +145,7 @@ export async function resolveSchemaRefs(
   if (node.children && node.children.length > 0) {
     const resolvedChildren = await Promise.all(
       node.children.map((child) =>
-        resolveSchemaRefs(child, store, depth, maxDepth)
+        resolveSchemaRefs(child, store, depth, maxDepth, parentSelfChannel)
       )
     );
 

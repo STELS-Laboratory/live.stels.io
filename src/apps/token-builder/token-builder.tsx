@@ -3,7 +3,7 @@
  * Professional tool for creating Web Tokens in STELS network
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useMobile } from "@/hooks/use_mobile";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -357,13 +357,16 @@ const MetadataStep = React.memo(function MetadataStep(): React.ReactElement {
         <Input
           id="symbol"
           value={schema.metadata?.symbol || ""}
-          onChange={(e) =>
+          onChange={(e) => {
+            const cleaned = e.target.value.toUpperCase().replace(/[^A-Z]/g, "");
             updateMetadata({
-              symbol: sanitizeInput(e.target.value.toUpperCase()),
-            })}
-          placeholder="e.g., MTK"
-          className="h-8 text-xs"
-          maxLength={12}
+              symbol: sanitizeInput(cleaned),
+            });
+          }}
+          placeholder="e.g., TOKEN (3-5 letters)"
+          className="h-8 text-xs uppercase"
+          maxLength={5}
+          minLength={3}
         />
         {errors["metadata.symbol"] && (
           <p className="text-xs text-red-500 mt-1">
@@ -1086,10 +1089,61 @@ function TokenBuilder(): React.ReactElement {
   const nextStep = useTokenBuilderStore((state) => state.nextStep);
   const previousStep = useTokenBuilderStore((state) => state.previousStep);
   const resetBuilder = useTokenBuilderStore((state) => state.resetBuilder);
+  const validateSchema = useTokenBuilderStore((state) => state.validateSchema);
 
   // Local state for validator
   const [showValidator, setShowValidator] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+
+  // Auto-validate schema whenever it changes
+  useEffect(() => {
+    validateSchema();
+  }, [schema, validateSchema]);
+
+  /**
+   * Check if current step is valid (memoized to prevent infinite loops)
+   * Does NOT call validateSchema() to avoid triggering re-renders
+   */
+  const isCurrentStepValid = useMemo(() => {
+    // Define required fields for each step
+    const stepRequirements: Record<number, string[]> = {
+      0: ["standard"], // Step 1: Standard Selection
+      1: [ // Step 2: Token Information
+        "metadata.name",
+        "metadata.symbol",
+        "metadata.description",
+      ],
+      2: [ // Step 3: Economics
+        "economics.supply.initial",
+        "economics.supply.mintingPolicy",
+      ],
+      3: [], // Step 4: Optional features (all optional)
+      4: [], // Step 5: Review (no validation needed)
+    };
+
+    const requiredFields = stepRequirements[currentStep] || [];
+    const stepErrors = requiredFields.filter((field) => field in errors);
+
+    // Additional validation for symbol
+    if (currentStep === 1 && schema.metadata?.symbol) {
+      const symbol = schema.metadata.symbol.trim().toUpperCase();
+      if (symbol.length < 3 || symbol.length > 5 || !/^[A-Z]+$/.test(symbol)) {
+        return false;
+      }
+    }
+
+    return stepErrors.length === 0;
+  }, [currentStep, errors, schema.metadata?.symbol]);
+
+  /**
+   * Handle next step with validation
+   */
+  const handleNextStep = useCallback((): void => {
+    // Validation happens automatically in useEffect
+    if (isCurrentStepValid) {
+      nextStep();
+    }
+  }, [isCurrentStepValid, nextStep]);
 
   // Mobile warning
   if (mobile) {
@@ -1284,9 +1338,9 @@ function TokenBuilder(): React.ReactElement {
         <Button
           variant="default"
           size="sm"
-          onClick={nextStep}
-          disabled={currentStep === steps.length - 1}
-          className="h-7 text-xs bg-amber-500 hover:bg-amber-600 text-black font-bold"
+          onClick={handleNextStep}
+          disabled={currentStep === steps.length - 1 || !isCurrentStepValid}
+          className="h-7 text-xs bg-amber-500 hover:bg-amber-600 text-black font-bold disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Next
           <ChevronRight className="w-3 h-3 ml-1" />

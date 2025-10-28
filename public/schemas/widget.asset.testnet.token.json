@@ -1,0 +1,1279 @@
+{
+  "type": "container",
+  "className": "min-h-screen bg-background",
+  "children": [
+    {
+      "type": "container",
+      "className": "max-w-6xl mx-auto p-6",
+      "children": [
+        {
+          "type": "container",
+          "className": "relative flex items-start gap-6 mb-8 pb-6 border-b-2 border-border",
+          "children": [
+            {
+              "type": "container",
+              "className": "w-24 h-24 rounded bg-gradient-to-br from-amber-500/20 via-amber-600/10 to-amber-500/5 border border-amber-500/40 p-3 flex items-center justify-center flex-shrink-0 transition-all duration-300 hover:scale-105 hover:border-amber-500/60 hover:shadow-lg hover:shadow-amber-500/20",
+              "children": [
+                {
+                  "type": "img",
+                  "src": "{self.raw.genesis.token.metadata.icon}",
+                  "alt": "{self.raw.genesis.token.metadata.symbol}",
+                  "className": "max-w-full max-h-full object-contain drop-shadow-lg"
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "flex-1 min-w-0",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "{self.raw.genesis.token.metadata.name}",
+                  "className": "text-3xl font-bold text-foreground mb-2 tracking-tight"
+                },
+                {
+                  "type": "text",
+                  "text": "{self.raw.genesis.token.metadata.description}",
+                  "className": "text-base text-muted-foreground mb-4 leading-relaxed"
+                },
+                {
+                  "type": "container",
+                  "className": "flex flex-wrap items-center gap-2",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "{self.raw.genesis.token.metadata.symbol}",
+                      "className": "px-4 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm font-bold rounded-lg shadow-md shadow-amber-500/30 transition-all duration-200 hover:shadow-lg hover:shadow-amber-500/40 hover:scale-105"
+                    },
+                    {
+                      "type": "text",
+                      "text": "{self.raw.genesis.token.standard}",
+                      "className": "px-3 py-1.5 bg-card border border-border text-sm text-foreground rounded-lg font-semibold uppercase transition-all duration-200 hover:border-foreground/50 hover:bg-background"
+                    },
+                    {
+                      "type": "text",
+                      "text": "{self.status}",
+                      "className": "px-3 py-1.5 bg-gradient-to-r from-amber-500/10 to-amber-600/10 border border-amber-500/30 text-amber-600 dark:text-amber-500 text-sm font-semibold rounded-lg uppercase transition-all duration-300 hover:from-amber-500/20 hover:to-amber-600/20"
+                    },
+                    {
+                      "type": "text",
+                      "text": "Chain {self.raw.genesis.network.chain_id}",
+                      "className": "px-3 py-1.5 bg-background border border-border text-xs font-mono text-foreground rounded-lg transition-all duration-200 hover:border-foreground/50"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "container",
+          "className": "mb-8 bg-gradient-to-br from-card via-card/95 to-card/90 border border-border rounded overflow-hidden transition-all duration-300 hover:shadow-2xl hover:border-foreground/20",
+          "children": [
+            {
+              "type": "container",
+              "className": "px-6 py-4 bg-gradient-to-r from-foreground/5 via-foreground/3 to-transparent border-b-2 border-border flex items-center justify-between",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "📊 Live Market Data",
+                  "className": "text-base font-bold text-foreground uppercase tracking-wide"
+                },
+                {
+                  "type": "text",
+                  "text": "Real-time prices",
+                  "className": "text-xs text-muted-foreground font-mono animate-pulse"
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border",
+              "children": [
+                {
+                  "type": "container",
+                  "className": "group p-6 hover:bg-gradient-to-br hover:from-orange-500/5 hover:to-transparent transition-all duration-300 cursor-pointer",
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "flex items-center justify-between mb-4",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "BTC/USDT",
+                          "className": "text-sm font-bold text-foreground uppercase tracking-wide"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{btc_ticker.raw.exchange}",
+                          "className": "px-2 py-0.5 bg-background border border-border text-xs font-mono text-muted-foreground rounded uppercase"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "text": "${btc_ticker.raw.data.last}",
+                      "format": {
+                        "type": "number",
+                        "decimals": 1
+                      },
+                      "className": "text-3xl font-bold text-foreground mb-2 group-hover:text-orange-500 transition-colors"
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex items-center gap-2 mb-3",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "{btc_ticker.raw.data.percentage}%",
+                          "format": {
+                            "type": "number",
+                            "decimals": 2
+                          },
+                          "className": "px-2 py-1 text-sm font-bold rounded",
+                          "style": {
+                            "className": {
+                              "condition": {
+                                "key": "btc_ticker.raw.data.change",
+                                "operator": ">",
+                                "value": 0
+                              },
+                              "true": "bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-500",
+                              "false": "bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-500"
+                            }
+                          }
+                        },
+                        {
+                          "type": "text",
+                          "text": "{btc_ticker.raw.data.change}",
+                          "format": {
+                            "type": "number",
+                            "decimals": 1,
+                            "prefix": "$"
+                          },
+                          "className": "text-sm font-semibold",
+                          "style": {
+                            "color": {
+                              "condition": {
+                                "key": "btc_ticker.raw.data.change",
+                                "operator": ">",
+                                "value": 0
+                              },
+                              "true": "#00C853",
+                              "false": "#D50000"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "space-y-2 text-sm",
+                      "children": [
+                        {
+                          "type": "container",
+                          "className": "flex justify-between",
+                          "children": [
+                            {
+                              "type": "text",
+                              "text": "Volume 24h",
+                              "className": "text-muted-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "text": "{btc_ticker.raw.data.baseVolume} BTC",
+                              "format": {
+                                "type": "volume",
+                                "decimals": 2
+                              },
+                              "className": "font-mono text-foreground font-semibold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "container",
+                          "className": "flex justify-between",
+                          "children": [
+                            {
+                              "type": "text",
+                              "text": "Quote Volume",
+                              "className": "text-muted-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "text": "${btc_ticker.raw.data.quoteVolume}",
+                              "format": {
+                                "type": "volume",
+                                "decimals": 0
+                              },
+                              "className": "font-mono text-foreground font-semibold"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "container",
+                  "className": "group p-6 hover:bg-gradient-to-br hover:from-blue-500/5 hover:to-transparent transition-all duration-300 cursor-pointer",
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "flex items-center justify-between mb-4",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "ETH/USDT",
+                          "className": "text-sm font-bold text-foreground uppercase tracking-wide"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{eth_ticker.raw.exchange}",
+                          "className": "px-2 py-0.5 bg-background border border-border text-xs font-mono text-muted-foreground rounded uppercase"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "text": "${eth_ticker.raw.data.last}",
+                      "format": {
+                        "type": "number",
+                        "decimals": 2
+                      },
+                      "className": "text-3xl font-bold text-foreground mb-2 group-hover:text-blue-500 transition-colors"
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex items-center gap-2 mb-3",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "{eth_ticker.raw.data.percentage}%",
+                          "format": {
+                            "type": "number",
+                            "decimals": 2
+                          },
+                          "className": "px-2 py-1 text-sm font-bold rounded",
+                          "style": {
+                            "className": {
+                              "condition": {
+                                "key": "eth_ticker.raw.data.change",
+                                "operator": ">",
+                                "value": 0
+                              },
+                              "true": "bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-500",
+                              "false": "bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-500"
+                            }
+                          }
+                        },
+                        {
+                          "type": "text",
+                          "text": "{eth_ticker.raw.data.change}",
+                          "format": {
+                            "type": "number",
+                            "decimals": 2,
+                            "prefix": "$"
+                          },
+                          "className": "text-sm font-semibold",
+                          "style": {
+                            "color": {
+                              "condition": {
+                                "key": "eth_ticker.raw.data.change",
+                                "operator": ">",
+                                "value": 0
+                              },
+                              "true": "#00C853",
+                              "false": "#D50000"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "space-y-2 text-sm",
+                      "children": [
+                        {
+                          "type": "container",
+                          "className": "flex justify-between",
+                          "children": [
+                            {
+                              "type": "text",
+                              "text": "Volume 24h",
+                              "className": "text-muted-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "text": "{eth_ticker.raw.data.baseVolume} ETH",
+                              "format": {
+                                "type": "volume",
+                                "decimals": 2
+                              },
+                              "className": "font-mono text-foreground font-semibold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "container",
+                          "className": "flex justify-between",
+                          "children": [
+                            {
+                              "type": "text",
+                              "text": "Quote Volume",
+                              "className": "text-muted-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "text": "${eth_ticker.raw.data.quoteVolume}",
+                              "format": {
+                                "type": "volume",
+                                "decimals": 0
+                              },
+                              "className": "font-mono text-foreground font-semibold"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "container",
+                  "className": "group p-6 hover:bg-gradient-to-br hover:from-purple-500/5 hover:to-transparent transition-all duration-300 cursor-pointer",
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "flex items-center justify-between mb-4",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "SOL/USDT",
+                          "className": "text-sm font-bold text-foreground uppercase tracking-wide"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{sol_ticker.raw.exchange}",
+                          "className": "px-2 py-0.5 bg-background border border-border text-xs font-mono text-muted-foreground rounded uppercase"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "text": "${sol_ticker.raw.data.last}",
+                      "format": {
+                        "type": "number",
+                        "decimals": 2
+                      },
+                      "className": "text-3xl font-bold text-foreground mb-2 group-hover:text-purple-500 transition-colors"
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex items-center gap-2 mb-3",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "{sol_ticker.raw.data.percentage}%",
+                          "format": {
+                            "type": "number",
+                            "decimals": 2
+                          },
+                          "className": "px-2 py-1 text-sm font-bold rounded",
+                          "style": {
+                            "className": {
+                              "condition": {
+                                "key": "sol_ticker.raw.data.change",
+                                "operator": ">",
+                                "value": 0
+                              },
+                              "true": "bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-500",
+                              "false": "bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-500"
+                            }
+                          }
+                        },
+                        {
+                          "type": "text",
+                          "text": "{sol_ticker.raw.data.change}",
+                          "format": {
+                            "type": "number",
+                            "decimals": 2,
+                            "prefix": "$"
+                          },
+                          "className": "text-sm font-semibold",
+                          "style": {
+                            "color": {
+                              "condition": {
+                                "key": "sol_ticker.raw.data.change",
+                                "operator": ">",
+                                "value": 0
+                              },
+                              "true": "#00C853",
+                              "false": "#D50000"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "space-y-2 text-sm",
+                      "children": [
+                        {
+                          "type": "container",
+                          "className": "flex justify-between",
+                          "children": [
+                            {
+                              "type": "text",
+                              "text": "Volume 24h",
+                              "className": "text-muted-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "text": "{sol_ticker.raw.data.baseVolume} SOL",
+                              "format": {
+                                "type": "volume",
+                                "decimals": 2
+                              },
+                              "className": "font-mono text-foreground font-semibold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "container",
+                          "className": "flex justify-between",
+                          "children": [
+                            {
+                              "type": "text",
+                              "text": "Quote Volume",
+                              "className": "text-muted-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "text": "${sol_ticker.raw.data.quoteVolume}",
+                              "format": {
+                                "type": "volume",
+                                "decimals": 0
+                              },
+                              "className": "font-mono text-foreground font-semibold"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "container",
+          "className": "grid grid-cols-2 md:grid-cols-5 gap-4 mb-8",
+          "children": [
+            {
+              "type": "container",
+              "className": "group bg-gradient-to-br from-card to-card/50 border border-border rounded p-4 transition-all duration-300 hover:scale-105 hover:border-amber-500/50 hover:shadow-lg cursor-pointer",
+              "events": {
+                "onClick": {
+                  "type": "openModal",
+                  "payload": {
+                    "modalId": "economics-details",
+                    "channel": "asset.testnet.token:sha256:d9c4910432e1152b20fa0190e456bf6b912243da500a86aa678aafe626c0e118.ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv",
+                    "width": "600px",
+                    "backdrop": "blur",
+                    "closeOnBackdrop": true
+                  }
+                }
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Initial Supply",
+                  "className": "text-xs text-muted-foreground uppercase tracking-wider mb-2 group-hover:text-amber-500 transition-colors"
+                },
+                {
+                  "type": "text",
+                  "text": "{self.raw.genesis.token.economics.supply.initial}",
+                  "format": {
+                    "type": "volume",
+                    "decimals": 0
+                  },
+                  "className": "text-2xl font-bold text-foreground block mb-1 group-hover:text-amber-500 transition-colors"
+                },
+                {
+                  "type": "text",
+                  "text": "{self.raw.genesis.token.metadata.symbol}",
+                  "className": "text-xs text-muted-foreground font-medium"
+                },
+                {
+                  "type": "text",
+                  "text": "Click for details",
+                  "className": "text-xs text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity mt-2"
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "group bg-gradient-to-br from-card to-card/50 border border-border rounded p-4 transition-all duration-300 hover:scale-105 hover:border-blue-500/50 hover:shadow-lg cursor-pointer",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Max Supply",
+                  "className": "text-xs text-muted-foreground uppercase tracking-wider mb-2 group-hover:text-blue-500 transition-colors"
+                },
+                {
+                  "type": "text",
+                  "text": "{self.raw.genesis.token.economics.supply.max}",
+                  "format": {
+                    "type": "volume",
+                    "decimals": 0
+                  },
+                  "className": "text-2xl font-bold text-foreground block mb-1 group-hover:text-blue-500 transition-colors"
+                },
+                {
+                  "type": "text",
+                  "text": "{self.raw.genesis.token.metadata.symbol}",
+                  "className": "text-xs text-muted-foreground font-medium"
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "group bg-gradient-to-br from-card to-card/50 border border-border rounded p-4 transition-all duration-300 hover:scale-105 hover:border-purple-500/50 hover:shadow-lg",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Decimals",
+                  "className": "text-xs text-muted-foreground uppercase tracking-wider mb-2 group-hover:text-purple-500 transition-colors"
+                },
+                {
+                  "type": "text",
+                  "text": "{self.raw.genesis.token.metadata.decimals}",
+                  "className": "text-2xl font-bold text-foreground block group-hover:text-purple-500 transition-colors"
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "group bg-gradient-to-br from-card to-card/50 border border-border rounded p-4 transition-all duration-300 hover:scale-105 hover:border-green-500/50 hover:shadow-lg",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Minting",
+                  "className": "text-xs text-muted-foreground uppercase tracking-wider mb-2 group-hover:text-green-500 transition-colors"
+                },
+                {
+                  "type": "text",
+                  "text": "{self.raw.genesis.token.economics.supply.mintingPolicy}",
+                  "className": "text-2xl font-bold text-foreground uppercase block group-hover:text-green-500 transition-colors"
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "group bg-gradient-to-br from-card to-card/50 border border-border rounded p-4 transition-all duration-300 hover:scale-105 hover:border-cyan-500/50 hover:shadow-lg",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Size",
+                  "className": "text-xs text-muted-foreground uppercase tracking-wider mb-2 group-hover:text-cyan-500 transition-colors"
+                },
+                {
+                  "type": "text",
+                  "text": "{self.raw.genesis.content.size}",
+                  "format": {
+                    "type": "number",
+                    "decimals": 0
+                  },
+                  "className": "text-2xl font-bold text-foreground block mb-1 group-hover:text-cyan-500 transition-colors"
+                },
+                {
+                  "type": "text",
+                  "text": "bytes",
+                  "className": "text-xs text-muted-foreground font-medium"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "container",
+          "className": "grid grid-cols-1 md:grid-cols-2 gap-6 mb-8",
+          "children": [
+            {
+              "type": "container",
+              "className": "group bg-card border border-border rounded overflow-hidden transition-all duration-300 hover:border-amber-500/50 hover:shadow-xl hover:shadow-amber-500/10",
+              "events": {
+                "onClick": {
+                  "type": "openModal",
+                  "payload": {
+                    "modalId": "issuer-details",
+                    "channel": "asset.testnet.token:sha256:d9c4910432e1152b20fa0190e456bf6b912243da500a86aa678aafe626c0e118.ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv",
+                    "width": "700px",
+                    "backdrop": "blur",
+                    "closeOnBackdrop": true
+                  }
+                }
+              },
+              "children": [
+                {
+                  "type": "container",
+                  "className": "px-6 py-4 bg-gradient-to-r from-amber-500/10 to-transparent border-b-2 border-border flex items-center justify-between group-hover:from-amber-500/20 transition-all duration-300",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "Issuer",
+                      "className": "text-sm font-bold text-foreground uppercase tracking-wide"
+                    },
+                    {
+                      "type": "text",
+                      "text": "Click for full details",
+                      "className": "text-xs text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    }
+                  ]
+                },
+                {
+                  "type": "container",
+                  "className": "p-6 space-y-4",
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 rounded-lg hover:bg-background/50 transition-colors",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Organization",
+                          "className": "text-sm text-muted-foreground font-medium"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.genesis.token.issuer.org}",
+                          "className": "text-sm font-bold text-foreground"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "p-3 bg-background/50 rounded-lg border border-border",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Address",
+                          "className": "text-xs text-muted-foreground mb-2 uppercase tracking-wide"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.genesis.token.issuer.address}",
+                          "className": "text-sm font-mono text-foreground block"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "group bg-card border border-border rounded overflow-hidden transition-all duration-300 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10",
+              "children": [
+                {
+                  "type": "container",
+                  "className": "px-6 py-4 bg-gradient-to-r from-blue-500/10 to-transparent border-b-2 border-border group-hover:from-blue-500/20 transition-all duration-300",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "Network",
+                      "className": "text-sm font-bold text-foreground uppercase tracking-wide"
+                    }
+                  ]
+                },
+                {
+                  "type": "container",
+                  "className": "p-6 space-y-3",
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 rounded-lg hover:bg-background/50 transition-colors",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Name",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.genesis.network.name}",
+                          "className": "text-sm font-semibold text-foreground"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 rounded-lg hover:bg-background/50 transition-colors",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Chain ID",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.genesis.network.chain_id}",
+                          "className": "text-sm font-bold text-blue-500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 rounded-lg hover:bg-background/50 transition-colors",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Environment",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.genesis.network.environment}",
+                          "className": "text-sm font-mono text-foreground"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "container",
+          "className": "grid grid-cols-1 md:grid-cols-3 gap-6 mb-8",
+          "children": [
+            {
+              "type": "container",
+              "className": "group bg-card border border-border rounded overflow-hidden transition-all duration-300 hover:border-purple-500/50 hover:shadow-xl hover:shadow-purple-500/10 hover:-translate-y-1",
+              "events": {
+                "onClick": {
+                  "type": "openModal",
+                  "payload": {
+                    "modalId": "protocol-details",
+                    "channel": "asset.testnet.token:sha256:d9c4910432e1152b20fa0190e456bf6b912243da500a86aa678aafe626c0e118.ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv",
+                    "width": "800px",
+                    "maxHeight": "80vh",
+                    "backdrop": "blur",
+                    "closeOnBackdrop": true
+                  }
+                }
+              },
+              "children": [
+                {
+                  "type": "container",
+                  "className": "px-5 py-3 bg-gradient-to-r from-purple-500/10 to-transparent border-b-2 border-border group-hover:from-purple-500/20 transition-all duration-300",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "Protocol",
+                      "className": "text-sm font-bold text-foreground uppercase tracking-wide"
+                    }
+                  ]
+                },
+                {
+                  "type": "container",
+                  "className": "p-5 space-y-2.5",
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-2 rounded-lg hover:bg-background/50 transition-colors",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "TX",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.genesis.protocol.tx_version}",
+                          "className": "text-sm font-mono text-foreground font-semibold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-2 rounded-lg hover:bg-background/50 transition-colors",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "VM",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.genesis.protocol.vm_version}",
+                          "className": "text-sm font-mono text-foreground font-semibold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-2 rounded-lg hover:bg-background/50 transition-colors",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Canon",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.genesis.protocol.canonicalization}",
+                          "className": "text-sm font-mono text-foreground font-semibold"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "group bg-card border border-border rounded overflow-hidden transition-all duration-300 hover:border-green-500/50 hover:shadow-xl hover:shadow-green-500/10 hover:-translate-y-1",
+              "events": {
+                "onClick": {
+                  "type": "openModal",
+                  "payload": {
+                    "modalId": "crypto-details",
+                    "channel": "asset.testnet.token:sha256:d9c4910432e1152b20fa0190e456bf6b912243da500a86aa678aafe626c0e118.ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv",
+                    "width": "700px",
+                    "backdrop": "blur",
+                    "closeOnBackdrop": true
+                  }
+                }
+              },
+              "children": [
+                {
+                  "type": "container",
+                  "className": "px-5 py-3 bg-gradient-to-r from-green-500/10 to-transparent border-b-2 border-border group-hover:from-green-500/20 transition-all duration-300",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "Cryptography",
+                      "className": "text-sm font-bold text-foreground uppercase tracking-wide"
+                    }
+                  ]
+                },
+                {
+                  "type": "container",
+                  "className": "p-5 space-y-2.5",
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-2 rounded-lg hover:bg-background/50 transition-colors",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Wallet",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.genesis.wallet_protocol.name}",
+                          "className": "text-sm font-mono text-foreground font-semibold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-2 rounded-lg hover:bg-background/50 transition-colors",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Sign",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "secp256k1",
+                          "className": "text-sm font-mono text-foreground font-semibold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-2 rounded-lg hover:bg-background/50 transition-colors",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Hash",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.genesis.wallet_protocol.hash_alg}",
+                          "className": "text-sm font-mono text-foreground font-semibold"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "group bg-card border border-border rounded overflow-hidden transition-all duration-300 hover:border-orange-500/50 hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-1",
+              "children": [
+                {
+                  "type": "container",
+                  "className": "px-5 py-3 bg-gradient-to-r from-orange-500/10 to-transparent border-b-2 border-border group-hover:from-orange-500/20 transition-all duration-300",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "Network Fees",
+                      "className": "text-sm font-bold text-foreground uppercase tracking-wide"
+                    }
+                  ]
+                },
+                {
+                  "type": "container",
+                  "className": "p-5 space-y-2.5",
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-2 rounded-lg hover:bg-background/50 transition-colors",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Base",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.genesis.parameters.fees.base}",
+                          "className": "text-sm font-mono text-foreground font-semibold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-2 rounded-lg hover:bg-background/50 transition-colors",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Per Byte",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.genesis.parameters.fees.per_byte}",
+                          "className": "text-sm font-mono text-foreground font-semibold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-2 rounded-lg hover:bg-background/50 transition-colors",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Currency",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.genesis.parameters.fees.currency}",
+                          "className": "text-sm font-bold text-orange-500"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "container",
+          "className": "group bg-gradient-to-br from-green-500/5 via-green-600/5 to-emerald-500/5 border border-green-500/30 rounded overflow-hidden mb-8 transition-all duration-500 hover:border-green-500/50 hover:shadow-2xl hover:shadow-green-500/20 hover:scale-[1.02]",
+          "events": {
+            "onClick": {
+              "type": "openModal",
+              "payload": {
+                "modalId": "signatures-verification",
+                "channel": "asset.testnet.token:sha256:d9c4910432e1152b20fa0190e456bf6b912243da500a86aa678aafe626c0e118.ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv",
+                "width": "900px",
+                "maxHeight": "90vh",
+                "backdrop": "dark",
+                "closeOnBackdrop": true
+              }
+            }
+          },
+          "children": [
+            {
+              "type": "container",
+              "className": "px-6 py-4 bg-gradient-to-r from-green-500/20 to-transparent border-b-2 border-green-500/30 flex items-center justify-between",
+              "children": [
+                {
+                  "type": "container",
+                  "className": "flex items-center gap-3",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "✓",
+                      "className": "text-2xl text-green-600 dark:text-green-500 font-bold animate-pulse"
+                    },
+                    {
+                      "type": "text",
+                      "text": "Digital Signatures",
+                      "className": "text-base font-bold text-foreground uppercase tracking-wide"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": "Threshold: {self.raw.genesis.signatures.threshold.type}",
+                  "className": "px-3 py-1 bg-green-500/20 border border-green-500/40 text-xs font-mono text-green-600 dark:text-green-500 rounded-lg uppercase font-bold"
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "p-6",
+              "children": [
+                {
+                  "type": "container",
+                  "className": "space-y-4",
+                  "iterate": {
+                    "source": "self.raw.genesis.signatures.signers"
+                  },
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "p-5 bg-gradient-to-br from-background/80 to-background/40 border border-green-500/20 rounded transition-all duration-300 hover:border-green-500/40 hover:shadow-lg hover:shadow-green-500/10",
+                      "children": [
+                        {
+                          "type": "container",
+                          "className": "flex items-center gap-3 mb-4",
+                          "children": [
+                            {
+                              "type": "text",
+                              "text": "✓",
+                              "className": "text-xl text-green-600 dark:text-green-500 font-bold"
+                            },
+                            {
+                              "type": "text",
+                              "text": "Authorized Signatory",
+                              "className": "text-sm font-bold text-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "text": "{$item.alg}",
+                              "className": "px-2 py-1 bg-green-500/20 border border-green-500/40 text-green-600 dark:text-green-500 text-xs font-mono rounded ml-auto"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "container",
+                          "className": "space-y-4",
+                          "children": [
+                            {
+                              "type": "container",
+                              "className": "p-3 bg-background/80 border border-border rounded-lg transition-all duration-200 hover:border-foreground/30",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "text": "Public Key Identifier",
+                                  "className": "text-xs text-muted-foreground mb-2 uppercase tracking-wide"
+                                },
+                                {
+                                  "type": "text",
+                                  "text": "{$item.kid}",
+                                  "className": "text-xs font-mono text-foreground break-all leading-relaxed block"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "container",
+                              "className": "p-3 bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/30 rounded-lg transition-all duration-200 hover:border-green-500/50",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "text": "Digital Signature (DER-encoded)",
+                                  "className": "text-xs text-green-600 dark:text-green-500 mb-2 uppercase tracking-wide font-semibold"
+                                },
+                                {
+                                  "type": "text",
+                                  "text": "{$item.sig}",
+                                  "className": "text-xs font-mono text-green-600 dark:text-green-500 break-all leading-relaxed block font-semibold"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": "💡 Click to verify signatures",
+                  "className": "text-xs text-center text-green-600 dark:text-green-500 mt-3 opacity-0 group-hover:opacity-100 transition-opacity block"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "container",
+          "className": "grid grid-cols-1 md:grid-cols-3 gap-6 mb-8",
+          "children": [
+            {
+              "type": "container",
+              "className": "group bg-card border border-border rounded p-5 transition-all duration-300 hover:border-cyan-500/50 hover:shadow-xl hover:shadow-cyan-500/10 cursor-pointer",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Token ID",
+                  "className": "text-xs text-muted-foreground uppercase tracking-wider mb-3 group-hover:text-cyan-500 transition-colors"
+                },
+                {
+                  "type": "text",
+                  "text": "{self.raw.genesis.token.id}",
+                  "className": "text-xs font-mono text-foreground break-all leading-relaxed block p-3 bg-background/50 border border-border rounded-lg group-hover:border-cyan-500/30 transition-colors"
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "group bg-card border border-border rounded p-5 transition-all duration-300 hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/10 cursor-pointer",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Content Hash",
+                  "className": "text-xs text-muted-foreground uppercase tracking-wider mb-3 group-hover:text-indigo-500 transition-colors"
+                },
+                {
+                  "type": "text",
+                  "text": "{self.raw.genesis.content.hash}",
+                  "className": "text-xs font-mono text-foreground break-all leading-relaxed block p-3 bg-background/50 border border-border rounded-lg group-hover:border-indigo-500/30 transition-colors"
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "group bg-card border border-border rounded p-5 transition-all duration-300 hover:border-pink-500/50 hover:shadow-xl hover:shadow-pink-500/10 cursor-pointer",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Treasury",
+                  "className": "text-xs text-muted-foreground uppercase tracking-wider mb-3 group-hover:text-pink-500 transition-colors"
+                },
+                {
+                  "type": "text",
+                  "text": "{self.raw.genesis.parameters.treasury_address}",
+                  "className": "text-xs font-mono text-foreground break-all block p-3 bg-background/50 border border-border rounded-lg group-hover:border-pink-500/30 transition-colors"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "container",
+          "className": "bg-card border border-border rounded overflow-hidden mb-8 transition-all duration-300 hover:shadow-xl",
+          "children": [
+            {
+              "type": "container",
+              "className": "px-6 py-4 bg-gradient-to-r from-foreground/5 to-transparent border-b-2 border-border",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Timestamps",
+                  "className": "text-sm font-bold text-foreground uppercase tracking-wide"
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border",
+              "children": [
+                {
+                  "type": "container",
+                  "className": "p-6 hover:bg-background/50 transition-colors",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "Created At",
+                      "className": "text-sm text-muted-foreground mb-2 uppercase tracking-wide"
+                    },
+                    {
+                      "type": "text",
+                      "text": "{self.raw.genesis.token.created_at}",
+                      "format": {
+                        "type": "datetime"
+                      },
+                      "className": "text-base font-mono text-foreground font-semibold"
+                    }
+                  ]
+                },
+                {
+                  "type": "container",
+                  "className": "p-6 hover:bg-background/50 transition-colors",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "Activation Time",
+                      "className": "text-sm text-muted-foreground mb-2 uppercase tracking-wide"
+                    },
+                    {
+                      "type": "text",
+                      "text": "{self.raw.genesis.token.activation_time}",
+                      "format": {
+                        "type": "datetime"
+                      },
+                      "className": "text-base font-mono text-foreground font-semibold"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "container",
+          "className": "group relative overflow-hidden p-6 bg-gradient-to-br from-green-500/10 via-emerald-500/10 to-green-600/5 border border-green-500/40 rounded transition-all duration-500 hover:border-green-500/60 hover:shadow-2xl hover:shadow-green-500/30",
+          "children": [
+            {
+              "type": "container",
+              "className": "absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-500/20 to-transparent rounded-bl-full transition-all duration-500 group-hover:scale-150 group-hover:opacity-50",
+              "children": []
+            },
+            {
+              "type": "container",
+              "className": "relative z-10",
+              "children": [
+                {
+                  "type": "container",
+                  "className": "flex items-center gap-4 mb-3",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "✓",
+                      "className": "text-3xl text-green-600 dark:text-green-500 font-bold drop-shadow-lg animate-pulse"
+                    },
+                    {
+                      "type": "text",
+                      "text": "Certificate Cryptographically Verified",
+                      "className": "text-lg font-bold text-green-600 dark:text-green-500"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": "This token certificate has been cryptographically signed and verified on the STELS network using {self.raw.genesis.wallet_protocol.sign_alg} with {self.raw.genesis.wallet_protocol.hash_alg} hashing. All signatures comply with canonical DER encoding standards with lowS enforcement.",
+                  "className": "text-sm text-muted-foreground leading-relaxed"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

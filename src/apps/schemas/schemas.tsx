@@ -84,23 +84,26 @@ export default function Schemas(): ReactElement {
 
   // Load schemas callback
   const loadSchemas = useCallback(async (): Promise<void> => {
+    console.log("[Schemas] loadSchemas called");
     try {
       const loadedSchemas = await getAllSchemas();
       setSchemas(loadedSchemas);
+      console.log("[Schemas] Schemas loaded:", loadedSchemas.length);
 
       // Select first schema by default
       if (loadedSchemas.length > 0 && !activeSchemaId && loadedSchemas[0]) {
+        console.log("[Schemas] Auto-selecting first schema");
         setActiveSchemaId(loadedSchemas[0].id);
       }
     } catch (error) {
-      console.error("Failed to load schemas:", error);
+      console.error("[Schemas] Failed to load schemas:", error);
     }
-  }, [activeSchemaId]);
+  }, []); // Remove activeSchemaId dependency to prevent loop
 
   // Load schemas from IndexedDB on mount
   useEffect(() => {
     loadSchemas();
-  }, [loadSchemas]);
+  }, []); // Only run once on mount
 
   // Get active schema
   const activeSchema = useMemo(() => {
@@ -137,55 +140,52 @@ export default function Schemas(): ReactElement {
 
   // Load active schema into editor
   useEffect(() => {
-    if (activeSchema) {
-      // Only reload if this is a different schema (ID changed)
-      const schemaIdChanged = lastLoadedSchemaId !== activeSchema.id;
-
-      if (schemaIdChanged) {
-        console.log("[Schemas] Loading new schema:", activeSchema.name);
-        setSchemaJson(JSON.stringify(activeSchema.schema, null, 2));
-        setSelectedChannels(activeSchema.channelKeys);
-        setSelectedNestedSchemas(activeSchema.nestedSchemas || []);
-
-        // Auto-generate aliases if not set
-        const existingAliases = activeSchema.channelAliases || [];
-        if (
-          existingAliases.length === 0 && activeSchema.channelKeys.length > 0
-        ) {
-          const generated = autoGenerateAliases(activeSchema.channelKeys);
-          setChannelAliases(generated);
-        } else {
-          setChannelAliases(existingAliases);
-        }
-
-        // Restore self channel from schema or use first channel as default
-        const restoredSelfKey = activeSchema.selfChannelKey ||
-          (activeSchema.channelKeys.length > 0
-            ? activeSchema.channelKeys[0]
-            : null);
-
-        console.log("[Schemas] Restoring selfChannelKey:", {
-          saved: activeSchema.selfChannelKey,
-          restored: restoredSelfKey,
-          schemaName: activeSchema.name,
-        });
-
-        setSelfChannelKey(restoredSelfKey);
-        setLastLoadedSchemaId(activeSchema.id);
-      } else {
-        console.log("[Schemas] Same schema reloaded, preserving state");
-        // Schema reloaded but ID same - preserve user's current state
-        // Don't reset selfChannelKey or other fields
-      }
-    } else {
+    // Only trigger when activeSchemaId changes
+    if (!activeSchemaId) {
       setSchemaJson("");
       setSelectedChannels([]);
       setSelectedNestedSchemas([]);
       setChannelAliases([]);
       setSelfChannelKey(null);
       setLastLoadedSchemaId(null);
+      return;
     }
-  }, [activeSchema, autoGenerateAliases, lastLoadedSchemaId]);
+
+    // Skip if this is the same schema already loaded
+    if (lastLoadedSchemaId === activeSchemaId) {
+      return;
+    }
+
+    // Find schema by ID
+    const currentSchema = schemas.find((s) => s.id === activeSchemaId);
+
+    if (currentSchema) {
+      console.log("[Schemas] Loading new schema:", currentSchema.name);
+      setSchemaJson(JSON.stringify(currentSchema.schema, null, 2));
+      setSelectedChannels(currentSchema.channelKeys);
+      setSelectedNestedSchemas(currentSchema.nestedSchemas || []);
+
+      // Auto-generate aliases if not set
+      const existingAliases = currentSchema.channelAliases || [];
+      if (
+        existingAliases.length === 0 && currentSchema.channelKeys.length > 0
+      ) {
+        const generated = autoGenerateAliases(currentSchema.channelKeys);
+        setChannelAliases(generated);
+      } else {
+        setChannelAliases(existingAliases);
+      }
+
+      // Restore self channel from schema or use first channel as default
+      const restoredSelfKey = currentSchema.selfChannelKey ||
+        (currentSchema.channelKeys.length > 0
+          ? currentSchema.channelKeys[0]
+          : null);
+
+      setSelfChannelKey(restoredSelfKey);
+      setLastLoadedSchemaId(activeSchemaId);
+    }
+  }, [activeSchemaId]); // Only depend on activeSchemaId change
 
   // Parse schema from JSON
   const parsedSchema = useMemo<UINode | null>(() => {
@@ -212,8 +212,25 @@ export default function Schemas(): ReactElement {
 
     const result: ChannelData[] = [];
 
-    // Add "self" channel if selfChannelKey is set
-    const selfKey = selfChannelKey || selectedChannels[0];
+    // Add "self" channel - prioritize selfChannelKey, then first selected channel
+    let selfKey: string | null = null;
+
+    if (selfChannelKey) {
+      // Check if selfChannelKey is a direct channel
+      if (session[selfChannelKey]) {
+        selfKey = selfChannelKey;
+      } else {
+        // Check if selfChannelKey is an alias
+        const aliasObj = channelAliases.find((a) => a.alias === selfChannelKey);
+        if (aliasObj && session[aliasObj.channelKey]) {
+          selfKey = aliasObj.channelKey;
+        }
+      }
+    } else if (selectedChannels.length > 0 && session[selectedChannels[0]]) {
+      // Fallback to first selected channel
+      selfKey = selectedChannels[0];
+    }
+
     if (selfKey) {
       const selfData = session[selfKey];
       if (selfData && typeof selfData === "object") {
@@ -359,10 +376,12 @@ export default function Schemas(): ReactElement {
 
       await saveSchema(updatedSchema);
 
-      console.log("[Schemas] Schema saved, reloading schemas...");
-      await loadSchemas();
+      console.log("[Schemas] Schema saved successfully");
 
-      console.log("[Schemas] Schemas reloaded");
+      // Update local state instead of reloading from DB
+      setSchemas((prevSchemas) =>
+        prevSchemas.map((s) => (s.id === updatedSchema.id ? updatedSchema : s))
+      );
 
       // Show info about auto-detected schemas
       if (autoDetectedSchemas.length > 0) {
@@ -398,9 +417,8 @@ export default function Schemas(): ReactElement {
     channelAliases,
     selfChannelKey,
     selectedNestedSchemas,
-    loadSchemas,
     showToast,
-  ]);
+  ]); // Remove loadSchemas to prevent infinite loop
 
   // Handle delete schema
   const handleDeleteSchema = useCallback(

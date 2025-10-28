@@ -61,6 +61,18 @@ const INITIAL_STEPS: WizardStep[] = [
 
 const INITIAL_SCHEMA: Partial<TokenSchema> = {
   version: "1.0.0",
+  standard: "fungible", // Default standard
+  metadata: {
+    name: "",
+    symbol: "",
+    decimals: 6,
+  },
+  economics: {
+    supply: {
+      initial: "",
+      mintingPolicy: "fixed",
+    },
+  },
   technical: {
     network: "STELS Test Network",
     chainId: 2,

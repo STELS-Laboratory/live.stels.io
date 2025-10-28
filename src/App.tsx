@@ -12,6 +12,7 @@ import SessionProvider from "@/components/main/provider";
 import { useUrlRouter } from "@/hooks/use_url_router";
 import { RouteLoader } from "@/components/main/route_loader";
 import { useAuthRestore } from "@/hooks/use_auth_restore";
+import { useAssetList } from "@/hooks/use_asset_list";
 import { useHydration } from "@/hooks/use_hydration";
 import { useTheme } from "@/hooks/use_theme";
 import { AnimatePresence, motion } from "framer-motion";
@@ -21,6 +22,7 @@ import { ProfessionalConnectionFlow } from "@/components/auth/professional_conne
 import { SecurityWarningDialog } from "@/components/auth/security_warning_dialog";
 import { SecurityWarningExtensions } from "@/components/auth/security_warning_extensions";
 import { SessionExpiredModal } from "@/components/auth/session_expired_modal";
+import UpdatePrompt from "@/components/main/update_prompt";
 
 // Lazy-loaded app modules
 const Welcome = lazy(() => import("@/apps/welcome"));
@@ -207,6 +209,9 @@ export default function Dashboard(): React.ReactElement {
 
 	// Initialize automatic authentication restoration
 	useAuthRestore();
+
+	// Load asset list after authentication
+	const { assets, loading: assetsLoading, error: assetsError } = useAssetList();
 
 	// Authentication state monitoring effect
 	// This effect specifically monitors for authentication changes and forces re-authentication
@@ -691,6 +696,9 @@ export default function Dashboard(): React.ReactElement {
 		showSplash,
 		isTransitioning,
 		transitionProgress,
+		assetsCount: assets.length,
+		assetsLoading,
+		assetsError,
 	});
 
 	// Render based on app state
@@ -777,6 +785,8 @@ export default function Dashboard(): React.ReactElement {
 						<SecurityWarningExtensions />
 						{/* Session expired blocking modal */}
 						<SessionExpiredModal />
+						{/* PWA update prompt */}
+						<UpdatePrompt />
 					</TooltipProvider>
 				</SessionProvider>
 			);

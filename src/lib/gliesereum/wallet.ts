@@ -124,7 +124,14 @@ export function getUncompressedPublicKey(privateKey: string): string {
 	}
 
 	const keyPair = EC.keyFromPrivate(privateKey, "hex");
-	return keyPair.getPublic(false, "hex"); // Uncompressed (130 chars)
+	const uncompressed = keyPair.getPublic(false, "hex"); // Uncompressed (130 chars)
+	
+	console.log("[getUncompressedPublicKey] Private key (first 16):", privateKey.substring(0, 16));
+	console.log("[getUncompressedPublicKey] Uncompressed public key:", uncompressed);
+	console.log("[getUncompressedPublicKey] Length:", uncompressed.length);
+	console.log("[getUncompressedPublicKey] Starts with:", uncompressed.substring(0, 2));
+	
+	return uncompressed;
 }
 
 /**

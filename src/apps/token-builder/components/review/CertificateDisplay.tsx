@@ -3,7 +3,7 @@
  * Shows created certificate with export options
  */
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check, Coins, Download, Loader2, Upload } from "lucide-react";
@@ -30,6 +30,49 @@ export const CertificateDisplay = React.memo(
     const connectionSession = useAuthStore((state) => state.connectionSession);
 
     const [isPublished, setIsPublished] = useState(false);
+    const [autoPublishAttempted, setAutoPublishAttempted] = useState(false);
+
+    // Auto-publish certificate immediately after creation
+    useEffect(() => {
+      if (
+        certificate && isConnected && !isPublished && !autoPublishAttempted &&
+        !isPublishing
+      ) {
+        console.log(
+          "[CertificateDisplay] Auto-publishing certificate to network...",
+        );
+        setAutoPublishAttempted(true);
+
+        publish(certificate)
+          .then((result) => {
+            if (result.success) {
+              setIsPublished(true);
+              showSuccess(
+                "Token Published!",
+                `Token ${certificate.token.metadata.symbol} published to ${certificate.network.name}`,
+              );
+            } else {
+              console.error(
+                "[CertificateDisplay] Auto-publish failed:",
+                result.message,
+              );
+              // Don't show error to user - they can manually publish
+            }
+          })
+          .catch((error) => {
+            console.error("[CertificateDisplay] Auto-publish error:", error);
+            // Don't show error to user - they can manually publish
+          });
+      }
+    }, [
+      certificate,
+      isConnected,
+      isPublished,
+      autoPublishAttempted,
+      isPublishing,
+      publish,
+      showSuccess,
+    ]);
 
     // Don't show if no certificate
     if (!certificate) return null;

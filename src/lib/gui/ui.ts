@@ -7,6 +7,8 @@ import React, { createContext, useContext, useState, useCallback, useMemo, useEf
 export interface FormatConfig {
   type: "number" | "volume" | "datetime" | "time";
   decimals?: number;
+  prefix?: string;
+  suffix?: string;
 }
 
 export interface Condition {
@@ -43,11 +45,14 @@ export interface UINode {
   style?: Record<string, unknown>;
   children?: UINode[];
   text?: string;
+  src?: string; // For image elements
+  alt?: string; // For image elements
   format?: FormatConfig;
   condition?: Condition;
   iterate?: IterateConfig;
   refreshInterval?: number;
   schemaRef?: string; // Reference to another schema by widget key
+  selfChannel?: string; // Channel to use as "self" for nested schema
   events?: {
     onClick?: Action;
     onDoubleClick?: Action;
@@ -449,23 +454,63 @@ const getValue = (obj: unknown, path: string): unknown => {
 };
 
 const formatValue = (value: unknown, format: FormatConfig): string => {
-  const num = parseFloat(String(value));
+  let formatted: string;
 
   switch (format.type) {
-    case "number":
-      return num.toFixed(format.decimals ?? 0);
-    case "volume":
-      if (num >= 1e9) return `${(num / 1e9).toFixed(format.decimals)}B`;
-      if (num >= 1e6) return `${(num / 1e6).toFixed(format.decimals)}M`;
-      if (num >= 1e3) return `${(num / 1e3).toFixed(format.decimals)}K`;
-      return num.toFixed(format.decimals);
-    case "datetime":
-      return new Date(num).toLocaleString();
-    case "time":
-      return new Date(num).toLocaleTimeString();
+    case "number": {
+      const num = parseFloat(String(value));
+      formatted = num.toFixed(format.decimals ?? 0);
+      break;
+    }
+    case "volume": {
+      const num = parseFloat(String(value));
+      if (num >= 1e9) formatted = `${(num / 1e9).toFixed(format.decimals)}B`;
+      else if (num >= 1e6) formatted = `${(num / 1e6).toFixed(format.decimals)}M`;
+      else if (num >= 1e3) formatted = `${(num / 1e3).toFixed(format.decimals)}K`;
+      else formatted = num.toFixed(format.decimals);
+      break;
+    }
+    case "datetime": {
+      // Handle both ISO 8601 strings and Unix timestamps (in milliseconds)
+      const stringValue = String(value);
+      let date: Date;
+      
+      if (/^\d+$/.test(stringValue)) {
+        // Pure number - treat as Unix timestamp in milliseconds
+        date = new Date(parseFloat(stringValue));
+      } else {
+        // ISO 8601 string or other date format
+        date = new Date(stringValue);
+      }
+      
+      formatted = date.toLocaleString();
+      break;
+    }
+    case "time": {
+      // Handle both ISO 8601 strings and Unix timestamps (in milliseconds)
+      const stringValue = String(value);
+      let date: Date;
+      
+      if (/^\d+$/.test(stringValue)) {
+        // Pure number - treat as Unix timestamp in milliseconds
+        date = new Date(parseFloat(stringValue));
+      } else {
+        // ISO 8601 string or other date format
+        date = new Date(stringValue);
+      }
+      
+      formatted = date.toLocaleTimeString();
+      break;
+    }
     default:
-      return String(value);
+      formatted = String(value);
   }
+
+  // Add prefix and suffix if specified
+  if (format.prefix) formatted = format.prefix + formatted;
+  if (format.suffix) formatted = formatted + format.suffix;
+
+  return formatted;
 };
 
 const interpolate = (
@@ -633,6 +678,43 @@ const resolveStyle = (
   return resolved as React.CSSProperties;
 };
 
+const resolveConditionalProps = (
+  node: UINode,
+  data: Record<string, unknown>,
+  item?: unknown,
+): { className?: string; style?: React.CSSProperties } => {
+  let resolvedClassName = node.className;
+  const resolvedStyle = node.style ? resolveStyle(node.style, data, item) : undefined;
+
+  // Handle conditional className from style.className
+  if (node.style && "className" in node.style) {
+    const classNameValue = node.style.className;
+    if (
+      typeof classNameValue === "object" &&
+      classNameValue !== null &&
+      "condition" in classNameValue &&
+      "true" in classNameValue &&
+      "false" in classNameValue
+    ) {
+      const condValue = classNameValue as {
+        condition: Condition;
+        true: string;
+        false: string;
+      };
+      const conditionalClasses = evaluateCondition(condValue.condition, data, item)
+        ? condValue.true
+        : condValue.false;
+      
+      // Combine base className with conditional classes
+      resolvedClassName = resolvedClassName 
+        ? `${resolvedClassName} ${conditionalClasses}`
+        : conditionalClasses;
+    }
+  }
+
+  return { className: resolvedClassName, style: resolvedStyle };
+};
+
 // ============================================================================
 // Main UIRenderer Component (Optimized & Professional)
 // ============================================================================
@@ -666,13 +748,34 @@ export const UIRenderer: React.FC<{
         return null;
       }
 
-      const { type, className, style, children, text, iterate, events } = node;
-      const Element = type as keyof React.JSX.IntrinsicElements;
-
-      // Resolve dynamic styles
-      const resolvedStyle = style
-        ? resolveStyle(style, data, iterationItem)
-        : undefined;
+      const { type, children, text, src, alt, iterate, events } = node;
+      
+      // Resolve dynamic styles and conditional className
+      const { className: resolvedClassName, style: resolvedStyle } = resolveConditionalProps(
+        node,
+        data,
+        iterationItem,
+      );
+      
+      // Map abstract types to HTML elements
+      // text elements with block-like classes should be div, not span
+      let elementType: string;
+      if (type === 'container') {
+        elementType = 'div';
+      } else if (type === 'text') {
+        // Check if className has block-level properties
+        const hasBlockClass = resolvedClassName && (
+          resolvedClassName.includes('block') ||
+          resolvedClassName.includes('flex') ||
+          resolvedClassName.includes('grid') ||
+          /\b(m[tblrxy]?|p[tblrxy]?)-/.test(resolvedClassName) // margin/padding classes
+        );
+        elementType = hasBlockClass ? 'div' : 'span';
+      } else {
+        elementType = type;
+      }
+      
+      const Element = elementType as keyof React.JSX.IntrinsicElements;
 
       // Process text content with interpolation and formatting
       let content: string | null = null;
@@ -692,6 +795,15 @@ export const UIRenderer: React.FC<{
         } else {
           content = interpolate(text, data, iterationItem);
         }
+      }
+
+      // Process image attributes with interpolation
+      const imgProps: Record<string, string> = {};
+      if (src) {
+        imgProps.src = interpolate(src, data, iterationItem);
+      }
+      if (alt) {
+        imgProps.alt = interpolate(alt, data, iterationItem);
       }
 
       // Handle array iteration
@@ -741,13 +853,26 @@ export const UIRenderer: React.FC<{
         };
       }
 
+      // Void elements (img, input, br, hr, etc.) cannot have children
+      const voidElements = ['img', 'input', 'br', 'hr', 'meta', 'link', 'area', 'base', 'col', 'embed', 'param', 'source', 'track', 'wbr'];
+      const isVoidElement = voidElements.includes(elementType);
+
       // Create React element with all props
-      return React.createElement(
-        Element,
-        { key: index, className, style: resolvedStyle, ...eventHandlers },
-        content,
-        childNodes,
-      );
+      if (isVoidElement) {
+        // Void elements: no content, no children
+        return React.createElement(
+          Element,
+          { key: index, className: resolvedClassName, style: resolvedStyle, ...imgProps, ...eventHandlers },
+        );
+      } else {
+        // Regular elements: can have content and children
+        return React.createElement(
+          Element,
+          { key: index, className: resolvedClassName, style: resolvedStyle, ...imgProps, ...eventHandlers },
+          content,
+          childNodes,
+        );
+      }
     },
     [data, dispatcher],
   );

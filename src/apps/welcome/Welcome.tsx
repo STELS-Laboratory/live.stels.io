@@ -8,6 +8,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { UIEngineProvider, UIRenderer } from "@/lib/gui/ui.ts";
@@ -21,6 +22,7 @@ import {
   Boxes,
   Calendar,
   Code,
+  Coins,
   FileText,
   Layers,
   Layout as LayoutIcon,
@@ -36,13 +38,22 @@ import ErrorBoundary from "@/apps/schemas/error_boundary";
 import AppLauncher from "@/components/main/app_launcher";
 import { useOpenAppsStore } from "@/stores/modules/open_apps.ts";
 import { useRestoreOpenApps } from "@/hooks/use_restore_open_apps.ts";
+import { useDefaultSchemas } from "@/hooks/use_default_schemas.ts";
+import { useAuthStore } from "@/stores";
+import { useAssetList } from "@/hooks/use_asset_list";
 
 /**
  * STELS Application Hub - Build and launch autonomous AI web agents
  */
 function Welcome(): ReactElement {
   const session = useSessionStoreSync() as Record<string, unknown> | null;
+  const connectionSession = useAuthStore((state) => state.connectionSession);
+  const isDeveloper = connectionSession?.developer ?? false;
   const [schemas, setSchemas] = useState<SchemaProject[]>([]);
+
+  // Load asset list from server
+  const { assets, refetch: refetchAssets } = useAssetList();
+
   const [selectedSchema, setSelectedSchema] = useState<SchemaProject | null>(
     null,
   );
@@ -54,12 +65,75 @@ function Welcome(): ReactElement {
   const [isLoading, setIsLoading] = useState(true);
   const [launchStep, setLaunchStep] = useState(0);
   const [isLaunching, setIsLaunching] = useState(false);
+
+  // Refetch assets when returning to Welcome screen (only once)
+  const hasRefetchedRef = useRef(false);
+  useEffect(() => {
+    if (!selectedSchema && !isLoading && !hasRefetchedRef.current) {
+      // User is on Welcome screen - refetch asset list once
+      console.log("[Welcome] Returning to Welcome, refetching asset list...");
+      hasRefetchedRef.current = true;
+      refetchAssets();
+    }
+
+    // Reset flag when user navigates away
+    if (selectedSchema) {
+      hasRefetchedRef.current = false;
+    }
+  }, [selectedSchema, isLoading, refetchAssets]);
+
+  // Sync server assets to sessionStorage
+  useEffect(() => {
+    if (assets.length > 0) {
+      console.log(
+        "[Welcome] Syncing",
+        assets.length,
+        "assets from server to sessionStorage",
+      );
+
+      assets.forEach((asset) => {
+        try {
+          const channelKey = asset.channel.toLowerCase();
+          const existing = sessionStorage.getItem(channelKey);
+
+          // Only update if data is different (avoid unnecessary writes)
+          const newData = JSON.stringify(asset);
+          if (existing !== newData) {
+            sessionStorage.setItem(channelKey, newData);
+            console.log("[Welcome] Updated sessionStorage for:", channelKey);
+          }
+        } catch (error) {
+          console.error(
+            "[Welcome] Failed to sync asset to sessionStorage:",
+            error,
+          );
+        }
+      });
+    }
+  }, [assets]);
+
+  // Debug: Log session updates and assets
+  useEffect(() => {
+    if (session) {
+      const assetCount = Object.keys(session).filter((key) =>
+        key.startsWith("asset.testnet.token:")
+      ).length;
+      console.log(
+        "[Welcome] Session updated - session assets count:",
+        assetCount,
+      );
+      console.log("[Welcome] Server assets count:", assets.length);
+    }
+  }, [session, assets]);
   const openApp = useOpenAppsStore((state) => state.openApp);
   const apps = useOpenAppsStore((state) => state.apps);
   const activeAppId = useOpenAppsStore((state) => state.activeAppId);
 
   // Restore open apps from previous session
   useRestoreOpenApps();
+
+  // Load default schemas from public/schemas/
+  const defaultSchemasState = useDefaultSchemas();
 
   // Auto-open active app on mount or when activeAppId changes
   useEffect(() => {
@@ -79,10 +153,47 @@ function Welcome(): ReactElement {
     const activeApp = apps.find((app) => app.id === activeAppId);
 
     // If there's an active app and it's not currently selected, open it
-    if (activeApp && selectedAppId !== activeAppId && !isLaunching) {
-      const schema = schemas.find((s) => s.id === activeApp.schemaId);
+    // CRITICAL: Check schemas.length > 0 to prevent infinite loop
+    if (
+      activeApp && selectedAppId !== activeAppId && !isLaunching &&
+      schemas.length > 0
+    ) {
+      // Find schema - check both regular schemas and virtual token schemas
+      let schema: SchemaProject | undefined;
+
+      if (activeApp.channelKey && session) {
+        // For virtual schemas (tokens), recreate from template
+        const templateSchema = schemas.find(
+          (s) => s.widgetKey === "widget.asset.testnet.token",
+        );
+
+        if (templateSchema) {
+          // Recreate virtual schema for this token
+          schema = {
+            ...templateSchema,
+            id: `virtual-${activeApp.channelKey}`,
+            channelKeys: [activeApp.channelKey],
+            selfChannelKey: activeApp.channelKey,
+            channelAliases: templateSchema.channelAliases || [],
+            displayName: activeApp.displayName,
+          } as SchemaProject;
+        }
+      }
+
+      if (!schema) {
+        // Fallback to regular schemas
+        schema = schemas.find((s) => s.id === activeApp.schemaId);
+      }
+
       if (schema) {
-        console.log("[Welcome] Auto-opening active app:", schema.name);
+        console.log(
+          "[Welcome] Auto-opening active app:",
+          activeApp.displayName || schema.name,
+          {
+            channelKey: activeApp.channelKey,
+            schemaId: activeApp.schemaId,
+          },
+        );
 
         // Open app immediately without launcher animation
         const openAppImmediately = async (): Promise<void> => {
@@ -102,6 +213,9 @@ function Welcome(): ReactElement {
             const resolved = await resolveSchemaRefs(
               schema.schema,
               schemaStore,
+              0, // depth
+              10, // maxDepth
+              schema.selfChannelKey || undefined, // Pass self channel
             );
             const requiredChannels = await collectRequiredChannels(
               schema.schema,
@@ -120,7 +234,7 @@ function Welcome(): ReactElement {
         openAppImmediately();
       }
     }
-  }, [activeAppId, apps, schemas, selectedAppId, isLaunching]);
+  }, [activeAppId, apps, selectedAppId, isLaunching, schemas, session]); // Add session for virtual schemas
 
   // Watch for app closure from tabs - if current app is closed, return to hub
   useEffect(() => {
@@ -139,12 +253,28 @@ function Welcome(): ReactElement {
     }
   }, [apps, selectedAppId]);
 
-  // Load all schemas from IndexedDB
+  // Load all schemas from IndexedDB (after default schemas are loaded)
   useEffect(() => {
+    // Wait for default schemas to finish loading
+    if (defaultSchemasState.isLoading) {
+      return;
+    }
+
     const loadSchemas = async (): Promise<void> => {
       try {
         const allSchemas = await getAllSchemas();
         setSchemas(allSchemas);
+        console.log(
+          "[Welcome] Loaded schemas from IndexedDB:",
+          allSchemas.length,
+        );
+
+        // Log default schemas loading result
+        if (defaultSchemasState.loaded > 0) {
+          console.log(
+            `[Welcome] Default schemas loaded: ${defaultSchemasState.loaded}`,
+          );
+        }
       } catch (error) {
         console.error("Failed to load schemas:", error);
       } finally {
@@ -153,32 +283,164 @@ function Welcome(): ReactElement {
     };
 
     loadSchemas();
-  }, []);
+  }, [defaultSchemasState.isLoading]); // Re-run when default schemas finish loading
 
-  // Filter static router schemas (exclude Development Tools)
+  // Debug: Log session token channels only once
+  useEffect(() => {
+    if (!isLoading && session) {
+      const assetChannels = Object.keys(session).filter((key) =>
+        key.startsWith("asset.")
+      );
+      console.log(
+        "[Welcome] Asset channels in session:",
+        assetChannels.length,
+        assetChannels,
+      );
+
+      assetChannels.forEach((key) => {
+        const data = session[key] as Record<string, unknown>;
+        console.log(`[Welcome] Asset ${key}:`, {
+          widget: data.widget,
+          status: data.status,
+          hasGenesis: !!(data.raw as Record<string, unknown>)?.genesis,
+        });
+      });
+    }
+  }, [isLoading]); // Only log once when loading completes
+
+  // Filter static router schemas for Web Agents
+  // INCLUDE: widget.app.* (public default apps for all users)
+  // EXCLUDE: widget.apps.* (Development Tools for developers only)
   const routerSchemas = useMemo(() => {
     return schemas.filter(
       (schema) =>
         schema.type === "static" &&
         (schema.widgetKey.includes(".router") ||
-          schema.widgetKey.includes(".app.")) &&
+          schema.widgetKey.startsWith("widget.app.")) &&
         // EXCLUDE Development Tools (widget.apps.*)
         !schema.widgetKey.startsWith("widget.apps."),
     );
   }, [schemas]);
 
+  // Find token template schema (ONE schema for ALL tokens)
+  const tokenTemplateSchema = useMemo(() => {
+    return schemas.find(
+      (schema) =>
+        schema.type === "static" &&
+        (schema.widgetKey === "widget.asset.testnet.token" ||
+          schema.widgetKey.startsWith("widget.asset.") &&
+            !schema.widgetKey.includes("sha256")),
+    );
+  }, [schemas]);
+
+  // Extract all tokens from SERVER and SESSION, create virtual schemas
+  const tokenSchemas = useMemo(() => {
+    if (!tokenTemplateSchema) {
+      console.log("[Welcome] tokenSchemas: No template schema", {
+        hasTemplate: !!tokenTemplateSchema,
+      });
+      return [];
+    }
+
+    // Collect unique asset channels from BOTH server and session
+    const channelSet = new Set<string>();
+
+    // 1. Add channels from server assets
+    assets.forEach((asset) => {
+      if (
+        asset.channel && asset.channel.startsWith("asset.testnet.token:sha256:")
+      ) {
+        channelSet.add(asset.channel);
+      }
+    });
+
+    // 2. Add channels from session (for newly created tokens not yet in server list)
+    if (session) {
+      Object.keys(session).forEach((key) => {
+        if (key.startsWith("asset.testnet.token:sha256:")) {
+          channelSet.add(key);
+        }
+      });
+    }
+
+    const assetChannels = Array.from(channelSet);
+
+    console.log(
+      "[Welcome] Creating virtual token schemas:",
+      assetChannels.length,
+      "tokens (server:",
+      assets.length,
+      "session:",
+      session
+        ? Object.keys(session).filter((k) =>
+          k.startsWith("asset.testnet.token:")
+        ).length
+        : 0,
+      ")",
+    );
+
+    // Create virtual schema for each token
+    const virtualSchemas = assetChannels.map((channelKey) => {
+      return {
+        ...tokenTemplateSchema,
+        id: `virtual-${channelKey}`, // Unique ID for each token
+        channelKeys: [channelKey], // Override with specific token channel
+        selfChannelKey: channelKey, // Set as self channel
+        channelAliases: tokenTemplateSchema.channelAliases || [],
+      };
+    });
+
+    console.log("[Welcome] Virtual schemas created:", virtualSchemas.length);
+    return virtualSchemas;
+  }, [session, tokenTemplateSchema, assets]);
+
+  // Debug: Log schemas only once after loading
+  useEffect(() => {
+    if (!isLoading && schemas.length > 0) {
+      console.log(
+        "[Welcome] All schemas:",
+        schemas.length,
+        schemas.map((s) => ({
+          name: s.name,
+          widgetKey: s.widgetKey,
+          type: s.type,
+          channelKeys: s.channelKeys,
+        })),
+      );
+      console.log(
+        "[Welcome] Token template schema:",
+        tokenTemplateSchema?.name,
+        tokenTemplateSchema?.widgetKey,
+      );
+      console.log(
+        "[Welcome] Virtual token schemas created:",
+        tokenSchemas.length,
+      );
+    }
+  }, [isLoading]); // Only log once when loading completes
+
   // Handle launch app with progress tracking
   const handleLaunchApp = useCallback(
     async (schema: SchemaProject): Promise<void> => {
-      // Start launch animation
-      setIsLaunching(true);
-      setLaunchStep(0);
-
-      // Step 0: Initializing
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      setLaunchStep(1);
-
       try {
+        // Check if app is already running
+        const existingApp = apps.find((app) => app.schemaId === schema.id);
+        if (existingApp) {
+          // App already running - just switch to it
+          console.log(
+            "[Welcome] App already running, switching to it:",
+            existingApp.id,
+          );
+          useOpenAppsStore.getState().setActiveApp(existingApp.id);
+          setSelectedSchema(schema);
+          setSelectedAppId(existingApp.id);
+          return;
+        }
+
+        // Start launch animation (minimal delay for tokens)
+        setIsLaunching(true);
+        setLaunchStep(1);
+
         // Step 1: Resolving schema
         const schemaStore = {
           getSchemaByWidgetKey: async (widgetKey: string) => {
@@ -193,11 +455,16 @@ function Welcome(): ReactElement {
           },
         };
 
-        const resolved = await resolveSchemaRefs(schema.schema, schemaStore);
+        const resolved = await resolveSchemaRefs(
+          schema.schema,
+          schemaStore,
+          0, // depth
+          10, // maxDepth
+          schema.selfChannelKey || undefined, // Pass self channel
+        );
         setLaunchStep(2);
 
         // Step 2: Loading channels
-        await new Promise((resolve) => setTimeout(resolve, 200));
         const requiredChannels = await collectRequiredChannels(
           schema.schema,
           schemaStore,
@@ -205,26 +472,21 @@ function Welcome(): ReactElement {
         setLaunchStep(3);
 
         // Step 3: Preparing data
-        await new Promise((resolve) => setTimeout(resolve, 200));
         setResolvedSchema(resolved);
         setRequiredChannelAliases(requiredChannels);
         setLaunchStep(4);
 
-        // Step 4: Rendering UI
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        setLaunchStep(5);
-
-        // Step 5: Ready! - Register app in store
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        // Step 4: Ready! - Register app in store
         const appId = openApp(schema);
         setSelectedSchema(schema);
         setSelectedAppId(appId); // Track app ID for closure sync
+        setLaunchStep(5);
 
-        // Hide launcher
+        // Hide launcher quickly
         setTimeout(() => {
           setIsLaunching(false);
           setLaunchStep(0);
-        }, 300);
+        }, 100);
       } catch (error) {
         console.error("Failed to launch app:", error);
         setResolvedSchema(schema.schema);
@@ -233,7 +495,7 @@ function Welcome(): ReactElement {
         setLaunchStep(0);
       }
     },
-    [openApp],
+    [openApp, apps],
   );
 
   // Prepare merged data reactively when session updates
@@ -367,157 +629,79 @@ function Welcome(): ReactElement {
           </div>
         )}
 
-        {/* System Apps - Always visible */}
-        <div className="max-w-7xl mx-auto mb-8">
-          <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-            <span>Development Tools</span>
-            <span className="text-sm text-muted-foreground font-normal">
-              Build Autonomous Web Agents
-            </span>
-          </h2>
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={{
-              visible: {
-                transition: {
-                  staggerChildren: 0.04,
-                },
-              },
-            }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-          >
-            {/* Canvas */}
-            <motion.button
-              variants={{
-                hidden: { opacity: 0, y: 20 },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                  transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
-                },
-              }}
-              whileHover={{ scale: 1.02, y: -4 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => navigateTo("canvas")}
-              className="group bg-card rounded border border-border overflow-hidden hover:border-blue-500/50 transition-colors duration-200 text-left"
-            >
-              <div className="aspect-video bg-blue-500/5 border-b border-border flex items-center justify-center">
-                <Boxes className="icon-2xl text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-200" />
-              </div>
-              <div className="p-4">
-                <h3 className="text-lg font-semibold text-foreground mb-1">
-                  Visual Workspace
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Compose agent workflows with drag-and-drop interface
-                </p>
-                <div className="flex items-center gap-1 text-xs text-blue-700 dark:text-blue-400 font-semibold">
-                  Open Canvas <ArrowRight className="w-3 h-3" />
-                </div>
-              </div>
-            </motion.button>
+        {/* Your Tokens */}
+        {!isLoading && tokenSchemas.length > 0 && (
+          <div className="max-w-7xl mx-auto mb-8">
+            <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Coins className="w-6 h-6 text-amber-500" />
+              <span>Web Tokens</span>
+              <span className="text-sm text-muted-foreground font-normal">
+                {tokenSchemas.length}{" "}
+                token{tokenSchemas.length === 1 ? "" : "s"}
+              </span>
+            </h2>
 
-            {/* Editor */}
-            <motion.button
-              variants={{
-                hidden: { opacity: 0, y: 20 },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                  transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
-                },
-              }}
-              whileHover={{ scale: 1.02, y: -4 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => navigateTo("editor")}
-              className="group bg-card rounded border border-border overflow-hidden hover:border-amber-500/50 transition-colors duration-200 text-left"
-            >
-              <div className="aspect-video bg-amber-500/5 border-b border-border flex items-center justify-center">
-                <Code className="icon-2xl text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform duration-200" />
+            {/* Horizontal scroll container */}
+            <div className="relative pt-4">
+              <div className="flex gap-3 overflow-x-auto p-4 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+                {tokenSchemas.map((schema) => (
+                  <motion.div
+                    key={schema.id}
+                    initial={{ opacity: 0, x: 0 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="snap-start"
+                  >
+                    <TokenCard
+                      schema={schema}
+                      session={session}
+                      onLaunch={handleLaunchApp}
+                    />
+                  </motion.div>
+                ))}
               </div>
-              <div className="p-4">
-                <h3 className="text-lg font-semibold text-foreground mb-1">
-                  Protocol Editor
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Write and deploy workers across the heterogeneous network
-                </p>
-                <div className="flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400 font-semibold">
-                  Open Editor <ArrowRight className="w-3 h-3" />
-                </div>
-              </div>
-            </motion.button>
+            </div>
+          </div>
+        )}
 
-            {/* Schemas */}
-            <motion.button
-              variants={{
-                hidden: { opacity: 0, y: 20 },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                  transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
-                },
-              }}
-              whileHover={{ scale: 1.02, y: -4 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => navigateTo("schemas")}
-              className="group bg-card rounded border border-border overflow-hidden hover:border-green-500/50 transition-colors duration-200 text-left"
-            >
-              <div className="aspect-video bg-green-500/5 border-b border-border flex items-center justify-center">
-                <LayoutIcon className="icon-2xl text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform duration-200" />
+        {/* Debug: Tokens exist in session but no template schema */}
+        {!isLoading && !tokenTemplateSchema && session &&
+          Object.keys(session).some((key) =>
+            key.startsWith("asset.testnet.token:")
+          ) && (
+          <div className="max-w-7xl mx-auto mb-8">
+            <div className="p-6 bg-amber-500/5 rounded border border-amber-500/30 text-center">
+              <Coins className="w-12 h-12 text-amber-500 mx-auto mb-3" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                {Object.keys(session).filter((key) =>
+                  key.startsWith("asset.testnet.token:")
+                ).length} Token(s) Found in Session
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                You have published tokens, but no UI template schema defined.
+                Create a schema in Schema Manager to display all your tokens.
+              </p>
+              <div className="text-xs font-mono text-muted-foreground mb-4">
+                Expected widgetKey:{" "}
+                <code className="px-2 py-1 bg-background rounded">
+                  widget.asset.testnet.token
+                </code>
               </div>
-              <div className="p-4">
-                <h3 className="text-lg font-semibold text-foreground mb-1">
-                  Schema Manager
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Define data structures and channels for your web agents
-                </p>
-                <div className="flex items-center gap-1 text-xs text-green-700 dark:text-green-400 font-semibold">
-                  Open Manager <ArrowRight className="w-3 h-3" />
-                </div>
-              </div>
-            </motion.button>
-
-            {/* Documentation */}
-            <motion.button
-              variants={{
-                hidden: { opacity: 0, y: 20 },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                  transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
-                },
-              }}
-              whileHover={{ scale: 1.02, y: -4 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => navigateTo("docs")}
-              className="group bg-card rounded border border-border overflow-hidden hover:border-zinc-500/50 transition-colors duration-200 text-left"
-            >
-              <div className="aspect-video bg-zinc-500/5 border-b border-border flex items-center justify-center">
-                <FileText className="icon-2xl text-zinc-600 dark:text-zinc-400 group-hover:scale-110 transition-transform duration-200" />
-              </div>
-              <div className="p-4">
-                <h3 className="text-lg font-semibold text-foreground mb-1">
-                  Documentation
-                </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Platform overview, updates, and technical documentation
-                </p>
-                <div className="flex items-center gap-1 text-xs text-zinc-700 dark:text-zinc-400 font-semibold">
-                  Open Docs <ArrowRight className="w-3 h-3" />
-                </div>
-              </div>
-            </motion.button>
-          </motion.div>
-        </div>
+              <button
+                onClick={() => navigateTo("schemas")}
+                className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded transition-colors inline-flex items-center gap-2"
+              >
+                <LayoutIcon className="w-4 h-4" />
+                Create Token Template Schema
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* User Apps from Schema Store */}
         {!isLoading && routerSchemas.length === 0 && (
           <div className="max-w-7xl mx-auto">
             <h2 className="text-xl font-semibold text-foreground mb-4">
-              Your Web Agents
+              Web Agents
             </h2>
             <div className="p-12 bg-card rounded border border-dashed border-border text-center">
               <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
@@ -536,8 +720,8 @@ function Welcome(): ReactElement {
                 Create First Agent
               </button>
               <p className="text-xs text-muted-foreground mt-4">
-                Tip: Create a schema with type "static" and widgetKey containing
-                "app"
+                Tip: Create schemas with widgetKey pattern "widget.app.*" to
+                auto-display here
               </p>
             </div>
           </div>
@@ -546,8 +730,8 @@ function Welcome(): ReactElement {
         {/* User Apps Grid */}
         {!isLoading && routerSchemas.length > 0 && (
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-xl font-semibold text-foreground mb-4">
-              Your Web Agents
+            <h2 className="text-2xl font-semibold text-foreground mb-4">
+              Web Agents
             </h2>
             <motion.div
               initial="hidden"
@@ -586,8 +770,326 @@ function Welcome(): ReactElement {
             </motion.div>
           </div>
         )}
+
+        {/* Development Tools - Only for developers */}
+        {!isLoading && isDeveloper && (
+          <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-border">
+            <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <span>Development Tools</span>
+              <span className="text-sm text-muted-foreground font-normal">
+                Build Autonomous Web Agents
+              </span>
+            </h2>
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                visible: {
+                  transition: {
+                    staggerChildren: 0.04,
+                  },
+                },
+              }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+            >
+              {/* Canvas */}
+              <motion.button
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
+                  },
+                }}
+                whileHover={{ scale: 1.02, y: -4 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => navigateTo("canvas")}
+                className="group bg-card rounded border border-border overflow-hidden hover:border-blue-500/50 transition-colors duration-200 text-left"
+              >
+                <div className="aspect-video bg-blue-500/5 border-b border-border flex items-center justify-center">
+                  <Boxes className="icon-2xl text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-200" />
+                </div>
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold text-foreground mb-1">
+                    Visual Workspace
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Compose agent workflows with drag-and-drop interface
+                  </p>
+                  <div className="flex items-center gap-1 text-xs text-blue-700 dark:text-blue-400 font-semibold">
+                    Open Canvas <ArrowRight className="w-3 h-3" />
+                  </div>
+                </div>
+              </motion.button>
+
+              {/* Editor */}
+              <motion.button
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
+                  },
+                }}
+                whileHover={{ scale: 1.02, y: -4 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => navigateTo("editor")}
+                className="group bg-card rounded border border-border overflow-hidden hover:border-amber-500/50 transition-colors duration-200 text-left"
+              >
+                <div className="aspect-video bg-amber-500/5 border-b border-border flex items-center justify-center">
+                  <Code className="icon-2xl text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform duration-200" />
+                </div>
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold text-foreground mb-1">
+                    Protocol Editor
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Write and deploy workers across the heterogeneous network
+                  </p>
+                  <div className="flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400 font-semibold">
+                    Open Editor <ArrowRight className="w-3 h-3" />
+                  </div>
+                </div>
+              </motion.button>
+
+              {/* Schemas */}
+              <motion.button
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
+                  },
+                }}
+                whileHover={{ scale: 1.02, y: -4 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => navigateTo("schemas")}
+                className="group bg-card rounded border border-border overflow-hidden hover:border-green-500/50 transition-colors duration-200 text-left"
+              >
+                <div className="aspect-video bg-green-500/5 border-b border-border flex items-center justify-center">
+                  <LayoutIcon className="icon-2xl text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform duration-200" />
+                </div>
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold text-foreground mb-1">
+                    Schema Manager
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Define data structures and channels for your web agents
+                  </p>
+                  <div className="flex items-center gap-1 text-xs text-green-700 dark:text-green-400 font-semibold">
+                    Open Manager <ArrowRight className="w-3 h-3" />
+                  </div>
+                </div>
+              </motion.button>
+
+              {/* Documentation */}
+              <motion.button
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
+                  },
+                }}
+                whileHover={{ scale: 1.02, y: -4 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => navigateTo("docs")}
+                className="group bg-card rounded border border-border overflow-hidden hover:border-zinc-500/50 transition-colors duration-200 text-left"
+              >
+                <div className="aspect-video bg-zinc-500/5 border-b border-border flex items-center justify-center">
+                  <FileText className="icon-2xl text-zinc-600 dark:text-zinc-400 group-hover:scale-110 transition-transform duration-200" />
+                </div>
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold text-foreground mb-1">
+                    Documentation
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Platform overview, updates, and technical documentation
+                  </p>
+                  <div className="flex items-center gap-1 text-xs text-zinc-700 dark:text-zinc-400 font-semibold">
+                    Open Docs <ArrowRight className="w-3 h-3" />
+                  </div>
+                </div>
+              </motion.button>
+            </motion.div>
+          </div>
+        )}
       </div>
     </UIEngineProvider>
+  );
+}
+
+/**
+ * Token Card Component - Compact horizontal layout
+ * Reads data from session based on schema's channelKeys
+ */
+interface TokenCardProps {
+  schema: SchemaProject;
+  session: Record<string, unknown> | null;
+  onLaunch: (schema: SchemaProject) => Promise<void>;
+}
+
+function TokenCard(
+  { schema, session, onLaunch }: TokenCardProps,
+): ReactElement {
+  const apps = useOpenAppsStore((state) => state.apps);
+
+  // Extract token data from session using channelKeys
+  const tokenData = useMemo(() => {
+    if (!session || !schema.channelKeys || schema.channelKeys.length === 0) {
+      return null;
+    }
+
+    // Find the asset channel in session
+    const channelKey = schema.channelKeys[0];
+    const channelData = session[channelKey] as
+      | Record<string, unknown>
+      | undefined;
+
+    if (!channelData) {
+      return null;
+    }
+
+    // Extract genesis certificate from raw data
+    const raw = channelData.raw as Record<string, unknown> | undefined;
+    const genesis = raw?.genesis as Record<string, unknown> | undefined;
+    const token = genesis?.token as Record<string, unknown> | undefined;
+    const metadata = token?.metadata as Record<string, unknown> | undefined;
+    const economics = token?.economics as Record<string, unknown> | undefined;
+    const supply = economics?.supply as Record<string, unknown> | undefined;
+
+    return {
+      name: metadata?.name as string || "Unknown Token",
+      symbol: metadata?.symbol as string || "???",
+      icon: metadata?.icon as string | undefined,
+      standard: token?.standard as string || "unknown",
+      initialSupply: supply?.initial as string || "0",
+      status: channelData.status as string || "unknown",
+      channelKey: channelKey,
+    };
+  }, [schema, session]);
+
+  // Check if this token is already open
+  const isOpen = useMemo(() => {
+    if (!tokenData?.channelKey) return false;
+    return apps.some((app) => app.channelKey === tokenData.channelKey);
+  }, [apps, tokenData]);
+
+  // Enhanced launch handler that adds displayName
+  const handleLaunch = useCallback(async () => {
+    if (!tokenData) return;
+
+    // If already open, just switch to it
+    if (isOpen) {
+      const openApp = apps.find((app) =>
+        app.channelKey === tokenData.channelKey
+      );
+      if (openApp) {
+        useOpenAppsStore.getState().setActiveApp(openApp.id);
+        return;
+      }
+    }
+
+    // Create enhanced schema with displayName (using type assertion)
+    const enhancedSchema = {
+      ...schema,
+      displayName: `${tokenData.symbol} - ${tokenData.name}`,
+    } as SchemaProject;
+
+    await onLaunch(enhancedSchema);
+  }, [schema, tokenData, onLaunch, isOpen, apps]);
+
+  if (!tokenData) {
+    return <></>;
+  }
+
+  return (
+    <motion.button
+      onClick={handleLaunch}
+      whileHover={{ scale: isOpen ? 1.01 : 1.02, y: isOpen ? -1 : -2 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{
+        duration: 0.2,
+        ease: [0.16, 1, 0.3, 1],
+      }}
+      className={`group rounded border overflow-hidden transition-all duration-200 w-[280px] flex-shrink-0 text-left ${
+        isOpen
+          ? "bg-green-500/5 border-green-500/50 hover:border-green-500/70 shadow-sm shadow-green-500/20"
+          : "bg-card border-border hover:border-amber-500/50 hover:shadow-md"
+      }`}
+    >
+      {/* Compact horizontal layout */}
+      <div className="flex items-center gap-3 p-3">
+        {/* Token Icon */}
+        <div className="w-14 h-14 bg-amber-500/5 border border-border rounded flex items-center justify-center flex-shrink-0">
+          {tokenData.icon
+            ? (
+              <img
+                src={tokenData.icon}
+                alt={tokenData.symbol}
+                className="w-10 h-10 object-contain"
+              />
+            )
+            : <Coins className="w-8 h-8 text-amber-500/50" />}
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="text-sm font-semibold text-foreground truncate">
+              {tokenData.name}
+            </h3>
+            <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-700 dark:text-amber-500 text-xs font-bold rounded border border-amber-500/30 flex-shrink-0">
+              {tokenData.symbol}
+            </span>
+          </div>
+
+          <p className="text-xs text-muted-foreground truncate mb-1">
+            {tokenData.standard} • {tokenData.initialSupply}
+          </p>
+
+          {/* Status */}
+          <div className="flex items-center gap-2">
+            {isOpen && (
+              <div className="flex items-center gap-1 text-green-600 dark:text-green-500 text-xs font-semibold">
+                <motion.div
+                  animate={{ scale: [1, 1.3, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className="w-1.5 h-1.5 bg-green-500 rounded-full"
+                />
+                Open
+              </div>
+            )}
+
+            {!isOpen && tokenData.status === "pending" && (
+              <div className="flex items-center gap-1 text-amber-600 dark:text-amber-500 text-xs">
+                <motion.div
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="w-1.5 h-1.5 bg-amber-500 rounded-full"
+                />
+                Pending
+              </div>
+            )}
+
+            {!isOpen && tokenData.status === "active" && (
+              <div className="flex items-center gap-1 text-green-600 dark:text-green-500 text-xs">
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className="w-1.5 h-1.5 bg-green-500 rounded-full"
+                />
+                Active
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.button>
   );
 }
 
@@ -627,7 +1129,13 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
         };
 
         // 1. Resolve schema
-        const resolved = await resolveSchemaRefs(schema.schema, schemaStore);
+        const resolved = await resolveSchemaRefs(
+          schema.schema,
+          schemaStore,
+          0, // depth
+          10, // maxDepth
+          schema.selfChannelKey || undefined, // Pass self channel
+        );
 
         // 2. Collect required channels
         const requiredChannels = await collectRequiredChannels(

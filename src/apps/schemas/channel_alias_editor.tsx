@@ -147,6 +147,7 @@ export default function ChannelAliasEditor({
             </span>
           </div>
           <div className="flex flex-wrap gap-1">
+            {/* Show channel keys */}
             {channelKeys.map((channelKey) => {
               const isSelf = selfChannelKey === channelKey;
               const symbol =
@@ -167,6 +168,30 @@ export default function ChannelAliasEditor({
                 </button>
               );
             })}
+
+            {/* Show aliases if any exist */}
+            {aliases.length > 0 && (
+              <>
+                <div className="w-px h-4 bg-border my-auto" />
+                {aliases.map((aliasObj) => {
+                  const isSelf = selfChannelKey === aliasObj.alias;
+                  return (
+                    <button
+                      key={`alias-${aliasObj.alias}`}
+                      onClick={() => onSelfChannelChange(aliasObj.alias)}
+                      className={`px-2 py-1 text-[10px] font-mono rounded border transition-all ${
+                        isSelf
+                          ? "bg-green-500/20 border-green-500/50 text-green-800 dark:text-green-300"
+                          : "bg-card border-border text-muted-foreground hover:border-green-500/30"
+                      }`}
+                      title={`Alias: ${aliasObj.alias} → ${aliasObj.channelKey}`}
+                    >
+                      {aliasObj.alias}
+                    </button>
+                  );
+                })}
+              </>
+            )}
           </div>
         </div>
       )}

@@ -20,7 +20,7 @@ export default defineConfig({
     tailwindcss(), 
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['logo.svg', 'android/**/*.png', 'ios/**/*.png', 'windows11/**/*.png'],
       manifest: {
         name: 'STELS Web 5',

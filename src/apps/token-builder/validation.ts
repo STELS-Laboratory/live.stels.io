@@ -75,6 +75,7 @@ export function validateTokenSchema(schema: TokenSchema): ValidationError[] {
   }
 
   // Validate governance if enabled
+  // NOTE: Individual fields are optional - only validate if they have values
   if (schema.governance?.enabled) {
     errors.push(...validateGovernance(schema.governance));
   }
@@ -120,23 +121,29 @@ function validateMetadata(metadata: TokenSchema["metadata"]): ValidationError[] 
   }
 
   // Validate symbol (trim for validation only)
-  const trimmedSymbol = metadata.symbol?.trim() || "";
+  const trimmedSymbol = metadata.symbol?.trim().toUpperCase() || "";
   if (!trimmedSymbol || trimmedSymbol.length === 0) {
     errors.push({
       field: "metadata.symbol",
       message: "Token symbol is required",
       code: "REQUIRED",
     });
-  } else if (trimmedSymbol.length > 12) {
+  } else if (trimmedSymbol.length < 3) {
     errors.push({
       field: "metadata.symbol",
-      message: "Token symbol must be 12 characters or less",
+      message: "Token symbol must be at least 3 characters",
+      code: "MIN_LENGTH",
+    });
+  } else if (trimmedSymbol.length > 5) {
+    errors.push({
+      field: "metadata.symbol",
+      message: "Token symbol must be 5 characters or less",
       code: "MAX_LENGTH",
     });
-  } else if (!/^[A-Z0-9]+$/.test(trimmedSymbol)) {
+  } else if (!/^[A-Z]+$/.test(trimmedSymbol)) {
     errors.push({
       field: "metadata.symbol",
-      message: "Token symbol must contain only uppercase letters and numbers",
+      message: "Token symbol must contain only uppercase letters (no numbers or special characters)",
       code: "INVALID_FORMAT",
     });
   }
@@ -386,7 +393,7 @@ function validateEconomics(economics: TokenSchema["economics"]): ValidationError
 
   // Validate fee structure (token fees, not network fees!)
   if (economics.feeStructure) {
-    if (economics.feeStructure.transfer) {
+    if (economics.feeStructure.transfer && economics.feeStructure.transfer.trim() !== "") {
       if (!isValidAmount(economics.feeStructure.transfer)) {
         errors.push({
           field: "economics.feeStructure.transfer",
@@ -402,7 +409,7 @@ function validateEconomics(economics: TokenSchema["economics"]): ValidationError
         });
       }
     }
-    if (economics.feeStructure.mint) {
+    if (economics.feeStructure.mint && economics.feeStructure.mint.trim() !== "") {
       if (!isValidAmount(economics.feeStructure.mint)) {
         errors.push({
           field: "economics.feeStructure.mint",
@@ -418,7 +425,7 @@ function validateEconomics(economics: TokenSchema["economics"]): ValidationError
         });
       }
     }
-    if (economics.feeStructure.burn) {
+    if (economics.feeStructure.burn && economics.feeStructure.burn.trim() !== "") {
       if (!isValidAmount(economics.feeStructure.burn)) {
         errors.push({
           field: "economics.feeStructure.burn",
@@ -437,7 +444,7 @@ function validateEconomics(economics: TokenSchema["economics"]): ValidationError
   }
 
   // Validate treasury address (token treasury, not network treasury!)
-  if (economics.treasury) {
+  if (economics.treasury && economics.treasury.trim() !== "") {
     if (!isValidAddress(economics.treasury)) {
       errors.push({
         field: "economics.treasury",
@@ -490,7 +497,18 @@ function validateGovernance(
 ): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  if (governance.proposalThreshold) {
+  // Skip validation if governance is enabled but all fields are empty
+  const hasAnyData = 
+    (governance.proposalThreshold && governance.proposalThreshold.trim() !== "") ||
+    (governance.quorumThreshold && governance.quorumThreshold.trim() !== "") ||
+    (governance.votingPeriod !== undefined && governance.votingPeriod > 0);
+  
+  // If governance is enabled but no data provided, it's OK (all fields are optional)
+  if (!hasAnyData) {
+    return errors;
+  }
+
+  if (governance.proposalThreshold && governance.proposalThreshold.trim() !== "") {
     if (!isValidAmount(governance.proposalThreshold)) {
       errors.push({
         field: "governance.proposalThreshold",
@@ -500,7 +518,7 @@ function validateGovernance(
     }
   }
 
-  if (governance.quorumThreshold) {
+  if (governance.quorumThreshold && governance.quorumThreshold.trim() !== "") {
     if (!isValidAmount(governance.quorumThreshold)) {
       errors.push({
         field: "governance.quorumThreshold",
@@ -510,7 +528,9 @@ function validateGovernance(
     }
   }
 
-  if (governance.votingPeriod !== undefined && governance.votingPeriod <= 0) {
+  if (governance.votingPeriod !== undefined && governance.votingPeriod > 0) {
+    // votingPeriod is valid, no error
+  } else if (governance.votingPeriod !== undefined && governance.votingPeriod <= 0) {
     errors.push({
       field: "governance.votingPeriod",
       message: "Voting period must be greater than 0",

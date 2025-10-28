@@ -12,9 +12,11 @@ export interface OpenApp {
   schemaId: string; // Schema project ID
   widgetKey: string; // Widget key
   name: string;
+  displayName?: string; // Optional display name (for tokens)
   type: "static" | "dynamic";
   openedAt: number;
   lastActiveAt: number;
+  channelKey?: string; // For virtual schemas (tokens)
   state?: {
     scrollPosition?: number;
     selectedTab?: string;
@@ -46,10 +48,25 @@ export const useOpenAppsStore = create<OpenAppsState>()(
 
         // Open new app or switch to existing
         openApp: (schema: SchemaProject): string => {
-          const existing = get().apps.find((app) => app.schemaId === schema.id);
+          // For virtual schemas (tokens), check by channelKey instead of schemaId
+          const isVirtualSchema = schema.id.startsWith("virtual-");
+          const channelKey = isVirtualSchema && schema.channelKeys?.[0] 
+            ? schema.channelKeys[0] 
+            : null;
+
+          // Find existing app by schemaId or channelKey
+          const existing = get().apps.find((app) => {
+            if (channelKey && app.channelKey) {
+              // For virtual schemas, match by channelKey
+              return app.channelKey === channelKey;
+            }
+            // For regular schemas, match by schemaId
+            return app.schemaId === schema.id;
+          });
 
           if (existing) {
             // Already open - just switch to it
+            console.log("[OpenAppsStore] App already open, switching:", existing.name);
             set({ activeAppId: existing.id });
             return existing.id;
           }
@@ -60,10 +77,19 @@ export const useOpenAppsStore = create<OpenAppsState>()(
             schemaId: schema.id,
             widgetKey: schema.widgetKey,
             name: schema.name,
+            displayName: schema.displayName, // Use displayName if provided
             type: schema.type,
             openedAt: Date.now(),
             lastActiveAt: Date.now(),
+            channelKey: channelKey || undefined,
           };
+
+          console.log("[OpenAppsStore] Opening new app:", {
+            name: newApp.name,
+            displayName: newApp.displayName,
+            widgetKey: newApp.widgetKey,
+            channelKey: newApp.channelKey,
+          });
 
           set((state) => ({
             apps: [...state.apps, newApp],

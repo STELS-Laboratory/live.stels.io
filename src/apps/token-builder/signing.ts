@@ -49,10 +49,19 @@ export async function signTokenSchema(
   // Used in: issuer.public_key, signatures.signers[0].kid, body.publicKey
   const publicKeyUncompressed = getUncompressedPublicKey(privateKey);
 
+  console.log("[Signing] ═══════════════════════════════════════");
+  console.log("[Signing] Private Key (first 16):", privateKey.substring(0, 16));
+  console.log("[Signing] Public Key (uncompressed, 130 chars):", publicKeyUncompressed);
+  console.log("[Signing] Public Key length:", publicKeyUncompressed.length);
+  console.log("[Signing] Public Key starts with:", publicKeyUncompressed.substring(0, 2));
+
   // CRITICAL: Generate address from the SAME uncompressed key used in document
   // getAddressFromPublicKey will automatically compress it internally (via ensureCompressedKey)
   // This ensures address matches the public_key field in the document
   const address = getAddressFromPublicKey(publicKeyUncompressed);
+  
+  console.log("[Signing] Address:", address);
+  console.log("[Signing] ═══════════════════════════════════════");
 
   // Get network configuration from schema or use default
   const networkId = schema.technical?.networkId || "testnet";
@@ -141,10 +150,10 @@ export async function signTokenSchema(
         decimals, // Automatically determined by token standard
       },
       economics: schema.economics,
-      // CRITICAL: Only include optional fields if they exist (gls-det-1 absence rule)
-      ...(schema.governance && { governance: schema.governance }),
-      ...(schema.transferRestrictions && { transferRestrictions: schema.transferRestrictions }),
-      ...(schema.customFields && { customFields: schema.customFields }),
+      // CRITICAL: Only include optional fields if they are enabled and have data (gls-det-1 absence rule)
+      ...(schema.governance?.enabled && { governance: schema.governance }),
+      ...(schema.transferRestrictions?.enabled && { transferRestrictions: schema.transferRestrictions }),
+      ...(schema.customFields && Object.keys(schema.customFields).length > 0 && { customFields: schema.customFields }),
     },
     
     // Content hash (for integrity verification)
@@ -187,7 +196,22 @@ export async function signTokenSchema(
   console.log("[Signing] Signature:", signature);
   console.log("[Signing] Public Key (uncompressed):", publicKeyUncompressed);
 
-  // Step 4: Create final certificate WITH signatures
+  // Step 4: VERIFY signature locally before sending to server
+  console.log("[Signing] ═══════════════════════════════════════");
+  console.log("[Signing] Verifying signature locally...");
+  const isValid = verify(messageString, signature, publicKeyUncompressed);
+  console.log("[Signing] Local verification result:", isValid);
+  
+  if (!isValid) {
+    console.error("[Signing] ❌ LOCAL VERIFICATION FAILED!");
+    console.error("[Signing] This signature will be rejected by server!");
+    throw new Error("Signature verification failed locally. Please try again.");
+  }
+  
+  console.log("[Signing] ✅ Local verification passed");
+  console.log("[Signing] ═══════════════════════════════════════");
+
+  // Step 5: Create final certificate WITH signatures
   const certificate: TokenGenesisCertificate = {
     ...certificateWithoutSignatures,
     signatures: {

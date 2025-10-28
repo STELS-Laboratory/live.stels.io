@@ -24,6 +24,7 @@ export interface ChannelAlias {
 export interface SchemaProject {
   id: string;
   name: string;
+  displayName?: string; // Optional display name (for tokens in tabs)
   description: string;
   type: SchemaType; // static = container/router, dynamic = widget with data
   widgetKey: string; // e.g., widget.markets or widget.testnet.runtime.book.SOL/USDT.bybit.spot
@@ -34,6 +35,7 @@ export interface SchemaProject {
   schema: UINode;
   createdAt: number;
   updatedAt: number;
+  isDefault?: boolean; // True for schemas loaded from public/schemas/
 }
 
 /**

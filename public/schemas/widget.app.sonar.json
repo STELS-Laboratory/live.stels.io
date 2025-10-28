@@ -1,0 +1,901 @@
+{
+  "type": "container",
+  "className": "min-h-screen bg-background p-6",
+  "children": [
+    {
+      "type": "container",
+      "className": "max-w-7xl mx-auto",
+      "children": [
+        {
+          "type": "container",
+          "className": "mb-8",
+          "children": [
+            {
+              "type": "container",
+              "className": "flex items-center gap-4 mb-2",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "⚡",
+                  "className": "text-4xl"
+                },
+                {
+                  "type": "container",
+                  "className": "flex-1",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "SONAR Network Monitor",
+                      "className": "text-3xl font-bold text-foreground"
+                    },
+                    {
+                      "type": "text",
+                      "text": "Real-time network health and performance metrics",
+                      "className": "text-sm text-muted-foreground"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": "Node {self.raw.node.id}",
+                  "className": "px-4 py-2 bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-500 text-sm font-mono rounded"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "container",
+          "className": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8",
+          "children": [
+            {
+              "type": "container",
+              "className": "group bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/30 rounded p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-green-500/20",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Total Operations",
+                  "className": "text-xs text-muted-foreground uppercase tracking-wider mb-3"
+                },
+                {
+                  "type": "text",
+                  "text": "{self.raw.node.operations.total}",
+                  "format": {
+                    "type": "number",
+                    "decimals": 0
+                  },
+                  "className": "text-4xl font-bold text-foreground mb-2 group-hover:text-green-600 transition-colors"
+                },
+                {
+                  "type": "container",
+                  "className": "flex items-center gap-2",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "{self.raw.node.operations.successRate}%",
+                      "format": {
+                        "type": "number",
+                        "decimals": 1
+                      },
+                      "className": "text-xs font-bold",
+                      "style": {
+                        "className": {
+                          "condition": {
+                            "key": "self.raw.node.operations.successRate",
+                            "operator": ">=",
+                            "value": 99
+                          },
+                          "true": "text-green-600 dark:text-green-500",
+                          "false": "text-amber-600 dark:text-amber-500"
+                        }
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": "success",
+                      "className": "text-xs text-muted-foreground"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "group bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/30 rounded p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/20",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Active Workers",
+                  "className": "text-xs text-muted-foreground uppercase tracking-wider mb-3"
+                },
+                {
+                  "type": "text",
+                  "text": "{self.raw.workers.active}",
+                  "className": "text-4xl font-bold text-foreground mb-2 group-hover:text-blue-600 transition-colors"
+                },
+                {
+                  "type": "container",
+                  "className": "flex items-center gap-2 text-xs text-muted-foreground",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "{self.raw.workers.local} local",
+                      "className": "text-xs"
+                    },
+                    {
+                      "type": "text",
+                      "text": "•",
+                      "className": "text-xs"
+                    },
+                    {
+                      "type": "text",
+                      "text": "{self.raw.workers.network} network",
+                      "className": "text-xs"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "group bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/30 rounded p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-purple-500/20",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Total Liquidity",
+                  "className": "text-xs text-muted-foreground uppercase tracking-wider mb-3"
+                },
+                {
+                  "type": "text",
+                  "text": "${self.raw.liquidity}",
+                  "format": {
+                    "type": "volume",
+                    "decimals": 2
+                  },
+                  "className": "text-4xl font-bold text-foreground mb-2 group-hover:text-purple-600 transition-colors"
+                },
+                {
+                  "type": "container",
+                  "className": "block",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "USD",
+                      "className": "text-xs text-muted-foreground"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "group bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/30 rounded p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-amber-500/20",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Error Rate",
+                  "className": "text-xs text-muted-foreground uppercase tracking-wider mb-3"
+                },
+                {
+                  "type": "text",
+                  "text": "{self.raw.node.operations.errors}",
+                  "className": "text-4xl font-bold mb-2",
+                  "style": {
+                    "className": {
+                      "condition": {
+                        "key": "self.raw.node.operations.errors",
+                        "operator": ">",
+                        "value": 0
+                      },
+                      "true": "text-red-600 dark:text-red-500",
+                      "false": "text-green-600 dark:text-green-500"
+                    }
+                  }
+                },
+                {
+                  "type": "container",
+                  "className": "block",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "errors",
+                      "className": "text-xs text-muted-foreground"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "container",
+          "className": "grid grid-cols-1 md:grid-cols-3 gap-6 mb-8",
+          "children": [
+            {
+              "type": "container",
+              "className": "bg-card border border-border rounded overflow-hidden",
+              "children": [
+                {
+                  "type": "container",
+                  "className": "px-6 py-4 bg-gradient-to-r from-green-500/10 to-transparent border-b border-border",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "Node Performance",
+                      "className": "text-sm font-bold text-foreground uppercase tracking-wide"
+                    }
+                  ]
+                },
+                {
+                  "type": "container",
+                  "className": "p-6 space-y-4",
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 bg-background/50 rounded",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Total Operations",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.node.operations.total}",
+                          "format": {
+                            "type": "volume",
+                            "decimals": 0
+                          },
+                          "className": "text-sm font-mono font-bold text-foreground"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 bg-background/50 rounded",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Success Rate",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.node.operations.successRate}%",
+                          "format": {
+                            "type": "number",
+                            "decimals": 2
+                          },
+                          "className": "text-sm font-mono font-bold",
+                          "style": {
+                            "color": {
+                              "condition": {
+                                "key": "self.raw.node.operations.successRate",
+                                "operator": ">=",
+                                "value": 99
+                              },
+                              "true": "#00C853",
+                              "false": "#D50000"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 bg-background/50 rounded",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Network Errors",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.node.operations.networkErrors}",
+                          "className": "text-sm font-mono font-bold",
+                          "style": {
+                            "color": {
+                              "condition": {
+                                "key": "self.raw.node.operations.networkErrors",
+                                "operator": ">",
+                                "value": 0
+                              },
+                              "true": "#D50000",
+                              "false": "#00C853"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 bg-background/50 rounded",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Critical Errors",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.node.operations.criticalErrors}",
+                          "className": "text-sm font-mono font-bold",
+                          "style": {
+                            "color": {
+                              "condition": {
+                                "key": "self.raw.node.operations.criticalErrors",
+                                "operator": ">",
+                                "value": 0
+                              },
+                              "true": "#D50000",
+                              "false": "#00C853"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "bg-card border border-border rounded overflow-hidden",
+              "children": [
+                {
+                  "type": "container",
+                  "className": "px-6 py-4 bg-gradient-to-r from-blue-500/10 to-transparent border-b border-border",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "Worker Status",
+                      "className": "text-sm font-bold text-foreground uppercase tracking-wide"
+                    }
+                  ]
+                },
+                {
+                  "type": "container",
+                  "className": "p-6 space-y-4",
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 bg-green-500/10 rounded",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Active",
+                          "className": "text-sm font-semibold text-green-600 dark:text-green-500"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.workers.active}",
+                          "className": "text-2xl font-bold text-green-600 dark:text-green-500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 bg-background/50 rounded",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Stopped",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.workers.stopped}",
+                          "className": "text-xl font-mono font-bold text-muted-foreground"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 bg-background/50 rounded",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Total Workers",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.workers.total}",
+                          "className": "text-xl font-mono font-bold text-foreground"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "pt-3 border-t border-border mt-2",
+                      "children": [
+                        {
+                          "type": "container",
+                          "className": "flex justify-between items-center mb-2",
+                          "children": [
+                            {
+                              "type": "text",
+                              "text": "Local",
+                              "className": "text-xs text-muted-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "text": "{self.raw.workers.local}",
+                              "className": "text-xs font-mono font-semibold text-foreground"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "container",
+                          "className": "flex justify-between items-center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "text": "Network",
+                              "className": "text-xs text-muted-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "text": "{self.raw.workers.network}",
+                              "className": "text-xs font-mono font-semibold text-foreground"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "bg-card border border-border rounded overflow-hidden",
+              "children": [
+                {
+                  "type": "container",
+                  "className": "px-6 py-4 bg-gradient-to-r from-purple-500/10 to-transparent border-b border-border",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "Financial",
+                      "className": "text-sm font-bold text-foreground uppercase tracking-wide"
+                    }
+                  ]
+                },
+                {
+                  "type": "container",
+                  "className": "p-6 space-y-4",
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 bg-background/50 rounded",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Liquidity",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "${self.raw.liquidity}",
+                          "format": {
+                            "type": "volume",
+                            "decimals": 2
+                          },
+                          "className": "text-sm font-mono font-bold text-foreground"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 bg-background/50 rounded",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Protection",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "${self.raw.protection}",
+                          "format": {
+                            "type": "volume",
+                            "decimals": 2
+                          },
+                          "className": "text-sm font-mono font-bold text-foreground"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 bg-background/50 rounded",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Available",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "${self.raw.available}",
+                          "format": {
+                            "type": "volume",
+                            "decimals": 2
+                          },
+                          "className": "text-sm font-mono font-bold text-foreground"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 bg-background/50 rounded",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Rate",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.rate}%",
+                          "format": {
+                            "type": "number",
+                            "decimals": 2
+                          },
+                          "className": "text-sm font-mono font-bold text-foreground"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "container",
+          "className": "bg-card border border-border rounded overflow-hidden mb-8",
+          "children": [
+            {
+              "type": "container",
+              "className": "px-6 py-4 bg-gradient-to-r from-amber-500/10 to-transparent border-b border-border",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Margin Account",
+                  "className": "text-sm font-bold text-foreground uppercase tracking-wide"
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border",
+              "children": [
+                {
+                  "type": "container",
+                  "className": "p-6",
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "block",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Balance",
+                          "className": "text-xs text-muted-foreground uppercase tracking-wider mb-3 block"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "block",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "${self.raw.margin.balance}",
+                          "format": {
+                            "type": "volume",
+                            "decimals": 2
+                          },
+                          "className": "text-3xl font-bold text-foreground"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "container",
+                  "className": "p-6",
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "block",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Initial Margin",
+                          "className": "text-xs text-muted-foreground uppercase tracking-wider mb-3 block"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "block",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "${self.raw.margin.initial}",
+                          "format": {
+                            "type": "volume",
+                            "decimals": 2
+                          },
+                          "className": "text-3xl font-bold text-foreground"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "container",
+                  "className": "p-6",
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "block",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Maintenance",
+                          "className": "text-xs text-muted-foreground uppercase tracking-wider mb-3 block"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "block",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "${self.raw.margin.maintenance}",
+                          "format": {
+                            "type": "volume",
+                            "decimals": 2
+                          },
+                          "className": "text-3xl font-bold text-foreground"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "container",
+          "className": "grid grid-cols-1 md:grid-cols-2 gap-6",
+          "children": [
+            {
+              "type": "container",
+              "className": "bg-card border border-border rounded overflow-hidden",
+              "children": [
+                {
+                  "type": "container",
+                  "className": "px-6 py-4 bg-gradient-to-r from-cyan-500/10 to-transparent border-b border-border flex items-center justify-between",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "Network Statistics",
+                      "className": "text-sm font-bold text-foreground uppercase tracking-wide"
+                    },
+                    {
+                      "type": "text",
+                      "text": "{self.raw.uniqueExchange} exchanges",
+                      "className": "text-xs text-muted-foreground font-mono"
+                    }
+                  ]
+                },
+                {
+                  "type": "container",
+                  "className": "p-6 space-y-3",
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 bg-background/50 rounded hover:bg-background transition-colors",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Accounts",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.accounts}",
+                          "className": "text-sm font-mono font-bold text-foreground"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 bg-background/50 rounded hover:bg-background transition-colors",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Connectors",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.connectors}",
+                          "className": "text-sm font-mono font-bold text-foreground"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "container",
+                      "className": "flex justify-between items-center p-3 bg-background/50 rounded hover:bg-background transition-colors",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Unique Exchanges",
+                          "className": "text-sm text-muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "text": "{self.raw.uniqueExchange}",
+                          "className": "text-sm font-mono font-bold text-foreground"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "container",
+              "className": "bg-gradient-to-br from-green-500/5 via-emerald-500/5 to-green-600/5 border border-green-500/30 rounded overflow-hidden",
+              "children": [
+                {
+                  "type": "container",
+                  "className": "px-6 py-4 bg-gradient-to-r from-green-500/20 to-transparent border-b border-green-500/30 flex items-center gap-3",
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "✓",
+                      "className": "text-2xl text-green-600 dark:text-green-500 font-bold"
+                    },
+                    {
+                      "type": "text",
+                      "text": "System Health",
+                      "className": "text-sm font-bold text-foreground uppercase tracking-wide"
+                    }
+                  ]
+                },
+                {
+                  "type": "container",
+                  "className": "p-6",
+                  "children": [
+                    {
+                      "type": "container",
+                      "className": "space-y-4",
+                      "children": [
+                        {
+                          "type": "container",
+                          "className": "flex items-center gap-3 p-4 bg-background/50 rounded",
+                          "children": [
+                            {
+                              "type": "text",
+                              "text": "✓",
+                              "className": "text-xl text-green-600 dark:text-green-500 font-bold"
+                            },
+                            {
+                              "type": "container",
+                              "className": "flex-1",
+                              "children": [
+                                {
+                                  "type": "container",
+                                  "className": "block",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "text": "Node Operational",
+                                      "className": "text-sm font-semibold text-foreground block"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "container",
+                                  "className": "block",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "text": "All systems running normally",
+                                      "className": "text-xs text-muted-foreground block"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "text": "{self.raw.node.operations.successRate}%",
+                              "format": {
+                                "type": "number",
+                                "decimals": 1
+                              },
+                              "className": "text-lg font-bold text-green-600 dark:text-green-500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "container",
+                          "className": "flex items-center gap-3 p-4 bg-background/50 rounded",
+                          "children": [
+                            {
+                              "type": "text",
+                              "text": "⚡",
+                              "className": "text-xl"
+                            },
+                            {
+                              "type": "container",
+                              "className": "flex-1",
+                              "children": [
+                                {
+                                  "type": "container",
+                                  "className": "block",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "text": "Workers Active",
+                                      "className": "text-sm font-semibold text-foreground block"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "container",
+                                  "className": "block",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "text": "{self.raw.workers.active} of {self.raw.workers.total} workers running",
+                                      "className": "text-xs text-muted-foreground block"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "container",
+                          "className": "p-3 bg-green-500/10 border border-green-500/20 rounded mt-4",
+                          "children": [
+                            {
+                              "type": "container",
+                              "className": "block text-center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "text": "Last Update: {self.timestamp}",
+                                  "format": {
+                                    "type": "datetime"
+                                  },
+                                  "className": "text-xs text-muted-foreground font-mono"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -76,7 +76,13 @@ export default function SchemaPreview({
       setIsResolving(true);
       try {
         // 1. Resolve schema structure
-        const resolved = await resolveSchemaRefs(schema, schemaStore);
+        const resolved = await resolveSchemaRefs(
+          schema,
+          schemaStore,
+          0, // depth
+          10, // maxDepth
+          undefined, // No parent self channel for preview
+        );
 
         // 2. Collect required channels and their aliases (already includes all aliases)
         const requiredChannels = await collectRequiredChannels(

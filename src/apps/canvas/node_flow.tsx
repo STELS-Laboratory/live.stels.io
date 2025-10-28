@@ -26,7 +26,8 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
 	const [mergedData, setMergedData] = useState<Record<string, unknown>>({});
 	const [isLoading, setIsLoading] = useState(true);
 
-	// Get session data
+	// Get session data for this widget's channel
+	// data.channel = "testnet.runtime.ticker.BTC/USDT.bybit.spot" (widget's own channel)
 	const sessionData = session?.[data.channel];
 	const widgetKey = sessionData?.widget;
 
@@ -62,29 +63,44 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
 				if (cancelled) return;
 
 				if (schemaProject) {
-					// Resolve schema
+					// Resolve schema with self channel context
 					const resolved = await resolveSchemaRefs(
 						schemaProject.schema,
 						schemaStore,
+						0, // depth
+						10, // maxDepth
+						data.channel, // Pass current channel as parent self channel
 					);
 
-					// Prepare data with aliases from the schema itself
-					const data: Record<string, unknown> = {};
+					// Prepare merged data with aliases from the schema itself
+					const mergedChannelData: Record<string, unknown> = {};
 
-					// 1. IMPORTANT: Add current session data as "self" for universal schemas
-					// This allows using same schema for different channels
-					if (
-						schemaProject.selfChannelKey &&
-						session?.[schemaProject.selfChannelKey]
-					) {
-						// Use explicitly set selfChannelKey from schema
-						data["self"] = session[schemaProject.selfChannelKey];
-					} else {
-						// Fallback to current channel
-						data["self"] = sessionData;
+					// 1. IMPORTANT: In Canvas, "self" should always point to the widget's own data
+					// This ensures {self.raw.data.last} shows the widget's data, not aliases
+					if (sessionData) {
+						// Always use the widget's own channel data as "self"
+						mergedChannelData["self"] = sessionData;
 					}
 
-					// 2. Add data for schema's own channels (with aliases)
+					// 2. Process nested schemas with their self channels
+					// This allows nested schemas to access their own data via {self}
+					const processNestedSchemas = (node: UINode): void => {
+						if (
+							node.schemaRef && node.selfChannel && session?.[node.selfChannel]
+						) {
+							// Add self channel data for nested schema
+							mergedChannelData[node.selfChannel] = session[node.selfChannel];
+						}
+
+						// Recursively process children
+						if (node.children) {
+							node.children.forEach(processNestedSchemas);
+						}
+					};
+
+					processNestedSchemas(resolved);
+
+					// 3. Add data for schema's own channels (with aliases)
 					if (
 						schemaProject.channelAliases &&
 						schemaProject.channelAliases.length > 0
@@ -94,13 +110,13 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
 								{ channelKey, alias }: { channelKey: string; alias: string },
 							) => {
 								if (session?.[channelKey]) {
-									data[alias] = session[channelKey];
+									mergedChannelData[alias] = session[channelKey];
 								}
 							},
 						);
 					}
 
-					// 3. Collect nested channels and aliases from all nested schemas
+					// 4. Collect nested channels and aliases from all nested schemas
 					// collectRequiredChannels already returns correct aliases!
 					const requiredChannels = await collectRequiredChannels(
 						schemaProject.schema,
@@ -110,18 +126,18 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
 					// Add all nested channel data using their proper aliases
 					for (const { channelKey, alias } of requiredChannels) {
 						// Skip if this alias already exists (avoid duplicates)
-						if (data[alias]) {
+						if (mergedChannelData[alias]) {
 							continue;
 						}
 
 						if (session?.[channelKey]) {
-							data[alias] = session[channelKey];
+							mergedChannelData[alias] = session[channelKey];
 						}
 					}
 
 					if (!cancelled) {
 						setSchema(resolved);
-						setMergedData(data);
+						setMergedData(mergedChannelData);
 					}
 				}
 			} catch (error) {
