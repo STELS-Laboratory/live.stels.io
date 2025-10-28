@@ -56,18 +56,13 @@ export function CertificateHistory({
    * Clear all history
    */
   const handleClearHistory = (): void => {
-    if (
-      confirm(
-        `Delete all ${genesisCompliantHistory.length} certificates from history? This cannot be undone.`,
-      )
-    ) {
-      useTokenBuilderStore.setState({ certificateHistory: [] });
-    }
+    // Clear history without confirmation - user can recreate tokens if needed
+    useTokenBuilderStore.setState({ certificateHistory: [] });
   };
 
   return (
     <div className="fixed inset-0 bg-background/95 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl h-[85vh] flex flex-col bg-card border border-border rounded-lg shadow-xl overflow-hidden">
+      <div className="w-full max-w-3xl h-[85vh] flex flex-col bg-card border border-border rounded shadow-xl overflow-hidden">
         {/* Header */}
         <div className="border-b border-border bg-muted/20 px-4 py-3 flex-shrink-0">
           <div className="flex items-center justify-between">

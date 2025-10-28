@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, Shield, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/stores";
 import {
   Dialog,
   DialogContent,
@@ -71,10 +72,10 @@ export function SecurityWarningExtensions(): React.ReactElement {
         (window as unknown as WindowWithPWA).deferredPrompt = null;
       });
     } else {
-      alert(
-        "To install:\n\n" +
-          "Desktop: Click the install icon in your browser's address bar\n" +
-          "Android: Open menu → 'Add to Home screen'\n" +
+      toast.info(
+        "How to Install STELS Web 5",
+        "Desktop: Click the install icon in your browser's address bar • " +
+          "Android: Open menu → 'Add to Home screen' • " +
           "iOS: Tap Share → 'Add to Home Screen'",
       );
     }

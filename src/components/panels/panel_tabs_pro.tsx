@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useCanvasStore } from "@/apps/canvas/store";
 import type { Panel } from "@/lib/panel-types";
+import { toast } from "@/stores";
 import {
   Tooltip,
   TooltipContent,
@@ -284,13 +285,15 @@ export const PanelTabsPro: React.FC<PanelTabsProps> = ({ className }) => {
   const handleDeletePanel = useCallback(
     (panelId: string) => {
       if (panels.length <= 1) {
-        alert("Cannot delete the last panel");
+        toast.warning(
+          "Cannot delete the last panel",
+          "Create another panel first",
+        );
         return;
       }
 
-      if (confirm("Delete this panel? This cannot be undone.")) {
-        deletePanel(panelId);
-      }
+      // Delete panel without confirmation
+      deletePanel(panelId);
     },
     [panels.length, deletePanel],
   );
@@ -304,7 +307,7 @@ export const PanelTabsPro: React.FC<PanelTabsProps> = ({ className }) => {
         downloadJSON(filename, jsonData);
       } catch (error) {
         console.error("Export failed:", error);
-        alert("Failed to export panel");
+        toast.error("Failed to export panel", "Please try again");
       }
     },
     [exportPanel, panels],
@@ -316,7 +319,7 @@ export const PanelTabsPro: React.FC<PanelTabsProps> = ({ className }) => {
       downloadJSON(`panels-all-${Date.now()}.json`, jsonData);
     } catch (error) {
       console.error("Export all failed:", error);
-      alert("Failed to export panels");
+      toast.error("Failed to export panels", "Please try again");
     }
   }, [exportAllPanels]);
 
@@ -333,11 +336,11 @@ export const PanelTabsPro: React.FC<PanelTabsProps> = ({ className }) => {
           if (panelId) {
             setActivePanel(panelId);
           } else {
-            alert("Failed to import panel");
+            toast.error("Failed to import panel", "Invalid panel data");
           }
         } catch (error) {
           console.error("Import failed:", error);
-          alert("Failed to import panel");
+          toast.error("Failed to import panel", "Please check the file format");
         }
       };
       reader.readAsText(file);
@@ -351,10 +354,7 @@ export const PanelTabsPro: React.FC<PanelTabsProps> = ({ className }) => {
       const file = event.target.files?.[0];
       if (!file) return;
 
-      if (!confirm("Replace ALL panels? This cannot be undone.")) {
-        event.target.value = "";
-        return;
-      }
+      // Import panels without confirmation
 
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -362,11 +362,14 @@ export const PanelTabsPro: React.FC<PanelTabsProps> = ({ className }) => {
           const jsonData = e.target?.result as string;
           const success = importAllPanels(jsonData);
           if (!success) {
-            alert("Failed to import panels");
+            toast.error("Failed to import panels", "Invalid data format");
           }
         } catch (error) {
           console.error("Import all failed:", error);
-          alert("Failed to import panels");
+          toast.error(
+            "Failed to import panels",
+            "Please check the file format",
+          );
         }
       };
       reader.readAsText(file);

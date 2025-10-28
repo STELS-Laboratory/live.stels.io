@@ -5,15 +5,7 @@
 
 import { useCallback } from "react";
 import { VALIDATION_MESSAGES } from "../utils";
-
-/**
- * Custom toast notification type
- */
-interface ToastOptions {
-  title: string;
-  description?: string;
-  variant?: "default" | "destructive";
-}
+import { toast } from "@/stores";
 
 /**
  * Hook for Token Builder specific toast notifications
@@ -29,37 +21,25 @@ export function useTokenToast(): {
   showSigningError: (error: Error | string) => void;
   showRateLimitError: (seconds: number) => void;
 } {
-  // Simple toast implementation - replace with your toast system
-  const showToast = useCallback((options: ToastOptions): void => {
-    // TODO: Replace with actual toast implementation from @/hooks/use-toast
-    // For now, use console for demonstration
-    const level = options.variant === "destructive" ? "error" : "log";
-    console[level](`[Toast] ${options.title}`, options.description || "");
-    
-    // Fallback to alert for critical errors
-    if (options.variant === "destructive") {
-      alert(`${options.title}\n${options.description || ""}`);
+  // Use global toast system
+  const showToast = useCallback((title: string, description?: string, isError = false): void => {
+    if (isError) {
+      toast.error(title, description);
+    } else {
+      toast.success(title, description);
     }
   }, []);
 
   const showSuccess = useCallback(
     (message: string, description?: string): void => {
-      showToast({
-        title: message,
-        description,
-        variant: "default",
-      });
+      showToast(message, description, false);
     },
     [showToast],
   );
 
   const showError = useCallback(
     (message: string, description?: string): void => {
-      showToast({
-        title: message,
-        description,
-        variant: "destructive",
-      });
+      showToast(message, description, true);
     },
     [showToast],
   );

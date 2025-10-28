@@ -241,7 +241,7 @@ export function CertificateValidator({
 
   return (
     <div className="fixed inset-0 bg-background/95 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl h-[92vh] flex flex-col bg-card border border-border rounded-lg shadow-xl overflow-hidden">
+      <div className="w-full max-w-4xl h-[92vh] flex flex-col bg-card border border-border rounded shadow-xl overflow-hidden">
         {/* Header */}
         <div className="border-b border-border bg-muted/20 px-4 py-3 flex-shrink-0">
           <div className="flex items-center justify-between">

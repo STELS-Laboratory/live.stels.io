@@ -1,7 +1,6 @@
 import { createRoot } from "react-dom/client";
 import "@/index.css";
 import App from "@/App";
-import { registerSW } from "virtual:pwa-register";
 import { initThemeColor } from "@/lib/theme-color";
 import {
 	freezeNativeAPIs,
@@ -11,17 +10,8 @@ import {
 // Configure Monaco Editor BEFORE freezing native APIs
 import "@/monaco-config";
 
-// Register Service Worker for PWA
-const updateSW = registerSW({
-	onNeedRefresh(): void {
-		if (confirm("New content available. Reload to update?")) {
-			updateSW(true);
-		}
-	},
-	onOfflineReady(): void {
-		console.log("[PWA] App ready to work offline");
-	},
-});
+// Service Worker registration is handled by UpdatePrompt component
+// Using registerType: 'prompt' in vite.config.ts
 
 // Initialize dynamic theme color management
 initThemeColor();

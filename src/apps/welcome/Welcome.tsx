@@ -23,11 +23,16 @@ import {
   Calendar,
   Code,
   Coins,
+  Copy,
+  CreditCard,
   FileText,
+  Fingerprint,
   Layers,
   Layout as LayoutIcon,
   Package,
   Play,
+  Shield,
+  Wallet,
 } from "lucide-react";
 import { navigateTo } from "@/lib/router.ts";
 import {
@@ -39,16 +44,28 @@ import AppLauncher from "@/components/main/app_launcher";
 import { useOpenAppsStore } from "@/stores/modules/open_apps.ts";
 import { useRestoreOpenApps } from "@/hooks/use_restore_open_apps.ts";
 import { useDefaultSchemas } from "@/hooks/use_default_schemas.ts";
-import { useAuthStore } from "@/stores";
+import { toast, useAuthStore } from "@/stores";
 import { useAssetList } from "@/hooks/use_asset_list";
+
+/**
+ * Format card number with spaces (XXXX XXXX XXXX XXXX)
+ */
+function formatCardNumber(cardNum: string): string {
+  // Remove all non-digits
+  const digits = cardNum.replace(/\D/g, "");
+
+  // Add space every 4 digits
+  const groups = digits.match(/.{1,4}/g) || [];
+  return groups.join(" ");
+}
 
 /**
  * STELS Application Hub - Build and launch autonomous AI web agents
  */
 function Welcome(): ReactElement {
   const session = useSessionStoreSync() as Record<string, unknown> | null;
+  const wallet = useAuthStore((state) => state.wallet);
   const connectionSession = useAuthStore((state) => state.connectionSession);
-  const isDeveloper = connectionSession?.developer ?? false;
   const [schemas, setSchemas] = useState<SchemaProject[]>([]);
 
   // Load asset list from server
@@ -308,16 +325,16 @@ function Welcome(): ReactElement {
     }
   }, [isLoading]); // Only log once when loading completes
 
-  // Filter static router schemas for Web Agents
-  // INCLUDE: widget.app.* (public default apps for all users)
-  // EXCLUDE: widget.apps.* (Development Tools for developers only)
+  // Filter static router schemas for Web Agents section
+  // INCLUDE: widget.app.* (public default apps from public/schemas/)
+  // EXCLUDE: widget.apps.* (Development Tools shown in separate section below)
   const routerSchemas = useMemo(() => {
     return schemas.filter(
       (schema) =>
         schema.type === "static" &&
         (schema.widgetKey.includes(".router") ||
           schema.widgetKey.startsWith("widget.app.")) &&
-        // EXCLUDE Development Tools (widget.apps.*)
+        // EXCLUDE Development Tools (shown in separate section)
         !schema.widgetKey.startsWith("widget.apps."),
     );
   }, [schemas]);
@@ -607,7 +624,7 @@ function Welcome(): ReactElement {
   // Store view
   return (
     <UIEngineProvider>
-      <div className="min-h-screen bg-background p-8">
+      <div className="min-h-screen bg-background p-2">
         {/* Header */}
         <div className="max-w-7xl mx-auto mb-8">
           <div className="flex items-center gap-3 mb-4">
@@ -626,6 +643,215 @@ function Welcome(): ReactElement {
         {isLoading && (
           <div className="max-w-7xl mx-auto flex items-center justify-center py-20">
             <div className="text-muted-foreground">Loading apps...</div>
+          </div>
+        )}
+
+        {/* Digital Identity Card - Marketing Block */}
+        {!isLoading && wallet && (
+          <div className="max-w-7xl mx-auto mb-12 px-2 sm:px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="relative overflow-hidden"
+            >
+              {/* Background gradient - project colors */}
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-zinc-500/5 to-amber-500/5 rounded-lg" />
+
+              <div className="relative bg-card/90 backdrop-blur-sm border border-border rounded-lg p-4 sm:p-6 lg:p-8 shadow-lg">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                  {/* Left: Digital Identity Info */}
+                  <div className="space-y-4 sm:space-y-6">
+                    {/* Header */}
+                    <div className="flex items-center gap-3">
+                      <motion.div
+                        animate={{ rotate: [0, 5, 0, -5, 0] }}
+                        transition={{
+                          duration: 5,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                        className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-zinc-600 to-zinc-700 dark:from-zinc-700 dark:to-zinc-800 rounded-xl flex items-center justify-center shadow-md"
+                      >
+                        <Fingerprint className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                      </motion.div>
+                      <div>
+                        <h2 className="text-xl sm:text-2xl font-bold text-foreground">
+                          Digital Identity
+                        </h2>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          Your sovereign Web 5 identity
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Marketing Message */}
+                    <div className="space-y-3">
+                      <p className="text-sm sm:text-base text-foreground leading-relaxed">
+                        Welcome to the{" "}
+                        <span className="font-semibold text-amber-600 dark:text-amber-500">
+                          decentralized web
+                        </span>. Your digital identity is cryptographically
+                        secured and fully owned by you.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+                        <div className="flex items-start gap-2 p-2.5 sm:p-3 bg-background/50 rounded border border-border">
+                          <Shield className="w-4 h-4 text-green-600 dark:text-green-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <div className="text-xs font-semibold text-foreground">
+                              Secure
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              secp256k1
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2 p-2.5 sm:p-3 bg-background/50 rounded border border-border">
+                          <Fingerprint className="w-4 h-4 text-amber-600 dark:text-amber-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <div className="text-xs font-semibold text-foreground">
+                              Private
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Your keys
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2 p-2.5 sm:p-3 bg-background/50 rounded border border-border">
+                          <Wallet className="w-4 h-4 text-zinc-600 dark:text-zinc-400 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <div className="text-xs font-semibold text-foreground">
+                              Sovereign
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Self-custody
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Network Badge */}
+                    {connectionSession && (
+                      <div className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-green-500/10 to-green-500/10 border border-green-500/20 rounded">
+                        <motion.div
+                          animate={{
+                            scale: [1, 1.2, 1],
+                            opacity: [0.7, 1, 0.7],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                          className="w-2 h-2 bg-green-500 rounded-full shadow-sm"
+                        />
+                        <span className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-500">
+                          Connected to {connectionSession.network}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right: Wallet Card */}
+                  <div>
+                    <motion.div
+                      whileHover={{ scale: 1.01 }}
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                      className="relative"
+                    >
+                      <div className="relative bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-900 dark:from-zinc-800 dark:via-zinc-900 dark:to-black rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 shadow-xl overflow-hidden">
+                        {/* Card Background Pattern - softer */}
+                        <div className="absolute inset-0 opacity-5">
+                          <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-amber-500 rounded-full -translate-y-12 translate-x-12" />
+                          <div className="absolute bottom-0 left-0 w-32 h-32 sm:w-40 sm:h-40 bg-amber-500 rounded-full translate-y-16 -translate-x-16" />
+                        </div>
+
+                        <div className="relative z-10 space-y-4 sm:space-y-5 lg:space-y-6">
+                          {/* Card Header */}
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-1.5 sm:gap-2">
+                              <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-white/80" />
+                              <span className="text-white/80 font-medium text-xs sm:text-sm tracking-wide">
+                                STELS Web 5
+                              </span>
+                            </div>
+                            <div className="text-white/60 text-[10px] sm:text-xs font-mono">
+                              {wallet.number
+                                ? formatCardNumber(wallet.number)
+                                : "•••• •••• •••• ••••"}
+                            </div>
+                          </div>
+
+                          {/* Balance */}
+                          <div>
+                            <div className="text-white/60 text-[10px] sm:text-xs mb-1 uppercase tracking-wider">
+                              Balance
+                            </div>
+                            <div className="text-white text-2xl sm:text-3xl font-bold tracking-tight">
+                              0.00
+                            </div>
+                            <div className="text-white/60 text-xs sm:text-sm font-medium mt-1">
+                              {connectionSession?.network === "testnet"
+                                ? "TST"
+                                : connectionSession?.network === "mainnet"
+                                ? "STELS"
+                                : "LOCAL"}
+                            </div>
+                          </div>
+
+                          {/* Address */}
+                          <div>
+                            <div className="text-white/60 text-[10px] sm:text-xs mb-2 uppercase tracking-wider">
+                              Wallet Address
+                            </div>
+                            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded p-2 sm:p-2.5 border border-white/20">
+                              <code className="text-white text-[10px] sm:text-xs font-mono flex-1 truncate">
+                                {wallet.address}
+                              </code>
+                              <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(wallet.address);
+                                  toast.success(
+                                    "Address copied!",
+                                    "Wallet address copied to clipboard",
+                                  );
+                                }}
+                                className="flex-shrink-0 p-1.5 hover:bg-white/20 rounded transition-colors active:bg-white/30"
+                                title="Copy address"
+                              >
+                                <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                              </motion.button>
+                            </div>
+                          </div>
+
+                          {/* Card Footer - Chip simulation */}
+                          <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-white/10">
+                            <div className="w-10 h-7 sm:w-12 sm:h-8 bg-gradient-to-br from-amber-300 to-amber-400 rounded opacity-60" />
+                            <div className="text-white/50 text-[10px] sm:text-xs font-mono tracking-wider">
+                              Web 5 Identity
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {/* Card Info */}
+                    <div className="mt-3 sm:mt-4 px-2 text-center">
+                      <p className="text-xs text-muted-foreground">
+                        This is your sovereign identity on the STELS network.
+                        <span className="block mt-1 font-medium text-foreground text-xs sm:text-sm">
+                          You own your data, you control your assets.
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         )}
 
@@ -771,8 +997,8 @@ function Welcome(): ReactElement {
           </div>
         )}
 
-        {/* Development Tools - Only for developers */}
-        {!isLoading && isDeveloper && (
+        {/* Development Tools - Available for all users */}
+        {!isLoading && (
           <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-border">
             <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
               <span>Development Tools</span>
@@ -1226,12 +1452,14 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
 
   return (
     <motion.div
+      onClick={handleLaunchClick}
       whileHover={{ scale: 1.01, y: -2 }}
+      whileTap={{ scale: 0.98 }}
       transition={{
         duration: 0.2,
         ease: [0.16, 1, 0.3, 1],
       }}
-      className={`group bg-card rounded border overflow-hidden transition-all duration-200 relative ${
+      className={`group bg-card rounded border overflow-hidden transition-all duration-200 relative cursor-pointer ${
         isRunning
           ? "border-green-500/50 hover:border-green-500/70 shadow-green-500/20 shadow-md"
           : "border-border hover:border-amber-500/30 hover:shadow-md"
@@ -1305,30 +1533,27 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
           </motion.div>
         )}
 
-        {/* Overlay on hover (document-style) */}
+        {/* Overlay on hover (document-style) - visual only, click handled by parent */}
         <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-8 pointer-events-none">
-          <motion.button
-            onClick={handleLaunchClick}
+          <motion.div
             initial={{ y: 10, opacity: 0 }}
             animate={{
               y: isLaunchingLocal ? 10 : 0,
               opacity: isLaunchingLocal ? 0 : 1,
             }}
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
             transition={{
               duration: 0.2,
               ease: [0.16, 1, 0.3, 1],
             }}
-            className={`pointer-events-auto px-4 py-2 font-medium rounded-md flex items-center gap-2 shadow-lg transition-colors duration-150 ${
+            className={`px-4 py-2 font-medium rounded-md flex items-center gap-2 shadow-lg ${
               isRunning
-                ? "bg-green-500 text-white hover:bg-green-400"
-                : "bg-foreground text-background hover:bg-foreground/90"
+                ? "bg-green-500 text-white"
+                : "bg-foreground text-background"
             }`}
           >
             <Play className="w-4 h-4" />
             <span className="text-sm">{isRunning ? "Open" : "Launch"}</span>
-          </motion.button>
+          </motion.div>
         </div>
       </div>
 

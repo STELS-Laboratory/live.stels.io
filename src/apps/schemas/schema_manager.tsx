@@ -17,6 +17,7 @@ import {
 import { Box, Database, Edit2, Plus, Save, Trash2 } from "lucide-react";
 import type { SchemaProject, SchemaType } from "./types.ts";
 import { generateSchemaId } from "./db.ts";
+import { toast } from "@/stores";
 
 interface SchemaManagerProps {
   schemas: SchemaProject[];
@@ -77,12 +78,12 @@ export default function SchemaManager({
 
   const handleCreateSubmit = (): void => {
     if (!formName.trim()) {
-      alert("Please enter a schema name");
+      toast.warning("Schema name required", "Please enter a schema name");
       return;
     }
 
     if (!formWidgetKey.trim()) {
-      alert("Please enter a widget key");
+      toast.warning("Widget key required", "Please enter a widget key");
       return;
     }
 
@@ -130,7 +131,7 @@ export default function SchemaManager({
   const handleEditSubmit = (): void => {
     if (!editingSchema) return;
     if (!formName.trim()) {
-      alert("Please enter a schema name");
+      toast.warning("Schema name required", "Please enter a schema name");
       return;
     }
 
@@ -149,13 +150,8 @@ export default function SchemaManager({
   const handleDeleteClick = (): void => {
     if (!activeSchema) return;
 
-    if (
-      confirm(
-        `Delete schema "${activeSchema.name}"?\n\nThis action cannot be undone.`,
-      )
-    ) {
-      onDeleteSchema(activeSchema.id);
-    }
+    // Delete schema without confirmation
+    onDeleteSchema(activeSchema.id);
   };
 
   return (

@@ -25,7 +25,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { navigateTo } from "@/lib/router.ts";
-import { useAppStore, useAuthStore } from "@/stores";
+import { useAppStore } from "@/stores";
 import { useMobile } from "@/hooks/use_mobile";
 
 interface DevTool {
@@ -50,8 +50,6 @@ const DEV_TOOLS: DevTool[] = [
 export default function AppTabs(): ReactElement {
   const { apps, activeAppId, setActiveApp, closeApp } = useOpenAppsStore();
   const { currentRoute, allowedRoutes } = useAppStore();
-  const connectionSession = useAuthStore((state) => state.connectionSession);
-  const isDeveloper = connectionSession?.developer ?? false;
   const mobile = useMobile();
 
   const handleTabClick = (appId: string): void => {
@@ -112,10 +110,10 @@ export default function AppTabs(): ReactElement {
           )}
         </Tooltip>
 
-        {/* Development Tools - Only for developers */}
-        {isDeveloper && availableDevTools.length > 0 && (
+        {/* Development Tools - Available for all users in tabs */}
+        {availableDevTools.length > 0 && (
           <>
-            <div className="h-6 w-px bg-border mx-1" />
+            <div className="h-6 w-px bg-border mx-1 flex-shrink-0" />
 
             {availableDevTools.map((tool) => {
               const Icon = tool.icon;
@@ -269,13 +267,8 @@ export default function AppTabs(): ReactElement {
               <TooltipTrigger asChild>
                 <button
                   onClick={() => {
-                    if (
-                      confirm(
-                        `Close all ${apps.length} agents? Unsaved changes will be lost.`,
-                      )
-                    ) {
-                      useOpenAppsStore.getState().closeAllApps();
-                    }
+                    // Close all apps without confirmation
+                    useOpenAppsStore.getState().closeAllApps();
                   }}
                   className="px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded transition-colors"
                 >

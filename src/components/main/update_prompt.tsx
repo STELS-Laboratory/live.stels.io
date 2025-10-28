@@ -99,7 +99,7 @@ export default function UpdatePrompt(): React.ReactElement | null {
               duration: 0.2,
               ease: "easeOut",
             }}
-            className="bg-card border border-amber-500/50 rounded-lg shadow-2xl shadow-amber-500/20 overflow-hidden"
+            className="bg-card border border-amber-500/50 rounded shadow-2xl shadow-amber-500/20 overflow-hidden"
           >
             {/* Header */}
             <div className="px-6 py-4 bg-gradient-to-r from-amber-500/10 to-transparent border-b border-border flex items-center justify-between">

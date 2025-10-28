@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useCanvasStore } from "@/apps/canvas/store";
 import type { Panel } from "@/lib/panel-types";
+import { toast } from "@/stores";
 
 interface PanelManagerProps {
 	isOpen: boolean;
@@ -249,17 +250,15 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 
 	const handleDeletePanel = (panelId: string) => {
 		if (panels.length <= 1) {
-			alert("Cannot delete the last panel. Create another panel first.");
+			toast.warning(
+				"Cannot delete the last panel",
+				"Create another panel first",
+			);
 			return;
 		}
 
-		if (
-			confirm(
-				"Are you sure you want to delete this panel? This action cannot be undone.",
-			)
-		) {
-			deletePanel(panelId);
-		}
+		// Delete panel without confirmation
+		deletePanel(panelId);
 	};
 
 	const handleMovePanel = (panelId: string, direction: "up" | "down") => {
@@ -271,14 +270,9 @@ export const PanelManager: React.FC<PanelManagerProps> = (
 	};
 
 	const handleClearAllPanels = () => {
-		if (
-			confirm(
-				"Are you sure you want to delete ALL panels? This action cannot be undone.",
-			)
-		) {
-			clearAllPanels();
-			onClose();
-		}
+		// Clear all panels without confirmation
+		clearAllPanels();
+		onClose();
 	};
 
 	if (!isOpen) return null;

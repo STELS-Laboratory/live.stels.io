@@ -23,6 +23,7 @@ import { SecurityWarningDialog } from "@/components/auth/security_warning_dialog
 import { SecurityWarningExtensions } from "@/components/auth/security_warning_extensions";
 import { SessionExpiredModal } from "@/components/auth/session_expired_modal";
 import UpdatePrompt from "@/components/main/update_prompt";
+import ToastProvider from "@/components/main/toast_provider";
 
 // Lazy-loaded app modules
 const Welcome = lazy(() => import("@/apps/welcome"));
@@ -787,6 +788,8 @@ export default function Dashboard(): React.ReactElement {
 						<SessionExpiredModal />
 						{/* PWA update prompt */}
 						<UpdatePrompt />
+						{/* Global toast notifications */}
+						<ToastProvider />
 					</TooltipProvider>
 				</SessionProvider>
 			);
