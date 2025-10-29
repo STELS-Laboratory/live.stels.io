@@ -626,7 +626,7 @@ function Welcome(): ReactElement {
     <UIEngineProvider>
       <div className="min-h-screen bg-background p-2">
         {/* Header */}
-        <div className="max-w-7xl mx-auto mb-8">
+        <div className="max-w-7xl mx-auto mb-8 mt-8">
           <div className="flex items-center gap-3 mb-4">
             <Package className="w-8 h-8 text-amber-500" />
             <h1 className="text-3xl font-bold text-foreground">
@@ -869,7 +869,7 @@ function Welcome(): ReactElement {
 
             {/* Horizontal scroll container */}
             <div className="relative pt-4">
-              <div className="flex gap-3 overflow-x-auto p-4 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+              <div className="flex gap-2 overflow-x-auto p-4 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
                 {tokenSchemas.map((schema) => (
                   <motion.div
                     key={schema.id}
