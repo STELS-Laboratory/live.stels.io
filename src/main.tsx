@@ -7,6 +7,8 @@ import {
 	performSecurityCheck,
 	validateCryptoOperations,
 } from "@/lib/pwa-security";
+import { initChunkErrorHandlers } from "@/lib/chunk_error_handler";
+import ChunkErrorBoundary from "@/components/main/chunk_error_boundary";
 // CodeMirror doesn't need pre-configuration
 
 // Service Worker registration is handled by UpdatePrompt component
@@ -14,6 +16,9 @@ import {
 
 // Initialize dynamic theme color management
 initThemeColor();
+
+// Initialize chunk error handlers
+initChunkErrorHandlers();
 
 // Initialize security measures
 try {
@@ -76,5 +81,7 @@ rootElement.className = "sonar";
 document.body.appendChild(rootElement);
 
 createRoot(rootElement).render(
-	<App />,
+	<ChunkErrorBoundary>
+		<App />
+	</ChunkErrorBoundary>,
 );

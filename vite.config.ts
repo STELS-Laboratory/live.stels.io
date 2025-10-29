@@ -1,8 +1,22 @@
 import path from "path"
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+
+/**
+ * Build version plugin
+ * Replaces BUILD_TIMESTAMP with actual build timestamp in index.html
+ */
+function buildVersionPlugin(): Plugin {
+  return {
+    name: 'build-version',
+    transformIndexHtml(html) {
+      const buildTimestamp = Date.now().toString();
+      return html.replace('BUILD_TIMESTAMP', buildTimestamp);
+    },
+  };
+}
 
 export default defineConfig({
   optimizeDeps: {
@@ -16,6 +30,7 @@ export default defineConfig({
   plugins: [
     tailwindcss(), 
     react(),
+    buildVersionPlugin(),
     VitePWA({
       registerType: 'prompt',
       includeAssets: ['logo.svg', 'schemas/*.json', 'android/**/*.png', 'ios/**/*.png', 'windows11/**/*.png'],
