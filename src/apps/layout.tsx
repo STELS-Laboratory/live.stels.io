@@ -616,9 +616,8 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 
 										// Find the node with maximum operations (most active)
 										for (const [nodeKey, nodeData] of Object.entries(nodes)) {
-											const nodeOps =
-												(nodeData?.raw?.currentNode?.operations
-													?.total as number) || 0;
+											const nodeOps = (nodeData?.raw?.currentNode?.operations
+												?.total as number) || 0;
 
 											if (nodeOps > maxOperations) {
 												maxOperations = nodeOps;

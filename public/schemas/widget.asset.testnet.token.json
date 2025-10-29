@@ -12,7 +12,7 @@
           "children": [
             {
               "type": "container",
-              "className": "w-24 h-24 rounded bg-gradient-to-br from-amber-500/20 via-amber-600/10 to-amber-500/5 border border-amber-500/40 p-3 flex items-center justify-center flex-shrink-0 transition-all duration-300 hover:scale-105 hover:border-amber-500/60 hover:shadow-lg hover:shadow-amber-500/20",
+              "className": "w-24 h-24 rounded bg-gradient-to-br from-amber-500/20 via-amber-600/10 to-amber-500/5 border border-amber-500/40 p-3 flex items-center justify-center flex-shrink-0 transition-all duration-300 hover:scale-105 hover:border-amber-500/60 hover:shadow hover:shadow-amber-500/10",
               "children": [
                 {
                   "type": "img",
@@ -43,22 +43,22 @@
                     {
                       "type": "text",
                       "text": "{self.raw.genesis.token.metadata.symbol}",
-                      "className": "px-4 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm font-bold rounded-lg shadow-md shadow-amber-500/30 transition-all duration-200 hover:shadow-lg hover:shadow-amber-500/40 hover:scale-105"
+                      "className": "px-4 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm font-bold rounded shadow-md shadow-amber-500/30 transition-all duration-200 hover:shadow-lg hover:shadow-amber-500/40 hover:scale-105"
                     },
                     {
                       "type": "text",
                       "text": "{self.raw.genesis.token.standard}",
-                      "className": "px-3 py-1.5 bg-card border border-border text-sm text-foreground rounded-lg font-semibold uppercase transition-all duration-200 hover:border-foreground/50 hover:bg-background"
+                      "className": "px-3 py-1.5 bg-card border border-border text-sm text-foreground rounded font-semibold uppercase transition-all duration-200 hover:border-foreground/50 hover:bg-background"
                     },
                     {
                       "type": "text",
-                      "text": "{self.status}",
-                      "className": "px-3 py-1.5 bg-gradient-to-r from-amber-500/10 to-amber-600/10 border border-amber-500/30 text-amber-600 dark:text-amber-500 text-sm font-semibold rounded-lg uppercase transition-all duration-300 hover:from-amber-500/20 hover:to-amber-600/20"
+                      "text": "{self.raw.status}",
+                      "className": "px-3 py-1.5 bg-gradient-to-r from-amber-500/10 to-amber-600/10 border border-amber-500/30 text-amber-600 dark:text-amber-500 text-sm font-semibold rounded uppercase transition-all duration-300 hover:from-amber-500/20 hover:to-amber-600/20"
                     },
                     {
                       "type": "text",
                       "text": "Chain {self.raw.genesis.network.chain_id}",
-                      "className": "px-3 py-1.5 bg-background border border-border text-xs font-mono text-foreground rounded-lg transition-all duration-200 hover:border-foreground/50"
+                      "className": "px-4 py-2 bg-background border border-border text-xs font-mono text-foreground rounded transition-all duration-200 hover:border-foreground/50"
                     }
                   ]
                 }
