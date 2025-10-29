@@ -169,9 +169,11 @@ export const useAppStore = create<AppState>()(
 						}
 					},
 					
-					// Route loading state
-					routeLoading: false,
-					setRouteLoading: (value: boolean): void => set({routeLoading: value}),
+	// Route loading state
+	routeLoading: false,
+	setRouteLoading: (value: boolean): void => {
+		set({routeLoading: value});
+	},
 					
 					// Sync state
 					hasUpdates: false,
