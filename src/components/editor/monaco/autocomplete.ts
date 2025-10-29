@@ -26,13 +26,8 @@ export function loadWorkerSDKTypes(monaco: any): void {
     return;
   }
 
-  // Add extra TypeScript libraries for autocomplete
+  // Add extra libraries for JavaScript autocomplete only
   monaco.languages.typescript.javascriptDefaults.addExtraLib(
-    WORKER_SDK_TYPES,
-    "file:///worker-sdk.d.ts",
-  );
-
-  monaco.languages.typescript.typescriptDefaults.addExtraLib(
     WORKER_SDK_TYPES,
     "file:///worker-sdk.d.ts",
   );
