@@ -23,22 +23,14 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-
-      - name: Install step
-        run: "npm install"
-
       - name: Build step
         run: "npm run build"
 
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
-          project: "stels-canvas"
+          project: "live-stels-io"
           entrypoint: "https://deno.land/std@0.217.0/http/file_server.ts"
           root: "dist"
-
-
+          
+          
