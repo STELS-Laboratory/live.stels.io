@@ -18,7 +18,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['logo.svg', 'android/**/*.png', 'ios/**/*.png', 'windows11/**/*.png'],
+      includeAssets: ['logo.svg', 'schemas/*.json', 'android/**/*.png', 'ios/**/*.png', 'windows11/**/*.png'],
       manifest: {
         name: 'STELS Web 5',
         short_name: 'STELS',
@@ -72,12 +72,26 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,txt,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,txt,woff2,json}'],
         globIgnores: [
           '**/assets/*worker*.js', // Exclude Monaco Editor workers from precache
         ],
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB limit for large assets
         runtimeCaching: [
+          {
+            urlPattern: /^\/schemas\/.*\.json$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'schemas-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 365 // 365 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
           {
             urlPattern: /.*\.worker.*\.js$/i,
             handler: 'CacheFirst',
