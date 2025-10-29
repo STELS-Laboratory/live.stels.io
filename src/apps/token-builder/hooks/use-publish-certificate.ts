@@ -30,6 +30,7 @@ interface SetAssetRequest {
     publicKey: string;
     signature: string;
     address: string;
+    domain?: string; // Sign domain for verification
   };
 }
 
@@ -75,6 +76,9 @@ export function usePublishCertificate(): PublishState & {
 
         // Prepare WebFix setAsset request
         // CRITICAL: Use issuer.public_key (uncompressed), not signature.kid (compressed)!
+        // CRITICAL: Include domain explicitly for server verification
+        const domain = certificate.protocol.sign_domains.token.join(":");
+        
         const request: SetAssetRequest = {
           webfix: "1.0",
           method: "setAsset",
@@ -83,6 +87,7 @@ export function usePublishCertificate(): PublishState & {
             publicKey: certificate.token.issuer.public_key, // Uncompressed format (130 chars)
             signature: mainSignature.sig,
             address: certificate.token.issuer.address,
+            domain: domain, // Explicitly include domain for server verification
           },
         };
 
@@ -98,6 +103,8 @@ export function usePublishCertificate(): PublishState & {
         console.log("[PublishCertificate] Request body.publicKey length:", request.body.publicKey.length);
         console.log("[PublishCertificate] Request body.signature:", request.body.signature);
         console.log("[PublishCertificate] Request body.address:", request.body.address);
+        console.log("[PublishCertificate] Request body.domain:", request.body.domain);
+        console.log("[PublishCertificate] genesis.protocol.sign_domains.token:", certificate.protocol.sign_domains.token);
         console.log("[PublishCertificate] genesis.token.issuer.public_key:", certificate.token.issuer.public_key);
         console.log("[PublishCertificate] genesis.signatures.signers[0].kid:", certificate.signatures.signers[0].kid);
         console.log("[PublishCertificate] genesis.signatures.signers[0].sig:", certificate.signatures.signers[0].sig);

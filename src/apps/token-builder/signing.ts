@@ -31,6 +31,36 @@ import {
 import { getDecimalsByStandard } from "./utils";
 
 /**
+ * Remove null and undefined values from object recursively
+ * Required for gls-det-1 canonical serialization
+ */
+function removeNullUndefined(obj: unknown): unknown {
+  if (obj === null || obj === undefined) {
+    return undefined;
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj
+      .map(removeNullUndefined)
+      .filter(item => item !== undefined && item !== null);
+  }
+  
+  if (typeof obj === 'object') {
+    const cleaned: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+      const cleanedValue = removeNullUndefined(value);
+      // Only include if value is not null/undefined
+      if (cleanedValue !== undefined && cleanedValue !== null) {
+        cleaned[key] = cleanedValue;
+      }
+    }
+    return cleaned;
+  }
+  
+  return obj;
+}
+
+/**
  * Sign token schema and create genesis certificate
  * Creates a FULL genesis.json-compliant certificate for network consensus
  * 
@@ -114,7 +144,7 @@ export async function signTokenSchema(
 
   // CRITICAL: Create FULL certificate WITHOUT signatures first (per CLIENT_ISSUE_SUMMARY.md)
   // "Создаем документ БЕЗ signatures"
-  const certificateWithoutSignatures = {
+  const certificateWithoutSignaturesRaw = {
     // JSON Schema reference
     $schema: TOKEN_SCHEMA_URL,
     
@@ -150,7 +180,13 @@ export async function signTokenSchema(
         ...schema.metadata,
         decimals, // Automatically determined by token standard
       },
-      economics: schema.economics,
+      economics: {
+        ...schema.economics,
+        // CRITICAL: Include feeStructure and treasury if not already present
+        // These may be required by server for genesis-compliance
+        ...(schema.economics.feeStructure && { feeStructure: schema.economics.feeStructure }),
+        ...(schema.economics.treasury && { treasury: schema.economics.treasury }),
+      },
       // CRITICAL: Only include optional fields if they are enabled and have data (gls-det-1 absence rule)
       ...(schema.governance?.enabled && { governance: schema.governance }),
       ...(schema.transferRestrictions?.enabled && { transferRestrictions: schema.transferRestrictions }),
@@ -173,6 +209,14 @@ export async function signTokenSchema(
     // NOTE: signatures field is NOT included here - will be added after signing
   };
 
+  // CRITICAL: Remove all null/undefined values before signing (per gls-det-1 spec)
+  // This ensures canonical serialization matches server expectations
+  const certificateWithoutSignatures = removeNullUndefined(certificateWithoutSignaturesRaw) as typeof certificateWithoutSignaturesRaw;
+  
+  console.log("[Signing] Cleaned null/undefined values from certificate");
+  console.log("[Signing] Original size:", JSON.stringify(certificateWithoutSignaturesRaw).length);
+  console.log("[Signing] Cleaned size:", JSON.stringify(certificateWithoutSignatures).length);
+
   // CRITICAL SIGNING PROCESS (per gls-det-1 spec):
   
   // Step 1: Canonical serialization of entire document (WITHOUT signatures)
@@ -184,9 +228,12 @@ export async function signTokenSchema(
 
   // DEBUG: Log signing details for verification
   console.log("[Signing] ═══════════════════════════════════════");
+  console.log("[Signing] Document keys (before stringify):", Object.keys(certificateWithoutSignatures).sort());
   console.log("[Signing] Domain:", domainStr);
   console.log("[Signing] Canonical document length:", canonicalDocument.length);
   console.log("[Signing] Canonical document (first 200):", canonicalDocument.substring(0, 200));
+  console.log("[Signing] Canonical document (last 200):", canonicalDocument.substring(canonicalDocument.length - 200));
+  console.log("[Signing] Canonical document FULL:", canonicalDocument);
   console.log("[Signing] Message (first 250):", messageString.substring(0, 250));
   console.log("[Signing] Message length:", messageString.length);
   console.log("[Signing] ═══════════════════════════════════════");

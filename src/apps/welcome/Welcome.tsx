@@ -360,27 +360,49 @@ function Welcome(): ReactElement {
     }
 
     // Collect unique asset channels from BOTH server and session
-    const channelSet = new Set<string>();
+    // Use Map to deduplicate by normalized key but keep original keys for data access
+    const channelMap = new Map<
+      string,
+      { normalized: string; original: string; source: "server" | "session" }
+    >();
 
-    // 1. Add channels from server assets
-    assets.forEach((asset) => {
-      if (
-        asset.channel && asset.channel.startsWith("asset.testnet.token:sha256:")
-      ) {
-        channelSet.add(asset.channel);
-      }
-    });
-
-    // 2. Add channels from session (for newly created tokens not yet in server list)
+    // 1. Add channels from SESSION first (they have the working keys for data access)
     if (session) {
       Object.keys(session).forEach((key) => {
         if (key.startsWith("asset.testnet.token:sha256:")) {
-          channelSet.add(key);
+          const normalized = key.toLowerCase();
+          // Prefer session version (it's the one that works for data reading)
+          if (!channelMap.has(normalized)) {
+            channelMap.set(normalized, {
+              normalized,
+              original: key,
+              source: "session",
+            });
+          }
         }
       });
     }
 
-    const assetChannels = Array.from(channelSet);
+    // 2. Add channels from server assets (only if not in session)
+    assets.forEach((asset) => {
+      if (
+        asset.channel && asset.channel.startsWith("asset.testnet.token:sha256:")
+      ) {
+        const normalized = asset.channel.toLowerCase();
+        // Only add if not already present from session
+        if (!channelMap.has(normalized)) {
+          channelMap.set(normalized, {
+            normalized,
+            original: asset.channel,
+            source: "server",
+          });
+        }
+      }
+    });
+
+    const assetChannels = Array.from(channelMap.values()).map((item) =>
+      item.original
+    );
 
     console.log(
       "[Welcome] Creating virtual token schemas:",
@@ -396,6 +418,29 @@ function Welcome(): ReactElement {
       ")",
     );
 
+    // Debug: Show all unique asset channels
+    console.log("[Welcome] All unique asset channels:", assetChannels);
+    console.log(
+      "[Welcome] Channel map details:",
+      Array.from(channelMap.entries()).map(([norm, data]) => ({
+        normalized: norm,
+        original: data.original,
+        source: data.source,
+      })),
+    );
+    console.log(
+      "[Welcome] Server asset channels:",
+      assets.map((a) => a.channel),
+    );
+    console.log(
+      "[Welcome] Session asset channels:",
+      session
+        ? Object.keys(session).filter((k) =>
+          k.startsWith("asset.testnet.token:")
+        )
+        : [],
+    );
+
     // Create virtual schema for each token
     const virtualSchemas = assetChannels.map((channelKey) => {
       return {
@@ -408,6 +453,17 @@ function Welcome(): ReactElement {
     });
 
     console.log("[Welcome] Virtual schemas created:", virtualSchemas.length);
+    console.log(
+      "[Welcome] Virtual schema sample:",
+      virtualSchemas[0]
+        ? {
+          id: virtualSchemas[0].id,
+          name: virtualSchemas[0].name,
+          channelKeys: virtualSchemas[0].channelKeys,
+          selfChannelKey: virtualSchemas[0].selfChannelKey,
+        }
+        : "none",
+    );
     return virtualSchemas;
   }, [session, tokenTemplateSchema, assets]);
 
@@ -660,99 +716,6 @@ function Welcome(): ReactElement {
 
               <div className="relative bg-card/90 backdrop-blur-sm border border-border rounded-lg p-4 sm:p-6 lg:p-8 shadow-lg">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-                  {/* Left: Digital Identity Info */}
-                  <div className="space-y-4 sm:space-y-6">
-                    {/* Header */}
-                    <div className="flex items-center gap-3">
-                      <motion.div
-                        animate={{ rotate: [0, 5, 0, -5, 0] }}
-                        transition={{
-                          duration: 5,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                        }}
-                        className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-zinc-600 to-zinc-700 dark:from-zinc-700 dark:to-zinc-800 rounded-xl flex items-center justify-center shadow-md"
-                      >
-                        <Fingerprint className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                      </motion.div>
-                      <div>
-                        <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-                          Digital Identity
-                        </h2>
-                        <p className="text-xs sm:text-sm text-muted-foreground">
-                          Your sovereign Web 5 identity
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Marketing Message */}
-                    <div className="space-y-3">
-                      <p className="text-sm sm:text-base text-foreground leading-relaxed">
-                        Welcome to the{" "}
-                        <span className="font-semibold text-amber-600 dark:text-amber-500">
-                          decentralized web
-                        </span>. Your digital identity is cryptographically
-                        secured and fully owned by you.
-                      </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
-                        <div className="flex items-start gap-2 p-2.5 sm:p-3 bg-background/50 rounded border border-border">
-                          <Shield className="w-4 h-4 text-green-600 dark:text-green-500 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <div className="text-xs font-semibold text-foreground">
-                              Secure
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              secp256k1
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-2 p-2.5 sm:p-3 bg-background/50 rounded border border-border">
-                          <Fingerprint className="w-4 h-4 text-amber-600 dark:text-amber-500 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <div className="text-xs font-semibold text-foreground">
-                              Private
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              Your keys
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-2 p-2.5 sm:p-3 bg-background/50 rounded border border-border">
-                          <Wallet className="w-4 h-4 text-zinc-600 dark:text-zinc-400 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <div className="text-xs font-semibold text-foreground">
-                              Sovereign
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              Self-custody
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Network Badge */}
-                    {connectionSession && (
-                      <div className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-green-500/10 to-green-500/10 border border-green-500/20 rounded">
-                        <motion.div
-                          animate={{
-                            scale: [1, 1.2, 1],
-                            opacity: [0.7, 1, 0.7],
-                          }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                          }}
-                          className="w-2 h-2 bg-green-500 rounded-full shadow-sm"
-                        />
-                        <span className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-500">
-                          Connected to {connectionSession.network}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
                   {/* Right: Wallet Card */}
                   <div>
                     <motion.div
@@ -848,6 +811,98 @@ function Welcome(): ReactElement {
                         </span>
                       </p>
                     </div>
+                  </div>
+                  {/* Left: Digital Identity Info */}
+                  <div className="space-y-4 sm:space-y-6">
+                    {/* Header */}
+                    <div className="flex items-center gap-3">
+                      <motion.div
+                        animate={{ rotate: [0, 5, 0, -5, 0] }}
+                        transition={{
+                          duration: 5,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                        className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-zinc-600 to-zinc-700 dark:from-zinc-700 dark:to-zinc-800 rounded-xl flex items-center justify-center shadow-md"
+                      >
+                        <Fingerprint className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                      </motion.div>
+                      <div>
+                        <h2 className="text-xl sm:text-2xl font-bold text-foreground">
+                          Digital Identity
+                        </h2>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          Your sovereign Web 5 identity
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Marketing Message */}
+                    <div className="space-y-3">
+                      <p className="text-sm sm:text-base text-foreground leading-relaxed">
+                        Welcome to the{" "}
+                        <span className="font-semibold text-amber-600 dark:text-amber-500">
+                          decentralized web
+                        </span>. Your digital identity is cryptographically
+                        secured and fully owned by you.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+                        <div className="flex items-start gap-2 p-2.5 sm:p-3 bg-background/50 rounded border border-border">
+                          <Shield className="w-4 h-4 text-green-600 dark:text-green-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <div className="text-xs font-semibold text-foreground">
+                              Secure
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              secp256k1
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2 p-2.5 sm:p-3 bg-background/50 rounded border border-border">
+                          <Fingerprint className="w-4 h-4 text-amber-600 dark:text-amber-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <div className="text-xs font-semibold text-foreground">
+                              Private
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Your keys
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2 p-2.5 sm:p-3 bg-background/50 rounded border border-border">
+                          <Wallet className="w-4 h-4 text-zinc-600 dark:text-zinc-400 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <div className="text-xs font-semibold text-foreground">
+                              Sovereign
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Self-custody
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Network Badge */}
+                    {connectionSession && (
+                      <div className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-green-500/10 to-green-500/10 border border-green-500/20 rounded">
+                        <motion.div
+                          animate={{
+                            scale: [1, 1.2, 1],
+                            opacity: [0.7, 1, 0.7],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                          className="w-2 h-2 bg-green-500 rounded-full shadow-sm"
+                        />
+                        <span className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-500">
+                          Connected to {connectionSession.network}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1167,16 +1222,41 @@ function TokenCard(
   // Extract token data from session using channelKeys
   const tokenData = useMemo(() => {
     if (!session || !schema.channelKeys || schema.channelKeys.length === 0) {
+      console.log("[TokenCard] No session or channelKeys", {
+        hasSession: !!session,
+        channelKeys: schema.channelKeys,
+      });
       return null;
     }
 
     // Find the asset channel in session
     const channelKey = schema.channelKeys[0];
-    const channelData = session[channelKey] as
+
+    // Try both original and normalized (lowercase) versions
+    let channelData = session[channelKey] as
       | Record<string, unknown>
       | undefined;
 
     if (!channelData) {
+      // Try lowercase version
+      const normalizedKey = channelKey.toLowerCase();
+      channelData = session[normalizedKey] as
+        | Record<string, unknown>
+        | undefined;
+
+      console.log("[TokenCard] Channel key lookup:", {
+        originalKey: channelKey,
+        normalizedKey,
+        foundWithOriginal: !!session[channelKey],
+        foundWithNormalized: !!session[normalizedKey],
+        availableKeys: Object.keys(session).filter((k) =>
+          k.includes(channelKey.split(":")[2]?.substring(0, 20) || "")
+        ),
+      });
+    }
+
+    if (!channelData) {
+      console.log("[TokenCard] No channel data found for:", channelKey);
       return null;
     }
 
@@ -1230,8 +1310,18 @@ function TokenCard(
   }, [schema, tokenData, onLaunch, isOpen, apps]);
 
   if (!tokenData) {
+    console.log(
+      "[TokenCard] No tokenData, not rendering card for schema:",
+      schema.id,
+    );
     return <></>;
   }
+
+  console.log(
+    "[TokenCard] Rendering card for:",
+    tokenData.symbol,
+    tokenData.name,
+  );
 
   return (
     <motion.button

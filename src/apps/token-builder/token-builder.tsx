@@ -502,7 +502,7 @@ const EconomicsStep = React.memo(function EconomicsStep(): React.ReactElement {
       ...schema.economics,
       distribution: [
         ...current,
-        { address: "", amount: "", vesting: undefined },
+        { address: "", amount: "" },
       ],
     });
   };
