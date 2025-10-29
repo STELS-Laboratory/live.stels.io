@@ -25,6 +25,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "^6.19.1",
+    "@codemirror/commands": "^6.10.0",
+    "@codemirror/highlight": "^0.19.8",
+    "@codemirror/lang-javascript": "^6.2.4",
+    "@codemirror/lang-json": "^6.0.2",
+    "@codemirror/language": "^6.11.3",
+    "@codemirror/lint": "^6.9.1",
+    "@codemirror/search": "^6.5.11",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.38.6",
+    "@lezer/highlight": "^1.2.3",
     "@lottiefiles/dotlottie-react": "^0.17.5",
     "@monaco-editor/react": "^4.7.0",
     "@noble/hashes": "^1.8.0",

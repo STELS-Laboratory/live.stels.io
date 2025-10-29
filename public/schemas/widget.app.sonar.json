@@ -37,7 +37,7 @@
                 },
                 {
                   "type": "text",
-                  "text": "Node {self.raw.node.id}",
+                  "text": "Total Nodes: {self.raw.totalNodes}",
                   "className": "px-4 py-2 bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-500 text-sm font-mono rounded"
                 }
               ]
@@ -59,7 +59,7 @@
                 },
                 {
                   "type": "text",
-                  "text": "{self.raw.node.operations.total}",
+                  "text": "{self.raw.network.totalOperations}",
                   "format": {
                     "type": "number",
                     "decimals": 0
@@ -72,7 +72,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "{self.raw.node.operations.successRate}%",
+                      "text": "{self.raw.network.successRate}%",
                       "format": {
                         "type": "number",
                         "decimals": 1
@@ -81,7 +81,7 @@
                       "style": {
                         "className": {
                           "condition": {
-                            "key": "self.raw.node.operations.successRate",
+                            "key": "self.raw.network.successRate",
                             "operator": ">=",
                             "value": 99
                           },
@@ -110,7 +110,7 @@
                 },
                 {
                   "type": "text",
-                  "text": "{self.raw.workers.active}",
+                  "text": "{self.raw.network.activeWorkers}",
                   "className": "text-4xl font-bold text-foreground mb-2 group-hover:text-blue-600 transition-colors"
                 },
                 {
@@ -119,7 +119,7 @@
                   "children": [
                     {
                       "type": "text",
-                      "text": "{self.raw.workers.local} local",
+                      "text": "{self.raw.currentNode.workers.local} local",
                       "className": "text-xs"
                     },
                     {
@@ -129,7 +129,7 @@
                     },
                     {
                       "type": "text",
-                      "text": "{self.raw.workers.network} network",
+                      "text": "{self.raw.currentNode.workers.network} network",
                       "className": "text-xs"
                     }
                   ]
@@ -178,12 +178,12 @@
                 },
                 {
                   "type": "text",
-                  "text": "{self.raw.node.operations.errors}",
+                  "text": "{self.raw.network.totalErrors}",
                   "className": "text-4xl font-bold mb-2",
                   "style": {
                     "className": {
                       "condition": {
-                        "key": "self.raw.node.operations.errors",
+                        "key": "self.raw.network.totalErrors",
                         "operator": ">",
                         "value": 0
                       },
@@ -241,7 +241,7 @@
                         },
                         {
                           "type": "text",
-                          "text": "{self.raw.node.operations.total}",
+                          "text": "{self.raw.network.totalOperations}",
                           "format": {
                             "type": "volume",
                             "decimals": 0
@@ -261,7 +261,7 @@
                         },
                         {
                           "type": "text",
-                          "text": "{self.raw.node.operations.successRate}%",
+                          "text": "{self.raw.network.successRate}%",
                           "format": {
                             "type": "number",
                             "decimals": 2
@@ -270,7 +270,7 @@
                           "style": {
                             "color": {
                               "condition": {
-                                "key": "self.raw.node.operations.successRate",
+                                "key": "self.raw.network.successRate",
                                 "operator": ">=",
                                 "value": 99
                               },
@@ -292,12 +292,12 @@
                         },
                         {
                           "type": "text",
-                          "text": "{self.raw.node.operations.networkErrors}",
+                          "text": "{self.raw.currentNode.operations.networkErrors}",
                           "className": "text-sm font-mono font-bold",
                           "style": {
                             "color": {
                               "condition": {
-                                "key": "self.raw.node.operations.networkErrors",
+                                "key": "self.raw.currentNode.operations.networkErrors",
                                 "operator": ">",
                                 "value": 0
                               },
@@ -319,12 +319,12 @@
                         },
                         {
                           "type": "text",
-                          "text": "{self.raw.node.operations.criticalErrors}",
+                          "text": "{self.raw.currentNode.operations.criticalErrors}",
                           "className": "text-sm font-mono font-bold",
                           "style": {
                             "color": {
                               "condition": {
-                                "key": "self.raw.node.operations.criticalErrors",
+                                "key": "self.raw.currentNode.operations.criticalErrors",
                                 "operator": ">",
                                 "value": 0
                               },
@@ -369,7 +369,7 @@
                         },
                         {
                           "type": "text",
-                          "text": "{self.raw.workers.active}",
+                          "text": "{self.raw.network.activeWorkers}",
                           "className": "text-2xl font-bold text-green-600 dark:text-green-500"
                         }
                       ]
@@ -385,7 +385,7 @@
                         },
                         {
                           "type": "text",
-                          "text": "{self.raw.workers.stopped}",
+                          "text": "{self.raw.currentNode.workers.stopped}",
                           "className": "text-xl font-mono font-bold text-muted-foreground"
                         }
                       ]
@@ -401,7 +401,7 @@
                         },
                         {
                           "type": "text",
-                          "text": "{self.raw.workers.total}",
+                          "text": "{self.raw.currentNode.workers.total}",
                           "className": "text-xl font-mono font-bold text-foreground"
                         }
                       ]
@@ -421,7 +421,7 @@
                             },
                             {
                               "type": "text",
-                              "text": "{self.raw.workers.local}",
+                              "text": "{self.raw.currentNode.workers.local}",
                               "className": "text-xs font-mono font-semibold text-foreground"
                             }
                           ]
@@ -437,7 +437,7 @@
                             },
                             {
                               "type": "text",
-                              "text": "{self.raw.workers.network}",
+                              "text": "{self.raw.currentNode.workers.network}",
                               "className": "text-xs font-mono font-semibold text-foreground"
                             }
                           ]
@@ -711,7 +711,7 @@
                         },
                         {
                           "type": "text",
-                          "text": "{self.raw.accounts}",
+                          "text": "{self.raw.accounts.length}",
                           "className": "text-sm font-mono font-bold text-foreground"
                         }
                       ]
@@ -727,7 +727,7 @@
                         },
                         {
                           "type": "text",
-                          "text": "{self.raw.connectors}",
+                          "text": "{self.raw.connectors.length}",
                           "className": "text-sm font-mono font-bold text-foreground"
                         }
                       ]
@@ -819,7 +819,7 @@
                             },
                             {
                               "type": "text",
-                              "text": "{self.raw.node.operations.successRate}%",
+                              "text": "{self.raw.network.successRate}%",
                               "format": {
                                 "type": "number",
                                 "decimals": 1
@@ -858,7 +858,7 @@
                                   "children": [
                                     {
                                       "type": "text",
-                                      "text": "{self.raw.workers.active} of {self.raw.workers.total} workers running",
+                                      "text": "{self.raw.currentNode.workers.active} of {self.raw.currentNode.workers.total} workers running",
                                       "className": "text-xs text-muted-foreground block"
                                     }
                                   ]

@@ -41,9 +41,9 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 
-// Lazy load Monaco Editor for performance (990 KB gzipped)
-const EditorComponent = lazy(() =>
-	import("@/components/editor/editor_component")
+// Lazy load CodeMirror Editor for performance (~120 KB gzipped vs Monaco's 990 KB)
+const CodeMirrorEditor = lazy(() =>
+	import("@/components/editor/codemirror_editor")
 );
 import {
 	useEditorStore,
@@ -1434,12 +1434,12 @@ export function AMIEditor(): JSX.Element {
 													</div>
 												}
 											>
-												<EditorComponent
-													script={currentScript}
-													handleEditorChange={handleEditorChange}
-													onEditorReady={(formatFn) =>
-														setFormatCodeFn(() => formatFn)}
-												/>
+											<CodeMirrorEditor
+												script={currentScript}
+												handleEditorChange={handleEditorChange}
+												onEditorReady={(formatFn) =>
+													setFormatCodeFn(() => formatFn)}
+											/>
 											</Suspense>
 										</TabsContent>
 

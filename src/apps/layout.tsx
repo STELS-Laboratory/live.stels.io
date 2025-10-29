@@ -592,16 +592,73 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 								{/* System Stats */}
 								{systemStats && (() => {
 									const raw = systemStats.raw as Record<string, unknown>;
-									const workers = raw.workers as Record<string, number>;
-									const node = raw.node as Record<string, unknown>;
-									const operations = node?.operations as Record<string, number>;
+									const network = raw.network as Record<string, number>;
+
+									// Find the client's node data in the Sonar nodes
+									const nodes = raw.nodes as Record<string, {
+										raw: {
+											currentNode: {
+												id: string;
+												operations: Record<string, number>;
+												workers: Record<string, number>;
+											};
+										};
+									}>;
+									let currentNode = null;
+									let operations = null;
+									let workers = null;
+
+									// Try to determine the client's node
+									// Strategy: Use the node with the most operations (most active node)
+									if (nodes) {
+										let targetNodeKey = null;
+										let maxOperations = -1;
+
+										// Find the node with maximum operations (most active)
+										for (const [nodeKey, nodeData] of Object.entries(nodes)) {
+											const nodeOps =
+												(nodeData?.raw?.currentNode?.operations
+													?.total as number) || 0;
+
+											if (nodeOps > maxOperations) {
+												maxOperations = nodeOps;
+												targetNodeKey = nodeKey;
+											}
+										}
+
+										// Get the target node data
+										if (targetNodeKey && nodes[targetNodeKey]) {
+											const nodeData = nodes[targetNodeKey];
+											currentNode = nodeData.raw.currentNode;
+											operations = currentNode?.operations as Record<
+												string,
+												number
+											>;
+											workers = currentNode?.workers as Record<string, number>;
+										} else {
+											// Fallback to first available node
+											const firstNodeKey = Object.keys(nodes)[0];
+											const firstNode = firstNodeKey
+												? nodes[firstNodeKey]
+												: null;
+											currentNode = firstNode?.raw?.currentNode as Record<
+												string,
+												unknown
+											>;
+											operations = currentNode?.operations as Record<
+												string,
+												number
+											>;
+											workers = currentNode?.workers as Record<string, number>;
+										}
+									}
 
 									return (
 										<div className="flex items-center gap-3 relative">
 											<div className="flex items-center gap-1.5 text-xs">
 												<Activity className="icon-xs text-blue-600 dark:text-blue-400" />
 												<span className="text-foreground font-semibold">
-													{operations?.total.toLocaleString()}
+													{network?.totalOperations?.toLocaleString() || 0}
 												</span>
 												<span className="text-muted-foreground">
 													ops
@@ -611,14 +668,17 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 											<div className="flex items-center gap-1.5 text-xs">
 												<Play className="icon-xs text-green-600 dark:text-green-400" />
 												<span className="text-green-600 dark:text-green-400 font-semibold">
-													{workers?.active || 0}
+													{network?.activeWorkers || 0}
 												</span>
 											</div>
 
 											<div className="flex items-center gap-1.5 text-xs">
 												<Square className="icon-xs text-red-600 dark:text-red-400" />
 												<span className="text-red-600 dark:text-red-400 font-semibold">
-													{Math.abs(workers?.stopped || 0)}
+													{Math.abs(
+														(network?.totalWorkers || 0) -
+															(network?.activeWorkers || 0),
+													)}
 												</span>
 											</div>
 
@@ -670,7 +730,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 																Node ID:
 															</span>
 															<span className="font-mono text-foreground">
-																{String(node?.id || "")}
+																{String(currentNode?.id || "N/A")}
 															</span>
 														</div>
 														<div className="flex justify-between">
@@ -678,7 +738,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 																Total Operations:
 															</span>
 															<span className="font-semibold text-blue-700 dark:text-blue-400">
-																{operations?.total.toLocaleString()}
+																{operations?.total?.toLocaleString() || 0}
 															</span>
 														</div>
 														<div className="flex justify-between">
@@ -694,7 +754,9 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 																Success Rate:
 															</span>
 															<span className="font-semibold text-green-700 dark:text-green-400">
-																{operations?.successRate || 0}%
+																{operations?.successRate
+																	? Number(operations.successRate).toFixed(2)
+																	: "0.00"}%
 															</span>
 														</div>
 														<div className="h-px bg-border my-1.5" />

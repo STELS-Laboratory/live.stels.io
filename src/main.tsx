@@ -7,8 +7,7 @@ import {
 	performSecurityCheck,
 	validateCryptoOperations,
 } from "@/lib/pwa-security";
-// Configure Monaco Editor BEFORE freezing native APIs
-import "@/monaco-config";
+// CodeMirror doesn't need pre-configuration
 
 // Service Worker registration is handled by UpdatePrompt component
 // Using registerType: 'prompt' in vite.config.ts

@@ -6,15 +6,6 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   optimizeDeps: {
-    include: [
-      'monaco-editor/esm/vs/editor/editor.api',
-      'monaco-editor/esm/vs/basic-languages/javascript/javascript',
-      'monaco-editor/esm/vs/basic-languages/json/json',
-    ],
-    exclude: [
-      'monaco-editor/esm/vs/language/typescript/tsMode',
-      'monaco-editor/esm/vs/language/json/jsonMode',
-    ],
     esbuildOptions: {
       target: 'esnext',
     },
@@ -174,13 +165,9 @@ export default defineConfig({
       },
       output: {
         manualChunks: (id) => {
-          // Monaco Editor - minimal chunk
-          if (id.includes('monaco-editor')) {
-            // Split Monaco into smaller pieces
-            if (id.includes('/editor/editor.api')) return 'monaco-core';
-            if (id.includes('/basic-languages/')) return 'monaco-languages';
-            if (id.includes('/editor.worker')) return 'monaco-worker';
-            return 'monaco-editor';
+          // CodeMirror 6 (much smaller than Monaco)
+          if (id.includes('@codemirror')) {
+            return 'codemirror';
           }
           // React and related libraries
           if (id.includes('node_modules/react') || 

@@ -648,7 +648,7 @@ function Welcome(): ReactElement {
 
         {/* Digital Identity Card - Marketing Block */}
         {!isLoading && wallet && (
-          <div className="max-w-7xl mx-auto mb-12 px-2 sm:px-4">
+          <div className="max-w-7xl mx-auto mb-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1475,7 +1475,7 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
       )}
       {/* Preview */}
       <div className="aspect-video bg-background border-b border-border overflow-hidden relative">
-        <div className="absolute inset-0 scale-50 overflow-auto">
+        <div className="absolute inset-0 scale-90 overflow-auto">
           <ErrorBoundary>
             {previewSchema
               ? <UIRenderer schema={previewSchema} data={previewData} />

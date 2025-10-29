@@ -31,6 +31,95 @@ export interface WidgetRawData {
 }
 
 /**
+ * Sonar node operations data
+ */
+export interface SonarNodeOperations {
+	total: number;
+	errors: number;
+	networkErrors: number;
+	criticalErrors: number;
+	successRate: number;
+}
+
+/**
+ * Sonar node workers data
+ */
+export interface SonarNodeWorkers {
+	active: number;
+	stopped: number;
+	total: number;
+	local: number;
+	network: number;
+}
+
+/**
+ * Sonar node data
+ */
+export interface SonarNode {
+	id: string;
+	operations: SonarNodeOperations;
+	workers: SonarNodeWorkers;
+}
+
+/**
+ * Sonar network statistics
+ */
+export interface SonarNetworkStats {
+	totalOperations: number;
+	totalErrors: number;
+	totalWorkers: number;
+	activeWorkers: number;
+	successRate: number;
+}
+
+/**
+ * Sonar margin data
+ */
+export interface SonarMargin {
+	balance: number;
+	initial: number;
+	maintenance: number;
+}
+
+/**
+ * Sonar raw data structure
+ */
+export interface SonarRawData {
+	timestamp: number;
+	totalNodes: number;
+	nodes: Record<string, {
+		channel: string;
+		module: string;
+		widget: string;
+		raw: {
+			accounts: unknown[];
+			connectors: unknown[];
+			liquidity: number;
+			protection: number;
+			available: number;
+			margin: SonarMargin;
+			rate: number;
+			exchanges: unknown[];
+			uniqueExchange: number;
+			coins: Record<string, unknown>;
+			timestamp: number;
+			currentNode: SonarNode;
+			workers: SonarNodeWorkers;
+		};
+		timestamp: number;
+	}>;
+	network: SonarNetworkStats;
+	accounts: unknown[];
+	exchanges: unknown[];
+	liquidity: number;
+	protection: number;
+	available: number;
+	margin: SonarMargin;
+	rate: number;
+	coins: Record<string, unknown>;
+}
+
+/**
  * Trade data structure
  */
 export interface Trade {
