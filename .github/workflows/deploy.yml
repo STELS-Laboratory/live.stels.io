@@ -23,16 +23,6 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-
-      - name: Clean install
-        run: |
-          rm -rf node_modules package-lock.json
-          npm install
-
       - name: Build step
         run: "npm run build"
 
@@ -42,3 +32,5 @@ jobs:
           project: "stels-canvas"
           entrypoint: "https://deno.land/std@0.217.0/http/file_server.ts"
           root: "dist"
+          
+          
