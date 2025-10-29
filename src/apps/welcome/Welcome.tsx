@@ -152,6 +152,11 @@ function Welcome(): ReactElement {
   // Load default schemas from public/schemas/
   const defaultSchemasState = useDefaultSchemas();
 
+  // Debug: Log default schemas state
+  useEffect(() => {
+    console.log("[Welcome] Default schemas state:", defaultSchemasState);
+  }, [defaultSchemasState]);
+
   // Auto-open active app on mount or when activeAppId changes
   useEffect(() => {
     // Skip if activeAppId is empty or null (user wants hub view)

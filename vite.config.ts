@@ -94,14 +94,19 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB limit for large assets
         runtimeCaching: [
           {
-            urlPattern: /^\/schemas\/.*\.json$/i,
-            handler: 'CacheFirst',
+            // Match schemas with or without session parameter
+            // Note: Service Worker automatically caches by full URL including query params
+            urlPattern: ({ url }: { url: URL }) => {
+              return url.pathname.startsWith('/schemas/') && url.pathname.endsWith('.json');
+            },
+            handler: 'NetworkFirst',
             options: {
               cacheName: 'schemas-cache',
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 365 days
+                maxEntries: 100, // Increased to account for session-based URLs
+                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days
               },
+              networkTimeoutSeconds: 3,
               cacheableResponse: {
                 statuses: [0, 200]
               }

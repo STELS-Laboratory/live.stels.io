@@ -356,6 +356,12 @@ export const useAuthStore = create<AuthStore>()(
 				},
 				
 				disconnectFromNode: async () => {
+					console.log('[Auth] ═══════════════════════════════════════');
+					console.log('[Auth] 🔌 DISCONNECTING FROM NODE');
+					console.log('[Auth] ═══════════════════════════════════════');
+					
+					// 1. Reset connection state
+					console.log('[Auth] Step 1: Resetting connection state...');
 					set({
 						isConnected: false,
 						connectionSession: null,
@@ -363,16 +369,28 @@ export const useAuthStore = create<AuthStore>()(
 						connectionError: null,
 						isConnecting: false
 					});
+					console.log('[Auth] ✅ Connection state reset');
 					
+					// 2. Clear ALL storage
 					try {
-						// Use comprehensive storage cleaner
+						console.log('[Auth] Step 2: Clearing ALL storage mechanisms...');
 						await clearAllStorage();
-						console.log('[Auth] ✅ Disconnected from node and cleared ALL storage data');
+						console.log('[Auth] ✅✅✅ ALL storage cleared successfully ✅✅✅');
 					} catch (error) {
 						console.error('[Auth] ❌ Error clearing storage during disconnect:', error);
 						// Fallback to basic clearing
-						clearAppStorage();
+						try {
+							clearAppStorage();
+							console.log('[Auth] ✅ Fallback: App storage cleared');
+						} catch (fallbackError) {
+							console.error('[Auth] ❌ Fallback also failed:', fallbackError);
+						}
 					}
+					
+					console.log('[Auth] ═══════════════════════════════════════');
+					console.log('[Auth] 🎯 DISCONNECT COMPLETED');
+					console.log('[Auth] User data completely removed from device');
+					console.log('[Auth] ═══════════════════════════════════════');
 				},
 				
 				restoreConnection: async (): Promise<boolean> => {
@@ -449,50 +467,55 @@ export const useAuthStore = create<AuthStore>()(
 				
 				// Utility operations
 				resetAuth: async () => {
-					console.log('[Auth] Starting logout process...');
+					console.log('[Auth] ═══════════════════════════════════════');
+					console.log('[Auth] 🚪 STARTING LOGOUT PROCESS');
+					console.log('[Auth] ═══════════════════════════════════════');
 					
 					// 1. Close WebSocket connection and clear its state
 					try {
+						console.log('[Auth] Step 1: Closing WebSocket connection...');
 						const wsStore = useWebSocketStore.getState();
 						wsStore.resetWebSocketState();
+						console.log('[Auth] ✅ WebSocket closed');
 					} catch (error) {
 						console.error('[Auth] ❌ Error closing WebSocket:', error);
 					}
 					
-					// 2. Clear sessionStorage (where WebSocket data is stored)
-					try {
-						console.log('[Auth] Clearing sessionStorage...');
-						sessionStorage.clear();
-						console.log('[Auth] ✅ sessionStorage cleared');
-					} catch (error) {
-						console.error('[Auth] ❌ Error clearing sessionStorage:', error);
-					}
+					// 2. Reset auth state FIRST (before clearing storage)
+					console.log('[Auth] Step 2: Resetting auth state...');
+					set({
+						wallet: null,
+						isWalletCreated: false,
+						selectedNetwork: null,
+						isConnected: false,
+						isConnecting: false,
+						connectionSession: null,
+						connectionError: null,
+						isAuthenticated: false,
+						showNetworkSelector: false
+					});
+					console.log('[Auth] ✅ Auth state reset');
 					
-				// 3. Reset auth state
-				set({
-					wallet: null,
-					isWalletCreated: false,
-					selectedNetwork: null,
-					isConnected: false,
-					isConnecting: false,
-					connectionSession: null,
-					connectionError: null,
-					isAuthenticated: false,
-					showNetworkSelector: false
-				});
-					
-					// 4. Clear all storage
+					// 3. Clear ALL storage (localStorage, sessionStorage, IndexedDB, Caches, Service Workers)
 					try {
-						// Use comprehensive storage cleaner for complete reset
+						console.log('[Auth] Step 3: Clearing ALL storage mechanisms...');
 						await clearAllStorage();
-						console.log('[Auth] ✅ Auth state completely reset and ALL storage data cleared');
+						console.log('[Auth] ✅✅✅ ALL storage cleared successfully ✅✅✅');
 					} catch (error) {
 						console.error('[Auth] ❌ Error clearing storage during reset:', error);
 						// Fallback to basic clearing
-						clearAppStorage();
+						try {
+							clearAppStorage();
+							console.log('[Auth] ✅ Fallback: App storage cleared');
+						} catch (fallbackError) {
+							console.error('[Auth] ❌ Fallback also failed:', fallbackError);
+						}
 					}
 					
-					console.log('[Auth] 🎯 Logout process completed');
+					console.log('[Auth] ═══════════════════════════════════════');
+					console.log('[Auth] 🎯 LOGOUT PROCESS COMPLETED');
+					console.log('[Auth] User data completely removed from device');
+					console.log('[Auth] ═══════════════════════════════════════');
 				}
 			}),
 			{

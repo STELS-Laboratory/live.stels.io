@@ -28,11 +28,15 @@ export function useDefaultSchemas(): LoadState {
   });
 
   useEffect(() => {
+    console.log("[useDefaultSchemas] Hook mounted, starting schema load...");
     let mounted = true;
 
     const load = async (): Promise<void> => {
       try {
+        console.log("[useDefaultSchemas] Calling loadDefaultSchemas()...");
         const result = await loadDefaultSchemas();
+        
+        console.log("[useDefaultSchemas] Load complete:", result);
 
         if (mounted) {
           setState({
@@ -61,6 +65,7 @@ export function useDefaultSchemas(): LoadState {
     load();
 
     return () => {
+      console.log("[useDefaultSchemas] Hook unmounted");
       mounted = false;
     };
   }, []); // Run only once on mount

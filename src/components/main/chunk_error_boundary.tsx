@@ -71,11 +71,19 @@ export default class ChunkErrorBoundary extends Component<
    */
   handleReload = async (): Promise<void> => {
     try {
-      // Clear service worker caches if available
+      // Clear service worker caches if available (including schemas)
       if ("caches" in window) {
         const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map((name) => caches.delete(name)));
-        console.log("[ChunkErrorBoundary] Service worker caches cleared");
+        console.log("[ChunkErrorBoundary] Found caches:", cacheNames);
+
+        await Promise.all(cacheNames.map(async (name) => {
+          console.log("[ChunkErrorBoundary] Deleting cache:", name);
+          await caches.delete(name);
+        }));
+
+        console.log(
+          "[ChunkErrorBoundary] All caches cleared (including schemas)",
+        );
       }
 
       // Unregister service workers

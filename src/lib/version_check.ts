@@ -58,13 +58,14 @@ export function hasVersionChanged(): boolean {
 
 /**
  * Fetch latest version from server
- * This checks if index.html has a new build-version meta tag
+ * Uses GET request to a lightweight endpoint to avoid HTTP/2 protocol errors
  */
 export async function fetchLatestVersion(): Promise<string | null> {
   try {
-    // Fetch index.html with cache-busting
-    const response = await fetch(`/?t=${Date.now()}`, {
-      method: "HEAD",
+    // Try to fetch a lightweight file (manifest or version.json)
+    // Use manifest.webmanifest as it's small and always present
+    const response = await fetch(`/manifest.webmanifest?t=${Date.now()}`, {
+      method: "GET",
       headers: {
         "Cache-Control": "no-cache, no-store, must-revalidate",
         "Pragma": "no-cache",
@@ -76,11 +77,16 @@ export async function fetchLatestVersion(): Promise<string | null> {
       return null;
     }
 
-    // Try to get version from ETag or custom header
+    // Use ETag or Last-Modified as version identifier
     const etag = response.headers.get("etag");
     const lastModified = response.headers.get("last-modified");
     
-    // Use ETag as version identifier
+    console.log("[VersionCheck] Server headers:", {
+      etag,
+      lastModified,
+    });
+    
+    // Use ETag as version identifier (most reliable)
     return etag || lastModified;
   } catch (error) {
     console.error("[VersionCheck] Error fetching version:", error);

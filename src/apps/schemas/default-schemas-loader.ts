@@ -6,6 +6,7 @@
 import type { UINode } from "@/lib/gui/ui.ts";
 import type { SchemaProject } from "./types.ts";
 import { generateSchemaId, getSchemaByWidgetKey, saveSchema } from "./db.ts";
+import { getBodySessionId } from "@/lib/session_manager";
 
 /**
  * List of default schema files to load from public/schemas/
@@ -70,9 +71,27 @@ async function loadSchemaFromPublic(
   filename: string,
 ): Promise<SchemaProject | null> {
   try {
-    const response = await fetch(`/schemas/${filename}`);
+    // Get session ID for cache busting
+    const sessionId = getBodySessionId();
+    
+    console.log(`[DefaultSchemas] Session ID from body:`, sessionId);
+    
+    const url = sessionId 
+      ? `/schemas/${filename}?session=${sessionId}`
+      : `/schemas/${filename}`;
+    
+    console.log(`[DefaultSchemas] Loading schema from: ${url}`);
+    
+    const response = await fetch(url);
+    
+    console.log(`[DefaultSchemas] Response for ${filename}:`, {
+      status: response.status,
+      ok: response.ok,
+      url: response.url
+    });
+    
     if (!response.ok) {
-      console.warn(`[DefaultSchemas] Schema not found: ${filename}`);
+      console.warn(`[DefaultSchemas] Schema not found: ${filename} (${response.status})`);
       return null;
     }
 
@@ -123,8 +142,20 @@ async function areDefaultSchemasLoaded(): Promise<boolean> {
     const tokenSchema = await getSchemaByWidgetKey(
       "widget.asset.testnet.token",
     );
-    return !!tokenSchema;
-  } catch {
+    const result = !!tokenSchema;
+    
+    console.log("[DefaultSchemas] Checking if already loaded:", {
+      tokenSchemaExists: result,
+      tokenSchema: tokenSchema ? {
+        id: tokenSchema.id,
+        name: tokenSchema.name,
+        widgetKey: tokenSchema.widgetKey
+      } : null
+    });
+    
+    return result;
+  } catch (error) {
+    console.error("[DefaultSchemas] Error checking loaded schemas:", error);
     return false;
   }
 }
@@ -138,17 +169,23 @@ export async function loadDefaultSchemas(): Promise<{
   skipped: number;
   failed: number;
 }> {
-  console.log("[DefaultSchemas] Checking for default schemas...");
+  console.log("[DefaultSchemas] ═══════════════════════════════════════");
+  console.log("[DefaultSchemas] Starting default schemas check...");
+  console.log("[DefaultSchemas] Files to load:", DEFAULT_SCHEMA_FILES);
 
   // Check if already loaded
   const alreadyLoaded = await areDefaultSchemasLoaded();
+  
+  console.log("[DefaultSchemas] Already loaded check:", alreadyLoaded);
+  
   if (alreadyLoaded) {
     console.log("[DefaultSchemas] Default schemas already loaded, skipping");
+    console.log("[DefaultSchemas] ═══════════════════════════════════════");
     return { loaded: 0, skipped: DEFAULT_SCHEMA_FILES.length, failed: 0 };
   }
 
   console.log(
-    `[DefaultSchemas] Loading ${DEFAULT_SCHEMA_FILES.length} default schemas...`,
+    `[DefaultSchemas] Loading ${DEFAULT_SCHEMA_FILES.length} default schemas from /schemas/...`,
   );
 
   let loaded = 0;

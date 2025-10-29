@@ -30,11 +30,18 @@ export async function handleChunkLoadError(): Promise<void> {
   console.log("[ChunkErrorHandler] Chunk loading error detected, preparing reload...");
 
   try {
-    // Clear service worker caches
+    // Clear service worker caches (including schemas)
     if ("caches" in window) {
       const cacheNames = await caches.keys();
-      await Promise.all(cacheNames.map((name) => caches.delete(name)));
-      console.log("[ChunkErrorHandler] Caches cleared");
+      console.log("[ChunkErrorHandler] Found caches:", cacheNames);
+      
+      // Delete all caches
+      await Promise.all(cacheNames.map(async (name) => {
+        console.log("[ChunkErrorHandler] Deleting cache:", name);
+        await caches.delete(name);
+      }));
+      
+      console.log("[ChunkErrorHandler] All caches cleared (including schemas)");
     }
 
     // Unregister service workers

@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { RefreshCw, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { startVersionCheck, storeCurrentVersion } from "@/lib/version_check";
+import { createNewSession } from "@/lib/session_manager";
 
 /**
  * Version Check Prompt Component
@@ -38,21 +39,36 @@ export default function VersionCheckPrompt(): React.ReactElement | null {
    * Handle reload
    */
   const handleReload = async (): Promise<void> => {
-    // Store new version before reload
+    // Store new version and create new session
     if (newVersion) {
       storeCurrentVersion(newVersion);
+      localStorage.setItem("app-last-version", newVersion);
     }
 
-    // Clear service worker caches
+    // Force new session to invalidate all cached resources
+    const newSessionId = createNewSession();
+    console.log("[VersionCheckPrompt] Created new session:", newSessionId);
+
+    // Clear service worker caches (including schemas)
     try {
       if ("caches" in window) {
         const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map((name) => caches.delete(name)));
+        console.log("[VersionCheckPrompt] Found caches:", cacheNames);
+
+        await Promise.all(cacheNames.map(async (name) => {
+          console.log("[VersionCheckPrompt] Deleting cache:", name);
+          await caches.delete(name);
+        }));
+
+        console.log(
+          "[VersionCheckPrompt] All caches cleared (including schemas)",
+        );
       }
 
       if ("serviceWorker" in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
         await Promise.all(registrations.map((reg) => reg.unregister()));
+        console.log("[VersionCheckPrompt] Service workers unregistered");
       }
     } catch (error) {
       console.error("[VersionCheckPrompt] Error clearing caches:", error);
