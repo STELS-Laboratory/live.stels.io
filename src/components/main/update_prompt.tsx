@@ -134,7 +134,7 @@ export default function UpdatePrompt(): React.ReactElement | null {
               <button
                 onClick={handleDismiss}
                 disabled={isUpdating}
-                className="p-1.5 hover:bg-muted/80 rounded-lg transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95"
+                className="p-1.5 hover:bg-muted/80 rounded transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95"
                 title="Dismiss"
                 aria-label="Dismiss update notification"
               >
@@ -148,7 +148,7 @@ export default function UpdatePrompt(): React.ReactElement | null {
                 A new version of STELS Web 5 is available. Update now to get the
                 latest features and improvements.
               </p>
-              <div className="flex items-center gap-2 px-3 py-2 bg-green-500/10 border border-green-500/20 rounded-lg mb-4">
+              <div className="flex items-center gap-2 px-3 py-2 bg-green-500/10 border border-green-500/20 rounded mb-4">
                 <motion.div
                   animate={{ scale: [1, 1.2, 1] }}
                   transition={{

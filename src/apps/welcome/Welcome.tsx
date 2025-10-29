@@ -686,7 +686,7 @@ function Welcome(): ReactElement {
           <div className="flex items-center gap-3 mb-4">
             <Package className="w-8 h-8 text-amber-500" />
             <h1 className="text-3xl font-bold text-foreground">
-              STELS Application Hub
+              STELS Space
             </h1>
           </div>
           <p className="text-muted-foreground text-lg">
@@ -712,9 +712,9 @@ function Welcome(): ReactElement {
               className="relative overflow-hidden"
             >
               {/* Background gradient - project colors */}
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-zinc-500/5 to-amber-500/5 rounded-lg" />
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-zinc-500/5 to-amber-500/5 rounded" />
 
-              <div className="relative bg-card/90 backdrop-blur-sm border border-border rounded-lg p-4 sm:p-6 lg:p-8 shadow-lg">
+              <div className="relative bg-card/90 backdrop-blur-sm border border-border rounded p-4 sm:p-6 lg:p-8 shadow-lg">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                   {/* Right: Wallet Card */}
                   <div>
