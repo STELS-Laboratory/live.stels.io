@@ -90,7 +90,7 @@ export default function UpdatePrompt(): React.ReactElement | null {
             duration: 0.3,
             ease: [0.16, 1, 0.3, 1],
           }}
-          className="fixed bottom-6 right-6 z-50 max-w-md"
+          className="fixed bottom-6 right-6 left-6 z-50 max-w-md"
         >
           <motion.div
             initial={{ scale: 0.9 }}
