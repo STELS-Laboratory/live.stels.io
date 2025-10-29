@@ -317,12 +317,13 @@ export function ConnectionProcess(
                 </div>
                 <div>
                   <div className="font-bold text-foreground mb-0.5 sm:mb-1 text-[11px] sm:text-xs">
-                    Secure Connection
+                    End-to-End Encrypted Connection
                   </div>
                   <div className="text-muted-foreground text-[10px] sm:text-xs leading-relaxed">
-                    Your connection is encrypted and authenticated using your
-                    wallet's private key. All data transmission is secured with
-                    industry-standard encryption protocols.
+                    Your connection is cryptographically authenticated using
+                    ECDSA secp256k1 signatures with your wallet's private key.
+                    All data transmissions are encrypted using TLS/SSL
+                    protocols, and your private key never leaves your device.
                   </div>
                 </div>
               </div>

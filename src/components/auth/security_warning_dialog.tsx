@@ -71,12 +71,13 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
                 </div>
                 <div className="space-y-1.5">
                   <p className="text-foreground text-[11px] sm:text-xs font-bold">
-                    Security Testing in Progress
+                    Session Management Notice
                   </p>
                   <p className="text-muted-foreground text-[10px] sm:text-xs leading-relaxed">
-                    Our security team is currently testing session management
-                    mechanisms to protect against unauthorized access and cyber
-                    attacks. You may need to re-authenticate when you return.
+                    Signing out will terminate your current session and clear
+                    all authentication data. Your wallet and private keys are
+                    stored locally and will not be affected. You will need to
+                    re-authenticate with your private key when you return.
                   </p>
                 </div>
               </div>
@@ -103,7 +104,7 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
 
             <div className="text-center">
               <p className="text-[10px] sm:text-xs text-muted-foreground">
-                This security testing ensures your account remains protected
+                Your wallet data remains secure and encrypted in local storage
               </p>
             </div>
           </CardContent>

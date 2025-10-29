@@ -245,13 +245,14 @@ export function WalletConfirmation({
               </div>
               <div>
                 <div className="font-bold text-foreground mb-0.5 sm:mb-1 text-[11px] sm:text-xs">
-                  Important Security Notice
+                  Critical: Backup Your Private Key
                 </div>
                 <div className="text-muted-foreground text-[10px] sm:text-xs leading-relaxed">
-                  Please save your private key securely. If you lose it, you
-                  will permanently lose access to your wallet and funds.
-                  Consider using a secure password manager or hardware wallet
-                  for storage.
+                  Your private key is the ONLY way to access your wallet and
+                  funds. STELS cannot recover your private key if lost. Write it
+                  down on paper and store it in a secure location, or use a
+                  password manager. Never share it with anyone or store it
+                  online.
                 </div>
               </div>
             </div>

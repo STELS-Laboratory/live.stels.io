@@ -61,15 +61,17 @@ export const SessionExpiredModal: React.FC = (): React.ReactElement => {
                 </div>
                 <div className="space-y-1.5 sm:space-y-2">
                   <p className="text-foreground text-[11px] sm:text-xs font-bold">
-                    Security Testing Notice
+                    Session Security Notice
                   </p>
                   <p className="text-muted-foreground text-[10px] sm:text-xs leading-relaxed">
-                    Our security team is currently testing session management
-                    mechanisms to protect against unauthorized access and cyber
-                    attacks. This testing ensures your account remains secure.
+                    Your session has expired due to inactivity or network
+                    connection changes. This automatic timeout protects your
+                    account from unauthorized access.
                   </p>
                   <p className="text-muted-foreground text-[10px] sm:text-xs leading-relaxed">
-                    Please click "OK" to proceed with re-authentication.
+                    Your wallet and private keys are safely stored locally.
+                    Please click "OK" to re-authenticate and continue working
+                    securely.
                   </p>
                 </div>
               </div>

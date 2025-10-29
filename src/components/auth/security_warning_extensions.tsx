@@ -95,23 +95,25 @@ export function SecurityWarningExtensions(): React.ReactElement {
           </DialogTitle>
           <div className="space-y-4 pt-4">
             <div className="rounded bg-amber-500/10 p-4 border border-amber-500/20">
-              <p className="text-sm text-amber-200">
-                <strong>Browser extensions detected</strong>
+              <p className="text-sm">
+                <strong>Browser Extensions Detected</strong>
               </p>
-              <p className="text-xs text-amber-300/80 mt-2">
-                Extensions can potentially intercept sensitive data like private
-                keys.
+              <p className="text-xs mt-2">
+                Browser extensions can potentially access and intercept
+                sensitive data including private keys, passwords, and
+                transaction details. For maximum security when handling
+                cryptocurrency, we recommend using standalone app mode.
               </p>
             </div>
 
             {securityCheck.suspiciousExtensions.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-medium text-zinc-400">Detected:</p>
+                <p className="text-xs font-medium">Detected:</p>
                 <ul className="space-y-1">
                   {securityCheck.suspiciousExtensions.map((ext, idx) => (
                     <li
                       key={idx}
-                      className="text-xs text-zinc-500 flex items-center gap-2"
+                      className="text-xs  flex items-center gap-2"
                     >
                       <span className="w-1 h-1 rounded-full bg-amber-500" />
                       {ext}
@@ -123,14 +125,16 @@ export function SecurityWarningExtensions(): React.ReactElement {
 
             <div className="rounded bg-green-500/10 p-4 border border-green-500/20">
               <div className="flex items-start gap-3">
-                <Shield className="h-5 w-5 text-green-500 mt-0.5" />
+                <Shield className="h-5 w-5  mt-0.5" />
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-green-200">
+                  <p className="text-sm font-medium ">
                     Recommended: Install as Standalone App
                   </p>
-                  <p className="text-xs text-green-300/80">
-                    Browser extensions don't work in standalone PWA mode,
-                    providing maximum security.
+                  <p className="text-xs ">
+                    Installing STELS as a standalone Progressive Web App (PWA)
+                    provides enhanced security. Browser extensions cannot access
+                    or modify the app in standalone mode, creating an isolated
+                    environment for your cryptocurrency operations.
                   </p>
                 </div>
               </div>
@@ -153,7 +157,7 @@ export function SecurityWarningExtensions(): React.ReactElement {
               </Button>
             </div>
 
-            <p className="text-xs text-zinc-500 text-center">
+            <p className="text-xs  text-center">
               You can also disable extensions manually for this site
             </p>
           </div>
