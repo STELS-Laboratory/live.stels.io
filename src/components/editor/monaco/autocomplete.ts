@@ -58,27 +58,21 @@ export function configureWorkerEditor(
   // Load SDK types
   loadWorkerSDKTypes(monaco);
 
-  // Configure TypeScript compiler options
+  // Lightweight JavaScript configuration (no heavy type checking)
   monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
     target: monaco.languages.typescript.ScriptTarget.ES2022,
     allowNonTsExtensions: true,
-    moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-    module: monaco.languages.typescript.ModuleKind.ESNext,
     noEmit: true,
-    esModuleInterop: true,
     allowJs: true,
     checkJs: false,
-    lib: ["ES2022"],
+    noLib: true, // Don't load TypeScript libs for performance
   });
 
-  // Configure diagnostics
+  // Minimal diagnostics for performance
   monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-    noSemanticValidation: false,
-    noSyntaxValidation: false,
-    diagnosticCodesToIgnore: [
-      1108, // 'return' statement outside function
-      2304, // Cannot find name (for global vars)
-    ],
+    noSemanticValidation: true,  // Disable semantic analysis for performance
+    noSyntaxValidation: false,   // Keep basic syntax check
+    diagnosticCodesToIgnore: [1108, 2304],
   });
 
   // Editor configuration

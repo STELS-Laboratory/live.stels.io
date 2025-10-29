@@ -1,32 +1,26 @@
 /**
  * Monaco Editor Configuration for Vite
- * Fixes the "Cannot assign to read only property" error
+ * Optimized: JavaScript only (no TypeScript worker)
  */
 
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
-import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
-import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
 
 // Configure Monaco Editor workers for Vite
+// Only load editor worker - JavaScript doesn't need TypeScript worker
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (self as any).MonacoEnvironment = {
-  getWorker(_: string, label: string): Worker {
-    if (label === 'json') {
-      return new jsonWorker();
-    }
-    if (label === 'typescript' || label === 'javascript') {
-      return new tsWorker();
-    }
+  getWorker(): Worker {
+    // For JavaScript, use basic editor worker (no heavy TS analysis)
     return new editorWorker();
   }
 };
 
-// Import monaco dynamically to configure it
+// Import monaco dynamically to configure it for JavaScript only
 import('monaco-editor').then((monaco) => {
-  // Enable semantic highlighting for JavaScript/TypeScript
+  // Lightweight JavaScript configuration
   monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-    noSemanticValidation: false,
-    noSyntaxValidation: false,
+    noSemanticValidation: true, // Disable for performance
+    noSyntaxValidation: false,  // Keep basic syntax check
   });
 
   monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
@@ -34,16 +28,7 @@ import('monaco-editor').then((monaco) => {
     allowNonTsExtensions: true,
     allowJs: true,
     checkJs: false,
-  });
-
-  monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-    noSemanticValidation: false,
-    noSyntaxValidation: false,
-  });
-
-  monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-    target: monaco.languages.typescript.ScriptTarget.ES2020,
-    allowNonTsExtensions: true,
+    noLib: true, // Don't load TypeScript libs
   });
 });
 

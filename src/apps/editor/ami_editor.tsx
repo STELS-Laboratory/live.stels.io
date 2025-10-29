@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+	lazy,
+	Suspense,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import Split from "react-split";
 import {
 	Activity,
@@ -33,7 +40,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import EditorComponent from "@/components/editor/editor_component";
+
+// Lazy load Monaco Editor for performance (990 KB gzipped)
+const EditorComponent = lazy(() =>
+	import("@/components/editor/editor_component")
+);
 import {
 	useEditorStore,
 	type Worker,
@@ -1410,12 +1421,26 @@ export function AMIEditor(): JSX.Element {
 											value="code"
 											className="flex-1 m-0 p-0 min-h-0"
 										>
-											<EditorComponent
-												script={currentScript}
-												handleEditorChange={handleEditorChange}
-												onEditorReady={(formatFn) =>
-													setFormatCodeFn(() => formatFn)}
-											/>
+											<Suspense
+												fallback={
+													<div className="h-full bg-background flex items-center justify-center">
+														<div className="text-center">
+															<div className="w-12 h-12 border-4 border-border border-t-amber-500 rounded-full animate-spin mx-auto mb-3">
+															</div>
+															<p className="text-muted-foreground text-xs font-mono">
+																Loading Editor...
+															</p>
+														</div>
+													</div>
+												}
+											>
+												<EditorComponent
+													script={currentScript}
+													handleEditorChange={handleEditorChange}
+													onEditorReady={(formatFn) =>
+														setFormatCodeFn(() => formatFn)}
+												/>
+											</Suspense>
 										</TabsContent>
 
 										{/* Tab: Configuration */}
