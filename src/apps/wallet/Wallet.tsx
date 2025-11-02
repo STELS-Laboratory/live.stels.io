@@ -26,7 +26,7 @@ function formatCardNumber(cardNum: string): string {
  */
 function Wallet(): React.ReactElement {
 	const mobile = useMobile();
-	const { wallet, connectionSession } = useAuthStore();
+	const { wallet } = useAuthStore();
 	const { balance, loading: balanceLoading, refetch: refetchBalance } =
 		useWalletBalance();
 	const { assets, loading: assetsLoading } = useAssetList();
@@ -46,7 +46,7 @@ function Wallet(): React.ReactElement {
 		// For now, we'll use a simple conversion rate
 		// In production, this should come from price feeds
 		const tstToUsdRate = 0.01; // Placeholder - should be fetched from API
-		let total = balance.total * tstToUsdRate;
+		const total = balance.total * tstToUsdRate;
 
 		// Add token balances if available
 		// This is a simplified calculation - in production, you'd need to:
@@ -146,12 +146,11 @@ function Wallet(): React.ReactElement {
 					onRefresh={refetchBalance}
 				/>
 
-				{/* Token List */}
-				<TokenList
-					assets={assets}
-					loading={assetsLoading}
-					walletAddress={wallet.address}
-				/>
+			{/* Token List */}
+			<TokenList
+				assets={assets}
+				loading={assetsLoading}
+			/>
 			</motion.div>
 		</div>
 	);

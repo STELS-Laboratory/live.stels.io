@@ -7,7 +7,6 @@ import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Coins, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 
 interface AssetData {
   channel: string;
@@ -33,7 +32,6 @@ interface AssetData {
 interface TokenListProps {
   assets: AssetData[];
   loading: boolean;
-  walletAddress: string;
 }
 
 interface TokenItem {
@@ -52,7 +50,6 @@ interface TokenItem {
 export function TokenList({
   assets,
   loading,
-  walletAddress,
 }: TokenListProps): React.ReactElement {
   const tokens = useMemo((): TokenItem[] => {
     if (!assets || assets.length === 0) return [];
