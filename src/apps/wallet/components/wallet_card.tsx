@@ -16,6 +16,7 @@ interface WalletCardProps {
   isVerified: boolean;
   loading: boolean;
   onRefresh: () => void;
+  mobile?: boolean;
 }
 
 /**
@@ -47,6 +48,7 @@ export function WalletCard({
   isVerified,
   loading,
   onRefresh,
+  mobile = false,
 }: WalletCardProps): React.ReactElement {
   return (
     <motion.div
@@ -55,19 +57,44 @@ export function WalletCard({
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       className="relative"
     >
-      <div className="relative bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-900 dark:from-zinc-800 dark:via-zinc-900 dark:to-black rounded-xl p-6 shadow-xl overflow-hidden">
+      <div
+        className={cn(
+          "relative bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-900 dark:from-zinc-800 dark:via-zinc-900 dark:to-black rounded-xl shadow-xl overflow-hidden",
+          mobile ? "p-4" : "p-6",
+        )}
+      >
         {/* Card Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500 rounded-full -translate-y-16 translate-x-16" />
           <div className="absolute bottom-0 left-0 w-40 h-40 bg-amber-500 rounded-full translate-y-20 -translate-x-20" />
         </div>
 
-        <div className="relative z-10 space-y-6">
+        <div
+          className={cn(
+            "relative z-10",
+            mobile ? "space-y-4" : "space-y-6",
+          )}
+        >
           {/* Card Header */}
-          <div className="flex items-start justify-between gap-4">
+          <div
+            className={cn(
+              "flex items-start justify-between",
+              mobile ? "gap-2" : "gap-4",
+            )}
+          >
             <div className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-white/80" />
-              <span className="text-white/80 font-medium text-sm tracking-wide">
+              <CreditCard
+                className={cn(
+                  "text-white/80",
+                  mobile ? "w-4 h-4" : "w-5 h-5",
+                )}
+              />
+              <span
+                className={cn(
+                  "text-white/80 font-medium tracking-wide",
+                  mobile ? "text-xs" : "text-sm",
+                )}
+              >
                 STELS Web 5
               </span>
             </div>
@@ -75,14 +102,24 @@ export function WalletCard({
               {isVerified
                 ? (
                   <div className="flex items-center gap-1 text-white/60 text-xs">
-                    <Shield className="w-4 h-4 text-green-400" />
-                    <span>Verified</span>
+                    <Shield
+                      className={cn(
+                        "text-green-400",
+                        mobile ? "w-3.5 h-3.5" : "w-4 h-4",
+                      )}
+                    />
+                    {!mobile && <span>Verified</span>}
                   </div>
                 )
                 : (
                   <div className="flex items-center gap-1 text-white/60 text-xs">
-                    <ShieldOff className="w-4 h-4 text-amber-400" />
-                    <span>Unverified</span>
+                    <ShieldOff
+                      className={cn(
+                        "text-amber-400",
+                        mobile ? "w-3.5 h-3.5" : "w-4 h-4",
+                      )}
+                    />
+                    {!mobile && <span>Unverified</span>}
                   </div>
                 )}
               <Button
@@ -90,12 +127,15 @@ export function WalletCard({
                 size="sm"
                 onClick={onRefresh}
                 disabled={loading}
-                className="h-8 w-8 p-0 text-white/60 hover:text-white hover:bg-white/10"
+                className={cn(
+                  "text-white/60 hover:text-white hover:bg-white/10 p-0",
+                  mobile ? "h-8 w-8" : "h-8 w-8",
+                )}
               >
                 <RefreshCw
                   className={cn(
-                    "w-4 h-4",
                     loading && "animate-spin",
+                    mobile ? "w-4 h-4" : "w-4 h-4",
                   )}
                 />
               </Button>
@@ -103,7 +143,12 @@ export function WalletCard({
           </div>
 
           {/* Card Number */}
-          <div className="text-white/60 text-sm font-mono tracking-wider">
+          <div
+            className={cn(
+              "text-white/60 font-mono tracking-wider",
+              mobile ? "text-xs" : "text-sm",
+            )}
+          >
             {cardNumber || "•••• •••• •••• ••••"}
           </div>
 
@@ -113,14 +158,29 @@ export function WalletCard({
               Balance
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-white">
+              <span
+                className={cn(
+                  "font-bold text-white",
+                  mobile ? "text-2xl" : "text-3xl",
+                )}
+              >
                 {loading ? "..." : formatBalance(balance)}
               </span>
-              <span className="text-white/60 text-sm font-medium">
+              <span
+                className={cn(
+                  "text-white/60 font-medium",
+                  mobile ? "text-xs" : "text-sm",
+                )}
+              >
                 TST
               </span>
             </div>
-            <div className="text-white/80 text-lg font-semibold">
+            <div
+              className={cn(
+                "text-white/80 font-semibold",
+                mobile ? "text-base" : "text-lg",
+              )}
+            >
               {loading ? "..." : formatUSD(usdValue)}
             </div>
           </div>

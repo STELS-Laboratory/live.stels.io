@@ -11,6 +11,7 @@ import { useMobile } from "@/hooks/use_mobile";
 import { WalletCard } from "./components/wallet_card";
 import { TokenList } from "./components/token_list";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 /**
  * Format card number with spaces (XXXX XXXX XXXX XXXX)
@@ -58,37 +59,6 @@ function Wallet(): React.ReactElement {
 		return total;
 	}, [balance, assets]);
 
-	// Mobile warning
-	if (mobile) {
-		return (
-			<div className="h-full bg-background p-4 flex items-center justify-center">
-				<div className="text-center max-w-sm mx-auto">
-					<div className="w-16 h-16 bg-card rounded flex items-center justify-center mb-4 mx-auto">
-						<svg
-							className="w-8 h-8 text-amber-700 dark:text-amber-400"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-								d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-							/>
-						</svg>
-					</div>
-					<h2 className="text-amber-700 dark:text-amber-400 font-mono text-lg font-bold mb-2">
-						WALLET
-					</h2>
-					<p className="text-muted-foreground font-mono text-sm">
-						Desktop interface required
-					</p>
-				</div>
-			</div>
-		);
-	}
-
 	// No wallet state
 	if (!hasWallet) {
 		return (
@@ -121,17 +91,32 @@ function Wallet(): React.ReactElement {
 	}
 
 	return (
-		<div className="h-full bg-background overflow-y-auto">
+		<div className="h-full bg-background overflow-y-auto p-8">
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-				className="container-responsive py-6 space-y-6"
+				className={cn(
+					"container-responsive",
+					mobile ? "space-y-4" : "p-2 space-y-6",
+				)}
 			>
 				{/* Header */}
-				<div className="space-y-2">
-					<h1 className="text-2xl font-semibold text-foreground">Wallet</h1>
-					<p className="text-sm text-muted-foreground">
+				<div className={cn(mobile ? "space-y-1" : "space-y-2")}>
+					<h1
+						className={cn(
+							"font-semibold text-foreground",
+							mobile ? "text-xl" : "text-2xl",
+						)}
+					>
+						Wallet
+					</h1>
+					<p
+						className={cn(
+							"text-muted-foreground",
+							mobile ? "text-xs" : "text-sm",
+						)}
+					>
 						Manage your balances and tokens
 					</p>
 				</div>
@@ -144,17 +129,18 @@ function Wallet(): React.ReactElement {
 					isVerified={isVerified}
 					loading={balanceLoading}
 					onRefresh={refetchBalance}
+					mobile={mobile}
 				/>
 
-			{/* Token List */}
-			<TokenList
-				assets={assets}
-				loading={assetsLoading}
-			/>
+				{/* Token List */}
+				<TokenList
+					assets={assets}
+					loading={assetsLoading}
+					mobile={mobile}
+				/>
 			</motion.div>
 		</div>
 	);
 }
 
 export default Wallet;
-
