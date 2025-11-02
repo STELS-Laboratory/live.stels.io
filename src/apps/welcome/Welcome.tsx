@@ -808,13 +808,23 @@ function Welcome(): ReactElement {
                     </motion.div>
 
                     {/* Card Info */}
-                    <div className="mt-3 sm:mt-4 px-2 text-center">
+                    <div className="mt-3 sm:mt-4 px-2 text-center space-y-3">
                       <p className="text-xs text-muted-foreground">
                         This is your sovereign identity on the STELS network.
                         <span className="block mt-1 font-medium text-foreground text-xs sm:text-sm">
                           You own your data, you control your assets.
                         </span>
                       </p>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => navigateTo("wallet")}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-600 dark:bg-amber-500 hover:bg-amber-700 dark:hover:bg-amber-600 text-white rounded-lg font-medium text-sm transition-colors duration-200"
+                      >
+                        <Wallet className="w-4 h-4" />
+                        <span>Open Wallet</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </motion.button>
                     </div>
                   </div>
                   {/* Left: Digital Identity Info */}

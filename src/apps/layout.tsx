@@ -24,6 +24,7 @@ import {
 	Play,
 	Server,
 	Square,
+	Wallet,
 } from "lucide-react";
 import Graphite from "@/components/ui/vectors/logos/graphite";
 import { navigateTo } from "@/lib/router.ts";
@@ -112,6 +113,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 			docs: "Documentation",
 			template: "App Template",
 			"token-builder": "Token Builder",
+			wallet: "Wallet",
 		};
 		return names[route] || route;
 	};
@@ -126,6 +128,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 		{ key: "schemas", label: "Schemas", icon: LayoutIcon },
 		{ key: "docs", label: "Docs", icon: FileText },
 		{ key: "token-builder", label: "Token Builder", icon: Coins },
+		{ key: "wallet", label: "Wallet", icon: Wallet },
 	].filter((i) => allowedRoutes.includes(i.key));
 
 	const renderNavItem = (

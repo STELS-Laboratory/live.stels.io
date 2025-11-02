@@ -35,6 +35,7 @@ const Docs = lazy(() =>
 );
 const Template = lazy(() => import("@/apps/template"));
 const TokenBuilder = lazy(() => import("@/apps/token-builder"));
+const WalletApp = lazy(() => import("@/apps/wallet"));
 import { TooltipProvider } from "@/components/ui/tooltip";
 const Layout = lazy(() => import("@/apps/layout"));
 const AMIEditor = lazy(() =>
@@ -671,6 +672,18 @@ export default function Dashboard(): React.ReactElement {
 						}
 					>
 						<TokenBuilder />
+					</Suspense>
+				);
+			case "wallet":
+				return (
+					<Suspense
+						fallback={
+							<div className="p-4 text-muted-foreground">
+								Loading wallet...
+							</div>
+						}
+					>
+						<WalletApp />
 					</Suspense>
 				);
 			default:

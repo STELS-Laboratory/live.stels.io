@@ -83,6 +83,11 @@ export default function AppShortcuts(): null {
           navigateTo("token-builder");
           return;
         }
+        if (e.key === "W" || e.key === "w") {
+          e.preventDefault();
+          navigateTo("wallet");
+          return;
+        }
       }
 
       // Cmd/Ctrl + 1-9: Switch to user agent by index

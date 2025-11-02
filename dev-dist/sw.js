@@ -67,7 +67,7 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-13fdf7ef'], (function (workbox) { 'use strict';
+define(['./workbox-cb96c7ab'], (function (workbox) { 'use strict';
 
   self.addEventListener('message', event => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
@@ -85,12 +85,26 @@ define(['./workbox-13fdf7ef'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.b30tclh07e"
+    "revision": "0.p9u6o0pntko"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
     allowlist: [/^\/$/]
   }));
+  workbox.registerRoute(({
+    url
+  }) => {
+    return url.pathname.startsWith("/schemas/") && url.pathname.endsWith(".json");
+  }, new workbox.NetworkFirst({
+    "cacheName": "schemas-cache",
+    "networkTimeoutSeconds": 3,
+    plugins: [new workbox.ExpirationPlugin({
+      maxEntries: 100,
+      maxAgeSeconds: 604800
+    }), new workbox.CacheableResponsePlugin({
+      statuses: [0, 200]
+    })]
+  }), 'GET');
   workbox.registerRoute(/.*\.worker.*\.js$/i, new workbox.CacheFirst({
     "cacheName": "monaco-workers-cache",
     plugins: [new workbox.ExpirationPlugin({

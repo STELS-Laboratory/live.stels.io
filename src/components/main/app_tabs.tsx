@@ -14,6 +14,7 @@ import {
   Home,
   Layers,
   Layout as LayoutIcon,
+  Wallet,
   X,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -42,6 +43,7 @@ const DEV_TOOLS: DevTool[] = [
   { key: "docs", name: "Docs", icon: FileText, shortcut: "D" },
   { key: "template", name: "Template", icon: FileCode, shortcut: "T" },
   { key: "token-builder", name: "Token Builder", icon: Coins, shortcut: "B" },
+  { key: "wallet", name: "Wallet", icon: Wallet, shortcut: "W" },
 ];
 
 /**
