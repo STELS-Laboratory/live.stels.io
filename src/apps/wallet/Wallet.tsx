@@ -3,13 +3,23 @@
  * Full-featured wallet with balance, tokens, and transaction management
  */
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useAuthStore } from "@/stores";
 import { useWalletBalance } from "@/hooks/use_wallet_balance";
 import { useAssetList } from "@/hooks/use_asset_list";
 import { useMobile } from "@/hooks/use_mobile";
+import {
+	type StoredAccount,
+	useAccountsStore,
+} from "@/stores/modules/accounts.store";
 import { WalletCard } from "./components/wallet_card";
 import { TokenList } from "./components/token_list";
+import { AccountList } from "./components/account_list";
+import { AddAccountDialog } from "./components/add_account_dialog";
+import { AccountDetailsDialog } from "./components/account_details_dialog";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Coins, Database, PlusIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -27,10 +37,23 @@ function formatCardNumber(cardNum: string): string {
  */
 function Wallet(): React.ReactElement {
 	const mobile = useMobile();
-	const { wallet } = useAuthStore();
+	const { wallet, connectionSession, isAuthenticated, isConnected } =
+		useAuthStore();
 	const { balance, loading: balanceLoading, refetch: refetchBalance } =
 		useWalletBalance();
 	const { assets, loading: assetsLoading } = useAssetList();
+	const { accounts, fetchAccountsFromServer } = useAccountsStore();
+	const [isAddAccountDialogOpen, setIsAddAccountDialogOpen] = useState<boolean>(
+		false,
+	);
+	const [activeTab, setActiveTab] = useState<string>("tokens");
+	const [accountsLoading, setAccountsLoading] = useState<boolean>(false);
+	const [selectedAccount, setSelectedAccount] = useState<StoredAccount | null>(
+		null,
+	);
+	const [isAccountDetailsOpen, setIsAccountDetailsOpen] = useState<boolean>(
+		false,
+	);
 
 	// Check if wallet exists
 	const hasWallet = wallet !== null;
@@ -58,6 +81,101 @@ function Wallet(): React.ReactElement {
 
 		return total;
 	}, [balance, assets]);
+
+	// Calculate total liquidity from connected accounts
+	const totalLiquidity = useMemo((): number => {
+		if (!accounts || accounts.length === 0) return 0;
+
+		let total = 0;
+
+		accounts.forEach((account) => {
+			// Only count connected accounts
+			if (!account.account.connection) return;
+
+			const rawData = account.rawData;
+			if (!rawData?.wallet) return;
+
+			const wallet = rawData.wallet;
+
+			// Check if wallet has info.result.list with coin data
+			if (
+				wallet.info?.result?.list?.[0]?.coin &&
+				Array.isArray(wallet.info.result.list[0].coin)
+			) {
+				wallet.info.result.list[0].coin.forEach((coin: unknown) => {
+					if (
+						typeof coin === "object" &&
+						coin !== null &&
+						"usdValue" in coin &&
+						coin.usdValue &&
+						typeof coin.usdValue === "string"
+					) {
+						const usdValue = Number.parseFloat(coin.usdValue);
+						if (!Number.isNaN(usdValue)) {
+							total += usdValue;
+						}
+					}
+				});
+			}
+
+			// Also check direct coin properties (fallback)
+			Object.keys(wallet).forEach((key) => {
+				if (
+					key !== "info" &&
+					key !== "timestamp" &&
+					key !== "datetime" &&
+					key !== "free" &&
+					key !== "used" &&
+					key !== "total" &&
+					key !== "debt" &&
+					typeof wallet[key] === "object" &&
+					wallet[key] !== null &&
+					"usdValue" in wallet[key]
+				) {
+					const coinData = wallet[key] as { usdValue?: string };
+					if (coinData.usdValue) {
+						const usdValue = Number.parseFloat(coinData.usdValue);
+						if (!Number.isNaN(usdValue)) {
+							total += usdValue;
+						}
+					}
+				}
+			});
+		});
+
+		return total;
+	}, [accounts]);
+
+	// Fetch accounts from server when accounts tab is opened
+	useEffect(() => {
+		if (
+			activeTab === "accounts" &&
+			isAuthenticated &&
+			isConnected &&
+			connectionSession &&
+			wallet
+		) {
+			setAccountsLoading(true);
+			fetchAccountsFromServer(
+				wallet.address,
+				connectionSession.session,
+				connectionSession.api,
+			)
+				.catch((error) => {
+					console.error("[Wallet] Failed to fetch accounts:", error);
+				})
+				.finally(() => {
+					setAccountsLoading(false);
+				});
+		}
+	}, [
+		activeTab,
+		isAuthenticated,
+		isConnected,
+		connectionSession,
+		wallet,
+		fetchAccountsFromServer,
+	]);
 
 	// No wallet state
 	if (!hasWallet) {
@@ -102,23 +220,37 @@ function Wallet(): React.ReactElement {
 				)}
 			>
 				{/* Header */}
-				<div className={cn(mobile ? "space-y-1" : "space-y-2")}>
-					<h1
-						className={cn(
-							"font-semibold text-foreground",
-							mobile ? "text-xl" : "text-2xl",
-						)}
+				<div
+					className={cn(
+						"flex items-start justify-between",
+						mobile ? "flex-col gap-2" : "flex-row",
+					)}
+				>
+					<div className={cn(mobile ? "space-y-1" : "space-y-2")}>
+						<h1
+							className={cn(
+								"font-semibold text-foreground",
+								mobile ? "text-xl" : "text-2xl",
+							)}
+						>
+							Wallet
+						</h1>
+						<p
+							className={cn(
+								"text-muted-foreground",
+								mobile ? "text-xs" : "text-sm",
+							)}
+						>
+							Manage your balances, tokens, and trading accounts
+						</p>
+					</div>
+					<Button
+						onClick={() => setIsAddAccountDialogOpen(true)}
+						className={cn(mobile ? "w-full" : "")}
 					>
-						Wallet
-					</h1>
-					<p
-						className={cn(
-							"text-muted-foreground",
-							mobile ? "text-xs" : "text-sm",
-						)}
-					>
-						Manage your balances and tokens
-					</p>
+						<PlusIcon className="size-4 mr-2" />
+						Add Account
+					</Button>
 				</div>
 
 				{/* Wallet Card */}
@@ -126,19 +258,71 @@ function Wallet(): React.ReactElement {
 					cardNumber={wallet.number ? formatCardNumber(wallet.number) : ""}
 					balance={balance?.total || 0}
 					usdValue={totalUSDValue}
+					liquidity={totalLiquidity}
 					isVerified={isVerified}
 					loading={balanceLoading}
 					onRefresh={refetchBalance}
 					mobile={mobile}
 				/>
 
-				{/* Token List */}
-				<TokenList
-					assets={assets}
-					loading={assetsLoading}
-					mobile={mobile}
-				/>
+				{/* Tabs for Tokens and Accounts */}
+				<Tabs
+					value={activeTab}
+					onValueChange={setActiveTab}
+					className={cn("w-full", mobile && "mt-2")}
+				>
+					<TabsList className={cn("w-full", mobile && "h-12")}>
+						<TabsTrigger
+							value="tokens"
+							className={cn("flex-1 gap-2", mobile && "text-sm")}
+						>
+							<Coins className="size-4" />
+							<span>Tokens</span>
+						</TabsTrigger>
+						<TabsTrigger
+							value="accounts"
+							className={cn("flex-1 gap-2", mobile && "text-sm")}
+						>
+							<Database className="size-4" />
+							<span>Accounts</span>
+						</TabsTrigger>
+					</TabsList>
+
+					<TabsContent value="tokens" className="mt-4">
+						<TokenList
+							assets={assets}
+							loading={assetsLoading}
+							mobile={mobile}
+						/>
+					</TabsContent>
+
+					<TabsContent value="accounts" className="mt-4">
+						<AccountList
+							accounts={accounts}
+							loading={accountsLoading}
+							mobile={mobile}
+							onAccountClick={(account) => {
+								setSelectedAccount(account);
+								setIsAccountDetailsOpen(true);
+							}}
+						/>
+					</TabsContent>
+				</Tabs>
 			</motion.div>
+
+			{/* Add Account Dialog */}
+			<AddAccountDialog
+				open={isAddAccountDialogOpen}
+				onOpenChange={setIsAddAccountDialogOpen}
+			/>
+
+			{/* Account Details Dialog */}
+			<AccountDetailsDialog
+				open={isAccountDetailsOpen}
+				onOpenChange={setIsAccountDetailsOpen}
+				account={selectedAccount}
+				mobile={mobile}
+			/>
 		</div>
 	);
 }

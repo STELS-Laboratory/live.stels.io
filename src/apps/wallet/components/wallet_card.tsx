@@ -5,7 +5,13 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { CreditCard, RefreshCw, Shield, ShieldOff } from "lucide-react";
+import {
+  CreditCard,
+  RefreshCw,
+  Shield,
+  ShieldOff,
+  TrendingUp,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +19,7 @@ interface WalletCardProps {
   cardNumber: string;
   balance: number;
   usdValue: number;
+  liquidity: number;
   isVerified: boolean;
   loading: boolean;
   onRefresh: () => void;
@@ -45,6 +52,7 @@ export function WalletCard({
   cardNumber,
   balance,
   usdValue,
+  liquidity,
   isVerified,
   loading,
   onRefresh,
@@ -182,6 +190,32 @@ export function WalletCard({
               )}
             >
               {loading ? "..." : formatUSD(usdValue)}
+            </div>
+          </div>
+
+          {/* Liquidity Section */}
+          <div className="space-y-2 pt-2 border-t border-white/10">
+            <div className="flex items-center gap-2">
+              <TrendingUp
+                className={cn(
+                  "text-white/60",
+                  mobile ? "w-3.5 h-3.5" : "w-4 h-4",
+                )}
+              />
+              <div className="text-white/60 text-xs font-medium">
+                Liquidity
+              </div>
+            </div>
+            <div
+              className={cn(
+                "text-white/80 font-semibold",
+                mobile ? "text-base" : "text-lg",
+              )}
+            >
+              {loading ? "..." : formatUSD(liquidity)}
+            </div>
+            <div className="text-white/50 text-[10px] leading-tight">
+              From connected trading accounts
             </div>
           </div>
         </div>
