@@ -25,6 +25,7 @@ import { SessionExpiredModal } from "@/components/auth/session_expired_modal";
 import UpdatePrompt from "@/components/main/update_prompt";
 import VersionCheckPrompt from "@/components/main/version_check_prompt";
 import ToastProvider from "@/components/main/toast_provider";
+import TestModeNotice from "@/components/main/test_mode_notice";
 
 // Lazy-loaded app modules
 const Welcome = lazy(() => import("@/apps/welcome"));
@@ -721,19 +722,27 @@ export default function Dashboard(): React.ReactElement {
 		case "initializing":
 		case "hydrating":
 		case "checking_session":
-			return renderLoadingScreen(getStateMessage(appState));
+			return (
+				<>
+					{renderLoadingScreen(getStateMessage(appState))}
+					<TestModeNotice />
+				</>
+			);
 
 		case "authenticating":
 			// Show authentication flow with smooth transition
 			return (
-				<motion.div
-					initial={{ opacity: 0, scale: 0.95 }}
-					animate={{ opacity: 1, scale: 1 }}
-					exit={{ opacity: 0, scale: 0.95 }}
-					transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-				>
-					<ProfessionalConnectionFlow />
-				</motion.div>
+				<>
+					<motion.div
+						initial={{ opacity: 0, scale: 0.95 }}
+						animate={{ opacity: 1, scale: 1 }}
+						exit={{ opacity: 0, scale: 0.95 }}
+						transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+					>
+						<ProfessionalConnectionFlow />
+					</motion.div>
+					<TestModeNotice />
+				</>
 			);
 
 		case "connecting":
