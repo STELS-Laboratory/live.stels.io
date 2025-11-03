@@ -94,7 +94,7 @@ export type AuthStore = AuthState & AuthActions;
  */
 const DEFAULT_NETWORKS: NetworkConfig[] = [
 	{
-		id: 'localnet',
+		id: 'testnet',
 		name: 'Localnet',
 		api: 'http://10.0.0.238:8088',
 		socket: 'ws://10.0.0.238:8088',

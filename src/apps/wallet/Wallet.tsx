@@ -5,8 +5,10 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useAuthStore } from "@/stores";
-import { useWalletBalance } from "@/hooks/use_wallet_balance";
 import { useAssetList } from "@/hooks/use_asset_list";
+import { useAssetBalance } from "@/hooks/use_asset_balance";
+import { useAssetBalances } from "@/hooks/use_asset_balances";
+import { useAllTokenPrices } from "@/hooks/use_token_price";
 import { useMobile } from "@/hooks/use_mobile";
 import {
 	type StoredAccount,
@@ -17,9 +19,12 @@ import { TokenList } from "./components/token_list";
 import { AccountList } from "./components/account_list";
 import { AddAccountDialog } from "./components/add_account_dialog";
 import { AccountDetailsDialog } from "./components/account_details_dialog";
+import { TransactionList } from "./components/transaction_list";
+import { SendTransactionDialog } from "./components/send_transaction_dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coins, Database, PlusIcon } from "lucide-react";
+import { Coins, Database, PlusIcon, Send, History } from "lucide-react";
+import { useAssetTransactions } from "@/hooks/use_asset_transactions";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -39,9 +44,28 @@ function Wallet(): React.ReactElement {
 	const mobile = useMobile();
 	const { wallet, connectionSession, isAuthenticated, isConnected } =
 		useAuthStore();
-	const { balance, loading: balanceLoading, refetch: refetchBalance } =
-		useWalletBalance();
 	const { assets, loading: assetsLoading } = useAssetList();
+
+	// Find TST token for main balance
+	const tstToken = useMemo(() => {
+		if (!assets) return null;
+		return assets.find(
+			(asset) =>
+				asset.raw.genesis.token.metadata.symbol === "TST" ||
+				asset.raw.genesis.token.metadata.symbol === "tst",
+		);
+	}, [assets]);
+
+	// Get TST balance using getAssetBalance API (only if tstToken is found)
+	const { balance: tstBalance, loading: balanceLoading, refetch: refetchBalance } =
+		useAssetBalance({
+			address: wallet?.address || "",
+			token_id: tstToken?.raw.genesis.token.id || "",
+			network: connectionSession?.network,
+		});
+	
+	// Only show loading if we're actually fetching TST balance
+	const isTSTLoading = tstToken ? balanceLoading : false;
 	const { accounts, fetchAccountsFromServer } = useAccountsStore();
 	const [isAddAccountDialogOpen, setIsAddAccountDialogOpen] = useState<boolean>(
 		false,
@@ -54,6 +78,17 @@ function Wallet(): React.ReactElement {
 	const [isAccountDetailsOpen, setIsAccountDetailsOpen] = useState<boolean>(
 		false,
 	);
+	const [isSendTransactionOpen, setIsSendTransactionOpen] = useState<boolean>(
+		false,
+	);
+
+	// Fetch transactions for transaction history
+	// Don't fetch immediately - only when transactions tab is opened
+	const { transactions, loading: transactionsLoading, refetch: refetchTransactions } =
+		useAssetTransactions({
+			address: wallet?.address || "",
+			status: "all",
+		});
 
 	// Check if wallet exists
 	const hasWallet = wallet !== null;
@@ -63,24 +98,63 @@ function Wallet(): React.ReactElement {
 		return wallet?.biometric !== null && wallet?.biometric !== undefined;
 	}, [wallet?.biometric]);
 
-	// Calculate total USD value from balance and assets
+	// Get all balances for USD calculation
+	const { balances: allBalances, loading: balancesLoading, refetch: refetchAllBalances } = useAssetBalances({
+		address: wallet?.address || "",
+		network: connectionSession?.network,
+	});
+
+	// Get all token prices from session ticker data
+	const tokenPrices = useAllTokenPrices(connectionSession?.network);
+
+	// Find TST balance from allBalances if tstToken not found
+	const tstBalanceFromAll = useMemo(() => {
+		if (!allBalances || allBalances.length === 0) return null;
+		return allBalances.find(
+			(balance) =>
+				balance.symbol?.toUpperCase() === "TST" ||
+				balance.currency?.toUpperCase() === "TST",
+		);
+	}, [allBalances]);
+
+	// Use TST balance from allBalances if available, otherwise from useAssetBalance
+	// Priority: tstBalance (from useAssetBalance) > tstBalanceFromAll (from allBalances)
+	const mainBalance = useMemo(() => {
+		if (tstBalance && tstBalance.balance) {
+			const balanceNum = Number.parseFloat(tstBalance.balance);
+			return Number.isNaN(balanceNum) ? 0 : balanceNum;
+		}
+		if (tstBalanceFromAll && tstBalanceFromAll.balance) {
+			const balanceNum = Number.parseFloat(tstBalanceFromAll.balance);
+			return Number.isNaN(balanceNum) ? 0 : balanceNum;
+		}
+		return 0;
+	}, [tstBalance, tstBalanceFromAll]);
+
+	// Calculate total USD value from all token balances and prices
 	const totalUSDValue = useMemo((): number => {
-		if (!balance || !assets) return 0;
+		if (!allBalances || allBalances.length === 0) return 0;
 
-		// For now, we'll use a simple conversion rate
-		// In production, this should come from price feeds
-		const tstToUsdRate = 0.01; // Placeholder - should be fetched from API
-		const total = balance.total * tstToUsdRate;
+		let total = 0;
 
-		// Add token balances if available
-		// This is a simplified calculation - in production, you'd need to:
-		// 1. Get balances for each token from transactions
-		// 2. Get price for each token
-		// 3. Calculate USD value per token
-		// 4. Sum all values
+		for (const balance of allBalances) {
+			// Try to get price by symbol from balance data
+			// The balance response includes symbol field
+			const symbol = balance.symbol?.toUpperCase();
+			if (!symbol) continue;
+
+			// For USDT, use fixed price of 1 USD (stablecoin)
+			const price = symbol === "USDT" ? 1 : tokenPrices.get(symbol);
+			if (!price) continue;
+
+			const balanceNum = Number.parseFloat(balance.balance);
+			if (!Number.isNaN(balanceNum) && balanceNum > 0) {
+				total += balanceNum * price;
+			}
+		}
 
 		return total;
-	}, [balance, assets]);
+	}, [allBalances, tokenPrices]);
 
 	// Calculate total liquidity from connected accounts
 	const totalLiquidity = useMemo((): number => {
@@ -145,6 +219,33 @@ function Wallet(): React.ReactElement {
 
 		return total;
 	}, [accounts]);
+
+	// Calculate total portfolio value: tokens + liquidity
+	const totalPortfolioValue = useMemo((): number => {
+		return totalUSDValue + totalLiquidity;
+	}, [totalUSDValue, totalLiquidity]);
+
+	// Fetch transactions when transactions tab is opened
+	useEffect(() => {
+		if (
+			activeTab === "transactions" &&
+			isAuthenticated &&
+			isConnected &&
+			connectionSession &&
+			wallet &&
+			wallet.address
+		) {
+			console.log("[Wallet] Loading transactions for tab", wallet.address);
+			refetchTransactions();
+		}
+	}, [
+		activeTab,
+		isAuthenticated,
+		isConnected,
+		connectionSession,
+		wallet,
+		refetchTransactions,
+	]);
 
 	// Fetch accounts from server when accounts tab is opened
 	useEffect(() => {
@@ -244,28 +345,45 @@ function Wallet(): React.ReactElement {
 							Manage your balances, tokens, and trading accounts
 						</p>
 					</div>
-					<Button
-						onClick={() => setIsAddAccountDialogOpen(true)}
-						className={cn(mobile ? "w-full" : "")}
-					>
-						<PlusIcon className="size-4 mr-2" />
-						Add Account
-					</Button>
+					<div className={cn("flex gap-2", mobile && "w-full flex-col")}>
+						<Button
+							onClick={() => setIsSendTransactionOpen(true)}
+							variant="default"
+							className={cn(mobile ? "w-full" : "")}
+						>
+							<Send className="size-4 mr-2" />
+							Send
+						</Button>
+						<Button
+							onClick={() => setIsAddAccountDialogOpen(true)}
+							variant="outline"
+							className={cn(mobile ? "w-full" : "")}
+						>
+							<PlusIcon className="size-4 mr-2" />
+							Add Account
+						</Button>
+					</div>
 				</div>
 
 				{/* Wallet Card */}
 				<WalletCard
 					cardNumber={wallet.number ? formatCardNumber(wallet.number) : ""}
-					balance={balance?.total || 0}
-					usdValue={totalUSDValue}
+					balance={mainBalance}
+					usdValue={totalPortfolioValue}
 					liquidity={totalLiquidity}
+					tokensValue={totalUSDValue}
 					isVerified={isVerified}
-					loading={balanceLoading}
-					onRefresh={refetchBalance}
+					loading={isTSTLoading || balancesLoading}
+					onRefresh={async () => {
+						if (tstToken) {
+							await refetchBalance();
+						}
+						await refetchAllBalances();
+					}}
 					mobile={mobile}
 				/>
 
-				{/* Tabs for Tokens and Accounts */}
+				{/* Tabs for Tokens, Transactions, and Accounts */}
 				<Tabs
 					value={activeTab}
 					onValueChange={setActiveTab}
@@ -280,6 +398,13 @@ function Wallet(): React.ReactElement {
 							<span>Tokens</span>
 						</TabsTrigger>
 						<TabsTrigger
+							value="transactions"
+							className={cn("flex-1 gap-2", mobile && "text-sm")}
+						>
+							<History className="size-4" />
+							<span>Transactions</span>
+						</TabsTrigger>
+						<TabsTrigger
 							value="accounts"
 							className={cn("flex-1 gap-2", mobile && "text-sm")}
 						>
@@ -292,6 +417,16 @@ function Wallet(): React.ReactElement {
 						<TokenList
 							assets={assets}
 							loading={assetsLoading}
+							mobile={mobile}
+							address={wallet?.address}
+						/>
+					</TabsContent>
+
+					<TabsContent value="transactions" className="mt-4">
+						<TransactionList
+							transactions={transactions}
+							loading={transactionsLoading}
+							address={wallet?.address || ""}
 							mobile={mobile}
 						/>
 					</TabsContent>
@@ -322,6 +457,19 @@ function Wallet(): React.ReactElement {
 				onOpenChange={setIsAccountDetailsOpen}
 				account={selectedAccount}
 				mobile={mobile}
+			/>
+
+			{/* Send Transaction Dialog */}
+			<SendTransactionDialog
+				open={isSendTransactionOpen}
+				onOpenChange={setIsSendTransactionOpen}
+				mobile={mobile}
+				onTransactionSent={() => {
+					// Refresh all data after transaction
+					refetchTransactions();
+					refetchBalance();
+					// TokenList components will auto-refresh their balances via useAssetBalance
+				}}
 			/>
 		</div>
 	);

@@ -18,8 +18,9 @@ import { cn } from "@/lib/utils";
 interface WalletCardProps {
   cardNumber: string;
   balance: number;
-  usdValue: number;
+  usdValue: number; // Total portfolio value (tokens + liquidity)
   liquidity: number;
+  tokensValue?: number; // Tokens value only (for breakdown)
   isVerified: boolean;
   loading: boolean;
   onRefresh: () => void;
@@ -53,11 +54,14 @@ export function WalletCard({
   balance,
   usdValue,
   liquidity,
+  tokensValue,
   isVerified,
   loading,
   onRefresh,
   mobile = false,
 }: WalletCardProps): React.ReactElement {
+  // Total portfolio value is already passed as usdValue (tokens + liquidity)
+  // tokensValue is optional for detailed breakdown
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
@@ -172,7 +176,7 @@ export function WalletCard({
                   mobile ? "text-2xl" : "text-3xl",
                 )}
               >
-                {loading ? "..." : formatBalance(balance)}
+                {loading && balance === 0 ? "..." : formatBalance(balance)}
               </span>
               <span
                 className={cn(
@@ -189,12 +193,18 @@ export function WalletCard({
                 mobile ? "text-base" : "text-lg",
               )}
             >
-              {loading ? "..." : formatUSD(usdValue)}
+              {loading && usdValue === 0 ? "..." : formatUSD(usdValue)}
             </div>
+            {tokensValue !== undefined && liquidity > 0 && (
+              <div className="text-white/50 text-[10px] leading-tight">
+                Tokens: {formatUSD(tokensValue)} + Liquidity: {formatUSD(liquidity)}
+              </div>
+            )}
           </div>
 
           {/* Liquidity Section */}
-          <div className="space-y-2 pt-2 border-t border-white/10">
+          {liquidity > 0 && (
+            <div className="space-y-2 pt-2 border-t border-white/10">
             <div className="flex items-center gap-2">
               <TrendingUp
                 className={cn(
@@ -212,12 +222,13 @@ export function WalletCard({
                 mobile ? "text-base" : "text-lg",
               )}
             >
-              {loading ? "..." : formatUSD(liquidity)}
+              {loading && liquidity === 0 ? "..." : formatUSD(liquidity)}
             </div>
             <div className="text-white/50 text-[10px] leading-tight">
               From connected trading accounts
             </div>
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
