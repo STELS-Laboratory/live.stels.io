@@ -123,7 +123,7 @@ export function TokenList({
           Tokens ({tokens.length})
         </CardTitle>
       </CardHeader>
-      <CardContent className={cn(mobile && "px-4 pb-4")}>
+      <CardContent className={cn(mobile && "px-4 pt-0 pb-4")}>
         <div className={cn(mobile ? "space-y-2" : "space-y-3")}>
           {tokens.map((token, index) => (
             <motion.div
