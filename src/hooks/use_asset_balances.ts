@@ -4,7 +4,7 @@
  * Recommended for getting balances for multiple tokens (more efficient than multiple getAssetBalance calls)
  */
 
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuthStore } from "@/stores";
 import {
 	getCachedBalances,
@@ -197,7 +197,13 @@ export function useAssetBalances(
 						})) || [];
 
 					// Update global cache and state
-					setCachedBalances(params.address, network, balancesData);
+					// Add timestamp to cached items
+					const cachedBalances: Array<typeof balancesData[0] & { timestamp: number }> = 
+						balancesData.map((balance) => ({
+							...balance,
+							timestamp: Date.now(),
+						}));
+					setCachedBalances(params.address, network, cachedBalances);
 					setBalances(balancesData);
 					setTotal(balancesResult.total || balancesData.length);
 					console.log(
@@ -207,7 +213,13 @@ export function useAssetBalances(
 					// Format 1: Direct AssetBalancesResponse
 					const balancesResponse = data.result as AssetBalancesResponse;
 					// Update global cache and state
-					setCachedBalances(params.address, network, balancesResponse.balances);
+					// Add timestamp to cached items
+					const cachedBalances: Array<typeof balancesResponse.balances[0] & { timestamp: number }> = 
+						balancesResponse.balances.map((balance) => ({
+							...balance,
+							timestamp: Date.now(),
+						}));
+					setCachedBalances(params.address, network, cachedBalances);
 					setBalances(balancesResponse.balances);
 					setTotal(balancesResponse.total);
 					console.log(

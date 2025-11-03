@@ -88,7 +88,7 @@ export function SendTransactionDialog({
 
 	const tokenGenesis: TokenGenesisDocument | null = useMemo(() => {
 		if (!selectedToken) return null;
-		return selectedToken.raw.genesis as TokenGenesisDocument;
+		return selectedToken.raw.genesis as unknown as TokenGenesisDocument;
 	}, [selectedToken]);
 
 	// Calculate fee based on transaction size

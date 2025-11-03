@@ -159,7 +159,6 @@ export function TransactionList({
         <div className={cn(mobile ? "space-y-2" : "space-y-3")}>
           {sortedTransactions.map((tx, index) => {
             const isOutgoing = tx.transaction.from === address;
-            const isIncoming = tx.transaction.to === address;
 
             return (
               <motion.div

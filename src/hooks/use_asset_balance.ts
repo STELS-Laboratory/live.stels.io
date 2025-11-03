@@ -3,12 +3,11 @@
  * Implements getAssetBalance API method
  */
 
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuthStore } from "@/stores";
 import {
 	getCachedBalance,
 	setCachedBalance,
-	type CachedBalance,
 } from "./balance_cache";
 
 /**

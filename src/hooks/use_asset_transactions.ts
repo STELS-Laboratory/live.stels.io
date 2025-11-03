@@ -3,7 +3,7 @@
  * Implements getAssetTransactions API method
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useAuthStore } from "@/stores";
 
 /**
