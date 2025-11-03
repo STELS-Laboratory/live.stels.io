@@ -169,6 +169,35 @@ function generateAccountId(): string {
 }
 
 /**
+ * Find the first position where two strings differ
+ * Returns a formatted string with context around the difference
+ */
+function findFirstDifference(str1: string, str2: string): string {
+	const minLength = Math.min(str1.length, str2.length);
+	
+	// Find first differing character
+	for (let i = 0; i < minLength; i++) {
+		if (str1[i] !== str2[i]) {
+			const context = 50;
+			const start = Math.max(0, i - context);
+			const end = Math.min(Math.max(str1.length, str2.length), i + context);
+			
+			return `Position ${i}: str1[${i}]='${str1[i]}' (code ${str1.charCodeAt(i)}), str2[${i}]='${str2[i]}' (code ${str2.charCodeAt(i)})\n` +
+				`Context:\n` +
+				`  str1: ...${str1.substring(start, end)}...\n` +
+				`  str2: ...${str2.substring(start, end)}...`;
+		}
+	}
+	
+	// Strings match up to minLength, check if one is longer
+	if (str1.length !== str2.length) {
+		return `Strings match up to position ${minLength}, but lengths differ: str1.length=${str1.length}, str2.length=${str2.length}`;
+	}
+	
+	return 'Strings are identical';
+}
+
+/**
  * Accounts store
  */
 export const useAccountsStore = create<AccountsStore>()(
