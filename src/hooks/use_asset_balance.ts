@@ -184,7 +184,7 @@ export function useAssetBalance(
 
 					const balanceData: AssetBalance = {
 						balance: balanceResult.balance,
-						currency: balanceResult.currency || "TST",
+						currency: balanceResult.currency || "",
 						decimals: balanceResult.decimals ?? 6,
 						initial_balance: balanceResult.initial_balance || "0",
 						total_received: balanceResult.total_received || "0",

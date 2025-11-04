@@ -299,7 +299,7 @@ export function validateSmartTransaction(tx: SmartTransaction): boolean {
 	if (tx.type !== "smart" || tx.method !== "smart.exec") return false;
 	if (!tx.from || tx.from.length !== 34) return false;
 	if (!validateFeeFormat(tx.fee)) return false;
-	if (tx.currency !== "TST") return false;
+	if (!tx.currency || typeof tx.currency !== "string") return false;
 	if (!Array.isArray(tx.args.ops) || tx.args.ops.length === 0) return false;
 
 	for (const op of tx.args.ops) {

@@ -112,7 +112,7 @@ export interface SmartTransaction {
 	};
 	from: string;
 	fee: string;
-	currency: "TST";
+	currency: string;
 	prev_hash: string | null;
 	timestamp: number;
 	signatures: TransactionSignature[];

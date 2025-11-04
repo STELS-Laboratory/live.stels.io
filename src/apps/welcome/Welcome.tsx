@@ -839,7 +839,7 @@ function Welcome(): ReactElement {
                             </div>
                             <div className="text-white/60 text-xs sm:text-sm font-medium mt-1">
                               {connectionSession?.network === "testnet"
-                                ? "TST"
+                                ? "USDT"
                                 : connectionSession?.network === "mainnet"
                                 ? "STELS"
                                 : "LOCAL"}

@@ -184,7 +184,7 @@ export function WalletCard({
                   mobile ? "text-xs" : "text-sm",
                 )}
               >
-                TST
+                USDT
               </span>
             </div>
             <div

@@ -187,7 +187,7 @@ export function useAssetBalances(
 							token_id: balance.token_id,
 							balance: balance.balance,
 							decimals: balance.decimals ?? 6,
-							currency: balance.currency || "TST",
+							currency: balance.currency || "",
 							symbol: balance.symbol || "",
 							initial_balance: balance.initial_balance || "0",
 							total_received: balance.total_received || "0",

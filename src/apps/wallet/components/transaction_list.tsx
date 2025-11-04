@@ -20,6 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { TransactionResult } from "@/hooks/use_asset_transactions";
+import { useAssetList } from "@/hooks/use_asset_list";
+import { TransactionDetailsDialog } from "./transaction_details_dialog";
 
 interface TransactionListProps {
   transactions: TransactionResult[];
@@ -54,6 +56,26 @@ export function TransactionList({
   mobile = false,
 }: TransactionListProps): React.ReactElement {
   const [copiedHash, setCopiedHash] = React.useState<string | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = React.useState<
+    TransactionResult | null
+  >(null);
+  const [isDetailsOpen, setIsDetailsOpen] = React.useState<boolean>(false);
+
+  // Get assets to map token_id to symbol
+  const { assets } = useAssetList();
+
+  // Create map of token_id -> symbol for quick lookup
+  const tokenSymbolMap = useMemo(() => {
+    const map = new Map<string, string>();
+    if (assets) {
+      assets.forEach((asset) => {
+        const tokenId = asset.raw.genesis.token.id;
+        const symbol = asset.raw.genesis.token.metadata.symbol;
+        map.set(tokenId.toLowerCase(), symbol);
+      });
+    }
+    return map;
+  }, [assets]);
 
   const sortedTransactions = useMemo((): TransactionResult[] => {
     return [...transactions].sort((a, b) => {
@@ -170,8 +192,12 @@ export function TransactionList({
                   delay: index * 0.05,
                   ease: [0.16, 1, 0.3, 1],
                 }}
+                onClick={() => {
+                  setSelectedTransaction(tx);
+                  setIsDetailsOpen(true);
+                }}
                 className={cn(
-                  "flex items-start rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors",
+                  "flex items-start rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors cursor-pointer",
                   mobile ? "gap-2 p-3" : "gap-4 p-4",
                 )}
               >
@@ -225,7 +251,11 @@ export function TransactionList({
                       )}
                     >
                       {formatAmount(tx.transaction.amount, 6)}{" "}
-                      {tx.transaction.currency}
+                      {tokenSymbolMap.get(
+                        tx.transaction.token_id.toLowerCase(),
+                      ) ||
+                        tx.transaction.currency ||
+                        "UNKNOWN"}
                     </span>
                     <Badge
                       variant={getStatusBadgeVariant(tx.status)}
@@ -290,7 +320,10 @@ export function TransactionList({
                       variant="ghost"
                       size="sm"
                       className="h-6 w-6 p-0"
-                      onClick={() => handleCopy(tx.tx_hash, tx.tx_hash)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCopy(tx.tx_hash, tx.tx_hash);
+                      }}
                     >
                       {copiedHash === tx.tx_hash
                         ? <Check className="size-3" />
@@ -303,6 +336,15 @@ export function TransactionList({
           })}
         </div>
       </CardContent>
+
+      {/* Transaction Details Dialog */}
+      <TransactionDetailsDialog
+        open={isDetailsOpen}
+        onOpenChange={setIsDetailsOpen}
+        transaction={selectedTransaction}
+        address={address}
+        mobile={mobile}
+      />
     </Card>
   );
 }
