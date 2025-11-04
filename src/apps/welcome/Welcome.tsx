@@ -46,6 +46,9 @@ import { useRestoreOpenApps } from "@/hooks/use_restore_open_apps.ts";
 import { useDefaultSchemas } from "@/hooks/use_default_schemas.ts";
 import { toast, useAuthStore } from "@/stores";
 import { useAssetList } from "@/hooks/use_asset_list";
+import { useAssetBalance } from "@/hooks/use_asset_balance";
+import { useAssetBalances } from "@/hooks/use_asset_balances";
+import { useAllTokenPrices } from "@/hooks/use_token_price";
 
 /**
  * Format card number with spaces (XXXX XXXX XXXX XXXX)
@@ -70,6 +73,79 @@ function Welcome(): ReactElement {
 
   // Load asset list from server
   const { assets, refetch: refetchAssets } = useAssetList();
+
+  // Find TST token for main balance
+  const tstToken = useMemo(() => {
+    if (!assets) return null;
+    return assets.find(
+      (asset) =>
+        asset.raw.genesis.token.metadata.symbol === "TST" ||
+        asset.raw.genesis.token.metadata.symbol === "tst",
+    );
+  }, [assets]);
+
+  // Get TST balance using getAssetBalance API (only if tstToken is found)
+  const { balance: tstBalance, loading: balanceLoading } = useAssetBalance({
+    address: wallet?.address || "",
+    token_id: tstToken?.raw.genesis.token.id || "",
+    network: connectionSession?.network,
+  });
+
+  // Get all balances for USD calculation
+  const { balances: allBalances } = useAssetBalances({
+    address: wallet?.address || "",
+    network: connectionSession?.network,
+  });
+
+  // Get all token prices from session ticker data
+  const tokenPrices = useAllTokenPrices(connectionSession?.network);
+
+  // Find TST balance from allBalances if tstToken not found
+  const tstBalanceFromAll = useMemo(() => {
+    if (!allBalances || allBalances.length === 0) return null;
+    return allBalances.find(
+      (balance) =>
+        balance.symbol?.toUpperCase() === "TST" ||
+        balance.currency?.toUpperCase() === "TST",
+    );
+  }, [allBalances]);
+
+  // Use TST balance from allBalances if available, otherwise from useAssetBalance
+  // Priority: tstBalance (from useAssetBalance) > tstBalanceFromAll (from allBalances)
+  const mainBalance = useMemo(() => {
+    if (tstBalance && tstBalance.balance) {
+      const balanceNum = Number.parseFloat(tstBalance.balance);
+      return Number.isNaN(balanceNum) ? 0 : balanceNum;
+    }
+    if (tstBalanceFromAll && tstBalanceFromAll.balance) {
+      const balanceNum = Number.parseFloat(tstBalanceFromAll.balance);
+      return Number.isNaN(balanceNum) ? 0 : balanceNum;
+    }
+    return 0;
+  }, [tstBalance, tstBalanceFromAll]);
+
+  // Calculate total USD value from all token balances and prices
+  const totalUSDValue = useMemo((): number => {
+    if (!allBalances || allBalances.length === 0) return 0;
+
+    let total = 0;
+
+    for (const balance of allBalances) {
+      const symbol = balance.symbol?.toUpperCase();
+      if (!symbol) continue;
+
+      // For USDT, use fixed price of 1 USD (stablecoin)
+      const price = symbol === "USDT" ? 1 : tokenPrices.get(symbol);
+      if (!price) continue;
+
+      const balanceNum = Number.parseFloat(balance.balance);
+      if (!Number.isNaN(balanceNum) && balanceNum > 0) {
+        total += balanceNum * price;
+      }
+    }
+
+    return total;
+  }, [allBalances, tokenPrices]);
 
   const [selectedSchema, setSelectedSchema] = useState<SchemaProject | null>(
     null,
@@ -757,7 +833,9 @@ function Welcome(): ReactElement {
                               Balance
                             </div>
                             <div className="text-white text-2xl sm:text-3xl font-bold tracking-tight">
-                              0.00
+                              {balanceLoading && mainBalance === 0
+                                ? "..."
+                                : mainBalance.toFixed(6)}
                             </div>
                             <div className="text-white/60 text-xs sm:text-sm font-medium mt-1">
                               {connectionSession?.network === "testnet"
@@ -766,6 +844,16 @@ function Welcome(): ReactElement {
                                 ? "STELS"
                                 : "LOCAL"}
                             </div>
+                            {totalUSDValue > 0 && (
+                              <div className="text-white/80 text-xs sm:text-sm font-semibold mt-1">
+                                {new Intl.NumberFormat("en-US", {
+                                  style: "currency",
+                                  currency: "USD",
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                }).format(totalUSDValue)}
+                              </div>
+                            )}
                           </div>
 
                           {/* Address */}
