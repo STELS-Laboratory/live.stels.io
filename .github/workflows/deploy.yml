@@ -1,9 +1,9 @@
 name: Deploy
 on:
   push:
-    branches: gui
+    branches: main
   pull_request:
-    branches: gui
+    branches: main
 
 jobs:
   deploy:
