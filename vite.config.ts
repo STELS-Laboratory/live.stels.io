@@ -180,6 +180,8 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    // Force JS implementation of rollup to avoid native binary issues
+    conditions: ['import', 'module', 'default'],
   },
   build: {
     chunkSizeWarningLimit: 1000, // Increase warning limit to 1MB
@@ -192,11 +194,6 @@ export default defineConfig({
       },
     },
     rollupOptions: {
-      external: (id) => {
-        // Exclude CCXT test files
-        if (id.includes('/ccxt/ts/src/test/')) return true;
-        return false;
-      },
       output: {
         manualChunks: (id) => {
           // CodeMirror 6 (much smaller than Monaco)
@@ -209,10 +206,6 @@ export default defineConfig({
               id.includes('node_modules/react-is') ||
               id.includes('node_modules/scheduler')) {
             return 'react-vendor';
-          }
-          // CCXT library
-          if (id.includes('node_modules') && id.includes('/ccxt/')) {
-            return 'ccxt-vendor';
           }
           // Other large UI libraries
           if (id.includes('node_modules/@radix-ui') ||
