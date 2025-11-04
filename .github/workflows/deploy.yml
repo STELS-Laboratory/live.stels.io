@@ -26,20 +26,31 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install dependencies
+        env:
+          ROLLUP_USE_NATIVE: "false"
+          npm_config_optional: "false"
         run: |
-          # Install all dependencies including optional
-          npm install --include=optional
-          # Explicitly ensure rollup native dependency for Linux is installed
-          npm install --save-optional @rollup/rollup-linux-x64-gnu || true
+          # Disable rollup native binaries completely - MUST be set before npm install
+          export ROLLUP_USE_NATIVE=false
+          export npm_config_optional=false
+          # Remove any existing rollup native binaries
+          rm -rf node_modules/@rollup/rollup-* || true
+          rm -rf node_modules/.deno/@rollup/rollup-* || true
+          # Install dependencies without optional rollup binaries
+          npm install --no-optional
+          # Verify no rollup native binaries exist
+          find node_modules -name "*rollup-*" -type d | grep -v "rollup/dist" || echo "No native rollup binaries found"
 
       - name: Build step
         env:
           ROLLUP_USE_NATIVE: "false"
-        run: npm run build
+        run: |
+          export ROLLUP_USE_NATIVE=false
+          npm run build
 
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
@@ -48,5 +59,3 @@ jobs:
           entrypoint: "https://deno.land/std@0.217.0/http/file_server.ts"
           root: "dist"
           exclude: [".git", ".github", "node_modules", "src"]
-          
-          

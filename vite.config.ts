@@ -1,11 +1,14 @@
+// Force JS implementation of rollup to avoid native binary issues
+// MUST be set BEFORE any rollup imports
+if (typeof process !== 'undefined') {
+  process.env.ROLLUP_USE_NATIVE = 'false';
+}
+
 import path from "node:path"
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
-
-// Force JS implementation of rollup to avoid native binary issues
-process.env.ROLLUP_USE_NATIVE = 'false';
 
 /**
  * Build version plugin
