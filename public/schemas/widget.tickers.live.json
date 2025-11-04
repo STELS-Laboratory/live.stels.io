@@ -1,6 +1,6 @@
 {
   "type": "container",
-  "className": "min-h-screen bg-background p-6",
+  "className": "bg-background p-6",
   "children": [
     {
       "type": "container",
