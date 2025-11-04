@@ -20,7 +20,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "ROLLUP_USE_NATIVE=false tsc -b && ROLLUP_USE_NATIVE=false vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -59,6 +59,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "elliptic": "^6.6.1",
+    "esbuild": "^0.25.12",
     "framer-motion": "^12.23.11",
     "lucide-react": "^0.534.0",
     "monaco-editor": "^0.52.2",
@@ -66,7 +67,7 @@
     "react-dom": "^19.1.0",
     "react-markdown": "^10.1.0",
     "react-split": "^2.0.14",
-    "react-syntax-highlighter": "^15.6.6",
+    "react-syntax-highlighter": "^16.1.0",
     "reactflow": "^11.11.4",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
