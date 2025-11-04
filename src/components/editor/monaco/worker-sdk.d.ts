@@ -92,7 +92,7 @@ interface AppConfig {
 }
 
 /**
- * CCXT Types (matching CCXT Pro library)
+ * Order types
  */
 type OrderSide = "buy" | "sell";
 type OrderType = "limit" | "market" | "stop-loss" | "stop-loss-limit" | "take-profit" | "take-profit-limit";
@@ -202,114 +202,7 @@ interface OHLCV {
   volume: number;
 }
 
-/**
- * CCXT Pro exchange interface (complete)
- */
-interface CCXTExchange {
-  /** Exchange ID (e.g., "binance", "okx", "bybit") */
-  id: string;
-  
-  /** Exchange name */
-  name: string;
-  
-  /** Countries */
-  countries: string[];
 
-  // Market data methods
-  /** Fetch ticker for a symbol */
-  fetchTicker(symbol: string): Promise<Ticker>;
-  
-  /** Fetch multiple tickers */
-  fetchTickers(symbols?: string[]): Promise<{ [symbol: string]: Ticker }>;
-  
-  /** Fetch order book */
-  fetchOrderBook(symbol: string, limit?: number): Promise<OrderBook>;
-  
-  /** Fetch recent trades */
-  fetchTrades(symbol: string, since?: number, limit?: number): Promise<Trade[]>;
-  
-  /** Fetch OHLCV candles */
-  fetchOHLCV(symbol: string, timeframe?: string, since?: number, limit?: number): Promise<OHLCV[]>;
-
-  // Account methods
-  /** Fetch account balance */
-  fetchBalance(): Promise<Balances>;
-
-  // Trading methods
-  /** Create order (generic) */
-  createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: any): Promise<Order>;
-  
-  /** Create limit order */
-  createLimitOrder(symbol: string, side: OrderSide, amount: number, price: number, params?: any): Promise<Order>;
-  
-  /** Create market order */
-  createMarketOrder(symbol: string, side: OrderSide, amount: number, params?: any): Promise<Order>;
-  
-  /** Create market buy order */
-  createMarketBuyOrder(symbol: string, amount: number, params?: any): Promise<Order>;
-  
-  /** Create market sell order */
-  createMarketSellOrder(symbol: string, amount: number, params?: any): Promise<Order>;
-  
-  /** Cancel order by ID */
-  cancelOrder(id: string, symbol: string, params?: any): Promise<Order>;
-  
-  /** Cancel all orders */
-  cancelAllOrders(symbol?: string, params?: any): Promise<Order[]>;
-  
-  /** Fetch specific order */
-  fetchOrder(id: string, symbol: string, params?: any): Promise<Order>;
-  
-  /** Fetch all orders */
-  fetchOrders(symbol?: string, since?: number, limit?: number, params?: any): Promise<Order[]>;
-  
-  /** Fetch open orders */
-  fetchOpenOrders(symbol?: string, since?: number, limit?: number, params?: any): Promise<Order[]>;
-  
-  /** Fetch closed orders */
-  fetchClosedOrders(symbol?: string, since?: number, limit?: number, params?: any): Promise<Order[]>;
-
-  // WebSocket methods (CCXT Pro)
-  /** Watch ticker updates (WebSocket) */
-  watchTicker(symbol: string): Promise<Ticker>;
-  
-  /** Watch multiple tickers */
-  watchTickers(symbols?: string[]): Promise<{ [symbol: string]: Ticker }>;
-  
-  /** Watch order book updates */
-  watchOrderBook(symbol: string, limit?: number): Promise<OrderBook>;
-  
-  /** Watch trades stream */
-  watchTrades(symbol: string): Promise<Trade[]>;
-  
-  /** Watch OHLCV candles */
-  watchOHLCV(symbol: string, timeframe?: string): Promise<OHLCV[]>;
-  
-  /** Watch balance updates */
-  watchBalance(): Promise<Balances>;
-  
-  /** Watch orders updates */
-  watchOrders(symbol?: string): Promise<Order[]>;
-  
-  /** Watch my trades */
-  watchMyTrades(symbol?: string): Promise<Trade[]>;
-
-  // Connection management
-  /** Close all WebSocket connections */
-  close(): Promise<void>;
-
-  [key: string]: any;
-}
-
-/**
- * Runtime configuration with exchange instances
- */
-interface RuntimeConfig {
-  /** CCXT Pro exchange instances */
-  cex: {
-    [exchangeId: string]: CCXTExchange;
-  };
-}
 
 /**
  * Gliesereum blockchain wallet
@@ -626,13 +519,6 @@ interface StelsGlobal {
    */
   blockchain: GliesereumSDK;
 
-  /**
-   * Runtime configuration with exchange instances
-   * @example
-   * const binance = Stels.runtime.cex.binance;
-   * const ticker = await binance.fetchTicker('BTC/USDT');
-   */
-  runtime: RuntimeConfig;
 
   /**
    * Blockchain wallet instance

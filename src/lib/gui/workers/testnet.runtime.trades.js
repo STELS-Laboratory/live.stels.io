@@ -434,7 +434,7 @@ async function main() {
                 const rawTrades = msg.data || [];
 
                 if (rawTrades.length > 0) {
-                    const ccxtTrades = rawTrades.map((trade) => ({
+                    const trades = rawTrades.map((trade) => ({
                         id: trade.i || String(trade.T),
                         timestamp: Number(trade.T),
                         datetime: new Date(Number(trade.T)).toISOString(),
@@ -445,7 +445,7 @@ async function main() {
                         cost: Number(trade.p) * Number(trade.v),
                     }));
 
-                    tradesHistory.push(...ccxtTrades);
+                    tradesHistory.push(...trades);
 
                     if (tradesHistory.length > MAX_TRADES) {
                         tradesHistory = tradesHistory.slice(-MAX_TRADES);
