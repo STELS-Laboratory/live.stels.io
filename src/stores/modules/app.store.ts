@@ -265,7 +265,7 @@ export const useAppStore = create<AppState>()(
 				}
 			},
 			{
-				name: '0.0.1',
+				name: generateDataHash(new Date().toString()),
 			}
 		)
 	)
