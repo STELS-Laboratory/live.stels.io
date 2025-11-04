@@ -4,6 +4,9 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// Force JS implementation of rollup to avoid native binary issues
+process.env.ROLLUP_USE_NATIVE = 'false';
+
 /**
  * Build version plugin
  * Replaces BUILD_TIMESTAMP with actual build timestamp in index.html
@@ -180,8 +183,6 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    // Force JS implementation of rollup to avoid native binary issues
-    conditions: ['import', 'module', 'default'],
   },
   build: {
     chunkSizeWarningLimit: 1000, // Increase warning limit to 1MB

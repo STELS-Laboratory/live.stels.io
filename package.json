@@ -20,7 +20,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "tsc -b && ROLLUP_USE_NATIVE=false vite build",
+    "build": "ROLLUP_USE_NATIVE=false tsc -b && ROLLUP_USE_NATIVE=false vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

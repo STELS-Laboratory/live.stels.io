@@ -30,9 +30,15 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          # Install all dependencies including optional
+          npm install --include=optional
+          # Explicitly ensure rollup native dependency for Linux is installed
+          npm install --save-optional @rollup/rollup-linux-x64-gnu || true
 
       - name: Build step
+        env:
+          ROLLUP_USE_NATIVE: "false"
         run: npm run build
 
       - name: Upload to Deno Deploy
@@ -41,5 +47,6 @@ jobs:
           project: "live-stels-io"
           entrypoint: "https://deno.land/std@0.217.0/http/file_server.ts"
           root: "dist"
+          exclude: [".git", ".github", "node_modules", "src"]
           
           
