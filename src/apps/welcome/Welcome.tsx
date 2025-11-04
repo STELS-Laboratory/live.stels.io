@@ -381,7 +381,7 @@ function Welcome(): ReactElement {
     };
 
     loadSchemas();
-  }, [defaultSchemasState.isLoading]); // Re-run when default schemas finish loading
+  }, [defaultSchemasState.isLoading, defaultSchemasState.loaded]); // Re-run when default schemas finish loading
 
   // Debug: Log session token channels only once
   useEffect(() => {
@@ -404,7 +404,7 @@ function Welcome(): ReactElement {
         });
       });
     }
-  }, [isLoading]); // Only log once when loading completes
+  }, [isLoading, session]); // Only log once when loading completes
 
   // Filter static router schemas for Web Agents section
   // INCLUDE: widget.app.* (public default apps from public/schemas/)
@@ -571,7 +571,7 @@ function Welcome(): ReactElement {
         tokenSchemas.length,
       );
     }
-  }, [isLoading]); // Only log once when loading completes
+  }, [isLoading, schemas, tokenSchemas.length, tokenTemplateSchema?.name, tokenTemplateSchema?.widgetKey]); // Only log once when loading completes
 
   // Handle launch app with progress tracking
   const handleLaunchApp = useCallback(
@@ -1768,9 +1768,13 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
           )}
         </div>
 
-        {schema.description && (
+        {schema.description ? (
           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
             {schema.description}
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground mb-3 line-clamp-2 italic">
+            No description available
           </p>
         )}
 

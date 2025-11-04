@@ -54,7 +54,18 @@ export default function CodeMirrorEditor({
   const containerRef = useRef<HTMLDivElement>(null);
   const editorViewRef = useRef<EditorView | null>(null);
   const isFormattingRef = useRef<boolean>(false);
+  const handleEditorChangeRef = useRef(handleEditorChange);
+  const onEditorReadyRef = useRef(onEditorReady);
   const { resolvedTheme } = useThemeStore();
+
+  // Keep refs in sync with props
+  useEffect(() => {
+    handleEditorChangeRef.current = handleEditorChange;
+  }, [handleEditorChange]);
+
+  useEffect(() => {
+    onEditorReadyRef.current = onEditorReady;
+  }, [onEditorReady]);
 
   // Compartments for dynamic reconfiguration
   const themeCompartment = useRef(new Compartment());
@@ -160,7 +171,7 @@ export default function CodeMirrorEditor({
         EditorView.updateListener.of((update: ViewUpdate) => {
           if (update.docChanged && !isFormattingRef.current) {
             const newValue = update.state.doc.toString();
-            handleEditorChange(newValue);
+            handleEditorChangeRef.current(newValue);
           }
         }),
       ],
@@ -174,8 +185,8 @@ export default function CodeMirrorEditor({
     editorViewRef.current = view;
 
     // Notify parent that editor is ready
-    if (onEditorReady) {
-      onEditorReady(formatCode);
+    if (onEditorReadyRef.current) {
+      onEditorReadyRef.current(formatCode);
     }
 
     // Auto-format minified code
@@ -190,7 +201,7 @@ export default function CodeMirrorEditor({
       view.destroy();
       editorViewRef.current = null;
     };
-  }, []); // Only create once on mount
+  }, [resolvedTheme, script, formatCode]); // Create editor when theme or initial script changes
 
   /**
    * Update theme when resolvedTheme changes

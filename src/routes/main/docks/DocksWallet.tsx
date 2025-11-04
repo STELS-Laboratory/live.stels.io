@@ -1,5 +1,4 @@
 import { type ReactElement, useMemo, useState } from "react";
-import Screen from "@/routes/main/Screen.tsx";
 import Header from "@/components/main/Header.tsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -15,7 +14,7 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "@/components/ui/accordion";
-import useSessionStoreSync from "@/hooks/useSessionStoreSync";
+import useSessionStoreSync from "@/hooks/use_session_store_sync.ts";
 import { filterSession } from "@/lib/utils.ts";
 import {
 	ArrowDownRight,
@@ -306,7 +305,7 @@ function DocksWallet(): ReactElement {
 	const tickers = filterSession(session || {}, /.spot\..*\.ticker$/);
 
 	return (
-		<Screen>
+		<div className="min-h-screen bg-background">
 			<div id="top" className="space-y-4">
 				<Header
 					title="Gliesereum Wallet Protocol"
@@ -550,7 +549,7 @@ isValid = ECDSA_VERIFY_SECP256K1(pubKeyCompressed, dataHash, sigDER)`}
   if value is array: return "[" + value.map(deterministicStringify).join(",") + "]"
   // object case
   let keys = Object.keys(value).sort()
-  return "{" + keys.map(k => "\"" + k + "\":" + deterministicStringify(value[k] ?? null)).join(",") + "}"
+  return "{" + keys.map(k => '"' + k + '":' + deterministicStringify(value[k] ?? null)).join(",") + "}"
 }`}
 						</CodeBlock>
 						<div className="pt-2 text-xs">
@@ -854,7 +853,7 @@ async function getWalletInfo(address: string) {
 					</>
 				</DocSection>
 			</div>
-		</Screen>
+		</div>
 	);
 }
 

@@ -154,7 +154,7 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
 		return () => {
 			cancelled = true;
 		};
-	}, [widgetKey, session, sessionData, schemaStore]);
+	}, [widgetKey, session, sessionData, schemaStore, data.channel]);
 
 	if (!session || !sessionData) {
 		return (

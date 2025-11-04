@@ -196,7 +196,7 @@ export function usePublicTransaction(
 		} finally {
 			setLoading(false);
 		}
-	}, [params.tx_hash, params.network, params.token_id]);
+	}, [params.tx_hash, params.token_id, params.nodeType]);
 
 	return {
 		transaction,

@@ -192,11 +192,11 @@ export function usePublicTransactions(
 		}
 	}, [
 		params.address,
-		params.network,
 		params.token_id,
 		params.status,
 		params.limit,
 		params.offset,
+		params.nodeType,
 	]);
 
 	return {

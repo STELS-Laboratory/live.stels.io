@@ -261,7 +261,7 @@ export function useAssetBalances(
 				setTotal(cached.length);
 			}
 		}
-	}, [params.address, params.network, connectionSession?.network]);
+	}, [params.address, params.network, connectionSession?.network, balances.length]);
 	
 	useEffect(() => {
 		if (params.address) {

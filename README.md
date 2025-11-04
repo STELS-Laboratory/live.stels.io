@@ -1,8 +1,8 @@
-# STELS Web OS
+# STELS Web 5 OS
 
-**Version:** 0.12.8\
-**Type:** Distributed Web Operating System\
-**License:** © 2025 Gliesereum Ukraine. All rights reserved.
+**Type:** Distributed Web Operating System 
+**License:** © 2025 Gliesereum
+Ukraine. All rights reserved.
 
 > **The world's first distributed Web OS built on heterogeneous networks.**\
 > A professional laboratory for Web 5 developers to program and manage
@@ -852,12 +852,6 @@ npm run lint
 - **Desktop**: Click install button in browser address bar
 - **Android**: Use "Add to Home Screen" in Chrome
 - **iOS**: Use "Add to Home Screen" in Safari
-
-**Documentation:**
-
-- [PWA.md](./PWA.md) - PWA setup and configuration
-- [PWA_SECURITY.md](./PWA_SECURITY.md) - Security and extension protection
-- [SECURITY_QUICK_START.md](./SECURITY_QUICK_START.md) - Quick security guide
 
 ## Environment Configuration
 

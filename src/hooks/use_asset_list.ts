@@ -2,7 +2,7 @@
  * Hook for loading asset list via HTTP POST request
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuthStore } from "@/stores";
 
 interface AssetListRequest {
@@ -79,7 +79,7 @@ export function useAssetList(): {
 
 	const { connectionSession, isAuthenticated, isConnected } = useAuthStore();
 
-	const fetchAssetList = async (): Promise<void> => {
+	const fetchAssetList = useCallback(async (): Promise<void> => {
 		if (!isAuthenticated || !isConnected || !connectionSession) {
 			console.log("[useAssetList] Not authenticated or connected, skipping");
 			return;
@@ -146,7 +146,7 @@ export function useAssetList(): {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [isAuthenticated, isConnected, connectionSession]);
 
 	// Load asset list when authenticated and connected
 	useEffect(() => {
@@ -156,7 +156,7 @@ export function useAssetList(): {
 			);
 			fetchAssetList();
 		}
-	}, [isAuthenticated, isConnected, connectionSession?.network]);
+	}, [isAuthenticated, isConnected, connectionSession, fetchAssetList]);
 
 	return {
 		assets,

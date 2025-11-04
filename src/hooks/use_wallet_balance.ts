@@ -2,7 +2,7 @@
  * Hook for fetching wallet balance via transactions API
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuthStore } from "@/stores";
 
 interface TransactionsRequest {
@@ -57,7 +57,7 @@ export function useWalletBalance(): {
 	const { wallet, connectionSession, isAuthenticated, isConnected } =
 		useAuthStore();
 
-	const fetchBalance = async (): Promise<void> => {
+	const fetchBalance = useCallback(async (): Promise<void> => {
 		if (!isAuthenticated || !isConnected || !connectionSession || !wallet) {
 			console.log(
 				"[useWalletBalance] Not authenticated, connected, or wallet missing",
@@ -155,7 +155,7 @@ export function useWalletBalance(): {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [isAuthenticated, isConnected, connectionSession, wallet]);
 
 	// Load balance when authenticated and connected
 	useEffect(() => {
@@ -165,7 +165,7 @@ export function useWalletBalance(): {
 			);
 			fetchBalance();
 		}
-	}, [isAuthenticated, isConnected, connectionSession?.network, wallet?.address]);
+	}, [isAuthenticated, isConnected, connectionSession, fetchBalance, wallet]);
 
 	return {
 		balance,

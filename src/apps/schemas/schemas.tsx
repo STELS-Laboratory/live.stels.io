@@ -98,12 +98,12 @@ export default function Schemas(): ReactElement {
     } catch (error) {
       console.error("[Schemas] Failed to load schemas:", error);
     }
-  }, []); // Remove activeSchemaId dependency to prevent loop
+  }, [activeSchemaId]);
 
   // Load schemas from IndexedDB on mount
   useEffect(() => {
     loadSchemas();
-  }, []); // Only run once on mount
+  }, [loadSchemas]);
 
   // Get active schema
   const activeSchema = useMemo(() => {
@@ -185,7 +185,7 @@ export default function Schemas(): ReactElement {
       setSelfChannelKey(restoredSelfKey);
       setLastLoadedSchemaId(activeSchemaId);
     }
-  }, [activeSchemaId]); // Only depend on activeSchemaId change
+  }, [activeSchemaId, autoGenerateAliases, lastLoadedSchemaId, schemas]);
 
   // Parse schema from JSON
   const parsedSchema = useMemo<UINode | null>(() => {
@@ -364,6 +364,7 @@ export default function Schemas(): ReactElement {
         channelAliases: channelAliases,
         selfChannelKey: selfChannelKey,
         nestedSchemas: allNestedSchemas,
+        description: activeSchema.description || "", // Preserve description
         updatedAt: Date.now(),
       };
 

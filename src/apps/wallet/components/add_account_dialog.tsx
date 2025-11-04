@@ -382,6 +382,7 @@ export function AddAccountDialog({
 		wallet,
 		connectionSession,
 		validateForm,
+		sendAccountToServer,
 		nid,
 		connection,
 		exchange,

@@ -245,6 +245,7 @@ export function SendTransactionDialog({
 			refetchBalance,
 			createTransaction,
 			submitTransaction,
+			onTransactionSent,
 			resetForm,
 			onOpenChange,
 		],
