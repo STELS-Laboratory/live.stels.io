@@ -144,7 +144,7 @@ export const useAppStore = create<AppState>()(
 					}
 				}
 				
-				const allowedRoutes = ['welcome', 'canvas', 'editor', 'schemas', 'docs', 'template', 'token-builder', 'wallet'];
+				const allowedRoutes = ['welcome', 'canvas', 'editor', 'schemas', 'docs', 'template', 'token-builder', 'wallet', 'explorer'];
 				//const allowedRoutes = ['welcome', 'scanner', 'markets', 'Canvas', 'fred', 'Wallet', 'network', 'Editor'];
 				console.log('[Store] Initializing with allowedRoutes:', allowedRoutes);
 				

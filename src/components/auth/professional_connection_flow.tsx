@@ -36,7 +36,11 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
     }
   }, [isConnected, connectionSession, currentStep]);
 
-  const handleTypeSelect = (type: "create" | "import"): void => {
+  const handleTypeSelect = (type: "create" | "import" | "explorer"): void => {
+    if (type === "explorer") {
+      // Navigate to explorer - this will be handled by WalletTypeSelector
+      return;
+    }
     setWalletType(type);
     setCurrentStep("create");
   };

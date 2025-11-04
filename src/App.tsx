@@ -37,6 +37,7 @@ const Docs = lazy(() =>
 const Template = lazy(() => import("@/apps/template"));
 const TokenBuilder = lazy(() => import("@/apps/token-builder"));
 const WalletApp = lazy(() => import("@/apps/wallet"));
+const Explorer = lazy(() => import("@/apps/explorer"));
 import { TooltipProvider } from "@/components/ui/tooltip";
 const Layout = lazy(() => import("@/apps/layout"));
 const AMIEditor = lazy(() =>
@@ -221,14 +222,19 @@ export default function Dashboard(): React.ReactElement {
 	// This effect specifically monitors for authentication changes and forces re-authentication
 	useEffect(() => {
 		// Only monitor auth changes when app is ready and we're not in transition states
-		if (appState === "ready" && (!isAuthenticated || !isConnected)) {
+		// Don't force re-auth for explorer route (public access)
+		if (
+			appState === "ready" &&
+			(!isAuthenticated || !isConnected) &&
+			currentRoute !== "explorer"
+		) {
 			console.log(
 				"[App] Authentication lost while app was ready - forcing re-authentication",
 			);
 			// Force transition back to checking session to re-evaluate auth state
 			setAppState("checking_session");
 		}
-	}, [isAuthenticated, isConnected, appState]);
+	}, [isAuthenticated, isConnected, appState, currentRoute]);
 
 	// Main state management effect
 	useEffect(() => {
@@ -269,7 +275,14 @@ export default function Dashboard(): React.ReactElement {
 					const hasValidSession = privateStoreData &&
 						JSON.parse(privateStoreData)?.raw?.session;
 
-					if (upgrade) {
+					// Allow access to explorer without authentication
+					if (currentRoute === "explorer") {
+						console.log(
+							"[App] Explorer route requested, allowing access without auth",
+						);
+						const delay = getTransitionDelay("checking_session", "loading_app");
+						await transitionToState("loading_app", delay);
+					} else if (upgrade) {
 						const delay = getTransitionDelay("checking_session", "upgrading");
 						await transitionToState("upgrading", delay, false);
 					} else if (isAuthenticated && isConnected && hasValidSession) {
@@ -323,7 +336,14 @@ export default function Dashboard(): React.ReactElement {
 				case "authenticating":
 					// This state is handled by the auth flow component
 					// We'll transition out of this when auth is complete
-					if (isAuthenticated && isConnected) {
+					// But allow explorer access without authentication
+					if (currentRoute === "explorer") {
+						console.log(
+							"[App] Explorer route requested during auth, allowing access",
+						);
+						const delay = getTransitionDelay("authenticating", "loading_app");
+						await transitionToState("loading_app", delay);
+					} else if (isAuthenticated && isConnected) {
 						const delay = getTransitionDelay("authenticating", "connecting");
 						await transitionToState("connecting", delay);
 					}
@@ -373,6 +393,7 @@ export default function Dashboard(): React.ReactElement {
 		isConnected,
 		upgrade,
 		showSplash,
+		currentRoute,
 		transitionToState,
 		getTransitionDelay,
 	]);
@@ -687,6 +708,18 @@ export default function Dashboard(): React.ReactElement {
 						<WalletApp />
 					</Suspense>
 				);
+			case "explorer":
+				return (
+					<Suspense
+						fallback={
+							<div className="p-4 text-muted-foreground">
+								Loading explorer...
+							</div>
+						}
+					>
+						<Explorer />
+					</Suspense>
+				);
 			default:
 				return (
 					<Suspense
@@ -730,6 +763,46 @@ export default function Dashboard(): React.ReactElement {
 			);
 
 		case "authenticating":
+			// Allow explorer access without authentication
+			if (currentRoute === "explorer") {
+				return (
+					<SessionProvider>
+						<TooltipProvider>
+							<div className="absolute w-[100%] h-[100%] top-0 bottom-0 overflow-hidden">
+								<RouteLoader>
+									<Suspense
+										fallback={
+											<div className="p-4 text-muted-foreground">
+												Loading explorer...
+											</div>
+										}
+									>
+										<Layout>
+											<AnimatePresence mode="wait" initial={false}>
+												<motion.div
+													key={currentRoute}
+													variants={pageVariants}
+													initial="initial"
+													animate="animate"
+													exit="exit"
+													transition={{
+														duration: 0.2,
+														ease: [0.22, 1, 0.36, 1],
+													}}
+													className="h-full w-full"
+												>
+													{renderMainContent()}
+												</motion.div>
+											</AnimatePresence>
+										</Layout>
+									</Suspense>
+								</RouteLoader>
+							</div>
+							<ToastProvider />
+						</TooltipProvider>
+					</SessionProvider>
+				);
+			}
 			// Show authentication flow with smooth transition
 			return (
 				<>

@@ -22,6 +22,7 @@ import {
 	Layout as LayoutIcon,
 	MoreHorizontal,
 	Play,
+	Search,
 	Server,
 	Square,
 	Wallet,
@@ -114,6 +115,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 			template: "App Template",
 			"token-builder": "Token Builder",
 			wallet: "Wallet",
+			explorer: "Blockchain Explorer",
 		};
 		return names[route] || route;
 	};
@@ -129,6 +131,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 		{ key: "docs", label: "Docs", icon: FileText },
 		{ key: "token-builder", label: "Token Builder", icon: Coins },
 		{ key: "wallet", label: "Wallet", icon: Wallet },
+		{ key: "explorer", label: "Explorer", icon: Search },
 	].filter((i) => allowedRoutes.includes(i.key));
 
 	const renderNavItem = (

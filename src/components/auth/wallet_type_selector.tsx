@@ -1,11 +1,12 @@
 import React from "react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Container, Github, Send, Shield } from "lucide-react";
+import { ArrowRight, Container, Github, Search, Send, Shield } from "lucide-react";
 import { LOTTIE_ANIMATIONS, LOTTIE_SIZES } from "./lottie_config";
+import { navigateTo } from "@/lib/router";
 
 interface WalletTypeSelectorProps {
-  onSelectType: (type: "create" | "import") => void;
+  onSelectType: (type: "create" | "import" | "explorer") => void;
 }
 
 /**
@@ -35,8 +36,7 @@ export function WalletTypeSelector(
             </span>
           </CardTitle>
           <p className="text-muted-foreground text-xs sm:text-sm md:text-base mt-1.5 sm:mt-2 md:mt-3 max-w-2xl mx-auto leading-relaxed px-2">
-            Select how you want to set up your Gliesereum wallet. Both options
-            are secure and encrypted.
+            Choose to set up your wallet or explore the blockchain without authentication.
           </p>
         </CardHeader>
 
@@ -105,6 +105,58 @@ export function WalletTypeSelector(
                   <div className="flex items-center justify-center gap-1.5 sm:gap-2 text-secondary-foreground text-xs sm:text-sm font-medium pt-1">
                     <span>Restore wallet</span>
                     <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover:translate-x-1 transition-transform duration-300" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Public Explorer Option */}
+          <div className="mt-3 sm:mt-4 md:mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Or</span>
+              </div>
+            </div>
+
+            <div
+              className="group cursor-pointer bg-gradient-to-br from-primary/10 to-accent/10 rounded border border-primary/30 overflow-hidden hover:border-primary/50 hover:from-primary/15 hover:to-accent/15 transition-all duration-300 active:scale-[0.98] mt-4"
+              onClick={() => {
+                navigateTo("explorer");
+              }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  navigateTo("explorer");
+                }
+              }}
+              aria-label="Explore blockchain - Search transactions and balances without authentication"
+            >
+              <div className="p-4 sm:p-5 md:p-6">
+                <div className="text-center space-y-3 sm:space-y-4">
+                  <div className="flex justify-center">
+                    <div className="p-2 sm:p-3 rounded-lg bg-primary/20 border border-primary/40">
+                      <Search className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-2 sm:mb-2.5">
+                      Explore Blockchain
+                    </h3>
+                    <p className="text-muted-foreground text-xs sm:text-sm md:text-base leading-relaxed px-2 max-w-md mx-auto">
+                      Search transactions, check balances, and explore addresses without creating a wallet
+                    </p>
+                  </div>
+
+                  {/* Action indicator */}
+                  <div className="flex items-center justify-center gap-2 text-primary text-sm sm:text-base font-semibold pt-2">
+                    <span>Start exploring</span>
+                    <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform duration-300" />
                   </div>
                 </div>
               </div>
