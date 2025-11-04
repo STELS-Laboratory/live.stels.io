@@ -4,7 +4,6 @@
  * No authentication required
  */
 
-import React from "react";
 import Explorer from "./Explorer";
 
 export default Explorer;

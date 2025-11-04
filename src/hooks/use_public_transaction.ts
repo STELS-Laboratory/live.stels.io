@@ -72,7 +72,7 @@ const DEFAULT_NETWORK = "testnet";
  * Get API URL based on node type selection
  * Network parameter is always "testnet" as per API requirements
  */
-function getApiUrl(network: string, nodeType?: string): string {
+function getApiUrl(_network: string, nodeType?: string): string {
 	// Check localStorage for node type if not provided
 	if (typeof window !== "undefined" && !nodeType) {
 		nodeType = localStorage.getItem("explorer_node") || "testnet";
