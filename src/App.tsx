@@ -34,7 +34,6 @@ const Schemas = lazy(() => import("@/apps/schemas"));
 const Docs = lazy(() =>
 	import("@/apps/docs").then((m) => ({ default: m.Docs }))
 );
-const Template = lazy(() => import("@/apps/template"));
 const TokenBuilder = lazy(() => import("@/apps/token-builder"));
 const WalletApp = lazy(() => import("@/apps/wallet"));
 const Explorer = lazy(() => import("@/apps/explorer"));
@@ -670,18 +669,6 @@ export default function Dashboard(): React.ReactElement {
 						}
 					>
 						<Docs />
-					</Suspense>
-				);
-			case "template":
-				return (
-					<Suspense
-						fallback={
-							<div className="p-4 text-muted-foreground">
-								Loading template...
-							</div>
-						}
-					>
-						<Template />
 					</Suspense>
 				);
 			case "token-builder":

@@ -54,6 +54,9 @@ export default function CodeMirrorEditor({
   const containerRef = useRef<HTMLDivElement>(null);
   const editorViewRef = useRef<EditorView | null>(null);
   const isFormattingRef = useRef<boolean>(false);
+  const isUserEditingRef = useRef<boolean>(false);
+  const lastScriptRef = useRef<string | undefined>(script);
+  const formatTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const handleEditorChangeRef = useRef(handleEditorChange);
   const onEditorReadyRef = useRef(onEditorReady);
   const { resolvedTheme } = useThemeStore();
@@ -84,11 +87,19 @@ export default function CodeMirrorEditor({
     if (formatted !== currentCode) {
       isFormattingRef.current = true;
 
+      // Save cursor position
+      const selection = view.state.selection.main;
+      const cursorPos = selection.head;
+
       view.dispatch({
         changes: {
           from: 0,
           to: view.state.doc.length,
           insert: formatted,
+        },
+        selection: {
+          anchor: Math.min(cursorPos, formatted.length),
+          head: Math.min(cursorPos, formatted.length),
         },
       });
 
@@ -100,7 +111,7 @@ export default function CodeMirrorEditor({
   }, []);
 
   /**
-   * Create editor instance
+   * Create editor instance (only once on mount)
    */
   useEffect(() => {
     if (!containerRef.current) return;
@@ -129,6 +140,9 @@ export default function CodeMirrorEditor({
     const startState = EditorState.create({
       doc: script || "",
       extensions: [
+        // Configure 2-space indentation
+        EditorState.tabSize.of(2),
+
         // Basic editor features
         lineNumbers(),
         highlightActiveLineGutter(),
@@ -171,7 +185,16 @@ export default function CodeMirrorEditor({
         EditorView.updateListener.of((update: ViewUpdate) => {
           if (update.docChanged && !isFormattingRef.current) {
             const newValue = update.state.doc.toString();
+            isUserEditingRef.current = true;
             handleEditorChangeRef.current(newValue);
+
+            // Clear existing timeout
+            if (formatTimeoutRef.current) {
+              clearTimeout(formatTimeoutRef.current);
+            }
+
+            // Don't auto-format while typing - only on blur
+            // This prevents formatting issues during editing
           }
         }),
       ],
@@ -183,13 +206,34 @@ export default function CodeMirrorEditor({
     });
 
     editorViewRef.current = view;
+    lastScriptRef.current = script;
+
+    // Focus editor to show cursor
+    setTimeout(() => {
+      view.focus();
+    }, 0);
+
+    // Add blur event handler for auto-formatting
+    const handleBlur = (): void => {
+      if (isUserEditingRef.current) {
+        formatCode();
+        isUserEditingRef.current = false;
+      }
+      if (formatTimeoutRef.current) {
+        clearTimeout(formatTimeoutRef.current);
+        formatTimeoutRef.current = null;
+      }
+    };
+
+    const editorElement = view.dom;
+    editorElement.addEventListener("blur", handleBlur);
 
     // Notify parent that editor is ready
     if (onEditorReadyRef.current) {
       onEditorReadyRef.current(formatCode);
     }
 
-    // Auto-format minified code
+    // Auto-format minified code on initial load
     const code = script || "";
     if (isMinified(code)) {
       setTimeout(() => {
@@ -198,10 +242,14 @@ export default function CodeMirrorEditor({
     }
 
     return () => {
+      editorElement.removeEventListener("blur", handleBlur);
+      if (formatTimeoutRef.current) {
+        clearTimeout(formatTimeoutRef.current);
+      }
       view.destroy();
       editorViewRef.current = null;
     };
-  }, [resolvedTheme, script, formatCode]); // Create editor when theme or initial script changes
+  }, [resolvedTheme, formatCode]); // Only create editor once, don't depend on script
 
   /**
    * Update theme when resolvedTheme changes
@@ -221,6 +269,7 @@ export default function CodeMirrorEditor({
 
   /**
    * Update content when script prop changes (from server or tab switch)
+   * Always update when script prop changes, regardless of editing state
    */
   useEffect(() => {
     const view = editorViewRef.current;
@@ -229,26 +278,47 @@ export default function CodeMirrorEditor({
     const currentContent = view.state.doc.toString();
     const newContent = script || "";
 
-    if (currentContent !== newContent) {
+    // Always update if script prop changed (worker switch or server update)
+    // Check if the prop actually changed, not just the editor content
+    if (script !== lastScriptRef.current) {
+      // Reset editing flag when switching workers
+      isUserEditingRef.current = false;
       isFormattingRef.current = true;
+      lastScriptRef.current = script;
 
-      view.dispatch({
-        changes: {
-          from: 0,
-          to: view.state.doc.length,
-          insert: newContent,
-        },
-      });
+      // Only update if content is different
+      if (currentContent !== newContent) {
+        // Save cursor position if possible
+        const selection = view.state.selection.main;
+        const cursorPos = selection.head;
 
-      // Auto-format if minified
-      if (isMinified(newContent)) {
-        setTimeout(() => {
-          formatCode();
-        }, 100);
+        view.dispatch({
+          changes: {
+            from: 0,
+            to: view.state.doc.length,
+            insert: newContent,
+          },
+          selection: {
+            anchor: Math.min(cursorPos, newContent.length),
+            head: Math.min(cursorPos, newContent.length),
+          },
+        });
+
+        // Auto-format if minified
+        if (isMinified(newContent)) {
+          setTimeout(() => {
+            formatCode();
+          }, 100);
+        } else {
+          setTimeout(() => {
+            isFormattingRef.current = false;
+          }, 200);
+        }
       } else {
+        // Content is the same, just reset flags
         setTimeout(() => {
           isFormattingRef.current = false;
-        }, 200);
+        }, 100);
       }
     }
   }, [script, formatCode]);
@@ -257,7 +327,7 @@ export default function CodeMirrorEditor({
     <div
       ref={containerRef}
       className="h-full w-full overflow-hidden"
-      style={{ fontSize: "14px" }}
+      style={{ fontSize: "16px" }}
     />
   );
 }

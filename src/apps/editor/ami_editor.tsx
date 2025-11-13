@@ -223,11 +223,47 @@ export function AMIEditor(): JSX.Element {
 		if (created) {
 			const newWorker: Worker = created;
 			setWorkers((prev) => [newWorker, ...prev]);
+
+			// Use the user's input values, not server response (which might have defaults)
+			const scope = request.scope || newWorker.value.raw.scope || "local";
+			const executionMode = request.executionMode ||
+				newWorker.value.raw.executionMode || "leader";
+			const priority = request.priority || newWorker.value.raw.priority ||
+				"normal";
+			const mode = request.mode || newWorker.value.raw.mode || "loop";
+			const version = request.version || newWorker.value.raw.version ||
+				"1.19.2";
+			const dependencies = request.dependencies ||
+				newWorker.value.raw.dependencies || [];
+			const accountId = request.accountId || newWorker.value.raw.accountId ||
+				"";
+			const assignedNode = request.assignedNode ||
+				newWorker.value.raw.assignedNode || "";
+			const note = request.note || newWorker.value.raw.note || "";
+
+			// Set selected worker with user's values preserved
 			setSelectedWorker(newWorker);
-			setCurrentScript(newWorker.value.raw.script); // Monaco will auto-format if minified
-			setCurrentNote(newWorker.value.raw.note);
+
+			// Set current script (use request script, not server response which might be minified)
+			setCurrentScript(request.scriptContent || newWorker.value.raw.script);
+			setCurrentNote(note);
+
+			// Set current config with user's values (don't auto-correct on creation)
+			setCurrentConfig({
+				scope,
+				executionMode, // Use user's choice, don't auto-correct
+				priority,
+				mode,
+				version,
+				dependencies,
+				accountId,
+				assignedNode,
+				nid: newWorker.value.raw.nid || "",
+			});
+
 			setIsEditing(false);
 			setIsEditingNote(false);
+			setIsEditingConfig(false);
 			setNewlyCreatedWorker(newWorker.value.raw.sid);
 		}
 	};
@@ -243,10 +279,13 @@ export function AMIEditor(): JSX.Element {
 		setCurrentScript(cachedFormatted || protocol.value.raw.script);
 		setCurrentNote(protocol.value.raw.note);
 
-		const scope = protocol.value.raw.scope || "local";
-		let executionMode = protocol.value.raw.executionMode || "parallel";
+		// Use values from protocol, don't apply defaults that might override user choices
+		const scope = protocol.value.raw.scope ?? "local";
+		let executionMode = protocol.value.raw.executionMode ?? "leader";
 
 		// Auto-correct: local scope must use leader mode
+		// Only apply if the combination is invalid (user might have selected wrong combination)
+		// This is a safety check for existing workers with invalid configs
 		if (
 			scope === "local" &&
 			(executionMode === "parallel" || executionMode === "exclusive")
@@ -257,13 +296,13 @@ export function AMIEditor(): JSX.Element {
 		setCurrentConfig({
 			scope,
 			executionMode,
-			priority: protocol.value.raw.priority || "normal",
-			mode: protocol.value.raw.mode || "loop",
-			version: protocol.value.raw.version || "1.19.2",
-			dependencies: protocol.value.raw.dependencies || [],
-			accountId: protocol.value.raw.accountId || "",
-			assignedNode: protocol.value.raw.assignedNode || "",
-			nid: protocol.value.raw.nid || "",
+			priority: protocol.value.raw.priority ?? "normal",
+			mode: protocol.value.raw.mode ?? "loop",
+			version: protocol.value.raw.version ?? "1.19.2",
+			dependencies: protocol.value.raw.dependencies ?? [],
+			accountId: protocol.value.raw.accountId ?? "",
+			assignedNode: protocol.value.raw.assignedNode ?? "",
+			nid: protocol.value.raw.nid ?? "",
 		});
 		setIsEditing(false);
 		setIsEditingNote(false);
@@ -481,12 +520,31 @@ export function AMIEditor(): JSX.Element {
 			};
 			const result = await updateWorker(workerBody);
 			if (result) {
+				// Update result with the saved script (formatted version from editor)
+				const updatedResult: Worker = {
+					...result,
+					value: {
+						...result.value,
+						raw: {
+							...result.value.raw,
+							script: currentScript, // Use the formatted script from editor
+						},
+					},
+				};
+
 				setWorkers((prev) =>
 					prev.map((w) =>
-						w.value.raw.sid === selectedWorker.value.raw.sid ? result : w
+						w.value.raw.sid === selectedWorker.value.raw.sid ? updatedResult : w
 					)
 				);
-				setSelectedWorker(result);
+				setSelectedWorker(updatedResult);
+
+				// Update cache with saved script
+				formattedScriptsCache.current.set(
+					updatedResult.value.raw.sid,
+					currentScript,
+				);
+
 				// DON'T update currentScript - keep the formatted version in editor!
 				// Server returns minified code, but user is still editing formatted version
 				// setCurrentScript(result.value.raw.script); // ❌ This would replace formatted code
@@ -1434,12 +1492,12 @@ export function AMIEditor(): JSX.Element {
 													</div>
 												}
 											>
-											<CodeMirrorEditor
-												script={currentScript}
-												handleEditorChange={handleEditorChange}
-												onEditorReady={(formatFn) =>
-													setFormatCodeFn(() => formatFn)}
-											/>
+												<CodeMirrorEditor
+													script={currentScript}
+													handleEditorChange={handleEditorChange}
+													onEditorReady={(formatFn) =>
+														setFormatCodeFn(() => formatFn)}
+												/>
 											</Suspense>
 										</TabsContent>
 
