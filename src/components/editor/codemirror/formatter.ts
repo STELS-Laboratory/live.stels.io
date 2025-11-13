@@ -1,12 +1,15 @@
 /**
- * JavaScript Code Formatter for CodeMirror 6
+ * Professional JavaScript Code Formatter for CodeMirror 6
  * 
- * Simple but effective formatter for JavaScript code.
- * Uses basic rules for consistent indentation and spacing.
+ * Simple and reliable formatter with 2-space indentation.
+ * Focuses on proper indentation without breaking code structure.
  */
 
+const INDENT_SIZE = 2;
+const INDENT = " ".repeat(INDENT_SIZE);
+
 /**
- * Format JavaScript code
+ * Format JavaScript code with professional 2-space indentation
  * 
  * @param code - JavaScript code to format
  * @returns Formatted JavaScript code
@@ -17,74 +20,137 @@ export function formatJavaScript(code: string): string {
   }
 
   try {
-    // Remove excessive whitespace
-    let formatted = code.replace(/\s+$/gm, ''); // Trim trailing whitespace
+    // Normalize line endings
+    let normalized = code.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
     
-    // Basic indentation
-    let indentLevel = 0;
-    const indentSize = 2;
-    const lines = formatted.split('\n');
+    // Split into lines
+    const lines = normalized.split("\n");
     const formattedLines: string[] = [];
+    let indentLevel = 0;
+    let inMultiLineString = false;
+    let stringChar = "";
+    let inMultiLineComment = false;
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      
-      if (!line) {
-        formattedLines.push('');
+      const line = lines[i];
+      const trimmed = line.trim();
+
+      // Handle empty lines
+      if (!trimmed) {
+        formattedLines.push("");
         continue;
       }
 
-      // Decrease indent before closing braces
-      if (line.startsWith('}') || line.startsWith(']') || line.startsWith(')')) {
-        indentLevel = Math.max(0, indentLevel - 1);
+      // Track string and comment states (simplified)
+      let lineInString = false;
+      let lineStringChar = "";
+      let lineInComment = false;
+      let escapeNext = false;
+
+      // Simple string detection (for single line)
+      for (let j = 0; j < line.length; j++) {
+        const char = line[j];
+        const prevChar = j > 0 ? line[j - 1] : "";
+
+        if (escapeNext) {
+          escapeNext = false;
+          continue;
+        }
+
+        if (char === "\\") {
+          escapeNext = true;
+          continue;
+        }
+
+        // Handle strings
+        if ((char === '"' || char === "'" || char === "`")) {
+          if (!lineInString && !inMultiLineComment) {
+            lineInString = true;
+            lineStringChar = char;
+            if (char === "`") {
+              inMultiLineString = true;
+            }
+          } else if (lineInString && char === lineStringChar) {
+            lineInString = false;
+            lineStringChar = "";
+            if (char === "`") {
+              inMultiLineString = false;
+            }
+          }
+        }
+
+        // Handle comments (only if not in string)
+        if (!lineInString && !inMultiLineString) {
+          if (char === "/" && j < line.length - 1) {
+            const nextChar = line[j + 1];
+            if (nextChar === "/" && !inMultiLineComment) {
+              lineInComment = true;
+              break; // Rest of line is comment
+            }
+            if (nextChar === "*" && !inMultiLineComment) {
+              inMultiLineComment = true;
+              lineInComment = true;
+            }
+          }
+          if (char === "*" && j < line.length - 1 && line[j + 1] === "/" && inMultiLineComment) {
+            inMultiLineComment = false;
+            lineInComment = false;
+          }
+        }
       }
 
-      // Add indentation
-      const indent = ' '.repeat(indentLevel * indentSize);
-      formattedLines.push(indent + line);
+      // Calculate indent for this line
+      let lineIndent = indentLevel;
 
-      // Increase indent after opening braces
-      if (line.endsWith('{') || line.endsWith('[') || line.endsWith('(')) {
+      // Decrease indent for closing braces/brackets/parens
+      if (trimmed.startsWith("}") || trimmed.startsWith("]") || trimmed.startsWith(")")) {
+        lineIndent = Math.max(0, indentLevel - 1);
+      }
+
+      // Handle else, catch, finally - align with opening brace
+      if (/^\s*(else|catch|finally)\b/.test(trimmed)) {
+        lineIndent = Math.max(0, indentLevel - 1);
+      }
+
+      // Apply indentation
+      const indent = INDENT.repeat(lineIndent);
+      formattedLines.push(indent + trimmed);
+
+      // Update indent level for next line
+      // Count braces, brackets, parens in the trimmed line
+      let netBraces = 0;
+      let netBrackets = 0;
+      let netParens = 0;
+
+      // Simple counting (ignoring strings and comments for simplicity)
+      if (!lineInString && !lineInComment) {
+        for (let j = 0; j < trimmed.length; j++) {
+          const char = trimmed[j];
+          if (char === "{") netBraces++;
+          if (char === "}") netBraces--;
+          if (char === "[") netBrackets++;
+          if (char === "]") netBrackets--;
+          if (char === "(") netParens++;
+          if (char === ")") netParens--;
+        }
+      }
+
+      // Update indent level
+      indentLevel += netBraces + netBrackets + netParens;
+
+      // Special handling for lines ending with opening braces/brackets/parens
+      if (trimmed.endsWith("{") || trimmed.endsWith("[") || trimmed.endsWith("(")) {
         indentLevel++;
       }
 
-      // Decrease indent after closing braces on same line
-      if ((line.startsWith('}') || line.startsWith(']') || line.startsWith(')')) && 
-          (line.endsWith('{') || line.endsWith('[') || line.endsWith('('))) {
-        // Don't change indent - it balances out
-      } else if (line.includes('}') && !line.endsWith('}')) {
-        // Closing brace in middle of line
-        const openCount = (line.match(/{/g) || []).length;
-        const closeCount = (line.match(/}/g) || []).length;
-        if (closeCount > openCount) {
-          indentLevel = Math.max(0, indentLevel - (closeCount - openCount));
-        }
-      }
+      // Ensure indent level doesn't go negative
+      indentLevel = Math.max(0, indentLevel);
     }
 
-    formatted = formattedLines.join('\n');
-
-    // Add spacing around operators
-    formatted = formatted.replace(/([^\s])=([^\s=])/g, '$1 = $2');
-    formatted = formatted.replace(/([^\s])\+([^\s+])/g, '$1 + $2');
-    formatted = formatted.replace(/([^\s])-([^\s-])/g, '$1 - $2');
-    formatted = formatted.replace(/([^\s])\*([^\s*])/g, '$1 * $2');
-    formatted = formatted.replace(/([^\s])\/([^\s/])/g, '$1 / $2');
-
-    // Add space after commas
-    formatted = formatted.replace(/,([^\s])/g, ', $1');
-
-    // Add space after keywords
-    formatted = formatted.replace(/\b(if|for|while|switch|catch|function|return)\(/g, '$1 (');
-
-    // Clean up excessive spacing
-    formatted = formatted.replace(/ {2,}/g, ' ');
-
-    return formatted;
+    return formattedLines.join("\n");
   } catch (error) {
     // If formatting fails, return original code
-    console.warn('[CodeMirror Formatter] Failed to format code:', error);
+    console.warn("[CodeMirror Formatter] Failed to format code:", error);
     return code;
   }
 }
-
