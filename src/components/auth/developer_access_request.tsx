@@ -11,6 +11,7 @@ import {
   Database,
   Loader2,
   Shield,
+  X,
   XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -177,12 +178,12 @@ export function DeveloperAccessRequestDialog({
   };
 
   /**
-   * Handle dialog close - only allow closing on error state
+   * Handle dialog close - allow closing in idle, pending, and error states
    * Parent component (AMIEditor) handles navigation to welcome
    */
   const handleClose = (): void => {
-    // Dialog can only be closed on error state
-    if (requestStatus === "error") {
+    // Allow closing in idle, pending, and error states (not in success state)
+    if (requestStatus !== "success") {
       onOpenChange(false);
       // Reset state after dialog closes
       setTimeout(() => {
@@ -199,14 +200,28 @@ export function DeveloperAccessRequestDialog({
         className="sm:max-w-md max-w-[calc(100vw-24px)] mx-3"
       >
         <DialogHeader className="px-3 sm:px-4 md:px-6">
-          <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-amber-700 dark:text-amber-400 text-sm sm:text-base">
-            <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
-            Developer Access Required
-          </DialogTitle>
-          <DialogDescription className="text-muted-foreground text-[10px] sm:text-xs md:text-sm leading-relaxed">
-            You need developer permissions to access the Protocol Editor. This
-            dialog cannot be closed until access is granted or an error occurs.
-          </DialogDescription>
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1">
+              <DialogTitle className="flex items-center gap-1.5 sm:gap-2 text-amber-700 dark:text-amber-400 text-sm sm:text-base">
+                <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
+                Developer Access Required
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground text-[10px] sm:text-xs md:text-sm leading-relaxed mt-1">
+                You need developer permissions to access the Protocol Editor.
+              </DialogDescription>
+            </div>
+            {requestStatus !== "success" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClose}
+                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
+                aria-label="Close dialog"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
         </DialogHeader>
 
         <div className="space-y-3 sm:space-y-4 py-3 sm:py-4 px-3 sm:px-4 md:px-6">
@@ -251,12 +266,21 @@ export function DeveloperAccessRequestDialog({
                 </div>
               </div>
 
-              <Button
-                onClick={handleRequestAccess}
-                className="w-full bg-amber-500 hover:bg-amber-600 text-zinc-950 dark:text-black font-semibold h-9 sm:h-10 text-xs sm:text-sm"
-              >
-                Request Developer Access
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleClose}
+                  className="flex-1 h-9 sm:h-10 text-xs sm:text-sm"
+                >
+                  Back to Home
+                </Button>
+                <Button
+                  onClick={handleRequestAccess}
+                  className="flex-1 bg-amber-500 hover:bg-amber-600 text-zinc-950 dark:text-black font-semibold h-9 sm:h-10 text-xs sm:text-sm"
+                >
+                  Request Developer Access
+                </Button>
+              </div>
             </>
           )}
 
