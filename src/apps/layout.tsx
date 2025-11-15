@@ -20,6 +20,7 @@ import {
 	FileText,
 	Home,
 	Layout as LayoutIcon,
+	MessageSquare,
 	MoreHorizontal,
 	Play,
 	Search,
@@ -116,6 +117,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 			"token-builder": "Token Builder",
 			wallet: "Wallet",
 			explorer: "Blockchain Explorer",
+			"stels-chat": "Stels Chat",
 		};
 		return names[route] || route;
 	};
@@ -132,6 +134,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 		{ key: "token-builder", label: "Token Builder", icon: Coins },
 		{ key: "wallet", label: "Wallet", icon: Wallet },
 		{ key: "explorer", label: "Explorer", icon: Search },
+		{ key: "stels-chat", label: "Stels Chat", icon: MessageSquare },
 	].filter((i) => allowedRoutes.includes(i.key));
 
 	const renderNavItem = (

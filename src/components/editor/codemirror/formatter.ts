@@ -21,14 +21,13 @@ export function formatJavaScript(code: string): string {
 
   try {
     // Normalize line endings
-    let normalized = code.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    const normalized = code.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
     
     // Split into lines
     const lines = normalized.split("\n");
     const formattedLines: string[] = [];
     let indentLevel = 0;
     let inMultiLineString = false;
-    let stringChar = "";
     let inMultiLineComment = false;
 
     for (let i = 0; i < lines.length; i++) {
@@ -50,7 +49,6 @@ export function formatJavaScript(code: string): string {
       // Simple string detection (for single line)
       for (let j = 0; j < line.length; j++) {
         const char = line[j];
-        const prevChar = j > 0 ? line[j - 1] : "";
 
         if (escapeNext) {
           escapeNext = false;

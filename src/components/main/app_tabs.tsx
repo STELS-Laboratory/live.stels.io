@@ -14,6 +14,7 @@ import {
   Home,
   Layers,
   Layout as LayoutIcon,
+  MessageSquare,
   Wallet,
   X,
 } from "lucide-react";
@@ -44,6 +45,7 @@ const DEV_TOOLS: DevTool[] = [
   { key: "template", name: "Template", icon: FileCode, shortcut: "T" },
   { key: "token-builder", name: "Token Builder", icon: Coins, shortcut: "B" },
   { key: "wallet", name: "Wallet", icon: Wallet, shortcut: "W" },
+  { key: "stels-chat", name: "Stels Chat", icon: MessageSquare, shortcut: "O" },
 ];
 
 /**

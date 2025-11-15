@@ -1,0 +1,198 @@
+/**
+ * Model Selector Component
+ * Select and manage Stels models
+ */
+
+import React, { useEffect, useState } from "react";
+import { Plus, RefreshCw, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { useStelsChatStore } from "../store";
+import { useAuthStore } from "@/stores/modules/auth.store";
+import { ModelCreator } from "./model-creator";
+
+interface ModelSelectorProps {
+  tabId: string;
+}
+
+/**
+ * Model Selector Component
+ */
+export function ModelSelector({
+  tabId,
+}: ModelSelectorProps): React.ReactElement {
+  const {
+    models,
+    tabs,
+    fetchModels,
+    selectModel,
+    deleteModel,
+    isLoading,
+    testConnection,
+  } = useStelsChatStore();
+  const { connectionSession } = useAuthStore();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showCreator, setShowCreator] = useState(false);
+
+  const tab = tabs.find((t) => t.id === tabId);
+  const selectedModel = tab?.model || "";
+
+  useEffect(() => {
+    const init = async (): Promise<void> => {
+      // Only test connection if we have a session
+      if (connectionSession?.session) {
+        console.log("[ModelSelector] Initializing with session:", {
+          hasSession: !!connectionSession.session,
+          apiUrl: connectionSession.api,
+        });
+        const connected = await testConnection();
+        if (connected) {
+          await fetchModels();
+        }
+      } else {
+        console.warn(
+          "[ModelSelector] No connectionSession available, skipping initialization",
+        );
+      }
+    };
+    init();
+  }, [
+    fetchModels,
+    testConnection,
+    connectionSession?.session,
+    connectionSession?.api,
+  ]);
+
+  const handleRefresh = async (): Promise<void> => {
+    setIsRefreshing(true);
+    try {
+      await fetchModels();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const handleDelete = async (modelName: string): Promise<void> => {
+    if (
+      !confirm(
+        `Are you sure you want to delete model "${modelName}"? This action cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await deleteModel(modelName);
+    } catch (error) {
+      console.error("Failed to delete model:", error);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2 p-2 border-b border-border bg-card/30">
+      <Select
+        value={selectedModel}
+        onValueChange={(value) => selectModel(tabId, value)}
+        disabled={isLoading || models.length === 0}
+      >
+        <SelectTrigger className="w-[200px]">
+          <SelectValue placeholder="Select model" />
+        </SelectTrigger>
+        <SelectContent>
+          {models.length === 0
+            ? (
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                No models available
+              </div>
+            )
+            : (
+              models.map((model) => (
+                <SelectItem key={model.name} value={model.name}>
+                  <div className="flex items-center justify-between w-full">
+                    <span>{model.name}</span>
+                    <Badge variant="outline" className="ml-2 text-xs">
+                      {formatSize(model.size)}
+                    </Badge>
+                  </div>
+                </SelectItem>
+              ))
+            )}
+        </SelectContent>
+      </Select>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleRefresh}
+        disabled={isRefreshing || isLoading}
+        title="Refresh models"
+      >
+        <RefreshCw
+          className={cn("icon-md", isRefreshing && "animate-spin")}
+        />
+      </Button>
+
+      <Dialog open={showCreator} onOpenChange={setShowCreator}>
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="icon" title="Create model">
+            <Plus className="icon-md" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Model</DialogTitle>
+            <DialogDescription>
+              Create a custom Stels model with your own configuration and
+              parameters.
+            </DialogDescription>
+          </DialogHeader>
+          <ModelCreator onClose={() => setShowCreator(false)} />
+        </DialogContent>
+      </Dialog>
+
+      {selectedModel && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => handleDelete(selectedModel)}
+          disabled={isLoading}
+          title="Delete model"
+        >
+          <Trash2 className="icon-md text-destructive" />
+        </Button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Format bytes to human readable size
+ */
+function formatSize(bytes: number): string {
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let size = bytes;
+  let unitIndex = 0;
+
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex++;
+  }
+
+  return `${size.toFixed(1)} ${units[unitIndex]}`;
+}
