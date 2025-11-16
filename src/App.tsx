@@ -37,6 +37,7 @@ const Docs = lazy(() =>
 const TokenBuilder = lazy(() => import("@/apps/token-builder"));
 const WalletApp = lazy(() => import("@/apps/wallet"));
 const Explorer = lazy(() => import("@/apps/explorer"));
+const StelsChat = lazy(() => import("@/apps/stels-chat"));
 import { TooltipProvider } from "@/components/ui/tooltip";
 const Layout = lazy(() => import("@/apps/layout"));
 const AMIEditor = lazy(() =>
@@ -705,6 +706,18 @@ export default function Dashboard(): React.ReactElement {
 						}
 					>
 						<Explorer />
+					</Suspense>
+				);
+			case "stels-chat":
+				return (
+					<Suspense
+						fallback={
+							<div className="p-4 text-muted-foreground">
+								Loading Stels Chat...
+							</div>
+						}
+					>
+						<StelsChat />
 					</Suspense>
 				);
 			default:

@@ -249,6 +249,7 @@ export default function CodeMirrorEditor({
       view.destroy();
       editorViewRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedTheme, formatCode]); // Only create editor once, don't depend on script
 
   /**
