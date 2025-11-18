@@ -240,6 +240,28 @@ export const useStelsChatStore = create<StelsChatStore>()(
               const service = getApiService();
               const models = await service.getModels();
               set({ models, isLoading: false, isConnected: true });
+
+              // Auto-select first model for tabs without a model
+              if (models.length > 0) {
+                const state = get();
+                const firstModel = models[0];
+                const tabsWithoutModel = state.tabs.filter(
+                  (tab) => !tab.model || tab.model.trim() === "",
+                );
+
+                if (tabsWithoutModel.length > 0 && firstModel) {
+                  set((currentState) => ({
+                    tabs: currentState.tabs.map((tab) =>
+                      !tab.model || tab.model.trim() === ""
+                        ? { ...tab, model: firstModel.name, updatedAt: Date.now() }
+                        : tab,
+                    ),
+                  }));
+                  console.log(
+                    `[StelsChatStore] Auto-selected model "${firstModel.name}" for ${tabsWithoutModel.length} tab(s)`,
+                  );
+                }
+              }
             } catch (error) {
               const errorMessage =
                 error instanceof Error ? error.message : "Failed to fetch models";

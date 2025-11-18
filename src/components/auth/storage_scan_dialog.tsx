@@ -16,7 +16,7 @@ import {
   Lock,
   Shield,
   ShieldCheck,
-  Trash2
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -313,45 +313,44 @@ export function StorageScanDialog({
         }}
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
         className={`w-full ${
-          isMobile
-            ? "h-[95vh]"
-            : "max-w-3xl max-h-[90vh]"
+          isMobile ? "h-[100%]" : "max-w-3xl max-h-[100%]"
         } overflow-hidden flex flex-col`}
       >
         <Card className="bg-card/95 border flex flex-col h-full">
           {/* Security Banner */}
           <div
             className={`${
-              isMobile ? "px-4 py-3" : "px-6 py-4"
-            }`}
+              isMobile ? "px-3 py-2.5" : "px-6 py-4"
+            } bg-green-500/5 border border-green-500/10`}
           >
             <div
-              className={`flex items-center ${isMobile ? "gap-2" : "gap-3"}`}
+              className={`flex items-start ${isMobile ? "gap-2.5" : "gap-3"}`}
             >
               <div
-                className={`relative ${
-                  isMobile ? "p-2" : "p-3"
-                } border rounded`}
+                className={`relative flex-shrink-0 ${
+                  isMobile ? "p-1.5" : "p-3"
+                } bg-green-500/10 border border-green-500/20 rounded-lg`}
               >
-                <div className="absolute inset-0 rounded blur-sm" />
                 <ShieldCheck
                   className={`relative ${
-                    isMobile ? "w-5 h-5" : "w-6 h-6"
+                    isMobile ? "w-4 h-4" : "w-6 h-6"
                   } text-green-600 dark:text-green-400`}
                 />
               </div>
               <div className="flex-1 min-w-0">
                 <div
                   className={`flex items-center gap-2 ${
-                    isMobile ? "mb-0.5" : "mb-1"
+                    isMobile ? "mb-1.5" : "mb-2"
                   }`}
                 >
                   <h2
                     className={`${
-                      isMobile ? "text-base" : "text-xl"
+                      isMobile ? "text-sm" : "text-xl"
                     } font-bold text-foreground truncate`}
                   >
-                    Storage Security Verified
+                    {isMobile
+                      ? "Security Verified"
+                      : "Storage Security Verified"}
                   </h2>
                   {!isMobile && (
                     <motion.div
@@ -370,30 +369,40 @@ export function StorageScanDialog({
                   )}
                 </div>
                 <div
-                  className={`flex items-center ${
-                    isMobile ? "flex-col gap-1.5" : "gap-4 flex-wrap"
+                  className={`${
+                    isMobile
+                      ? "grid grid-cols-2 gap-1.5"
+                      : "flex items-center gap-4 flex-wrap"
                   }`}
                 >
-                  <div className="flex items-center gap-1.5">
+                  <div
+                    className={`flex items-center ${
+                      isMobile ? "gap-1" : "gap-1.5"
+                    }`}
+                  >
                     <CheckCircle2
                       className={`${
-                        isMobile ? "w-3.5 h-3.5" : "w-4 h-4"
-                      } text-green-500`}
+                        isMobile ? "w-3 h-3" : "w-4 h-4"
+                      } text-green-500 flex-shrink-0`}
                     />
                     <span
                       className={`${
-                        isMobile ? "text-xs" : "text-sm"
-                      } font-semibold text-green-700 dark:text-green-400`}
+                        isMobile ? "text-[10px]" : "text-sm"
+                      } font-semibold text-green-700 dark:text-green-400 truncate`}
                     >
-                      {securityMetrics.appKeysCount} verified app{" "}
+                      {securityMetrics.appKeysCount} app{" "}
                       {securityMetrics.appKeysCount === 1 ? "key" : "keys"}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div
+                    className={`flex items-center ${
+                      isMobile ? "gap-1" : "gap-1.5"
+                    }`}
+                  >
                     <ShieldCheck
                       className={`${
-                        isMobile ? "w-3.5 h-3.5" : "w-4 h-4"
-                      } text-green-500`}
+                        isMobile ? "w-3 h-3" : "w-4 h-4"
+                      } text-green-500 flex-shrink-0`}
                     />
                     <span
                       className={`${
@@ -403,11 +412,15 @@ export function StorageScanDialog({
                       100% verified
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div
+                    className={`flex items-center ${
+                      isMobile ? "gap-1 col-span-2" : "gap-1.5"
+                    }`}
+                  >
                     <Database
                       className={`${
-                        isMobile ? "w-3.5 h-3.5" : "w-4 h-4"
-                      } text-muted-foreground`}
+                        isMobile ? "w-3 h-3" : "w-4 h-4"
+                      } text-muted-foreground flex-shrink-0`}
                     />
                     <span
                       className={`${
@@ -424,9 +437,7 @@ export function StorageScanDialog({
 
           {/* Header */}
           <div
-            className={`${
-              isMobile ? "px-4 py-2" : "px-6 py-3"
-            }`}
+            className={`${isMobile ? "px-0 py-2" : "px-6 py-3"}`}
           >
             <div
               className={`flex items-center ${
@@ -458,13 +469,13 @@ export function StorageScanDialog({
 
           {/* Content */}
           <div
-            className={`${
+            className={`bg-background border ${
               isMobile ? "p-4" : "p-6"
             } overflow-y-auto flex-1 min-h-0 ${
-              isMobile ? "" : "max-h-[60vh]"
+              isMobile ? "" : ""
             } overscroll-contain`}
           >
-            <div className={isMobile ? "space-y-3" : "space-y-4"}>
+            <div className={isMobile ? "space-y-2" : "space-y-4"}>
               {/* localStorage */}
               {scanResult.localStorage.length > 0 && (
                 <motion.div
@@ -764,8 +775,7 @@ export function StorageScanDialog({
                               isMobile ? "pl-2" : "pl-2.5"
                             } pt-1`}
                           >
-                            ...and{" "}
-                            {scanResult.sessionStorage.length -
+                            ...and {scanResult.sessionStorage.length -
                               (isMobile ? 5 : 10)} more item
                             {scanResult.sessionStorage.length -
                                   (isMobile ? 5 : 10) === 1
@@ -1109,15 +1119,13 @@ export function StorageScanDialog({
 
           {/* Footer */}
           <div
-            className={`${
-              isMobile ? "px-4 py-3" : "px-6 py-4"
-            } space-y-3 flex-shrink-0`}
+            className={`${isMobile ? "p-0" : "p-0"} space-y-2 flex-shrink-0`}
           >
             {/* Security Summary */}
             {securityMetrics.appKeysCount > 0 && (
               <div
                 className={`grid ${
-                  isMobile ? "grid-cols-1 gap-2" : "grid-cols-2 gap-3"
+                  isMobile ? "grid-cols-2 gap-2" : "grid-cols-2 gap-2"
                 }`}
               >
                 <div
@@ -1251,17 +1259,17 @@ export function StorageScanDialog({
             {/* Actions */}
             <div
               className={`flex items-center ${
-                isMobile ? "flex-col gap-4" : "gap-6"
+                isMobile ? "flex-col gap-2" : "gap-6"
               }`}
             >
-	            <Button
-		            onClick={handleContinue}
-		            disabled={isDeleting}
-		            variant="outline"
-		            className={`flex-1 ${isMobile ? "w-full h-11 text-sm" : ""}`}
-	            >
-		            Continue
-	            </Button>
+              <Button
+                onClick={handleContinue}
+                disabled={isDeleting}
+                variant="outline"
+                className={`flex-1 ${isMobile ? "w-full h-11 text-sm" : ""}`}
+              >
+                Continue
+              </Button>
               <Button
                 onClick={handleDeleteAll}
                 disabled={isDeleting || deletedItems.size > 0}

@@ -5,6 +5,7 @@
 
 import React, { useEffect, useState } from "react";
 import { RefreshCw, Plus, Trash2 } from "lucide-react";
+import { useMobile } from "@/hooks/use_mobile";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -29,6 +30,7 @@ import { AssistantCreator } from "./assistant-creator";
 
 interface AssistantSelectorProps {
   tabId: string;
+  inSettings?: boolean;
 }
 
 /**
@@ -36,7 +38,9 @@ interface AssistantSelectorProps {
  */
 export function AssistantSelector({
   tabId,
+  inSettings = false,
 }: AssistantSelectorProps): React.ReactElement {
+  const isMobile = useMobile();
   const {
     assistants,
     tabs,
@@ -106,14 +110,30 @@ export function AssistantSelector({
   };
 
   return (
-    <div className="flex items-center gap-2 p-2 border-b border-border bg-card/30">
+    <div
+      className={`flex items-center ${
+        inSettings
+          ? "gap-2 p-0"
+          : `border-b border-border bg-card/30 ${
+              isMobile ? "gap-0.5 p-1 h-7" : "gap-2 p-2"
+            }`
+      }`}
+    >
       <Select
         value={selectedAssistant?.id || ""}
         onValueChange={handleSelect}
         disabled={isLoading || assistants.length === 0}
       >
-        <SelectTrigger className="w-[250px]">
-          <SelectValue placeholder="Select assistant" />
+        <SelectTrigger
+          className={
+            inSettings
+              ? "w-full"
+              : isMobile
+              ? "w-[100px] h-6 text-[10px] px-1.5"
+              : "w-[250px]"
+          }
+        >
+          <SelectValue placeholder={isMobile ? "Assistant" : "Select assistant"} />
         </SelectTrigger>
         <SelectContent>
           {assistants.length === 0 ? (
@@ -142,28 +162,48 @@ export function AssistantSelector({
         </SelectContent>
       </Select>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleRefresh}
-        disabled={isRefreshing || isLoading}
-        title="Refresh assistants"
-      >
-        <RefreshCw
-          className={cn("icon-md", isRefreshing && "animate-spin")}
-        />
-      </Button>
+      {(!isMobile || inSettings) && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleRefresh}
+          disabled={isRefreshing || isLoading}
+          title="Refresh assistants"
+          className={inSettings ? "h-8 w-8" : ""}
+        >
+          <RefreshCw
+            className={cn(
+              inSettings ? "icon-sm" : "icon-md",
+              isRefreshing && "animate-spin",
+            )}
+          />
+        </Button>
+      )}
 
-      <Dialog open={showCreator} onOpenChange={setShowCreator}>
-        <DialogTrigger asChild>
-          <Button variant="ghost" size="icon" title="Create assistant">
-            <Plus className="icon-md" />
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      {(!isMobile || inSettings) && (
+        <Dialog open={showCreator} onOpenChange={setShowCreator}>
+          <DialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Create assistant"
+              className={inSettings ? "h-8 w-8" : ""}
+            >
+              <Plus className={inSettings ? "icon-sm" : "icon-md"} />
+            </Button>
+          </DialogTrigger>
+        <DialogContent
+          className={`overflow-y-auto ${
+            isMobile
+              ? "max-w-full max-h-[95vh] rounded-t-2xl"
+              : "max-w-2xl max-h-[90vh]"
+          }`}
+        >
           <DialogHeader>
-            <DialogTitle>Create New Assistant</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className={isMobile ? "text-base" : ""}>
+              Create New Assistant
+            </DialogTitle>
+            <DialogDescription className={isMobile ? "text-xs" : ""}>
               Create a custom AI assistant with your own configuration, system
               prompt, and model parameters.
             </DialogDescription>
@@ -171,16 +211,22 @@ export function AssistantSelector({
           <AssistantCreator onClose={() => setShowCreator(false)} />
         </DialogContent>
       </Dialog>
+      )}
 
-      {selectedAssistant && (
+      {selectedAssistant && (!isMobile || inSettings) && (
         <Button
           variant="ghost"
           size="icon"
           onClick={() => handleDelete(selectedAssistant.id)}
           disabled={isLoading}
           title="Delete assistant"
+          className={inSettings ? "h-8 w-8" : ""}
         >
-          <Trash2 className="icon-md text-destructive" />
+          <Trash2
+            className={`text-destructive ${
+              inSettings ? "icon-sm" : "icon-md"
+            }`}
+          />
         </Button>
       )}
     </div>

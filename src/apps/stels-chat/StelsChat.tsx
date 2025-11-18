@@ -6,6 +6,7 @@
 import React, { useEffect } from "react";
 import { useStelsChatStore } from "./store";
 import { useAuthStore } from "@/stores/modules/auth.store";
+import { useMobile } from "@/hooks/use_mobile";
 import { TabBar } from "./components/tab-bar";
 import { ChatTab } from "./components/chat-tab";
 import { ChatInput } from "./components/chat-input";
@@ -31,6 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
  * Stels Chat Application Component
  */
 function StelsChat(): React.ReactElement {
+  const isMobile = useMobile();
   const {
     tabs,
     activeTabId,
@@ -92,59 +94,165 @@ function StelsChat(): React.ReactElement {
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Header with API settings */}
-      <div className="flex items-center justify-between p-2 border-b border-border bg-card/30">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">Stels Chat</h1>
-          {!isConnected && <AlertCircle className="icon-sm text-destructive" />}
+      <div
+        className={`flex items-center justify-between border-b border-border bg-card/30 ${
+          isMobile ? "p-1" : "p-2"
+        }`}
+      >
+        <div className="flex items-center gap-1.5 min-w-0">
+          <h1
+            className={`ml-2 font-semibold truncate ${
+              isMobile ? "text-xs" : "text-lg"
+            }`}
+          >
+            {isMobile ? "Chat" : "Stels Chat"}
+          </h1>
+          {!isConnected && (
+            <AlertCircle
+              className={`text-destructive ${isMobile ? "w-3 h-3" : "icon-sm"}`}
+            />
+          )}
         </div>
 
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="ghost" size="icon" title="Settings">
-              <Settings className="icon-md" />
+            <Button
+              variant="ghost"
+              size={isMobile ? "icon" : "icon"}
+              title="Settings"
+              className={isMobile ? "h-7 w-7" : ""}
+            >
+              <Settings className={isMobile ? "w-3.5 h-3.5" : "icon-md"} />
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent
+            className={`overflow-y-auto ${
+              isMobile
+                ? "max-w-full max-h-[95vh] rounded-t-2xl"
+                : "max-w-4xl max-h-[90vh]"
+            }`}
+          >
             <DialogHeader>
-              <DialogTitle>Settings</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className={isMobile ? "text-base" : ""}>
+                Settings
+              </DialogTitle>
+              <DialogDescription
+                className={isMobile ? "text-xs" : ""}
+              >
                 Configure API settings and manage model registry
               </DialogDescription>
             </DialogHeader>
-            <Tabs defaultValue="api" className="w-full">
-              <TabsList className={isDeveloper ? "grid w-full grid-cols-2" : "w-full"}>
-                <TabsTrigger value="api">API Settings</TabsTrigger>
+            <Tabs defaultValue={isMobile ? "chat" : "api"} className="w-full">
+              <TabsList
+                className={isDeveloper
+                  ? `grid w-full ${
+                    isMobile ? "grid-cols-3 h-9" : "grid-cols-3"
+                  }`
+                  : isMobile
+                  ? "grid-cols-2 w-full h-9"
+                  : "grid-cols-2 w-full"}
+              >
+                {isMobile && (
+                  <TabsTrigger
+                    value="chat"
+                    className={isMobile ? "text-xs" : ""}
+                  >
+                    Chat
+                  </TabsTrigger>
+                )}
+                <TabsTrigger
+                  value="api"
+                  className={isMobile ? "text-xs" : ""}
+                >
+                  API Settings
+                </TabsTrigger>
                 {isDeveloper && (
-                  <TabsTrigger value="registry">Model Registry</TabsTrigger>
+                  <TabsTrigger
+                    value="registry"
+                    className={isMobile ? "text-xs" : ""}
+                  >
+                    Model Registry
+                  </TabsTrigger>
                 )}
               </TabsList>
-              <TabsContent value="api" className="space-y-4 mt-4">
+              {/* Chat Settings Tab - Mobile only */}
+              {isMobile && activeTab && (
+                <TabsContent
+                  value="chat"
+                  className={isMobile ? "space-y-3 mt-3" : "space-y-4 mt-4"}
+                >
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className={isMobile ? "text-xs" : "text-sm"}>
+                        Model
+                      </Label>
+                      <ModelSelector tabId={activeTab.id} inSettings={true} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className={isMobile ? "text-xs" : "text-sm"}>
+                        Assistant
+                      </Label>
+                      <AssistantSelector
+                        tabId={activeTab.id}
+                        inSettings={true}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+              )}
+
+              <TabsContent
+                value="api"
+                className={isMobile ? "space-y-3 mt-3" : "space-y-4 mt-4"}
+              >
                 <div>
-                  <Label htmlFor="apiUrl">Stels API URL</Label>
+                  <Label
+                    htmlFor="apiUrl"
+                    className={isMobile ? "text-xs" : ""}
+                  >
+                    Stels API URL
+                  </Label>
                   <Input
                     id="apiUrl"
                     value={stelsApiUrl}
                     onChange={(e) => setApiUrl(e.target.value)}
                     placeholder="https://beta.stels.dev"
+                    className={isMobile ? "h-9 text-sm" : ""}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p
+                    className={`text-muted-foreground mt-1 ${
+                      isMobile ? "text-[10px]" : "text-xs"
+                    }`}
+                  >
                     {connectionSession?.api
                       ? `Using: ${connectionSession.api}`
                       : "Default: https://beta.stels.dev"}
                   </p>
                 </div>
-                <Button onClick={handleTestConnection} className="w-full">
+                <Button
+                  onClick={handleTestConnection}
+                  className={`w-full ${isMobile ? "h-9 text-sm" : ""}`}
+                >
                   Test Connection
                 </Button>
                 {isConnected && (
-                  <Alert>
-                    <AlertCircle className="icon-sm" />
-                    <AlertDescription>Connected successfully</AlertDescription>
+                  <Alert className={isMobile ? "text-xs py-2" : ""}>
+                    <AlertCircle
+                      className={isMobile ? "icon-xs" : "icon-sm"}
+                    />
+                    <AlertDescription
+                      className={isMobile ? "text-xs" : ""}
+                    >
+                      Connected successfully
+                    </AlertDescription>
                   </Alert>
                 )}
               </TabsContent>
               {isDeveloper && (
-                <TabsContent value="registry" className="mt-4">
+                <TabsContent
+                  value="registry"
+                  className={isMobile ? "mt-3" : "mt-4"}
+                >
                   <ModelRegistry />
                 </TabsContent>
               )}
@@ -155,20 +263,25 @@ function StelsChat(): React.ReactElement {
 
       {/* Error alert */}
       {error && (
-        <Alert variant="destructive" className="m-2">
-          <AlertCircle className="icon-sm" />
-          <AlertDescription>{error}</AlertDescription>
+        <Alert
+          variant="destructive"
+          className={isMobile ? "m-1 py-1.5 text-[10px]" : "m-2"}
+        >
+          <AlertCircle className={isMobile ? "w-3 h-3" : "icon-sm"} />
+          <AlertDescription className={isMobile ? "text-[10px]" : ""}>
+            {error}
+          </AlertDescription>
         </Alert>
       )}
 
       {/* Tab bar */}
       <TabBar />
 
-      {/* Assistant selector */}
-      {activeTab && <AssistantSelector tabId={activeTab.id} />}
+      {/* Assistant selector - hidden on mobile, moved to settings */}
+      {activeTab && !isMobile && <AssistantSelector tabId={activeTab.id} />}
 
-      {/* Model selector */}
-      {activeTab && <ModelSelector tabId={activeTab.id} />}
+      {/* Model selector - hidden on mobile, moved to settings */}
+      {activeTab && !isMobile && <ModelSelector tabId={activeTab.id} />}
 
       {/* Chat area */}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">

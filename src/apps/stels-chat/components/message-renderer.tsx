@@ -13,6 +13,7 @@ import {
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { useTheme } from "@/hooks/use_theme";
+import { useMobile } from "@/hooks/use_mobile";
 import { cn } from "@/lib/utils";
 import { Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -70,10 +71,12 @@ function JsonRenderer({
   json,
   isDark,
   isStreaming,
+  isMobile = false,
 }: {
   json: unknown;
   isDark: boolean;
   isStreaming: boolean;
+  isMobile?: boolean;
 }): React.ReactElement {
   const jsonString = JSON.stringify(json, null, 2);
   const [copied, setCopied] = React.useState(false);
@@ -85,10 +88,22 @@ function JsonRenderer({
   };
 
   return (
-    <div className="my-4 rounded border border-primary/20 bg-primary/5 overflow-hidden">
-      <div className="flex items-center justify-between bg-primary/10 px-4 py-2 border-b border-primary/20">
+    <div
+      className={`rounded border border-primary/20 bg-primary/5 overflow-hidden ${
+        isMobile ? "my-2" : "my-4"
+      }`}
+    >
+      <div
+        className={`flex items-center justify-between bg-primary/10 border-b border-primary/20 ${
+          isMobile ? "px-2 py-1.5" : "px-4 py-2"
+        }`}
+      >
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-primary uppercase tracking-wide">
+          <span
+            className={`font-semibold text-primary uppercase tracking-wide ${
+              isMobile ? "text-[10px]" : "text-xs"
+            }`}
+          >
             JSON Response
           </span>
         </div>
@@ -96,17 +111,17 @@ function JsonRenderer({
           variant="ghost"
           size="sm"
           onClick={handleCopy}
-          className="h-6 px-2 text-xs"
+          className={isMobile ? "h-6 px-1.5 text-[10px]" : "h-6 px-2 text-xs"}
         >
           {copied ? (
             <>
-              <Check className="icon-xs mr-1" />
-              Copied
+              <Check className={`${isMobile ? "icon-[10px]" : "icon-xs"} mr-1`} />
+              {!isMobile && "Copied"}
             </>
           ) : (
             <>
-              <Copy className="icon-xs mr-1" />
-              Copy
+              <Copy className={`${isMobile ? "icon-[10px]" : "icon-xs"} mr-1`} />
+              {!isMobile && "Copy"}
             </>
           )}
         </Button>
@@ -117,9 +132,9 @@ function JsonRenderer({
           style={isDark ? oneDark : oneLight}
           customStyle={{
             margin: 0,
-            padding: "1rem",
+            padding: isMobile ? "0.5rem" : "1rem",
             background: "transparent",
-            fontSize: "0.875rem",
+            fontSize: isMobile ? "0.75rem" : "0.875rem",
             lineHeight: "1.6",
           }}
           PreTag="div"
@@ -127,7 +142,11 @@ function JsonRenderer({
           {jsonString}
         </SyntaxHighlighter>
         {isStreaming && (
-          <span className="absolute bottom-2 right-2 inline-block w-2 h-4 bg-primary/50 animate-pulse" />
+          <span
+            className={`absolute inline-block bg-primary/50 animate-pulse ${
+              isMobile ? "bottom-1 right-1 w-1.5 h-3" : "bottom-2 right-2 w-2 h-4"
+            }`}
+          />
         )}
       </div>
     </div>
@@ -140,28 +159,46 @@ function JsonRenderer({
 function ThinkingRenderer({
   thinking,
   isStreaming,
+  isMobile = false,
 }: {
   thinking: string;
   isStreaming: boolean;
+  isMobile?: boolean;
 }): React.ReactElement {
   const parsedJson = useMemo(() => parseJsonFromText(thinking), [thinking]);
 
   return (
-    <div className="rounded border border-amber-500/20 bg-amber-500/5 p-4">
-      <div className="flex items-center gap-2 mb-3">
+    <div
+      className={`rounded border border-amber-500/20 bg-amber-500/5 ${
+        isMobile ? "p-2" : "p-4"
+      }`}
+    >
+      <div className={`flex items-center gap-2 ${isMobile ? "mb-2" : "mb-3"}`}>
         <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-          <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide">
+          <div
+            className={`rounded-full bg-amber-500 animate-pulse ${
+              isMobile ? "w-1.5 h-1.5" : "w-2 h-2"
+            }`}
+          />
+          <span
+            className={`font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide ${
+              isMobile ? "text-[10px]" : "text-xs"
+            }`}
+          >
             Thinking Process
           </span>
         </div>
       </div>
 
       {parsedJson ? (
-        <div className="space-y-3">
+        <div className={isMobile ? "space-y-2" : "space-y-3"}>
           {/* Text before JSON */}
           {parsedJson.remainingText && (
-            <div className="text-sm text-muted-foreground italic whitespace-pre-wrap break-words font-mono leading-relaxed">
+            <div
+              className={`text-muted-foreground italic whitespace-pre-wrap break-words font-mono leading-relaxed ${
+                isMobile ? "text-xs" : "text-sm"
+              }`}
+            >
               {parsedJson.remainingText}
             </div>
           )}
@@ -170,13 +207,22 @@ function ThinkingRenderer({
             json={parsedJson.json}
             isDark={false}
             isStreaming={isStreaming}
+            isMobile={isMobile}
           />
         </div>
       ) : (
-        <div className="text-sm text-muted-foreground italic whitespace-pre-wrap break-words font-mono leading-relaxed">
+        <div
+          className={`text-muted-foreground italic whitespace-pre-wrap break-words font-mono leading-relaxed ${
+            isMobile ? "text-xs" : "text-sm"
+          }`}
+        >
           {thinking}
           {isStreaming && (
-            <span className="inline-block w-2 h-4 ml-1 bg-amber-500/50 animate-pulse" />
+            <span
+              className={`inline-block ml-1 bg-amber-500/50 animate-pulse ${
+                isMobile ? "w-1.5 h-3" : "w-2 h-4"
+              }`}
+            />
           )}
         </div>
       )}
@@ -195,11 +241,13 @@ function CodeBlock({
   language,
   codeString,
   isDark,
+  isMobile = false,
   ...rest
 }: {
   language: string;
   codeString: string;
   isDark: boolean;
+  isMobile?: boolean;
   [key: string]: unknown;
 }): React.ReactElement {
   const [copied, setCopied] = React.useState(false);
@@ -211,26 +259,38 @@ function CodeBlock({
   };
 
   return (
-    <div className="my-4 rounded border border-border bg-muted/30 overflow-hidden shadow-sm">
-      <div className="flex items-center justify-between bg-muted/50 px-4 py-2 border-b border-border">
-        <span className="text-xs font-mono text-muted-foreground">
+    <div
+      className={`rounded border border-border bg-muted/30 overflow-hidden shadow-sm ${
+        isMobile ? "my-2" : "my-4"
+      }`}
+    >
+      <div
+        className={`flex items-center justify-between bg-muted/50 border-b border-border ${
+          isMobile ? "px-2 py-1.5" : "px-4 py-2"
+        }`}
+      >
+        <span
+          className={`font-mono text-muted-foreground ${
+            isMobile ? "text-[10px]" : "text-xs"
+          }`}
+        >
           {language}
         </span>
         <Button
           variant="ghost"
           size="sm"
           onClick={handleCopy}
-          className="h-6 px-2 text-xs"
+          className={isMobile ? "h-6 px-1.5 text-[10px]" : "h-6 px-2 text-xs"}
         >
           {copied ? (
             <>
-              <Check className="icon-xs mr-1" />
-              Copied
+              <Check className={`${isMobile ? "icon-[10px]" : "icon-xs"} mr-1`} />
+              {!isMobile && "Copied"}
             </>
           ) : (
             <>
-              <Copy className="icon-xs mr-1" />
-              Copy
+              <Copy className={`${isMobile ? "icon-[10px]" : "icon-xs"} mr-1`} />
+              {!isMobile && "Copy"}
             </>
           )}
         </Button>
@@ -240,9 +300,9 @@ function CodeBlock({
         style={isDark ? oneDark : oneLight}
         customStyle={{
           margin: 0,
-          padding: "1rem",
+          padding: isMobile ? "0.5rem" : "1rem",
           background: "transparent",
-          fontSize: "0.875rem",
+          fontSize: isMobile ? "0.75rem" : "0.875rem",
           lineHeight: "1.6",
         }}
         PreTag="div"
@@ -254,7 +314,7 @@ function CodeBlock({
   );
 }
 
-function createMarkdownComponents(isDark: boolean) {
+function createMarkdownComponents(isDark: boolean, isMobile: boolean) {
   return {
     // Code blocks with syntax highlighting
     code(props: {
@@ -273,6 +333,7 @@ function createMarkdownComponents(isDark: boolean) {
             language={match[1]}
             codeString={codeString}
             isDark={isDark}
+            isMobile={isMobile}
             {...rest}
           />
         );
@@ -281,7 +342,9 @@ function createMarkdownComponents(isDark: boolean) {
       // Inline code
       return (
         <code
-          className="px-1.5 py-0.5 rounded bg-muted text-foreground font-mono text-sm border border-border/50"
+          className={`rounded bg-muted text-foreground font-mono border border-border/50 ${
+            isMobile ? "px-1 py-0.5 text-xs" : "px-1.5 py-0.5 text-sm"
+          }`}
           {...rest}
         >
           {children}
@@ -291,50 +354,96 @@ function createMarkdownComponents(isDark: boolean) {
 
     // Headings
     h1: ({ children }: { children?: React.ReactNode }) => (
-      <h1 className="text-2xl font-bold mt-6 mb-4 text-foreground">
+      <h1
+        className={`font-bold text-foreground ${
+          isMobile
+            ? "text-lg mt-3 mb-2"
+            : "text-2xl mt-6 mb-4"
+        }`}
+      >
         {children}
       </h1>
     ),
     h2: ({ children }: { children?: React.ReactNode }) => (
-      <h2 className="text-xl font-semibold mt-5 mb-3 text-foreground">
+      <h2
+        className={`font-semibold text-foreground ${
+          isMobile
+            ? "text-base mt-2.5 mb-1.5"
+            : "text-xl mt-5 mb-3"
+        }`}
+      >
         {children}
       </h2>
     ),
     h3: ({ children }: { children?: React.ReactNode }) => (
-      <h3 className="text-lg font-semibold mt-4 mb-2 text-foreground">
+      <h3
+        className={`font-semibold text-foreground ${
+          isMobile
+            ? "text-sm mt-2 mb-1"
+            : "text-lg mt-4 mb-2"
+        }`}
+      >
         {children}
       </h3>
     ),
     h4: ({ children }: { children?: React.ReactNode }) => (
-      <h4 className="text-base font-semibold mt-3 mb-2 text-foreground">
+      <h4
+        className={`font-semibold text-foreground ${
+          isMobile
+            ? "text-xs mt-1.5 mb-1"
+            : "text-base mt-3 mb-2"
+        }`}
+      >
         {children}
       </h4>
     ),
 
     // Paragraphs
     p: ({ children }: { children?: React.ReactNode }) => (
-      <p className="mb-4 leading-relaxed text-foreground">{children}</p>
+      <p
+        className={`leading-relaxed text-foreground ${
+          isMobile ? "mb-2 text-xs" : "mb-4"
+        }`}
+      >
+        {children}
+      </p>
     ),
 
     // Lists
     ul: ({ children }: { children?: React.ReactNode }) => (
-      <ul className="list-disc list-inside mb-4 space-y-1 text-foreground">
+      <ul
+        className={`list-disc list-inside text-foreground ${
+          isMobile ? "mb-2 space-y-0.5" : "mb-4 space-y-1"
+        }`}
+      >
         {children}
       </ul>
     ),
     ol: ({ children }: { children?: React.ReactNode }) => (
-      <ol className="list-decimal list-inside mb-4 space-y-1 text-foreground">
+      <ol
+        className={`list-decimal list-inside text-foreground ${
+          isMobile ? "mb-2 space-y-0.5" : "mb-4 space-y-1"
+        }`}
+      >
         {children}
       </ol>
     ),
     li: ({ children }: { children?: React.ReactNode }) => (
-      <li className="ml-4 mb-1 leading-relaxed">{children}</li>
+      <li
+        className={`leading-relaxed ${isMobile ? "ml-2 mb-0.5 text-xs" : "ml-4 mb-1"}`}
+      >
+        {children}
+      </li>
     ),
 
     // Tables
     table: ({ children }: { children?: React.ReactNode }) => (
-      <div className="my-4 overflow-x-auto">
-        <table className="min-w-full border-collapse border border-border rounded">
+      <div className={isMobile ? "my-2 overflow-x-auto" : "my-4 overflow-x-auto"}>
+        <table
+          className={`min-w-full border-collapse border border-border rounded ${
+            isMobile ? "text-xs" : ""
+          }`}
+        >
           {children}
         </table>
       </div>
@@ -351,19 +460,33 @@ function createMarkdownComponents(isDark: boolean) {
       </tr>
     ),
     th: ({ children }: { children?: React.ReactNode }) => (
-      <th className="px-4 py-2 text-left font-semibold text-foreground border-r border-border last:border-r-0">
+      <th
+        className={`text-left font-semibold text-foreground border-r border-border last:border-r-0 ${
+          isMobile ? "px-2 py-1 text-[10px]" : "px-4 py-2"
+        }`}
+      >
         {children}
       </th>
     ),
     td: ({ children }: { children?: React.ReactNode }) => (
-      <td className="px-4 py-2 text-foreground border-r border-border last:border-r-0">
+      <td
+        className={`text-foreground border-r border-border last:border-r-0 ${
+          isMobile ? "px-2 py-1 text-[10px]" : "px-4 py-2"
+        }`}
+      >
         {children}
       </td>
     ),
 
     // Blockquotes
     blockquote: ({ children }: { children?: React.ReactNode }) => (
-      <blockquote className="border-l-4 border-primary/50 pl-4 py-2 my-4 italic text-muted-foreground bg-muted/20 rounded-r">
+      <blockquote
+        className={`border-l-4 border-primary/50 italic text-muted-foreground bg-muted/20 rounded-r ${
+          isMobile
+            ? "pl-2 py-1 my-2 text-xs"
+            : "pl-4 py-2 my-4"
+        }`}
+      >
         {children}
       </blockquote>
     ),
@@ -418,6 +541,7 @@ export function MessageRenderer({
   isStreaming = false,
   className,
 }: MessageRendererProps): React.ReactElement {
+  const isMobile = useMobile();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
@@ -428,29 +552,38 @@ export function MessageRenderer({
   }, [content]);
 
   const markdownComponents = useMemo(
-    () => createMarkdownComponents(isDark),
-    [isDark],
+    () => createMarkdownComponents(isDark, isMobile),
+    [isDark, isMobile],
   );
 	
 	return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn(isMobile ? "space-y-2" : "space-y-4", className)}>
       {/* Thinking section */}
       {thinking && thinking.length > 0 && (
-        <ThinkingRenderer thinking={thinking} isStreaming={isStreaming} />
+        <ThinkingRenderer
+          thinking={thinking}
+          isStreaming={isStreaming}
+          isMobile={isMobile}
+        />
       )}
 
       {/* Content section */}
       {parsedContent ? (
-        <div className="space-y-4">
+        <div className={isMobile ? "space-y-2" : "space-y-4"}>
           {/* JSON block */}
           <JsonRenderer
             json={parsedContent.json}
             isDark={isDark}
             isStreaming={isStreaming}
+            isMobile={isMobile}
           />
           {/* Remaining text after JSON */}
           {parsedContent.remainingText && (
-            <div className="prose prose-sm dark:prose-invert max-w-none">
+            <div
+              className={`prose dark:prose-invert max-w-none ${
+                isMobile ? "prose-xs" : "prose-sm"
+              }`}
+            >
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw]}
@@ -462,7 +595,11 @@ export function MessageRenderer({
           )}
         </div>
       ) : (
-        <div className="prose prose-sm dark:prose-invert max-w-none">
+        <div
+          className={`prose dark:prose-invert max-w-none ${
+            isMobile ? "prose-xs" : "prose-sm"
+          }`}
+        >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeRaw]}
@@ -473,15 +610,35 @@ export function MessageRenderer({
 
           {/* Streaming indicator */}
           {isStreaming && content && (
-            <span className="inline-block w-2 h-4 ml-1 bg-foreground/50 animate-pulse" />
+            <span
+              className={`inline-block ml-1 bg-foreground/50 animate-pulse ${
+                isMobile ? "w-1.5 h-3" : "w-2 h-4"
+              }`}
+            />
           )}
 
           {/* Loading indicator when no content */}
           {!content && isStreaming && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-              <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse delay-75" />
-              <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse delay-150" />
+            <div
+              className={`flex items-center gap-2 text-muted-foreground ${
+                isMobile ? "gap-1" : "gap-2"
+              }`}
+            >
+              <span
+                className={`rounded-full bg-current animate-pulse ${
+                  isMobile ? "w-1 h-1" : "w-1.5 h-1.5"
+                }`}
+              />
+              <span
+                className={`rounded-full bg-current animate-pulse delay-75 ${
+                  isMobile ? "w-1 h-1" : "w-1.5 h-1.5"
+                }`}
+              />
+              <span
+                className={`rounded-full bg-current animate-pulse delay-150 ${
+                  isMobile ? "w-1 h-1" : "w-1.5 h-1.5"
+                }`}
+              />
             </div>
           )}
         </div>

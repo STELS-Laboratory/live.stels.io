@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { Bot, FileText, User } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useMobile } from "@/hooks/use_mobile";
 import { cn } from "@/lib/utils";
 import type { ChatTab as ChatTabType } from "../types";
 import { MessageRenderer } from "./message-renderer";
@@ -25,6 +26,7 @@ export function ChatTab({
   tab,
   isActive,
 }: ChatTabProps): React.ReactElement {
+  const isMobile = useMobile();
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
   const isStreamingRef = useRef(false);
@@ -151,17 +153,32 @@ export function ChatTab({
       )}
     >
       <ScrollArea className="flex-1 min-h-0" ref={scrollRef}>
-        <div className="p-4 space-y-4">
+        <div className={`${isMobile ? "p-1.5" : "p-4"} ${isMobile ? "space-y-1.5" : "space-y-4"}`}>
           {tab.messages.length === 0
             ? (
-              <div className="flex flex-col items-center justify-center h-[100%] min-h-[400px] text-center">
-                <Bot className="icon-2xl text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">
+              <div
+                className={`flex flex-col items-center justify-center h-[100%] text-center ${
+                  isMobile ? "min-h-[150px] px-1" : "min-h-[400px]"
+                }`}
+              >
+                <Bot
+                  className={`text-muted-foreground ${
+                    isMobile ? "w-8 h-8 mb-2" : "icon-2xl mb-4"
+                  }`}
+                />
+                <h3
+                  className={`font-semibold text-foreground ${
+                    isMobile ? "text-xs mb-1" : "text-lg mb-2"
+                  }`}
+                >
                   Start a conversation
                 </h3>
-                <p className="text-sm text-muted-foreground max-w-md">
-                  Select a model and start chatting. You can attach files for
-                  context.
+                <p
+                  className={`text-muted-foreground ${
+                    isMobile ? "text-[10px]" : "text-sm"
+                  } ${isMobile ? "max-w-full px-1" : "max-w-md"}`}
+                >
+                  Select a model and start chatting
                 </p>
               </div>
             )
@@ -176,21 +193,31 @@ export function ChatTab({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2 }}
                     className={cn(
-                      "flex gap-3",
+                      `flex ${isMobile ? "gap-1.5" : "gap-3"}`,
                       message.role === "user" ? "justify-end" : "justify-start",
                     )}
                   >
                     {message.role === "assistant" && (
                       <div className="flex-shrink-0">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <Bot className="icon-sm text-primary" />
+                        <div
+                          className={`rounded-full bg-primary/10 flex items-center justify-center ${
+                            isMobile ? "w-5 h-5" : "w-8 h-8"
+                          }`}
+                        >
+                          <Bot
+                            className={`text-primary ${
+                              isMobile ? "w-3 h-3" : "icon-sm"
+                            }`}
+                          />
                         </div>
                       </div>
                     )}
 
                     <div
                       className={cn(
-                        "rounded px-4 py-3 max-w-[80%]",
+                        `rounded ${isMobile ? "px-2 py-1.5" : "px-4 py-3"} ${
+                          isMobile ? "max-w-[88%]" : "max-w-[80%]"
+                        }`,
                         message.role === "user"
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted text-foreground",
@@ -205,34 +232,56 @@ export function ChatTab({
                           />
                         )
                         : (
-                          <div className="text-sm whitespace-pre-wrap break-words">
+                          <div
+                            className={`whitespace-pre-wrap break-words ${
+                              isMobile ? "text-xs" : "text-sm"
+                            }`}
+                          >
                             {message.content}
                           </div>
                         )}
 
                       {message.contextFiles &&
                         message.contextFiles.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-border/50 flex flex-wrap gap-1">
+                        <div
+                          className={`border-t border-border/50 flex flex-wrap gap-0.5 ${
+                            isMobile ? "mt-1.5 pt-1.5" : "mt-3 pt-3"
+                          }`}
+                        >
                           {message.contextFiles.map((fileName) => (
                             <span
                               key={fileName}
-                              className="text-xs flex items-center gap-1 text-muted-foreground"
+                              className={`flex items-center gap-0.5 text-muted-foreground ${
+                                isMobile ? "text-[9px]" : "text-xs"
+                              }`}
                             >
-                              <FileText className="icon-xs" />
+                              <FileText className={isMobile ? "w-2.5 h-2.5" : "icon-xs"} />
                               {fileName}
                             </span>
                           ))}
                         </div>
                       )}
-                      <div className="text-xs mt-2 opacity-70">
+                      <div
+                        className={`mt-1 opacity-60 ${
+                          isMobile ? "text-[9px]" : "text-xs"
+                        }`}
+                      >
                         {new Date(message.timestamp).toLocaleTimeString()}
                       </div>
                     </div>
 
                     {message.role === "user" && (
                       <div className="flex-shrink-0">
-                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                          <User className="icon-sm text-foreground" />
+                        <div
+                          className={`rounded-full bg-muted flex items-center justify-center ${
+                            isMobile ? "w-5 h-5" : "w-8 h-8"
+                          }`}
+                        >
+                          <User
+                            className={`text-foreground ${
+                              isMobile ? "w-3 h-3" : "icon-sm"
+                            }`}
+                          />
                         </div>
                       </div>
                     )}
