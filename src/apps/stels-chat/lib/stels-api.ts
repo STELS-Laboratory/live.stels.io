@@ -15,6 +15,9 @@ import type {
   CreateAssistantRequest,
   UpdateAssistantRequest,
   ListAssistantsFilters,
+  ModelRegistryEntry,
+  RegisterModelRequest,
+  ListRegisteredModelsRequest,
 } from "../types";
 
 export class StelsApiService {
@@ -442,17 +445,32 @@ export class StelsApiService {
   private async makeWebfixRequest(
     method: string,
     body: unknown,
-    networkId: string = "testnet",
+    networkId?: string,
   ): Promise<unknown> {
+    const requestBody: {
+      webfix: string;
+      method: string;
+      params?: string[];
+      body?: unknown;
+    } = {
+      webfix: "1.0",
+      method,
+    };
+
+    // Only add params if networkId is provided
+    if (networkId) {
+      requestBody.params = [networkId];
+    }
+
+    // Only add body if it's provided and not empty
+    if (body !== undefined && body !== null) {
+      requestBody.body = body;
+    }
+
     const response = await fetch(`${this.baseUrl}/`, {
       method: "POST",
       headers: this.getHeaders(),
-      body: JSON.stringify({
-        webfix: "1.0",
-        method,
-        params: [networkId],
-        body,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -571,6 +589,85 @@ export class StelsApiService {
       { id: assistantId },
       networkId,
     );
+  }
+
+  /**
+   * List available models from Ollama (WebFIX RPC)
+   */
+  async stelsListModels(): Promise<StelsModel[]> {
+    const data = (await this.makeWebfixRequest(
+      "stelsListModels",
+      undefined,
+    )) as {
+      result?: { models?: StelsModel[] };
+    };
+
+    return data.result?.models || [];
+  }
+
+  /**
+   * Pull model from Ollama registry
+   * Automatically registers model in registry if user is developer/owner
+   */
+  async stelsPullModel(modelName: string): Promise<void> {
+    const data = (await this.makeWebfixRequest(
+      "stelsPullModel",
+      { name: modelName },
+    )) as {
+      result?: { success?: boolean; response?: { status?: string } };
+    };
+
+    if (!data.result?.success) {
+      throw new Error("Failed to pull model");
+    }
+  }
+
+  /**
+   * Register model in model registry
+   * Requires developer or owner role
+   */
+  async registerModel(
+    config: RegisterModelRequest,
+  ): Promise<ModelRegistryEntry> {
+    const data = (await this.makeWebfixRequest(
+      "registerModel",
+      config,
+    )) as {
+      result?: { model?: ModelRegistryEntry };
+    };
+
+    if (!data.result?.model) {
+      throw new Error("Failed to register model: invalid response");
+    }
+
+    return data.result.model;
+  }
+
+  /**
+   * Unregister model from model registry
+   * Requires developer or owner role
+   */
+  async unregisterModel(modelName: string): Promise<void> {
+    await this.makeWebfixRequest(
+      "unregisterModel",
+      { name: modelName },
+    );
+  }
+
+  /**
+   * List registered models from model registry
+   */
+  async listRegisteredModels(
+    filters?: ListRegisteredModelsRequest,
+  ): Promise<ModelRegistryEntry[]> {
+    const data = (await this.makeWebfixRequest(
+      "listRegisteredModels",
+      filters || {},
+    )) as {
+      result?: { models?: ModelRegistryEntry[] };
+    };
+
+    return data.result?.models || [];
   }
 }
 

@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { useStelsChatStore } from "../store";
 import { useAuthStore } from "@/stores/modules/auth.store";
 import { ModelCreator } from "./model-creator";
+import { CheckCircle2 } from "lucide-react";
 
 interface ModelSelectorProps {
   tabId: string;
@@ -39,6 +40,7 @@ export function ModelSelector({
 }: ModelSelectorProps): React.ReactElement {
   const {
     models,
+    registeredModels,
     tabs,
     fetchModels,
     selectModel,
@@ -47,6 +49,7 @@ export function ModelSelector({
     testConnection,
   } = useStelsChatStore();
   const { connectionSession } = useAuthStore();
+  const isDeveloper = connectionSession?.developer || false;
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCreator, setShowCreator] = useState(false);
 
@@ -64,6 +67,11 @@ export function ModelSelector({
         const connected = await testConnection();
         if (connected) {
           await fetchModels();
+          // Also load registered models to show status (only for developers)
+          if (isDeveloper) {
+            const { listRegisteredModels } = useStelsChatStore.getState();
+            await listRegisteredModels();
+          }
         }
       } else {
         console.warn(
@@ -77,6 +85,7 @@ export function ModelSelector({
     testConnection,
     connectionSession?.session,
     connectionSession?.api,
+    isDeveloper,
   ]);
 
   const handleRefresh = async (): Promise<void> => {
@@ -122,16 +131,38 @@ export function ModelSelector({
               </div>
             )
             : (
-              models.map((model) => (
-                <SelectItem key={model.name} value={model.name}>
-                  <div className="flex items-center justify-between w-full">
-                    <span>{model.name}</span>
-                    <Badge variant="outline" className="ml-2 text-xs">
-                      {formatSize(model.size)}
-                    </Badge>
-                  </div>
-                </SelectItem>
-              ))
+              models.map((model) => {
+                const isRegistered = registeredModels.some(
+                  (rm) => rm.name === model.name,
+                );
+                const registeredModel = registeredModels.find(
+                  (rm) => rm.name === model.name,
+                );
+
+                return (
+                  <SelectItem key={model.name} value={model.name}>
+                    <div className="flex items-center justify-between w-full gap-2">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="truncate">{model.name}</span>
+                        {isRegistered && (
+                          <CheckCircle2
+                            className={cn(
+                              "icon-xs shrink-0",
+                              registeredModel?.status === "ready"
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-amber-600 dark:text-amber-400",
+                            )}
+                            title={`Registered (${registeredModel?.status})`}
+                          />
+                        )}
+                      </div>
+                      <Badge variant="outline" className="ml-2 text-xs shrink-0">
+                        {formatSize(model.size)}
+                      </Badge>
+                    </div>
+                  </SelectItem>
+                );
+              })
             )}
         </SelectContent>
       </Select>
@@ -148,34 +179,38 @@ export function ModelSelector({
         />
       </Button>
 
-      <Dialog open={showCreator} onOpenChange={setShowCreator}>
-        <DialogTrigger asChild>
-          <Button variant="ghost" size="icon" title="Create model">
-            <Plus className="icon-md" />
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Create New Model</DialogTitle>
-            <DialogDescription>
-              Create a custom Stels model with your own configuration and
-              parameters.
-            </DialogDescription>
-          </DialogHeader>
-          <ModelCreator onClose={() => setShowCreator(false)} />
-        </DialogContent>
-      </Dialog>
+      {isDeveloper && (
+        <>
+          <Dialog open={showCreator} onOpenChange={setShowCreator}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon" title="Create model">
+                <Plus className="icon-md" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Create New Model</DialogTitle>
+                <DialogDescription>
+                  Create a custom Stels model with your own configuration and
+                  parameters.
+                </DialogDescription>
+              </DialogHeader>
+              <ModelCreator onClose={() => setShowCreator(false)} />
+            </DialogContent>
+          </Dialog>
 
-      {selectedModel && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => handleDelete(selectedModel)}
-          disabled={isLoading}
-          title="Delete model"
-        >
-          <Trash2 className="icon-md text-destructive" />
-        </Button>
+          {selectedModel && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleDelete(selectedModel)}
+              disabled={isLoading}
+              title="Delete model"
+            >
+              <Trash2 className="icon-md text-destructive" />
+            </Button>
+          )}
+        </>
       )}
     </div>
   );

@@ -95,7 +95,7 @@ function getApiUrl(_network: string, nodeType?: string): string {
 	if (nodeType === "local") {
 		return "http://10.0.0.238:8088/";
 	}
-	return "https://live.stels.dev/";
+	return "https://beta.stels.dev/";
 }
 
 /**

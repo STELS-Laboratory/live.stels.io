@@ -431,8 +431,8 @@ export function MessageRenderer({
     () => createMarkdownComponents(isDark),
     [isDark],
   );
-
-  return (
+	
+	return (
     <div className={cn("space-y-4", className)}>
       {/* Thinking section */}
       {thinking && thinking.length > 0 && (

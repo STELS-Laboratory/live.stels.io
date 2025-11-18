@@ -132,6 +132,42 @@ export interface ListAssistantsFilters {
   tags?: string[];
 }
 
+/**
+ * Model Registry Types
+ */
+export type ModelStatus = "pending" | "downloading" | "ready" | "error";
+
+export interface ModelRegistryMetadata {
+  description?: string;
+  tags?: string[];
+  [key: string]: unknown;
+}
+
+export interface ModelRegistryEntry {
+  name: string;
+  registeredBy: string; // Wallet address
+  registeredAt: number;
+  status: ModelStatus;
+  lastChecked?: number;
+  error?: string;
+  metadata?: ModelRegistryMetadata;
+  versionstamp?: string;
+}
+
+export interface RegisterModelRequest {
+  name: string;
+  metadata?: ModelRegistryMetadata;
+}
+
+export interface UnregisterModelRequest {
+  name: string;
+}
+
+export interface ListRegisteredModelsRequest {
+  status?: ModelStatus;
+  registeredBy?: string;
+}
+
 export interface StelsApiResponse<T = unknown> {
   model?: string;
   created_at?: string;
@@ -158,6 +194,7 @@ export interface StelsChatState {
   tabs: ChatTab[];
   activeTabId: string | null;
   models: StelsModel[];
+  registeredModels: ModelRegistryEntry[];
   assistants: Assistant[];
   trainingFiles: TrainingFile[];
   stelsApiUrl: string;
@@ -191,6 +228,13 @@ export interface StelsChatActions {
   selectModel: (tabId: string, modelName: string) => void;
   createModel: (config: ModelConfig) => Promise<void>;
   deleteModel: (modelName: string) => Promise<void>;
+
+  // Model Registry
+  stelsListModels: () => Promise<StelsModel[]>;
+  stelsPullModel: (modelName: string) => Promise<void>;
+  registerModel: (config: RegisterModelRequest) => Promise<ModelRegistryEntry>;
+  unregisterModel: (modelName: string) => Promise<void>;
+  listRegisteredModels: (filters?: ListRegisteredModelsRequest) => Promise<void>;
 
   // Assistants
   fetchAssistants: (filters?: ListAssistantsFilters) => Promise<void>;

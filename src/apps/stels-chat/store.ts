@@ -6,20 +6,23 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import type {
-  StelsChatStore,
-  ChatTab,
-  ChatMessage,
-  TrainingFile,
-  ModelConfig,
-  Assistant,
-  CreateAssistantRequest,
-  UpdateAssistantRequest,
-  ListAssistantsFilters,
+	StelsChatStore,
+	ChatTab,
+	ChatMessage,
+	TrainingFile,
+	ModelConfig,
+	Assistant,
+	CreateAssistantRequest,
+	UpdateAssistantRequest,
+	ListAssistantsFilters,
+	ModelRegistryEntry,
+	RegisterModelRequest,
+	ListRegisteredModelsRequest, StelsModel,
 } from "./types";
 import { StelsApiService } from "./lib/stels-api";
 import { useAuthStore } from "@/stores/modules/auth.store";
 
-const DEFAULT_API_URL = "https://live.stels.dev";
+const DEFAULT_API_URL = "https://beta.stels.dev";
 
 /**
  * Get Stels API URL from user configuration
@@ -105,6 +108,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
           tabs: [],
           activeTabId: null,
           models: [],
+          registeredModels: [],
           assistants: [],
           trainingFiles: [],
           stelsApiUrl: getStelsApiUrl(),
@@ -681,6 +685,114 @@ export const useStelsChatStore = create<StelsChatStore>()(
               ),
             }));
           },
+
+          // Model Registry
+          stelsListModels: async (): Promise<StelsModel[]> => {
+            set({ isLoading: true, error: null });
+            try {
+              const service = getApiService();
+              const models = await service.stelsListModels();
+              set({ isLoading: false });
+              return models;
+            } catch (error) {
+              const errorMessage =
+                error instanceof Error
+                  ? error.message
+                  : "Failed to list models from Ollama";
+              set({ error: errorMessage, isLoading: false });
+              throw error;
+            }
+          },
+
+          stelsPullModel: async (modelName: string): Promise<void> => {
+            set({ isLoading: true, error: null });
+            try {
+              const service = getApiService();
+              await service.stelsPullModel(modelName);
+              // Refresh registered models after pull (auto-registration for developers)
+              await get().listRegisteredModels();
+              set({ isLoading: false });
+            } catch (error) {
+              const errorMessage =
+                error instanceof Error
+                  ? error.message
+                  : "Failed to pull model";
+              set({ error: errorMessage, isLoading: false });
+              throw error;
+            }
+          },
+
+          registerModel: async (
+            config: RegisterModelRequest,
+          ): Promise<ModelRegistryEntry> => {
+            set({ isLoading: true, error: null });
+            try {
+              const service = getApiService();
+              const model = await service.registerModel(config);
+              // Refresh registered models list
+              await get().listRegisteredModels();
+              set({ isLoading: false });
+              return model;
+            } catch (error) {
+              const errorMessage =
+                error instanceof Error
+                  ? error.message
+                  : "Failed to register model";
+              set({ error: errorMessage, isLoading: false });
+              throw error;
+            }
+          },
+
+          unregisterModel: async (modelName: string): Promise<void> => {
+            set({ isLoading: true, error: null });
+            try {
+              const service = getApiService();
+              await service.unregisterModel(modelName);
+              // Refresh registered models list
+              await get().listRegisteredModels();
+              set({ isLoading: false });
+            } catch (error) {
+              const errorMessage =
+                error instanceof Error
+                  ? error.message
+                  : "Failed to unregister model";
+              set({ error: errorMessage, isLoading: false });
+              throw error;
+            }
+          },
+
+          listRegisteredModels: async (
+            filters?: ListRegisteredModelsRequest,
+          ): Promise<void> => {
+            // Check if user is developer before attempting to list registered models
+            const authState = useAuthStore.getState();
+            const isDeveloper = authState.connectionSession?.developer || false;
+            
+            if (!isDeveloper) {
+              // Don't set error for non-developers, just silently skip
+              console.log("[StelsChat] listRegisteredModels skipped: user is not a developer");
+              return;
+            }
+
+            set({ isLoading: true, error: null });
+            try {
+              const service = getApiService();
+              const models = await service.listRegisteredModels(filters);
+              set({ registeredModels: models, isLoading: false });
+            } catch (error) {
+              const errorMessage =
+                error instanceof Error
+                  ? error.message
+                  : "Failed to list registered models";
+              // Only set error for developers
+              if (isDeveloper) {
+                set({ error: errorMessage, isLoading: false });
+              } else {
+                // Silently fail for non-developers
+                set({ isLoading: false });
+              }
+            }
+          },
         };
       },
       {
@@ -690,6 +802,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
           activeTabId: state.activeTabId,
           trainingFiles: state.trainingFiles,
           stelsApiUrl: state.stelsApiUrl,
+          registeredModels: state.registeredModels,
         }),
       },
     ),
