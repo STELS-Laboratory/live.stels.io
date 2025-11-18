@@ -485,7 +485,7 @@ export function ModelRegistry(): React.ReactElement {
                 Register Existing Model
               </Button>
             </div>
-            <div className="mt-6 p-4 bg-muted/50 rounded-lg max-w-md">
+            <div className="mt-6 p-4 bg-muted/50 rounded max-w-md">
               <p className="text-xs font-semibold mb-2">Popular models to start:</p>
               <div className="flex flex-wrap gap-2 justify-center">
                 {["llama2", "mistral", "codellama", "phi"].map((name) => (

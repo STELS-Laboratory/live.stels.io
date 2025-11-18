@@ -11,23 +11,12 @@ const STORE_NAME = "schemas";
 
 /**
  * Initialize IndexedDB database
+ * Ensures object store exists even if database was recreated after deletion
  */
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onerror = () => {
-      reject(new Error("Failed to open database"));
-    };
-
-    request.onsuccess = () => {
-      resolve(request.result);
-    };
-
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-
-      // Create object store if it doesn't exist
+    // Helper function to create object store
+    const createObjectStore = (db: IDBDatabase): void => {
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         const store = db.createObjectStore(STORE_NAME, { keyPath: "id" });
         store.createIndex("widgetKey", "widgetKey", { unique: true });
@@ -35,6 +24,60 @@ function openDatabase(): Promise<IDBDatabase> {
         store.createIndex("updatedAt", "updatedAt", { unique: false });
       }
     };
+
+    // Try to open database with retry logic
+    const attemptOpen = (version: number, retryCount = 0): void => {
+      const request = indexedDB.open(DB_NAME, version);
+
+      request.onerror = () => {
+        // If database doesn't exist or is being deleted, try creating it
+        if (retryCount < 3) {
+          // Wait a bit and retry with a new version
+          setTimeout(() => {
+            attemptOpen(version + 1, retryCount + 1);
+          }, 100 * (retryCount + 1));
+        } else {
+          reject(new Error("Failed to open database after retries"));
+        }
+      };
+
+      request.onsuccess = () => {
+        const db = request.result;
+        
+        // Ensure object store exists (in case database was recreated after deletion)
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          // Close current connection
+          db.close();
+          
+          // Reopen with incremented version to trigger onupgradeneeded
+          const upgradeVersion = version + 1;
+          const upgradeRequest = indexedDB.open(DB_NAME, upgradeVersion);
+          
+          upgradeRequest.onerror = () => {
+            reject(new Error("Failed to upgrade database"));
+          };
+          
+          upgradeRequest.onsuccess = () => {
+            resolve(upgradeRequest.result);
+          };
+          
+          upgradeRequest.onupgradeneeded = (event) => {
+            const upgradeDb = (event.target as IDBOpenDBRequest).result;
+            createObjectStore(upgradeDb);
+          };
+        } else {
+          resolve(db);
+        }
+      };
+
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        createObjectStore(db);
+      };
+    };
+
+    // Start with initial version
+    attemptOpen(DB_VERSION);
   });
 }
 

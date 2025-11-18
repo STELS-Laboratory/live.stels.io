@@ -804,7 +804,7 @@ function Welcome(): ReactElement {
                       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                       className="relative"
                     >
-                      <div className="relative bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-900 dark:from-zinc-800 dark:via-zinc-900 dark:to-black rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 shadow-xl overflow-hidden">
+                      <div className="relative bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-900 dark:from-zinc-800 dark:via-zinc-900 dark:to-black rounded sm:rounded-2xl p-4 sm:p-5 lg:p-6 shadow-xl overflow-hidden">
                         {/* Card Background Pattern - softer */}
                         <div className="absolute inset-0 opacity-5">
                           <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-amber-500 rounded-full -translate-y-12 translate-x-12" />
@@ -907,7 +907,7 @@ function Welcome(): ReactElement {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => navigateTo("wallet")}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-600 dark:bg-amber-500 hover:bg-amber-700 dark:hover:bg-amber-600 text-white rounded-lg font-medium text-sm transition-colors duration-200"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-600 dark:bg-amber-500 hover:bg-amber-700 dark:hover:bg-amber-600 text-white rounded font-medium text-sm transition-colors duration-200"
                       >
                         <Wallet className="w-4 h-4" />
                         <span>Open Wallet</span>
@@ -926,7 +926,7 @@ function Welcome(): ReactElement {
                           repeat: Infinity,
                           ease: "easeInOut",
                         }}
-                        className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-zinc-600 to-zinc-700 dark:from-zinc-700 dark:to-zinc-800 rounded-xl flex items-center justify-center shadow-md"
+                        className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-zinc-600 to-zinc-700 dark:from-zinc-700 dark:to-zinc-800 rounded flex items-center justify-center shadow-md"
                       >
                         <Fingerprint className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                       </motion.div>

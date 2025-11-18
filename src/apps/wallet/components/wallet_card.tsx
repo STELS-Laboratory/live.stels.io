@@ -71,7 +71,7 @@ export function WalletCard({
     >
       <div
         className={cn(
-          "relative bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-900 dark:from-zinc-800 dark:via-zinc-900 dark:to-black rounded-xl shadow-xl overflow-hidden",
+          "relative bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-900 dark:from-zinc-800 dark:via-zinc-900 dark:to-black rounded shadow-xl overflow-hidden",
           mobile ? "p-4" : "p-6",
         )}
       >

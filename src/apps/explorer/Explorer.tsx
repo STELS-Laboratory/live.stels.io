@@ -225,7 +225,7 @@ export default function Explorer(): React.ReactElement {
 					className="mb-8"
 				>
 					<div className="flex items-center gap-3 mb-2">
-						<div className="p-2 rounded-lg bg-primary/10">
+						<div className="p-2 rounded bg-primary/10">
 							<Search className="size-6 text-primary" />
 						</div>
 						<div>
@@ -562,7 +562,7 @@ export default function Explorer(): React.ReactElement {
 														setSelectedTransaction(tx);
 														setIsDetailsOpen(true);
 													}}
-													className="p-4 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors cursor-pointer"
+													className="p-4 rounded border border-border bg-card hover:bg-muted/50 transition-colors cursor-pointer"
 												>
 													<div className="flex items-start gap-4">
 														<div

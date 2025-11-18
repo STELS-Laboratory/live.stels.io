@@ -14,7 +14,7 @@ export default function OpenRawCanvas() {
 				<CardContent className="relative p-6">
 					<div className="flex items-start gap-4">
 						{/* Icon */}
-						<div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg">
+						<div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded flex items-center justify-center shadow-lg">
 							<Database className="w-6 h-6 text-zinc-950" />
 						</div>
 

@@ -115,7 +115,7 @@ const TokenItemWithBalance = React.memo(function TokenItemWithBalance({
         ease: [0.16, 1, 0.3, 1],
       }}
       className={cn(
-        "flex items-center rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors",
+        "flex items-center rounded border border-border bg-card hover:bg-muted/50 transition-colors",
         mobile ? "gap-2 p-3" : "gap-4 p-4",
       )}
     >

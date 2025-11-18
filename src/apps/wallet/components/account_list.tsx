@@ -131,7 +131,7 @@ export function AccountList({
 								}}
 								onClick={() => onAccountClick?.(account)}
 								className={cn(
-									"flex items-center rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors cursor-pointer",
+									"flex items-center rounded border border-border bg-card hover:bg-muted/50 transition-colors cursor-pointer",
 									mobile ? "gap-2 p-3" : "gap-4 p-4",
 								)}
 							>

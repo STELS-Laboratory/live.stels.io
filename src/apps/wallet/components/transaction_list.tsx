@@ -197,7 +197,7 @@ export function TransactionList({
                   setIsDetailsOpen(true);
                 }}
                 className={cn(
-                  "flex items-start rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors cursor-pointer",
+                  "flex items-start rounded border border-border bg-card hover:bg-muted/50 transition-colors cursor-pointer",
                   mobile ? "gap-2 p-3" : "gap-4 p-4",
                 )}
               >
