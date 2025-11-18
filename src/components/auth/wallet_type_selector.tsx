@@ -140,7 +140,7 @@ export function WalletTypeSelector(
               <div className="p-4 sm:p-5 md:p-6">
                 <div className="text-center space-y-3 sm:space-y-4">
                   <div className="flex justify-center">
-                    <div className="p-2 sm:p-3 rounded-lg bg-primary/20 border border-primary/40">
+                    <div className="p-2 sm:p-3 rounded bg-primary/20 border border-primary/40">
                       <Search className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                     </div>
                   </div>

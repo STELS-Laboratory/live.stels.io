@@ -99,7 +99,7 @@ export default function UpdatePrompt(): React.ReactElement | null {
               duration: 0.2,
               ease: "easeOut",
             }}
-            className="bg-card/95 backdrop-blur-sm border border-amber-500/40 rounded-xl shadow-2xl shadow-amber-500/10 overflow-hidden"
+            className="bg-card/95 backdrop-blur-sm border border-amber-500/40 rounded shadow-2xl shadow-amber-500/10 overflow-hidden"
           >
             {/* Header */}
             <div className="px-6 py-4 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border-b border-border/50 flex items-center justify-between">
@@ -114,9 +114,9 @@ export default function UpdatePrompt(): React.ReactElement | null {
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
-                  className="relative p-2.5 bg-gradient-to-br from-amber-500/20 to-amber-600/20 rounded-xl"
+                  className="relative p-2.5 bg-gradient-to-br from-amber-500/20 to-amber-600/20 rounded"
                 >
-                  <div className="absolute inset-0 bg-amber-500/10 rounded-xl blur-sm" />
+                  <div className="absolute inset-0 bg-amber-500/10 rounded blur-sm" />
                   <Download className="relative w-5 h-5 text-amber-600 dark:text-amber-400" />
                 </motion.div>
                 <div>

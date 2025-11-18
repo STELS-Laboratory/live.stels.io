@@ -395,7 +395,7 @@ export function SendTransactionDialog({
 					{selectedTokenId && currentBalance && (
 						<div className="space-y-2">
 							<Label>Current Balance</Label>
-							<div className="p-3 rounded-lg border bg-muted/30">
+							<div className="p-3 rounded border bg-muted/30">
 								<div className="flex items-center justify-between">
 									<span className="text-sm font-semibold">
 										{currentBalance.balance} {currentBalance.currency}

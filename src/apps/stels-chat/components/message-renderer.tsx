@@ -85,7 +85,7 @@ function JsonRenderer({
   };
 
   return (
-    <div className="my-4 rounded-lg border border-primary/20 bg-primary/5 overflow-hidden">
+    <div className="my-4 rounded border border-primary/20 bg-primary/5 overflow-hidden">
       <div className="flex items-center justify-between bg-primary/10 px-4 py-2 border-b border-primary/20">
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold text-primary uppercase tracking-wide">
@@ -147,7 +147,7 @@ function ThinkingRenderer({
   const parsedJson = useMemo(() => parseJsonFromText(thinking), [thinking]);
 
   return (
-    <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+    <div className="rounded border border-amber-500/20 bg-amber-500/5 p-4">
       <div className="flex items-center gap-2 mb-3">
         <div className="flex items-center gap-1.5">
           <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
@@ -211,7 +211,7 @@ function CodeBlock({
   };
 
   return (
-    <div className="my-4 rounded-lg border border-border bg-muted/30 overflow-hidden shadow-sm">
+    <div className="my-4 rounded border border-border bg-muted/30 overflow-hidden shadow-sm">
       <div className="flex items-center justify-between bg-muted/50 px-4 py-2 border-b border-border">
         <span className="text-xs font-mono text-muted-foreground">
           {language}
@@ -334,7 +334,7 @@ function createMarkdownComponents(isDark: boolean) {
     // Tables
     table: ({ children }: { children?: React.ReactNode }) => (
       <div className="my-4 overflow-x-auto">
-        <table className="min-w-full border-collapse border border-border rounded-lg">
+        <table className="min-w-full border-collapse border border-border rounded">
           {children}
         </table>
       </div>
@@ -402,7 +402,7 @@ function createMarkdownComponents(isDark: boolean) {
       <img
         src={src}
         alt={alt}
-        className="my-4 rounded-lg border border-border max-w-full h-auto"
+        className="my-4 rounded border border-border max-w-full h-auto"
       />
     ),
   };

@@ -190,7 +190,7 @@ export function ChatTab({
 
                     <div
                       className={cn(
-                        "rounded-lg px-4 py-3 max-w-[80%]",
+                        "rounded px-4 py-3 max-w-[80%]",
                         message.role === "user"
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted text-foreground",

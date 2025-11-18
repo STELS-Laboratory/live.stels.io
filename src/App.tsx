@@ -22,6 +22,7 @@ import { ProfessionalConnectionFlow } from "@/components/auth/professional_conne
 import { SecurityWarningDialog } from "@/components/auth/security_warning_dialog";
 import { SecurityWarningExtensions } from "@/components/auth/security_warning_extensions";
 import { SessionExpiredModal } from "@/components/auth/session_expired_modal";
+import { StorageScanDialog } from "@/components/auth/storage_scan_dialog";
 import UpdatePrompt from "@/components/main/update_prompt";
 import VersionCheckPrompt from "@/components/main/version_check_prompt";
 import ToastProvider from "@/components/main/toast_provider";
@@ -49,6 +50,7 @@ const AMIEditor = lazy(() =>
  */
 type AppState =
 	| "initializing"
+	| "scanning_storage"
 	| "hydrating"
 	| "checking_session"
 	| "authenticating"
@@ -130,6 +132,7 @@ export default function Dashboard(): React.ReactElement {
 	const [forceRender, setForceRender] = useState(false);
 	const [transitionProgress, setTransitionProgress] = useState(0);
 	const [isTransitioning, setIsTransitioning] = useState(false);
+	const [storageScanComplete, setStorageScanComplete] = useState(false);
 
 	// Set upgrade end date - you can modify this date as needed
 	const upgradeEndDate = useMemo(() => {
@@ -192,6 +195,8 @@ export default function Dashboard(): React.ReactElement {
 	const getTransitionDelay = useCallback(
 		(fromState: AppState, toState: AppState): number => {
 			const delays: Record<string, number> = {
+				"initializing->scanning_storage": 200,
+				"scanning_storage->hydrating": 200,
 				"initializing->hydrating": 200,
 				"hydrating->checking_session": 300,
 				"checking_session->authenticating": 150,
@@ -248,26 +253,44 @@ export default function Dashboard(): React.ReactElement {
 			});
 
 			switch (appState) {
-				case "initializing":
-					if (hasHydrated) {
-						const delay = getTransitionDelay("initializing", "hydrating");
-						await transitionToState("hydrating", delay);
-					}
-					break;
+			case "initializing": {
+				// Check for updates first
+				if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+					// Check for service worker updates
+					navigator.serviceWorker.getRegistrations().then((registrations) => {
+						registrations.forEach((registration) => {
+							registration.update();
+						});
+					});
+				}
+				// Move to storage scanning
+				const delay = getTransitionDelay("initializing", "scanning_storage");
+				await transitionToState("scanning_storage", delay, false);
+				break;
+			}
 
-				case "hydrating":
-					if (_hasHydrated || forceRender) {
-						const delay = getTransitionDelay("hydrating", "checking_session");
-						await transitionToState("checking_session", delay);
-					} else {
-						// Set timeout for forced render if hydration takes too long
-						const timer = setTimeout(() => {
-							console.log("[App] Store hydration timeout - forcing render");
-							setForceRender(true);
-						}, 800);
-						return () => clearTimeout(timer);
-					}
-					break;
+			case "scanning_storage": {
+				if (storageScanComplete) {
+					const delay = getTransitionDelay("scanning_storage", "hydrating");
+					await transitionToState("hydrating", delay);
+				}
+				break;
+			}
+
+			case "hydrating": {
+				if (_hasHydrated || forceRender) {
+					const delay = getTransitionDelay("hydrating", "checking_session");
+					await transitionToState("checking_session", delay);
+				} else {
+					// Set timeout for forced render if hydration takes too long
+					const timer = setTimeout(() => {
+						console.log("[App] Store hydration timeout - forcing render");
+						setForceRender(true);
+					}, 800);
+					return () => clearTimeout(timer);
+				}
+				break;
+			}
 
 				case "checking_session": {
 					const authStoreData = localStorage.getItem("auth-store");
@@ -333,28 +356,30 @@ export default function Dashboard(): React.ReactElement {
 					break;
 				}
 
-				case "authenticating":
-					// This state is handled by the auth flow component
-					// We'll transition out of this when auth is complete
-					// But allow explorer access without authentication
-					if (currentRoute === "explorer") {
-						console.log(
-							"[App] Explorer route requested during auth, allowing access",
-						);
-						const delay = getTransitionDelay("authenticating", "loading_app");
-						await transitionToState("loading_app", delay);
-					} else if (isAuthenticated && isConnected) {
-						const delay = getTransitionDelay("authenticating", "connecting");
-						await transitionToState("connecting", delay);
-					}
-					break;
+			case "authenticating": {
+				// This state is handled by the auth flow component
+				// We'll transition out of this when auth is complete
+				// But allow explorer access without authentication
+				if (currentRoute === "explorer") {
+					console.log(
+						"[App] Explorer route requested during auth, allowing access",
+					);
+					const delay = getTransitionDelay("authenticating", "loading_app");
+					await transitionToState("loading_app", delay);
+				} else if (isAuthenticated && isConnected) {
+					const delay = getTransitionDelay("authenticating", "connecting");
+					await transitionToState("connecting", delay);
+				}
+				break;
+			}
 
-				case "connecting":
-					if (isAuthenticated && isConnected) {
-						const delay = getTransitionDelay("connecting", "loading_app");
-						await transitionToState("loading_app", delay);
-					}
-					break;
+			case "connecting": {
+				if (isAuthenticated && isConnected) {
+					const delay = getTransitionDelay("connecting", "loading_app");
+					await transitionToState("loading_app", delay);
+				}
+				break;
+			}
 
 				case "loading_app": {
 					// Handle splash screen and final app loading
@@ -363,23 +388,25 @@ export default function Dashboard(): React.ReactElement {
 					break;
 				}
 
-				case "upgrading":
-					if (!upgrade) {
-						const delay = getTransitionDelay("upgrading", "ready");
-						await transitionToState("ready", delay);
-					}
-					break;
+			case "upgrading": {
+				if (!upgrade) {
+					const delay = getTransitionDelay("upgrading", "ready");
+					await transitionToState("ready", delay);
+				}
+				break;
+			}
 
-				case "ready":
-					if (upgrade) {
-						const delay = getTransitionDelay("ready", "upgrading");
-						await transitionToState("upgrading", delay, false);
-					}
-					// Handle splash screen completion
-					if (showSplash) {
-						setTimeout(() => setShowSplash(false), 300);
-					}
-					break;
+			case "ready": {
+				if (upgrade) {
+					const delay = getTransitionDelay("ready", "upgrading");
+					await transitionToState("upgrading", delay, false);
+				}
+				// Handle splash screen completion
+				if (showSplash) {
+					setTimeout(() => setShowSplash(false), 300);
+				}
+				break;
+			}
 			}
 		};
 
@@ -396,6 +423,7 @@ export default function Dashboard(): React.ReactElement {
 		currentRoute,
 		transitionToState,
 		getTransitionDelay,
+		storageScanComplete,
 	]);
 
 	// Mark heavy routes as loading during mount and when route changes
@@ -581,6 +609,7 @@ export default function Dashboard(): React.ReactElement {
 	const getStateMessage = (state: AppState): string => {
 		const messages: Record<AppState, string> = {
 			initializing: "Starting up...",
+			scanning_storage: "Checking storage...",
 			hydrating: "Loading your data...",
 			checking_session: "Checking authentication...",
 			authenticating: "Authenticating...",
@@ -753,6 +782,25 @@ export default function Dashboard(): React.ReactElement {
 	// Render based on app state
 	switch (appState) {
 		case "initializing":
+			return (
+				<>
+					{renderLoadingScreen(getStateMessage(appState))}
+					<TestModeNotice />
+				</>
+			);
+
+		case "scanning_storage":
+			return (
+				<>
+					<StorageScanDialog
+						onComplete={() => {
+							setStorageScanComplete(true);
+						}}
+					/>
+					<TestModeNotice />
+				</>
+			);
+
 		case "hydrating":
 		case "checking_session":
 			return (
