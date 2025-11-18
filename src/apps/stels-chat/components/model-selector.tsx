@@ -5,6 +5,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Plus, RefreshCw, Trash2 } from "lucide-react";
+import { useMobile } from "@/hooks/use_mobile";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -30,6 +31,7 @@ import { CheckCircle2 } from "lucide-react";
 
 interface ModelSelectorProps {
   tabId: string;
+  inSettings?: boolean;
 }
 
 /**
@@ -37,7 +39,9 @@ interface ModelSelectorProps {
  */
 export function ModelSelector({
   tabId,
+  inSettings = false,
 }: ModelSelectorProps): React.ReactElement {
+  const isMobile = useMobile();
   const {
     models,
     registeredModels,
@@ -88,6 +92,20 @@ export function ModelSelector({
     isDeveloper,
   ]);
 
+  // Auto-select first model if tab has no model and models are available
+  useEffect(() => {
+    if (tab && !tab.model && models.length > 0) {
+      const firstModel = models[0];
+      if (firstModel) {
+        console.log(
+          "[ModelSelector] Auto-selecting first model:",
+          firstModel.name,
+        );
+        selectModel(tabId, firstModel.name);
+      }
+    }
+  }, [tab, models, tabId, selectModel]);
+
   const handleRefresh = async (): Promise<void> => {
     setIsRefreshing(true);
     try {
@@ -114,14 +132,30 @@ export function ModelSelector({
   };
 
   return (
-    <div className="flex items-center gap-2 p-2 border-b border-border bg-card/30">
+    <div
+      className={`flex items-center ${
+        inSettings
+          ? "gap-2 p-0"
+          : `border-b border-border bg-card/30 ${
+              isMobile ? "gap-0.5 p-1 h-7" : "gap-2 p-2"
+            }`
+      }`}
+    >
       <Select
         value={selectedModel}
         onValueChange={(value) => selectModel(tabId, value)}
         disabled={isLoading || models.length === 0}
       >
-        <SelectTrigger className="w-[200px]">
-          <SelectValue placeholder="Select model" />
+        <SelectTrigger
+          className={
+            inSettings
+              ? "w-full"
+              : isMobile
+              ? "w-[100px] h-6 text-[10px] px-1.5"
+              : "w-[200px]"
+          }
+        >
+          <SelectValue placeholder={isMobile ? "Model" : "Select model"} />
         </SelectTrigger>
         <SelectContent>
           {models.length === 0
@@ -167,30 +201,51 @@ export function ModelSelector({
         </SelectContent>
       </Select>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleRefresh}
-        disabled={isRefreshing || isLoading}
-        title="Refresh models"
-      >
-        <RefreshCw
-          className={cn("icon-md", isRefreshing && "animate-spin")}
-        />
-      </Button>
+      {(!isMobile || inSettings) && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleRefresh}
+          disabled={isRefreshing || isLoading}
+          title="Refresh models"
+          className={inSettings ? "h-8 w-8" : ""}
+        >
+          <RefreshCw
+            className={cn(
+              inSettings ? "icon-sm" : "icon-md",
+              isRefreshing && "animate-spin",
+            )}
+          />
+        </Button>
+      )}
 
-      {isDeveloper && (
+      {isDeveloper && (!isMobile || inSettings) && (
         <>
           <Dialog open={showCreator} onOpenChange={setShowCreator}>
             <DialogTrigger asChild>
-              <Button variant="ghost" size="icon" title="Create model">
-                <Plus className="icon-md" />
+              <Button
+                variant="ghost"
+                size="icon"
+                title="Create model"
+                className={inSettings ? "h-8 w-8" : ""}
+              >
+                <Plus className={inSettings ? "icon-sm" : "icon-md"} />
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent
+              className={`overflow-y-auto ${
+                isMobile
+                  ? "max-w-full max-h-[95vh] rounded-t-2xl"
+                  : "max-w-2xl max-h-[90vh]"
+              }`}
+            >
               <DialogHeader>
-                <DialogTitle>Create New Model</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className={isMobile ? "text-base" : ""}>
+                  Create New Model
+                </DialogTitle>
+                <DialogDescription
+                  className={isMobile ? "text-xs" : ""}
+                >
                   Create a custom Stels model with your own configuration and
                   parameters.
                 </DialogDescription>
@@ -206,8 +261,13 @@ export function ModelSelector({
               onClick={() => handleDelete(selectedModel)}
               disabled={isLoading}
               title="Delete model"
+              className={inSettings ? "h-8 w-8" : ""}
             >
-              <Trash2 className="icon-md text-destructive" />
+              <Trash2
+                className={`text-destructive ${
+                  inSettings ? "icon-sm" : "icon-md"
+                }`}
+              />
             </Button>
           )}
         </>
