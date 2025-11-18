@@ -11,6 +11,7 @@ import { ChatTab } from "./components/chat-tab";
 import { ChatInput } from "./components/chat-input";
 import { ModelSelector } from "./components/model-selector";
 import { AssistantSelector } from "./components/assistant-selector";
+import { ModelRegistry } from "./components/model-registry";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 /**
  * Stels Chat Application Component
@@ -42,6 +44,7 @@ function StelsChat(): React.ReactElement {
   } = useStelsChatStore();
 
   const { connectionSession } = useAuthStore();
+  const isDeveloper = connectionSession?.developer || false;
 
   useEffect(() => {
     // Create initial tab if none exist
@@ -101,39 +104,51 @@ function StelsChat(): React.ReactElement {
               <Settings className="icon-md" />
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>API Settings</DialogTitle>
+              <DialogTitle>Settings</DialogTitle>
               <DialogDescription>
-                Stels API endpoint URL is automatically loaded from your
-                connection configuration. You can override it here if needed.
+                Configure API settings and manage model registry
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="apiUrl">Stels API URL</Label>
-                <Input
-                  id="apiUrl"
-                  value={stelsApiUrl}
-                  onChange={(e) => setApiUrl(e.target.value)}
-                  placeholder="https://live.stels.dev"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {connectionSession?.api
-                    ? `Using: ${connectionSession.api}`
-                    : "Default: https://live.stels.dev"}
-                </p>
-              </div>
-              <Button onClick={handleTestConnection} className="w-full">
-                Test Connection
-              </Button>
-              {isConnected && (
-                <Alert>
-                  <AlertCircle className="icon-sm" />
-                  <AlertDescription>Connected successfully</AlertDescription>
-                </Alert>
+            <Tabs defaultValue="api" className="w-full">
+              <TabsList className={isDeveloper ? "grid w-full grid-cols-2" : "w-full"}>
+                <TabsTrigger value="api">API Settings</TabsTrigger>
+                {isDeveloper && (
+                  <TabsTrigger value="registry">Model Registry</TabsTrigger>
+                )}
+              </TabsList>
+              <TabsContent value="api" className="space-y-4 mt-4">
+                <div>
+                  <Label htmlFor="apiUrl">Stels API URL</Label>
+                  <Input
+                    id="apiUrl"
+                    value={stelsApiUrl}
+                    onChange={(e) => setApiUrl(e.target.value)}
+                    placeholder="https://beta.stels.dev"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {connectionSession?.api
+                      ? `Using: ${connectionSession.api}`
+                      : "Default: https://beta.stels.dev"}
+                  </p>
+                </div>
+                <Button onClick={handleTestConnection} className="w-full">
+                  Test Connection
+                </Button>
+                {isConnected && (
+                  <Alert>
+                    <AlertCircle className="icon-sm" />
+                    <AlertDescription>Connected successfully</AlertDescription>
+                  </Alert>
+                )}
+              </TabsContent>
+              {isDeveloper && (
+                <TabsContent value="registry" className="mt-4">
+                  <ModelRegistry />
+                </TabsContent>
               )}
-            </div>
+            </Tabs>
           </DialogContent>
         </Dialog>
       </div>

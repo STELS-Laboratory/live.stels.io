@@ -104,8 +104,8 @@ const DEFAULT_NETWORKS: NetworkConfig[] = [
 	{
 		id: 'testnet',
 		name: 'Testnet',
-		api: 'https://live.stels.dev',
-		socket: 'wss://live.stels.dev',
+		api: 'https://beta.stels.dev',
+		socket: 'wss://beta.stels.dev',
 		developer: false,
 		description: 'Testnet network'
 	}

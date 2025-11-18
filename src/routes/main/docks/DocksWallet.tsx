@@ -733,7 +733,7 @@ const addrOk = Gliesereum.validateAddress(w.address)`}
 							<div className="flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-xs">
 								<Globe className="h-3.5 w-3.5 text-amber-400" />
 								<span className="text-zinc-400">Endpoint</span>
-								<span className="text-white">https://live.stels.dev</span>
+								<span className="text-white">https://beta.stels.dev</span>
 							</div>
 							<div className="flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-xs">
 								<Send className="h-3.5 w-3.5 text-amber-400" />
@@ -783,7 +783,7 @@ const addrOk = Gliesereum.validateAddress(w.address)`}
     "params": ["gliesereum"],
     "body": { "address": "ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv" }
   }' \
-  https://live.stels.dev`}
+  https://beta.stels.dev`}
 								</CodeBlock>
 							</div>
 						</div>
@@ -813,7 +813,7 @@ async function getWalletInfo(address: string) {
     body: { address },
   };
 
-  const res = await fetch("https://live.stels.dev", {
+  const res = await fetch("https://beta.stels.dev", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
