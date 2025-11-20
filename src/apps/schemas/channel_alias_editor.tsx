@@ -112,7 +112,7 @@ export default function ChannelAliasEditor({
           </span>
         </div>
         <code className="text-[10px] text-green-700 dark:text-green-600 font-mono block bg-background/50 px-2 py-1 rounded border border-border">
-          {"{self.raw.data.last}"} • {"{self.raw.exchange}"}
+          {"{self.raw.last}"} • {"{self.raw.exchange}"}
         </code>
       </div>
     );
@@ -129,7 +129,7 @@ export default function ChannelAliasEditor({
         </div>
         <div className="flex gap-2">
           <code className="flex-1 text-[10px] text-green-700 dark:text-green-600 font-mono block bg-background/50 px-2 py-1 rounded border border-border">
-            {"{self.raw.data.last}"}
+            {"{self.raw.last}"}
           </code>
           <code className="flex-1 text-[10px] text-blue-700 dark:text-blue-400 font-mono block bg-background/50 px-2 py-1 rounded border border-border">
             {`{${getAlias(channelKeys[0]) || "alias"}.raw...}`}

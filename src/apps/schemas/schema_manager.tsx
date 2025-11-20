@@ -313,7 +313,7 @@ export default function SchemaManager({
                             <div>
                               Use{" "}
                               <code className="text-green-700 dark:text-green-600">
-                                {"{"}self.raw.data.last{"}"}
+                                {"{"}self.raw.last{"}"}
                               </code>
                             </div>
                             <div className="text-xs text-muted-foreground mt-1">
@@ -327,7 +327,7 @@ export default function SchemaManager({
                             <div>
                               Select channels, set aliases, use{" "}
                               <code className="text-green-700 dark:text-green-600">
-                                {"{"}btc_ticker.raw.data.last{"}"}
+                                {"{"}btc_ticker.raw.last{"}"}
                               </code>
                             </div>
                           </div>

@@ -17,15 +17,13 @@ interface TickerData {
 	raw: {
 		exchange: string;
 		market: string;
-		data: {
-			last: number;
-			bid: number;
-			ask: number;
-			change: number;
-			percentage: number;
-			baseVolume: number;
-			quoteVolume: number;
-		};
+		last: number;
+		bid: number;
+		ask: number;
+		change: number;
+		percentage: number;
+		baseVolume: number;
+		quoteVolume: number;
 		timestamp: number;
 		latency: number;
 	};
@@ -94,8 +92,8 @@ export function useTokenPrice(
 				}
 			}
 
-			if (tickerData && tickerData.raw?.data?.last) {
-				const lastPrice = tickerData.raw.data.last;
+			if (tickerData && tickerData.raw?.last) {
+				const lastPrice = tickerData.raw.last;
 				setPrice(lastPrice);
 				setError(null);
 				setLoading(false);
@@ -158,7 +156,7 @@ export function useAllTokenPrices(
 		const priceMap = new Map<string, number>();
 
 		// Common token symbols to check
-		const symbols = ["BTC", "ETH", "SOL", "XRP", "BNB", "USDT"];
+		const symbols = ["BTC", "SQR", "ETH", "SOL", "XRP", "BNB", "USDT"];
 
 		for (const symbol of symbols) {
 			const channelKey = `${networkName}.runtime.ticker.${symbol}/USDT.bybit.spot`;
@@ -177,8 +175,8 @@ export function useAllTokenPrices(
 					}
 				}
 
-				if (tickerData?.raw?.data?.last) {
-					const newPrice = tickerData.raw.data.last;
+				if (tickerData?.raw?.last) {
+					const newPrice = tickerData.raw.last;
 					const oldPrice = pricesRef.current.get(symbol);
 					
 					// Only update if price actually changed significantly (> 0.1% or > 0.01 absolute)
