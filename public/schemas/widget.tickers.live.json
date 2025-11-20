@@ -43,7 +43,7 @@
                   "text": "$${self.raw.last}",
                   "format": {
                     "type": "number",
-                    "decimals": 2
+                    "decimals": 4
                   },
                   "style": {
                     "color": {

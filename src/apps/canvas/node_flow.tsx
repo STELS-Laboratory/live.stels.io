@@ -76,7 +76,7 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
 					const mergedChannelData: Record<string, unknown> = {};
 
 					// 1. IMPORTANT: In Canvas, "self" should always point to the widget's own data
-					// This ensures {self.raw.data.last} shows the widget's data, not aliases
+					// This ensures {self.raw.last} shows the widget's data, not aliases
 					if (sessionData) {
 						// Always use the widget's own channel data as "self"
 						mergedChannelData["self"] = sessionData;
