@@ -112,7 +112,7 @@
                     },
                     {
                       "type": "text",
-                      "text": "${btc_ticker.raw.data.last}",
+                      "text": "${btc_ticker.raw.last}",
                       "format": {
                         "type": "number",
                         "decimals": 1
@@ -125,7 +125,7 @@
                       "children": [
                         {
                           "type": "text",
-                          "text": "{btc_ticker.raw.data.percentage}%",
+                          "text": "{btc_ticker.raw.percentage}%",
                           "format": {
                             "type": "number",
                             "decimals": 2
@@ -134,7 +134,7 @@
                           "style": {
                             "className": {
                               "condition": {
-                                "key": "btc_ticker.raw.data.change",
+                                "key": "btc_ticker.raw.change",
                                 "operator": ">",
                                 "value": 0
                               },
@@ -145,7 +145,7 @@
                         },
                         {
                           "type": "text",
-                          "text": "{btc_ticker.raw.data.change}",
+                          "text": "{btc_ticker.raw.change}",
                           "format": {
                             "type": "number",
                             "decimals": 1,
@@ -155,7 +155,7 @@
                           "style": {
                             "color": {
                               "condition": {
-                                "key": "btc_ticker.raw.data.change",
+                                "key": "btc_ticker.raw.change",
                                 "operator": ">",
                                 "value": 0
                               },
@@ -181,7 +181,7 @@
                             },
                             {
                               "type": "text",
-                              "text": "{btc_ticker.raw.data.baseVolume} BTC",
+                              "text": "{btc_ticker.raw.baseVolume} BTC",
                               "format": {
                                 "type": "volume",
                                 "decimals": 2
@@ -201,7 +201,7 @@
                             },
                             {
                               "type": "text",
-                              "text": "${btc_ticker.raw.data.quoteVolume}",
+                              "text": "${btc_ticker.raw.quoteVolume}",
                               "format": {
                                 "type": "volume",
                                 "decimals": 0
@@ -236,7 +236,7 @@
                     },
                     {
                       "type": "text",
-                      "text": "${eth_ticker.raw.data.last}",
+                      "text": "${eth_ticker.raw.last}",
                       "format": {
                         "type": "number",
                         "decimals": 2
@@ -249,7 +249,7 @@
                       "children": [
                         {
                           "type": "text",
-                          "text": "{eth_ticker.raw.data.percentage}%",
+                          "text": "{eth_ticker.raw.percentage}%",
                           "format": {
                             "type": "number",
                             "decimals": 2
@@ -258,7 +258,7 @@
                           "style": {
                             "className": {
                               "condition": {
-                                "key": "eth_ticker.raw.data.change",
+                                "key": "eth_ticker.raw.change",
                                 "operator": ">",
                                 "value": 0
                               },
@@ -269,7 +269,7 @@
                         },
                         {
                           "type": "text",
-                          "text": "{eth_ticker.raw.data.change}",
+                          "text": "{eth_ticker.raw.change}",
                           "format": {
                             "type": "number",
                             "decimals": 2,
@@ -279,7 +279,7 @@
                           "style": {
                             "color": {
                               "condition": {
-                                "key": "eth_ticker.raw.data.change",
+                                "key": "eth_ticker.raw.change",
                                 "operator": ">",
                                 "value": 0
                               },
@@ -305,7 +305,7 @@
                             },
                             {
                               "type": "text",
-                              "text": "{eth_ticker.raw.data.baseVolume} ETH",
+                              "text": "{eth_ticker.raw.baseVolume} ETH",
                               "format": {
                                 "type": "volume",
                                 "decimals": 2
@@ -325,7 +325,7 @@
                             },
                             {
                               "type": "text",
-                              "text": "${eth_ticker.raw.data.quoteVolume}",
+                              "text": "${eth_ticker.raw.quoteVolume}",
                               "format": {
                                 "type": "volume",
                                 "decimals": 0
@@ -360,7 +360,7 @@
                     },
                     {
                       "type": "text",
-                      "text": "${sol_ticker.raw.data.last}",
+                      "text": "${sol_ticker.raw.last}",
                       "format": {
                         "type": "number",
                         "decimals": 2
@@ -373,7 +373,7 @@
                       "children": [
                         {
                           "type": "text",
-                          "text": "{sol_ticker.raw.data.percentage}%",
+                          "text": "{sol_ticker.raw.percentage}%",
                           "format": {
                             "type": "number",
                             "decimals": 2
@@ -382,7 +382,7 @@
                           "style": {
                             "className": {
                               "condition": {
-                                "key": "sol_ticker.raw.data.change",
+                                "key": "sol_ticker.raw.change",
                                 "operator": ">",
                                 "value": 0
                               },
@@ -393,7 +393,7 @@
                         },
                         {
                           "type": "text",
-                          "text": "{sol_ticker.raw.data.change}",
+                          "text": "{sol_ticker.raw.change}",
                           "format": {
                             "type": "number",
                             "decimals": 2,
@@ -403,7 +403,7 @@
                           "style": {
                             "color": {
                               "condition": {
-                                "key": "sol_ticker.raw.data.change",
+                                "key": "sol_ticker.raw.change",
                                 "operator": ">",
                                 "value": 0
                               },
@@ -429,7 +429,7 @@
                             },
                             {
                               "type": "text",
-                              "text": "{sol_ticker.raw.data.baseVolume} SOL",
+                              "text": "{sol_ticker.raw.baseVolume} SOL",
                               "format": {
                                 "type": "volume",
                                 "decimals": 2
@@ -449,7 +449,7 @@
                             },
                             {
                               "type": "text",
-                              "text": "${sol_ticker.raw.data.quoteVolume}",
+                              "text": "${sol_ticker.raw.quoteVolume}",
                               "format": {
                                 "type": "volume",
                                 "decimals": 0
