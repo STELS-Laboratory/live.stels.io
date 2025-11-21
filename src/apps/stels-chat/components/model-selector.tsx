@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { Plus, RefreshCw, Trash2 } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useMobile } from "@/hooks/use_mobile";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,19 +14,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useStelsChatStore } from "../store";
 import { useAuthStore } from "@/stores/modules/auth.store";
-import { ModelCreator } from "./model-creator";
 import { CheckCircle2 } from "lucide-react";
 
 interface ModelSelectorProps {
@@ -48,14 +39,12 @@ export function ModelSelector({
     tabs,
     fetchModels,
     selectModel,
-    deleteModel,
     isLoading,
     testConnection,
   } = useStelsChatStore();
   const { connectionSession } = useAuthStore();
   const isDeveloper = connectionSession?.developer || false;
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showCreator, setShowCreator] = useState(false);
 
   const tab = tabs.find((t) => t.id === tabId);
   const selectedModel = tab?.model || "";
@@ -112,22 +101,6 @@ export function ModelSelector({
       await fetchModels();
     } finally {
       setIsRefreshing(false);
-    }
-  };
-
-  const handleDelete = async (modelName: string): Promise<void> => {
-    if (
-      !confirm(
-        `Are you sure you want to delete model "${modelName}"? This action cannot be undone.`,
-      )
-    ) {
-      return;
-    }
-
-    try {
-      await deleteModel(modelName);
-    } catch (error) {
-      console.error("Failed to delete model:", error);
     }
   };
 
@@ -217,60 +190,6 @@ export function ModelSelector({
             )}
           />
         </Button>
-      )}
-
-      {isDeveloper && (!isMobile || inSettings) && (
-        <>
-          <Dialog open={showCreator} onOpenChange={setShowCreator}>
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                title="Create model"
-                className={inSettings ? "h-8 w-8" : ""}
-              >
-                <Plus className={inSettings ? "icon-sm" : "icon-md"} />
-              </Button>
-            </DialogTrigger>
-            <DialogContent
-              className={`overflow-y-auto ${
-                isMobile
-                  ? "max-w-full max-h-[95vh] rounded-t-2xl"
-                  : "max-w-2xl max-h-[90vh]"
-              }`}
-            >
-              <DialogHeader>
-                <DialogTitle className={isMobile ? "text-base" : ""}>
-                  Create New Model
-                </DialogTitle>
-                <DialogDescription
-                  className={isMobile ? "text-xs" : ""}
-                >
-                  Create a custom Stels model with your own configuration and
-                  parameters.
-                </DialogDescription>
-              </DialogHeader>
-              <ModelCreator onClose={() => setShowCreator(false)} />
-            </DialogContent>
-          </Dialog>
-
-          {selectedModel && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handleDelete(selectedModel)}
-              disabled={isLoading}
-              title="Delete model"
-              className={inSettings ? "h-8 w-8" : ""}
-            >
-              <Trash2
-                className={`text-destructive ${
-                  inSettings ? "icon-sm" : "icon-md"
-                }`}
-              />
-            </Button>
-          )}
-        </>
       )}
     </div>
   );
