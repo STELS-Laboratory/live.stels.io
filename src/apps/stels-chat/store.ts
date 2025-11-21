@@ -10,7 +10,6 @@ import type {
 	ChatTab,
 	ChatMessage,
 	TrainingFile,
-	ModelConfig,
 	Assistant,
 	CreateAssistantRequest,
 	UpdateAssistantRequest,
@@ -281,42 +280,6 @@ export const useStelsChatStore = create<StelsChatStore>()(
                   : tab,
               ),
             }));
-          },
-
-          createModel: async (config: ModelConfig): Promise<void> => {
-            set({ isLoading: true, error: null });
-            try {
-              const service = getApiService();
-              await service.createModel(config);
-              // Refresh models list
-              await get().fetchModels();
-              set({ isLoading: false });
-            } catch (error) {
-              const errorMessage =
-                error instanceof Error
-                  ? error.message
-                  : "Failed to create model";
-              set({ error: errorMessage, isLoading: false });
-              throw error;
-            }
-          },
-
-          deleteModel: async (modelName: string): Promise<void> => {
-            set({ isLoading: true, error: null });
-            try {
-              const service = getApiService();
-              await service.deleteModel(modelName);
-              // Refresh models list
-              await get().fetchModels();
-              set({ isLoading: false });
-            } catch (error) {
-              const errorMessage =
-                error instanceof Error
-                  ? error.message
-                  : "Failed to delete model";
-              set({ error: errorMessage, isLoading: false });
-              throw error;
-            }
           },
 
           // Files

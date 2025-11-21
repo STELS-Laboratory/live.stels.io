@@ -10,7 +10,6 @@
 import type {
   StelsModel,
   StelsApiResponse,
-  ModelConfig,
   Assistant,
   CreateAssistantRequest,
   UpdateAssistantRequest,
@@ -95,6 +94,7 @@ export class StelsApiService {
 
   /**
    * Get list of available models
+   * Returns models in OpenAI-compatible format: { data: Model[], object: "list" }
    */
   async getModels(): Promise<StelsModel[]> {
     const response = await fetch(`${this.baseUrl}/api/tags`, {
@@ -107,7 +107,22 @@ export class StelsApiService {
     }
 
     const data = await response.json();
-    return data.models || [];
+    // OpenAI-compatible format: { data: Model[], object: "list" }
+    // Convert to StelsModel format (id -> name)
+    const models = data.data || [];
+    return models.map((model: { id: string; object?: string; created?: number; owned_by?: string }) => ({
+      name: model.id,
+      model: model.id,
+      size: 0, // Size not available in OpenAI format
+      digest: "",
+      details: {
+        format: "",
+        family: "",
+        families: null,
+        parameter_size: "",
+        quantization_level: "",
+      },
+    }));
   }
 
   /**
@@ -147,17 +162,13 @@ export class StelsApiService {
   }
 
   /**
-   * Stream chat completion
-   * Uses POST /api/chat with stream: true
-   * Note: For SSE endpoint, use /api/stels/chat/stream
+   * Stream chat completion using Server-Sent Events (SSE)
+   * Uses GET /api/stels/chat/stream with query parameters
    */
   async *streamChat(
     model: string,
     messages: Array<{ role: string; content: string }>,
     options?: {
-      context?: number[];
-      format?: string;
-      keep_alive?: string;
       temperature?: number;
       top_p?: number;
       top_k?: number;
@@ -167,40 +178,43 @@ export class StelsApiService {
       stop?: string[];
     },
   ): AsyncGenerator<StelsApiResponse, void, unknown> {
-    const response = await fetch(`${this.baseUrl}/api/chat`, {
-      method: "POST",
+    // Build URL with query parameters
+    const messagesParam = encodeURIComponent(JSON.stringify(messages));
+    const urlParams = new URLSearchParams({
+      model: model,
+      messages: messagesParam,
+    });
+
+    // Add options as query parameters if provided
+    if (options) {
+      if (options.temperature !== undefined) {
+        urlParams.append("temperature", options.temperature.toString());
+      }
+      if (options.top_p !== undefined) {
+        urlParams.append("top_p", options.top_p.toString());
+      }
+      if (options.top_k !== undefined) {
+        urlParams.append("top_k", options.top_k.toString());
+      }
+      if (options.num_predict !== undefined) {
+        urlParams.append("num_predict", options.num_predict.toString());
+      }
+      if (options.repeat_penalty !== undefined) {
+        urlParams.append("repeat_penalty", options.repeat_penalty.toString());
+      }
+      if (options.seed !== undefined) {
+        urlParams.append("seed", options.seed.toString());
+      }
+      if (options.stop !== undefined && options.stop.length > 0) {
+        urlParams.append("stop", JSON.stringify(options.stop));
+      }
+    }
+
+    const url = `${this.baseUrl}/api/stels/chat/stream?${urlParams.toString()}`;
+
+    const response = await fetch(url, {
+      method: "GET",
       headers: this.getHeaders(),
-      body: JSON.stringify({
-        model,
-        messages,
-        stream: true,
-        context: options?.context,
-        format: options?.format,
-        keep_alive: options?.keep_alive,
-        options:
-          options?.temperature !== undefined ||
-          options?.top_p !== undefined ||
-          options?.top_k !== undefined ||
-          options?.num_predict !== undefined ||
-          options?.repeat_penalty !== undefined ||
-          options?.seed !== undefined ||
-          options?.stop !== undefined
-            ? (() => {
-                const opts: Record<string, unknown> = {};
-                if (options.temperature !== undefined)
-                  opts.temperature = options.temperature;
-                if (options.top_p !== undefined) opts.top_p = options.top_p;
-                if (options.top_k !== undefined) opts.top_k = options.top_k;
-                if (options.num_predict !== undefined)
-                  opts.num_predict = options.num_predict;
-                if (options.repeat_penalty !== undefined)
-                  opts.repeat_penalty = options.repeat_penalty;
-                if (options.seed !== undefined) opts.seed = options.seed;
-                if (options.stop !== undefined) opts.stop = options.stop;
-                return Object.keys(opts).length > 0 ? opts : undefined;
-              })()
-            : undefined,
-      }),
     });
 
     if (!response.ok) {
@@ -228,10 +242,24 @@ export class StelsApiService {
         buffer = lines.pop() || ""; // Keep incomplete line in buffer
 
         for (const line of lines) {
-          if (line.trim()) {
+          if (line.trim() === "") continue;
+          
+          // SSE format: "data: {json}\n\n"
+          if (line.startsWith("data: ")) {
+            const jsonStr = line.substring(6);
+            
+            // Check for end marker
+            if (jsonStr === "[DONE]") {
+              return;
+            }
+            
             try {
-              const data = JSON.parse(line) as StelsApiResponse;
+              const data = JSON.parse(jsonStr) as StelsApiResponse;
               yield data;
+              
+              if (data.done) {
+                return;
+              }
             } catch {
               // Skip invalid JSON
             }
@@ -241,202 +269,6 @@ export class StelsApiService {
     } finally {
       reader.releaseLock();
     }
-  }
-
-  /**
-   * Create a new model
-   */
-  async createModel(config: ModelConfig): Promise<void> {
-    // Create modelfile content
-    let modelfileContent = config.modelfile || "";
-
-    // If no base model and no modelfile, we need at least FROM statement
-    if (config.baseModel) {
-      modelfileContent = `FROM ${config.baseModel}\n\n${modelfileContent}`;
-    } else if (!modelfileContent.trim()) {
-      throw new Error(
-        "Either base model or modelfile content is required to create a model",
-      );
-    }
-
-    if (config.systemPrompt) {
-      modelfileContent += `\n\nSYSTEM """${config.systemPrompt}"""`;
-    }
-
-    if (config.template) {
-      modelfileContent += `\n\nTEMPLATE """${config.template}"""`;
-    }
-
-    // Add parameters
-    const params: string[] = [];
-    if (config.parameters.temperature !== undefined) {
-      params.push(`temperature ${config.parameters.temperature}`);
-    }
-    if (config.parameters.top_p !== undefined) {
-      params.push(`top_p ${config.parameters.top_p}`);
-    }
-    if (config.parameters.top_k !== undefined) {
-      params.push(`top_k ${config.parameters.top_k}`);
-    }
-    if (config.parameters.num_predict !== undefined) {
-      params.push(`num_predict ${config.parameters.num_predict}`);
-    }
-    if (config.parameters.repeat_penalty !== undefined) {
-      params.push(`repeat_penalty ${config.parameters.repeat_penalty}`);
-    }
-    if (config.parameters.seed !== undefined) {
-      params.push(`seed ${config.parameters.seed}`);
-    }
-    if (config.parameters.num_ctx !== undefined) {
-      params.push(`num_ctx ${config.parameters.num_ctx}`);
-    }
-    if (config.parameters.num_thread !== undefined) {
-      params.push(`num_thread ${config.parameters.num_thread}`);
-    }
-    if (config.parameters.num_gpu !== undefined) {
-      params.push(`num_gpu ${config.parameters.num_gpu}`);
-    }
-    if (config.parameters.use_mmap !== undefined) {
-      params.push(`use_mmap ${config.parameters.use_mmap}`);
-    }
-    if (config.parameters.use_mlock !== undefined) {
-      params.push(`use_mlock ${config.parameters.use_mlock}`);
-    }
-    if (config.parameters.numa !== undefined) {
-      params.push(`numa ${config.parameters.numa}`);
-    }
-
-    if (params.length > 0) {
-      modelfileContent += `\n\nPARAMETER ${params.join(" ")}`;
-    }
-
-    // API expects JSON, not FormData
-    const response = await fetch(`${this.baseUrl}/api/create`, {
-      method: "POST",
-      headers: this.getHeaders(),
-      body: JSON.stringify({
-        name: config.name,
-        modelfile: modelfileContent,
-        stream: false,
-      }),
-    });
-
-    if (!response.ok) {
-      let errorMessage = `Failed to create model: ${response.statusText}`;
-      try {
-        const error = await response.json();
-        errorMessage = error.error?.message || errorMessage;
-      } catch {
-        // Use default error message
-      }
-      throw new Error(errorMessage);
-    }
-
-    // Wait for model creation to complete (streaming response)
-    const reader = response.body?.getReader();
-    if (reader) {
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let success = false;
-
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() || ""; // Keep incomplete line in buffer
-
-          for (const line of lines) {
-            if (line.trim()) {
-              try {
-                const data = JSON.parse(line);
-                if (data.status === "success" || data.done) {
-                  success = true;
-                  return;
-                }
-                if (data.error) {
-                  throw new Error(data.error);
-                }
-              } catch (parseError) {
-                // Skip invalid JSON, but check if it's an error
-                if (parseError instanceof Error && parseError.message) {
-                  throw parseError;
-                }
-              }
-            }
-          }
-        }
-
-        if (!success) {
-          throw new Error("Model creation did not complete successfully");
-        }
-      } finally {
-        reader.releaseLock();
-      }
-    } else {
-      // If no streaming, just check response
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
-    }
-  }
-
-  /**
-   * Delete a model
-   */
-  async deleteModel(modelName: string): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/api/delete`, {
-      method: "DELETE",
-      headers: this.getHeaders(),
-      body: JSON.stringify({
-        name: modelName,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(
-        error.error?.message || `Failed to delete model: ${response.statusText}`,
-      );
-    }
-  }
-
-  /**
-   * Show model information
-   */
-  async showModel(modelName: string): Promise<{
-    modelfile: string;
-    parameters: string;
-    template: string;
-    system: string;
-    details: {
-      format: string;
-      family: string;
-      families: string[];
-      parameter_size: string;
-      quantization_level: string;
-    };
-    license?: string;
-  }> {
-    const response = await fetch(`${this.baseUrl}/api/show`, {
-      method: "POST",
-      headers: this.getHeaders(),
-      body: JSON.stringify({
-        name: modelName,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(
-        error.error?.message || `Failed to show model: ${response.statusText}`,
-      );
-    }
-
-    return await response.json();
   }
 
   /**

@@ -226,8 +226,6 @@ export interface StelsChatActions {
   // Models
   fetchModels: () => Promise<void>;
   selectModel: (tabId: string, modelName: string) => void;
-  createModel: (config: ModelConfig) => Promise<void>;
-  deleteModel: (modelName: string) => Promise<void>;
 
   // Model Registry
   stelsListModels: () => Promise<StelsModel[]>;
