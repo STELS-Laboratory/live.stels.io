@@ -83,6 +83,8 @@ export const useStelsChatStore = create<StelsChatStore>()(
     persist(
       (set, get) => {
         let apiService: StelsApiService | null = null;
+        let isTestingConnection = false;
+        let isFetchingModels = false;
 
         const getApiService = (): StelsApiService => {
           // Get URL from user configuration (connectionSession) or fallback to store value
@@ -234,11 +236,24 @@ export const useStelsChatStore = create<StelsChatStore>()(
 
           // Models
           fetchModels: async (): Promise<void> => {
+            // Skip if already fetching
+            if (isFetchingModels) {
+              return;
+            }
+            
+            const state = get();
+            // Skip if models already loaded (can be refreshed manually)
+            if (state.models.length > 0 && !state.isLoading) {
+              return;
+            }
+            
+            isFetchingModels = true;
             set({ isLoading: true, error: null });
             try {
               const service = getApiService();
               const models = await service.getModels();
               set({ models, isLoading: false, isConnected: true });
+              isFetchingModels = false;
 
               // Auto-select first model for tabs without a model
               if (models.length > 0) {
@@ -269,6 +284,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
                 isLoading: false,
                 isConnected: false,
               });
+              isFetchingModels = false;
             }
           },
 
@@ -521,13 +537,33 @@ export const useStelsChatStore = create<StelsChatStore>()(
           },
 
           testConnection: async (): Promise<boolean> => {
+            // Skip if already testing
+            if (isTestingConnection) {
+              return get().isConnected;
+            }
+            
+            const state = get();
+            // Skip if already connected and models are loaded
+            if (state.isConnected && state.models.length > 0) {
+              return true;
+            }
+            
+            isTestingConnection = true;
             try {
               const service = getApiService();
               const connected = await service.testConnection();
               set({ isConnected: connected });
+              
+              // If connected and no models loaded, fetch them
+              if (connected && state.models.length === 0) {
+                await get().fetchModels();
+              }
+              
+              isTestingConnection = false;
               return connected;
             } catch {
               set({ isConnected: false });
+              isTestingConnection = false;
               return false;
             }
           },

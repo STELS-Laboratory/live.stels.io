@@ -51,22 +51,20 @@ export function ModelSelector({
 
   useEffect(() => {
     const init = async (): Promise<void> => {
-      // Only test connection if we have a session
-      if (connectionSession?.session) {
+      // Only test connection if we have a session and models are not loaded
+      if (connectionSession?.session && models.length === 0) {
         console.log("[ModelSelector] Initializing with session:", {
           hasSession: !!connectionSession.session,
           apiUrl: connectionSession.api,
         });
         const connected = await testConnection();
-        if (connected) {
-          await fetchModels();
-          // Also load registered models to show status (only for developers)
-          if (isDeveloper) {
-            const { listRegisteredModels } = useStelsChatStore.getState();
-            await listRegisteredModels();
-          }
+        // testConnection will automatically fetch models if connected
+        // Also load registered models to show status (only for developers)
+        if (connected && isDeveloper) {
+          const { listRegisteredModels } = useStelsChatStore.getState();
+          await listRegisteredModels();
         }
-      } else {
+      } else if (!connectionSession?.session) {
         console.warn(
           "[ModelSelector] No connectionSession available, skipping initialization",
         );
@@ -74,11 +72,11 @@ export function ModelSelector({
     };
     init();
   }, [
-    fetchModels,
     testConnection,
     connectionSession?.session,
     connectionSession?.api,
     isDeveloper,
+    models.length,
   ]);
 
   // Auto-select first model if tab has no model and models are available

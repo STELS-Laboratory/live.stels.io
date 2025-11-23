@@ -65,9 +65,11 @@ function StelsChat(): React.ReactElement {
   useEffect(() => {
     // Test connection on mount and when API URL or connectionSession changes
     // Only test if we have a connectionSession (for authenticated requests)
-    if (connectionSession?.session) {
+    // Skip if already connected and models are loaded
+    const state = useStelsChatStore.getState();
+    if (connectionSession?.session && (!state.isConnected || state.models.length === 0)) {
       testConnection();
-    } else {
+    } else if (!connectionSession?.session) {
       console.warn(
         "[StelsChat] No connectionSession available, skipping connection test",
       );
