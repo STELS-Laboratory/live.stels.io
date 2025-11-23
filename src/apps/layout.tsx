@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
 	Activity,
+	BarChart3,
 	Boxes,
 	CircleX,
 	Code,
@@ -35,6 +36,7 @@ import { ThemeToggle, ThemeToggleCompact } from "@/components/ui/theme-toggle";
 import { AnimatePresence, motion } from "framer-motion";
 import AppTabs from "@/components/main/app_tabs";
 import AppShortcuts from "@/components/main/app_shortcuts";
+import { TickerMarquee } from "@/components/main/ticker_marquee";
 
 interface LayoutProps {
 	children: React.ReactNode;
@@ -118,6 +120,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 			wallet: "Wallet",
 			explorer: "Blockchain Explorer",
 			"stels-chat": "Stels Chat",
+			indexes: "Market Indexes",
 		};
 		return names[route] || route;
 	};
@@ -135,6 +138,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 		{ key: "wallet", label: "Wallet", icon: Wallet },
 		{ key: "explorer", label: "Explorer", icon: Search },
 		{ key: "stels-chat", label: "Stels Chat", icon: MessageSquare },
+		{ key: "indexes", label: "Indexes", icon: BarChart3 },
 	].filter((i) => allowedRoutes.includes(i.key));
 
 	const renderNavItem = (
@@ -593,10 +597,13 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						</main>
 
 						<footer className="h-[3rem] border-t border-border bg-card/10 backdrop-blur-sm shadow-inner">
-							<div className="h-full px-6 flex items-center justify-between">
-								<span className="text-[10px] text-muted-foreground">
+							<div className="h-full px-6 flex items-center justify-between gap-4">
+								<span className="text-[10px] text-muted-foreground shrink-0">
 									© 2025 Gliesereum Ukraine
 								</span>
+
+								{/* Ticker Marquee */}
+								<TickerMarquee className="flex-1 min-w-0" />
 
 								{/* System Stats */}
 								{systemStats && (() => {

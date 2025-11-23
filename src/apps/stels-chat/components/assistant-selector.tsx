@@ -61,8 +61,8 @@ export function AssistantSelector({
 
   useEffect(() => {
     const init = async (): Promise<void> => {
-      // Only fetch assistants if we have a session
-      if (connectionSession?.session) {
+      // Only fetch assistants if we have a session and assistants are not loaded
+      if (connectionSession?.session && assistants.length === 0) {
         console.log("[AssistantSelector] Initializing with session:", {
           hasSession: !!connectionSession.session,
           apiUrl: connectionSession.api,
@@ -71,14 +71,14 @@ export function AssistantSelector({
         if (connected) {
           await fetchAssistants();
         }
-      } else {
+      } else if (!connectionSession?.session) {
         console.warn(
           "[AssistantSelector] No connectionSession available, skipping initialization",
         );
       }
     };
     init();
-  }, [fetchAssistants, testConnection, connectionSession?.session, connectionSession?.api]);
+  }, [fetchAssistants, testConnection, connectionSession?.session, connectionSession?.api, assistants.length]);
 
   const handleRefresh = async (): Promise<void> => {
     setIsRefreshing(true);

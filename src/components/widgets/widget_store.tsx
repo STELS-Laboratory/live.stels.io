@@ -159,6 +159,8 @@ function getWidgetIcon(widgetType: string): React.ReactNode {
       return <Zap className={iconClass} />;
     case "book":
       return <List className={iconClass} />;
+	  case "indexes":
+		  return <List className={iconClass} />;
     case "candles":
       return <Grid3X3 className={iconClass} />;
     case "ticker":

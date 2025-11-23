@@ -17,6 +17,7 @@ import {
   MessageSquare,
   Wallet,
   X,
+  Activity,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useOpenAppsStore } from "@/stores/modules/open_apps.ts";
@@ -46,6 +47,7 @@ const DEV_TOOLS: DevTool[] = [
   { key: "token-builder", name: "Token Builder", icon: Coins, shortcut: "B" },
   { key: "wallet", name: "Wallet", icon: Wallet, shortcut: "W" },
   { key: "stels-chat", name: "Stels Chat", icon: MessageSquare, shortcut: "O" },
+  { key: "indexes", name: "Indexes", icon: Activity, shortcut: "I" },
 ];
 
 /**
