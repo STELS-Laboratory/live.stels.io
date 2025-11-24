@@ -4,7 +4,7 @@
  * Recommended for getting balances for multiple tokens (more efficient than multiple getAssetBalance calls)
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuthStore } from "@/stores";
 import {
 	getCachedBalances,
@@ -28,6 +28,85 @@ export interface AssetBalanceItem {
 }
 
 /**
+ * Account value structure from API
+ */
+export interface AccountValue {
+	aid?: string;
+	exchange?: string;
+	note?: string;
+	apiKey?: string;
+	secret?: string;
+	password?: string;
+	channel?: string;
+	module?: string;
+	widget?: string;
+	raw?: {
+		wallet?: {
+			info?: {
+				result?: {
+					list?: Array<{
+						coin?: Array<{
+							usdValue?: string | number;
+							coin?: string;
+							[key: string]: unknown;
+						}>;
+						[key: string]: unknown;
+					}>;
+					[key: string]: unknown;
+				};
+				[key: string]: unknown;
+			};
+			[key: string]: unknown;
+		};
+		connection?: boolean;
+		[key: string]: unknown;
+	};
+	[key: string]: unknown;
+}
+
+/**
+ * Asset record structure from API
+ */
+export interface AssetRecord {
+	channel: string;
+	module: string;
+	raw: {
+		genesis: {
+			token?: {
+				id?: string;
+				metadata?: {
+					icon?: string;
+					name?: string;
+					symbol?: string;
+					decimals?: number;
+				};
+			};
+			[key: string]: unknown;
+		};
+		[key: string]: unknown;
+	};
+	timestamp: number;
+}
+
+/**
+ * Recent transaction structure from API
+ */
+export interface RecentTransaction {
+	transaction: {
+		from: string;
+		to: string;
+		amount: string;
+		fee: string;
+		token_id: string;
+		network: string;
+	};
+	status: "confirmed" | "pending";
+	submitted_at: number;
+	tx_hash: string;
+	pool_key: string[];
+}
+
+/**
  * All balances response structure
  */
 export interface AssetBalancesResponse {
@@ -37,6 +116,9 @@ export interface AssetBalancesResponse {
 	balances: AssetBalanceItem[];
 	total: number;
 	timestamp: number;
+	accounts?: AccountValue[];
+	assets?: AssetRecord[];
+	recent_transactions?: RecentTransaction[];
 }
 
 /**
@@ -55,6 +137,9 @@ export interface UseAssetBalancesReturn {
 	loading: boolean;
 	error: string | null;
 	total: number;
+	accounts: AccountValue[];
+	assets: AssetRecord[];
+	recentTransactions: RecentTransaction[];
 	refetch: () => Promise<void>;
 }
 
@@ -78,17 +163,36 @@ export function useAssetBalances(
 	const [loading, setLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string | null>(null);
 	const [total, setTotal] = useState<number>(cachedData?.length || 0);
+	const [accounts, setAccounts] = useState<AccountValue[]>([]);
+	const [assets, setAssets] = useState<AssetRecord[]>([]);
+	const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([]);
+
+	// Use refs to track stable values for connectionSession
+	const connectionSessionRef = useRef(connectionSession);
+	const apiUrlRef = useRef<string | null>(null);
+	const networkRef = useRef<string | null>(null);
+	const sessionRef = useRef<string | null>(null);
+
+	// Update refs when connectionSession changes
+	useEffect(() => {
+		if (connectionSession) {
+			connectionSessionRef.current = connectionSession;
+			apiUrlRef.current = connectionSession.api;
+			networkRef.current = connectionSession.network;
+			sessionRef.current = connectionSession.session;
+		}
+	}, [connectionSession]);
 
 	const fetchBalances = useCallback(async (): Promise<void> => {
-		if (!isAuthenticated || !isConnected || !connectionSession) {
+		if (!isAuthenticated || !isConnected || !connectionSessionRef.current) {
 			console.log(
 				"[useAssetBalances] Not authenticated or connected, skipping",
 			);
 			return;
 		}
 
-		const apiUrl = connectionSession.api;
-		const network = params.network || connectionSession.network;
+		const apiUrl = apiUrlRef.current || connectionSessionRef.current.api;
+		const network = params.network || networkRef.current || connectionSessionRef.current.network;
 
 		if (!apiUrl || !network) {
 			console.error("[useAssetBalances] Missing API URL or network");
@@ -128,11 +232,12 @@ export function useAssetBalances(
 				address: params.address,
 			});
 
+			const session = sessionRef.current || connectionSessionRef.current.session;
 			const response = await fetch(apiUrl, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					"stels-session": connectionSession.session,
+					"stels-session": session,
 				},
 				body: JSON.stringify(requestBody),
 			});
@@ -179,6 +284,9 @@ export function useAssetBalances(
 						}>;
 						total?: number;
 						timestamp?: number;
+						accounts?: AccountValue[];
+						assets?: AssetRecord[];
+						recent_transactions?: RecentTransaction[];
 						[key: string]: unknown;
 					};
 
@@ -206,8 +314,14 @@ export function useAssetBalances(
 					setCachedBalances(params.address, network, cachedBalances);
 					setBalances(balancesData);
 					setTotal(balancesResult.total || balancesData.length);
+					
+					// Extract and set new fields
+					setAccounts(balancesResult.accounts || []);
+					setAssets(balancesResult.assets || []);
+					setRecentTransactions(balancesResult.recent_transactions || []);
+					
 					console.log(
-						`[useAssetBalances] Balances fetched: ${balancesData.length} tokens`,
+						`[useAssetBalances] Data fetched: ${balancesData.length} tokens, ${balancesResult.accounts?.length || 0} accounts, ${balancesResult.assets?.length || 0} assets, ${balancesResult.recent_transactions?.length || 0} transactions`,
 					);
 				} else if ("balances" in data.result) {
 					// Format 1: Direct AssetBalancesResponse
@@ -222,8 +336,14 @@ export function useAssetBalances(
 					setCachedBalances(params.address, network, cachedBalances);
 					setBalances(balancesResponse.balances);
 					setTotal(balancesResponse.total);
+					
+					// Extract and set new fields
+					setAccounts(balancesResponse.accounts || []);
+					setAssets(balancesResponse.assets || []);
+					setRecentTransactions(balancesResponse.recent_transactions || []);
+					
 					console.log(
-						`[useAssetBalances] Balances fetched: ${balancesResponse.balances.length} tokens`,
+						`[useAssetBalances] Data fetched: ${balancesResponse.balances.length} tokens, ${balancesResponse.accounts?.length || 0} accounts, ${balancesResponse.assets?.length || 0} assets, ${balancesResponse.recent_transactions?.length || 0} transactions`,
 					);
 				} else {
 					throw new Error("Invalid response format");
@@ -244,7 +364,6 @@ export function useAssetBalances(
 	}, [
 		isAuthenticated,
 		isConnected,
-		connectionSession,
 		params.address,
 		params.network,
 	]);
@@ -263,17 +382,62 @@ export function useAssetBalances(
 		}
 	}, [params.address, params.network, connectionSession?.network, balances.length]);
 	
+	// Track last fetch to prevent unnecessary refetches
+	const lastFetchRef = useRef<{
+		address: string;
+		network: string;
+		session: string;
+		timestamp: number;
+	} | null>(null);
+	
 	useEffect(() => {
-		if (params.address) {
-			fetchBalances();
+		if (!params.address || !isAuthenticated || !isConnected || !connectionSession) {
+			return;
 		}
-	}, [fetchBalances, params.address]);
+
+		const network = params.network || connectionSession.network;
+		const session = connectionSession.session;
+		const now = Date.now();
+		
+		// Check if we already fetched for this address/network/session recently (within 5 seconds)
+		const lastFetch = lastFetchRef.current;
+		if (
+			lastFetch &&
+			lastFetch.address === params.address &&
+			lastFetch.network === network &&
+			lastFetch.session === session &&
+			now - lastFetch.timestamp < 5000
+		) {
+			// Skip if recently fetched with same parameters
+			return;
+		}
+
+		// Update last fetch info
+		lastFetchRef.current = {
+			address: params.address,
+			network,
+			session,
+			timestamp: now,
+		};
+
+		fetchBalances();
+	}, [
+		isAuthenticated,
+		isConnected,
+		connectionSession,
+		params.address,
+		params.network,
+		fetchBalances,
+	]);
 
 	return {
 		balances,
 		loading,
 		error,
 		total,
+		accounts,
+		assets,
+		recentTransactions,
 		refetch: fetchBalances,
 	};
 }

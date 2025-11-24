@@ -92,7 +92,7 @@ function Welcome(): ReactElement {
   });
 
   // Get all balances for USD calculation
-  const { balances: allBalances } = useAssetBalances({
+  const { balances: allBalances, accounts: accountsFromBalances, loading: balancesLoading } = useAssetBalances({
     address: wallet?.address || "",
     network: connectionSession?.network,
   });
@@ -147,6 +147,67 @@ function Welcome(): ReactElement {
     return total;
   }, [allBalances, tokenPrices]);
 
+  // Calculate total liquidity from connected accounts
+  const totalLiquidity = useMemo((): number => {
+    let total = 0;
+
+    // Helper function to calculate liquidity from account wallet data
+    const calculateAccountLiquidity = (wallet: unknown): number => {
+      if (!wallet || typeof wallet !== "object") return 0;
+      
+      let accountTotal = 0;
+      const walletObj = wallet as Record<string, unknown>;
+
+      // Check if wallet has info.result.list with coin data
+      if (
+        walletObj.info &&
+        typeof walletObj.info === "object" &&
+        "result" in walletObj.info &&
+        walletObj.info.result &&
+        typeof walletObj.info.result === "object" &&
+        "list" in walletObj.info.result &&
+        Array.isArray(walletObj.info.result.list)
+      ) {
+        const list = walletObj.info.result.list as Array<Record<string, unknown>>;
+        for (const item of list) {
+          if (item.coin && Array.isArray(item.coin)) {
+            for (const coin of item.coin) {
+              if (
+                coin &&
+                typeof coin === "object" &&
+                "usdValue" in coin &&
+                coin.usdValue
+              ) {
+                const usdValue = Number.parseFloat(String(coin.usdValue));
+                if (!Number.isNaN(usdValue) && usdValue > 0) {
+                  accountTotal += usdValue;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return accountTotal;
+    };
+
+    // Calculate liquidity from accounts in getAssetBalances response
+    if (accountsFromBalances && accountsFromBalances.length > 0) {
+      accountsFromBalances.forEach((account) => {
+        if (account.raw?.wallet) {
+          total += calculateAccountLiquidity(account.raw.wallet);
+        }
+      });
+    }
+
+    return total;
+  }, [accountsFromBalances]);
+
+  // Calculate total portfolio value (tokens + liquidity)
+  const totalPortfolioValue = useMemo((): number => {
+    return totalUSDValue + totalLiquidity;
+  }, [totalUSDValue, totalLiquidity]);
+
   const [selectedSchema, setSelectedSchema] = useState<SchemaProject | null>(
     null,
   );
@@ -175,49 +236,56 @@ function Welcome(): ReactElement {
     }
   }, [selectedSchema, isLoading, refetchAssets]);
 
-  // Sync server assets to sessionStorage
+  // Track last synced assets to prevent unnecessary updates
+  const lastSyncedAssetsRef = useRef<string>("");
+  
+  // Sync server assets to sessionStorage (only when assets actually change)
   useEffect(() => {
-    if (assets.length > 0) {
-      console.log(
-        "[Welcome] Syncing",
-        assets.length,
-        "assets from server to sessionStorage",
-      );
+    if (assets.length === 0) return;
 
-      assets.forEach((asset) => {
-        try {
-          const channelKey = asset.channel.toLowerCase();
-          const existing = sessionStorage.getItem(channelKey);
+    // Create a stable hash of asset channels to detect real changes
+    const assetChannelsHash = assets
+      .map((a) => `${a.channel}:${a.timestamp || 0}`)
+      .sort()
+      .join("|");
 
-          // Only update if data is different (avoid unnecessary writes)
-          const newData = JSON.stringify(asset);
-          if (existing !== newData) {
-            sessionStorage.setItem(channelKey, newData);
-            console.log("[Welcome] Updated sessionStorage for:", channelKey);
-          }
-        } catch (error) {
-          console.error(
-            "[Welcome] Failed to sync asset to sessionStorage:",
-            error,
-          );
+    // Skip if assets haven't actually changed
+    if (lastSyncedAssetsRef.current === assetChannelsHash) {
+      return;
+    }
+
+    lastSyncedAssetsRef.current = assetChannelsHash;
+
+    // Batch sessionStorage updates
+    let updatedCount = 0;
+    assets.forEach((asset) => {
+      try {
+        const channelKey = asset.channel.toLowerCase();
+        const existing = sessionStorage.getItem(channelKey);
+
+        // Only update if data is different (avoid unnecessary writes)
+        const newData = JSON.stringify(asset);
+        if (existing !== newData) {
+          sessionStorage.setItem(channelKey, newData);
+          updatedCount++;
         }
-      });
+      } catch (error) {
+        console.error(
+          "[Welcome] Failed to sync asset to sessionStorage:",
+          error,
+        );
+      }
+    });
+
+    // Only log if there were actual updates
+    if (updatedCount > 0) {
+      console.log(
+        "[Welcome] Synced",
+        updatedCount,
+        "assets to sessionStorage",
+      );
     }
   }, [assets]);
-
-  // Debug: Log session updates and assets
-  useEffect(() => {
-    if (session) {
-      const assetCount = Object.keys(session).filter((key) =>
-        key.startsWith("asset.testnet.token:")
-      ).length;
-      console.log(
-        "[Welcome] Session updated - session assets count:",
-        assetCount,
-      );
-      console.log("[Welcome] Server assets count:", assets.length);
-    }
-  }, [session, assets]);
   const openApp = useOpenAppsStore((state) => state.openApp);
   const apps = useOpenAppsStore((state) => state.apps);
   const activeAppId = useOpenAppsStore((state) => state.activeAppId);
@@ -383,28 +451,27 @@ function Welcome(): ReactElement {
     loadSchemas();
   }, [defaultSchemasState.isLoading, defaultSchemasState.loaded]); // Re-run when default schemas finish loading
 
-  // Debug: Log session token channels only once
+  // Debug: Log session token channels only once (reduced logging)
+  const hasLoggedSessionAssetsRef = useRef(false);
   useEffect(() => {
-    if (!isLoading && session) {
+    if (!isLoading && session && !hasLoggedSessionAssetsRef.current) {
       const assetChannels = Object.keys(session).filter((key) =>
-        key.startsWith("asset.")
+        key.startsWith("asset.testnet.token:")
       );
-      console.log(
-        "[Welcome] Asset channels in session:",
-        assetChannels.length,
-        assetChannels,
-      );
-
-      assetChannels.forEach((key) => {
-        const data = session[key] as Record<string, unknown>;
-        console.log(`[Welcome] Asset ${key}:`, {
-          widget: data.widget,
-          status: data.status,
-          hasGenesis: !!(data.raw as Record<string, unknown>)?.genesis,
-        });
-      });
+      if (assetChannels.length > 0) {
+        hasLoggedSessionAssetsRef.current = true;
+        console.log(
+          "[Welcome] Asset channels in session:",
+          assetChannels.length,
+        );
+      }
     }
-  }, [isLoading, session]); // Only log once when loading completes
+    
+    // Reset flag when loading starts
+    if (isLoading) {
+      hasLoggedSessionAssetsRef.current = false;
+    }
+  }, [isLoading, session]);
 
   // Filter static router schemas for Web Agents section
   // INCLUDE: widget.app.* (public default apps from public/schemas/)
@@ -431,14 +498,38 @@ function Welcome(): ReactElement {
     );
   }, [schemas]);
 
+  // Track last created schemas to prevent unnecessary recreation
+  const lastSchemasHashRef = useRef<string>("");
+  const lastSchemasRef = useRef<SchemaProject[]>([]);
+  
   // Extract all tokens from SERVER and SESSION, create virtual schemas
   const tokenSchemas = useMemo(() => {
     if (!tokenTemplateSchema) {
-      console.log("[Welcome] tokenSchemas: No template schema", {
-        hasTemplate: !!tokenTemplateSchema,
-      });
       return [];
     }
+
+    // Create a stable hash of asset channels to detect real changes
+    const assetChannelsHash = assets
+      .map((a) => a.channel)
+      .sort()
+      .join("|");
+    
+    const sessionChannelsHash = session
+      ? Object.keys(session)
+          .filter((k) => k.startsWith("asset.testnet.token:sha256:"))
+          .sort()
+          .join("|")
+      : "";
+    
+    const templateId = tokenTemplateSchema.id || "";
+    const combinedHash = `${assetChannelsHash}|${sessionChannelsHash}|${templateId}`;
+
+    // Return cached schemas if nothing changed
+    if (lastSchemasHashRef.current === combinedHash && lastSchemasRef.current.length > 0) {
+      return lastSchemasRef.current;
+    }
+
+    lastSchemasHashRef.current = combinedHash;
 
     // Collect unique asset channels from BOTH server and session
     // Use Map to deduplicate by normalized key but keep original keys for data access
@@ -485,43 +576,6 @@ function Welcome(): ReactElement {
       item.original
     );
 
-    console.log(
-      "[Welcome] Creating virtual token schemas:",
-      assetChannels.length,
-      "tokens (server:",
-      assets.length,
-      "session:",
-      session
-        ? Object.keys(session).filter((k) =>
-          k.startsWith("asset.testnet.token:")
-        ).length
-        : 0,
-      ")",
-    );
-
-    // Debug: Show all unique asset channels
-    console.log("[Welcome] All unique asset channels:", assetChannels);
-    console.log(
-      "[Welcome] Channel map details:",
-      Array.from(channelMap.entries()).map(([norm, data]) => ({
-        normalized: norm,
-        original: data.original,
-        source: data.source,
-      })),
-    );
-    console.log(
-      "[Welcome] Server asset channels:",
-      assets.map((a) => a.channel),
-    );
-    console.log(
-      "[Welcome] Session asset channels:",
-      session
-        ? Object.keys(session).filter((k) =>
-          k.startsWith("asset.testnet.token:")
-        )
-        : [],
-    );
-
     // Create virtual schema for each token
     const virtualSchemas = assetChannels.map((channelKey) => {
       return {
@@ -533,18 +587,8 @@ function Welcome(): ReactElement {
       };
     });
 
-    console.log("[Welcome] Virtual schemas created:", virtualSchemas.length);
-    console.log(
-      "[Welcome] Virtual schema sample:",
-      virtualSchemas[0]
-        ? {
-          id: virtualSchemas[0].id,
-          name: virtualSchemas[0].name,
-          channelKeys: virtualSchemas[0].channelKeys,
-          selfChannelKey: virtualSchemas[0].selfChannelKey,
-        }
-        : "none",
-    );
+    // Cache the result
+    lastSchemasRef.current = virtualSchemas;
     return virtualSchemas;
   }, [session, tokenTemplateSchema, assets]);
 
@@ -832,27 +876,51 @@ function Welcome(): ReactElement {
                             <div className="text-white/60 text-[10px] sm:text-xs mb-1 uppercase tracking-wider">
                               Balance
                             </div>
-                            <div className="text-white text-2xl sm:text-3xl font-bold tracking-tight">
-                              {balanceLoading && mainBalance === 0
-                                ? "..."
-                                : mainBalance.toFixed(6)}
-                            </div>
-                            <div className="text-white/60 text-xs sm:text-sm font-medium mt-1">
-                              {connectionSession?.network === "testnet"
-                                ? "USDT"
-                                : connectionSession?.network === "mainnet"
-                                ? "STELS"
-                                : "LOCAL"}
-                            </div>
-                            {totalUSDValue > 0 && (
-                              <div className="text-white/80 text-xs sm:text-sm font-semibold mt-1">
-                                {new Intl.NumberFormat("en-US", {
-                                  style: "currency",
-                                  currency: "USD",
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                }).format(totalUSDValue)}
+                            {(balanceLoading || balancesLoading) && mainBalance === 0 ? (
+                              // Skeleton loader for balance
+                              <div className="space-y-2">
+                                <div className="h-8 sm:h-10 bg-white/10 rounded animate-pulse" style={{ width: "60%" }} />
+                                <div className="h-4 bg-white/10 rounded animate-pulse" style={{ width: "40%" }} />
+                                <div className="h-4 bg-white/10 rounded animate-pulse" style={{ width: "50%" }} />
                               </div>
+                            ) : (
+                              <>
+                                <div className="text-white text-2xl sm:text-3xl font-bold tracking-tight">
+                                  {mainBalance.toFixed(6)}
+                                </div>
+                                <div className="text-white/60 text-xs sm:text-sm font-medium mt-1">
+                                  {connectionSession?.network === "testnet"
+                                    ? "USDT"
+                                    : connectionSession?.network === "mainnet"
+                                    ? "STELS"
+                                    : "LOCAL"}
+                                </div>
+                                {totalPortfolioValue > 0 && (
+                                  <div className="text-white/80 text-xs sm:text-sm font-semibold mt-1">
+                                    {new Intl.NumberFormat("en-US", {
+                                      style: "currency",
+                                      currency: "USD",
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    }).format(totalPortfolioValue)}
+                                  </div>
+                                )}
+                                {totalUSDValue > 0 && totalLiquidity > 0 && (
+                                  <div className="text-white/50 text-[10px] sm:text-xs leading-tight mt-1">
+                                    Tokens: {new Intl.NumberFormat("en-US", {
+                                      style: "currency",
+                                      currency: "USD",
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    }).format(totalUSDValue)} + Liquidity: {new Intl.NumberFormat("en-US", {
+                                      style: "currency",
+                                      currency: "USD",
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    }).format(totalLiquidity)}
+                                  </div>
+                                )}
+                              </>
                             )}
                           </div>
 
@@ -861,27 +929,36 @@ function Welcome(): ReactElement {
                             <div className="text-white/60 text-[10px] sm:text-xs mb-2 uppercase tracking-wider">
                               Wallet Address
                             </div>
-                            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded p-2 sm:p-2.5 border border-white/20">
-                              <code className="text-white text-[10px] sm:text-xs font-mono flex-1 truncate">
-                                {wallet.address}
-                              </code>
-                              <motion.button
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigator.clipboard.writeText(wallet.address);
-                                  toast.success(
-                                    "Address copied!",
-                                    "Wallet address copied to clipboard",
-                                  );
-                                }}
-                                className="flex-shrink-0 p-1.5 hover:bg-white/20 rounded transition-colors active:bg-white/30"
-                                title="Copy address"
-                              >
-                                <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-                              </motion.button>
-                            </div>
+                            {(balanceLoading || balancesLoading) && !wallet?.address ? (
+                              // Skeleton loader for address (only when loading and no address yet)
+                              <div className="bg-white/10 backdrop-blur-sm rounded p-2 sm:p-2.5 border border-white/20">
+                                <div className="h-4 bg-white/10 rounded animate-pulse" style={{ animationDelay: "0.2s" }} />
+                              </div>
+                            ) : wallet?.address ? (
+                              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded p-2 sm:p-2.5 border border-white/20">
+                                <code className="text-white text-[10px] sm:text-xs font-mono flex-1 truncate">
+                                  {wallet.address}
+                                </code>
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (wallet?.address) {
+                                      navigator.clipboard.writeText(wallet.address);
+                                      toast.success(
+                                        "Address copied!",
+                                        "Wallet address copied to clipboard",
+                                      );
+                                    }
+                                  }}
+                                  className="flex-shrink-0 p-1.5 hover:bg-white/20 rounded transition-colors active:bg-white/30"
+                                  title="Copy address"
+                                >
+                                  <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                                </motion.button>
+                              </div>
+                            ) : null}
                           </div>
 
                           {/* Card Footer - Chip simulation */}
@@ -1325,10 +1402,6 @@ function TokenCard(
   // Extract token data from session using channelKeys
   const tokenData = useMemo(() => {
     if (!session || !schema.channelKeys || schema.channelKeys.length === 0) {
-      console.log("[TokenCard] No session or channelKeys", {
-        hasSession: !!session,
-        channelKeys: schema.channelKeys,
-      });
       return null;
     }
 
@@ -1346,20 +1419,9 @@ function TokenCard(
       channelData = session[normalizedKey] as
         | Record<string, unknown>
         | undefined;
-
-      console.log("[TokenCard] Channel key lookup:", {
-        originalKey: channelKey,
-        normalizedKey,
-        foundWithOriginal: !!session[channelKey],
-        foundWithNormalized: !!session[normalizedKey],
-        availableKeys: Object.keys(session).filter((k) =>
-          k.includes(channelKey.split(":")[2]?.substring(0, 20) || "")
-        ),
-      });
     }
 
     if (!channelData) {
-      console.log("[TokenCard] No channel data found for:", channelKey);
       return null;
     }
 
@@ -1413,18 +1475,8 @@ function TokenCard(
   }, [schema, tokenData, onLaunch, isOpen, apps]);
 
   if (!tokenData) {
-    console.log(
-      "[TokenCard] No tokenData, not rendering card for schema:",
-      schema.id,
-    );
     return <></>;
   }
-
-  console.log(
-    "[TokenCard] Rendering card for:",
-    tokenData.symbol,
-    tokenData.name,
-  );
 
   return (
     <motion.button

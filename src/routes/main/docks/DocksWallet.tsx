@@ -70,9 +70,7 @@ function CodeBlock(
 			<div className="mt-2 w-full overflow-hidden rounded-md bg-zinc-900 pt-5">
 				<SyntaxHighlighter
 					language={language}
-					style={vscDarkPlus as unknown as {
-						[key: string]: React.CSSProperties;
-					}}
+					style={vscDarkPlus as Record<string, React.CSSProperties>}
 					customStyle={{ margin: 0, padding: "12px" }}
 					wrapLongLines
 				>

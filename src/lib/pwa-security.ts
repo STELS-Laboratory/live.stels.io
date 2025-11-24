@@ -58,7 +58,8 @@ export function detectExtensions(): string[] {
   ];
   
   for (const global of extensionGlobals) {
-    if ((window as unknown as WindowWithExtensions)[global] && !isStandalonePWA()) {
+    // @ts-expect-error - WindowWithExtensions allows dynamic property access for extension detection
+	  if ((window as WindowWithExtensions)[global] && !isStandalonePWA()) {
       suspiciousExtensions.push(global);
     }
   }

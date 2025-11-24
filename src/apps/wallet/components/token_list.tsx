@@ -301,6 +301,7 @@ export function TokenList({
   const {
     balances: allBalances,
     loading: balancesLoading,
+    assets: assetsFromBalances,
   } = useAssetBalances({
     address: walletAddress,
     network: connectionSession?.network,
@@ -393,13 +394,121 @@ export function TokenList({
       : tokenPrices;
   }, [tokenPrices]);
 
-  // Sort tokens by USD value (highest to lowest)
-  const tokens = useMemo((): AssetData[] => {
-    if (!assets || assets.length === 0) return [];
+  // Create a map of assets from props for icon lookup
+  const assetsMapForIcons = useMemo(() => {
+    const map = new Map<string, AssetData>();
+    if (assets && assets.length > 0) {
+      for (const asset of assets) {
+        const tokenId = asset.raw.genesis.token.id.toLowerCase();
+        map.set(tokenId, asset);
+      }
+    }
+    return map;
+  }, [assets]);
 
-    // Calculate USD value for each token and sort
-    const tokensWithValue = assets.map((asset) => {
+  // Use assets from getAssetBalances if available, otherwise fallback to props
+  // This ensures we show all tokens that have balances
+  const availableAssets = useMemo((): AssetData[] => {
+    // Prefer assets from getAssetBalances as they're synchronized with balances
+    if (assetsFromBalances && assetsFromBalances.length > 0) {
+      return assetsFromBalances
+        .filter((assetRecord) => {
+          // Only include assets that have valid token data
+          return assetRecord.raw?.genesis?.token?.id &&
+            assetRecord.raw?.genesis?.token?.metadata;
+        })
+        .map((assetRecord) => {
+          const token = assetRecord.raw.genesis.token!;
+          const tokenId = token.id!.toLowerCase();
+
+          // Try to get icon from assetsFromBalances first, then fallback to assets prop
+          const iconFromBalances = token.metadata?.icon;
+          const assetFromProps = assetsMapForIcons.get(tokenId);
+          const iconFromProps = assetFromProps?.raw.genesis.token.metadata.icon;
+
+          return {
+            channel: assetRecord.channel,
+            module: assetRecord.module,
+            widget: assetRecord.channel.replace("asset.", "widget.asset."),
+            raw: {
+              genesis: {
+                token: {
+                  id: token.id!,
+                  metadata: {
+                    name: token.metadata?.name || token.id!,
+                    symbol: token.metadata?.symbol || "UNKNOWN",
+                    decimals: token.metadata?.decimals || 6,
+                    description: token.metadata?.name ||
+                      `${token.metadata?.symbol || "Token"}`,
+                    icon: iconFromBalances || iconFromProps, // Use icon from balances or fallback to props
+                  },
+                },
+              },
+            },
+            timestamp: assetRecord.timestamp,
+          } as AssetData;
+        });
+    }
+
+    // Fallback to assets from props (useAssetList)
+    return assets || [];
+  }, [assetsFromBalances, assets, assetsMapForIcons]);
+
+  // Sort tokens by USD value (highest to lowest)
+  // Also include tokens that have balances but might not be in assets list
+  const tokens = useMemo((): AssetData[] => {
+    // Create a map of all available assets by token_id
+    const assetsMap = new Map<string, AssetData>();
+
+    // Add all assets from availableAssets
+    for (const asset of availableAssets) {
       const tokenId = asset.raw.genesis.token.id.toLowerCase();
+      assetsMap.set(tokenId, asset);
+    }
+
+    // Add tokens from balances that might not be in assets list
+    // Create minimal asset structure from balance data
+    for (const balance of allBalances) {
+      const tokenId = balance.token_id.toLowerCase();
+      if (!assetsMap.has(tokenId)) {
+        // Try to get icon from assets prop if available
+        const assetFromProps = assetsMapForIcons.get(tokenId);
+        const iconFromProps = assetFromProps?.raw.genesis.token.metadata.icon;
+
+        // Create a minimal asset structure from balance data
+        // This ensures we show all tokens with balances
+        const symbol = balance.symbol || balance.currency || "UNKNOWN";
+        assetsMap.set(tokenId, {
+          channel: `asset.${
+            connectionSession?.network || "testnet"
+          }.${tokenId}`,
+          module: "asset",
+          widget: `widget.asset.${
+            connectionSession?.network || "testnet"
+          }.${tokenId}`,
+          raw: {
+            genesis: {
+              token: {
+                id: balance.token_id,
+                metadata: {
+                  name: symbol,
+                  symbol: symbol,
+                  decimals: balance.decimals,
+                  description: `${symbol} Token`,
+                  icon: iconFromProps, // Use icon from assets prop if available
+                },
+              },
+            },
+          },
+          timestamp: Date.now(),
+        } as AssetData);
+      }
+    }
+
+    // Convert map to array and calculate USD values
+    const tokensWithValue = Array.from(assetsMap.values()).map((asset) => {
+      const tokenId = asset.raw.genesis.token.id.toLowerCase();
+
       const balanceData = balancesMap.get(tokenId);
       const balance = balanceData ? Number.parseFloat(balanceData.balance) : 0;
 
@@ -413,13 +522,22 @@ export function TokenList({
         asset,
         usdValue,
       };
-    });
+    }).filter((item): item is { asset: AssetData; usdValue: number } =>
+      item !== null
+    );
 
     // Sort by USD value descending (highest to lowest)
     tokensWithValue.sort((a, b) => b.usdValue - a.usdValue);
 
     return tokensWithValue.map((item) => item.asset);
-  }, [assets, balancesMap, tokenPricesStable]);
+  }, [
+    availableAssets,
+    allBalances,
+    balancesMap,
+    tokenPricesStable,
+    connectionSession?.network,
+    assetsMapForIcons,
+  ]);
 
   if (loading) {
     return (

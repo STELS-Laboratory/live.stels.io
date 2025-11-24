@@ -62,14 +62,16 @@ export function SecurityWarningExtensions(): React.ReactElement {
 
   const handleInstall = (): void => {
     // Trigger browser install prompt if available
-    const installPrompt = (window as unknown as WindowWithPWA).deferredPrompt;
+    // @ts-expect-error - WindowWithPWA extends Window with deferredPrompt property
+	  const installPrompt = (window as WindowWithPWA).deferredPrompt;
     if (installPrompt) {
       installPrompt.prompt();
       installPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === "accepted") {
           console.log("[PWA] User accepted install");
         }
-        (window as unknown as WindowWithPWA).deferredPrompt = null;
+        // @ts-expect-error - WindowWithPWA extends Window with deferredPrompt property
+	      (window as WindowWithPWA).deferredPrompt = null;
       });
     } else {
       toast.info(
