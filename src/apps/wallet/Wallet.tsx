@@ -3,7 +3,7 @@
  * Full-featured wallet with balance, tokens, and transaction management
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useAuthStore } from "@/stores";
 import { useAssetList } from "@/hooks/use_asset_list";
 import { useAssetBalance } from "@/hooks/use_asset_balance";
@@ -99,7 +99,12 @@ function Wallet(): React.ReactElement {
 	}, [wallet?.biometric]);
 
 	// Get all balances for USD calculation
-	const { balances: allBalances, loading: balancesLoading, refetch: refetchAllBalances } = useAssetBalances({
+	const { 
+		balances: allBalances, 
+		loading: balancesLoading, 
+		refetch: refetchAllBalances,
+		accounts: accountsFromBalances,
+	} = useAssetBalances({
 		address: wallet?.address || "",
 		network: connectionSession?.network,
 	});
@@ -157,43 +162,53 @@ function Wallet(): React.ReactElement {
 	}, [allBalances, tokenPrices]);
 
 	// Calculate total liquidity from connected accounts
+	// Priority: accounts from getAssetBalances (available immediately) > accounts from store
 	const totalLiquidity = useMemo((): number => {
-		if (!accounts || accounts.length === 0) return 0;
-
 		let total = 0;
 
-		accounts.forEach((account) => {
-			// Only count connected accounts
-			if (!account.account.connection) return;
-
-			const rawData = account.rawData;
-			if (!rawData?.wallet) return;
-
-			const wallet = rawData.wallet;
+		// Helper function to calculate liquidity from account wallet data
+		const calculateAccountLiquidity = (wallet: unknown): number => {
+			if (!wallet || typeof wallet !== "object") return 0;
+			
+			let accountTotal = 0;
+			const walletObj = wallet as Record<string, unknown>;
 
 			// Check if wallet has info.result.list with coin data
 			if (
-				wallet.info?.result?.list?.[0]?.coin &&
-				Array.isArray(wallet.info.result.list[0].coin)
+				walletObj.info &&
+				typeof walletObj.info === "object" &&
+				walletObj.info !== null &&
+				"result" in walletObj.info &&
+				walletObj.info.result &&
+				typeof walletObj.info.result === "object" &&
+				"list" in walletObj.info.result &&
+				Array.isArray(walletObj.info.result.list) &&
+				walletObj.info.result.list[0] &&
+				typeof walletObj.info.result.list[0] === "object" &&
+				"coin" in walletObj.info.result.list[0] &&
+				Array.isArray(walletObj.info.result.list[0].coin)
 			) {
-				wallet.info.result.list[0].coin.forEach((coin: unknown) => {
+				const coins = walletObj.info.result.list[0].coin as Array<Record<string, unknown>>;
+				coins.forEach((coin) => {
 					if (
+						coin &&
 						typeof coin === "object" &&
-						coin !== null &&
-						"usdValue" in coin &&
-						coin.usdValue &&
-						typeof coin.usdValue === "string"
+						"usdValue" in coin
 					) {
-						const usdValue = Number.parseFloat(coin.usdValue);
-						if (!Number.isNaN(usdValue)) {
-							total += usdValue;
+						const usdValue = typeof coin.usdValue === "string"
+							? Number.parseFloat(coin.usdValue)
+							: typeof coin.usdValue === "number"
+							? coin.usdValue
+							: 0;
+						if (!Number.isNaN(usdValue) && usdValue > 0) {
+							accountTotal += usdValue;
 						}
 					}
 				});
 			}
 
 			// Also check direct coin properties (fallback)
-			Object.keys(wallet).forEach((key) => {
+			Object.keys(walletObj).forEach((key) => {
 				if (
 					key !== "info" &&
 					key !== "timestamp" &&
@@ -202,28 +217,75 @@ function Wallet(): React.ReactElement {
 					key !== "used" &&
 					key !== "total" &&
 					key !== "debt" &&
-					typeof wallet[key] === "object" &&
-					wallet[key] !== null &&
-					"usdValue" in wallet[key]
+					typeof walletObj[key] === "object" &&
+					walletObj[key] !== null &&
+					walletObj[key] &&
+					"usdValue" in walletObj[key]
 				) {
-					const coinData = wallet[key] as { usdValue?: string };
+					const coinData = walletObj[key] as { usdValue?: string | number };
 					if (coinData.usdValue) {
-						const usdValue = Number.parseFloat(coinData.usdValue);
-						if (!Number.isNaN(usdValue)) {
-							total += usdValue;
+						const usdValue = typeof coinData.usdValue === "string"
+							? Number.parseFloat(coinData.usdValue)
+							: coinData.usdValue;
+						if (!Number.isNaN(usdValue) && usdValue > 0) {
+							accountTotal += usdValue;
 						}
 					}
 				}
 			});
-		});
+
+			return accountTotal;
+		};
+
+		// First, try to use accounts from getAssetBalances (available immediately)
+		if (accountsFromBalances && accountsFromBalances.length > 0) {
+			accountsFromBalances.forEach((account) => {
+				// AccountValue from API has raw property with wallet data
+				// Check if account has connection status (default to true if not specified)
+				const accountRaw = account as { raw?: { wallet?: unknown; connection?: boolean } };
+				const isConnected = accountRaw.raw?.connection !== false;
+				if (!isConnected) return;
+
+				// Calculate liquidity from wallet data
+				if (accountRaw.raw?.wallet) {
+					total += calculateAccountLiquidity(accountRaw.raw.wallet);
+				}
+			});
+		}
+
+		// Fallback to accounts from store (if available and no data from API)
+		if (total === 0 && accounts && accounts.length > 0) {
+			accounts.forEach((account) => {
+				// Only count connected accounts
+				if (!account.account.connection) return;
+
+				const rawData = account.rawData;
+				if (!rawData?.wallet) return;
+
+				total += calculateAccountLiquidity(rawData.wallet);
+			});
+		}
 
 		return total;
-	}, [accounts]);
+	}, [accountsFromBalances, accounts]);
 
 	// Calculate total portfolio value: tokens + liquidity
 	const totalPortfolioValue = useMemo((): number => {
 		return totalUSDValue + totalLiquidity;
 	}, [totalUSDValue, totalLiquidity]);
+
+	// Track last fetch times to prevent unnecessary refetches
+	const lastTransactionsFetchRef = useRef<{
+		address: string;
+		session: string;
+		timestamp: number;
+	} | null>(null);
+
+	const lastAccountsFetchRef = useRef<{
+		address: string;
+		session: string;
+		timestamp: number;
+	} | null>(null);
 
 	// Fetch transactions when transactions tab is opened
 	useEffect(() => {
@@ -235,6 +297,27 @@ function Wallet(): React.ReactElement {
 			wallet &&
 			wallet.address
 		) {
+			const now = Date.now();
+			const lastFetch = lastTransactionsFetchRef.current;
+
+			// Check if we already fetched recently (within 5 seconds)
+			if (
+				lastFetch &&
+				lastFetch.address === wallet.address &&
+				lastFetch.session === connectionSession.session &&
+				now - lastFetch.timestamp < 5000
+			) {
+				console.log("[Wallet] Skipping transactions fetch - recently fetched");
+				return;
+			}
+
+			// Update last fetch info
+			lastTransactionsFetchRef.current = {
+				address: wallet.address,
+				session: connectionSession.session,
+				timestamp: now,
+			};
+
 			console.log("[Wallet] Loading transactions for tab", wallet.address);
 			refetchTransactions();
 		}
@@ -256,6 +339,27 @@ function Wallet(): React.ReactElement {
 			connectionSession &&
 			wallet
 		) {
+			const now = Date.now();
+			const lastFetch = lastAccountsFetchRef.current;
+
+			// Check if we already fetched recently (within 5 seconds)
+			if (
+				lastFetch &&
+				lastFetch.address === wallet.address &&
+				lastFetch.session === connectionSession.session &&
+				now - lastFetch.timestamp < 5000
+			) {
+				console.log("[Wallet] Skipping accounts fetch - recently fetched");
+				return;
+			}
+
+			// Update last fetch info
+			lastAccountsFetchRef.current = {
+				address: wallet.address,
+				session: connectionSession.session,
+				timestamp: now,
+			};
+
 			setAccountsLoading(true);
 			fetchAccountsFromServer(
 				wallet.address,
@@ -380,6 +484,7 @@ function Wallet(): React.ReactElement {
 						}
 						await refetchAllBalances();
 					}}
+					walletAddress={wallet.address}
 					mobile={mobile}
 				/>
 

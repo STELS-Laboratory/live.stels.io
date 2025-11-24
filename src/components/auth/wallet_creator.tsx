@@ -6,6 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   AlertCircle,
   ArrowLeft,
   CheckCircle,
@@ -14,9 +22,17 @@ import {
   Key,
   Loader2,
   Sparkles,
+  Upload,
+  Lock,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/modules/auth.store";
 import { LOTTIE_ANIMATIONS, LOTTIE_SIZES } from "./lottie_config";
+import {
+  decryptWithPassword,
+  hexToUint8Array,
+  DEFAULT_PBKDF2_ITERATIONS,
+  type PasswordEncryptionResult,
+} from "@/lib/crypto";
 
 interface WalletCreatorProps {
   walletType: "create" | "import";
@@ -40,6 +56,16 @@ export function WalletCreator(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPrivateKey, setShowPrivateKey] = useState(false);
+  const [fileInputRef, setFileInputRef] = useState<HTMLInputElement | null>(null);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isDecrypting, setIsDecrypting] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [pendingEncryptedData, setPendingEncryptedData] = useState<{
+    encrypted: PasswordEncryptionResult;
+    iterations: number;
+  } | null>(null);
   const [validationState, setValidationState] = useState<{
     isValid: boolean;
     message: string;
@@ -144,6 +170,136 @@ export function WalletCreator(
     }
   };
 
+  const handleLoadFromFile = (): void => {
+    // Trigger file input click
+    fileInputRef?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Reset file input
+    if (event.target) {
+      event.target.value = "";
+    }
+
+    try {
+      // Read file content
+      const text = await file.text();
+      
+      // Try to parse as encrypted JSON file
+      try {
+        const parsed = JSON.parse(text);
+        
+        // Check if it's an encrypted wallet file
+        if (parsed.encrypted === true && parsed.data && parsed.salt && parsed.iv) {
+          // This is an encrypted file - need password to decrypt
+          const encrypted: PasswordEncryptionResult = {
+            encryptedData: hexToUint8Array(parsed.data),
+            iv: hexToUint8Array(parsed.iv),
+            salt: hexToUint8Array(parsed.salt),
+          };
+          
+          setPendingEncryptedData({
+            encrypted,
+            iterations: parsed.iterations || DEFAULT_PBKDF2_ITERATIONS,
+          });
+          setPassword("");
+          setPasswordError(null);
+          setShowPasswordDialog(true);
+          return;
+        }
+      } catch {
+        // Not JSON or not encrypted format, continue with plain text processing
+      }
+      
+      // Plain text processing (for unencrypted files)
+      // Clean and extract private key
+      // Remove whitespace, newlines, 0x prefix, and any other non-hex characters
+      let cleanedKey = text
+        .replace(/^0x/i, "") // Remove 0x prefix
+        .replace(/\s/g, "") // Remove all whitespace
+        .replace(/\n/g, "") // Remove newlines
+        .replace(/\r/g, "") // Remove carriage returns
+        .trim();
+
+      // If file contains JSON, try to extract privateKey field
+      if (cleanedKey.startsWith("{") || cleanedKey.startsWith("[")) {
+        try {
+          const parsed = JSON.parse(text);
+          cleanedKey = parsed.privateKey || parsed.private_key || parsed.key || cleanedKey;
+          // Clean again after extraction
+          cleanedKey = cleanedKey
+            .replace(/^0x/i, "")
+            .replace(/\s/g, "")
+            .replace(/\n/g, "")
+            .replace(/\r/g, "")
+            .trim();
+        } catch {
+          // Not valid JSON, continue with original cleaned key
+        }
+      }
+
+      // Validate and set
+      if (cleanedKey.length > 0) {
+        setPrivateKey(cleanedKey);
+        // Validation will happen automatically via useEffect
+      } else {
+        setError("Could not extract private key from file. Please ensure the file contains a valid 64-character hexadecimal private key.");
+      }
+    } catch (error) {
+      console.error("Failed to read file:", error);
+      setError("Failed to read file. Please ensure the file is a valid text file.");
+    }
+  };
+
+  const handleDecryptFile = async (): Promise<void> => {
+    if (!password || !pendingEncryptedData) {
+      setPasswordError("Password is required");
+      return;
+    }
+
+    setIsDecrypting(true);
+    setPasswordError(null);
+
+    try {
+      const decryptedKey = await decryptWithPassword(
+        pendingEncryptedData.encrypted,
+        password,
+        pendingEncryptedData.iterations,
+      );
+
+      // Clean the decrypted key
+      const cleanedKey = decryptedKey
+        .replace(/^0x/i, "")
+        .replace(/\s/g, "")
+        .replace(/\n/g, "")
+        .replace(/\r/g, "")
+        .trim();
+
+      // Validate and set
+      if (cleanedKey.length > 0) {
+        setPrivateKey(cleanedKey);
+        // Validation will happen automatically via useEffect
+        setShowPasswordDialog(false);
+        setPassword("");
+        setPendingEncryptedData(null);
+      } else {
+        setPasswordError("Decrypted key is invalid. Please check your password.");
+      }
+    } catch (error) {
+      console.error("Failed to decrypt file:", error);
+      setPasswordError(
+        error instanceof Error && error.message.includes("decrypt")
+          ? "Incorrect password. Please try again."
+          : "Failed to decrypt file. Please check your password and try again.",
+      );
+    } finally {
+      setIsDecrypting(false);
+    }
+  };
+
   const getContent = () => {
     if (walletType === "create") {
       return {
@@ -208,13 +364,37 @@ export function WalletCreator(
           {/* Enhanced Private Key Input (only for import) */}
           {content.showInput && (
             <div className="space-y-2 sm:space-y-3">
-              <Label
-                htmlFor="privateKey"
-                className="text-xs sm:text-sm font-semibold text-card-foreground flex items-center gap-1.5 sm:gap-2"
-              >
-                <Key className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                Private Key
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label
+                  htmlFor="privateKey"
+                  className="text-xs sm:text-sm font-semibold text-card-foreground flex items-center gap-1.5 sm:gap-2"
+                >
+                  <Key className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  Private Key
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLoadFromFile}
+                  disabled={isLoading}
+                  className="h-7 sm:h-8 px-2 sm:px-3 text-xs gap-1.5"
+                >
+                  <Upload className="h-3 w-3" />
+                  <span className="hidden sm:inline">Load from File</span>
+                  <span className="sm:hidden">Load</span>
+                </Button>
+              </div>
+
+              {/* Hidden file input */}
+              <input
+                ref={(el) => setFileInputRef(el)}
+                type="file"
+                accept=".txt,.key,.json,text/*"
+                onChange={handleFileChange}
+                className="hidden"
+                aria-label="Load private key from file"
+              />
 
               <div className="relative">
                 <Input
@@ -288,7 +468,7 @@ export function WalletCreator(
                 className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed"
               >
                 Your private key is 64 hexadecimal characters (0-9, a-f). It's
-                processed securely in your browser.
+                processed securely in your browser. You can enter it manually or load from a file.
               </p>
             </div>
           )}
@@ -371,6 +551,115 @@ export function WalletCreator(
           </div>
         </CardContent>
       </Card>
+
+      {/* Password Dialog for Decrypting Encrypted File */}
+      <Dialog open={showPasswordDialog} onOpenChange={(open) => {
+        if (!open) {
+          setShowPasswordDialog(false);
+          setPassword("");
+          setPasswordError(null);
+          setPendingEncryptedData(null);
+        }
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5 text-amber-500" />
+              Decrypt Private Key File
+            </DialogTitle>
+            <DialogDescription>
+              Enter the password you used to encrypt this file to decrypt your private key.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="decrypt-password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="decrypt-password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setPasswordError(null);
+                  }}
+                  placeholder="Enter decryption password"
+                  className="pr-10"
+                  disabled={isDecrypting}
+                  aria-invalid={!!passwordError}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && password) {
+                      handleDecryptFile();
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                  disabled={isDecrypting}
+                >
+                  {showPassword
+                    ? <EyeOff className="h-3.5 w-3.5" />
+                    : <Eye className="h-3.5 w-3.5" />}
+                </Button>
+              </div>
+            </div>
+
+            {passwordError && (
+              <div className="p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-700 dark:text-red-400 flex items-center gap-2">
+                <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                <span>{passwordError}</span>
+              </div>
+            )}
+
+            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded text-xs text-amber-700 dark:text-amber-400">
+              <div className="font-semibold mb-1">ℹ️ Information:</div>
+              <ul className="list-disc list-inside space-y-0.5 text-[11px]">
+                <li>The file is encrypted using AES-GCM with PBKDF2</li>
+                <li>Enter the password you set when creating the encrypted file</li>
+                <li>If you forgot the password, the file cannot be decrypted</li>
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowPasswordDialog(false);
+                setPassword("");
+                setPasswordError(null);
+                setPendingEncryptedData(null);
+              }}
+              disabled={isDecrypting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDecryptFile}
+              disabled={isDecrypting || !password}
+              className="bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              {isDecrypting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Decrypting...
+                </>
+              ) : (
+                <>
+                  <Key className="h-4 w-4 mr-2" />
+                  Decrypt & Import
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

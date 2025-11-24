@@ -3,7 +3,7 @@
  * Implements getAssetTransactions API method
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useAuthStore } from "@/stores";
 
 /**
@@ -89,21 +89,81 @@ export function useAssetTransactions(
 
 	const { connectionSession, isAuthenticated, isConnected } = useAuthStore();
 
+	// Use refs to track stable values for connectionSession
+	const connectionSessionRef = useRef(connectionSession);
+	const apiUrlRef = useRef<string | null>(null);
+	const networkRef = useRef<string | null>(null);
+	const sessionRef = useRef<string | null>(null);
+
+	// Update refs when connectionSession changes
+	useEffect(() => {
+		if (connectionSession) {
+			connectionSessionRef.current = connectionSession;
+			apiUrlRef.current = connectionSession.api;
+			networkRef.current = connectionSession.network;
+			sessionRef.current = connectionSession.session;
+		}
+	}, [connectionSession]);
+
+	// Track last fetch to prevent unnecessary refetches
+	const lastFetchRef = useRef<{
+		address: string;
+		network: string;
+		token_id?: string;
+		status?: string;
+		session: string;
+		timestamp: number;
+	} | null>(null);
+
 	const fetchTransactions = useCallback(async (): Promise<void> => {
-		if (!isAuthenticated || !isConnected || !connectionSession) {
+		if (!isAuthenticated || !isConnected || !connectionSessionRef.current) {
 			console.log(
 				"[useAssetTransactions] Not authenticated or connected, skipping",
 			);
 			return;
 		}
 
-		const apiUrl = connectionSession.api;
-		const network = params.network || connectionSession.network;
+		const apiUrl = apiUrlRef.current || connectionSessionRef.current.api;
+		const network = params.network || networkRef.current || connectionSessionRef.current.network;
 
 		if (!apiUrl || !network) {
 			console.error("[useAssetTransactions] Missing API URL or network");
 			return;
 		}
+
+		if (!params.address) {
+			console.error("[useAssetTransactions] Missing address");
+			return;
+		}
+
+		const session = sessionRef.current || connectionSessionRef.current.session;
+		const now = Date.now();
+
+		// Check if we already fetched for this address/network/session recently (within 5 seconds)
+		const lastFetch = lastFetchRef.current;
+		if (
+			lastFetch &&
+			lastFetch.address === params.address &&
+			lastFetch.network === network &&
+			lastFetch.token_id === params.token_id &&
+			lastFetch.status === (params.status || "all") &&
+			lastFetch.session === session &&
+			now - lastFetch.timestamp < 5000
+		) {
+			// Skip if recently fetched with same parameters
+			console.log("[useAssetTransactions] Skipping fetch - recently fetched");
+			return;
+		}
+
+		// Update last fetch info
+		lastFetchRef.current = {
+			address: params.address,
+			network,
+			token_id: params.token_id,
+			status: params.status || "all",
+			session,
+			timestamp: now,
+		};
 
 		setLoading(true);
 		setError(null);
@@ -133,7 +193,7 @@ export function useAssetTransactions(
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					"stels-session": connectionSession.session,
+					"stels-session": session,
 				},
 				body: JSON.stringify(requestBody),
 			});
@@ -167,7 +227,6 @@ export function useAssetTransactions(
 	}, [
 		isAuthenticated,
 		isConnected,
-		connectionSession,
 		params.address,
 		params.network,
 		params.token_id,

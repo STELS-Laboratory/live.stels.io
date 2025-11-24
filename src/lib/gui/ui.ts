@@ -178,6 +178,11 @@ class SessionStorageManager {
   }
 }
 
+// Export singleton instance getter
+export const getSessionStorageManager = (): SessionStorageManager => {
+  return SessionStorageManager.getInstance();
+};
+
 // ============================================================================
 // UI Engine Provider
 // ============================================================================

@@ -11,9 +11,11 @@ import {
   Shield,
   ShieldOff,
   TrendingUp,
+  Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from "@/stores";
 
 interface WalletCardProps {
   cardNumber: string;
@@ -24,6 +26,7 @@ interface WalletCardProps {
   isVerified: boolean;
   loading: boolean;
   onRefresh: () => void;
+  walletAddress?: string;
   mobile?: boolean;
 }
 
@@ -58,6 +61,7 @@ export function WalletCard({
   isVerified,
   loading,
   onRefresh,
+  walletAddress,
   mobile = false,
 }: WalletCardProps): React.ReactElement {
   // Total portfolio value is already passed as usdValue (tokens + liquidity)
@@ -201,6 +205,38 @@ export function WalletCard({
               </div>
             )}
           </div>
+
+          {/* Wallet Address */}
+          {walletAddress && (
+            <div className="space-y-2 pt-2 border-t border-white/10">
+              <div className="text-white/60 text-[10px] uppercase tracking-wider">
+                Wallet Address
+              </div>
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded p-2 border border-white/20">
+                <code className="text-white text-[10px] font-mono flex-1 truncate">
+                  {walletAddress}
+                </code>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (walletAddress) {
+                      navigator.clipboard.writeText(walletAddress);
+                      toast.success(
+                        "Address copied!",
+                        "Wallet address copied to clipboard",
+                      );
+                    }
+                  }}
+                  className="flex-shrink-0 p-1.5 hover:bg-white/20 rounded transition-colors active:bg-white/30"
+                  title="Copy address"
+                >
+                  <Copy className="w-3.5 h-3.5 text-white" />
+                </motion.button>
+              </div>
+            </div>
+          )}
 
           {/* Liquidity Section */}
           {liquidity > 0 && (

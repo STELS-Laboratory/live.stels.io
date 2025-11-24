@@ -3,18 +3,36 @@ import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertCircle,
   ArrowLeft,
   ArrowRight,
   CheckCircle,
   Copy,
+  Download,
   Eye,
   EyeOff,
   Shield,
+  Lock,
+  Loader2,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/modules/auth.store";
 import { LOTTIE_ANIMATIONS, LOTTIE_SIZES } from "./lottie_config";
+import {
+  encryptWithPassword,
+  uint8ArrayToHex,
+  DEFAULT_PBKDF2_ITERATIONS,
+} from "@/lib/crypto";
 
 interface WalletConfirmationProps {
   walletType: "create" | "import";
@@ -32,9 +50,16 @@ export function WalletConfirmation({
 }: WalletConfirmationProps): React.ReactElement {
   const { wallet } = useAuthStore();
   const [copiedAddress, setCopiedAddress] = useState(false);
-  const [copiedPublicKey, setCopiedPublicKey] = useState(false);
-  const [showPublicKey, setShowPublicKey] = useState(false);
+  const [copiedPrivateKey, setCopiedPrivateKey] = useState(false);
+  const [showPrivateKey, setShowPrivateKey] = useState(false);
+  const [showFullPrivateKey, setShowFullPrivateKey] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isEncrypting, setIsEncrypting] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   if (!wallet) {
     return (
@@ -61,13 +86,106 @@ export function WalletConfirmation({
     }
   };
 
-  const handleCopyPublicKey = async (): Promise<void> => {
+  const handleCopyPrivateKey = async (): Promise<void> => {
     try {
-      await navigator.clipboard.writeText(wallet.publicKey);
-      setCopiedPublicKey(true);
-      setTimeout(() => setCopiedPublicKey(false), 1500);
+      // SECURITY: Copy private key to clipboard without displaying in DOM
+      await navigator.clipboard.writeText(wallet.privateKey);
+      setCopiedPrivateKey(true);
+      setTimeout(() => setCopiedPrivateKey(false), 1500);
     } catch (error) {
-      console.error("Failed to copy public key:", error);
+      console.error("Failed to copy private key:", error);
+      // Fallback: Show full key so user can copy manually
+      setShowFullPrivateKey(true);
+    }
+  };
+
+  const handleDownloadClick = (): void => {
+    setPassword("");
+    setConfirmPassword("");
+    setPasswordError(null);
+    setShowPasswordDialog(true);
+  };
+
+  const handleDownloadPrivateKey = async (): Promise<void> => {
+    // Validate password
+    if (!password || password.length < 8) {
+      setPasswordError("Password must be at least 8 characters long");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+
+    setIsEncrypting(true);
+    setPasswordError(null);
+
+    try {
+      // Encrypt private key with password
+      const encrypted = await encryptWithPassword(
+        wallet.privateKey,
+        password,
+        DEFAULT_PBKDF2_ITERATIONS,
+      );
+
+      // Create JSON structure
+      const encryptedFile = {
+        version: "1.0",
+        encrypted: true,
+        algorithm: "AES-GCM",
+        keyDerivation: "PBKDF2",
+        iterations: DEFAULT_PBKDF2_ITERATIONS,
+        salt: uint8ArrayToHex(encrypted.salt),
+        iv: uint8ArrayToHex(encrypted.iv),
+        data: uint8ArrayToHex(encrypted.encryptedData),
+        address: wallet.address,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Download as JSON file
+      const blob = new Blob([JSON.stringify(encryptedFile, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `gliesereum-wallet-${wallet.address.slice(0, 8)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      // Close dialog and reset
+      setShowPasswordDialog(false);
+      setPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      console.error("Failed to encrypt and download private key:", error);
+      setPasswordError(
+        error instanceof Error
+          ? error.message
+          : "Failed to encrypt private key. Please try again.",
+      );
+    } finally {
+      setIsEncrypting(false);
+    }
+  };
+
+  const handleShowFullKey = (): void => {
+    // Show warning before displaying full key
+    const confirmed = window.confirm(
+      "⚠️ SECURITY WARNING\n\n" +
+      "You are about to view your full private key in the browser.\n\n" +
+      "This is a security risk. Make sure:\n" +
+      "• No one is watching your screen\n" +
+      "• No malicious browser extensions are installed\n" +
+      "• You are in a private/incognito window\n\n" +
+      "Do you want to continue?"
+    );
+    
+    if (confirmed) {
+      setShowFullPrivateKey(true);
     }
   };
 
@@ -189,7 +307,7 @@ export function WalletConfirmation({
                 </div>
               </div>
 
-              {/* Public Key */}
+              {/* Private Key - SECURITY: Show full key only when explicitly requested */}
               <div className="space-y-1.5 sm:space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-xs sm:text-sm font-medium text-muted-foreground">
@@ -199,32 +317,86 @@ export function WalletConfirmation({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setShowPublicKey(!showPublicKey)}
+                      onClick={() => setShowPrivateKey(!showPrivateKey)}
                       className="h-7 sm:h-8 px-1.5 sm:px-2 text-xs"
+                      aria-label={showPrivateKey ? "Hide private key preview" : "Show private key preview"}
                     >
-                      {showPublicKey
+                      {showPrivateKey
                         ? <EyeOff className="h-3 w-3" />
                         : <Eye className="h-3 w-3" />}
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={handleCopyPublicKey}
+                      onClick={handleCopyPrivateKey}
                       className="h-7 sm:h-8 px-1.5 sm:px-2 text-xs"
+                      aria-label="Copy private key to clipboard"
+                      title="Copy private key to clipboard (Ctrl+C / Cmd+C if button fails)"
                     >
-                      {copiedPublicKey
+                      {copiedPrivateKey
                         ? (
                           <CheckCircle className="h-3 w-3 text-accent-foreground" />
                         )
                         : <Copy className="h-3 w-3" />}
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleDownloadClick}
+                      className="h-7 sm:h-8 px-1.5 sm:px-2 text-xs"
+                      aria-label="Download encrypted private key as file"
+                      title="Download encrypted private key as JSON file"
+                    >
+                      <Download className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
                 <div className="p-1.5 sm:p-2 bg-background border border-border rounded">
-                  {showPublicKey
+                  {showFullPrivateKey
                     ? (
-                      <div className="font-mono text-[10px] sm:text-xs text-foreground break-all leading-tight">
-                        {wallet.privateKey}
+                      // SECURITY WARNING: Full key displayed - user can select and copy manually
+                      <div className="space-y-2">
+                        <div className="p-2 bg-red-500/10 border border-red-500/30 rounded text-[10px] text-red-700 dark:text-red-400">
+                          ⚠️ Full private key is visible. Select text and copy manually (Ctrl+C / Cmd+C)
+                        </div>
+                        <div 
+                          className="font-mono text-[10px] sm:text-xs text-foreground break-all leading-tight select-all cursor-text"
+                          onDoubleClick={(e) => {
+                            // Select all text on double click
+                            const range = document.createRange();
+                            range.selectNodeContents(e.currentTarget);
+                            const selection = window.getSelection();
+                            selection?.removeAllRanges();
+                            selection?.addRange(range);
+                          }}
+                        >
+                          {wallet.privateKey}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowFullPrivateKey(false)}
+                          className="w-full h-7 text-xs"
+                        >
+                          Hide Full Key
+                        </Button>
+                      </div>
+                    )
+                    : showPrivateKey
+                    ? (
+                      // SECURITY: Show masked preview only (first 8 and last 8 chars)
+                      <div className="space-y-2">
+                        <div className="font-mono text-[10px] sm:text-xs text-foreground break-all leading-tight">
+                          {wallet.privateKey.slice(0, 8)}••••••••••••••••••••••••••••••••••••••••••••••••{wallet.privateKey.slice(-8)}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleShowFullKey}
+                          className="w-full h-7 text-xs"
+                        >
+                          Show Full Key (Manual Copy)
+                        </Button>
                       </div>
                     )
                     : (
@@ -232,6 +404,16 @@ export function WalletConfirmation({
                         •••••••••••••••••••••••••••••••
                       </div>
                     )}
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] text-muted-foreground">
+                    Click copy button to copy to clipboard, or download as file
+                  </p>
+                  {!showFullPrivateKey && (
+                    <p className="text-[10px] text-muted-foreground">
+                      If copy button fails, click "Show Full Key" to copy manually
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -301,6 +483,132 @@ export function WalletConfirmation({
           </div>
         </CardContent>
       </Card>
+
+      {/* Password Dialog for Encrypted Download */}
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5 text-amber-500" />
+              Encrypt Private Key File
+            </DialogTitle>
+            <DialogDescription>
+              Enter a password to encrypt your private key file. You'll need this
+              password to decrypt the file when importing your wallet.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="encrypt-password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="encrypt-password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setPasswordError(null);
+                  }}
+                  placeholder="Enter password (min 8 characters)"
+                  className="pr-10"
+                  disabled={isEncrypting}
+                  aria-invalid={!!passwordError}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                  disabled={isEncrypting}
+                >
+                  {showPassword
+                    ? <EyeOff className="h-3.5 w-3.5" />
+                    : <Eye className="h-3.5 w-3.5" />}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Minimum 8 characters. Use a strong, unique password.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Input
+                id="confirm-password"
+                type={showPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setPasswordError(null);
+                }}
+                placeholder="Confirm password"
+                disabled={isEncrypting}
+                aria-invalid={!!passwordError}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && password && confirmPassword) {
+                    handleDownloadPrivateKey();
+                  }
+                }}
+              />
+            </div>
+
+            {passwordError && (
+              <div className="p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-700 dark:text-red-400 flex items-center gap-2">
+                <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                <span>{passwordError}</span>
+              </div>
+            )}
+
+            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded text-xs text-amber-700 dark:text-amber-400">
+              <div className="font-semibold mb-1">⚠️ Important:</div>
+              <ul className="list-disc list-inside space-y-0.5 text-[11px]">
+                <li>Remember this password - you'll need it to decrypt the file</li>
+                <li>The file will be encrypted using AES-GCM with PBKDF2</li>
+                <li>Store the password securely - it cannot be recovered</li>
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowPasswordDialog(false);
+                setPassword("");
+                setConfirmPassword("");
+                setPasswordError(null);
+              }}
+              disabled={isEncrypting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDownloadPrivateKey}
+              disabled={
+                isEncrypting ||
+                !password ||
+                !confirmPassword ||
+                password.length < 8
+              }
+              className="bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              {isEncrypting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Encrypting...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Encrypted File
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

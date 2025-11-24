@@ -65,6 +65,7 @@
     "monaco-editor": "^0.52.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-globe.gl": "^2.37.0",
     "react-markdown": "^10.1.0",
     "react-split": "^2.0.14",
     "react-syntax-highlighter": "^16.1.0",
@@ -74,6 +75,7 @@
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.11",
     "tailwindcss-animate": "^1.0.7",
+    "three": "^0.181.2",
     "zustand": "^5.0.6"
   },
   "devDependencies": {

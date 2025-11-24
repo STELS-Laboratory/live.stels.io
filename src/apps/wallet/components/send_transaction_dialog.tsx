@@ -88,7 +88,9 @@ export function SendTransactionDialog({
 
 	const tokenGenesis: TokenGenesisDocument | null = useMemo(() => {
 		if (!selectedToken) return null;
-		return selectedToken.raw.genesis as unknown as TokenGenesisDocument;
+		// Type assertion is safe here because we know the structure matches
+		// @ts-expect-error - Type assertion is safe because structure matches TokenGenesisDocument
+		return selectedToken.raw.genesis as TokenGenesisDocument;
 	}, [selectedToken]);
 
 	// Calculate fee based on transaction size
@@ -392,13 +394,13 @@ export function SendTransactionDialog({
 					</div>
 
 					{/* Balance Info */}
-					{selectedTokenId && currentBalance && (
+					{selectedTokenId && currentBalance && selectedToken && (
 						<div className="space-y-2">
 							<Label>Current Balance</Label>
 							<div className="p-3 rounded border bg-muted/30">
 								<div className="flex items-center justify-between">
 									<span className="text-sm font-semibold">
-										{currentBalance.balance} {currentBalance.currency}
+										{currentBalance.balance} {selectedToken.raw.genesis.token.metadata.symbol}
 									</span>
 									{balanceLoading && (
 										<span className="text-xs text-muted-foreground">
@@ -416,6 +418,7 @@ export function SendTransactionDialog({
 											const feeNum = Number.parseFloat(calculatedFee);
 											const required = amountNum + feeNum;
 											const remaining = balanceNum - required;
+											const tokenSymbol = selectedToken.raw.genesis.token.metadata.symbol;
 
 											if (isNaN(amountNum) || amountNum <= 0) {
 												return null;
@@ -428,7 +431,7 @@ export function SendTransactionDialog({
 														{Math.abs(remaining).toFixed(
 															currentBalance.decimals,
 														)}{" "}
-														{currentBalance.currency} more
+														{tokenSymbol} more
 													</span>
 												);
 											}
@@ -438,7 +441,7 @@ export function SendTransactionDialog({
 													After transaction: {remaining.toFixed(
 														currentBalance.decimals,
 													)}{" "}
-													{currentBalance.currency}
+													{tokenSymbol}
 												</span>
 											);
 										})()}

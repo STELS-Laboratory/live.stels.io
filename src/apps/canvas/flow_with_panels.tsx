@@ -124,7 +124,7 @@ function FlowWithPanels(): React.ReactElement | null {
 							...node,
 							data: {
 								...node.data,
-								onDelete: undefined as unknown as (nodeId: string) => void,
+								onDelete: undefined as (nodeId: string) => void | undefined,
 							},
 						})),
 					});

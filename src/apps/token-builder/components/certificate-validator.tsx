@@ -123,7 +123,7 @@ export function CertificateValidator({
     try {
       // Detect certificate type using centralized function
       const certType = detectCertificateType(
-        certificate as unknown as Record<string, unknown>,
+        certificate as Record<string, unknown>,
       );
 
       // Handle genesis.json (network genesis document)
@@ -131,7 +131,7 @@ export function CertificateValidator({
         // Genesis documents have different structure validation
         const genesisErrors: string[] = [];
 
-        const cert = certificate as unknown as Record<string, unknown>;
+        const cert = certificate as Record<string, unknown>;
 
         // Validate genesis-specific fields
         if (!cert.genesis) genesisErrors.push("Missing genesis data");
