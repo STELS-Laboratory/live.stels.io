@@ -5,7 +5,7 @@
 
 import * as React from "react";
 import { useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,24 +17,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Grid3x3,
-  List,
-  Search,
-  Filter,
-  X,
-  Activity,
-} from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Activity, Filter, Grid3x3, List, Search, X } from "lucide-react";
 import { useIndexStore } from "./store";
 import { useIndexesSync } from "./hooks/use-indexes-sync";
 import { IndexCard } from "./components/index-card";
 import { IndexDetail } from "./components/index-detail";
 import { INDEXES_METADATA } from "./store";
+import { useMobile } from "@/hooks/use_mobile";
 
 /**
  * Market Indexes Application Component
  */
 export default function Indexes(): React.ReactElement {
+  // Mobile detection
+  const mobile = useMobile();
+
   // Use separate selectors for primitive values to avoid unnecessary re-renders
   const selectedIndex = useIndexStore((state) => state.selectedIndex);
   const searchFilter = useIndexStore((state) => state.ui.searchFilter);
@@ -42,11 +40,11 @@ export default function Indexes(): React.ReactElement {
   const viewMode = useIndexStore((state) => state.ui.viewMode);
   const loading = useIndexStore((state) => state.loading);
   const error = useIndexStore((state) => state.error);
-  const lastUpdate = useIndexStore((state) => state.lastUpdate);
-  
+  //const lastUpdate = useIndexStore((state) => state.lastUpdate);
+
   // Get indexes keys string from cache - stable reference
   const indexesKeysString = useIndexStore((state) => state._indexesKeysCache);
-  
+
   const setSelectedIndex = useIndexStore((state) => state.setSelectedIndex);
   const setViewMode = useIndexStore((state) => state.setViewMode);
   const setSearchFilter = useIndexStore((state) => state.setSearchFilter);
@@ -58,8 +56,8 @@ export default function Indexes(): React.ReactElement {
 
   // Get filtered indexes metadata - memoized with stable string dependency
   const filteredIndexes = useMemo(() => {
-    const availableKeys = indexesKeysString ? indexesKeysString.split(',') : [];
-    
+    const availableKeys = indexesKeysString ? indexesKeysString.split(",") : [];
+
     return Object.values(INDEXES_METADATA).filter((metadata) => {
       // Filter by search
       if (searchFilter) {
@@ -84,7 +82,7 @@ export default function Indexes(): React.ReactElement {
       return availableKeys.includes(metadata.code);
     });
   }, [searchFilter, categoryFilter, indexesKeysString]);
-  
+
   // Get indexes data - use selector to get the actual data (only when needed for rendering)
   const indexes = useIndexStore((state) => state.indexes);
 
@@ -119,11 +117,11 @@ export default function Indexes(): React.ReactElement {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              {lastUpdate && (
-                <div className="text-xs text-muted-foreground">
-                  Updated: {new Date(lastUpdate).toLocaleTimeString()}
-                </div>
-              )}
+              {/*{lastUpdate && (*/}
+              {/*  <div className="text-xs text-muted-foreground">*/}
+              {/*    Updated: {new Date(lastUpdate).toLocaleTimeString()}*/}
+              {/*  </div>*/}
+              {/*)}*/}
               {loading && (
                 <div className="text-xs text-amber-500">Loading...</div>
               )}
@@ -157,8 +155,7 @@ export default function Indexes(): React.ReactElement {
             <Select
               value={categoryFilter || "all"}
               onValueChange={(value) =>
-                setCategoryFilter(value === "all" ? null : value)
-              }
+                setCategoryFilter(value === "all" ? null : value)}
             >
               <SelectTrigger className="w-[180px]">
                 <Filter className="icon-sm mr-2" />
@@ -221,81 +218,136 @@ export default function Indexes(): React.ReactElement {
         <div className="h-full grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-0">
           {/* Indexes Grid/List */}
           <div className="overflow-y-auto p-6">
-            {filteredIndexes.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <div className="text-muted-foreground">
-                    {searchFilter || categoryFilter
-                      ? "No indexes match your filters"
-                      : "No indexes available"}
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div
-                className={cn(
-                  "grid gap-4",
-                  viewMode === "grid"
-                    ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
-                    : "grid-cols-1",
-                )}
-              >
-                <AnimatePresence mode="popLayout">
-                  {filteredIndexes.map((metadata) => {
-                    const indexData = indexes[metadata.code] || null;
-                    const isSelected = selectedIndex === metadata.code;
-                    return (
-                      <motion.div
-                        key={metadata.code}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <IndexCard
-                          metadata={metadata}
-                          data={indexData}
-                          isSelected={isSelected}
-                          onClick={() => {
-                            if (isSelected) {
-                              setSelectedIndex(null);
-                            } else {
-                              setSelectedIndex(metadata.code);
-                            }
-                          }}
-                        />
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-              </div>
-            )}
+            {filteredIndexes.length === 0
+              ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <div className="text-muted-foreground">
+                      {searchFilter || categoryFilter
+                        ? "No indexes match your filters"
+                        : "No indexes available"}
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+              : (
+                <div
+                  className={cn(
+                    "grid gap-4",
+                    viewMode === "grid"
+                      ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
+                      : "grid-cols-1",
+                  )}
+                >
+                  <AnimatePresence mode="popLayout">
+                    {filteredIndexes.map((metadata) => {
+                      const indexData = indexes[metadata.code] || null;
+                      const isSelected = selectedIndex === metadata.code;
+                      return (
+                        <motion.div
+                          key={metadata.code}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <IndexCard
+                            metadata={metadata}
+                            data={indexData}
+                            isSelected={isSelected}
+                            onClick={() => {
+                              if (isSelected) {
+                                setSelectedIndex(null);
+                              } else {
+                                setSelectedIndex(metadata.code);
+                              }
+                            }}
+                          />
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+                </div>
+              )}
           </div>
 
-          {/* Detail Panel */}
-          <AnimatePresence mode="wait">
-            {selectedIndex && selectedIndexData && (
-              <motion.div
-                key={selectedIndex}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.2 }}
-                className="border-l border-border bg-card/50 backdrop-blur-sm overflow-y-auto"
-              >
-                <div className="p-6 h-full">
+          {/* Detail Panel - Desktop */}
+          {!mobile && (
+            <AnimatePresence mode="wait">
+              {selectedIndex && selectedIndexData && (
+                <motion.div
+                  key={selectedIndex}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.2 }}
+                  className="border-l border-border bg-card/50 backdrop-blur-sm overflow-y-auto"
+                >
+                  <div className="p-6 h-full">
+                    <IndexDetail
+                      indexCode={selectedIndex}
+                      data={selectedIndexData}
+                      onClose={() => setSelectedIndex(null)}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Detail Modal - Full Screen Bottom Sheet */}
+      {mobile && (
+        <Dialog
+          open={!!selectedIndex && !!selectedIndexData}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedIndex(null);
+            }
+          }}
+        >
+          <DialogContent
+            showCloseButton={false}
+            className={cn(
+              "max-w-none w-screen h-[100vh] max-h-[100vh] p-0 gap-0 m-0",
+              "rounded-none",
+              "fixed bottom-0 left-0 right-0 top-0",
+              "translate-x-0 translate-y-0",
+              "data-[state=open]:animate-in data-[state=closed]:animate-out",
+              "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+              "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+              "duration-300 ease-out",
+            )}
+          >
+            <div className="flex flex-col h-full overflow-hidden bg-background">
+              {/* Mobile Header with Drag Handle */}
+              <div className="shrink-0 flex items-center justify-center pt-3 pb-2 px-4 border-b border-border relative">
+                <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full" />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedIndex(null)}
+                  className="absolute right-2 top-2 h-8 w-8 p-0 z-10"
+                >
+                  <X className="icon-sm" />
+                </Button>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-4">
+                {selectedIndex && selectedIndexData && (
                   <IndexDetail
                     indexCode={selectedIndex}
                     data={selectedIndexData}
                     onClose={() => setSelectedIndex(null)}
                   />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
-
