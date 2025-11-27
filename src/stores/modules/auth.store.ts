@@ -108,6 +108,14 @@ const DEFAULT_NETWORKS: NetworkConfig[] = [
 		socket: 'wss://beta.stels.dev',
 		developer: false,
 		description: 'Testnet network'
+	},
+	{
+		id: 'mainnet',
+		name: 'Beta Mainnet',
+		api: 'https://mainnet.stels.io',
+		socket: 'wss://mainnet.stels.io',
+		developer: false,
+		description: 'Mainnet Beta Network'
 	}
 ];
 
@@ -150,7 +158,7 @@ export const useAuthStore = create<AuthStore>()(
 							connectionError: null
 						});
 
-					} catch {
+					} catch (error){
 
 						set({
 							connectionError: error instanceof Error ? error.message : 'Failed to create Wallet'
@@ -168,7 +176,7 @@ export const useAuthStore = create<AuthStore>()(
 						});
 
 						return true;
-					} catch {
+					} catch(error) {
 
 						set({
 							connectionError: error instanceof Error ? error.message : 'Invalid private key'
@@ -332,7 +340,7 @@ export const useAuthStore = create<AuthStore>()(
 							throw new Error('Invalid session response');
 						}
 						
-					} catch {
+					} catch(error) {
 
 						set({
 							isConnecting: false,

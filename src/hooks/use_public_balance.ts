@@ -144,7 +144,7 @@ export function usePublicBalance(
 			} else {
 				throw new Error("Invalid response format");
 			}
-		} catch {
+		} catch(err) {
 			const errorMessage =
 				err instanceof Error
 					? err.message
