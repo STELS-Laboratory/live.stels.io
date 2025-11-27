@@ -81,7 +81,7 @@ export function useAssetList(): {
 
 	const fetchAssetList = useCallback(async (): Promise<void> => {
 		if (!isAuthenticated || !isConnected || !connectionSession) {
-			console.log("[useAssetList] Not authenticated or connected, skipping");
+
 			return;
 		}
 
@@ -89,7 +89,7 @@ export function useAssetList(): {
 		const network = connectionSession.network;
 
 		if (!apiUrl || !network) {
-			console.error("[useAssetList] Missing API URL or network");
+
 			return;
 		}
 
@@ -102,12 +102,6 @@ export function useAssetList(): {
 				method: "assetList",
 				params: [network], // Use current network (localnet, testnet, mainnet)
 			};
-
-			console.log("[useAssetList] Fetching asset list", {
-				apiUrl,
-				network,
-				requestBody,
-			});
 
 			const response = await fetch(apiUrl, {
 				method: "POST",
@@ -123,25 +117,17 @@ export function useAssetList(): {
 
 			const data: AssetListResponse = await response.json();
 
-			console.log("[useAssetList] Asset list response", {
-				success: data.result.success,
-				total: data.result.total,
-				assets: data.result.assets.length,
-			});
-
 			if (data.result.success) {
 				setAssets(data.result.assets);
-				console.log(
-					`[useAssetList] Loaded ${data.result.assets.length} assets from ${data.result.network}`,
-				);
+
 			} else {
 				throw new Error("Asset list request failed");
 			}
-		} catch (err) {
+		} catch {
 			const errorMessage = err instanceof Error
 				? err.message
 				: "Failed to fetch asset list";
-			console.error("[useAssetList] Error fetching asset list:", err);
+
 			setError(errorMessage);
 		} finally {
 			setLoading(false);
@@ -151,9 +137,7 @@ export function useAssetList(): {
 	// Load asset list when authenticated and connected
 	useEffect(() => {
 		if (isAuthenticated && isConnected && connectionSession) {
-			console.log(
-				"[useAssetList] Auth state changed - fetching asset list",
-			);
+
 			fetchAssetList();
 		}
 	}, [isAuthenticated, isConnected, connectionSession, fetchAssetList]);
@@ -165,4 +149,3 @@ export function useAssetList(): {
 		refetch: fetchAssetList,
 	};
 }
-

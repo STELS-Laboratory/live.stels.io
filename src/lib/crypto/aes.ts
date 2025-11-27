@@ -48,7 +48,7 @@ export async function encrypt(
     );
 
     return { iv, encryptedData };
-  } catch (error) {
+  } catch {
     throw new Error(
       `Encryption failed: ${
         error instanceof Error ? error.message : "Unknown error"
@@ -93,7 +93,7 @@ export async function decrypt(
     );
 
     return uint8ArrayToStr(decryptedData);
-  } catch (error) {
+  } catch {
     throw new Error(
       `Decryption failed: ${
         error instanceof Error ? error.message : "Unknown error"

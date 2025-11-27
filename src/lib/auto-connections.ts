@@ -172,7 +172,6 @@ export function extractConnectionKeys(
 		}
 	}
 
-
 	// Simple fallback for testing - use channel as type if no other keys found
 	if (Object.keys(keys).length === 0 && nodeData.channel) {
 		keys.type = nodeData.channel.split(".").pop() || "unknown";
@@ -190,11 +189,6 @@ export function groupNodesByKeys(
 ): EdgeGroup[] {
 	const groups: Map<string, EdgeGroup> = new Map();
 
-	console.log("Grouping nodes by keys:", {
-		nodeCount: nodes.length,
-		config: config.groupByKeys,
-	});
-
 	nodes.forEach((node) => {
 		// Use enhanced key extraction for better grouping
 		const keys = extractSmartConnectionKeys(node.data);
@@ -204,14 +198,7 @@ export function groupNodesByKeys(
 			if (!keyValue) return;
 
 			const groupKey = `${keyType}:${keyValue}`;
-			
-			console.log(`Found group: ${groupKey} for node ${node.id}`, {
-				keyType,
-				keyValue,
-				keys,
-				channel: node.data.channel,
-			});
-			
+
 			if (!groups.has(groupKey)) {
 				groups.set(groupKey, {
 					key: keyValue,
@@ -238,8 +225,6 @@ export function generateAutoConnections(
 ): Edge<GroupedEdgeData>[] {
 	const edges: Edge<GroupedEdgeData>[] = [];
 	const edgeGroups = groupNodesByKeys(nodes, config);
-
-	console.log("Generated edge groups:", edgeGroups);
 
 	edgeGroups.forEach((group) => {
 		// Create connections between all nodes in the group
@@ -274,7 +259,7 @@ export function generateAutoConnections(
 					},
 				};
 				
-				// console.log("Creating auto edge:", edge);
+				// 
 				edges.push(edge);
 			}
 		}

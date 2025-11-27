@@ -106,8 +106,6 @@ export function DeveloperAccessRequestDialog({
 
       const result = await response.json();
 
-      console.log("[DeveloperAccess] Response:", result);
-
       // Check if we received updated session with developer access
       if (result.raw && result.raw.session && result.raw.token) {
         const updatedSession = {
@@ -120,11 +118,6 @@ export function DeveloperAccessRequestDialog({
           socket: result.raw.info.connector.socket,
           developer: result.raw.info.developer,
         };
-
-        console.log(
-          "[DeveloperAccess] Developer access granted:",
-          updatedSession.developer,
-        );
 
         // Update auth store with new session
         useAuthStore.setState({
@@ -166,8 +159,8 @@ export function DeveloperAccessRequestDialog({
 
       // If no session returned, request might be pending
       throw new Error("Developer access denied or request pending approval");
-    } catch (error) {
-      console.error("Failed to request developer access:", error);
+    } catch {
+
       setErrorMessage(
         error instanceof Error
           ? error.message

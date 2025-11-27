@@ -52,9 +52,9 @@ export function scanLocalStorage(): StorageItem[] {
 				});
 			}
 		}
-	} catch (error) {
-		console.error("[StorageScanner] Error scanning localStorage:", error);
-	}
+	} catch {
+			// Error handled silently
+		}
 
 	return items;
 }
@@ -78,9 +78,9 @@ export function scanSessionStorage(): StorageItem[] {
 				});
 			}
 		}
-	} catch (error) {
-		console.error("[StorageScanner] Error scanning sessionStorage:", error);
-	}
+	} catch {
+			// Error handled silently
+		}
 
 	return items;
 }
@@ -162,17 +162,13 @@ export async function scanIndexedDB(): Promise<IndexedDBDatabase[]> {
 
 					db.close();
 				}
-			} catch (error) {
-				console.log(
-					"[StorageScanner] Could not scan IndexedDB database:",
-					dbName,
-					error,
-				);
-			}
+			} catch {
+			// Error handled silently
 		}
-	} catch (error) {
-		console.error("[StorageScanner] Error scanning IndexedDB:", error);
-	}
+		}
+	} catch {
+			// Error handled silently
+		}
 
 	return databases;
 }
@@ -215,17 +211,13 @@ export async function scanCacheStorage(): Promise<CacheInfo[]> {
 					estimatedSize,
 					keys: keyUrls,
 				});
-			} catch (error) {
-				console.log(
-					"[StorageScanner] Could not scan cache:",
-					cacheName,
-					error,
-				);
-			}
+			} catch {
+			// Error handled silently
 		}
-	} catch (error) {
-		console.error("[StorageScanner] Error scanning Cache Storage:", error);
-	}
+		}
+	} catch {
+			// Error handled silently
+		}
 
 	return caches;
 }
@@ -247,9 +239,9 @@ export function scanCookies(): Array<{ name: string; value: string }> {
 				}
 			}
 		}
-	} catch (error) {
-		console.error("[StorageScanner] Error scanning cookies:", error);
-	}
+	} catch {
+			// Error handled silently
+		}
 
 	return cookies;
 }
@@ -270,7 +262,6 @@ export function formatBytes(bytes: number): string {
  * Scans all storage mechanisms and returns detailed results
  */
 export async function scanAllStorage(): Promise<StorageScanResult> {
-	console.log("[StorageScanner] Starting comprehensive storage scan...");
 
 	const localStorageItems = scanLocalStorage();
 	const sessionStorageItems = scanSessionStorage();
@@ -302,16 +293,5 @@ export async function scanAllStorage(): Promise<StorageScanResult> {
 		hasData,
 	};
 
-	console.log("[StorageScanner] Scan complete:", {
-		localStorage: localStorageItems.length,
-		sessionStorage: sessionStorageItems.length,
-		indexedDB: indexedDBDatabases.length,
-		caches: caches.length,
-		cookies: cookies.length,
-		totalSize: formatBytes(totalSize),
-		hasData,
-	});
-
 	return result;
 }
-

@@ -173,8 +173,8 @@ export function AccountDetailsDialog({
 			await navigator.clipboard.writeText(text);
 			setCopiedField(field);
 			setTimeout(() => setCopiedField(null), 2000);
-		} catch (err) {
-			console.error("Failed to copy:", err);
+		} catch {
+			// Error handled silently
 		}
 	};
 
@@ -538,4 +538,3 @@ export function AccountDetailsDialog({
 		</Dialog>
 	);
 }
-

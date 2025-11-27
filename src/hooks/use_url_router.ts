@@ -26,27 +26,26 @@ export const useUrlRouter = (): void => {
 		
 		// Wait for store to be fully initialized
 		if (!allowedRoutes || allowedRoutes.length === 0) {
-			console.log('[URL Router] Store not ready yet, waiting...', {allowedRoutes});
+
 			return;
 		}
 		
 		// Initialize route from URL on mount (only once)
 		if (!isInitialized.current) {
 			const urlRouter = getRouterFromUrl();
-			console.log(`[URL Router] Initializing from URL: ${urlRouter}, allowedRoutes:`, allowedRoutes);
-			
+
 			if (urlRouter && allowedRoutes.includes(urlRouter)) {
 				// Valid route in URL - sync store with URL
-				console.log(`[URL Router] Initializing from URL: ${urlRouter}`);
+
 				setRoute(urlRouter);
 			} else if (urlRouter && !allowedRoutes.includes(urlRouter)) {
 				// Invalid route in URL - redirect to welcome
-				console.warn(`[URL Router] Invalid route "${urlRouter}" - redirecting to welcome`);
+
 				updateUrl('welcome');
 				setRoute('welcome');
 			} else if (!urlRouter) {
 				// No router parameter - add current route to URL
-				console.log(`[URL Router] No router parameter - adding current route: ${currentRoute}`);
+
 				updateUrl(currentRoute);
 			}
 			
@@ -56,8 +55,7 @@ export const useUrlRouter = (): void => {
 		// Listen for popstate events (browser back/forward)
 		const handlePopState = (): void => {
 			const urlRouter = getRouterFromUrl();
-			console.log(`[URL Router] Popstate event - URL route: ${urlRouter}`);
-			
+
 			if (urlRouter && allowedRoutes.includes(urlRouter)) {
 				setRoute(urlRouter);
 			} else if (urlRouter && !allowedRoutes.includes(urlRouter)) {

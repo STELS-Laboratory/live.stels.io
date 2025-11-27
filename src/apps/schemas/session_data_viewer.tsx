@@ -67,9 +67,9 @@ export default function SessionDataViewer({
       await navigator.clipboard.writeText(`{${path}}`);
       setCopiedPath(path);
       setTimeout(() => setCopiedPath(null), 2000);
-    } catch (error) {
-      console.error("Failed to copy:", error);
-    }
+    } catch {
+			// Error handled silently
+		}
   };
 
   // Render JSON with clickable keys

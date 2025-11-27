@@ -69,8 +69,8 @@ export default function SchemaActions({
       URL.revokeObjectURL(url);
 
       onExport(allSchemas);
-    } catch (error) {
-      console.error("Failed to export schemas:", error);
+    } catch {
+
       onError("Failed to export schemas. Please try again.");
     }
   };
@@ -116,9 +116,9 @@ export default function SchemaActions({
         }
 
         onImport(schemasToImport);
-      } catch (error) {
+      } catch {
         onError("Failed to import schema. Please check the file format.");
-        console.error("Import error:", error);
+
       }
     };
     reader.readAsText(file);

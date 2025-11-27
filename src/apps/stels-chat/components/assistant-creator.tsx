@@ -75,9 +75,9 @@ export function AssistantCreator({
         },
       });
       onClose();
-    } catch (error) {
-      console.error("Failed to create assistant:", error);
-    }
+    } catch {
+			// Error handled silently
+		}
   };
 
   const updateOption = (
@@ -274,4 +274,3 @@ export function AssistantCreator({
     </form>
   );
 }
-

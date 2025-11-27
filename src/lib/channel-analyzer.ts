@@ -62,10 +62,6 @@ export function parseChannel(channelKey: string, nodeId?: string): ParsedChannel
  * Analyze all channels and discover available blocks
  */
 export function analyzeChannels(nodes: FlowNode[]): ChannelAnalysis {
-	console.log("[analyzeChannels] Analyzing nodes:", {
-		nodeCount: nodes.length,
-		nodesWithChannels: nodes.filter(n => n.data.channel).length,
-	});
 
 	const parsedChannels: ParsedChannel[] = [];
 	const blockMap: Map<number, ChannelBlock> = new Map();
@@ -73,11 +69,9 @@ export function analyzeChannels(nodes: FlowNode[]): ChannelAnalysis {
 	// Parse all channels
 	nodes.forEach((node) => {
 		if (!node.data.channel) {
-			console.log("[analyzeChannels] Node without channel:", node.id);
+
 			return;
 		}
-
-		console.log("[analyzeChannels] Parsing channel:", node.data.channel);
 
 		const parsed = parseChannel(node.data.channel, node.id);
 		parsedChannels.push(parsed);
@@ -118,18 +112,6 @@ export function analyzeChannels(nodes: FlowNode[]): ChannelAnalysis {
 		.slice(0, 3) // Top 3
 		.map((b) => b.position);
 
-	console.log("[analyzeChannels] Result:", {
-		channelsCount: parsedChannels.length,
-		blocksCount: blocks.length,
-		blocks: blocks.map(b => ({
-			pos: b.position,
-			label: b.label,
-			valueCount: b.values.size,
-			values: Array.from(b.values),
-		})),
-		suggestedBlocks,
-	});
-
 	return {
 		channels: parsedChannels,
 		blocks,
@@ -137,7 +119,6 @@ export function analyzeChannels(nodes: FlowNode[]): ChannelAnalysis {
 		suggestedBlocks,
 	};
 }
-
 
 /**
  * Extract connection key from node using dynamic block positions
@@ -171,27 +152,16 @@ export function groupNodesByBlocks(
 	nodes: FlowNode[],
 	blockPositions: number[],
 ): Map<string, FlowNode[]> {
-	console.log("[groupNodesByBlocks] Input:", {
-		nodeCount: nodes.length,
-		blockPositions,
-	});
 
 	const groups = new Map<string, FlowNode[]>();
 
 	nodes.forEach((node) => {
 		if (!node.data.channel) {
-			console.log("[groupNodesByBlocks] Node without channel:", node.id);
+
 			return;
 		}
 
 		const groupKey = extractDynamicConnectionKey(node.data.channel, blockPositions);
-
-		console.log("[groupNodesByBlocks] Node grouping:", {
-			nodeId: node.id,
-			channel: node.data.channel,
-			blockPositions,
-			groupKey,
-		});
 
 		if (!groups.has(groupKey)) {
 			groups.set(groupKey, []);
@@ -200,30 +170,14 @@ export function groupNodesByBlocks(
 		groups.get(groupKey)!.push(node);
 	});
 
-	console.log("[groupNodesByBlocks] All groups before filtering:", {
-		groupCount: groups.size,
-		groups: Array.from(groups.entries()).map(([key, nodes]) => ({
-			key,
-			nodeCount: nodes.length,
-		})),
-	});
-
 	// Only return groups with 2+ nodes
 	const filtered = new Map<string, FlowNode[]>();
 	groups.forEach((nodes, key) => {
 		if (nodes.length >= 2) {
 			filtered.set(key, nodes);
 		} else {
-			console.log("[groupNodesByBlocks] Filtering out group (only 1 node):", key);
+			// Empty block
 		}
-	});
-
-	console.log("[groupNodesByBlocks] Filtered groups (2+ nodes):", {
-		groupCount: filtered.size,
-		groups: Array.from(filtered.entries()).map(([key, nodes]) => ({
-			key,
-			nodeCount: nodes.length,
-		})),
 	});
 
 	return filtered;
@@ -366,4 +320,3 @@ export function getBlockIcon(_label: string, position?: number): string {
 	
 	return "🔗";
 }
-

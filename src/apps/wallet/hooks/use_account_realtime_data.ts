@@ -103,8 +103,8 @@ function parseAccountData(data: Record<string, unknown> | null): AccountRealtime
 			isConnected: accountData.raw?.connection !== false,
 			lastUpdate: accountData.timestamp || Date.now(),
 		};
-	} catch (error) {
-		console.error("[useAccountRealtimeData] Failed to parse account data:", error);
+	} catch {
+
 		return null;
 	}
 }
@@ -170,4 +170,3 @@ export function useAccountRealtimeData(
 
 	return data;
 }
-

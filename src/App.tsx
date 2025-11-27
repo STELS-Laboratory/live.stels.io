@@ -29,6 +29,7 @@ import ToastProvider from "@/components/main/toast_provider";
 import TestModeNotice from "@/components/main/test_mode_notice";
 
 // Lazy-loaded app modules
+const Trading = lazy(() => import("@/apps/trading"));
 const Welcome = lazy(() => import("@/apps/welcome"));
 const Flow = lazy(() => import("@/apps/canvas/flow"));
 const Schemas = lazy(() => import("@/apps/schemas"));
@@ -79,11 +80,15 @@ export default function Dashboard(): React.ReactElement {
 	}, [resolvedTheme]);
 
 	// Prevent zoom and touch behaviors
+	// Optimized to avoid blocking main thread - use CSS touch-action for most cases
 	useEffect(() => {
+		// Lightweight handler - only prevent multi-touch zoom
+		// CSS touch-action: manipulation already handles single-touch gestures
 		const preventZoom = (e: TouchEvent) => {
+			// Only prevent zoom on multi-touch (pinch gesture)
+			// Keep handler minimal to avoid blocking main thread
 			if (e.touches.length > 1) {
 				e.preventDefault();
-				e.stopPropagation();
 			}
 		};
 
@@ -100,6 +105,8 @@ export default function Dashboard(): React.ReactElement {
 		};
 
 		// Add event listeners
+		// Use passive: false only when we need to preventDefault (multi-touch)
+		// But optimize handler to be lightweight
 		document.addEventListener("touchstart", preventZoom, { passive: false });
 		document.addEventListener("touchmove", preventZoom, { passive: false });
 		document.addEventListener("gesturestart", preventGestures, {
@@ -132,7 +139,6 @@ export default function Dashboard(): React.ReactElement {
 	const [showSplash, setShowSplash] = useState(true);
 	const [forceRender, setForceRender] = useState(false);
 	const [transitionProgress, setTransitionProgress] = useState(0);
-	const [isTransitioning, setIsTransitioning] = useState(false);
 	const [storageScanComplete, setStorageScanComplete] = useState(false);
 
 	// Set upgrade end date - you can modify this date as needed
@@ -156,12 +162,7 @@ export default function Dashboard(): React.ReactElement {
 		delay: number = 800,
 		showProgress: boolean = true,
 	): Promise<void> => {
-		console.log(
-			`[App] Transitioning from ${appState} to ${newState} with ${delay}ms delay`,
-		);
-
 		if (showProgress) {
-			setIsTransitioning(true);
 			setTransitionProgress(0);
 
 			// Animate progress bar
@@ -181,14 +182,13 @@ export default function Dashboard(): React.ReactElement {
 			// Small additional delay to show completed progress
 			await new Promise((resolve) => setTimeout(resolve, 50));
 
-			setIsTransitioning(false);
 			setTransitionProgress(0);
 		} else {
 			await new Promise((resolve) => setTimeout(resolve, delay));
 		}
 
 		setAppState(newState);
-	}, [appState]);
+	}, []);
 
 	/**
 	 * Get delay duration based on state transition
@@ -222,7 +222,7 @@ export default function Dashboard(): React.ReactElement {
 	useAuthRestore();
 
 	// Load asset list after authentication
-	const { assets, loading: assetsLoading, error: assetsError } = useAssetList();
+	useAssetList();
 
 	// Authentication state monitoring effect
 	// This effect specifically monitors for authentication changes and forces re-authentication
@@ -234,9 +234,6 @@ export default function Dashboard(): React.ReactElement {
 			(!isAuthenticated || !isConnected) &&
 			currentRoute !== "explorer"
 		) {
-			console.log(
-				"[App] Authentication lost while app was ready - forcing re-authentication",
-			);
 			// Force transition back to checking session to re-evaluate auth state
 			setAppState("checking_session");
 		}
@@ -245,53 +242,44 @@ export default function Dashboard(): React.ReactElement {
 	// Main state management effect
 	useEffect(() => {
 		const manageAppState = async () => {
-			console.log(`[App] Current state: ${appState}`, {
-				hasHydrated,
-				_hasHydrated,
-				isAuthenticated,
-				isConnected,
-				upgrade,
-			});
-
 			switch (appState) {
-			case "initializing": {
-				// Check for updates first
-				if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-					// Check for service worker updates
-					navigator.serviceWorker.getRegistrations().then((registrations) => {
-						registrations.forEach((registration) => {
-							registration.update();
+				case "initializing": {
+					// Check for updates first
+					if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+						// Check for service worker updates
+						navigator.serviceWorker.getRegistrations().then((registrations) => {
+							registrations.forEach((registration) => {
+								registration.update();
+							});
 						});
-					});
+					}
+					// Move to storage scanning
+					const delay = getTransitionDelay("initializing", "scanning_storage");
+					await transitionToState("scanning_storage", delay, false);
+					break;
 				}
-				// Move to storage scanning
-				const delay = getTransitionDelay("initializing", "scanning_storage");
-				await transitionToState("scanning_storage", delay, false);
-				break;
-			}
 
-			case "scanning_storage": {
-				if (storageScanComplete) {
-					const delay = getTransitionDelay("scanning_storage", "hydrating");
-					await transitionToState("hydrating", delay);
+				case "scanning_storage": {
+					if (storageScanComplete) {
+						const delay = getTransitionDelay("scanning_storage", "hydrating");
+						await transitionToState("hydrating", delay);
+					}
+					break;
 				}
-				break;
-			}
 
-			case "hydrating": {
-				if (_hasHydrated || forceRender) {
-					const delay = getTransitionDelay("hydrating", "checking_session");
-					await transitionToState("checking_session", delay);
-				} else {
-					// Set timeout for forced render if hydration takes too long
-					const timer = setTimeout(() => {
-						console.log("[App] Store hydration timeout - forcing render");
-						setForceRender(true);
-					}, 800);
-					return () => clearTimeout(timer);
+				case "hydrating": {
+					if (_hasHydrated || forceRender) {
+						const delay = getTransitionDelay("hydrating", "checking_session");
+						await transitionToState("checking_session", delay);
+					} else {
+						// Set timeout for forced render if hydration takes too long
+						const timer = setTimeout(() => {
+							setForceRender(true);
+						}, 800);
+						return () => clearTimeout(timer);
+					}
+					break;
 				}
-				break;
-			}
 
 				case "checking_session": {
 					const authStoreData = localStorage.getItem("auth-store");
@@ -301,9 +289,6 @@ export default function Dashboard(): React.ReactElement {
 
 					// Allow access to explorer without authentication
 					if (currentRoute === "explorer") {
-						console.log(
-							"[App] Explorer route requested, allowing access without auth",
-						);
 						const delay = getTransitionDelay("checking_session", "loading_app");
 						await transitionToState("loading_app", delay);
 					} else if (upgrade) {
@@ -311,33 +296,21 @@ export default function Dashboard(): React.ReactElement {
 						await transitionToState("upgrading", delay, false);
 					} else if (isAuthenticated && isConnected && hasValidSession) {
 						// Best case: both store and localStorage confirm authentication
-						console.log(
-							"[App] Authenticated and connected with valid session, loading app",
-						);
 						const delay = getTransitionDelay("checking_session", "loading_app");
 						await transitionToState("loading_app", delay);
 					} else if (authStoreData && hasValidSession && !isAuthenticated) {
 						// Store has data and valid session exists, but not marked as authenticated
 						// This happens on page reload - give auth restoration a chance
-						console.log(
-							"[App] Store data and session found but not authenticated - allowing auth restoration",
-						);
 						const delay = getTransitionDelay("checking_session", "loading_app");
 						await transitionToState("loading_app", delay);
 					} else if (!isAuthenticated || !isConnected) {
 						// No authentication or connection - show auth flow
-						console.log(
-							"[App] Not authenticated or not connected, showing auth flow",
-						);
 						const delay = getTransitionDelay(
 							"checking_session",
 							"authenticating",
 						);
 						await transitionToState("authenticating", delay);
 					} else if (authStoreData && !hasValidSession) {
-						console.log(
-							"[App] Auth store found but no session, need to reconnect",
-						);
 						const delay = getTransitionDelay(
 							"checking_session",
 							"authenticating",
@@ -345,9 +318,6 @@ export default function Dashboard(): React.ReactElement {
 						await transitionToState("authenticating", delay);
 					} else {
 						// Fallback: if we can't determine state clearly, show auth flow
-						console.log(
-							"[App] Unable to determine auth state, showing auth flow",
-						);
 						const delay = getTransitionDelay(
 							"checking_session",
 							"authenticating",
@@ -357,30 +327,27 @@ export default function Dashboard(): React.ReactElement {
 					break;
 				}
 
-			case "authenticating": {
-				// This state is handled by the auth flow component
-				// We'll transition out of this when auth is complete
-				// But allow explorer access without authentication
-				if (currentRoute === "explorer") {
-					console.log(
-						"[App] Explorer route requested during auth, allowing access",
-					);
-					const delay = getTransitionDelay("authenticating", "loading_app");
-					await transitionToState("loading_app", delay);
-				} else if (isAuthenticated && isConnected) {
-					const delay = getTransitionDelay("authenticating", "connecting");
-					await transitionToState("connecting", delay);
+				case "authenticating": {
+					// This state is handled by the auth flow component
+					// We'll transition out of this when auth is complete
+					// But allow explorer access without authentication
+					if (currentRoute === "explorer") {
+						const delay = getTransitionDelay("authenticating", "loading_app");
+						await transitionToState("loading_app", delay);
+					} else if (isAuthenticated && isConnected) {
+						const delay = getTransitionDelay("authenticating", "connecting");
+						await transitionToState("connecting", delay);
+					}
+					break;
 				}
-				break;
-			}
 
-			case "connecting": {
-				if (isAuthenticated && isConnected) {
-					const delay = getTransitionDelay("connecting", "loading_app");
-					await transitionToState("loading_app", delay);
+				case "connecting": {
+					if (isAuthenticated && isConnected) {
+						const delay = getTransitionDelay("connecting", "loading_app");
+						await transitionToState("loading_app", delay);
+					}
+					break;
 				}
-				break;
-			}
 
 				case "loading_app": {
 					// Handle splash screen and final app loading
@@ -389,25 +356,25 @@ export default function Dashboard(): React.ReactElement {
 					break;
 				}
 
-			case "upgrading": {
-				if (!upgrade) {
-					const delay = getTransitionDelay("upgrading", "ready");
-					await transitionToState("ready", delay);
+				case "upgrading": {
+					if (!upgrade) {
+						const delay = getTransitionDelay("upgrading", "ready");
+						await transitionToState("ready", delay);
+					}
+					break;
 				}
-				break;
-			}
 
-			case "ready": {
-				if (upgrade) {
-					const delay = getTransitionDelay("ready", "upgrading");
-					await transitionToState("upgrading", delay, false);
+				case "ready": {
+					if (upgrade) {
+						const delay = getTransitionDelay("ready", "upgrading");
+						await transitionToState("upgrading", delay, false);
+					}
+					// Handle splash screen completion
+					if (showSplash) {
+						setTimeout(() => setShowSplash(false), 300);
+					}
+					break;
 				}
-				// Handle splash screen completion
-				if (showSplash) {
-					setTimeout(() => setShowSplash(false), 300);
-				}
-				break;
-			}
 			}
 		};
 
@@ -456,7 +423,7 @@ export default function Dashboard(): React.ReactElement {
 	const renderLoadingScreen = (message: string): React.ReactElement => {
 		return (
 			<motion.div
-				className="absolute max-w-[500px] mx-auto w-[100%] h-[100%] overflow-hidden left-0 right-0 top-0 bottom-0 bg-background flex items-center justify-center p-32"
+				className="absolute max-w-[500px] mx-auto w-full h-full overflow-hidden left-0 right-0 top-0 bottom-0 bg-background flex items-center justify-center p-32"
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
 				exit={{ opacity: 0 }}
@@ -646,6 +613,18 @@ export default function Dashboard(): React.ReactElement {
 
 	const renderMainContent = (): React.ReactElement => {
 		switch (currentRoute) {
+			case "trading":
+				return (
+					<Suspense
+						fallback={
+							<div className="p-4 text-muted-foreground">
+								Loading trading terminal...
+							</div>
+						}
+					>
+						<Trading />
+					</Suspense>
+				);
 			case "welcome":
 				return (
 					<Suspense
@@ -766,31 +745,16 @@ export default function Dashboard(): React.ReactElement {
 				return (
 					<Suspense
 						fallback={
-							<div className="p-4 text-muted-foreground">Loading...</div>
+							<div className="p-4 text-muted-foreground">
+								Loading trading terminal...
+							</div>
 						}
 					>
-						<Welcome />
+						<Trading />
 					</Suspense>
 				);
 		}
 	};
-
-	// Debug logging with enhanced state information
-	console.log("[App] Enhanced render state:", {
-		appState,
-		hasHydrated,
-		_hasHydrated,
-		isAuthenticated,
-		isConnected,
-		currentRoute,
-		upgrade,
-		showSplash,
-		isTransitioning,
-		transitionProgress,
-		assetsCount: assets.length,
-		assetsLoading,
-		assetsError,
-	});
 
 	// Render based on app state
 	switch (appState) {
@@ -829,7 +793,7 @@ export default function Dashboard(): React.ReactElement {
 				return (
 					<SessionProvider>
 						<TooltipProvider>
-							<div className="absolute w-[100%] h-[100%] top-0 bottom-0 overflow-hidden">
+							<div className="absolute w-full h-full top-0 bottom-0 overflow-hidden">
 								<RouteLoader>
 									<Suspense
 										fallback={
@@ -907,7 +871,7 @@ export default function Dashboard(): React.ReactElement {
 								/>
 							)
 							: (
-								<div className="absolute w-[100%] h-[100%] top-0 bottom-0 overflow-hidden">
+								<div className="absolute w-full h-full top-0 bottom-0 overflow-hidden">
 									<RouteLoader>
 										<Suspense
 											fallback={

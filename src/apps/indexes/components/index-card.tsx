@@ -6,6 +6,14 @@
 import * as React from "react";
 import { useMemo } from "react";
 import { motion } from "framer-motion";
+import ReactECharts from "echarts-for-react";
+import * as echarts from "echarts/core";
+import { LineChart } from "echarts/charts";
+import {
+	GridComponent,
+	TooltipComponent,
+} from "echarts/components";
+import { CanvasRenderer } from "echarts/renderers";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +25,14 @@ import {
   Activity,
 } from "lucide-react";
 import { useIndexStore } from "../store";
+
+// Register ECharts components
+echarts.use([
+	LineChart,
+	GridComponent,
+	TooltipComponent,
+	CanvasRenderer,
+]);
 
 interface IndexCardProps {
   metadata: IndexMetadata;
@@ -177,26 +193,84 @@ function MiniChart({
 }: {
   candleData: IndexCandleData | null;
 }): React.ReactElement {
-  const chartData = useMemo(() => {
+  const chartOption = useMemo(() => {
     if (!candleData || candleData.candles.length === 0) {
       return null;
     }
 
     const candles = candleData.candles;
-    const values = candles.map((c) => c.close);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min || 1;
+    const times: string[] = [];
+    const values: number[] = [];
+
+    candles.forEach((candle) => {
+      times.push(new Date(candle.timestamp).toISOString());
+      values.push(candle.close);
+    });
+
+    // Get color based on trend
+    const isUp = candles[candles.length - 1]?.close >= candles[0]?.close;
+    const lineColor = isUp ? "#10b981" : "#ef4444";
 
     return {
-      candles,
-      min,
-      max,
-      range,
+      backgroundColor: "transparent",
+      animation: false, // Disable animation for mini charts for better performance
+      grid: {
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        containLabel: false,
+      },
+      xAxis: {
+        type: "category",
+        data: times,
+        show: false,
+        boundaryGap: false,
+      },
+      yAxis: {
+        type: "value",
+        show: false,
+        scale: true,
+      },
+      series: [
+        {
+          type: "line",
+          data: values,
+          smooth: false,
+          symbol: "none",
+          lineStyle: {
+            color: lineColor,
+            width: 1.5,
+          },
+          areaStyle: {
+            color: {
+              type: "linear",
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                {
+                  offset: 0,
+                  color: isUp
+                    ? "rgba(16, 185, 129, 0.2)"
+                    : "rgba(239, 68, 68, 0.2)",
+                },
+                {
+                  offset: 1,
+                  color: isUp
+                    ? "rgba(16, 185, 129, 0)"
+                    : "rgba(239, 68, 68, 0)",
+                },
+              ],
+            },
+          },
+        },
+      ],
     };
   }, [candleData]);
 
-  if (!chartData) {
+  if (!chartOption) {
     return (
       <div className="h-16 flex items-center justify-center bg-muted/10 rounded border border-border">
         <div className="text-[10px] text-muted-foreground">No data</div>
@@ -204,87 +278,15 @@ function MiniChart({
     );
   }
 
-  const { candles, min, range } = chartData;
-  const width = 200;
-  const height = 64;
-  const padding = { top: 4, right: 4, bottom: 4, left: 4 };
-  const chartWidth = width - padding.left - padding.right;
-  const chartHeight = height - padding.top - padding.bottom;
-
-  // Calculate x scale
-  const xScale = (index: number): number => {
-    return (index / (candles.length - 1 || 1)) * chartWidth;
-  };
-
-  // Calculate y scale
-  const yScale = (value: number): number => {
-    return chartHeight - ((value - min) / range) * chartHeight;
-  };
-
-  // Generate path for line
-  const linePath = candles
-    .map((candle, i) => {
-      const x = xScale(i);
-      const y = yScale(candle.close);
-      return `${i === 0 ? "M" : "L"} ${x} ${y}`;
-    })
-    .join(" ");
-
-  // Get color based on trend
-  const isUp = candles[candles.length - 1]?.close >= candles[0]?.close;
-  const lineColor = isUp ? "#10b981" : "#ef4444";
-
-  // Generate area path
-  const areaPath = `${linePath} L ${xScale(candles.length - 1)} ${chartHeight} L ${xScale(0)} ${chartHeight} Z`;
-
   return (
     <div className="relative h-16 w-full">
-      <svg
-        width={width}
-        height={height}
-        className="w-full h-full"
-        viewBox={`0 0 ${width} ${height}`}
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient
-            id={`mini-gradient-${candles[0]?.timestamp || 0}`}
-            x1="0%"
-            y1="0%"
-            x2="0%"
-            y2="100%"
-          >
-            <stop
-              offset="0%"
-              stopColor={isUp ? "#10b981" : "#ef4444"}
-              stopOpacity={0.2}
-            />
-            <stop
-              offset="100%"
-              stopColor={isUp ? "#10b981" : "#ef4444"}
-              stopOpacity={0}
-            />
-          </linearGradient>
-        </defs>
-
-        <g transform={`translate(${padding.left}, ${padding.top})`}>
-          {/* Area */}
-          <path
-            d={areaPath}
-            fill={`url(#mini-gradient-${candles[0]?.timestamp || 0})`}
-          />
-
-          {/* Line */}
-          <path
-            d={linePath}
-            fill="none"
-            stroke={lineColor}
-            strokeWidth={1.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </g>
-      </svg>
+      <ReactECharts
+        option={chartOption}
+        style={{ width: "100%", height: "64px", minHeight: "64px" }}
+        opts={{ renderer: "canvas", devicePixelRatio: window.devicePixelRatio || 2 }}
+        notMerge={false}
+        lazyUpdate={false}
+      />
     </div>
   );
 }
@@ -348,7 +350,12 @@ export function IndexCard({
                 {trend.icon}
               </div>
               <div>
-                <div className="text-2xl font-bold text-foreground">
+                <div className={cn(
+                  "text-2xl font-bold",
+                  metadata.code === "ELI" 
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-foreground"
+                )}>
                   {formattedValue}
                 </div>
                 {data && (
@@ -377,4 +384,3 @@ export function IndexCard({
     </motion.div>
   );
 }
-

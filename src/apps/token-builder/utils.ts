@@ -140,4 +140,3 @@ export function generateCertificateFilename(
   const timestamp = Date.now();
   return `token-${symbol}-${type}-${timestamp}.json`;
 }
-

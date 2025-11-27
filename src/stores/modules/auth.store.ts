@@ -149,9 +149,9 @@ export const useAuthStore = create<AuthStore>()(
 							isWalletCreated: true,
 							connectionError: null
 						});
-						console.log('[Auth] Wallet created:', wallet.address);
-					} catch (error) {
-						console.error('[Auth] Failed to create Wallet:', error);
+
+					} catch {
+
 						set({
 							connectionError: error instanceof Error ? error.message : 'Failed to create Wallet'
 						});
@@ -166,10 +166,10 @@ export const useAuthStore = create<AuthStore>()(
 							isWalletCreated: true,
 							connectionError: null
 						});
-						console.log('[Auth] Wallet imported:', wallet.address);
+
 						return true;
-					} catch (error) {
-						console.error('[Auth] Failed to import Wallet:', error);
+					} catch {
+
 						set({
 							connectionError: error instanceof Error ? error.message : 'Invalid private key'
 						});
@@ -193,10 +193,10 @@ export const useAuthStore = create<AuthStore>()(
 					// Clear only Wallet-related data, keep other localStorage intact
 					try {
 						localStorage.removeItem('auth-store');
-						console.log('[Auth] Wallet reset successfully');
-					} catch (error) {
-						console.error('[Auth] Error resetting Wallet:', error);
-					}
+
+					} catch {
+			// Error handled silently
+		}
 				},
 				
 				// Network operations
@@ -210,27 +210,26 @@ export const useAuthStore = create<AuthStore>()(
 						showNetworkSelector: false,
 						connectionError: null
 					});
-					console.log('[Auth] Network selected:', network.name);
+
 				},
 				
 				// Connection operations
 				connectToNode: async (): Promise<boolean> => {
-					console.log('[Auth] connectToNode called');
+
 					const { wallet, selectedNetwork } = get();
 					
 					if (!wallet) {
-						console.log('[Auth] No Wallet found');
+
 						set({ connectionError: 'Wallet not created' });
 						return false;
 					}
 					
 					if (!selectedNetwork) {
-						console.log('[Auth] No network selected');
+
 						set({ connectionError: 'Network not selected' });
 						return false;
 					}
-					
-					console.log('[Auth] Starting connection to:', selectedNetwork.name);
+
 					set({ isConnecting: true, connectionError: null });
 					
 					try {
@@ -254,14 +253,7 @@ export const useAuthStore = create<AuthStore>()(
 					// CRITICAL: Use UNCOMPRESSED public key (130 chars) for WebFix protocol
 					// WebFix requires uncompressed format for signature verification
 					const uncompressedPublicKey = getUncompressedPublicKey(wallet.privateKey);
-					
-					console.log('[Auth] ═══════════════════════════════════════');
-					console.log('[Auth] Wallet public key (compressed):', wallet.publicKey);
-					console.log('[Auth] Uncompressed public key:', uncompressedPublicKey);
-					console.log('[Auth] Compressed length:', wallet.publicKey.length);
-					console.log('[Auth] Uncompressed length:', uncompressedPublicKey.length);
-					console.log('[Auth] ═══════════════════════════════════════');
-					
+
 					// Prepare connection payload
 					const connectionPayload = {
 						webfix: "1.0",
@@ -292,9 +284,7 @@ export const useAuthStore = create<AuthStore>()(
 						};
 						
 						// Send connection request
-						console.log('[Auth] Sending connection request to:', selectedNetwork.api);
-						console.log('[Auth] Connection payload:', JSON.stringify(connectionPayload, null, 2));
-						
+
 						const response = await fetch(selectedNetwork.api, {
 							method: 'POST',
 							headers: {
@@ -302,9 +292,7 @@ export const useAuthStore = create<AuthStore>()(
 							},
 							body: JSON.stringify(connectionPayload)
 						});
-						
-						console.log('[Auth] Response status:', response.status);
-						
+
 						if (!response.ok) {
 							throw new Error(`Connection failed: ${response.status}`);
 						}
@@ -338,15 +326,14 @@ export const useAuthStore = create<AuthStore>()(
 									session: session.session
 								}
 							}));
-							
-							console.log('[Auth] Connected to node:', session.network);
+
 							return true;
 						} else {
 							throw new Error('Invalid session response');
 						}
 						
-					} catch (error) {
-						console.error('[Auth] Connection failed:', error);
+					} catch {
+
 						set({
 							isConnecting: false,
 							connectionError: error instanceof Error ? error.message : 'Connection failed'
@@ -356,12 +343,9 @@ export const useAuthStore = create<AuthStore>()(
 				},
 				
 				disconnectFromNode: async () => {
-					console.log('[Auth] ═══════════════════════════════════════');
-					console.log('[Auth] 🔌 DISCONNECTING FROM NODE');
-					console.log('[Auth] ═══════════════════════════════════════');
-					
+
 					// 1. Reset connection state
-					console.log('[Auth] Step 1: Resetting connection state...');
+
 					set({
 						isConnected: false,
 						connectionSession: null,
@@ -369,28 +353,23 @@ export const useAuthStore = create<AuthStore>()(
 						connectionError: null,
 						isConnecting: false
 					});
-					console.log('[Auth] ✅ Connection state reset');
-					
+
 					// 2. Clear ALL storage
 					try {
-						console.log('[Auth] Step 2: Clearing ALL storage mechanisms...');
+
 						await clearAllStorage();
-						console.log('[Auth] ✅✅✅ ALL storage cleared successfully ✅✅✅');
-					} catch (error) {
-						console.error('[Auth] ❌ Error clearing storage during disconnect:', error);
+
+					} catch {
+
 						// Fallback to basic clearing
 						try {
 							clearAppStorage();
-							console.log('[Auth] ✅ Fallback: App storage cleared');
-						} catch (fallbackError) {
-							console.error('[Auth] ❌ Fallback also failed:', fallbackError);
+
+						} catch {
+							// Fallback error handled
 						}
 					}
-					
-					console.log('[Auth] ═══════════════════════════════════════');
-					console.log('[Auth] 🎯 DISCONNECT COMPLETED');
-					console.log('[Auth] User data completely removed from device');
-					console.log('[Auth] ═══════════════════════════════════════');
+
 				},
 				
 				restoreConnection: async (): Promise<boolean> => {
@@ -399,19 +378,17 @@ export const useAuthStore = create<AuthStore>()(
 					// Check if we have saved session data
 					const savedSession = localStorage.getItem('private-store');
 					if (!savedSession || !wallet || !selectedNetwork) {
-						console.log('[Auth] No saved session or missing Wallet/network');
+
 						return false;
 					}
 					
 					try {
 						const sessionData = JSON.parse(savedSession);
 						if (!sessionData?.raw?.session) {
-							console.log('[Auth] Invalid session data');
+
 							return false;
 						}
-						
-						console.log('[Auth] Restoring connection from saved session...');
-						
+
 						// Extract session data from saved session
 						const session: ConnectionSession = {
 							session: sessionData.raw.session,
@@ -432,12 +409,11 @@ export const useAuthStore = create<AuthStore>()(
 							isAuthenticated: true,
 							connectionError: null
 						});
-						
-						console.log('[Auth] Connection restored successfully from saved session');
+
 						return true;
 						
-					} catch (error) {
-						console.error('[Auth] Error restoring connection:', error);
+					} catch {
+
 						set({ 
 							connectionError: 'Failed to restore connection',
 							isConnecting: false 
@@ -467,22 +443,19 @@ export const useAuthStore = create<AuthStore>()(
 				
 				// Utility operations
 				resetAuth: async () => {
-					console.log('[Auth] ═══════════════════════════════════════');
-					console.log('[Auth] 🚪 STARTING LOGOUT PROCESS');
-					console.log('[Auth] ═══════════════════════════════════════');
-					
+
 					// 1. Close WebSocket connection and clear its state
 					try {
-						console.log('[Auth] Step 1: Closing WebSocket connection...');
+
 						const wsStore = useWebSocketStore.getState();
 						wsStore.resetWebSocketState();
-						console.log('[Auth] ✅ WebSocket closed');
-					} catch (error) {
-						console.error('[Auth] ❌ Error closing WebSocket:', error);
-					}
+
+					} catch {
+			// Error handled silently
+		}
 					
 					// 2. Reset auth state FIRST (before clearing storage)
-					console.log('[Auth] Step 2: Resetting auth state...');
+
 					set({
 						wallet: null,
 						isWalletCreated: false,
@@ -494,28 +467,23 @@ export const useAuthStore = create<AuthStore>()(
 						isAuthenticated: false,
 						showNetworkSelector: false
 					});
-					console.log('[Auth] ✅ Auth state reset');
-					
+
 					// 3. Clear ALL storage (localStorage, sessionStorage, IndexedDB, Caches, Service Workers)
 					try {
-						console.log('[Auth] Step 3: Clearing ALL storage mechanisms...');
+
 						await clearAllStorage();
-						console.log('[Auth] ✅✅✅ ALL storage cleared successfully ✅✅✅');
-					} catch (error) {
-						console.error('[Auth] ❌ Error clearing storage during reset:', error);
+
+					} catch {
+
 						// Fallback to basic clearing
 						try {
 							clearAppStorage();
-							console.log('[Auth] ✅ Fallback: App storage cleared');
-						} catch (fallbackError) {
-							console.error('[Auth] ❌ Fallback also failed:', fallbackError);
+
+						} catch {
+							// Fallback error handled
 						}
 					}
-					
-					console.log('[Auth] ═══════════════════════════════════════');
-					console.log('[Auth] 🎯 LOGOUT PROCESS COMPLETED');
-					console.log('[Auth] User data completely removed from device');
-					console.log('[Auth] ═══════════════════════════════════════');
+
 				}
 			}),
 			{
@@ -532,7 +500,7 @@ export const useAuthStore = create<AuthStore>()(
 				onRehydrateStorage: () => (state) => {
 					if (state) {
 						state._hasHydrated = true;
-						console.log('[Auth] Store hydrated from localStorage');
+
 					}
 				},
 			}

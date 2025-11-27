@@ -81,9 +81,9 @@ export function WalletConfirmation({
       await navigator.clipboard.writeText(wallet.address);
       setCopiedAddress(true);
       setTimeout(() => setCopiedAddress(false), 1500);
-    } catch (error) {
-      console.error("Failed to copy address:", error);
-    }
+    } catch {
+			// Error handled silently
+		}
   };
 
   const handleCopyPrivateKey = async (): Promise<void> => {
@@ -92,8 +92,8 @@ export function WalletConfirmation({
       await navigator.clipboard.writeText(wallet.privateKey);
       setCopiedPrivateKey(true);
       setTimeout(() => setCopiedPrivateKey(false), 1500);
-    } catch (error) {
-      console.error("Failed to copy private key:", error);
+    } catch {
+
       // Fallback: Show full key so user can copy manually
       setShowFullPrivateKey(true);
     }
@@ -160,8 +160,8 @@ export function WalletConfirmation({
       setShowPasswordDialog(false);
       setPassword("");
       setConfirmPassword("");
-    } catch (error) {
-      console.error("Failed to encrypt and download private key:", error);
+    } catch {
+
       setPasswordError(
         error instanceof Error
           ? error.message

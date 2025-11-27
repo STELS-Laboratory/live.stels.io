@@ -141,12 +141,6 @@ export function usePublicTransactions(
 				},
 			};
 
-			console.log("[usePublicTransactions] Fetching transactions", {
-				apiUrl,
-				network,
-				address: params.address,
-			});
-
 			const response = await fetch(apiUrl, {
 				method: "POST",
 				headers: {
@@ -169,22 +163,19 @@ export function usePublicTransactions(
 				setTransactions(transactionsList);
 				setTotal(data.result.total || 0);
 				setHasSearched(true);
-				console.log(
-					"[usePublicTransactions] Transactions fetched:",
-					transactionsList.length,
-				);
+
 			} else {
 				setHasSearched(true);
 				throw new Error("Transaction query failed");
 			}
-		} catch (err) {
+		} catch {
 			const errorMessage =
 				err instanceof Error
 					? err.message
 					: "Failed to fetch transactions";
 			setError(errorMessage);
 			setHasSearched(true);
-			console.error("[usePublicTransactions] Error:", err);
+
 			setTransactions([]);
 			setTotal(0);
 		} finally {
@@ -208,4 +199,3 @@ export function usePublicTransactions(
 		refetch: fetchTransactions,
 	};
 }
-

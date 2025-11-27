@@ -132,9 +132,9 @@ export function ModelRegistry(): React.ReactElement {
     try {
       const models = await stelsListModels();
       setAvailableModels(models.map((m) => m.name));
-    } catch (error) {
-      console.error("Failed to load available models:", error);
-    } finally {
+    } catch {
+			// Error handled silently
+		} finally {
       setIsLoadingAvailable(false);
     }
   };
@@ -164,9 +164,9 @@ export function ModelRegistry(): React.ReactElement {
         metadata: { description: "", tags: [] },
       });
       setTagsInput("");
-    } catch (error) {
-      console.error("Failed to register model:", error);
-    }
+    } catch {
+			// Error handled silently
+		}
   };
 
   const handleUnregister = async (modelName: string): Promise<void> => {
@@ -180,9 +180,9 @@ export function ModelRegistry(): React.ReactElement {
 
     try {
       await unregisterModel(modelName);
-    } catch (error) {
-      console.error("Failed to unregister model:", error);
-    }
+    } catch {
+			// Error handled silently
+		}
   };
 
   const handlePullAndRegister = async (modelName: string): Promise<void> => {
@@ -192,8 +192,8 @@ export function ModelRegistry(): React.ReactElement {
       await listRegisteredModels();
       // Also refresh available models list
       await handleLoadAvailableModels();
-    } catch (error) {
-      console.error("Failed to pull model:", error);
+    } catch {
+
       throw error;
     }
   };
@@ -608,4 +608,3 @@ export function ModelRegistry(): React.ReactElement {
     </div>
   );
 }
-

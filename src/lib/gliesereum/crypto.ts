@@ -140,8 +140,8 @@ export function verify(
 		const key = EC.keyFromPublic(publicKey, "hex");
 		const hash = sha256(new TextEncoder().encode(data));
 		return key.verify(hash, signature);
-	} catch (error) {
-		console.error("Verification error:", error);
+	} catch {
+
 		return false;
 	}
 }

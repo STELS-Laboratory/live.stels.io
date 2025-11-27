@@ -37,4 +37,3 @@ export function isMinified(code: string): boolean {
   
   return false;
 }
-

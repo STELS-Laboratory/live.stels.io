@@ -15,11 +15,10 @@ export const clearLocalStorage = (): void => {
 		keys.forEach(key => {
 			localStorage.removeItem(key);
 		});
-		
-		console.log('[StorageCleaner] localStorage cleared:', keys.length, 'items');
-	} catch (error) {
-		console.error('[StorageCleaner] Error clearing localStorage:', error);
-	}
+
+	} catch {
+			// Error handled silently
+		}
 };
 
 /**
@@ -34,11 +33,10 @@ export const clearSessionStorage = (): void => {
 		keys.forEach(key => {
 			sessionStorage.removeItem(key);
 		});
-		
-		console.log('[StorageCleaner] sessionStorage cleared:', keys.length, 'items');
-	} catch (error) {
-		console.error('[StorageCleaner] Error clearing sessionStorage:', error);
-	}
+
+	} catch {
+			// Error handled silently
+		}
 };
 
 /**
@@ -68,8 +66,6 @@ export const clearIndexedDB = async (): Promise<void> => {
 				'wallet-store',
 				'network-store',
 			];
-			
-			console.log('[StorageCleaner] Clearing IndexedDB databases:', possibleDatabases);
 
 			// Try to delete each database
 			for (const dbName of possibleDatabases) {
@@ -77,28 +73,27 @@ export const clearIndexedDB = async (): Promise<void> => {
 					const deleteReq = indexedDB.deleteDatabase(dbName);
 					await new Promise<void>((resolve) => {
 						deleteReq.onsuccess = () => {
-							console.log('[StorageCleaner] ✅ IndexedDB database deleted:', dbName);
+
 							resolve();
 						};
 						deleteReq.onerror = () => {
-							console.log('[StorageCleaner] IndexedDB database not found:', dbName);
+
 							resolve(); // Not an error if database doesn't exist
 						};
 						deleteReq.onblocked = () => {
-							console.warn('[StorageCleaner] ⚠️ IndexedDB deletion blocked:', dbName);
+
 							resolve(); // Continue anyway
 						};
 					});
-				} catch (error) {
-					console.log('[StorageCleaner] IndexedDB database deletion failed:', dbName, error);
-				}
-			}
-			
-			console.log('[StorageCleaner] ✅ All IndexedDB databases processed');
+				} catch {
+			// Error handled silently
 		}
-	} catch (error) {
-		console.error('[StorageCleaner] Error clearing IndexedDB:', error);
-	}
+			}
+
+		}
+	} catch {
+			// Error handled silently
+		}
 };
 
 /**
@@ -119,11 +114,10 @@ export const clearCookies = (): void => {
 			document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
 			document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`;
 		});
-		
-		console.log('[StorageCleaner] Cookies cleared:', cookies.length, 'items');
-	} catch (error) {
-		console.error('[StorageCleaner] Error clearing cookies:', error);
-	}
+
+	} catch {
+			// Error handled silently
+		}
 };
 
 /**
@@ -134,26 +128,23 @@ export const clearCacheStorage = async (): Promise<void> => {
 		if ('caches' in window) {
 			// Get all cache names
 			const cacheNames = await caches.keys();
-			
-			console.log('[StorageCleaner] Found caches:', cacheNames);
-			
+
 			// Delete each cache
 			await Promise.all(
 				cacheNames.map(async cacheName => {
-					console.log('[StorageCleaner] Deleting cache:', cacheName);
+
 					const deleted = await caches.delete(cacheName);
 					if (deleted) {
-						console.log('[StorageCleaner] ✅ Cache deleted:', cacheName);
+						// Cache deleted
 					}
 					return deleted;
 				})
 			);
-			
-			console.log('[StorageCleaner] ✅ Cache storage cleared:', cacheNames.length, 'caches');
+
 		}
-	} catch (error) {
-		console.error('[StorageCleaner] Error clearing cache storage:', error);
-	}
+	} catch {
+			// Error handled silently
+		}
 };
 
 /**
@@ -163,25 +154,22 @@ export const unregisterServiceWorkers = async (): Promise<void> => {
 	try {
 		if ('serviceWorker' in navigator) {
 			const registrations = await navigator.serviceWorker.getRegistrations();
-			
-			console.log('[StorageCleaner] Found Service Workers:', registrations.length);
-			
+
 			await Promise.all(
 				registrations.map(async (registration) => {
-					console.log('[StorageCleaner] Unregistering Service Worker:', registration.scope);
+
 					const unregistered = await registration.unregister();
 					if (unregistered) {
-						console.log('[StorageCleaner] ✅ Service Worker unregistered:', registration.scope);
+						// Service worker unregistered
 					}
 					return unregistered;
 				})
 			);
-			
-			console.log('[StorageCleaner] ✅ All Service Workers unregistered');
+
 		}
-	} catch (error) {
-		console.error('[StorageCleaner] Error unregistering Service Workers:', error);
-	}
+	} catch {
+			// Error handled silently
+		}
 };
 
 /**
@@ -191,11 +179,11 @@ export const clearWebSQL = (): void => {
 	try {
 		if ('openDatabase' in window) {
 			// WebSQL is deprecated but some old browsers might still have it
-			console.log('[StorageCleaner] WebSQL detected but not cleared (deprecated)');
+
 		}
 	} catch {
-		console.log('[StorageCleaner] WebSQL not available');
-	}
+			// Error handled silently
+		}
 };
 
 /**
@@ -236,110 +224,76 @@ export const clearAppSpecificStorage = (): void => {
 			// Token Builder
 			'token-builder-store',
 		];
-		
-		console.log('[StorageCleaner] Clearing app-specific keys:', appKeys.length);
 
 		// Clear from localStorage
-		let localStorageCleared = 0;
 		appKeys.forEach(key => {
 			if (localStorage.getItem(key)) {
 				localStorage.removeItem(key);
-				localStorageCleared++;
-				console.log('[StorageCleaner] ✅ Removed localStorage key:', key);
 			}
 		});
 
 		// Clear from sessionStorage
-		let sessionStorageCleared = 0;
 		appKeys.forEach(key => {
 			if (sessionStorage.getItem(key)) {
 				sessionStorage.removeItem(key);
-				sessionStorageCleared++;
-				console.log('[StorageCleaner] ✅ Removed sessionStorage key:', key);
 			}
 		});
 
-		console.log('[StorageCleaner] ✅ App-specific storage cleared:', {
-			localStorage: localStorageCleared,
-			sessionStorage: sessionStorageCleared,
-		});
-	} catch (error) {
-		console.error('[StorageCleaner] Error clearing app-specific storage:', error);
-	}
+	} catch {
+			// Error handled silently
+		}
 };
 
 /**
  * Comprehensive storage cleaner - clears ALL storage mechanisms
  */
 export const clearAllStorage = async (): Promise<void> => {
-	console.log('[StorageCleaner] ═══════════════════════════════════════');
-	console.log('[StorageCleaner] Starting COMPREHENSIVE storage cleanup...');
-	console.log('[StorageCleaner] This will clear:');
-	console.log('[StorageCleaner] - localStorage (all keys)');
-	console.log('[StorageCleaner] - sessionStorage (all keys)');
-	console.log('[StorageCleaner] - IndexedDB (all databases)');
-	console.log('[StorageCleaner] - Service Worker caches (all caches)');
-	console.log('[StorageCleaner] - Service Workers (unregister all)');
-	console.log('[StorageCleaner] - Cookies (all cookies)');
-	console.log('[StorageCleaner] ═══════════════════════════════════════');
-	
+
 	try {
 		// Step 1: Clear app-specific storage first
-		console.log('[StorageCleaner] Step 1: Clearing app-specific storage...');
+
 		clearAppSpecificStorage();
 		
 		// Step 2: Clear all localStorage
-		console.log('[StorageCleaner] Step 2: Clearing ALL localStorage...');
+
 		clearLocalStorage();
 		
 		// Step 3: Clear all sessionStorage
-		console.log('[StorageCleaner] Step 3: Clearing ALL sessionStorage...');
+
 		clearSessionStorage();
 		
 		// Step 4: Clear IndexedDB
-		console.log('[StorageCleaner] Step 4: Clearing IndexedDB databases...');
+
 		await clearIndexedDB();
 		
 		// Step 5: Clear Service Worker caches
-		console.log('[StorageCleaner] Step 5: Clearing Service Worker caches...');
+
 		await clearCacheStorage();
 		
 		// Step 6: Unregister Service Workers
-		console.log('[StorageCleaner] Step 6: Unregistering Service Workers...');
+
 		await unregisterServiceWorkers();
 		
 		// Step 7: Clear cookies
-		console.log('[StorageCleaner] Step 7: Clearing cookies...');
+
 		clearCookies();
 		
 		// Step 8: Clear WebSQL (if available)
-		console.log('[StorageCleaner] Step 8: Clearing WebSQL...');
+
 		clearWebSQL();
-		
-		console.log('[StorageCleaner] ═══════════════════════════════════════');
-		console.log('[StorageCleaner] ✅ ALL storage mechanisms cleared successfully');
-		
+
 		// Verify cleanup
 		const remainingLocalStorage = Object.keys(localStorage).length;
 		const remainingSessionStorage = Object.keys(sessionStorage).length;
-		
-		console.log('[StorageCleaner] Final verification:');
-		console.log('[StorageCleaner] - localStorage items remaining:', remainingLocalStorage);
-		console.log('[StorageCleaner] - sessionStorage items remaining:', remainingSessionStorage);
-		
+
 		if (remainingLocalStorage === 0 && remainingSessionStorage === 0) {
-			console.log('[StorageCleaner] ✅✅✅ Storage cleanup VERIFIED - ALL data cleared ✅✅✅');
+			// All storage cleared
 		} else {
-			console.warn('[StorageCleaner] ⚠️ Some storage items remain:', {
-				localStorage: remainingLocalStorage,
-				sessionStorage: remainingSessionStorage
-			});
+			// Empty block
 		}
-		
-		console.log('[StorageCleaner] ═══════════════════════════════════════');
-		
-	} catch (error) {
-		console.error('[StorageCleaner] ❌ Error during storage cleanup:', error);
+
+	} catch {
+
 		throw error;
 	}
 };
@@ -348,16 +302,14 @@ export const clearAllStorage = async (): Promise<void> => {
  * Quick storage cleaner - clears only app-specific data
  */
 export const clearAppStorage = (): void => {
-	console.log('[StorageCleaner] Starting app-specific storage cleanup...');
-	
+
 	try {
 		clearAppSpecificStorage();
 		clearLocalStorage();
 		clearSessionStorage();
-		
-		console.log('[StorageCleaner] ✅ App storage cleared');
-	} catch (error) {
-		console.error('[StorageCleaner] ❌ Error clearing app storage:', error);
+
+	} catch {
+
 		throw error;
 	}
 };

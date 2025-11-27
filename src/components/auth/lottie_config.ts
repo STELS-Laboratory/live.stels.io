@@ -67,4 +67,3 @@ export const ANIMATION_METADATA = {
   error: { theme: "alert", mood: "attention", colors: ["red", "orange"] },
   celebration: { theme: "celebration", mood: "joyful", colors: ["gold", "rainbow"] },
 } as const;
-

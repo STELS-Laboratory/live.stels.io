@@ -54,15 +54,13 @@ export function ProfessionalConnectionFlow(): React.ReactElement {
   };
 
   const handleNetworkConnect = async (): Promise<void> => {
-    console.log("[ProfessionalConnectionFlow] Starting network connection...");
+
     setCurrentStep("connecting");
     // Start the actual connection process
     try {
-      console.log("[ProfessionalConnectionFlow] Calling connectToNode...");
-      const result = await connectToNode();
-      console.log("[ProfessionalConnectionFlow] connectToNode result:", result);
-    } catch (error) {
-      console.error("[ProfessionalConnectionFlow] Connection failed:", error);
+      await connectToNode();
+    } catch {
+
       // Error handling is done in ConnectionProcess component
     }
   };

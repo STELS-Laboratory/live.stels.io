@@ -75,7 +75,7 @@ export function useAssetBalance(
 
 	const fetchBalance = useCallback(async (): Promise<void> => {
 		if (!isAuthenticated || !isConnected || !connectionSession) {
-			console.log("[useAssetBalance] Not authenticated or connected, skipping");
+
 			return;
 		}
 
@@ -83,12 +83,12 @@ export function useAssetBalance(
 		const network = params.network || connectionSession.network;
 
 		if (!apiUrl || !network) {
-			console.error("[useAssetBalance] Missing API URL or network");
+
 			return;
 		}
 
 		if (!params.token_id) {
-			console.error("[useAssetBalance] Missing token_id");
+
 			return;
 		}
 
@@ -122,13 +122,6 @@ export function useAssetBalance(
 					token_id: params.token_id,
 				},
 			};
-
-			console.log("[useAssetBalance] Fetching balance", {
-				apiUrl,
-				network,
-				address: params.address,
-				token_id: params.token_id,
-			});
 
 			const response = await fetch(apiUrl, {
 				method: "POST",
@@ -207,7 +200,7 @@ export function useAssetBalance(
 				});
 				setBalance(balanceData);
 				setRetryCount(0); // Reset retry count on success
-				console.log("[useAssetBalance] Balance fetched:", balanceData);
+
 				} else if ("balance" in data.result) {
 					// Format 1: Direct AssetBalance
 					const balanceData = data.result as AssetBalance;
@@ -225,14 +218,14 @@ export function useAssetBalance(
 					});
 					setBalance(balanceData);
 					setRetryCount(0); // Reset retry count on success
-					console.log("[useAssetBalance] Balance fetched:", balanceData);
+
 				} else {
 					throw new Error("Invalid response format");
 				}
 			} else {
 				throw new Error("Invalid response format");
 			}
-		} catch (err) {
+		} catch {
 			const errorMessage =
 				err instanceof Error
 					? err.message
@@ -255,7 +248,7 @@ export function useAssetBalance(
 			}
 
 			setError(errorMessage);
-			console.error("[useAssetBalance] Error:", err);
+
 		} finally {
 			setLoading(false);
 		}
@@ -322,4 +315,3 @@ export function useAssetBalance(
 		refetch: fetchBalance,
 	};
 }
-

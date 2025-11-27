@@ -38,9 +38,7 @@ export const CertificateDisplay = React.memo(
         certificate && isConnected && !isPublished && !autoPublishAttempted &&
         !isPublishing
       ) {
-        console.log(
-          "[CertificateDisplay] Auto-publishing certificate to network...",
-        );
+
         setAutoPublishAttempted(true);
 
         publish(certificate)
@@ -52,15 +50,11 @@ export const CertificateDisplay = React.memo(
                 `Token ${certificate.token.metadata.symbol} published to ${certificate.network.name}`,
               );
             } else {
-              console.error(
-                "[CertificateDisplay] Auto-publish failed:",
-                result.message,
-              );
+
               // Don't show error to user - they can manually publish
             }
           })
-          .catch((error) => {
-            console.error("[CertificateDisplay] Auto-publish error:", error);
+          .catch(() => {
             // Don't show error to user - they can manually publish
           });
       }
@@ -125,8 +119,8 @@ export const CertificateDisplay = React.memo(
         } else {
           showError(result.message);
         }
-      } catch (error) {
-        console.error("[CertificateDisplay] Publish error:", error);
+      } catch {
+
         showError(
           error instanceof Error
             ? error.message

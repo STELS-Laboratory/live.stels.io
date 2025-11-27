@@ -117,9 +117,7 @@ export function useAssetTransactions(
 
 	const fetchTransactions = useCallback(async (): Promise<void> => {
 		if (!isAuthenticated || !isConnected || !connectionSessionRef.current) {
-			console.log(
-				"[useAssetTransactions] Not authenticated or connected, skipping",
-			);
+
 			return;
 		}
 
@@ -127,12 +125,12 @@ export function useAssetTransactions(
 		const network = params.network || networkRef.current || connectionSessionRef.current.network;
 
 		if (!apiUrl || !network) {
-			console.error("[useAssetTransactions] Missing API URL or network");
+
 			return;
 		}
 
 		if (!params.address) {
-			console.error("[useAssetTransactions] Missing address");
+
 			return;
 		}
 
@@ -151,7 +149,7 @@ export function useAssetTransactions(
 			now - lastFetch.timestamp < 5000
 		) {
 			// Skip if recently fetched with same parameters
-			console.log("[useAssetTransactions] Skipping fetch - recently fetched");
+
 			return;
 		}
 
@@ -183,12 +181,6 @@ export function useAssetTransactions(
 				},
 			};
 
-			console.log("[useAssetTransactions] Fetching transactions", {
-				apiUrl,
-				network,
-				address: params.address,
-			});
-
 			const response = await fetch(apiUrl, {
 				method: "POST",
 				headers: {
@@ -207,20 +199,17 @@ export function useAssetTransactions(
 			if (data.result?.success) {
 				setTransactions(data.result.transactions || []);
 				setTotal(data.result.total || 0);
-				console.log(
-					"[useAssetTransactions] Transactions fetched:",
-					data.result.transactions.length,
-				);
+
 			} else {
 				throw new Error("Transaction query failed");
 			}
-		} catch (err) {
+		} catch {
 			const errorMessage =
 				err instanceof Error
 					? err.message
 					: "Failed to fetch transactions";
 			setError(errorMessage);
-			console.error("[useAssetTransactions] Error:", err);
+
 		} finally {
 			setLoading(false);
 		}
@@ -251,4 +240,3 @@ export function useAssetTransactions(
 		refetch: fetchTransactions,
 	};
 }
-

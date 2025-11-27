@@ -374,7 +374,7 @@ export function AddAccountDialog({
 			const errorMessage =
 				err instanceof Error ? err.message : "Failed to add account";
 			setError(errorMessage);
-			console.error("[AddAccount] Error:", err);
+
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -1137,4 +1137,3 @@ export function AddAccountDialog({
 		</Dialog>
 	);
 }
-

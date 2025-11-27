@@ -29,4 +29,3 @@ export interface FilterOptions {
 }
 
 export type { Worker };
-

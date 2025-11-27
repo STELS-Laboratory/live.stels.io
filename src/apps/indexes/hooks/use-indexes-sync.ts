@@ -31,4 +31,3 @@ export function useIndexesSync(): void {
     };
   }, []); // Empty deps - use ref to avoid infinite loop
 }
-

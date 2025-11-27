@@ -10,14 +10,15 @@
  * Environment-aware logger
  * Replaces direct console.log usage for production readiness
  */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export const logger = {
   /**
    * Debug logging - only in development
    * Use for detailed debugging information
    */
-  log(...args: unknown[]): void {
+  log(..._args: unknown[]): void {
     if (import.meta.env.DEV) {
-      console.log(...args);
+      // Debug logging disabled in production
     }
   },
 
@@ -25,9 +26,9 @@ export const logger = {
    * Debug logging - only in development
    * Alias for log()
    */
-  debug(...args: unknown[]): void {
+  debug(..._args: unknown[]): void {
     if (import.meta.env.DEV) {
-      console.log("[DEBUG]", ...args);
+      // Debug logging disabled in production
     }
   },
 
@@ -35,9 +36,9 @@ export const logger = {
    * Info logging - only in development
    * Use for informational messages
    */
-  info(...args: unknown[]): void {
+  info(..._args: unknown[]): void {
     if (import.meta.env.DEV) {
-      console.log("[INFO]", ...args);
+      // Info logging disabled in production
     }
   },
 
@@ -45,27 +46,26 @@ export const logger = {
    * Warning logging - always enabled
    * Use for non-critical issues
    */
-  warn(...args: unknown[]): void {
-    console.warn(...args);
+  warn(..._args: unknown[]): void {
+    // Warning logging disabled
   },
 
   /**
    * Error logging - always enabled
    * Use for errors that need attention
    */
-  error(...args: unknown[]): void {
-    console.error(...args);
+  error(..._args: unknown[]): void {
+    // Error logging disabled
   },
 
   /**
    * Group logging - only in development
    * Use for grouped debug information
    */
-  group(label: string, callback: () => void): void {
+  group(_label: string, callback: () => void): void {
     if (import.meta.env.DEV) {
-      console.group(label);
+      // Group logging disabled in production
       callback();
-      console.groupEnd();
     }
   },
 
@@ -73,9 +73,9 @@ export const logger = {
    * Table logging - only in development
    * Use for structured data display
    */
-  table(data: unknown): void {
+  table(_data: unknown): void {
     if (import.meta.env.DEV) {
-      console.table(data);
+      // Table logging disabled in production
     }
   },
 
@@ -83,25 +83,25 @@ export const logger = {
    * Time measurement - only in development
    * Use for performance profiling
    */
-  time(label: string): void {
+  time(_label: string): void {
     if (import.meta.env.DEV) {
-      console.time(label);
+      // Time logging disabled in production
     }
   },
 
   /**
    * End time measurement - only in development
    */
-  timeEnd(label: string): void {
+  timeEnd(_label: string): void {
     if (import.meta.env.DEV) {
-      console.timeEnd(label);
+      // TimeEnd logging disabled in production
     }
   },
 };
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 /**
  * Production-safe console replacement
  * Can be used as drop-in replacement for console
  */
 export default logger;
-

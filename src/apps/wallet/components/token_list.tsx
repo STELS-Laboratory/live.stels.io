@@ -199,7 +199,7 @@ const TokenItemWithBalance = React.memo(function TokenItemWithBalance({
         </div>
         <div
           className={cn(
-            "text-muted-foreground",
+            "text-green-600 dark:text-green-400",
             mobile ? "text-[10px]" : "text-xs",
           )}
         >

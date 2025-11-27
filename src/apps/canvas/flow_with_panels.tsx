@@ -330,13 +330,10 @@ function FlowWithPanels(): React.ReactElement | null {
 		event.dataTransfer.effectAllowed = "move";
 	};
 
-	const onTouchStart = (
-		_event: React.TouchEvent<HTMLDivElement>,
-		key: string,
-	): void => {
+	const onTouchStart = (): void => {
 		// For mobile devices, we'll handle touch events differently
 		// This could trigger a modal or different interaction pattern
-		console.log("Touch start for widget:", key);
+
 	};
 
 	const onDrop = (event: React.DragEvent<HTMLDivElement>): void => {
@@ -429,18 +426,6 @@ function FlowWithPanels(): React.ReactElement | null {
 		const analysis = analyzeNodeChannels(nodes);
 
 		// Debug: log channel analysis
-		console.log("[Canvas] Channel Analysis:", {
-			nodeCount: nodes.length,
-			blocksDetected: analysis.blocks.length,
-			blocks: analysis.blocks.map((b) => ({
-				position: b.position,
-				label: b.label,
-				valueCount: b.values.size,
-				values: Array.from(b.values),
-			})),
-			suggestedBlocks: analysis.suggestedBlocks,
-			channels: nodes.map((n) => n.data.channel),
-		});
 
 		return analysis;
 	}, [nodes]);
@@ -491,7 +476,7 @@ function FlowWithPanels(): React.ReactElement | null {
 	}
 
 	return (
-		<div className="absolute w-[100%] h-[100%] top-0 left-0 flex flex-col">
+		<div className="w-full h-full flex flex-col">
 			{/* Panel tabs - Professional */}
 			<PanelTabsPro className="flex-shrink-0" />
 

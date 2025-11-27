@@ -37,12 +37,11 @@ export function useExportCertificate(): {
       URL.revokeObjectURL(url);
 
       return true;
-    } catch (error) {
-      console.error("[useExportCertificate] Export failed:", error);
+    } catch {
+
       return false;
     }
   }, []);
 
   return { exportCert };
 }
-

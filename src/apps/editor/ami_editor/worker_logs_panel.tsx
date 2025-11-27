@@ -133,14 +133,14 @@ export function WorkerLogsPanel({
                         reader.cancel();
                         return;
                     }
-                  } catch (err) {
-                    console.error("Failed to parse SSE data:", err, line);
-                  }
+                  } catch {
+			// Error handled silently
+		}
                 }
               }
             }
           }
-        } catch (err) {
+        } catch {
           if (err instanceof Error && err.name !== "AbortError") {
             setError(err.message);
             setConnected(false);
@@ -149,7 +149,7 @@ export function WorkerLogsPanel({
       };
 
       readStream();
-    } catch (err) {
+    } catch {
       setError(
         err instanceof Error ? err.message : "Failed to connect to log stream",
       );
@@ -354,7 +354,7 @@ export function WorkerLogsPanel({
         )}
 
         {/* Logs Terminal - Linux Style */}
-        <ScrollArea className="h-[100%] relative p-0 m-0" ref={scrollAreaRef}>
+        <ScrollArea className="h-full relative p-0 m-0" ref={scrollAreaRef}>
           {/* Terminal content */}
           <div className="relative bg-zinc-950 dark:bg-black p-3 font-mono text-[11px] leading-relaxed">
             {/* Terminal header */}

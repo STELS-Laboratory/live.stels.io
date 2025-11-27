@@ -119,8 +119,8 @@ export function StorageScanDialog({
         const result = await scanAllStorage();
         setScanResult(result);
         setIsScanning(false);
-      } catch (error) {
-        console.error("[StorageScanDialog] Error scanning storage:", error);
+      } catch {
+
         setIsScanning(false);
       }
     };
@@ -190,9 +190,9 @@ export function StorageScanDialog({
           onComplete();
         }, 1000);
       }
-    } catch (error) {
-      console.error("[StorageScanDialog] Error deleting storage:", error);
-    } finally {
+    } catch {
+			// Error handled silently
+		} finally {
       setIsDeleting(false);
     }
   };
@@ -313,7 +313,7 @@ export function StorageScanDialog({
         }}
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
         className={`w-full ${
-          isMobile ? "h-[100%]" : "max-w-3xl max-h-[100%]"
+          isMobile ? "h-full" : "max-w-3xl max-h-full"
         } overflow-hidden flex flex-col`}
       >
         <Card className="bg-card/95 border flex flex-col h-full">
@@ -329,7 +329,7 @@ export function StorageScanDialog({
               <div
                 className={`relative flex-shrink-0 ${
                   isMobile ? "p-1.5" : "p-3"
-                } bg-green-500/10 border border-green-500/20 rounded-lg`}
+                } bg-green-500/10 border border-green-500/20 rounded`}
               >
                 <ShieldCheck
                   className={`relative ${
@@ -493,7 +493,7 @@ export function StorageScanDialog({
                       }
                       setExpandedSections(newExpanded);
                     }}
-                    className="flex items-center justify-between w-full p-2 -m-2 rounded-md hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between w-full p-2 -m-2 rounded hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       <HardDrive
@@ -556,7 +556,7 @@ export function StorageScanDialog({
                                 isMobile ? "text-[10px]" : "text-xs"
                               } flex items-center justify-between gap-2 ${
                                 isMobile ? "px-2 py-1.5" : "px-2.5 py-2"
-                              } rounded-md transition-all duration-150 ${
+                              } rounded transition-all duration-150 ${
                                 isAppKey
                                   ? "bg-green-500/10 border border-green-500/20 text-foreground hover:bg-green-500/15"
                                   : "bg-muted/30 border border-border/50 text-muted-foreground hover:bg-muted/40"
@@ -650,7 +650,7 @@ export function StorageScanDialog({
                       }
                       setExpandedSections(newExpanded);
                     }}
-                    className="flex items-center justify-between w-full p-2 -m-2 rounded-md hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between w-full p-2 -m-2 rounded hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       <HardDrive
@@ -713,7 +713,7 @@ export function StorageScanDialog({
                                 isMobile ? "text-[10px]" : "text-xs"
                               } flex items-center justify-between gap-2 ${
                                 isMobile ? "px-2 py-1.5" : "px-2.5 py-2"
-                              } rounded-md transition-all duration-150 ${
+                              } rounded transition-all duration-150 ${
                                 isAppKey
                                   ? "bg-green-500/10 border border-green-500/20 text-foreground hover:bg-green-500/15"
                                   : "bg-muted/30 border border-border/50 text-muted-foreground hover:bg-muted/40"
@@ -806,7 +806,7 @@ export function StorageScanDialog({
                       }
                       setExpandedSections(newExpanded);
                     }}
-                    className="flex items-center justify-between w-full p-2 -m-2 rounded-md hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between w-full p-2 -m-2 rounded hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       <Database
@@ -867,7 +867,7 @@ export function StorageScanDialog({
                               isMobile ? "text-[10px]" : "text-xs"
                             } flex items-center justify-between gap-2 ${
                               isMobile ? "px-2 py-1.5" : "px-2.5 py-2"
-                            } rounded-md transition-all duration-150 ${
+                            } rounded transition-all duration-150 ${
                               isAppDB
                                 ? "bg-green-500/10 border border-green-500/20 text-foreground hover:bg-green-500/15"
                                 : "bg-muted/30 border border-border/50 text-muted-foreground hover:bg-muted/40"
@@ -944,7 +944,7 @@ export function StorageScanDialog({
                       }
                       setExpandedSections(newExpanded);
                     }}
-                    className="flex items-center justify-between w-full p-2 -m-2 rounded-md hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between w-full p-2 -m-2 rounded hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       <Database
@@ -1001,7 +1001,7 @@ export function StorageScanDialog({
                             isMobile ? "text-[10px]" : "text-xs"
                           } text-muted-foreground flex items-center justify-between ${
                             isMobile ? "px-2 py-1.5" : "px-2.5 py-2"
-                          } rounded-md`}
+                          } rounded`}
                         >
                           <span className="truncate flex-1 font-mono">
                             {cache.name} ({cache.keys.length} entries)
@@ -1034,7 +1034,7 @@ export function StorageScanDialog({
                       }
                       setExpandedSections(newExpanded);
                     }}
-                    className="flex items-center justify-between w-full p-2 -m-2 rounded-md hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between w-full p-2 -m-2 rounded hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       <Database

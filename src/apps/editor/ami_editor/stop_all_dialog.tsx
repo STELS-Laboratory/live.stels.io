@@ -56,7 +56,7 @@ export function StopAllDialog({
     try {
       const res = await onConfirm();
       setResult(res);
-    } catch (err) {
+    } catch {
       setError(
         err instanceof Error ? err.message : "Failed to stop workers",
       );

@@ -102,7 +102,7 @@ export function useTokenPrice(
 				setError(`Ticker not found for ${symbol}`);
 				setLoading(false);
 			}
-		} catch (err) {
+		} catch {
 			const errorMessage =
 				err instanceof Error
 					? err.message
@@ -110,7 +110,7 @@ export function useTokenPrice(
 			setError(errorMessage);
 			setPrice(null);
 			setLoading(false);
-			console.error("[useTokenPrice] Error:", err);
+
 		}
 	}, [params.symbol, params.network, connectionSession?.network, session]);
 
@@ -198,12 +198,12 @@ export function useAllTokenPrices(
 					// Keep old price if new data is not available
 					priceMap.set(symbol, pricesRef.current.get(symbol)!);
 				}
-			} catch (err) {
+			} catch {
 				// On error, keep old price if available
 				if (pricesRef.current.has(symbol)) {
 					priceMap.set(symbol, pricesRef.current.get(symbol)!);
 				}
-				console.error(`[useAllTokenPrices] Error getting price for ${symbol}:`, err);
+
 			}
 		}
 
@@ -270,4 +270,3 @@ export function useAllTokenPrices(
 	// Return stable reference - use ref to prevent unnecessary re-renders
 	return stablePricesRef.current.size > 0 ? stablePricesRef.current : prices;
 }
-

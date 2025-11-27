@@ -86,4 +86,3 @@ export const WORKER_TYPE_COLORS: Record<string, string> = {
 	triggered: "text-yellow-700 dark:text-yellow-400",
 	scheduled: "text-purple-700 dark:text-purple-400",
 };
-

@@ -67,7 +67,7 @@ function CodeBlock(
 					</div>
 				)
 				: null}
-			<div className="mt-2 w-full overflow-hidden rounded-md bg-zinc-900 pt-5">
+			<div className="mt-2 w-full overflow-hidden rounded bg-zinc-900 pt-5">
 				<SyntaxHighlighter
 					language={language}
 					style={vscDarkPlus as Record<string, React.CSSProperties>}
@@ -227,7 +227,7 @@ function TickerTape(
 	return (
 		<div
 			aria-label="Live market ticker"
-			className="rounded-md border border-zinc-800 bg-zinc-900/40"
+			className="rounded border border-zinc-800 bg-zinc-900/40"
 		>
 			<div className="flex items-stretch gap-2 overflow-x-auto px-2 py-2">
 				{items.map((t) => {
@@ -249,7 +249,7 @@ function TickerTape(
 					return (
 						<div
 							key={t.id}
-							className="min-w-[260px] rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2"
+							className="min-w-[260px] rounded border border-zinc-800 bg-zinc-900 px-3 py-2"
 						>
 							<div className="flex items-center justify-between">
 								<div>
@@ -728,19 +728,19 @@ const addrOk = Gliesereum.validateAddress(w.address)`}
 
 						{/* Pretty chips row */}
 						<div className="flex flex-wrap items-center gap-2">
-							<div className="flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-xs">
+							<div className="flex items-center gap-2 rounded border border-zinc-800 bg-zinc-900 px-2 py-1 text-xs">
 								<Globe className="h-3.5 w-3.5 text-amber-400" />
 								<span className="text-zinc-400">Endpoint</span>
 								<span className="text-white">https://beta.stels.dev</span>
 							</div>
-							<div className="flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-xs">
+							<div className="flex items-center gap-2 rounded border border-zinc-800 bg-zinc-900 px-2 py-1 text-xs">
 								<Send className="h-3.5 w-3.5 text-amber-400" />
 								<span className="text-zinc-400">Method</span>
 								<Badge className="border-amber-500/30 bg-amber-500/10 text-amber-400">
 									POST
 								</Badge>
 							</div>
-							<div className="flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-xs">
+							<div className="flex items-center gap-2 rounded border border-zinc-800 bg-zinc-900 px-2 py-1 text-xs">
 								<Code2 className="h-3.5 w-3.5 text-amber-400" />
 								<span className="text-zinc-400">Content-Type</span>
 								<span className="text-white">application/json</span>

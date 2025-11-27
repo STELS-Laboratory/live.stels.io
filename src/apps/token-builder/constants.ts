@@ -154,4 +154,3 @@ export const DEFAULT_TOKEN_VERSION = "1.0.0";
  * Token schema URL
  */
 export const TOKEN_SCHEMA_URL = "https://stels.io/schemas/token-genesis-1.0.json";
-

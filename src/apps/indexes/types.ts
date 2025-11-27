@@ -546,4 +546,3 @@ export interface IndexMetadata {
   icon: string;
   color: string;
 }
-

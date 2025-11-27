@@ -94,8 +94,8 @@ export function PublicTransactionDetailsDialog({
 			setCopiedField(field);
 			setTimeout(() => setCopiedField(null), 2000);
 			toast.success("Copied!", `${field} copied to clipboard`);
-		} catch (err) {
-			console.error("Failed to copy:", err);
+		} catch {
+
 			toast.error("Copy failed", "Failed to copy to clipboard");
 		}
 	};
@@ -467,4 +467,3 @@ export function PublicTransactionDetailsDialog({
 		</Dialog>
 	);
 }
-

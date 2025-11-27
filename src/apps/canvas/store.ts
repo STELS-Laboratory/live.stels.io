@@ -511,8 +511,8 @@ export const useCanvasStore = create<CanvasStore>()(
 						}));
 
 						return newPanel.id;
-					} catch (error) {
-						console.error("Failed to import panel:", error);
+					} catch {
+
 						return null;
 					}
 				},
@@ -535,8 +535,8 @@ export const useCanvasStore = create<CanvasStore>()(
 						});
 
 						return true;
-					} catch (error) {
-						console.error("Failed to import panels:", error);
+					} catch {
+
 						return false;
 					}
 				},
@@ -593,4 +593,3 @@ export const usePanelActions = () =>
 		importPanel: state.importPanel,
 		importAllPanels: state.importAllPanels,
 	}));
-

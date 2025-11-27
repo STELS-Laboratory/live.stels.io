@@ -133,7 +133,7 @@ export const validateScript = (script: string): {
 		new Function(script);
 
 		return { valid: true };
-	} catch (error) {
+	} catch {
 		return {
 			valid: false,
 			error: error instanceof Error ? error.message : "Invalid syntax",
@@ -192,4 +192,3 @@ export const getScopeColor = (scope: "local" | "network"): string => {
 			return "border-muted/50 bg-muted/10 text-muted-foreground";
 	}
 };
-

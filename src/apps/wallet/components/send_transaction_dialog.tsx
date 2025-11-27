@@ -209,9 +209,7 @@ export function SendTransactionDialog({
 				});
 
 				// Submit transaction
-				const result = await submitTransaction(transaction);
-
-				console.log("[SendTransaction] Transaction submitted:", result.tx_hash);
+				await submitTransaction(transaction);
 
 				// Refresh balance after successful transaction
 				if (selectedTokenId) {
@@ -224,13 +222,13 @@ export function SendTransactionDialog({
 				// Reset form and close
 				resetForm();
 				onOpenChange(false);
-			} catch (err) {
+			} catch {
 				const errorMessage =
 					err instanceof Error
 						? err.message
 						: "Failed to send transaction";
 				setSubmitError(errorMessage);
-				console.error("[SendTransaction] Error:", err);
+
 			}
 		},
 		[
@@ -509,4 +507,3 @@ export function SendTransactionDialog({
 		</Dialog>
 	);
 }
-

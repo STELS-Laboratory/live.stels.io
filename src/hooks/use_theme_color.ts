@@ -32,4 +32,3 @@ export function useThemeColor(route?: string, customColor?: string): void {
     }
   }, [route, customColor]);
 }
-

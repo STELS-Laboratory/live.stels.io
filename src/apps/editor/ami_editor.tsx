@@ -151,9 +151,7 @@ export function AMIEditor(): JSX.Element {
 			const isDeveloper = connectionSession.developer || false;
 
 			if (!isDeveloper) {
-				console.log(
-					"[AMIEditor] User does not have developer permissions, showing access request dialog",
-				);
+
 				setShowDeveloperAccessDialog(true);
 				setLoading(false);
 			}
@@ -174,8 +172,8 @@ export function AMIEditor(): JSX.Element {
 			const w = useEditorStore.getState().workers;
 			setWorkers(w);
 			setLoading(false);
-		} catch (error) {
-			console.error("Failed to load workers:", error);
+		} catch {
+
 			setLoading(false);
 		}
 	};
@@ -366,9 +364,7 @@ export function AMIEditor(): JSX.Element {
 		if (selectedWorker) {
 			// Scope cannot be changed after creation
 			if (field === "scope") {
-				console.warn(
-					"Scope cannot be changed after creation. Use migration instead.",
-				);
+
 				return;
 			}
 
@@ -465,8 +461,8 @@ export function AMIEditor(): JSX.Element {
 				);
 				setSelectedWorker(result);
 			}
-		} catch (error) {
-			console.error("Failed to update protocol status:", error);
+		} catch {
+			// Error handled silently
 		} finally {
 			setUpdating(false);
 		}
@@ -565,8 +561,8 @@ export function AMIEditor(): JSX.Element {
 				setIsEditingConfig(false);
 				setValidationError(null);
 			}
-		} catch (error) {
-			console.error("Failed to save protocol changes:", error);
+		} catch {
+			// Error handled silently
 		} finally {
 			setUpdating(false);
 		}
@@ -584,8 +580,8 @@ export function AMIEditor(): JSX.Element {
 			await loadWorkers();
 
 			return result;
-		} catch (error) {
-			console.error("Failed to stop all workers:", error);
+		} catch {
+
 			throw error;
 		}
 	};
@@ -601,8 +597,8 @@ export function AMIEditor(): JSX.Element {
 				setNewlyCreatedWorker(migratedWorker.value.raw.sid);
 			}
 			return migratedWorker;
-		} catch (error) {
-			console.error("Failed to migrate worker:", error);
+		} catch {
+
 			throw error;
 		}
 	};

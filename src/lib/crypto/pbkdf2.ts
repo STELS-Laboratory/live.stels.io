@@ -68,7 +68,7 @@ export async function deriveKey(
       key: new Uint8Array(derivedBits),
       salt: saltBytes,
     };
-  } catch (error) {
+  } catch {
     throw new Error(
       `Key derivation failed: ${
         error instanceof Error ? error.message : "Unknown error"
@@ -103,7 +103,7 @@ export async function encryptWithPassword(
     );
 
     return { encryptedData, iv, salt };
-  } catch (error) {
+  } catch {
     throw new Error(
       `Password-based encryption failed: ${
         error instanceof Error ? error.message : "Unknown error"
@@ -137,7 +137,7 @@ export async function decryptWithPassword(
     );
 
     return uint8ArrayToStr(decryptedData);
-  } catch (error) {
+  } catch {
     throw new Error(
       `Password-based decryption failed: ${
         error instanceof Error ? error.message : "Unknown error"

@@ -31,25 +31,19 @@ export function useDynamicAutoConnections(
 
 	// Generate automatic connections
 	const autoConnections = useMemo(() => {
-		console.log("[useDynamicAutoConnections] State:", {
-			isEnabled,
-			nodeCount: nodes.length,
-			selectedBlocks: config.selectedBlocks,
-			selectedBlocksLength: config.selectedBlocks.length,
-		});
 
 		if (!isEnabled) {
-			console.log("[useDynamicAutoConnections] Disabled");
+
 			return [];
 		}
 
 		if (nodes.length === 0) {
-			console.log("[useDynamicAutoConnections] No nodes");
+
 			return [];
 		}
 
 		if (config.selectedBlocks.length === 0) {
-			console.log("[useDynamicAutoConnections] No blocks selected");
+
 			return [];
 		}
 
@@ -58,14 +52,7 @@ export function useDynamicAutoConnections(
 			enabled: isEnabled,
 		});
 
-		console.log("[useDynamicAutoConnections] Generated edges:", {
-			autoEdgesCount: autoEdges.length,
-			manualEdgesCount: manualEdges.length,
-		});
-
 		const filtered = filterDynamicAutoConnections(autoEdges, manualEdges);
-
-		console.log("[useDynamicAutoConnections] Filtered edges:", filtered.length);
 
 		return filtered;
 	}, [nodes, manualEdges, config, isEnabled]);
@@ -170,4 +157,3 @@ export function useDynamicAutoConnections(
 		selectSuggestedBlocks,
 	};
 }
-

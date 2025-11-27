@@ -319,4 +319,3 @@ export const stelsLightThemeWithHighlight = [
   stelsLightTheme,
   syntaxHighlighting(stelsLightHighlight),
 ];
-

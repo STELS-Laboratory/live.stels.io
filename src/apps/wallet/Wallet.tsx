@@ -307,7 +307,7 @@ function Wallet(): React.ReactElement {
 				lastFetch.session === connectionSession.session &&
 				now - lastFetch.timestamp < 5000
 			) {
-				console.log("[Wallet] Skipping transactions fetch - recently fetched");
+
 				return;
 			}
 
@@ -318,7 +318,6 @@ function Wallet(): React.ReactElement {
 				timestamp: now,
 			};
 
-			console.log("[Wallet] Loading transactions for tab", wallet.address);
 			refetchTransactions();
 		}
 	}, [
@@ -349,7 +348,7 @@ function Wallet(): React.ReactElement {
 				lastFetch.session === connectionSession.session &&
 				now - lastFetch.timestamp < 5000
 			) {
-				console.log("[Wallet] Skipping accounts fetch - recently fetched");
+
 				return;
 			}
 
@@ -366,8 +365,8 @@ function Wallet(): React.ReactElement {
 				connectionSession.session,
 				connectionSession.api,
 			)
-				.catch((error) => {
-					console.error("[Wallet] Failed to fetch accounts:", error);
+				.catch(() => {
+					// Failed to fetch accounts
 				})
 				.finally(() => {
 					setAccountsLoading(false);
@@ -414,14 +413,14 @@ function Wallet(): React.ReactElement {
 	}
 
 	return (
-		<div className="h-full bg-background overflow-y-auto p-8">
+		<div className="h-full w-full bg-background overflow-hidden flex flex-col">
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
 				className={cn(
-					"container-responsive",
-					mobile ? "space-y-4" : "p-2 space-y-6",
+					"container-responsive flex-1 overflow-y-auto",
+					mobile ? "space-y-4 p-4" : "p-8 space-y-6",
 				)}
 			>
 				{/* Header */}

@@ -259,4 +259,3 @@ export interface StelsChatActions {
 }
 
 export type StelsChatStore = StelsChatState & StelsChatActions;
-

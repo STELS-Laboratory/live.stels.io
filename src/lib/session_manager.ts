@@ -23,22 +23,21 @@ export function getSessionId(): string {
     // Try to get existing session
     const stored = localStorage.getItem(SESSION_KEY);
     if (stored) {
-      console.log("[SessionManager] Using existing session:", stored);
+
       return stored;
     }
-  } catch (error) {
-    console.error("[SessionManager] Error reading session:", error);
-  }
+  } catch {
+			// Error handled silently
+		}
 
   // Create new session
   const newSession = generateSessionId();
-  console.log("[SessionManager] Created new session:", newSession);
-  
+
   try {
     localStorage.setItem(SESSION_KEY, newSession);
-  } catch (error) {
-    console.error("[SessionManager] Error storing session:", error);
-  }
+  } catch {
+			// Error handled silently
+		}
 
   return newSession;
 }
@@ -48,13 +47,12 @@ export function getSessionId(): string {
  */
 export function createNewSession(): string {
   const newSession = generateSessionId();
-  console.log("[SessionManager] Forcing new session:", newSession);
-  
+
   try {
     localStorage.setItem(SESSION_KEY, newSession);
-  } catch (error) {
-    console.error("[SessionManager] Error storing new session:", error);
-  }
+  } catch {
+			// Error handled silently
+		}
 
   return newSession;
 }
@@ -89,14 +87,6 @@ export function appendSession(url: string, sessionId?: string): string {
 export function initSession(): string {
   const sessionId = getSessionId();
   setBodySessionId(sessionId);
-  
-  console.log("[SessionManager] ═══════════════════════════════════════");
-  console.log("[SessionManager] Session initialized");
-  console.log("[SessionManager] Session ID:", sessionId);
-  console.log("[SessionManager] Body attribute:", getBodySessionId());
-  console.log("[SessionManager] localStorage value:", localStorage.getItem("app-session-id"));
-  console.log("[SessionManager] ═══════════════════════════════════════");
 
   return sessionId;
 }
-

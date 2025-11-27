@@ -189,7 +189,7 @@ export function CreateWorkerDialog({
     try {
       await onSubmit(formData);
       handleClose();
-    } catch (err) {
+    } catch {
       setError(
         err instanceof Error ? err.message : "Failed to create worker",
       );

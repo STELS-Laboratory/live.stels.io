@@ -16,4 +16,3 @@ export { MigrateWorkerDialog } from "./migrate_worker_dialog";
 export type { Worker, WorkerCreateRequest, LeaderInfo, WorkerStats } from "../store.ts";
 export { useEditorStore } from "../store.ts";
 export { getScopeColor } from "./utils.ts";
-

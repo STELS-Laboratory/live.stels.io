@@ -89,9 +89,9 @@ export function TransactionList({
       await navigator.clipboard.writeText(text);
       setCopiedHash(hash);
       setTimeout(() => setCopiedHash(null), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
+    } catch {
+			// Error handled silently
+		}
   };
 
   const getStatusIcon = (

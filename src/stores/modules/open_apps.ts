@@ -66,7 +66,7 @@ export const useOpenAppsStore = create<OpenAppsState>()(
 
           if (existing) {
             // Already open - just switch to it
-            console.log("[OpenAppsStore] App already open, switching:", existing.name);
+
             set({ activeAppId: existing.id });
             return existing.id;
           }
@@ -83,13 +83,6 @@ export const useOpenAppsStore = create<OpenAppsState>()(
             lastActiveAt: Date.now(),
             channelKey: channelKey || undefined,
           };
-
-          console.log("[OpenAppsStore] Opening new app:", {
-            name: newApp.name,
-            displayName: newApp.displayName,
-            widgetKey: newApp.widgetKey,
-            channelKey: newApp.channelKey,
-          });
 
           set((state) => ({
             apps: [...state.apps, newApp],
@@ -164,4 +157,3 @@ export const useOpenAppsStore = create<OpenAppsState>()(
 );
 
 export type { OpenAppsState };
-

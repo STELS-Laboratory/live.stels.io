@@ -103,13 +103,6 @@ export function usePublicBalance(
 				},
 			};
 
-			console.log("[usePublicBalance] Fetching balance", {
-				apiUrl,
-				network,
-				address: params.address,
-				token_id: params.token_id,
-			});
-
 			const response = await fetch(apiUrl, {
 				method: "POST",
 				headers: {
@@ -140,24 +133,24 @@ export function usePublicBalance(
 						transaction_count: data.result.balance.transaction_count || 0,
 					};
 					setBalance(balanceData);
-					console.log("[usePublicBalance] Balance fetched:", balanceData);
+
 				} else if ("balance" in data.result) {
 					const balanceData = data.result as PublicAssetBalance;
 					setBalance(balanceData);
-					console.log("[usePublicBalance] Balance fetched:", balanceData);
+
 				} else {
 					throw new Error("Invalid response format");
 				}
 			} else {
 				throw new Error("Invalid response format");
 			}
-		} catch (err) {
+		} catch {
 			const errorMessage =
 				err instanceof Error
 					? err.message
 					: "Failed to fetch balance";
 			setError(errorMessage);
-			console.error("[usePublicBalance] Error:", err);
+
 			setBalance(null);
 		} finally {
 			setLoading(false);
@@ -171,4 +164,3 @@ export function usePublicBalance(
 		refetch: fetchBalance,
 	};
 }
-

@@ -193,14 +193,14 @@ export function WalletCard({
             </div>
             <div
               className={cn(
-                "text-white/80 font-semibold",
+                "text-green-400 font-semibold",
                 mobile ? "text-base" : "text-lg",
               )}
             >
               {loading && usdValue === 0 ? "..." : formatUSD(usdValue)}
             </div>
             {tokensValue !== undefined && liquidity > 0 && (
-              <div className="text-white/50 text-[10px] leading-tight">
+              <div className="text-green-400/70 text-[10px] leading-tight">
                 Tokens: {formatUSD(tokensValue)} + Liquidity: {formatUSD(liquidity)}
               </div>
             )}

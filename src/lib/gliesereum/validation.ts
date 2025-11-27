@@ -217,4 +217,3 @@ export function validateSmartOperation(op: SmartOp): boolean {
 
 	return true;
 }
-

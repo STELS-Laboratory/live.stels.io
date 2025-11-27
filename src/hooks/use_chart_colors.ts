@@ -43,4 +43,3 @@ export function useChartColors(): ChartColors {
 		volumeColor: "#3f3f46", // zinc-700
 	};
 }
-

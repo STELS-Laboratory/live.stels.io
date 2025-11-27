@@ -150,8 +150,7 @@ if (typeof window !== "undefined") {
 		// Only update if user has selected "system" theme
 		if (store.theme === "system") {
 			const newResolvedTheme = e.matches ? "dark" : "light";
-			console.log("[Theme] System theme changed to:", newResolvedTheme);
-			
+
 			// Apply theme immediately
 			applyTheme(newResolvedTheme);
 			
@@ -168,4 +167,3 @@ if (typeof window !== "undefined") {
 		mediaQuery.addListener(handleSystemThemeChange as (this: MediaQueryList, ev: MediaQueryListEvent) => void);
 	}
 }
-

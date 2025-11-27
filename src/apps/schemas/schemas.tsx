@@ -84,20 +84,19 @@ export default function Schemas(): ReactElement {
 
   // Load schemas callback
   const loadSchemas = useCallback(async (): Promise<void> => {
-    console.log("[Schemas] loadSchemas called");
+
     try {
       const loadedSchemas = await getAllSchemas();
       setSchemas(loadedSchemas);
-      console.log("[Schemas] Schemas loaded:", loadedSchemas.length);
 
       // Select first schema by default
       if (loadedSchemas.length > 0 && !activeSchemaId && loadedSchemas[0]) {
-        console.log("[Schemas] Auto-selecting first schema");
+
         setActiveSchemaId(loadedSchemas[0].id);
       }
-    } catch (error) {
-      console.error("[Schemas] Failed to load schemas:", error);
-    }
+    } catch {
+			// Error handled silently
+		}
   }, [activeSchemaId]);
 
   // Load schemas from IndexedDB on mount
@@ -160,7 +159,7 @@ export default function Schemas(): ReactElement {
     const currentSchema = schemas.find((s) => s.id === activeSchemaId);
 
     if (currentSchema) {
-      console.log("[Schemas] Loading new schema:", currentSchema.name);
+
       setSchemaJson(JSON.stringify(currentSchema.schema, null, 2));
       setSelectedChannels(currentSchema.channelKeys);
       setSelectedNestedSchemas(currentSchema.nestedSchemas || []);
@@ -297,8 +296,8 @@ export default function Schemas(): ReactElement {
           "Schema Created",
           `${schema.name} has been created successfully`,
         );
-      } catch (error) {
-        console.error("Failed to create schema:", error);
+      } catch {
+
         showToast(
           "error",
           "Creation Failed",
@@ -320,8 +319,8 @@ export default function Schemas(): ReactElement {
           "Schema Updated",
           `${schema.name} information has been updated`,
         );
-      } catch (error) {
-        console.error("Failed to update schema:", error);
+      } catch {
+
         showToast(
           "error",
           "Update Failed",
@@ -338,13 +337,6 @@ export default function Schemas(): ReactElement {
       showToast("warning", "Cannot Save", "Please fix schema errors first");
       return;
     }
-
-    console.log("[Schemas] handleSaveSchema called with current state:", {
-      schemaName: activeSchema.name,
-      currentSelfChannelKey: selfChannelKey,
-      selectedChannels: selectedChannels,
-      channelAliases: channelAliases,
-    });
 
     setIsSaving(true);
     try {
@@ -368,16 +360,7 @@ export default function Schemas(): ReactElement {
         updatedAt: Date.now(),
       };
 
-      console.log("[Schemas] About to save schema:", {
-        id: updatedSchema.id,
-        name: updatedSchema.name,
-        selfChannelKey: updatedSchema.selfChannelKey,
-        channelKeys: updatedSchema.channelKeys,
-      });
-
       await saveSchema(updatedSchema);
-
-      console.log("[Schemas] Schema saved successfully");
 
       // Update local state instead of reloading from DB
       setSchemas((prevSchemas) =>
@@ -400,8 +383,8 @@ export default function Schemas(): ReactElement {
           `${activeSchema.name} has been saved successfully`,
         );
       }
-    } catch (error) {
-      console.error("Failed to save schema:", error);
+    } catch {
+
       showToast(
         "error",
         "Save Failed",
@@ -436,8 +419,8 @@ export default function Schemas(): ReactElement {
           "Schema Deleted",
           `${schemaName} has been removed`,
         );
-      } catch (error) {
-        console.error("Failed to delete schema:", error);
+      } catch {
+
         showToast(
           "error",
           "Delete Failed",
@@ -453,8 +436,8 @@ export default function Schemas(): ReactElement {
     try {
       await navigator.clipboard.writeText(schemaJson);
       showToast("success", "Copied", "Schema JSON copied to clipboard");
-    } catch (error) {
-      console.error("Failed to copy:", error);
+    } catch {
+
       showToast("error", "Copy Failed", "Failed to copy JSON to clipboard");
     }
   }, [schemaJson, showToast]);
@@ -553,8 +536,8 @@ export default function Schemas(): ReactElement {
             `${importedSchemas[0].name} has been imported successfully`,
           );
         }
-      } catch (error) {
-        console.error("Failed to import schemas:", error);
+      } catch {
+
         showToast(
           "error",
           "Import Failed",
@@ -607,8 +590,8 @@ export default function Schemas(): ReactElement {
           }
 
           await handleImport(schemasToImport);
-        } catch (error) {
-          console.error("Import error:", error);
+        } catch {
+
           showToast(
             "error",
             "Import Failed",
@@ -718,7 +701,7 @@ export default function Schemas(): ReactElement {
   return (
     <UIEngineProvider>
       <ToastContainer toasts={toasts} onClose={closeToast} />
-      <div className="flex flex-col h-[100%] overflow-y-scroll bg-background">
+      <div className="flex flex-col h-full w-full overflow-hidden bg-background">
         {/* Toolbar - Compact with API Reference */}
         <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-card">
           <span className="text-xs font-semibold text-foreground">
@@ -822,8 +805,8 @@ export default function Schemas(): ReactElement {
                             link.click();
                             URL.revokeObjectURL(url);
                             handleExport(allSchemas);
-                          } catch (error) {
-                            console.error("Failed to export:", error);
+                          } catch {
+
                             showToast(
                               "error",
                               "Error",
@@ -964,10 +947,7 @@ export default function Schemas(): ReactElement {
                           onChange={setChannelAliases}
                           selfChannelKey={selfChannelKey}
                           onSelfChannelChange={(key) => {
-                            console.log(
-                              "[Schemas] User changed selfChannelKey to:",
-                              key,
-                            );
+
                             setSelfChannelKey(key);
                           }}
                         />
@@ -1017,10 +997,7 @@ export default function Schemas(): ReactElement {
                             onChange={setChannelAliases}
                             selfChannelKey={selfChannelKey}
                             onSelfChannelChange={(key) => {
-                              console.log(
-                                "[Schemas] Static schema - User changed selfChannelKey to:",
-                                key,
-                              );
+
                               setSelfChannelKey(key);
                             }}
                           />

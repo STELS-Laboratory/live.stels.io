@@ -144,4 +144,3 @@ export function clearAllCaches(): void {
 	balancesCache.clear();
 	cacheTimestamps.clear();
 }
-

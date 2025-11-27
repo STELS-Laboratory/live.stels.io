@@ -30,4 +30,3 @@ export * from "./theme-color";
 
 // PWA security and extension detection
 export * from "./pwa-security";
-

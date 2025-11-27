@@ -24,18 +24,13 @@ initChunkErrorHandlers();
 
 // Initialize session management
 // This creates/retrieves a persistent session ID used for cache busting
-const appSessionId = initSession();
-console.log("[Main] Application session:", appSessionId);
+initSession();
 
 // Check if this is a new version deployment
 const currentVersion = getCurrentVersion();
 const storedVersion = localStorage.getItem("app-last-version");
 
 if (currentVersion && currentVersion !== storedVersion) {
-	console.log("[Main] New version detected, creating new session...", {
-		current: currentVersion,
-		stored: storedVersion,
-	});
 
 	// Force new session on version change
 	const newSessionId = createNewSession();
@@ -44,14 +39,14 @@ if (currentVersion && currentVersion !== storedVersion) {
 	// Store new version
 	localStorage.setItem("app-last-version", currentVersion);
 
-	// Clear all caches
-	if ("caches" in window) {
-		caches.keys().then((cacheNames) => {
-			Promise.all(cacheNames.map((name) => caches.delete(name))).then(() => {
-				console.log("[Main] All caches cleared for new version");
+		// Clear all caches
+		if ("caches" in window) {
+			caches.keys().then((cacheNames) => {
+				Promise.all(cacheNames.map((name) => caches.delete(name))).then(() => {
+					// Caches cleared
+				});
 			});
-		});
-	}
+		}
 }
 
 // Initialize security measures
@@ -61,18 +56,14 @@ try {
 
 	// Validate crypto operations
 	if (!validateCryptoOperations()) {
-		console.error("[Security] Crypto operations validation failed!");
+		// Crypto validation failed
 	}
 
 	// Perform security check
-	const securityCheck = performSecurityCheck();
-	console.log("[Security] Security check:", {
-		standalone: securityCheck.isStandalone,
-		trusted: securityCheck.isTrustedContext,
-		extensions: securityCheck.suspiciousExtensions.length,
-	});
-} catch (error) {
-	console.error("[Security] Security initialization failed:", error);
+	performSecurityCheck();
+
+} catch {
+	// Security initialization failed
 }
 
 // Initialize theme on startup with system detection
@@ -84,9 +75,9 @@ if (savedTheme) {
 	try {
 		const parsed = JSON.parse(savedTheme);
 		themeMode = parsed.state?.theme || "system";
-	} catch (e) {
-		console.error("[Theme] Failed to parse saved theme:", e);
-	}
+	} catch {
+			// Error handled silently
+		}
 }
 
 // Resolve system theme if needed

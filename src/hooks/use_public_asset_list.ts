@@ -136,12 +136,6 @@ export function usePublicAssetList(
 				},
 			};
 
-			console.log("[usePublicAssetList] Fetching asset list", {
-				apiUrl,
-				network,
-				nodeType,
-			});
-
 			const response = await fetch(apiUrl, {
 				method: "POST",
 				headers: {
@@ -156,36 +150,28 @@ export function usePublicAssetList(
 
 			const data: AssetListResponse = await response.json();
 
-			console.log("[usePublicAssetList] Asset list response", {
-				success: data.result?.success,
-				total: data.result?.total,
-				assets: data.result?.assets?.length,
-			});
-
 			if (data.result?.success) {
 				const assetsList = data.result.assets || [];
 				setAssets(assetsList);
-				console.log(
-					`[usePublicAssetList] Loaded ${assetsList.length} assets from ${data.result.network}`,
-				);
+
 				if (assetsList.length > 0) {
-					console.log("[usePublicAssetList] Sample asset:", JSON.stringify(assetsList[0], null, 2));
+					// Assets loaded
 				}
 			} else {
 				throw new Error("Asset list request failed");
 			}
-		} catch (err) {
+		} catch {
 			const errorMessage =
 				err instanceof Error
 					? err.message
 					: "Failed to fetch asset list";
-			console.error("[usePublicAssetList] Error fetching asset list:", err);
+
 			setError(errorMessage);
 			setAssets([]);
 		} finally {
 			setLoading(false);
 		}
-	}, [apiUrl, network, nodeType]);
+	}, [apiUrl, network]);
 
 	// Load asset list on mount
 	useEffect(() => {
@@ -199,4 +185,3 @@ export function usePublicAssetList(
 		refetch: fetchAssetList,
 	};
 }
-
