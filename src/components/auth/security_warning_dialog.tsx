@@ -25,12 +25,10 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
     try {
       setShowSecurityWarning(false);
       await resetAuth();
-      console.log(
-        "[SecurityWarning] User proceeded with logout after security notice",
-      );
-    } catch (error) {
-      console.error("[SecurityWarning] Error during logout:", error);
-    }
+
+    } catch {
+			// Error handled silently
+		}
   };
 
   /**
@@ -38,7 +36,7 @@ export const SecurityWarningDialog: React.FC = (): React.ReactElement => {
    */
   const handleCancelLogout = (): void => {
     setShowSecurityWarning(false);
-    console.log("[SecurityWarning] User cancelled logout");
+
   };
 
   // Don't render if not visible

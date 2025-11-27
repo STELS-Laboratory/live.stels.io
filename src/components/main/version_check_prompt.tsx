@@ -20,11 +20,10 @@ export default function VersionCheckPrompt(): React.ReactElement | null {
   const [newVersion, setNewVersion] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("[VersionCheckPrompt] Starting version monitoring...");
 
     // Start version checking
     const stopChecking = startVersionCheck((version) => {
-      console.log("[VersionCheckPrompt] New version detected:", version);
+
       setNewVersion(version);
       setShowPrompt(true);
     });
@@ -46,33 +45,28 @@ export default function VersionCheckPrompt(): React.ReactElement | null {
     }
 
     // Force new session to invalidate all cached resources
-    const newSessionId = createNewSession();
-    console.log("[VersionCheckPrompt] Created new session:", newSessionId);
+    createNewSession();
 
     // Clear service worker caches (including schemas)
     try {
       if ("caches" in window) {
         const cacheNames = await caches.keys();
-        console.log("[VersionCheckPrompt] Found caches:", cacheNames);
 
         await Promise.all(cacheNames.map(async (name) => {
-          console.log("[VersionCheckPrompt] Deleting cache:", name);
+
           await caches.delete(name);
         }));
 
-        console.log(
-          "[VersionCheckPrompt] All caches cleared (including schemas)",
-        );
       }
 
       if ("serviceWorker" in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
         await Promise.all(registrations.map((reg) => reg.unregister()));
-        console.log("[VersionCheckPrompt] Service workers unregistered");
+
       }
-    } catch (error) {
-      console.error("[VersionCheckPrompt] Error clearing caches:", error);
-    }
+    } catch {
+			// Error handled silently
+		}
 
     // Reload
     window.location.reload();

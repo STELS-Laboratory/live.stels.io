@@ -203,4 +203,3 @@ export interface Gliesereum {
 	getAddressFromPublicKey(publicKey: string): string;
 	verifyPublicKeyAddress(publicKey: string, address: string): boolean;
 }
-

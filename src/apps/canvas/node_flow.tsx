@@ -140,9 +140,9 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
 						setMergedData(mergedChannelData);
 					}
 				}
-			} catch (error) {
-				console.error("[NodeFlow] Schema load error:", error);
-			} finally {
+			} catch {
+			// Error handled silently
+		} finally {
 				if (!cancelled) {
 					setIsLoading(false);
 				}

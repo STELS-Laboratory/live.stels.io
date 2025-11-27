@@ -15,4 +15,3 @@ export { StorageScanDialog } from "./storage_scan_dialog";
 export { WalletConfirmation } from "./wallet_confirmation";
 export { WalletCreator } from "./wallet_creator";
 export { WalletTypeSelector } from "./wallet_type_selector";
-

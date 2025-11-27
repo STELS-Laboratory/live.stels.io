@@ -8,4 +8,3 @@ export { DragPreview, DropZoneIndicator } from "./drag_preview";
 export { default as GroupedEdge } from "./grouped_edge";
 export { WidgetStatusBadge } from "./widget_status_badge";
 export { WidgetStore } from "./widget_store";
-

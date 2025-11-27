@@ -232,9 +232,9 @@ export function CustomSSEExample(): React.ReactElement {
           }
         }
       }
-    } catch (err) {
+    } catch {
       setConnected(false);
-      console.error("Connection error:", err);
+
     }
   };
 

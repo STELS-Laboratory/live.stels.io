@@ -62,19 +62,16 @@ export function TickerMarquee(
                 });
               }
             }
-          } catch (error) {
-            console.warn(
-              `[TickerMarquee] Failed to parse ticker ${key}:`,
-              error,
-            );
-          }
+          } catch {
+			// Error handled silently
+		}
         }
       }
 
       // Sort by market name for consistent display
       return tickerList.sort((a, b) => a.market.localeCompare(b.market));
-    } catch (error) {
-      console.error("[TickerMarquee] Failed to get tickers:", error);
+    } catch {
+
       return [];
     }
   }, []);

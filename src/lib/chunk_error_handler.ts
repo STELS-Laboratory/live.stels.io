@@ -27,32 +27,29 @@ export function isChunkLoadError(error: unknown): boolean {
  * Handle chunk loading error by reloading the page
  */
 export async function handleChunkLoadError(): Promise<void> {
-  console.log("[ChunkErrorHandler] Chunk loading error detected, preparing reload...");
 
   try {
     // Clear service worker caches (including schemas)
     if ("caches" in window) {
       const cacheNames = await caches.keys();
-      console.log("[ChunkErrorHandler] Found caches:", cacheNames);
-      
+
       // Delete all caches
       await Promise.all(cacheNames.map(async (name) => {
-        console.log("[ChunkErrorHandler] Deleting cache:", name);
+
         await caches.delete(name);
       }));
-      
-      console.log("[ChunkErrorHandler] All caches cleared (including schemas)");
+
     }
 
     // Unregister service workers
     if ("serviceWorker" in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
       await Promise.all(registrations.map((reg) => reg.unregister()));
-      console.log("[ChunkErrorHandler] Service workers unregistered");
+
     }
-  } catch (error) {
-    console.error("[ChunkErrorHandler] Error during cleanup:", error);
-  }
+  } catch {
+			// Error handled silently
+		}
 
   // Small delay to ensure cleanup completes
   await new Promise((resolve) => setTimeout(resolve, 100));
@@ -75,7 +72,7 @@ export function initChunkErrorHandlers(): void {
     const error = event.reason;
     
     if (isChunkLoadError(error)) {
-      console.error("[ChunkErrorHandler] Unhandled chunk load error:", error);
+
       errorShown = true;
       event.preventDefault(); // Prevent default error handling
       
@@ -91,7 +88,7 @@ export function initChunkErrorHandlers(): void {
     const error = event.error;
     
     if (isChunkLoadError(error)) {
-      console.error("[ChunkErrorHandler] Chunk load error:", error);
+
       errorShown = true;
       event.preventDefault(); // Prevent default error handling
       
@@ -100,6 +97,4 @@ export function initChunkErrorHandlers(): void {
     }
   });
 
-  console.log("[ChunkErrorHandler] Global error handlers initialized");
 }
-

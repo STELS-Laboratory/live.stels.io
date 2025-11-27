@@ -81,19 +81,10 @@ export async function signTokenSchema(
   // Used in: issuer.public_key, signatures.signers[0].kid, body.publicKey
   const publicKeyUncompressed = getUncompressedPublicKey(privateKey);
 
-  console.log("[Signing] ═══════════════════════════════════════");
-  console.log("[Signing] Private Key (first 16):", privateKey.substring(0, 16));
-  console.log("[Signing] Public Key (uncompressed, 130 chars):", publicKeyUncompressed);
-  console.log("[Signing] Public Key length:", publicKeyUncompressed.length);
-  console.log("[Signing] Public Key starts with:", publicKeyUncompressed.substring(0, 2));
-
   // CRITICAL: Generate address from the SAME uncompressed key used in document
   // getAddressFromPublicKey will automatically compress it internally (via ensureCompressedKey)
   // This ensures address matches the public_key field in the document
   const address = getAddressFromPublicKey(publicKeyUncompressed);
-  
-  console.log("[Signing] Address:", address);
-  console.log("[Signing] ═══════════════════════════════════════");
 
   // Get network configuration from schema or use default
   const networkId = schema.technical?.networkId || "testnet";
@@ -212,10 +203,6 @@ export async function signTokenSchema(
   // CRITICAL: Remove all null/undefined values before signing (per gls-det-1 spec)
   // This ensures canonical serialization matches server expectations
   const certificateWithoutSignatures = removeNullUndefined(certificateWithoutSignaturesRaw) as typeof certificateWithoutSignaturesRaw;
-  
-  console.log("[Signing] Cleaned null/undefined values from certificate");
-  console.log("[Signing] Original size:", JSON.stringify(certificateWithoutSignaturesRaw).length);
-  console.log("[Signing] Cleaned size:", JSON.stringify(certificateWithoutSignatures).length);
 
   // CRITICAL SIGNING PROCESS (per gls-det-1 spec):
   
@@ -227,37 +214,18 @@ export async function signTokenSchema(
   const messageString = `${domainStr}:${canonicalDocument}`;
 
   // DEBUG: Log signing details for verification
-  console.log("[Signing] ═══════════════════════════════════════");
-  console.log("[Signing] Document keys (before stringify):", Object.keys(certificateWithoutSignatures).sort());
-  console.log("[Signing] Domain:", domainStr);
-  console.log("[Signing] Canonical document length:", canonicalDocument.length);
-  console.log("[Signing] Canonical document (first 200):", canonicalDocument.substring(0, 200));
-  console.log("[Signing] Canonical document (last 200):", canonicalDocument.substring(canonicalDocument.length - 200));
-  console.log("[Signing] Canonical document FULL:", canonicalDocument);
-  console.log("[Signing] Message (first 250):", messageString.substring(0, 250));
-  console.log("[Signing] Message length:", messageString.length);
-  console.log("[Signing] ═══════════════════════════════════════");
 
   // Step 3: Sign the message
   const signature = sign(messageString, privateKey);
-  
-  console.log("[Signing] Signature:", signature);
-  console.log("[Signing] Public Key (uncompressed):", publicKeyUncompressed);
 
   // Step 4: VERIFY signature locally before sending to server
-  console.log("[Signing] ═══════════════════════════════════════");
-  console.log("[Signing] Verifying signature locally...");
+
   const isValid = verify(messageString, signature, publicKeyUncompressed);
-  console.log("[Signing] Local verification result:", isValid);
-  
+
   if (!isValid) {
-    console.error("[Signing] ❌ LOCAL VERIFICATION FAILED!");
-    console.error("[Signing] This signature will be rejected by server!");
+
     throw new Error("Signature verification failed locally. Please try again.");
   }
-  
-  console.log("[Signing] ✅ Local verification passed");
-  console.log("[Signing] ═══════════════════════════════════════");
 
   // Step 5: Create final certificate WITH signatures
   const certificate: TokenGenesisCertificate = {
@@ -449,29 +417,17 @@ export async function verifyTokenCertificate(
     const messageString = `${domainStr}:${canonicalDocument}`;
 
     // DEBUG: Log verification details
-    console.log("[Verification] ═══════════════════════════════════════");
-    console.log("[Verification] Domain:", domainStr);
-    console.log("[Verification] Canonical document (first 200):", canonicalDocument.substring(0, 200));
-    console.log("[Verification] Message (first 250):", messageString.substring(0, 250));
-    console.log("[Verification] Message length:", messageString.length);
-    console.log("[Verification] ═══════════════════════════════════════");
 
     // Step 4: Verify each signature
     for (const sig of tokenCert.signatures.signers) {
-      console.log("[Verification] Verifying signature:", sig.sig.substring(0, 40) + "...");
-      console.log("[Verification] Public Key:", sig.kid);
 
       const isValid = verify(messageString, sig.sig, sig.kid);
-      
-      console.log("[Verification] Result:", isValid);
 
       if (!isValid) {
-        console.error("[Verification] ❌ Signature verification FAILED!");
-        console.error("[Verification] Expected to verify document without 'signatures' field");
+
         return false;
       }
-      
-      console.log("[Verification] ✅ Signature verification PASSED!");
+
     }
 
     return true;

@@ -146,9 +146,9 @@ export function formatJavaScript(code: string): string {
     }
 
     return formattedLines.join("\n");
-  } catch (error) {
+  } catch {
     // If formatting fails, return original code
-    console.warn("[CodeMirror Formatter] Failed to format code:", error);
+
     return code;
   }
 }

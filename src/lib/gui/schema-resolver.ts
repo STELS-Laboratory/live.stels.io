@@ -51,9 +51,9 @@ export async function collectRequiredChannels(
         // Recursively collect from nested schema
         await collectRequiredChannels(schemaData.schema, store, collected, depth + 1, maxDepth);
       }
-    } catch (error) {
-      console.error(`[SchemaResolver] Failed to collect channels from ${node.schemaRef}:`, error);
-    }
+    } catch {
+			// Error handled silently
+		}
   }
 
   // Recursively collect from children
@@ -81,7 +81,7 @@ export async function resolveSchemaRefs(
 ): Promise<UINode> {
   // Prevent infinite recursion
   if (depth >= maxDepth) {
-    console.warn(`[SchemaResolver] Max depth ${maxDepth} reached, stopping recursion`);
+
     return node;
   }
 
@@ -91,7 +91,7 @@ export async function resolveSchemaRefs(
       const schemaData = await store.getSchemaByWidgetKey(node.schemaRef);
       
       if (!schemaData) {
-        console.warn(`[SchemaResolver] Schema not found: ${node.schemaRef}`);
+
         // Return placeholder
         return {
           type: "div",
@@ -131,8 +131,8 @@ export async function resolveSchemaRefs(
       }
 
       return merged;
-    } catch (error) {
-      console.error(`[SchemaResolver] Failed to resolve schema ${node.schemaRef}:`, error);
+    } catch {
+
       return {
         type: "div",
         className: "p-4 bg-red-500/10 border border-red-500/20 rounded",
@@ -157,4 +157,3 @@ export async function resolveSchemaRefs(
 
   return node;
 }
-

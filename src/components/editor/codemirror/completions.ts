@@ -58,14 +58,14 @@ const workerSDKCompletions: Completion[] = [
   { label: "exchange.fetchBalance", type: "method", info: "Fetch balance from exchange", apply: "const exchange = Stels.runtime.cex.${1:binance};\nconst balance = await exchange.fetchBalance();\nlogger.info('Balance:', balance.total);" },
   { label: "exchange.fetchOrderBook", type: "method", info: "Fetch order book", apply: "const exchange = Stels.runtime.cex.${1:binance};\nconst orderBook = await exchange.fetchOrderBook('${2:BTC/USDT}', ${3:10});" },
   { label: "exchange.createLimitOrder", type: "method", info: "Create limit order", apply: "const exchange = Stels.runtime.cex.${1:binance};\nconst order = await exchange.createLimitOrder(\n  '${2:BTC/USDT}',\n  '${3:buy}',\n  ${4:0.001},\n  ${5:50000}\n);\nlogger.info('Limit order created:', order.id);" },
-  { label: "exchange.watchOrderBook", type: "method", info: "Watch order book (WebSocket)", apply: "const exchange = Stels.runtime.cex.${1:binance};\n\nwhile (!shouldStop()) {\n  try {\n    const orderBook = await exchange.watchOrderBook('${2:BTC/USDT}');\n    const bestBid = orderBook.bids[0];\n    const bestAsk = orderBook.asks[0];\n    logger.debug('OrderBook', { bid: bestBid[0], ask: bestAsk[0] });\n  } catch (error) {\n    logger.error('OrderBook error', error);\n    await Stels.sleep(5000);\n  }\n}" },
+  { label: "exchange.watchOrderBook", type: "method", info: "Watch order book (WebSocket)", apply: "const exchange = Stels.runtime.cex.${1:binance};\n\nwhile (!shouldStop()) {\n  try {\n    const orderBook = await exchange.watchOrderBook('${2:BTC/USDT}');\n    const bestBid = orderBook.bids[0];\n    const bestAsk = orderBook.asks[0];\n    logger.debug('OrderBook', { bid: bestBid[0], ask: bestAsk[0] });\n  } catch {\n    logger.error('OrderBook error', error);\n    await Stels.sleep(5000);\n  }\n}" },
   
   // WebFIX patterns
   { label: "webfix-set", type: "snippet", info: "Save data to KV store", apply: "await Stels.webfix({\n  brain: Stels.${1:local},\n  method: 'set',\n  channel: [${2:'key'}],\n  module: 'worker',\n  raw: ${3:data},\n  timestamp: Date.now(),\n  expireIn: ${4:60000}\n});" },
   { label: "webfix-get", type: "snippet", info: "Get data from KV store", apply: "const result = await Stels.webfix({\n  brain: Stels.${1:local},\n  method: 'get',\n  channel: [${2:'key'}],\n  module: 'worker',\n  timestamp: Date.now()\n});\nconst data = result.value;" },
   
   // Common patterns
-  { label: "try-catch-worker", type: "snippet", info: "Try-catch block with logger", apply: "try {\n  ${1:// Your code here}\n} catch (error) {\n  logger.error('${2:Operation failed}', error);\n  ${3:// Handle error}\n}" },
+  { label: "try-catch-worker", type: "snippet", info: "Try-catch block with logger", apply: "try {\n  ${1:// Your code here}\n} catch {\n  logger.error('${2:Operation failed}', error);\n  ${3:// Handle error}\n}" },
 ];
 
 /**
@@ -90,4 +90,3 @@ export function workerCompletions(context: CompletionContext): CompletionResult 
     options,
   };
 }
-

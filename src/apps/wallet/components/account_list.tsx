@@ -340,4 +340,3 @@ export function AccountList({
 		</Card>
 	);
 }
-

@@ -70,9 +70,7 @@ function StelsChat(): React.ReactElement {
     if (connectionSession?.session && (!state.isConnected || state.models.length === 0)) {
       testConnection();
     } else if (!connectionSession?.session) {
-      console.warn(
-        "[StelsChat] No connectionSession available, skipping connection test",
-      );
+
       // Set as disconnected if no session
       useStelsChatStore.getState().setError(
         "No active session. Please connect to the network first.",

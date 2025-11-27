@@ -91,7 +91,7 @@ export const SigningSection = React.memo(function SigningSection({
 
       markExecuted();
       showCertificateCreated();
-    } catch (error) {
+    } catch {
       showSigningError(error instanceof Error ? error : String(error));
     } finally {
       setSigning(false);

@@ -39,8 +39,8 @@ function getStelsApiUrl(): string {
     
     // Fallback to default
     return DEFAULT_API_URL;
-  } catch (error) {
-    console.warn("[StelsChat] Failed to get API URL from auth store:", error);
+  } catch {
+
     return DEFAULT_API_URL;
   }
 }
@@ -62,8 +62,8 @@ function getSessionCredentials(): { session?: string; token?: string } {
     }
     
     return {};
-  } catch (error) {
-    console.warn("[StelsChat] Failed to get session from auth store:", error);
+  } catch {
+
     return {};
   }
 }
@@ -91,14 +91,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
           const apiUrl = getStelsApiUrl();
           // Get session credentials from user configuration
           const { session, token } = getSessionCredentials();
-          
-          console.log("[StelsChatStore] Creating API service:", {
-            apiUrl,
-            hasSession: !!session,
-            hasToken: !!token,
-            sessionPreview: session ? session.substring(0, 10) + "..." : "none",
-          });
-          
+
           // Always create new service to ensure URL and credentials are up to date
           apiService = new StelsApiService(apiUrl, session, token);
           return apiService;
@@ -271,12 +264,10 @@ export const useStelsChatStore = create<StelsChatStore>()(
                         : tab,
                     ),
                   }));
-                  console.log(
-                    `[StelsChatStore] Auto-selected model "${firstModel.name}" for ${tabsWithoutModel.length} tab(s)`,
-                  );
+
                 }
               }
-            } catch (error) {
+            } catch {
               const errorMessage =
                 error instanceof Error ? error.message : "Failed to fetch models";
               set({
@@ -520,7 +511,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
               }
 
               set({ isLoading: false });
-            } catch (error) {
+            } catch {
               const errorMessage =
                 error instanceof Error
                   ? error.message
@@ -593,7 +584,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
               const networkId = authState.connectionSession?.network || "testnet";
               const assistants = await service.listAssistants(filters, networkId);
               set({ assistants, isLoading: false });
-            } catch (error) {
+            } catch {
               const errorMessage =
                 error instanceof Error
                   ? error.message
@@ -615,7 +606,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
               await get().fetchAssistants();
               set({ isLoading: false });
               return assistant;
-            } catch (error) {
+            } catch {
               const errorMessage =
                 error instanceof Error
                   ? error.message
@@ -638,7 +629,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
               await get().fetchAssistants();
               set({ isLoading: false });
               return assistant;
-            } catch (error) {
+            } catch {
               const errorMessage =
                 error instanceof Error
                   ? error.message
@@ -658,7 +649,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
               // Refresh assistants list
               await get().fetchAssistants();
               set({ isLoading: false });
-            } catch (error) {
+            } catch {
               const errorMessage =
                 error instanceof Error
                   ? error.message
@@ -677,7 +668,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
               const assistant = await service.getAssistant(assistantId, networkId);
               set({ isLoading: false });
               return assistant;
-            } catch (error) {
+            } catch {
               const errorMessage =
                 error instanceof Error
                   ? error.message
@@ -715,7 +706,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
               const models = await service.stelsListModels();
               set({ isLoading: false });
               return models;
-            } catch (error) {
+            } catch {
               const errorMessage =
                 error instanceof Error
                   ? error.message
@@ -733,7 +724,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
               // Refresh registered models after pull (auto-registration for developers)
               await get().listRegisteredModels();
               set({ isLoading: false });
-            } catch (error) {
+            } catch {
               const errorMessage =
                 error instanceof Error
                   ? error.message
@@ -754,7 +745,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
               await get().listRegisteredModels();
               set({ isLoading: false });
               return model;
-            } catch (error) {
+            } catch {
               const errorMessage =
                 error instanceof Error
                   ? error.message
@@ -772,7 +763,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
               // Refresh registered models list
               await get().listRegisteredModels();
               set({ isLoading: false });
-            } catch (error) {
+            } catch {
               const errorMessage =
                 error instanceof Error
                   ? error.message
@@ -791,7 +782,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
             
             if (!isDeveloper) {
               // Don't set error for non-developers, just silently skip
-              console.log("[StelsChat] listRegisteredModels skipped: user is not a developer");
+
               return;
             }
 
@@ -800,7 +791,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
               const service = getApiService();
               const models = await service.listRegisteredModels(filters);
               set({ registeredModels: models, isLoading: false });
-            } catch (error) {
+            } catch {
               const errorMessage =
                 error instanceof Error
                   ? error.message
@@ -830,4 +821,3 @@ export const useStelsChatStore = create<StelsChatStore>()(
     { name: "StelsChatStore" },
   ),
 );
-

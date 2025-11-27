@@ -182,8 +182,8 @@ export const useEditorStore = create<EditorStore>()(
 			} else {
 				throw new Error("Invalid response format");
 			}
-		} catch (error) {
-				console.error("Failed to fetch workers:", error);
+		} catch {
+
 				set({
 					workersError:
 						error instanceof Error ? error.message : "Failed to fetch workers",
@@ -198,7 +198,7 @@ export const useEditorStore = create<EditorStore>()(
 			const connectionSession = useAuthStore.getState().connectionSession;
 
 			if (!connectionSession) {
-				console.error("No active connection");
+
 				return null;
 			}
 
@@ -240,8 +240,8 @@ export const useEditorStore = create<EditorStore>()(
 				}));
 
 				return data;
-			} catch (error) {
-				console.error("Failed to create worker:", error);
+			} catch {
+
 				set({
 					worker: {
 						isLoading: false,
@@ -270,7 +270,7 @@ export const useEditorStore = create<EditorStore>()(
 			const connectionSession = useAuthStore.getState().connectionSession;
 
 			if (!connectionSession) {
-				console.error("No active connection");
+
 				return null;
 			}
 
@@ -317,8 +317,8 @@ export const useEditorStore = create<EditorStore>()(
 				}));
 
 				return data;
-			} catch (error) {
-				console.error("Failed to update worker:", error);
+			} catch {
+
 				set({
 					worker: {
 						isLoading: false,
@@ -333,7 +333,7 @@ export const useEditorStore = create<EditorStore>()(
 			const connectionSession = useAuthStore.getState().connectionSession;
 
 			if (!connectionSession) {
-				console.error("No active connection");
+
 				return null;
 			}
 
@@ -389,8 +389,8 @@ export const useEditorStore = create<EditorStore>()(
 				}));
 
 				return newWorker;
-			} catch (error) {
-				console.error("Failed to migrate worker:", error);
+			} catch {
+
 				set({
 					worker: {
 						isLoading: false,
@@ -405,7 +405,7 @@ export const useEditorStore = create<EditorStore>()(
 			const connectionSession = useAuthStore.getState().connectionSession;
 
 			if (!connectionSession) {
-				console.error("No active connection");
+
 				return null;
 			}
 
@@ -429,8 +429,8 @@ export const useEditorStore = create<EditorStore>()(
 				}
 
 				return await response.json();
-			} catch (error) {
-				console.error("Failed to get leader info:", error);
+			} catch {
+
 				return null;
 			}
 		},
@@ -439,7 +439,7 @@ export const useEditorStore = create<EditorStore>()(
 		const connectionSession = useAuthStore.getState().connectionSession;
 
 		if (!connectionSession) {
-			console.error("No active connection");
+
 			return [];
 		}
 
@@ -498,8 +498,8 @@ export const useEditorStore = create<EditorStore>()(
 			}
 
 			return [];
-		} catch (error) {
-			console.error("Failed to get worker stats:", error);
+		} catch {
+
 			return [];
 		}
 	},
@@ -508,7 +508,7 @@ export const useEditorStore = create<EditorStore>()(
 			const connectionSession = useAuthStore.getState().connectionSession;
 
 			if (!connectionSession) {
-				console.error("No active connection");
+
 				return { stopped: 0, failed: 0, total: 0 };
 			}
 
@@ -541,8 +541,8 @@ export const useEditorStore = create<EditorStore>()(
 					failed: result.failed || 0,
 					total: result.total || 0,
 				};
-			} catch (error) {
-				console.error("Failed to stop all workers:", error);
+			} catch {
+
 				return { stopped: 0, failed: 0, total: 0 };
 			}
 		},
@@ -572,4 +572,3 @@ export const useWorkerActions = () =>
 		updateWorker: state.updateWorker,
 		clearError: state.clearError,
 	}));
-

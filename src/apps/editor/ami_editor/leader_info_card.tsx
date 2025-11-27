@@ -61,7 +61,7 @@ export function LeaderInfoCard({
       setError(null);
       const info = await onRefresh(workerId);
       setLeaderInfo(info);
-    } catch (err) {
+    } catch {
       setError(
         err instanceof Error ? err.message : "Failed to load leader info",
       );

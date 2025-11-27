@@ -76,8 +76,8 @@ export function generateDataHash(data: unknown): string {
 			hash = hash & hash; // Convert to 32-bit integer
 		}
 		return Math.abs(hash).toString(16).slice(0, 16);
-	} catch (error) {
-		console.error("Failed to generate data hash:", error);
+	} catch {
+
 		return Date.now().toString(16);
 	}
 }

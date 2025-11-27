@@ -169,35 +169,6 @@ function generateAccountId(): string {
 }
 
 /**
- * Find the first position where two strings differ
- * Returns a formatted string with context around the difference
- */
-function findFirstDifference(str1: string, str2: string): string {
-	const minLength = Math.min(str1.length, str2.length);
-	
-	// Find first differing character
-	for (let i = 0; i < minLength; i++) {
-		if (str1[i] !== str2[i]) {
-			const context = 50;
-			const start = Math.max(0, i - context);
-			const end = Math.min(Math.max(str1.length, str2.length), i + context);
-			
-			return `Position ${i}: str1[${i}]='${str1[i]}' (code ${str1.charCodeAt(i)}), str2[${i}]='${str2[i]}' (code ${str2.charCodeAt(i)})\n` +
-				`Context:\n` +
-				`  str1: ...${str1.substring(start, end)}...\n` +
-				`  str2: ...${str2.substring(start, end)}...`;
-		}
-	}
-	
-	// Strings match up to minLength, check if one is longer
-	if (str1.length !== str2.length) {
-		return `Strings match up to position ${minLength}, but lengths differ: str1.length=${str1.length}, str2.length=${str2.length}`;
-	}
-	
-	return 'Strings are identical';
-}
-
-/**
  * Accounts store
  */
 export const useAccountsStore = create<AccountsStore>()(
@@ -236,7 +207,6 @@ export const useAccountsStore = create<AccountsStore>()(
 						activeAccountId: state.activeAccountId || accountId,
 					}));
 
-					console.log('[Accounts] Account added:', accountId);
 					return storedAccount;
 				},
 
@@ -246,7 +216,7 @@ export const useAccountsStore = create<AccountsStore>()(
 					const accountIndex = accounts.findIndex((acc) => acc.id === id);
 
 					if (accountIndex === -1) {
-						console.error('[Accounts] Account not found:', id);
+
 						return false;
 					}
 
@@ -272,7 +242,7 @@ export const useAccountsStore = create<AccountsStore>()(
 					newAccounts[accountIndex] = updatedStoredAccount;
 
 					set({ accounts: newAccounts });
-					console.log('[Accounts] Account updated:', id);
+
 					return true;
 				},
 
@@ -289,7 +259,7 @@ export const useAccountsStore = create<AccountsStore>()(
 							activeAccountId: newActiveId,
 						};
 					});
-					console.log('[Accounts] Account removed:', id);
+
 				},
 
 				// Set active account
@@ -298,7 +268,7 @@ export const useAccountsStore = create<AccountsStore>()(
 					const account = accounts.find((acc) => acc.id === id);
 					if (account) {
 						set({ activeAccountId: id });
-						console.log('[Accounts] Active account set:', id);
+
 					}
 				},
 
@@ -335,7 +305,6 @@ export const useAccountsStore = create<AccountsStore>()(
 						publicKey: wallet.publicKey,
 					};
 
-					console.log('[Accounts] Transaction signed');
 					return signedTransaction;
 				},
 
@@ -367,30 +336,14 @@ export const useAccountsStore = create<AccountsStore>()(
 						const dataString = deterministicStringify(accountForSigning);
 						const signature = sign(dataString, wallet.privateKey);
 
-						console.log('[Accounts] ═══════════════════════════════════════');
-						console.log('[Accounts] Original account:', JSON.stringify(account, null, 2));
-						console.log('[Accounts] Cleaned account for signing:', JSON.stringify(accountForSigning, null, 2));
-						console.log('[Accounts] Wallet public key (compressed):', wallet.publicKey);
-						console.log('[Accounts] Compressed length:', wallet.publicKey.length);
-						console.log('[Accounts] Account data to sign:', dataString);
-						console.log('[Accounts] Signature:', signature);
-						console.log('[Accounts] Wallet address:', wallet.address);
-
 						// LOCAL VERIFICATION: Verify signature before sending
-						console.log('[Accounts] Verifying signature locally...');
+
 						const isValidCompressed = verify(dataString, signature, wallet.publicKey);
 						const isValidUncompressed = verify(dataString, signature, getUncompressedPublicKey(wallet.privateKey));
-						console.log('[Accounts] Local verification (compressed):', isValidCompressed);
-						console.log('[Accounts] Local verification (uncompressed):', isValidUncompressed);
 
 						// Verify address matches publicKey (server does this check)
 						const addressFromCompressed = getAddressFromPublicKey(wallet.publicKey);
-						const addressFromUncompressed = getAddressFromPublicKey(getUncompressedPublicKey(wallet.privateKey));
-						console.log('[Accounts] Address from compressed key:', addressFromCompressed);
-						console.log('[Accounts] Address from uncompressed key:', addressFromUncompressed);
-						console.log('[Accounts] Wallet address matches compressed:', addressFromCompressed === wallet.address);
-						console.log('[Accounts] Wallet address matches uncompressed:', addressFromUncompressed === wallet.address);
-						console.log('[Accounts] ═══════════════════════════════════════');
+						getAddressFromPublicKey(getUncompressedPublicKey(wallet.privateKey));
 
 						if (!isValidCompressed && !isValidUncompressed) {
 							throw new Error('Local signature verification failed for both compressed and uncompressed keys');
@@ -407,19 +360,13 @@ export const useAccountsStore = create<AccountsStore>()(
 						const publicKeyToUse = isValidCompressed && addressFromCompressed === wallet.address
 							? wallet.publicKey // Use compressed (66 chars) as in original example
 							: uncompressedPublicKey; // Fallback to uncompressed if compressed doesn't work
-						
-						console.log('[Accounts] Selected publicKey format:', publicKeyToUse.length === 66 ? 'COMPRESSED (66)' : 'UNCOMPRESSED (130)');
-						console.log('[Accounts] Using publicKey:', publicKeyToUse);
-						
+
 						// Re-verify with selected key format
 						const finalVerification = verify(dataString, signature, publicKeyToUse);
 						const finalAddress = getAddressFromPublicKey(publicKeyToUse);
-						console.log('[Accounts] Final verification with selected key:', finalVerification);
-						console.log('[Accounts] Final address from selected key:', finalAddress);
-						console.log('[Accounts] Final address matches:', finalAddress === wallet.address);
-						
+
 						if (!finalVerification || finalAddress !== wallet.address) {
-							console.error('[Accounts] ❌ CRITICAL: Selected key format verification failed!');
+
 							throw new Error('Selected public key format failed verification');
 						}
 
@@ -438,33 +385,13 @@ export const useAccountsStore = create<AccountsStore>()(
 						};
 
 						// CRITICAL: Simulate what server will do to verify signature
-						console.log('[Accounts] ═══════════════════════════════════════');
-						console.log('[Accounts] SIMULATING SERVER VERIFICATION:');
-						console.log('[Accounts] 1. Server will call: getAddress(hexToUint8Array(publicKey))');
-						console.log('[Accounts] 2. Server will call: deterministicStringify(account)');
-						console.log('[Accounts] 3. Server will call: verify(dataString, signature, publicKey)');
-						console.log('[Accounts] ═══════════════════════════════════════');
-						
+
 						// What server will see
 						const serverAccountString = deterministicStringify(accountForSigning);
-						console.log('[Accounts] Server will stringify account to:', serverAccountString);
-						console.log('[Accounts] Our stringified account:', dataString);
-						console.log('[Accounts] Strings match:', serverAccountString === dataString);
+
 						if (serverAccountString !== dataString) {
-							console.error('[Accounts] ❌ STRING MISMATCH! Server will use different string for verification!');
-							console.error('[Accounts] Difference at position:', findFirstDifference(serverAccountString, dataString));
+							// String mismatch detected
 						}
-						
-						console.log('[Accounts] ═══════════════════════════════════════');
-						console.log('[Accounts] Final payload being sent:');
-						console.log('[Accounts] - publicKey:', publicKeyToUse);
-						console.log('[Accounts] - publicKey length:', publicKeyToUse.length);
-						console.log('[Accounts] - publicKey format:', publicKeyToUse.startsWith('04') ? 'UNCOMPRESSED (starts with 04)' : 'COMPRESSED (starts with 02/03)');
-						console.log('[Accounts] - address:', wallet.address);
-						console.log('[Accounts] - signature:', signature);
-						console.log('[Accounts] - account keys:', Object.keys(accountForSigning).sort().join(', '));
-						console.log('[Accounts] Full payload:', JSON.stringify(payload, null, 2));
-						console.log('[Accounts] ═══════════════════════════════════════');
 
 						// Send to server with session header
 						const response = await fetch(apiUrl, {
@@ -478,16 +405,15 @@ export const useAccountsStore = create<AccountsStore>()(
 
 						if (!response.ok) {
 							const errorText = await response.text();
-							console.error('[Accounts] Server error response:', errorText);
+
 							throw new Error(`Server responded with status: ${response.status}: ${errorText}`);
 						}
 
-						const result = await response.json();
-						console.log('[Accounts] Server response:', result);
+						await response.json();
 
 						return true;
-					} catch (error) {
-						console.error('[Accounts] Failed to send account to server:', error);
+					} catch {
+
 						throw error;
 					}
 				},
@@ -505,8 +431,6 @@ export const useAccountsStore = create<AccountsStore>()(
 							},
 						};
 
-						console.log('[Accounts] Fetching accounts from server:', payload);
-
 						// Send to server with session header
 						const response = await fetch(apiUrl, {
 							method: 'POST',
@@ -522,7 +446,6 @@ export const useAccountsStore = create<AccountsStore>()(
 						}
 
 						const result = await response.json();
-						console.log('[Accounts] Server response:', result);
 
 						// Process the accounts from server
 						// Server returns AccountValue[] where each item has channel, module, widget, raw fields
@@ -588,18 +511,12 @@ export const useAccountsStore = create<AccountsStore>()(
 								activeAccountId: fetchedAccounts.length > 0 ? fetchedAccounts[0].id : null,
 							});
 
-							console.log('[Accounts] Loaded', fetchedAccounts.length, 'accounts from server');
-							console.log('[Accounts] Accounts breakdown:', {
-								total: fetchedAccounts.length,
-								withCredentials: fetchedAccounts.filter(acc => acc.account.apiKey && acc.account.secret).length,
-								viewers: fetchedAccounts.filter(acc => !acc.account.apiKey || !acc.account.secret).length,
-							});
 						} else {
-							console.log('[Accounts] No accounts found on server (empty array)');
+
 							set({ accounts: [], activeAccountId: null });
 						}
-					} catch (error) {
-						console.error('[Accounts] Failed to fetch accounts from server:', error);
+					} catch {
+
 						// Don't throw - we don't want to break the app if server is unavailable
 					}
 				},
@@ -610,7 +527,7 @@ export const useAccountsStore = create<AccountsStore>()(
 						accounts: [],
 						activeAccountId: null,
 					});
-					console.log('[Accounts] All accounts cleared');
+
 				},
 			}),
 			{
@@ -622,7 +539,7 @@ export const useAccountsStore = create<AccountsStore>()(
 				onRehydrateStorage: () => (state) => {
 					if (state) {
 						state._hasHydrated = true;
-						console.log('[Accounts] Store hydrated from localStorage');
+
 					}
 				},
 			}
@@ -632,4 +549,3 @@ export const useAccountsStore = create<AccountsStore>()(
 		}
 	)
 );
-

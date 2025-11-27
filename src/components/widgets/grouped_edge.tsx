@@ -46,13 +46,6 @@ function GroupedEdge({
   const baseColor = style.stroke as string || "#c9995a"; // fallback to custom amber
   const adjustedColor = adjustColorOpacity(baseColor, colorIntensity);
 
-  console.log("GroupedEdge rendering:", {
-    data,
-    baseColor,
-    adjustedColor,
-    style,
-  });
-
   return (
     <>
       <BaseEdge

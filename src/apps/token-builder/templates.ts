@@ -302,4 +302,3 @@ export function getTemplatesByStandard(
 ): TokenTemplate[] {
   return TOKEN_TEMPLATES.filter((t) => t.schema.standard === standard);
 }
-

@@ -248,9 +248,9 @@ function parseIndexData(entry: unknown): IndexData | null {
     ) {
       return entry.raw as IndexData;
     }
-  } catch (error) {
-    console.error("[IndexStore] Failed to parse index data:", error);
-  }
+  } catch {
+			// Error handled silently
+		}
   return null;
 }
 
@@ -296,9 +296,9 @@ function parseCandleData(entry: unknown): IndexCandleData | null {
         lastUpdate: raw.lastUpdate,
       };
     }
-  } catch (error) {
-    console.error("[IndexStore] Failed to parse candle data:", error);
-  }
+  } catch {
+			// Error handled silently
+		}
   return null;
 }
 
@@ -342,13 +342,13 @@ function loadIndexesFromStorage(): {
             indexes[indexData.index] = indexData;
           }
         }
-      } catch (error) {
-        console.warn(`[IndexStore] Failed to parse entry ${key}:`, error);
-      }
+      } catch {
+			// Error handled silently
+		}
     }
-  } catch (error) {
-    console.error("[IndexStore] Failed to load indexes:", error);
-  }
+  } catch {
+			// Error handled silently
+		}
 
   return { indexes, candles };
 }
@@ -432,7 +432,7 @@ export const useIndexStore = create<IndexStore>()(
                 set({ loading: false });
               }
             }
-          } catch (error) {
+          } catch {
             set({
               loading: false,
               error:
@@ -620,4 +620,3 @@ export const useIndexActions = () =>
     getIndexesMetadata: state.getIndexesMetadata,
     clearError: state.clearError,
   }));
-

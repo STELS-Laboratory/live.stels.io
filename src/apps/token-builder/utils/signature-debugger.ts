@@ -30,61 +30,37 @@ export function debugSignature(
     differences?: string[];
   };
 } {
-  console.log("\n🔍 SIGNATURE DEBUG START");
-  console.log("═══════════════════════════════════════════════════\n");
 
   // Step 1: Remove signatures (recreate what was signed)
-  console.log("STEP 1: Remove signatures field");
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { signatures, ...documentWithoutSignatures } = certificate;
   const docString = JSON.stringify(documentWithoutSignatures, null, 2);
-  console.log("Document structure (first 500 chars):");
-  console.log(docString.substring(0, 500));
-  console.log(`...\nTotal keys at root: ${Object.keys(documentWithoutSignatures).length}`);
-  console.log("Root keys:", Object.keys(documentWithoutSignatures).join(", "));
 
   // Step 2: Canonical serialization
-  console.log("\nSTEP 2: Canonical serialization");
+
   const canonical = deterministicStringify(documentWithoutSignatures);
-  console.log("Canonical length:", canonical.length);
-  console.log("First 200 chars:", canonical.substring(0, 200));
-  console.log("Last 100 chars:", canonical.substring(canonical.length - 100));
 
   // Step 3: Domain separator
-  console.log("\nSTEP 3: Domain separator");
+
   const domain = certificate.protocol.sign_domains.token;
   const domainStr = domain.join(":");
-  console.log("Domain array:", JSON.stringify(domain));
-  console.log("Domain string:", domainStr);
 
   // Step 4: Create message
-  console.log("\nSTEP 4: Create message (domain + canonical)");
+
   const message = `${domainStr}:${canonical}`;
-  console.log("Message length:", message.length);
-  console.log("Message first 300 chars:", message.substring(0, 300));
 
   // Step 5: Sign
-  console.log("\nSTEP 5: Sign message");
+
   const newSignature = sign(message, privateKey);
-  console.log("New signature:", newSignature);
-  console.log("Original signature:", certificate.signatures.signers[0].sig);
-  console.log("Signatures match:", newSignature === certificate.signatures.signers[0].sig);
 
   // Step 6: Get public key
-  console.log("\nSTEP 6: Public key");
+
   const publicKey = getUncompressedPublicKey(privateKey);
-  console.log("Computed public key:", publicKey);
-  console.log("Document public key:", certificate.token.issuer.public_key);
-  console.log("Signer kid:", certificate.signatures.signers[0].kid);
-  console.log("All match:", 
-    publicKey === certificate.token.issuer.public_key &&
-    publicKey === certificate.signatures.signers[0].kid
-  );
 
   // Step 7: Verify
-  console.log("\nSTEP 7: Verify signature");
+
   const isValid = verify(message, certificate.signatures.signers[0].sig, publicKey);
-  console.log("Verification result:", isValid ? "✅ VALID" : "❌ INVALID");
 
   // Check for differences
   const differences: string[] = [];
@@ -105,14 +81,11 @@ export function debugSignature(
     differences.push("Signature verification failed");
   }
 
-  console.log("\n═══════════════════════════════════════════════════");
   if (differences.length === 0) {
-    console.log("✅ ALL CHECKS PASSED");
+    // No differences
   } else {
-    console.log("❌ PROBLEMS FOUND:");
-    differences.forEach(diff => console.log(`   - ${diff}`));
+    // Differences found
   }
-  console.log("═══════════════════════════════════════════════════\n");
 
   return {
     success: differences.length === 0,
@@ -215,4 +188,3 @@ export function recreateSignatureVerificationData(
     signature: certificate.signatures.signers[0].sig,
   };
 }
-

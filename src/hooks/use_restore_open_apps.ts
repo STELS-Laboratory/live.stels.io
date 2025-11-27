@@ -39,9 +39,6 @@ export function useRestoreOpenApps(): {
         const invalidCount = apps.length - validApps.length;
 
         if (invalidCount > 0) {
-          console.log(
-            `[RestoreOpenApps] Removed ${invalidCount} apps with missing schemas`,
-          );
 
           // Remove invalid apps
           const invalidIds = apps
@@ -54,12 +51,10 @@ export function useRestoreOpenApps(): {
         }
 
         setRestoredCount(validApps.length);
-        console.log(
-          `[RestoreOpenApps] Restored ${validApps.length} apps from previous session`,
-        );
-      } catch (error) {
-        console.error("[RestoreOpenApps] Failed to restore apps:", error);
-      } finally {
+
+      } catch {
+			// Error handled silently
+		} finally {
         setIsRestoring(false);
       }
     };
@@ -71,4 +66,3 @@ export function useRestoreOpenApps(): {
 
   return { isRestoring, restoredCount };
 }
-

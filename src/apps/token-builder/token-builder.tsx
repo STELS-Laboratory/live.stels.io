@@ -307,8 +307,8 @@ const MetadataStep = React.memo(function MetadataStep(): React.ReactElement {
       setIconPreview(dataUrl);
       updateMetadata({ icon: dataUrl });
       showIconUploaded();
-    } catch (error) {
-      console.error("[MetadataStep] Icon upload error:", error);
+    } catch {
+
       showError(
         error instanceof Error ? error.message : "Failed to upload icon",
       );
@@ -1303,7 +1303,7 @@ function TokenBuilder(): React.ReactElement {
               <ErrorBoundary
                 onReset={() => {
                   // Optionally reset to first step on error
-                  console.log("[TokenBuilder] Error boundary reset");
+
                 }}
               >
                 {renderStep()}

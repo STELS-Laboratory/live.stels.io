@@ -61,8 +61,8 @@ export function useAuthWallet(): {
       } else {
         setAuthStore(null);
       }
-    } catch (error) {
-      console.error("[useAuthWallet] Failed to load auth-store:", error);
+    } catch {
+
       setAuthStore(null);
     }
   };

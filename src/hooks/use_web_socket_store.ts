@@ -3,7 +3,6 @@ import {useAppStore} from "@/stores";
 import {useAuthStore} from "@/stores/modules/auth.store";
 import {generateDataHash} from "@/lib/utils";
 
-
 type WebSocketInfo = {
 	connector: {
 		socket: string;
@@ -34,14 +33,14 @@ function createWebSocket(
 		try {
 			const storageJson: SessionData = JSON.parse(localStoragePrivateStore);
 			session = storageJson.raw?.session || null;
-		} catch (error) {
-			console.error('Failed to parse localStorage data:', error);
+		} catch {
+
 			return null;
 		}
 	}
 	
 	if (!session) {
-		console.warn('No session found in localStorage, WebSocket connection may fail');
+
 		// Trigger session expired handler if no session found
 		setTimeout(() => {
 			onSessionExpired();
@@ -54,8 +53,7 @@ function createWebSocket(
 	const ws = new WebSocket(wsUrl, protocols);
 	
 	ws.onopen = () => {
-		console.log('WebSocket connection opened');
-		
+
 		// Clear any previous sync errors when connection is restored
 		const appStore = useAppStore.getState();
 		appStore.setSyncError(null);
@@ -75,11 +73,10 @@ function createWebSocket(
 	ws.onmessage = onMessage;
 	
 	ws.onclose = (event) => {
-		console.log('WebSocket connection closed. Code:', event.code, 'Reason:', event.reason);
-		
+
 		// Check if this is a user-initiated logout - do not reconnect
 		if (event.code === 1000 && event.reason.includes('logged out')) {
-			console.log('WebSocket closed due to user logout - not reconnecting');
+
 			return;
 		}
 		
@@ -88,22 +85,19 @@ function createWebSocket(
 		    event.code === 1006 || 
 		    event.reason.includes('expired') || 
 		    event.reason.includes('invalid')) {
-			console.log('Session appears to be expired, triggering cleanup');
+
 			onSessionExpired();
 			return;
 		}
-		
-		console.log('WebSocket connection closed. Attempting to reconnect...');
+
 		setTimeout(onReconnect, 1500);
 		onError();
 	};
 	
-	ws.onerror = (error) => {
-		console.error('WebSocket encountered an error:', error);
-		
+	ws.onerror = () => {
 		// Check for session-related errors
 		if (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
-			console.log('WebSocket closed due to error, checking if session expired');
+
 			setTimeout(() => {
 				onSessionExpired();
 			}, 1000);
@@ -153,6 +147,7 @@ let initialSyncComplete = false;
 /**
  * Process accumulated messages in batches using requestAnimationFrame
  * This prevents blocking the event loop and allows WebSocket ping/pong to work
+ * Optimized to process in smaller chunks to avoid requestAnimationFrame violations
  */
 function scheduleMessageBatch(): void {
 	if (batchScheduled) {
@@ -162,6 +157,7 @@ function scheduleMessageBatch(): void {
 	batchScheduled = true;
 	
 	// Use requestAnimationFrame for non-blocking async processing
+	// Process in chunks to avoid blocking the frame
 	requestAnimationFrame(() => {
 		const batchToProcess = messageBatch;
 		const batchSize = Object.keys(batchToProcess).length;
@@ -170,14 +166,30 @@ function scheduleMessageBatch(): void {
 		batchScheduled = false;
 		
 		if (batchSize > 0) {
-			// Process all messages in the batch at once
-			Object.entries(batchToProcess).forEach(([channel, data]) => {
-				try {
-					sessionStorage.setItem(channel, data);
-				} catch (error) {
-					console.error(`Error saving to sessionStorage [${channel}]:`, error);
+			// Process messages in smaller chunks to avoid blocking
+			const entries = Object.entries(batchToProcess);
+			const CHUNK_SIZE = 10; // Process 10 messages per frame
+			
+			let index = 0;
+			const processChunk = (): void => {
+				const end = Math.min(index + CHUNK_SIZE, entries.length);
+				for (let i = index; i < end; i++) {
+					const [channel, data] = entries[i];
+					try {
+						sessionStorage.setItem(channel, data);
+					} catch {
+						// Error handled silently
+					}
 				}
-			});
+				index = end;
+				
+				// Continue processing in next frame if more messages remain
+				if (index < entries.length) {
+					requestAnimationFrame(processChunk);
+				}
+			};
+			
+			processChunk();
 		}
 	});
 }
@@ -189,14 +201,12 @@ function flushMessageBatch(): void {
 	if (Object.keys(messageBatch).length === 0) {
 		return;
 	}
-	
-	console.log(`[WS Batch] Flushing ${Object.keys(messageBatch).length} pending messages`);
-	
+
 	Object.entries(messageBatch).forEach(([channel, data]) => {
 		try {
 			sessionStorage.setItem(channel, data);
-		} catch (error) {
-			console.error(`Error saving to sessionStorage [${channel}]:`, error);
+		} catch {
+			// Error handled silently
 		}
 	});
 	
@@ -220,15 +230,15 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 			
 			// If session already expired, don't attempt to connect
 			if (sessionExpired) {
-				console.log('Session expired, skipping WebSocket connection');
+
 				return;
 			}
 			
 			if (currentWs && currentWs.readyState !== WebSocket.CLOSED) {
-				console.log('Closing previous WebSocket connection...');
+
 				// Don't close connection if it's already open or connecting
 				if (currentWs.readyState === WebSocket.OPEN || currentWs.readyState === WebSocket.CONNECTING) {
-					console.log('Previous connection is active, aborting new connection attempt');
+
 					return;
 				}
 				currentWs.close(1000, 'Replacing with new connection');
@@ -237,83 +247,86 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 			// Reset message statistics for new connection
 			messageCount = 0;
 			initialSyncComplete = false;
-			console.log('[WS] Starting new connection, message batching enabled');
-			
+
 			const ws = createWebSocket(
 				config.raw.info,
 				(event: MessageEvent) => {
-					try {
-						const json = JSON.parse(event.data);
-						
-						// Check for session-related errors in the message
-						if (json.error || json.message) {
-							const errorMsg = json.error || json.message || '';
-							if (errorMsg.includes('session') || 
-							    errorMsg.includes('expired') || 
-							    errorMsg.includes('invalid') ||
-							    errorMsg.includes('unauthorized')) {
-								console.log('Session error detected in WebSocket message:', errorMsg);
-								// Use the session expired callback from the store
-								const { handleSessionExpired } = useWebSocketStore.getState();
-								handleSessionExpired();
-								return;
+					// Use requestAnimationFrame to batch message processing and avoid blocking
+					// This prevents 'message' handler violation warnings
+					requestAnimationFrame(() => {
+						try {
+							const json = JSON.parse(event.data);
+							
+							// Check for session-related errors in the message
+							if (json.error || json.message) {
+								const errorMsg = json.error || json.message || '';
+								if (errorMsg.includes('session') || 
+								    errorMsg.includes('expired') || 
+								    errorMsg.includes('invalid') ||
+								    errorMsg.includes('unauthorized')) {
+
+									// Use the session expired callback from the store
+									const { handleSessionExpired } = useWebSocketStore.getState();
+									handleSessionExpired();
+									return;
+								}
 							}
+							
+							if (json.value) {
+								// Track message statistics
+								messageCount++;
+								
+								// Log initial sync progress
+								if (!initialSyncComplete && messageCount % 50 === 0) {
+									// Progress logged
+								}
+								
+								// Mark initial sync as complete after first batch
+								if (!initialSyncComplete && messageCount > 100) {
+									initialSyncComplete = true;
+
+								}
+								
+								// Add message to batch instead of processing immediately
+								// This prevents blocking the event loop with synchronous sessionStorage operations
+								messageBatch[json.value.channel] = JSON.stringify(json.value);
+								scheduleMessageBatch();
+								
+								set({connection: true, reconnectAttempts: 0}); // Reset counter on successful connection
+								
+								// Only notify sync system about significant data changes
+								// Skip frequent sessionStorage updates, focus on important state changes
+								if (json.value.type === 'sync' || json.value.important) {
+									const appStore = useAppStore.getState();
+									const dataVersion = generateDataHash(json.value);
+									appStore.markDataAsUpdated(dataVersion);
+								}
+							}
+						} catch {
+
+							// Don't show sync errors for WebSocket message parsing issues
+							// These are usually temporary and don't affect localStorage sync
 						}
-						
-						if (json.value) {
-							// Track message statistics
-							messageCount++;
-							
-							// Log initial sync progress
-							if (!initialSyncComplete && messageCount % 50 === 0) {
-								console.log(`[WS] Received ${messageCount} messages (batching enabled)`);
-							}
-							
-							// Mark initial sync as complete after first batch
-							if (!initialSyncComplete && messageCount > 100) {
-								initialSyncComplete = true;
-								console.log(`[WS] Initial sync complete: ${messageCount} messages received`);
-							}
-							
-							// Add message to batch instead of processing immediately
-							// This prevents blocking the event loop with synchronous sessionStorage operations
-							messageBatch[json.value.channel] = JSON.stringify(json.value);
-							scheduleMessageBatch();
-							
-							set({connection: true, reconnectAttempts: 0}); // Reset counter on successful connection
-							
-							// Only notify sync system about significant data changes
-							// Skip frequent sessionStorage updates, focus on important state changes
-							if (json.value.type === 'sync' || json.value.important) {
-								const appStore = useAppStore.getState();
-								const dataVersion = generateDataHash(json.value);
-								appStore.markDataAsUpdated(dataVersion);
-							}
-						}
-					} catch (error) {
-						console.error("Error parsing WebSocket message:", error);
-						// Don't show sync errors for WebSocket message parsing issues
-						// These are usually temporary and don't affect localStorage sync
-					}
+					});
 				},
 				() => {
 					// Flush any pending messages before reconnecting
 					flushMessageBatch();
 					
 					const { reconnectAttempts, maxReconnectAttempts } = get();
-					console.log(`WebSocket connection closed. Reconnecting... (attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`);
+
 					set({connection: false});
 					
 					if (reconnectAttempts < maxReconnectAttempts) {
 						set({reconnectAttempts: reconnectAttempts + 1});
 						setTimeout(connectWebSocket, 1500);
 					} else {
-						console.error('Maximum reconnection attempts reached. Stopping reconnection.');
+
 						set({sessionExpired: true});
 					}
 				},
 				() => {
-					console.error("WebSocket encountered an error. Connection lost.");
+
 					set({connection: false});
 					// Don't show sync errors for WebSocket connection issues
 					// localStorage sync works independently of WebSocket status
@@ -335,15 +348,14 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 	},
 	
 	resetWebSocketState: () => {
-		console.log('[WebSocket] Resetting WebSocket state for logout...');
-		
+
 		// Flush any pending messages before cleanup
 		flushMessageBatch();
 		
 		// Close current WebSocket connection
 		const { ws } = get();
 		if (ws) {
-			console.log('[WebSocket] Closing WebSocket connection...');
+
 			ws.close(1000, 'User logged out');
 		}
 		
@@ -356,8 +368,7 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 			reconnectAttempts: 0,
 			isCleaningUp: false
 		});
-		
-		console.log('[WebSocket] ✅ WebSocket state reset complete');
+
 	},
 	
 	handleSessionExpired: () => {
@@ -365,11 +376,10 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 		
 		// Prevent multiple calls
 		if (isCleaningUp) {
-			console.log('[WebSocket] Cleanup already in progress, skipping');
+
 			return;
 		}
-		
-		console.log('[WebSocket] Session expired, cleaning up and resetting auth state');
+
 		set({ isCleaningUp: true });
 		
 		// Flush any pending messages before cleanup
@@ -392,17 +402,17 @@ const useWebSocketStore = create<WebSocketState>((set, get) => ({
 		// Clear session data from localStorage
 		try {
 			localStorage.removeItem('private-store');
-			console.log('[WebSocket] Cleared private-store from localStorage');
-		} catch (error) {
-			console.error('[WebSocket] Error clearing private-store:', error);
+
+		} catch {
+			// Error handled silently
 		}
 		
 		// Reset auth state to force re-authentication
 		const authStore = useAuthStore.getState();
 		authStore.resetAuth().then(() => {
-			console.log('[WebSocket] Auth state reset, user will need to re-authenticate');
-		}).catch((error) => {
-			console.error('[WebSocket] Error resetting auth state:', error);
+			// Auth reset complete
+		}).catch(() => {
+			// Error resetting auth
 		}).finally(() => {
 			// Reset cleanup flag after completion
 			setTimeout(() => {

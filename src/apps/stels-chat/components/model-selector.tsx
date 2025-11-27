@@ -53,10 +53,7 @@ export function ModelSelector({
     const init = async (): Promise<void> => {
       // Only test connection if we have a session and models are not loaded
       if (connectionSession?.session && models.length === 0) {
-        console.log("[ModelSelector] Initializing with session:", {
-          hasSession: !!connectionSession.session,
-          apiUrl: connectionSession.api,
-        });
+
         const connected = await testConnection();
         // testConnection will automatically fetch models if connected
         // Also load registered models to show status (only for developers)
@@ -65,9 +62,7 @@ export function ModelSelector({
           await listRegisteredModels();
         }
       } else if (!connectionSession?.session) {
-        console.warn(
-          "[ModelSelector] No connectionSession available, skipping initialization",
-        );
+        // No session available
       }
     };
     init();
@@ -84,10 +79,7 @@ export function ModelSelector({
     if (tab && !tab.model && models.length > 0) {
       const firstModel = models[0];
       if (firstModel) {
-        console.log(
-          "[ModelSelector] Auto-selecting first model:",
-          firstModel.name,
-        );
+
         selectModel(tabId, firstModel.name);
       }
     }

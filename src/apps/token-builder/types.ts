@@ -365,4 +365,3 @@ export interface TokenBuilderActions {
  * Combined store type
  */
 export type TokenBuilderStore = TokenBuilderState & TokenBuilderActions;
-

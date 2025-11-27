@@ -37,16 +37,16 @@ export default function TestModeNotice(): React.ReactElement | null {
 					// Mark as shown in session storage
 					try {
 						sessionStorage.setItem(sessionKey, "true");
-					} catch (e) {
-						console.warn("[TestModeNotice] Failed to save to sessionStorage:", e);
-					}
+					} catch {
+			// Error handled silently
+		}
 				}, 800);
 
 				return () => clearTimeout(timer);
 			}
-		} catch (error) {
+		} catch {
 			// If sessionStorage is not available, show notice anyway
-			console.warn("[TestModeNotice] SessionStorage not available, showing notice:", error);
+
 			const timer = setTimeout(() => {
 				setIsOpen(true);
 			}, 800);
@@ -135,4 +135,3 @@ export default function TestModeNotice(): React.ReactElement | null {
 		</Dialog>
 	);
 }
-

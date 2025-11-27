@@ -31,9 +31,9 @@ export function getStoredVersion(): string | null {
 export function storeCurrentVersion(version: string): void {
   try {
     localStorage.setItem(VERSION_KEY, version);
-  } catch (error) {
-    console.error("[VersionCheck] Failed to store version:", error);
-  }
+  } catch {
+			// Error handled silently
+		}
 }
 
 /**
@@ -42,11 +42,6 @@ export function storeCurrentVersion(version: string): void {
 export function hasVersionChanged(): boolean {
   const currentVersion = getCurrentVersion();
   const storedVersion = getStoredVersion();
-
-  console.log("[VersionCheck] Version comparison:", {
-    currentVersion,
-    storedVersion,
-  });
 
   // If no version info available, assume no change
   if (!currentVersion || !storedVersion) {
@@ -73,23 +68,18 @@ export async function fetchLatestVersion(): Promise<string | null> {
     });
 
     if (!response.ok) {
-      console.warn("[VersionCheck] Failed to fetch version:", response.status);
+
       return null;
     }
 
     // Use ETag or Last-Modified as version identifier
     const etag = response.headers.get("etag");
     const lastModified = response.headers.get("last-modified");
-    
-    console.log("[VersionCheck] Server headers:", {
-      etag,
-      lastModified,
-    });
-    
+
     // Use ETag as version identifier (most reliable)
     return etag || lastModified;
-  } catch (error) {
-    console.error("[VersionCheck] Error fetching version:", error);
+  } catch {
+
     return null;
   }
 }
@@ -102,7 +92,7 @@ export function initVersionTracking(): void {
   const currentVersion = getCurrentVersion();
   
   if (currentVersion && !getStoredVersion()) {
-    console.log("[VersionCheck] Initializing version tracking:", currentVersion);
+
     storeCurrentVersion(currentVersion);
   }
 }
@@ -114,7 +104,6 @@ export function initVersionTracking(): void {
 export function startVersionCheck(
   onNewVersion: (newVersion: string) => void,
 ): () => void {
-  console.log("[VersionCheck] Starting periodic version check...");
 
   const storedVersion = getStoredVersion();
 
@@ -123,15 +112,12 @@ export function startVersionCheck(
       const latestVersion = await fetchLatestVersion();
       
       if (latestVersion && storedVersion && latestVersion !== storedVersion) {
-        console.log("[VersionCheck] New version detected:", {
-          stored: storedVersion,
-          latest: latestVersion,
-        });
+
         onNewVersion(latestVersion);
       }
-    } catch (error) {
-      console.error("[VersionCheck] Version check failed:", error);
-    }
+    } catch {
+			// Error handled silently
+		}
   };
 
   // Check immediately
@@ -142,8 +128,7 @@ export function startVersionCheck(
 
   // Return cleanup function
   return () => {
-    console.log("[VersionCheck] Stopping version check");
+
     clearInterval(intervalId);
   };
 }
-

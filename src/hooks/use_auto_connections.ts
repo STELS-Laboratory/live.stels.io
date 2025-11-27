@@ -31,20 +31,13 @@ export function useAutoConnections(
 	// Generate automatic connections based on current nodes and config
 	const autoConnections = useMemo(() => {
 		if (!isEnabled || nodes.length === 0) {
-			console.log("Auto connections disabled or no nodes:", { isEnabled, nodeCount: nodes.length });
+
 			return [];
 		}
 
-		console.log("Generating auto connections for nodes:", nodes.map(n => ({
-			id: n.id,
-			channel: n.data.channel,
-			hasSessionData: !!n.data.sessionData,
-		})));
-
 		const autoEdges = generateAutoConnections(nodes, config);
 		const filteredEdges = filterAutoConnections(autoEdges, manualEdges);
-		
-		console.log("Final auto connections:", filteredEdges);
+
 		return filteredEdges;
 	}, [nodes, manualEdges, config, isEnabled]);
 
@@ -182,4 +175,3 @@ export function useAutoConnections(
 		debugInfo,
 	};
 }
-

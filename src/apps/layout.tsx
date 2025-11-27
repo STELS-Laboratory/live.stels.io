@@ -27,6 +27,7 @@ import {
 	Search,
 	Server,
 	Square,
+	TrendingUp,
 	Wallet,
 } from "lucide-react";
 import Graphite from "@/components/ui/vectors/logos/graphite";
@@ -72,9 +73,9 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 				if (sonarData) {
 					return JSON.parse(sonarData) as Record<string, unknown>;
 				}
-			} catch (error) {
-				console.error("Failed to get system stats:", error);
-			}
+			} catch {
+			// Error handled silently
+		}
 			return null;
 		},
 		[],
@@ -110,6 +111,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 	 */
 	const getAppName = (route: string): string => {
 		const names: Record<string, string> = {
+			trading: "Trading Terminal",
 			welcome: "Welcome",
 			editor: "Editor",
 			canvas: "Canvas",
@@ -130,6 +132,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 	].filter((i) => allowedRoutes.includes(i.key));
 
 	const systemNav: NavItem[] = [
+		{ key: "trading", label: "Trading", icon: TrendingUp },
 		{ key: "canvas", label: "Canvas", icon: Boxes },
 		{ key: "editor", label: "Editor", icon: Code },
 		{ key: "schemas", label: "Schemas", icon: LayoutIcon },
@@ -251,7 +254,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 			{/* Global keyboard shortcuts for app management */}
 			<AppShortcuts />
 
-			<div className="flex flex-col absolute w-[100%] h-[100%] overflow-hidden">
+			<div className="flex flex-col absolute w-full h-full overflow-hidden">
 				<div
 					className={`grid grid-cols-1 ${
 						isDeveloper ? "lg:grid-cols-[60px_1fr]" : ""
@@ -360,7 +363,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 					)}
 
 					{/* Main Content Area */}
-					<div className="flex flex-col min-w-0 h-[100%] overflow-hidden">
+					<div className="flex flex-col min-w-0 h-full overflow-hidden">
 						<header className="shrink-0 border-b border-border bg-card/10 backdrop-blur-md shadow-sm">
 							{/* Mobile Header - iOS Style */}
 							<div className="lg:hidden">
@@ -575,10 +578,10 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 						</AnimatePresence>
 
 						<main
-							className="flex flex-1 overflow-y-auto overflow-x-hidden bg-background"
+							className="flex flex-1 overflow-hidden bg-background"
 							data-route-container
 						>
-							<div className="w-full mx-auto flex-1 min-h-0 bg-background">
+							<div className="w-full flex-1 min-h-0 bg-background overflow-y-scroll">
 								{children}
 							</div>
 

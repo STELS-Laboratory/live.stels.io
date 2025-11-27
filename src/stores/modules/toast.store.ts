@@ -136,4 +136,3 @@ export const toast = {
     useToastStore.getState().info(title, message);
   },
 };
-

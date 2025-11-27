@@ -157,7 +157,7 @@ export function ChatTab({
           {tab.messages.length === 0
             ? (
               <div
-                className={`flex flex-col items-center justify-center h-[100%] text-center ${
+                className={`flex flex-col items-center justify-center h-full text-center ${
                   isMobile ? "min-h-[150px] px-1" : "min-h-[400px]"
                 }`}
               >

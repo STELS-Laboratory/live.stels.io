@@ -189,4 +189,3 @@ export function initThemeColor(): () => void {
     cleanupSystemObserver();
   };
 }
-

@@ -57,7 +57,7 @@ export function WorkerStatsPanel({
       setError(null);
       const data = await onRefresh();
       setStats(data);
-    } catch (err) {
+    } catch {
       setError(
         err instanceof Error ? err.message : "Failed to load worker stats",
       );

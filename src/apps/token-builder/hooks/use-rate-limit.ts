@@ -36,4 +36,3 @@ export function useRateLimit(cooldownMs: number): {
 
   return { canExecute, getRemainingTime, markExecuted };
 }
-

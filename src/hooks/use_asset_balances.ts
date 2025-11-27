@@ -185,9 +185,7 @@ export function useAssetBalances(
 
 	const fetchBalances = useCallback(async (): Promise<void> => {
 		if (!isAuthenticated || !isConnected || !connectionSessionRef.current) {
-			console.log(
-				"[useAssetBalances] Not authenticated or connected, skipping",
-			);
+
 			return;
 		}
 
@@ -195,12 +193,12 @@ export function useAssetBalances(
 		const network = params.network || networkRef.current || connectionSessionRef.current.network;
 
 		if (!apiUrl || !network) {
-			console.error("[useAssetBalances] Missing API URL or network");
+
 			return;
 		}
 
 		if (!params.address) {
-			console.error("[useAssetBalances] Missing address");
+
 			return;
 		}
 
@@ -225,12 +223,6 @@ export function useAssetBalances(
 					network: params.network || network,
 				},
 			};
-
-			console.log("[useAssetBalances] Fetching balances", {
-				apiUrl,
-				network,
-				address: params.address,
-			});
 
 			const session = sessionRef.current || connectionSessionRef.current.session;
 			const response = await fetch(apiUrl, {
@@ -319,10 +311,7 @@ export function useAssetBalances(
 					setAccounts(balancesResult.accounts || []);
 					setAssets(balancesResult.assets || []);
 					setRecentTransactions(balancesResult.recent_transactions || []);
-					
-					console.log(
-						`[useAssetBalances] Data fetched: ${balancesData.length} tokens, ${balancesResult.accounts?.length || 0} accounts, ${balancesResult.assets?.length || 0} assets, ${balancesResult.recent_transactions?.length || 0} transactions`,
-					);
+
 				} else if ("balances" in data.result) {
 					// Format 1: Direct AssetBalancesResponse
 					const balancesResponse = data.result as AssetBalancesResponse;
@@ -341,23 +330,20 @@ export function useAssetBalances(
 					setAccounts(balancesResponse.accounts || []);
 					setAssets(balancesResponse.assets || []);
 					setRecentTransactions(balancesResponse.recent_transactions || []);
-					
-					console.log(
-						`[useAssetBalances] Data fetched: ${balancesResponse.balances.length} tokens, ${balancesResponse.accounts?.length || 0} accounts, ${balancesResponse.assets?.length || 0} assets, ${balancesResponse.recent_transactions?.length || 0} transactions`,
-					);
+
 				} else {
 					throw new Error("Invalid response format");
 				}
 			} else {
 				throw new Error("Invalid response format");
 			}
-		} catch (err) {
+		} catch {
 			const errorMessage =
 				err instanceof Error
 					? err.message
 					: "Failed to fetch balances";
 			setError(errorMessage);
-			console.error("[useAssetBalances] Error:", err);
+
 		} finally {
 			setLoading(false);
 		}
@@ -441,4 +427,3 @@ export function useAssetBalances(
 		refetch: fetchBalances,
 	};
 }
-

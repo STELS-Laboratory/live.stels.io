@@ -148,7 +148,7 @@ export function IndexDetail({
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-bold">
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                           $
                           {(
                             (data as { btcMarketValue: number })
@@ -165,7 +165,7 @@ export function IndexDetail({
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-bold">
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                           $
                           {(
                             (data as { totalMarketValue: number })
@@ -1174,7 +1174,7 @@ export function IndexDetail({
                             return (
                               <div
                                 key={asset}
-                                className="border border-border rounded-lg p-3 space-y-2"
+                                className="border border-border rounded p-3 space-y-2"
                               >
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
@@ -1195,7 +1195,7 @@ export function IndexDetail({
                                 <div className="grid grid-cols-3 gap-2 text-xs">
                                   <div className="text-muted-foreground">
                                     <span>Price: </span>
-                                    <span className="font-mono font-semibold text-foreground">
+                                    <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                       ${assetData.price.toLocaleString(undefined, {
                                         maximumFractionDigits: 2,
                                       })}
@@ -1203,7 +1203,7 @@ export function IndexDetail({
                                   </div>
                                   <div className="text-muted-foreground">
                                     <span>Volume: </span>
-                                    <span className="font-mono font-semibold text-foreground">
+                                    <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                       $
                                       {(assetData.volume / 1_000_000).toFixed(
                                         2,
@@ -1213,7 +1213,7 @@ export function IndexDetail({
                                   </div>
                                   <div className="text-muted-foreground">
                                     <span>Market Value: </span>
-                                    <span className="font-mono font-semibold text-foreground">
+                                    <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                       $
                                       {(assetData.marketValue / 1_000_000).toFixed(
                                         2,
@@ -1358,7 +1358,7 @@ export function IndexDetail({
                           return (
                             <div
                               key={asset}
-                              className="border border-border rounded-lg p-3 space-y-2"
+                              className="border border-border rounded p-3 space-y-2"
                             >
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
@@ -1386,7 +1386,7 @@ export function IndexDetail({
                               </div>
                               <div className="text-xs text-muted-foreground">
                                 <span>Price: </span>
-                                <span className="font-mono font-semibold text-foreground">
+                                <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                   ${assetData.price.toLocaleString(undefined, {
                                     maximumFractionDigits: 2,
                                   })}
@@ -1486,7 +1486,7 @@ export function IndexDetail({
                         ).map(([asset, assetData]) => (
                           <div
                             key={asset}
-                            className="border border-border rounded-lg p-3 space-y-3"
+                            className="border border-border rounded p-3 space-y-3"
                           >
                             <div className="flex items-center justify-between">
                               <Badge
@@ -1506,7 +1506,7 @@ export function IndexDetail({
                                 <span className="text-muted-foreground">
                                   VWAP:{" "}
                                 </span>
-                                <span className="font-mono font-semibold text-foreground">
+                                <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                   ${assetData.vwap.toFixed(2)}
                                 </span>
                               </div>
@@ -1514,7 +1514,7 @@ export function IndexDetail({
                                 <span className="text-muted-foreground">
                                   Avg Price:{" "}
                                 </span>
-                                <span className="font-mono font-semibold text-foreground">
+                                <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                   ${assetData.avgPrice.toFixed(2)}
                                 </span>
                               </div>
@@ -1530,7 +1530,7 @@ export function IndexDetail({
                                 <span className="text-muted-foreground">
                                   Volume:{" "}
                                 </span>
-                                <span className="font-mono font-semibold text-foreground">
+                                <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                   $
                                   {(assetData.totalVolume / 1_000_000).toFixed(
                                     2,
@@ -1555,7 +1555,7 @@ export function IndexDetail({
                                       <span className="text-muted-foreground capitalize">
                                         {exchange}:
                                       </span>{" "}
-                                      <span className="font-mono font-semibold text-foreground">
+                                      <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                         ${price.toFixed(2)}
                                       </span>
                                     </div>
@@ -1567,7 +1567,7 @@ export function IndexDetail({
                             {/* Price Range */}
                             <div className="text-xs text-muted-foreground">
                               <span>Range: </span>
-                              <span className="font-mono">
+                              <span className="font-mono text-green-600 dark:text-green-400">
                                 ${assetData.minPrice.toFixed(2)} - $
                                 {assetData.maxPrice.toFixed(2)}
                               </span>
@@ -1668,7 +1668,7 @@ export function IndexDetail({
                             return (
                               <div
                                 key={asset}
-                                className="border border-border rounded-lg p-3 space-y-2"
+                                className="border border-border rounded p-3 space-y-2"
                               >
                                 <div className="flex items-center justify-between">
                                   <Badge
@@ -1686,7 +1686,7 @@ export function IndexDetail({
                                     <span className="text-muted-foreground">
                                       Price:{" "}
                                     </span>
-                                    <span className="font-mono font-semibold text-foreground">
+                                    <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                       $
                                       {componentData.price.toLocaleString(
                                         undefined,
@@ -1700,7 +1700,7 @@ export function IndexDetail({
                                     <span className="text-muted-foreground">
                                       Volume:{" "}
                                     </span>
-                                    <span className="font-mono font-semibold text-foreground">
+                                    <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                       $
                                       {(componentData.volume / 1_000_000).toFixed(
                                         2,
@@ -1796,7 +1796,7 @@ export function IndexDetail({
                             return (
                               <div
                                 key={asset}
-                                className="border border-border rounded-lg p-3 space-y-3"
+                                className="border border-border rounded p-3 space-y-3"
                               >
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
@@ -1821,7 +1821,7 @@ export function IndexDetail({
                                     <span className="text-muted-foreground">
                                       Price:{" "}
                                     </span>
-                                    <span className="font-mono font-semibold text-foreground">
+                                    <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                       ${componentData.price.toLocaleString(
                                         undefined,
                                         {
@@ -1834,7 +1834,7 @@ export function IndexDetail({
                                     <span className="text-muted-foreground">
                                       Avg Price:{" "}
                                     </span>
-                                    <span className="font-mono font-semibold text-foreground">
+                                    <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                       ${componentData.avgPrice.toLocaleString(
                                         undefined,
                                         {
@@ -1863,7 +1863,7 @@ export function IndexDetail({
                                     <span className="text-muted-foreground">
                                       Volume:{" "}
                                     </span>
-                                    <span className="font-mono font-semibold text-foreground">
+                                    <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                       $
                                       {(
                                         componentData.totalVolume / 1_000_000
@@ -1916,7 +1916,7 @@ export function IndexDetail({
                                         <span className="text-muted-foreground capitalize">
                                           {exchange}:
                                         </span>{" "}
-                                        <span className="font-mono font-semibold text-foreground">
+                                        <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                           ${price.toFixed(2)}
                                         </span>
                                       </div>
@@ -1940,7 +1940,7 @@ export function IndexDetail({
                                         <span className="text-muted-foreground capitalize">
                                           {exchange}:
                                         </span>{" "}
-                                        <span className="font-mono font-semibold text-foreground">
+                                        <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                           ${(volume / 1_000_000).toFixed(2)}M
                                         </span>
                                       </div>
@@ -1988,7 +1988,7 @@ export function IndexDetail({
                             return (
                               <div
                                 key={asset}
-                                className="border border-border rounded-lg p-3 space-y-2"
+                                className="border border-border rounded p-3 space-y-2"
                               >
                                 <div className="flex items-center justify-between">
                                   <Badge
@@ -2011,7 +2011,7 @@ export function IndexDetail({
                                 </div>
                                 <div className="text-xs text-muted-foreground">
                                   <span>Price: </span>
-                                  <span className="font-mono font-semibold text-foreground">
+                                  <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                     ${componentData.price.toLocaleString(
                                       undefined,
                                       {
@@ -2060,7 +2060,7 @@ export function IndexDetail({
                               >
                                 {asset}
                               </Badge>
-                              <span className="text-sm font-mono font-semibold text-foreground">
+                              <span className="text-sm font-mono font-semibold text-green-600 dark:text-green-400">
                                 ${price.toLocaleString(undefined, {
                                   maximumFractionDigits: 2,
                                 })}
@@ -2104,7 +2104,7 @@ export function IndexDetail({
                               >
                                 {asset}
                               </Badge>
-                              <span className="text-sm font-mono font-semibold text-foreground">
+                              <span className="text-sm font-mono font-semibold text-green-600 dark:text-green-400">
                                 ${price.toLocaleString(undefined, {
                                   maximumFractionDigits: 2,
                                 })}
@@ -2154,7 +2154,7 @@ export function IndexDetail({
                           return (
                             <div
                               key={asset}
-                              className="border border-border rounded-lg p-3 space-y-3"
+                              className="border border-border rounded p-3 space-y-3"
                             >
                               <div className="flex items-center justify-between">
                                 <Badge
@@ -2182,7 +2182,7 @@ export function IndexDetail({
                                   <span className="text-muted-foreground">
                                     Price:{" "}
                                   </span>
-                                  <span className="font-mono font-semibold text-foreground">
+                                  <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                     ${assetData.price.toLocaleString(undefined, {
                                       maximumFractionDigits: 2,
                                     })}
@@ -2208,7 +2208,7 @@ export function IndexDetail({
                                   <span className="text-muted-foreground">
                                     Volume:{" "}
                                   </span>
-                                  <span className="font-mono font-semibold text-foreground">
+                                  <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                     $
                                     {(assetData.volume / 1_000_000).toFixed(2)}
                                     M
@@ -2304,7 +2304,7 @@ export function IndexDetail({
                             <div
                               key={asset}
                               className={cn(
-                                "border rounded-lg p-3 space-y-2",
+                                "border rounded p-3 space-y-2",
                                 isStrongUptrend || isUptrend
                                   ? "border-green-500/50 bg-green-500/5"
                                   : isStrongDowntrend || isDowntrend
@@ -2411,7 +2411,7 @@ export function IndexDetail({
                         ).map(([asset, spreadData]) => (
                           <div
                             key={asset}
-                            className="border border-border rounded-lg p-3 space-y-3"
+                            className="border border-border rounded p-3 space-y-3"
                           >
                             <div className="flex items-center justify-between">
                               <Badge
@@ -2503,25 +2503,25 @@ export function IndexDetail({
                                     <div className="grid grid-cols-2 gap-2 text-muted-foreground">
                                       <div>
                                         <span>Bid: </span>
-                                        <span className="font-mono font-semibold text-foreground">
+                                        <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                           ${exchangeData.bid.toFixed(2)}
                                         </span>
                                       </div>
                                       <div>
                                         <span>Ask: </span>
-                                        <span className="font-mono font-semibold text-foreground">
+                                        <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                           ${exchangeData.ask.toFixed(2)}
                                         </span>
                                       </div>
                                       <div>
                                         <span>Mid: </span>
-                                        <span className="font-mono font-semibold text-foreground">
+                                        <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                           ${exchangeData.midPrice.toFixed(2)}
                                         </span>
                                       </div>
                                       <div>
                                         <span>Last: </span>
-                                        <span className="font-mono font-semibold text-foreground">
+                                        <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                           ${exchangeData.last.toFixed(2)}
                                         </span>
                                       </div>
@@ -2582,7 +2582,7 @@ export function IndexDetail({
                               <div
                                 key={asset}
                                 className={cn(
-                                  "border rounded-lg p-3 space-y-3",
+                                  "border rounded p-3 space-y-3",
                                   isUp
                                     ? "border-green-500/50 bg-green-500/5"
                                     : "border-red-500/50 bg-red-500/5",
@@ -2656,7 +2656,7 @@ export function IndexDetail({
                                     <span className="text-muted-foreground">
                                       Volume:{" "}
                                     </span>
-                                    <span className="font-mono font-semibold text-foreground">
+                                    <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                       $
                                       {(assetData.volume / 1_000_000).toFixed(
                                         2,
@@ -2746,7 +2746,7 @@ export function IndexDetail({
                               <div
                                 key={asset}
                                 className={cn(
-                                  "border rounded-lg p-3 space-y-2",
+                                  "border rounded p-3 space-y-2",
                                   isHighVolatility
                                     ? "border-red-500/50 bg-red-500/5"
                                     : isMediumVolatility
@@ -2788,7 +2788,7 @@ export function IndexDetail({
                                     <span className="text-muted-foreground">
                                       Price:{" "}
                                     </span>
-                                    <span className="font-mono font-semibold text-foreground">
+                                    <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                       ${componentData.price.toLocaleString(
                                         undefined,
                                         {
@@ -2882,7 +2882,7 @@ export function IndexDetail({
                             return (
                               <div
                                 key={asset}
-                                className="border border-border rounded-lg p-3 space-y-2"
+                                className="border border-border rounded p-3 space-y-2"
                               >
                                 <div className="flex items-center justify-between">
                                   <Badge
@@ -2900,7 +2900,7 @@ export function IndexDetail({
                                     <span className="text-muted-foreground">
                                       Price:{" "}
                                     </span>
-                                    <span className="font-mono font-semibold text-foreground">
+                                    <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                       ${componentData.price.toLocaleString(
                                         undefined,
                                         {
@@ -2913,7 +2913,7 @@ export function IndexDetail({
                                     <span className="text-muted-foreground">
                                       Volume:{" "}
                                     </span>
-                                    <span className="font-mono font-semibold text-foreground">
+                                    <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                       $
                                       {(componentData.volume / 1_000_000).toFixed(
                                         2,
@@ -2932,7 +2932,7 @@ export function IndexDetail({
                                 </div>
                                 <div className="text-xs text-muted-foreground">
                                   <span>Weight: </span>
-                                  <span className="font-mono font-semibold text-foreground">
+                                  <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                     $
                                     {(componentData.weight / 1_000_000).toFixed(
                                       2,
@@ -2992,7 +2992,7 @@ export function IndexDetail({
                             <div
                               key={opp.asset}
                               className={cn(
-                                "border rounded-lg p-3 space-y-2",
+                                "border rounded p-3 space-y-2",
                                 isHigh
                                   ? "border-amber-500/50 bg-amber-500/5"
                                   : isMedium
@@ -3044,7 +3044,7 @@ export function IndexDetail({
                                   <span className="font-mono font-semibold text-foreground">
                                     {opp.minExchange || "N/A"}
                                   </span>
-                                  <span className="font-mono">
+                                  <span className="font-mono text-green-600 dark:text-green-400">
                                     {opp.minPrice != null
                                       ? `$${opp.minPrice.toLocaleString(undefined, {
                                           maximumFractionDigits: 2,
@@ -3058,7 +3058,7 @@ export function IndexDetail({
                                   <span className="font-mono font-semibold text-foreground">
                                     {opp.maxExchange || "N/A"}
                                   </span>
-                                  <span className="font-mono">
+                                  <span className="font-mono text-green-600 dark:text-green-400">
                                     {opp.maxPrice != null
                                       ? `$${opp.maxPrice.toLocaleString(undefined, {
                                           maximumFractionDigits: 2,
@@ -3121,7 +3121,7 @@ export function IndexDetail({
                               <div
                                 key={exchange}
                                 className={cn(
-                                  "border rounded-lg p-3 space-y-2",
+                                  "border rounded p-3 space-y-2",
                                   isMostLiquid
                                     ? "border-amber-500/50 bg-amber-500/5"
                                     : "border-border",
@@ -3206,7 +3206,7 @@ export function IndexDetail({
                           .map(([asset, assetData]) => (
                             <div
                               key={asset}
-                              className="border border-border rounded-lg p-3 space-y-2"
+                              className="border border-border rounded p-3 space-y-2"
                             >
                               <div className="flex items-center justify-between">
                                 <Badge
@@ -3215,7 +3215,7 @@ export function IndexDetail({
                                 >
                                   {asset}
                                 </Badge>
-                                <div className="text-sm font-semibold text-foreground">
+                                <div className="text-sm font-semibold text-green-600 dark:text-green-400">
                                   $
                                   {(assetData.totalVolume / 1_000_000_000).toFixed(
                                     2,
@@ -3311,4 +3311,3 @@ export function IndexDetail({
     </motion.div>
   );
 }
-

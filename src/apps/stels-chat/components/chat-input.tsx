@@ -51,7 +51,7 @@ export function ChatInput({
 
     // Check if model is selected
     if (!hasModel) {
-      console.error("[ChatInput] Cannot send message: no model selected");
+
       return;
     }
 
@@ -60,9 +60,9 @@ export function ChatInput({
 
     try {
       await sendMessage(tabId, messageToSend);
-    } catch (error) {
-      console.error("Failed to send message:", error);
-    }
+    } catch {
+			// Error handled silently
+		}
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>): void => {
@@ -81,9 +81,9 @@ export function ChatInput({
     try {
       const trainingFile = await uploadFile(file, "context");
       attachFileToTab(tabId, trainingFile.id);
-    } catch (error) {
-      console.error("Failed to upload file:", error);
-    }
+    } catch {
+			// Error handled silently
+		}
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";

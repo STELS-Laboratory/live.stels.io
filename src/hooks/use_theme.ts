@@ -26,7 +26,7 @@ export function useTheme(): {
 			const currentSystemTheme = mediaQuery.matches ? "dark" : "light";
 			if (currentSystemTheme !== resolvedTheme) {
 				setResolvedTheme(currentSystemTheme);
-				console.log("[useTheme] System theme changed to:", currentSystemTheme);
+
 			}
 		};
 
@@ -36,8 +36,7 @@ export function useTheme(): {
 		const handleChange = (e: MediaQueryListEvent | MediaQueryList): void => {
 			const matches = "matches" in e ? e.matches : (e as MediaQueryListEvent).matches;
 			const newResolvedTheme = matches ? "dark" : "light";
-			
-			console.log("[useTheme] System theme event triggered:", newResolvedTheme);
+
 			setResolvedTheme(newResolvedTheme);
 		};
 

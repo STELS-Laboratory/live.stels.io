@@ -59,9 +59,7 @@ export function useWalletBalance(): {
 
 	const fetchBalance = useCallback(async (): Promise<void> => {
 		if (!isAuthenticated || !isConnected || !connectionSession || !wallet) {
-			console.log(
-				"[useWalletBalance] Not authenticated, connected, or wallet missing",
-			);
+
 			return;
 		}
 
@@ -69,7 +67,7 @@ export function useWalletBalance(): {
 		const network = connectionSession.network;
 
 		if (!apiUrl || !network) {
-			console.error("[useWalletBalance] Missing API URL or network");
+
 			return;
 		}
 
@@ -82,12 +80,6 @@ export function useWalletBalance(): {
 				method: "transactions",
 				params: [network, wallet.address],
 			};
-
-			console.log("[useWalletBalance] Fetching balance", {
-				apiUrl,
-				network,
-				address: wallet.address,
-			});
 
 			const response = await fetch(apiUrl, {
 				method: "POST",
@@ -102,11 +94,6 @@ export function useWalletBalance(): {
 			}
 
 			const data: TransactionsResponse = await response.json();
-
-			console.log("[useWalletBalance] Balance response", {
-				success: data.result.success,
-				transactionsCount: data.result.transactions?.length || 0,
-			});
 
 			if (data.result.success) {
 				// Calculate balance from transactions
@@ -141,16 +128,16 @@ export function useWalletBalance(): {
 				};
 
 				setBalance(balanceData);
-				console.log("[useWalletBalance] Balance calculated:", balanceData);
+
 			} else {
 				throw new Error("Balance request failed");
 			}
-		} catch (err) {
+		} catch {
 			const errorMessage =
 				err instanceof Error
 					? err.message
 					: "Failed to fetch wallet balance";
-			console.error("[useWalletBalance] Error fetching balance:", err);
+
 			setError(errorMessage);
 		} finally {
 			setLoading(false);
@@ -160,9 +147,7 @@ export function useWalletBalance(): {
 	// Load balance when authenticated and connected
 	useEffect(() => {
 		if (isAuthenticated && isConnected && connectionSession && wallet) {
-			console.log(
-				"[useWalletBalance] Auth state changed - fetching balance",
-			);
+
 			fetchBalance();
 		}
 	}, [isAuthenticated, isConnected, connectionSession, fetchBalance, wallet]);
@@ -174,4 +159,3 @@ export function useWalletBalance(): {
 		refetch: fetchBalance,
 	};
 }
-

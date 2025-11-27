@@ -233,7 +233,7 @@ export function TabBar(): React.ReactElement {
                       }
                     }}
                     className={cn(
-                      "flex items-center justify-center rounded-md transition-all duration-200 cursor-pointer relative z-10 select-none",
+                      "flex items-center justify-center rounded transition-all duration-200 cursor-pointer relative z-10 select-none",
                       isMobile
                         ? "w-7 h-7 -mr-1 bg-destructive/15 hover:bg-destructive/25 active:bg-destructive/35 active:scale-90 text-destructive touch-manipulation"
                         : "w-6 h-6 hover:bg-destructive/20 hover:text-destructive opacity-0 group-hover:opacity-100",
@@ -305,4 +305,3 @@ export function TabBar(): React.ReactElement {
     </div>
   );
 }
-

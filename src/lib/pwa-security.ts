@@ -159,11 +159,10 @@ export function freezeNativeAPIs(): void {
     // NOTE: We do NOT freeze Object.prototype, Array.prototype, or Function.prototype
     // because they break Monaco Editor and other legitimate libraries
     // Security is maintained through other means (CSP, origin checks, etc.)
-    
-    console.log('[Security] Critical Native APIs frozen (fetch, Storage)');
-  } catch (error) {
-    console.warn('[Security] Failed to freeze native APIs:', error);
-  }
+
+  } catch {
+			// Error handled silently
+		}
 }
 
 /**
@@ -197,7 +196,7 @@ export function startSecurityMonitoring(onThreatDetected: (threat: string) => vo
     const newGlobals = currentGlobals.filter(key => !initialGlobals.has(key));
     
     if (newGlobals.length > 0) {
-      console.warn('[Security] New global variables detected:', newGlobals);
+
       onThreatDetected(`New globals: ${newGlobals.join(', ')}`);
       newGlobals.forEach(key => initialGlobals.add(key));
     }
@@ -259,13 +258,13 @@ export function validateCryptoOperations(): boolean {
     // Verify crypto is native
     const cryptoStr = Function.prototype.toString.call(crypto.getRandomValues);
     if (!cryptoStr.includes('[native code]')) {
-      console.error('[Security] Crypto API has been modified');
+
       return false;
     }
     
     return true;
-  } catch (error) {
-    console.error('[Security] Crypto validation failed:', error);
+  } catch {
+
     return false;
   }
 }
@@ -298,4 +297,3 @@ export function getSecurityRecommendations(): string[] {
   
   return recommendations;
 }
-

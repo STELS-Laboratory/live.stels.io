@@ -12,8 +12,8 @@ const useSessionStoreSync = create((set) => {
 				}
 			}
 			return storedState;
-		} catch (error) {
-			console.error("Error loading state from sessionStorage", error);
+		} catch {
+
 			return null;
 		}
 	};
@@ -27,8 +27,8 @@ const useSessionStoreSync = create((set) => {
 		try {
 			const data = sessionStorage.getItem(key);
 			return data ? JSON.parse(data) : null;
-		} catch (error) {
-			console.error(`Error getting data for key ${key}`, error);
+		} catch {
+
 			return null;
 		}
 	};

@@ -56,38 +56,20 @@ export function groupNodesBySelectedBlocks(
 	nodes: FlowNode[],
 	selectedBlocks: number[],
 ): DynamicEdgeGroup[] {
-	console.log("[groupNodesBySelectedBlocks] Input:", {
-		nodeCount: nodes.length,
-		selectedBlocks,
-		nodeChannels: nodes.map(n => n.data.channel),
-	});
 
 	if (selectedBlocks.length === 0) {
-		console.log("[groupNodesBySelectedBlocks] No blocks selected");
+
 		return [];
 	}
 
 	const groups = groupNodesByBlocks(nodes, selectedBlocks);
 
-	console.log("[groupNodesBySelectedBlocks] Groups from groupNodesByBlocks:", {
-		groupCount: groups.size,
-		groups: Array.from(groups.entries()).map(([key, nodes]) => ({
-			key,
-			nodeCount: nodes.length,
-			nodeIds: nodes.map(n => n.id),
-		})),
-	});
-
 	const edgeGroups: DynamicEdgeGroup[] = [];
 
 	groups.forEach((groupNodes, groupKey) => {
-		console.log("[groupNodesBySelectedBlocks] Processing group:", {
-			groupKey,
-			nodeCount: groupNodes.length,
-		});
 
 		if (groupNodes.length < 2) {
-			console.log("[groupNodesBySelectedBlocks] Skipping group (< 2 nodes):", groupKey);
+
 			return; // Need at least 2 nodes to connect
 		}
 
@@ -114,18 +96,7 @@ export function groupNodesBySelectedBlocks(
 			label: labelParts.join(" • "),
 		};
 
-		console.log("[groupNodesBySelectedBlocks] Created edge group:", edgeGroup);
-
 		edgeGroups.push(edgeGroup);
-	});
-
-	console.log("[groupNodesBySelectedBlocks] Final edge groups:", {
-		count: edgeGroups.length,
-		groups: edgeGroups.map(g => ({
-			key: g.key,
-			nodeCount: g.nodes.length,
-			label: g.label,
-		})),
 	});
 
 	return edgeGroups;
@@ -138,28 +109,14 @@ export function generateDynamicAutoConnections(
 	nodes: FlowNode[],
 	config: DynamicAutoConnectionConfig,
 ): Edge<GroupedEdgeData>[] {
-	console.log("[generateDynamicAutoConnections] Input:", {
-		nodeCount: nodes.length,
-		selectedBlocks: config.selectedBlocks,
-		enabled: config.enabled,
-	});
 
 	if (!config.enabled || config.selectedBlocks.length === 0) {
-		console.log("[generateDynamicAutoConnections] Disabled or no blocks");
+
 		return [];
 	}
 
 	const edges: Edge<GroupedEdgeData>[] = [];
 	const edgeGroups = groupNodesBySelectedBlocks(nodes, config.selectedBlocks);
-
-	console.log("[generateDynamicAutoConnections] Edge groups:", {
-		groupCount: edgeGroups.length,
-		groups: edgeGroups.map(g => ({
-			key: g.key,
-			nodeCount: g.nodes.length,
-			label: g.label,
-		})),
-	});
 
 	edgeGroups.forEach((group, groupIndex) => {
 		// Create connections between all nodes in the group (full mesh)
@@ -296,4 +253,3 @@ export const defaultDynamicAutoConnectionConfig: DynamicAutoConnectionConfig = {
 	groupByKeys: [], // Legacy compatibility
 	edgeStyles: {}, // Legacy compatibility
 };
-

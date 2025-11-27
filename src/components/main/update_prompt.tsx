@@ -19,11 +19,11 @@ export default function UpdatePrompt(): React.ReactElement | null {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegistered(registration) {
-      console.log("[PWA] Service Worker registered:", registration);
+    onRegistered() {
+      // Service worker registered
     },
-    onRegisterError(error) {
-      console.error("[PWA] Service Worker registration error:", error);
+    onRegisterError() {
+      // Service worker registration error
     },
   });
 
@@ -36,9 +36,9 @@ export default function UpdatePrompt(): React.ReactElement | null {
   useEffect(() => {
     if (needRefresh) {
       if (isDevelopment) {
-        console.log("[PWA] Update available (hidden in dev mode)");
+        // Development mode
       } else {
-        console.log("[PWA] New version available! Prompting user to update.");
+        // Production mode
       }
     }
   }, [needRefresh, isDevelopment]);
@@ -57,15 +57,14 @@ export default function UpdatePrompt(): React.ReactElement | null {
     setIsUpdating(true);
 
     try {
-      console.log("[PWA] Updating to new version...");
 
       // Update service worker
       await updateServiceWorker(true);
 
       // App will reload automatically
-      console.log("[PWA] Update complete, reloading...");
-    } catch (error) {
-      console.error("[PWA] Update failed:", error);
+
+    } catch {
+
       setIsUpdating(false);
     }
   };
@@ -75,7 +74,7 @@ export default function UpdatePrompt(): React.ReactElement | null {
    * User can continue using current version
    */
   const handleDismiss = (): void => {
-    console.log("[PWA] User dismissed update notification");
+
     setNeedRefresh(false);
   };
 

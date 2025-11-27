@@ -45,13 +45,10 @@ export class StelsApiService {
     // Add session header if available (using stels-session format as per project standard)
     if (this.session) {
       headers["stels-session"] = this.session;
-      console.log("[StelsApiService] Adding session header:", {
-        session: this.session.substring(0, 10) + "...",
-        baseUrl: this.baseUrl,
-      });
+
     } else {
-      console.warn("[StelsApiService] No session available for request to:", this.baseUrl);
-    }
+			// Empty block
+		}
     // Token is typically not needed if session is provided, but include it if available
     if (this.token && !this.session) {
       headers["Authorization"] = `Bearer ${this.token}`;
@@ -66,10 +63,6 @@ export class StelsApiService {
   async testConnection(): Promise<boolean> {
     try {
       const headers = this.getHeaders();
-      console.log("[StelsApiService] Testing connection to:", this.baseUrl, {
-        hasSession: !!this.session,
-        headers: Object.keys(headers),
-      });
 
       const response = await fetch(`${this.baseUrl}/api/tags`, {
         method: "GET",
@@ -77,17 +70,12 @@ export class StelsApiService {
       });
 
       if (!response.ok) {
-        console.error("[StelsApiService] Connection test failed:", {
-          status: response.status,
-          statusText: response.statusText,
-          url: this.baseUrl,
-          hasSession: !!this.session,
-        });
+        // Response not ok
       }
 
       return response.ok;
-    } catch (error) {
-      console.error("[StelsApiService] Connection test error:", error);
+    } catch {
+
       return false;
     }
   }
@@ -502,4 +490,3 @@ export class StelsApiService {
     return data.result?.models || [];
   }
 }
-

@@ -94,8 +94,8 @@ export default function SchemaPreview({
           setResolvedSchema(resolved);
           setNestedChannelAliases(requiredChannels);
         }
-      } catch (err) {
-        console.error("[SchemaPreview] Failed to resolve:", err);
+      } catch {
+
         if (!cancelled) {
           setResolvedSchema(schema);
           setNestedChannelAliases([]);

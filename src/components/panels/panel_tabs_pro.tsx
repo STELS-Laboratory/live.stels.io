@@ -305,8 +305,8 @@ export const PanelTabsPro: React.FC<PanelTabsProps> = ({ className }) => {
         const panel = panels.find((p: Panel) => p.id === panelId);
         const filename = `panel-${panel?.name || "export"}-${Date.now()}.json`;
         downloadJSON(filename, jsonData);
-      } catch (error) {
-        console.error("Export failed:", error);
+      } catch {
+
         toast.error("Failed to export panel", "Please try again");
       }
     },
@@ -317,8 +317,8 @@ export const PanelTabsPro: React.FC<PanelTabsProps> = ({ className }) => {
     try {
       const jsonData = exportAllPanels();
       downloadJSON(`panels-all-${Date.now()}.json`, jsonData);
-    } catch (error) {
-      console.error("Export all failed:", error);
+    } catch {
+
       toast.error("Failed to export panels", "Please try again");
     }
   }, [exportAllPanels]);
@@ -338,8 +338,8 @@ export const PanelTabsPro: React.FC<PanelTabsProps> = ({ className }) => {
           } else {
             toast.error("Failed to import panel", "Invalid panel data");
           }
-        } catch (error) {
-          console.error("Import failed:", error);
+        } catch {
+
           toast.error("Failed to import panel", "Please check the file format");
         }
       };
@@ -364,8 +364,8 @@ export const PanelTabsPro: React.FC<PanelTabsProps> = ({ className }) => {
           if (!success) {
             toast.error("Failed to import panels", "Invalid data format");
           }
-        } catch (error) {
-          console.error("Import all failed:", error);
+        } catch {
+
           toast.error(
             "Failed to import panels",
             "Please check the file format",

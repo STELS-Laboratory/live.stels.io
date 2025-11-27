@@ -77,7 +77,6 @@ export interface UIEngineContext {
   updateModalData: (id: string, data: Record<string, unknown>) => void;
 }
 
-
 // ============================================================================
 // UI Engine Context
 // ============================================================================
@@ -135,8 +134,8 @@ class SessionStorageManager {
       }
 
       return null;
-    } catch (error) {
-      console.error(`[SessionStorage] Failed to get data for channel: ${channel}`, error);
+    } catch {
+
       return null;
     }
   }
@@ -400,7 +399,7 @@ class ActionDispatcher {
 
   public dispatch(action: Action): void {
     if (!this.engineContext) {
-      console.warn("[ActionDispatcher] Engine context not initialized");
+
       return;
     }
 
@@ -428,7 +427,7 @@ class ActionDispatcher {
         break;
 
       default:
-        console.warn(`[ActionDispatcher] Unknown action type: ${action.type}`);
+
     }
   }
 }
@@ -565,12 +564,9 @@ const interpolate = (
         }
         
         return String(result);
-      } catch (error) {
+      } catch {
         // Silently handle errors during live editing
-        console.warn("[interpolate] Math evaluation error:", {
-          error: error instanceof Error ? error.message : String(error),
-          expression: evaluated,
-        });
+
         return "NaN";
       }
     } else {
@@ -899,4 +895,3 @@ export const UIRendererWithEngine: React.FC<{
 };
 
 export default UIRenderer;
-

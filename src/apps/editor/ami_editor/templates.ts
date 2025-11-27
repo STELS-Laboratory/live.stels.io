@@ -76,7 +76,7 @@ try {
   }
 
   logger.info(\`🎉 Grid complete: \${GRID_LEVELS} orders placed\`);
-} catch (error) {
+} catch {
   logger.error('Grid strategy error:', error);
   throw error;
 }`,
@@ -141,7 +141,7 @@ while (true) {
     });
 
     logger.info(\`⏰ Next buy in \${BUY_INTERVAL_MS / 1000 / 60} minutes\`);
-  } catch (error) {
+  } catch {
     logger.error('❌ DCA error:', error);
     
     if (error.name === 'InsufficientFunds') {
@@ -192,7 +192,7 @@ for (const symbol of SYMBOLS) {
     });
 
     logger.debug(\`Updated \${symbol}: \${ticker.last}\`);
-  } catch (error) {
+  } catch {
     logger.error(\`Failed to update \${symbol}\`, error);
   }
 }
@@ -243,7 +243,7 @@ try {
   });
 
   logger.info(\`💵 Balance updated: \${totalEquity} USDT\`);
-} catch (error) {
+} catch {
   logger.error('Balance update failed:', error);
   throw error;
 }`,
@@ -278,7 +278,7 @@ for (const symbol of SYMBOLS) {
       if (data.value) {
         prices.push(data.value.raw.price);
       }
-    } catch (error) {
+    } catch {
       logger.warn(\`Failed to fetch \${symbol} from \${node}\`);
     }
   }
@@ -423,7 +423,7 @@ for (const symbol of SYMBOLS) {
     try {
       const ticker = await exchange.fetchTicker(symbol);
       prices[name] = ticker.last;
-    } catch (error) {
+    } catch {
       logger.warn(\`Failed to fetch \${symbol} from \${name}\`);
     }
   }
@@ -527,7 +527,7 @@ Node: \${data.node}
     
     // Mark as sent
     await Stels.net.delete(signal.key);
-  } catch (error) {
+  } catch {
     logger.error('Failed to send Telegram message:', error);
   }
 }`,
@@ -863,7 +863,7 @@ const handler = async (req) => {
       error: 'Not found'
     }), { status: 404, headers });
 
-  } catch (error) {
+  } catch {
     logger.error('API error:', error);
     return new Response(JSON.stringify({
       error: error.message
@@ -964,4 +964,3 @@ export function getTemplateCategories(): TemplateCategory[] {
 export function getTemplateById(id: string): WorkerTemplate | null {
 	return WORKER_TEMPLATES[id] || null;
 }
-

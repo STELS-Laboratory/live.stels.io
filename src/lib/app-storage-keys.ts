@@ -122,4 +122,3 @@ export function getStorageKeyCategory(key: string): string {
 	}
 	return "Other";
 }
-

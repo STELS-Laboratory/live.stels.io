@@ -225,9 +225,9 @@ export function Docs(): React.ReactElement {
         if (sortedDocs.length > 0) {
           setSelectedDoc(sortedDocs[0]);
         }
-      } catch (error) {
-        console.error("[Docs] Error loading:", error);
-      } finally {
+      } catch {
+			// Error handled silently
+		} finally {
         setLoading(false);
       }
     };

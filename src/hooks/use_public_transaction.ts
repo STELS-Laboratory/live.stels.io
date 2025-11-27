@@ -123,12 +123,6 @@ export function usePublicTransaction(
 				},
 			};
 
-			console.log("[usePublicTransaction] Fetching transaction", {
-				apiUrl,
-				network,
-				tx_hash: params.tx_hash,
-			});
-
 			const response = await fetch(apiUrl, {
 				method: "POST",
 				headers: {
@@ -170,12 +164,12 @@ export function usePublicTransaction(
 					};
 					setTransaction(txResult);
 					setHasSearched(true);
-					console.log("[usePublicTransaction] Transaction fetched:", txResult);
+
 				} else if ("transaction" in data.result && "tx_hash" in data.result) {
 					// Direct transaction result format
 					setTransaction(data.result as PublicTransactionResult);
 					setHasSearched(true);
-					console.log("[usePublicTransaction] Transaction fetched:", data.result);
+
 				} else {
 					setHasSearched(true);
 					throw new Error("Transaction not found or invalid response");
@@ -184,14 +178,14 @@ export function usePublicTransaction(
 				setHasSearched(true);
 				throw new Error("Transaction not found or invalid response");
 			}
-		} catch (err) {
+		} catch {
 			const errorMessage =
 				err instanceof Error
 					? err.message
 					: "Failed to fetch transaction";
 			setError(errorMessage);
 			setHasSearched(true);
-			console.error("[usePublicTransaction] Error:", err);
+
 			setTransaction(null);
 		} finally {
 			setLoading(false);
@@ -206,4 +200,3 @@ export function usePublicTransaction(
 		refetch: fetchTransaction,
 	};
 }
-

@@ -408,9 +408,9 @@ export default function SchemaHelp(
       await navigator.clipboard.writeText(code);
       setCopiedSnippet(index);
       setTimeout(() => setCopiedSnippet(null), 2000);
-    } catch (error) {
-      console.error("Failed to copy:", error);
-    }
+    } catch {
+			// Error handled silently
+		}
   };
 
   const categories = Array.from(
@@ -420,7 +420,7 @@ export default function SchemaHelp(
   if (!isOpen) return <></>;
 
   return (
-    <div className="fixed right-0 top-0 bottom-0 h-[100%] overflow-hidden w-1/3 bg-card border-l border-border shadow-2xl z-50 flex flex-col">
+    <div className="fixed right-0 top-0 bottom-0 h-full overflow-hidden w-1/3 bg-card border-l border-border shadow-2xl z-50 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-muted/30">
         <div className="flex items-center gap-2">

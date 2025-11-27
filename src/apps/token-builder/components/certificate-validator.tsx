@@ -232,7 +232,7 @@ export function CertificateValidator({
         type: "token",
         skippedCrypto: skipCrypto,
       });
-    } catch (error) {
+    } catch {
       setValidationResult({
         valid: false,
         errors: [
@@ -247,24 +247,14 @@ export function CertificateValidator({
   // Debug signature verification data
   const handleDebugSignature = (): void => {
     if (!certificate) {
-      console.warn("[Debug] No certificate loaded");
+
       return;
     }
-
-    console.log("\n🔍 === SIGNATURE DEBUG MODE ===");
 
     // Recreate verification data
     const data = recreateSignatureVerificationData(certificate);
     setDebugData(data);
     setShowDebugInfo(true);
-
-    console.log("Canonical length:", data.canonical.length);
-    console.log("Canonical (first 200):", data.canonical.substring(0, 200));
-    console.log("Domain:", data.domain);
-    console.log("Message length:", data.message.length);
-    console.log("Message (first 300):", data.message.substring(0, 300));
-    console.log("Public Key:", data.publicKey);
-    console.log("Signature:", data.signature);
 
     // Copy to clipboard for comparison with server
     const debugOutput = JSON.stringify(
@@ -284,9 +274,9 @@ export function CertificateValidator({
     );
 
     navigator.clipboard.writeText(debugOutput).then(() => {
-      console.log("✅ Debug data copied to clipboard!");
+
     }).catch(() => {
-      console.warn("Failed to copy to clipboard");
+
     });
   };
 

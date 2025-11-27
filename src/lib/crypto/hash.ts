@@ -13,7 +13,7 @@ export async function generateSHA256Hash(data: string): Promise<string> {
     );
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-  } catch (error) {
+  } catch {
     throw new Error(
       `SHA-256 hashing failed: ${
         error instanceof Error ? error.message : "Unknown error"

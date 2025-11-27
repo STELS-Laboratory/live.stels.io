@@ -303,4 +303,3 @@ function convertToYAML(obj: unknown, indent = 0): string {
 
   return yaml;
 }
-

@@ -63,18 +63,13 @@ export function AssistantSelector({
     const init = async (): Promise<void> => {
       // Only fetch assistants if we have a session and assistants are not loaded
       if (connectionSession?.session && assistants.length === 0) {
-        console.log("[AssistantSelector] Initializing with session:", {
-          hasSession: !!connectionSession.session,
-          apiUrl: connectionSession.api,
-        });
+
         const connected = await testConnection();
         if (connected) {
           await fetchAssistants();
         }
       } else if (!connectionSession?.session) {
-        console.warn(
-          "[AssistantSelector] No connectionSession available, skipping initialization",
-        );
+        // No session available
       }
     };
     init();
@@ -100,9 +95,9 @@ export function AssistantSelector({
 
     try {
       await deleteAssistant(assistantId);
-    } catch (error) {
-      console.error("Failed to delete assistant:", error);
-    }
+    } catch {
+			// Error handled silently
+		}
   };
 
   const handleSelect = (assistantId: string): void => {
@@ -232,4 +227,3 @@ export function AssistantSelector({
     </div>
   );
 }
-

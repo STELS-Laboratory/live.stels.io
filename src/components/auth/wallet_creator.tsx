@@ -248,8 +248,8 @@ export function WalletCreator(
       } else {
         setError("Could not extract private key from file. Please ensure the file contains a valid 64-character hexadecimal private key.");
       }
-    } catch (error) {
-      console.error("Failed to read file:", error);
+    } catch {
+
       setError("Failed to read file. Please ensure the file is a valid text file.");
     }
   };
@@ -288,8 +288,8 @@ export function WalletCreator(
       } else {
         setPasswordError("Decrypted key is invalid. Please check your password.");
       }
-    } catch (error) {
-      console.error("Failed to decrypt file:", error);
+    } catch {
+
       setPasswordError(
         error instanceof Error && error.message.includes("decrypt")
           ? "Incorrect password. Please try again."

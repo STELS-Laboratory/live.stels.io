@@ -54,7 +54,7 @@ export function LottieAnimation({
 
   // Error handler
   const handleError = (): void => {
-    console.warn(`[LottieAnimation] Failed to load animation: ${src}`);
+
     setHasError(true);
   };
 

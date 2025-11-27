@@ -225,7 +225,7 @@ function Welcome(): ReactElement {
   useEffect(() => {
     if (!selectedSchema && !isLoading && !hasRefetchedRef.current) {
       // User is on Welcome screen - refetch asset list once
-      console.log("[Welcome] Returning to Welcome, refetching asset list...");
+
       hasRefetchedRef.current = true;
       refetchAssets();
     }
@@ -269,21 +269,14 @@ function Welcome(): ReactElement {
           sessionStorage.setItem(channelKey, newData);
           updatedCount++;
         }
-      } catch (error) {
-        console.error(
-          "[Welcome] Failed to sync asset to sessionStorage:",
-          error,
-        );
-      }
+      } catch {
+			// Error handled silently
+		}
     });
 
     // Only log if there were actual updates
     if (updatedCount > 0) {
-      console.log(
-        "[Welcome] Synced",
-        updatedCount,
-        "assets to sessionStorage",
-      );
+      // Updates logged
     }
   }, [assets]);
   const openApp = useOpenAppsStore((state) => state.openApp);
@@ -298,7 +291,7 @@ function Welcome(): ReactElement {
 
   // Debug: Log default schemas state
   useEffect(() => {
-    console.log("[Welcome] Default schemas state:", defaultSchemasState);
+
   }, [defaultSchemasState]);
 
   // Auto-open active app on mount or when activeAppId changes
@@ -307,7 +300,7 @@ function Welcome(): ReactElement {
     if (!activeAppId || activeAppId === "") {
       // Clear any currently open app
       if (selectedAppId) {
-        console.log("[Welcome] Clearing active app, returning to hub");
+
         setSelectedSchema(null);
         setSelectedAppId(null);
         setResolvedSchema(null);
@@ -352,14 +345,6 @@ function Welcome(): ReactElement {
       }
 
       if (schema) {
-        console.log(
-          "[Welcome] Auto-opening active app:",
-          activeApp.displayName || schema.name,
-          {
-            channelKey: activeApp.channelKey,
-            schemaId: activeApp.schemaId,
-          },
-        );
 
         // Open app immediately without launcher animation
         const openAppImmediately = async (): Promise<void> => {
@@ -392,9 +377,9 @@ function Welcome(): ReactElement {
             setRequiredChannelAliases(requiredChannels);
             setSelectedSchema(schema);
             setSelectedAppId(activeAppId);
-          } catch (error) {
-            console.error("[Welcome] Failed to auto-open app:", error);
-          }
+          } catch {
+			// Error handled silently
+		}
         };
 
         openAppImmediately();
@@ -411,7 +396,7 @@ function Welcome(): ReactElement {
 
     if (!appExists) {
       // App was closed from tab - close it here too
-      console.log("[Welcome] App closed from tab, returning to hub");
+
       setSelectedSchema(null);
       setSelectedAppId(null);
       setResolvedSchema(null);
@@ -430,20 +415,14 @@ function Welcome(): ReactElement {
       try {
         const allSchemas = await getAllSchemas();
         setSchemas(allSchemas);
-        console.log(
-          "[Welcome] Loaded schemas from IndexedDB:",
-          allSchemas.length,
-        );
 
         // Log default schemas loading result
         if (defaultSchemasState.loaded > 0) {
-          console.log(
-            `[Welcome] Default schemas loaded: ${defaultSchemasState.loaded}`,
-          );
+          // Schemas loaded
         }
-      } catch (error) {
-        console.error("Failed to load schemas:", error);
-      } finally {
+      } catch {
+			// Error handled silently
+		} finally {
         setIsLoading(false);
       }
     };
@@ -460,10 +439,7 @@ function Welcome(): ReactElement {
       );
       if (assetChannels.length > 0) {
         hasLoggedSessionAssetsRef.current = true;
-        console.log(
-          "[Welcome] Asset channels in session:",
-          assetChannels.length,
-        );
+
       }
     }
     
@@ -595,25 +571,7 @@ function Welcome(): ReactElement {
   // Debug: Log schemas only once after loading
   useEffect(() => {
     if (!isLoading && schemas.length > 0) {
-      console.log(
-        "[Welcome] All schemas:",
-        schemas.length,
-        schemas.map((s) => ({
-          name: s.name,
-          widgetKey: s.widgetKey,
-          type: s.type,
-          channelKeys: s.channelKeys,
-        })),
-      );
-      console.log(
-        "[Welcome] Token template schema:",
-        tokenTemplateSchema?.name,
-        tokenTemplateSchema?.widgetKey,
-      );
-      console.log(
-        "[Welcome] Virtual token schemas created:",
-        tokenSchemas.length,
-      );
+      // Schemas loaded
     }
   }, [isLoading, schemas, tokenSchemas.length, tokenTemplateSchema?.name, tokenTemplateSchema?.widgetKey]); // Only log once when loading completes
 
@@ -625,10 +583,7 @@ function Welcome(): ReactElement {
         const existingApp = apps.find((app) => app.schemaId === schema.id);
         if (existingApp) {
           // App already running - just switch to it
-          console.log(
-            "[Welcome] App already running, switching to it:",
-            existingApp.id,
-          );
+
           useOpenAppsStore.getState().setActiveApp(existingApp.id);
           setSelectedSchema(schema);
           setSelectedAppId(existingApp.id);
@@ -685,8 +640,8 @@ function Welcome(): ReactElement {
           setIsLaunching(false);
           setLaunchStep(0);
         }, 100);
-      } catch (error) {
-        console.error("Failed to launch app:", error);
+      } catch {
+
         setResolvedSchema(schema.schema);
         setRequiredChannelAliases([]);
         setIsLaunching(false);
@@ -896,7 +851,7 @@ function Welcome(): ReactElement {
                                     : "LOCAL"}
                                 </div>
                                 {totalPortfolioValue > 0 && (
-                                  <div className="text-white/80 text-xs sm:text-sm font-semibold mt-1">
+                                  <div className="text-green-400 text-xs sm:text-sm font-semibold mt-1">
                                     {new Intl.NumberFormat("en-US", {
                                       style: "currency",
                                       currency: "USD",
@@ -906,7 +861,7 @@ function Welcome(): ReactElement {
                                   </div>
                                 )}
                                 {totalUSDValue > 0 && totalLiquidity > 0 && (
-                                  <div className="text-white/50 text-[10px] sm:text-xs leading-tight mt-1">
+                                  <div className="text-green-400/70 text-[10px] sm:text-xs leading-tight mt-1">
                                     Tokens: {new Intl.NumberFormat("en-US", {
                                       style: "currency",
                                       currency: "USD",
@@ -1663,8 +1618,8 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
 
         setPreviewSchema(resolved);
         setPreviewData(data);
-      } catch (error) {
-        console.error("Failed to resolve preview:", error);
+      } catch {
+
         setPreviewSchema(schema.schema);
         setPreviewData({});
       }
@@ -1740,7 +1695,7 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
             initial={{ opacity: 0, scale: 0.8, y: -5 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute top-2 right-2 px-2 py-1 bg-green-500/90 backdrop-blur-sm text-white text-xs font-medium rounded-md shadow-lg flex items-center gap-1.5"
+            className="absolute top-2 right-2 px-2 py-1 bg-green-500/90 backdrop-blur-sm text-white text-xs font-medium rounded shadow-lg flex items-center gap-1.5"
           >
             <motion.div
               animate={{ scale: [1, 1.2, 1] }}
@@ -1790,7 +1745,7 @@ function AppCard({ schema, session, onLaunch }: AppCardProps): ReactElement {
               duration: 0.2,
               ease: [0.16, 1, 0.3, 1],
             }}
-            className={`px-4 py-2 font-medium rounded-md flex items-center gap-2 shadow-lg ${
+            className={`px-4 py-2 font-medium rounded flex items-center gap-2 shadow-lg ${
               isRunning
                 ? "bg-green-500 text-white"
                 : "bg-foreground text-background"

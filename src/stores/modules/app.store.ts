@@ -63,7 +63,6 @@ export interface SyncActions {
  * Application state interface extending network status and sync functionality
  */
 
-
 /**
  * Application state interface extending network status and sync functionality
  */
@@ -138,15 +137,14 @@ export const useAppStore = create<AppState>()(
 							}
 						}
 						return generateDataHash(localData)
-					} catch (error) {
-						console.error('Failed to generate data hash:', error)
+					} catch {
+
 						return Date.now().toString(16)
 					}
 				}
 				
-				const allowedRoutes = ['welcome', 'canvas', 'editor', 'schemas', 'docs', 'token-builder', 'wallet', 'explorer', 'stels-chat', 'indexes'];
-				console.log('[Store] Initializing with allowedRoutes:', allowedRoutes);
-				
+				const allowedRoutes = ['trading', 'welcome', 'canvas', 'editor', 'schemas', 'docs', 'token-builder', 'wallet', 'explorer', 'stels-chat', 'indexes'];
+
 			return {
 				version: '1.0.7',
 				upgrade: false,
@@ -156,23 +154,17 @@ export const useAppStore = create<AppState>()(
 					updateStatus: () => set(getNetworkInfo()),
 					
 					allowedRoutes,
-					currentRoute: 'welcome',
+					currentRoute: 'trading',
 					setRoute: (route: string) => {
 						const {allowedRoutes} = get()
-						console.log('[Store] setRoute called:', {route, allowedRoutes});
+
 						if (allowedRoutes.includes(route)) {
-							console.log('[Store] Setting route to:', route);
 							set({currentRoute: route})
-						} else {
-							console.warn(`[Store] Route "${route}" is not allowed!`)
 						}
 					},
 					
-	// Route loading state
-	routeLoading: false,
-	setRouteLoading: (value: boolean): void => {
-		set({routeLoading: value});
-	},
+					routeLoading: false,
+					setRouteLoading: (value: boolean) => set({routeLoading: value}),
 					
 					// Sync state
 					hasUpdates: false,
@@ -199,10 +191,9 @@ export const useAppStore = create<AppState>()(
 							}
 							
 							return false
-						} catch (error) {
-							console.error('Error checking for updates:', error)
+						} catch {
 							set({
-								syncError: error instanceof Error ? error.message : 'Unknown error',
+								syncError: _error instanceof Error ? _error.message : 'Unknown error',
 							})
 							return false
 						}
@@ -227,12 +218,10 @@ export const useAppStore = create<AppState>()(
 								lastSyncTimestamp: Date.now(),
 								isSyncing: false,
 							})
-							
-							console.log('Data synchronized successfully')
-						} catch (error) {
-							console.error('Error syncing data:', error)
+
+						} catch {
 							set({
-								syncError: error instanceof Error ? error.message : 'Sync failed',
+								syncError: _error instanceof Error ? _error.message : 'Sync failed',
 								isSyncing: false,
 							})
 						}
@@ -259,7 +248,6 @@ export const useAppStore = create<AppState>()(
 					setSyncError: (error: string | null): void => {
 						set({syncError: error})
 					},
-					
 					
 				}
 			},

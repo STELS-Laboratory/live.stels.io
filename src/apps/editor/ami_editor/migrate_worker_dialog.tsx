@@ -54,7 +54,7 @@ export function MigrateWorkerDialog({
     try {
       const migratedWorker = await onMigrate(worker);
       setResult(migratedWorker);
-    } catch (err) {
+    } catch {
       setError(
         err instanceof Error ? err.message : "Failed to migrate worker",
       );

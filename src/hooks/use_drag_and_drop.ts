@@ -138,9 +138,9 @@ export function useDragAndDrop() {
 				const position = { x: event.clientX, y: event.clientY };
 				
 				onDrop(widgetData, position);
-			} catch (error) {
-				console.error("Error parsing drag data:", error);
-			}
+			} catch {
+			// Error handled silently
+		}
 		},
 		[],
 	);

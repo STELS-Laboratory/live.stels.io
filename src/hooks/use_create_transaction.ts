@@ -267,7 +267,7 @@ export function useCreateTransaction(): UseCreateTransactionReturn {
 			try {
 				setError(null);
 				return createAssetTransaction(params);
-			} catch (err) {
+			} catch {
 				const errorMessage =
 					err instanceof Error
 						? err.message
@@ -297,7 +297,7 @@ export function useCreateTransaction(): UseCreateTransactionReturn {
 					connectionSession.session,
 				);
 				return result;
-			} catch (err) {
+			} catch {
 				const errorMessage =
 					err instanceof Error
 						? err.message
@@ -318,4 +318,3 @@ export function useCreateTransaction(): UseCreateTransactionReturn {
 		error,
 	};
 }
-

@@ -125,10 +125,10 @@ export default function Explorer(): React.ReactElement {
 
 				if (tokenId && symbol) {
 					map.set(tokenId.toLowerCase(), { symbol, name: name || symbol, decimals });
-					console.log(`[Explorer] Added token to map: ${tokenId.toLowerCase()} -> ${symbol}`);
+
 				}
 			});
-			console.log(`[Explorer] Token map created with ${map.size} tokens`);
+
 		}
 		return map;
 	}, [assets]);
@@ -165,8 +165,8 @@ export default function Explorer(): React.ReactElement {
 			setCopiedField(field);
 			setTimeout(() => setCopiedField(null), 2000);
 			toast.success("Copied!", `${field} copied to clipboard`);
-		} catch (err) {
-			console.error("Failed to copy:", err);
+		} catch {
+
 			toast.error("Copy failed", "Failed to copy to clipboard");
 		}
 	};
@@ -186,7 +186,6 @@ export default function Explorer(): React.ReactElement {
 		}
 		refetchTransactions();
 	};
-
 
 	const getStatusIcon = (status: string): React.ReactElement => {
 		switch (status) {
@@ -247,7 +246,7 @@ export default function Explorer(): React.ReactElement {
 							id="network"
 							value={nodeType}
 							onChange={(e) => handleNodeTypeChange(e.target.value)}
-							className="px-3 py-1.5 text-sm rounded-md border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+							className="px-3 py-1.5 text-sm rounded border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
 						>
 							<option value="testnet">Testnet</option>
 							<option value="local">Local</option>
@@ -637,4 +636,3 @@ export default function Explorer(): React.ReactElement {
 		</div>
 	);
 }
-

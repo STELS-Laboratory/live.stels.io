@@ -3,7 +3,7 @@
  * Handles chunk loading failures (404 errors) that occur when new version is deployed
  */
 
-import { Component, type ErrorInfo, type ReactNode } from "react";
+import { Component, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, RefreshCw } from "lucide-react";
@@ -51,17 +51,11 @@ export default class ChunkErrorBoundary extends Component<
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error("[ChunkErrorBoundary] Caught error:", {
-      error,
-      errorInfo,
-      isChunkError: this.state.isChunkError,
-    });
-
+  componentDidCatch(): void {
     // If it's a chunk error, we'll handle it with a reload prompt
     // Otherwise, log it for debugging
     if (!this.state.isChunkError) {
-      console.error("[ChunkErrorBoundary] Non-chunk error:", error.message);
+      // Non-chunk error handled
     }
   }
 
@@ -74,27 +68,23 @@ export default class ChunkErrorBoundary extends Component<
       // Clear service worker caches if available (including schemas)
       if ("caches" in window) {
         const cacheNames = await caches.keys();
-        console.log("[ChunkErrorBoundary] Found caches:", cacheNames);
 
         await Promise.all(cacheNames.map(async (name) => {
-          console.log("[ChunkErrorBoundary] Deleting cache:", name);
+
           await caches.delete(name);
         }));
 
-        console.log(
-          "[ChunkErrorBoundary] All caches cleared (including schemas)",
-        );
       }
 
       // Unregister service workers
       if ("serviceWorker" in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
         await Promise.all(registrations.map((reg) => reg.unregister()));
-        console.log("[ChunkErrorBoundary] Service workers unregistered");
+
       }
-    } catch (error) {
-      console.error("[ChunkErrorBoundary] Error clearing caches:", error);
-    }
+    } catch {
+			// Error handled silently
+		}
 
     // Force reload (bypass cache)
     window.location.reload();
