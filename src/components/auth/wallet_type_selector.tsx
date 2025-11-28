@@ -1,12 +1,11 @@
 import React from "react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Container, Github, Search, Send, Shield } from "lucide-react";
+import { ArrowRight, Shield } from "lucide-react";
 import { LOTTIE_ANIMATIONS, LOTTIE_SIZES } from "./lottie_config";
-import { navigateTo } from "@/lib/router";
 
 interface WalletTypeSelectorProps {
-  onSelectType: (type: "create" | "import" | "explorer") => void;
+  onSelectType: (type: "create" | "import") => void;
 }
 
 /**
@@ -36,7 +35,7 @@ export function WalletTypeSelector(
             </span>
           </CardTitle>
           <p className="text-muted-foreground text-xs sm:text-sm md:text-base mt-1.5 sm:mt-2 md:mt-3 max-w-2xl mx-auto leading-relaxed px-2">
-            Choose to set up your wallet or explore the blockchain without authentication.
+            Choose to create a new wallet or import an existing one to get started.
           </p>
         </CardHeader>
 
@@ -111,58 +110,6 @@ export function WalletTypeSelector(
             </div>
           </div>
 
-          {/* Public Explorer Option */}
-          <div className="mt-3 sm:mt-4 md:mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or</span>
-              </div>
-            </div>
-
-            <div
-              className="group cursor-pointer bg-gradient-to-br from-primary/10 to-accent/10 rounded border border-primary/30 overflow-hidden hover:border-primary/50 hover:from-primary/15 hover:to-accent/15 transition-all duration-300 active:scale-[0.98] mt-4"
-              onClick={() => {
-                navigateTo("explorer");
-              }}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  navigateTo("explorer");
-                }
-              }}
-              aria-label="Explore blockchain - Search transactions and balances without authentication"
-            >
-              <div className="p-4 sm:p-5 md:p-6">
-                <div className="text-center space-y-3 sm:space-y-4">
-                  <div className="flex justify-center">
-                    <div className="p-2 sm:p-3 rounded bg-primary/20 border border-primary/40">
-                      <Search className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-2 sm:mb-2.5">
-                      Explore Blockchain
-                    </h3>
-                    <p className="text-muted-foreground text-xs sm:text-sm md:text-base leading-relaxed px-2 max-w-md mx-auto">
-                      Search transactions, check balances, and explore addresses without creating a wallet
-                    </p>
-                  </div>
-
-                  {/* Action indicator */}
-                  <div className="flex items-center justify-center gap-2 text-primary text-sm sm:text-base font-semibold pt-2">
-                    <span>Start exploring</span>
-                    <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform duration-300" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Security Notice */}
           <div className="mt-3 sm:mt-4 md:mt-6 p-2.5 sm:p-3 md:p-4 bg-accent/10 border border-accent-foreground/30 rounded">
             <div className="flex items-start gap-2 sm:gap-2.5 md:gap-3">
@@ -179,95 +126,6 @@ export function WalletTypeSelector(
                   your private keys or funds - everything stays local to your
                   device.
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Marketing Block */}
-          <div className="mt-3 sm:mt-4 md:mt-6 p-3 sm:p-4 md:p-5 bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/30 rounded">
-            <div className="space-y-3 sm:space-y-4">
-              {/* Title & Description */}
-              <div className="text-center space-y-1.5 sm:space-y-2">
-                <h3 className="text-sm sm:text-base md:text-lg font-bold bg-gradient-to-r from-primary via-accent-foreground to-primary bg-clip-text text-transparent">
-                  The Next Era of Distributed AI
-                </h3>
-                <p className="text-muted-foreground text-[10px] sm:text-xs md:text-sm leading-relaxed max-w-lg mx-auto">
-                  STELS Web 5 is a decentralized platform for creating
-                  AI-powered autonomous agents that operate across heterogeneous
-                  networks. Build, deploy, and manage intelligent workflows with
-                  blockchain-level security.
-                </p>
-              </div>
-
-              {/* Feature Pills */}
-              <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
-                <div className="px-2 sm:px-3 py-1 sm:py-1.5 bg-primary/20 border border-primary/40 rounded">
-                  <span className="text-[9px] sm:text-[10px] md:text-xs font-medium text-primary">
-                    Distributed Execution
-                  </span>
-                </div>
-                <div className="px-2 sm:px-3 py-1 sm:py-1.5 bg-accent/20 border border-accent-foreground/40 rounded">
-                  <span className="text-[9px] sm:text-[10px] md:text-xs font-medium text-accent-foreground">
-                    Real-time WebSocket
-                  </span>
-                </div>
-                <div className="px-2 sm:px-3 py-1 sm:py-1.5 bg-green-500/20 border border-green-500/40 rounded">
-                  <span className="text-[9px] sm:text-[10px] md:text-xs font-medium text-green-700 dark:text-green-400">
-                    Blockchain Security
-                  </span>
-                </div>
-              </div>
-
-              {/* Social Links */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 pt-2 sm:pt-3">
-                <a
-                  href="https://github.com/STELS-Laboratory"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-card/80 border border-border hover:border-primary/50 hover:bg-primary/5 rounded transition-all duration-300 active:scale-95 w-full sm:w-auto justify-center"
-                  aria-label="Visit STELS Laboratory on GitHub"
-                >
-                  <Github className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-foreground group-hover:text-primary transition-colors" />
-                  <span className="text-[10px] sm:text-xs font-medium text-foreground group-hover:text-primary transition-colors">
-                    GitHub
-                  </span>
-                </a>
-
-                <a
-                  href="https://hub.docker.com/u/gliesereum"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-card/80 border border-border hover:border-blue-500/50 hover:bg-blue-500/5 rounded transition-all duration-300 active:scale-95 w-full sm:w-auto justify-center"
-                  aria-label="View Gliesereum on Docker Hub"
-                >
-                  <Container className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-foreground group-hover:text-blue-500 transition-colors" />
-                  <span className="text-[10px] sm:text-xs font-medium text-foreground group-hover:text-blue-500 transition-colors">
-                    Docker Hub
-                  </span>
-                </a>
-
-                <a
-                  href="https://t.me/c/2328305982/8"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-card/80 border border-border hover:border-blue-400/50 hover:bg-blue-400/5 rounded transition-all duration-300 active:scale-95 w-full sm:w-auto justify-center"
-                  aria-label="Join STELS community on Telegram"
-                >
-                  <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-foreground group-hover:text-blue-400 transition-colors" />
-                  <span className="text-[10px] sm:text-xs font-medium text-foreground group-hover:text-blue-400 transition-colors">
-                    Telegram
-                  </span>
-                </a>
-              </div>
-
-              {/* Footer */}
-              <div className="text-center pt-2 sm:pt-3 border-t border-border/50">
-                <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground/80">
-                  Open Source • Decentralized • Secure
-                </p>
-                <p className="text-[9px] sm:text-[10px] text-muted-foreground/60 mt-1">
-                  © 2025 Gliesereum Ukraine. Licensed under MIT.
-                </p>
               </div>
             </div>
           </div>

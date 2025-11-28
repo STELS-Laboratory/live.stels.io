@@ -2,21 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
+import type { DropdownItemProps, DropdownSeparatorProps } from "@/types/components/ui/types";
 
 interface DropdownProps {
   children: React.ReactNode;
   trigger: React.ReactNode;
   align?: "start" | "center" | "end";
-  className?: string;
-}
-
-interface DropdownItemProps {
-  children: React.ReactNode;
-  onClick?: () => void;
-  className?: string;
-}
-
-interface DropdownSeparatorProps {
   className?: string;
 }
 

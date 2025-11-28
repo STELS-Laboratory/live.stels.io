@@ -5,7 +5,7 @@
 import { useEffect } from "react";
 import { getSessionStorageManager } from "@/lib/gui/ui";
 import { useTradingStore } from "../store";
-import { useAuthStore } from "@/stores";
+import { useAuthStore, useAccountsStore } from "@/stores";
 import type { ExchangeAccount } from "../types";
 
 /**
@@ -14,6 +14,7 @@ import type { ExchangeAccount } from "../types";
 export function useTradingAccounts(): void {
 	const { setAccounts, setSelectedAccount } = useTradingStore();
 	const { wallet, _hasHydrated } = useAuthStore();
+	const { accounts: storedAccounts } = useAccountsStore();
 	const sessionManager = getSessionStorageManager();
 
 	useEffect(() => {
@@ -30,6 +31,31 @@ export function useTradingAccounts(): void {
 		const loadAccounts = (): void => {
 			const accounts: ExchangeAccount[] = [];
 			const address = wallet.address;
+
+			// First, check accounts from accounts store (from listAccounts API response)
+			// If server returns an account, user has access to it (server already filtered by access)
+			const accountsFromStore = new Map<string, ExchangeAccount>();
+			for (const storedAccount of storedAccounts) {
+				const nid = storedAccount.account.nid;
+				const exchange = storedAccount.account.exchange;
+				const key = `${exchange}.${nid}`;
+				
+				if (nid && exchange) {
+					const isOwner = storedAccount.address.toLowerCase() === address.toLowerCase();
+					const isViewer = storedAccount.account.viewers?.some(
+						(viewer) => viewer.toLowerCase() === address.toLowerCase()
+					) || false;
+					
+					// If account is in store, server returned it, so user has access
+					// Server already filtered accounts by access, so we trust it
+					const accessLabel = isOwner ? "" : isViewer ? " [viewer]" : "";
+					accountsFromStore.set(key, {
+						nid,
+						exchange,
+						name: `${exchange} (${nid})${accessLabel}`,
+					});
+				}
+			}
 
 			// Scan sessionStorage for account balance channels
 			// Also check all keys to see what's available
@@ -54,6 +80,7 @@ export function useTradingAccounts(): void {
 				
 				if (match) {
 					const [, channelAddress, exchange, nid] = match;
+					const accountKey = `${exchange}.${nid}`;
 
 					// Check if account already exists
 					if (accounts.find((acc) => acc.nid === nid && acc.exchange === exchange)) continue;
@@ -75,20 +102,28 @@ export function useTradingAccounts(): void {
 						// Check if user has access to this account:
 						// 1. Account owner (address matches channel address)
 						// 2. Account viewer (address in viewers array)
-						// 3. If account data is available in sessionStorage, consider it accessible
-						//    (sessionStorage only contains data for accounts user has access to)
+						// 3. Account is in accounts store (server returned it, so user has access)
+						// Note: workers array contains module names (e.g., "balance"), not user addresses
 						const isOwner = channelAddress.toLowerCase() === address.toLowerCase();
 						const isViewer = raw.viewers?.some(
 							(viewer) => viewer.toLowerCase() === address.toLowerCase()
 						) || false;
+						const isInStore = accountsFromStore.has(accountKey);
 						
-						// If account data exists in sessionStorage, user likely has access
-						// This handles cases where access is granted through other mechanisms
-						// (e.g., workers, API permissions, etc.)
-						const hasAccess = isOwner || isViewer || accountData !== null;
+						// Show accounts where user has explicit access OR account is in store (server returned it)
+						const hasAccess = isOwner || isViewer || isInStore;
 
 						if (!hasAccess) {
 							continue;
+						}
+
+						// Use account from store if available (has correct access label), otherwise use sessionStorage data
+						if (isInStore && accountsFromStore.has(accountKey)) {
+							const accountFromStore = accountsFromStore.get(accountKey);
+							if (accountFromStore) {
+								accounts.push(accountFromStore);
+								continue;
+							}
 						}
 
 						if (raw.nid && raw.exchange) {
@@ -108,6 +143,13 @@ export function useTradingAccounts(): void {
 							});
 						}
 					}
+				}
+			}
+
+			// Also add accounts from store that might not be in sessionStorage yet
+			for (const account of accountsFromStore.values()) {
+				if (!accounts.find((acc) => acc.nid === account.nid && acc.exchange === account.exchange)) {
+					accounts.push(account);
 				}
 			}
 
@@ -146,5 +188,5 @@ export function useTradingAccounts(): void {
 			window.removeEventListener("storage", handleStorageChange);
 			clearInterval(pollInterval);
 		};
-	}, [wallet?.address, _hasHydrated, sessionManager, setAccounts, setSelectedAccount]);
+	}, [wallet?.address, _hasHydrated, sessionManager, setAccounts, setSelectedAccount, storedAccounts]);
 }

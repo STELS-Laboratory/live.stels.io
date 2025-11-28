@@ -3,29 +3,17 @@
  * Displays a scrolling ticker tape of all market tickers from sessionStorage
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { TrendingDown, TrendingUp } from "lucide-react";
-
-interface TickerData {
-  market: string;
-  exchange: string;
-  last: number;
-  change: number;
-  percentage: number;
-  timestamp: number;
-}
-
-interface TickerMarqueeProps {
-  className?: string;
-}
+import type { TickerData, TickerMarqueeProps } from "@/types/components/main/types";
+import { TickerItem } from "./ticker_item";
 
 /**
  * Ticker Marquee Component
  */
 export function TickerMarquee(
   { className }: TickerMarqueeProps,
-): React.ReactElement {
+): React.ReactElement | null {
   const [tickers, setTickers] = useState<TickerData[]>([]);
 
   // Get all tickers from sessionStorage
@@ -76,25 +64,33 @@ export function TickerMarquee(
     }
   }, []);
 
-  // Update tickers periodically
+  // Update tickers periodically - optimized with debounce
   useEffect(() => {
     // Initial load
     setTickers(getTickers());
 
-    // Update every second
+    // Update every 3 seconds (reduced frequency for better performance)
     const interval = setInterval(() => {
       setTickers(getTickers());
-    }, 1000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [getTickers]);
 
+  // Memoize duplicated tickers to prevent unnecessary recalculations
+  const duplicatedTickers = useMemo(() => {
+    if (tickers.length === 0) return [];
+    return [...tickers, ...tickers];
+  }, [tickers]);
+
+  // Memoize animation duration
+  const animationDuration = useMemo(() => {
+    return Math.max(tickers.length * 12, 20);
+  }, [tickers.length]);
+
   if (tickers.length === 0) {
     return null;
   }
-
-  // Duplicate tickers for seamless loop
-  const duplicatedTickers = [...tickers, ...tickers];
 
   return (
     <div
@@ -107,50 +103,20 @@ export function TickerMarquee(
         <div
           className="flex items-center gap-6 shrink-0"
           style={{
-            animation: `scroll ${
-              Math.max(tickers.length * 12, 20)
-            }s linear infinite`,
+            animation: `scroll ${animationDuration}s linear infinite`,
+            willChange: "transform",
+            transform: "translateZ(0)", // Force hardware acceleration
+            backfaceVisibility: "hidden", // Optimize rendering
           }}
         >
-          {duplicatedTickers.map((ticker, index) => {
-            const isPositive = ticker.change >= 0;
-            const changeColor = isPositive
-              ? "text-green-600 dark:text-green-400"
-              : "text-red-600 dark:text-red-400";
-
-            return (
-              <React.Fragment
-                key={`${ticker.market}-${ticker.exchange}-${index}`}
-              >
-                <div className="flex items-center gap-2 shrink-0 whitespace-nowrap">
-                  <span className="text-[10px] font-semibold text-foreground">
-                    {ticker.market}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground uppercase">
-                    {ticker.exchange}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground">
-                    {ticker.last.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 8,
-                    })}
-                  </span>
-                  <div className={cn("flex items-center gap-0.5", changeColor)}>
-                    {isPositive
-                      ? <TrendingUp className="icon-xs" />
-                      : <TrendingDown className="icon-xs" />}
-                    <span className="text-[10px] font-semibold">
-                      {isPositive ? "+" : ""}
-                      {ticker.percentage.toFixed(2)}%
-                    </span>
-                  </div>
-                </div>
-                {index < duplicatedTickers.length - 1 && (
-                  <div className="h-3 w-px bg-border shrink-0" />
-                )}
-              </React.Fragment>
-            );
-          })}
+          {duplicatedTickers.map((ticker, index) => (
+            <TickerItem
+              key={`${ticker.market}-${ticker.exchange}-${index}`}
+              ticker={ticker}
+              index={index}
+              isLast={index >= duplicatedTickers.length - 1}
+            />
+          ))}
         </div>
       </div>
 

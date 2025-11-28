@@ -19,7 +19,7 @@ import { TradingDesktopLayout } from "./components/trading-desktop-layout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { useDeviceType } from "@/hooks/use_mobile";
-import { useAuthStore } from "@/stores";
+import { useAuthStore, useAccountsStore } from "@/stores";
 import { toast } from "@/stores";
 
 /**
@@ -27,7 +27,8 @@ import { toast } from "@/stores";
  */
 function Trading(): React.ReactElement {
 	const { isTablet, isMobile } = useDeviceType();
-	const { wallet } = useAuthStore();
+	const { wallet, connectionSession, isAuthenticated, isConnected } = useAuthStore();
+	const { fetchAccountsFromServer } = useAccountsStore();
 
 	const {
 		selectedAccount,
@@ -57,6 +58,25 @@ function Trading(): React.ReactElement {
 
 	// Load accounts from session
 	useTradingAccounts();
+
+	// Fetch accounts from server when trading app opens (if not already loaded)
+	useEffect(() => {
+		if (
+			isAuthenticated &&
+			isConnected &&
+			connectionSession &&
+			wallet?.address
+		) {
+			// Fetch accounts from server to ensure we have latest data
+			fetchAccountsFromServer(
+				wallet.address,
+				connectionSession.session,
+				connectionSession.api,
+			).catch(() => {
+				// Failed to fetch accounts - will use sessionStorage data instead
+			});
+		}
+	}, [isAuthenticated, isConnected, connectionSession, wallet?.address, fetchAccountsFromServer]);
 
 	// Update selectedExchange when account changes
 	useEffect(() => {

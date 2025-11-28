@@ -1,12 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import Graphite from "@/components/ui/vectors/logos/graphite";
-
-interface SplashScreenProps {
-	onComplete?: () => void;
-	duration?: number;
-	updateApp?: boolean;
-}
+import type { SplashScreenProps } from "@/types/components/main/types";
 
 const SplashScreen = (
 	{ updateApp, onComplete, duration = 1200 }: SplashScreenProps,

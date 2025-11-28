@@ -6,11 +6,7 @@
 import { type ReactElement, useEffect, useState } from "react";
 import { Database, Layers } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-
-interface LaunchStep {
-  label: string;
-  progress: number;
-}
+import type { LaunchStep, AppLauncherProps } from "@/types/components/main/types";
 
 const LAUNCH_STEPS: LaunchStep[] = [
   { label: "Initializing", progress: 10 },
@@ -20,12 +16,6 @@ const LAUNCH_STEPS: LaunchStep[] = [
   { label: "Rendering UI", progress: 90 },
   { label: "Ready", progress: 100 },
 ];
-
-interface AppLauncherProps {
-  appName: string;
-  appType: "static" | "dynamic";
-  currentStep: number;
-}
 
 /**
  * Document-oriented app launcher with progress bar

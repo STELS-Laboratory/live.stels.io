@@ -31,13 +31,7 @@ import {
 import { navigateTo } from "@/lib/router.ts";
 import { useAppStore } from "@/stores";
 import { useMobile } from "@/hooks/use_mobile";
-
-interface DevTool {
-  key: string;
-  name: string;
-  icon: React.ComponentType<{ className?: string }>;
-  shortcut?: string;
-}
+import type { DevTool } from "@/types/components/main/types";
 
 const DEV_TOOLS: DevTool[] = [
   { key: "trading", name: "Trading", icon: TrendingUp, shortcut: "T" },

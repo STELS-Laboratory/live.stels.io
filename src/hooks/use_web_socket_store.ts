@@ -2,22 +2,7 @@ import {create} from "zustand";
 import {useAppStore} from "@/stores";
 import {useAuthStore} from "@/stores/modules/auth.store";
 import {generateDataHash} from "@/lib/utils";
-
-type WebSocketInfo = {
-	connector: {
-		socket: string;
-		protocols?: string | string[];
-	};
-	network: string;
-	title: string;
-	pid: string;
-};
-
-type SessionData = {
-	raw: {
-		session: string;
-	};
-};
+import type { WebSocketInfo, SessionData, WebSocketConfig, WebSocketState, MessageBatch } from "@/types/hooks/types";
 
 function createWebSocket(
 	info: WebSocketInfo,
@@ -109,34 +94,6 @@ function createWebSocket(
 	};
 	
 	return ws;
-}
-
-interface WebSocketConfig {
-	raw: {
-		info: WebSocketInfo;
-	};
-}
-
-interface WebSocketState {
-	ws: WebSocket | null;
-	connection: boolean;
-	locked: boolean;
-	sessionExpired: boolean;
-	reconnectAttempts: number;
-	maxReconnectAttempts: number;
-	isCleaningUp: boolean;
-	connectNode: (config: WebSocketConfig) => void;
-	handleSessionExpired: () => void;
-	resetReconnectAttempts: () => void;
-	resetWebSocketState: () => void;
-}
-
-/**
- * Message batching for performance optimization
- * Prevents blocking the event loop when processing many messages
- */
-interface MessageBatch {
-	[channel: string]: string;
 }
 
 let messageBatch: MessageBatch = {};
