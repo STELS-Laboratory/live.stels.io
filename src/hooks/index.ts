@@ -19,3 +19,4 @@ export { useTheme } from "./use_theme";
 export { useThemeColor } from "./use_theme_color";
 export { useUrlRouter } from "./use_url_router";
 export { default as useWebSocketStore } from "./use_web_socket_store";
+export { usePublicWebSocket } from "./use_public_web_socket";

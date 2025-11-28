@@ -1,93 +1,23 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { createWallet, importWallet, createSignedTransaction, getUncompressedPublicKey, type Wallet } from '@/lib/gliesereum';
+import { createWallet, importWallet, createSignedTransaction, getUncompressedPublicKey } from '@/lib/gliesereum';
 import { clearAllStorage, clearAppStorage } from '@/lib/storage-cleaner';
 import { useWebSocketStore } from '@/hooks/use_web_socket_store';
+import type {
+	NetworkConfig,
+	ConnectionSession,
+	AuthState,
+	AuthActions,
+	AuthStore,
+} from '@/types/auth/types';
 
-/**
- * Network configuration interface
- */
-export interface NetworkConfig {
-	id: string;
-	name: string;
-	api: string;
-	socket: string;
-	developer: boolean;
-	description?: string;
-}
-
-/**
- * Connection session data
- */
-export interface ConnectionSession {
-	session: string;
-	token: string;
-	network: string;
-	title: string;
-	nid: string;
-	api: string;
-	socket: string;
-	developer: boolean;
-}
-
-/**
- * Authentication state interface
- */
-export interface AuthState {
-	// Wallet state
-	wallet: Wallet | null;
-	isWalletCreated: boolean;
-	
-	// Network state
-	selectedNetwork: NetworkConfig | null;
-	availableNetworks: NetworkConfig[];
-	
-	// Connection state
-	isConnected: boolean;
-	isConnecting: boolean;
-	connectionSession: ConnectionSession | null;
-	connectionError: string | null;
-	
-	// UI state
-	isAuthenticated: boolean;
-	showNetworkSelector: boolean;
-	showSecurityWarning: boolean;
-	showSessionExpiredModal: boolean;
-	_hasHydrated: boolean;
-}
-
-/**
- * Authentication actions interface
- */
-export interface AuthActions {
-	// Wallet operations
-	createNewWallet: () => void;
-	importExistingWallet: (privateKey: string) => boolean;
-	resetWallet: () => void;
-	
-	// Network operations
-	setAvailableNetworks: (networks: NetworkConfig[]) => void;
-	selectNetwork: (network: NetworkConfig) => void;
-	
-	// Connection operations
-	connectToNode: () => Promise<boolean>;
-	disconnectFromNode: () => Promise<void>;
-	restoreConnection: () => Promise<boolean>;
-	
-	// UI operations
-	setShowNetworkSelector: (show: boolean) => void;
-	setShowSecurityWarning: (show: boolean) => void;
-	setShowSessionExpiredModal: (show: boolean) => void;
-	clearConnectionError: () => void;
-	
-	// Utility operations
-	resetAuth: () => Promise<void>;
-}
-
-/**
- * Combined auth store type
- */
-export type AuthStore = AuthState & AuthActions;
+export type {
+	NetworkConfig,
+	ConnectionSession,
+	AuthState,
+	AuthActions,
+	AuthStore,
+};
 
 /**
  * Default network configurations

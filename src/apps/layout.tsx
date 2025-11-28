@@ -38,16 +38,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import AppTabs from "@/components/main/app_tabs";
 import AppShortcuts from "@/components/main/app_shortcuts";
 import { TickerMarquee } from "@/components/main/ticker_marquee";
-
-interface LayoutProps {
-	children: React.ReactNode;
-}
-
-interface NavItem {
-	key: string;
-	label: string;
-	icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-}
+import type { LayoutProps, NavItem } from "@/types/apps/layout/types";
 
 /**
  * Application root layout. Provides a document-oriented shell with a branded sidebar

@@ -94,45 +94,72 @@ function extractSourceName(source: string, description: string): string {
 /**
  * Get importance level based on score
  * Score represents priority/relevance, not criticality
- * Critical level should be reserved for truly critical news
+ * Returns color scheme based on rating gradient
  */
 function getImportanceLevel(score: number): {
 	level: "critical" | "high" | "medium" | "low";
 	color: string;
-	bgColor: string;
+	scoreColor: string;
 	borderColor: string;
+	titleColor: string;
 } {
-	// High priority/relevance - use positive colors (green/blue/primary)
+	// Very high priority (>= 30) - bright primary/amber
+	if (score >= 30) {
+		return {
+			level: "high",
+			color: "text-primary",
+			scoreColor: "text-primary font-bold",
+			borderColor: "border-primary",
+			titleColor: "text-foreground group-hover:text-primary",
+		};
+	}
+	// High priority (25-29) - primary
 	if (score >= 25) {
 		return {
 			level: "high",
-			color: "text-primary dark:text-primary",
-			bgColor: "bg-primary/10 dark:bg-primary/20",
-			borderColor: "border-primary/50 dark:border-primary/50",
+			color: "text-primary",
+			scoreColor: "text-primary",
+			borderColor: "border-primary/70",
+			titleColor: "text-foreground group-hover:text-primary",
 		};
 	}
+	// Medium-high priority (20-24) - blue
 	if (score >= 20) {
 		return {
 			level: "high",
 			color: "text-blue-600 dark:text-blue-400",
-			bgColor: "bg-blue-500/10 dark:bg-blue-500/20",
-			borderColor: "border-blue-500/50 dark:border-blue-400/50",
+			scoreColor: "text-blue-600 dark:text-blue-400",
+			borderColor: "border-blue-500/60 dark:border-blue-400/60",
+			titleColor: "text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400",
 		};
 	}
-	if (score >= 16) {
+	// Medium priority (15-19) - amber/yellow
+	if (score >= 15) {
 		return {
 			level: "medium",
-			color: "text-amber-600 dark:text-amber-400",
-			bgColor: "bg-amber-500/10 dark:bg-amber-500/20",
+			color: "text-amber-600 dark:text-amber-500",
+			scoreColor: "text-amber-600 dark:text-amber-500",
 			borderColor: "border-amber-500/50 dark:border-amber-400/50",
+			titleColor: "text-foreground group-hover:text-amber-600 dark:group-hover:text-amber-500",
 		};
 	}
-	// Low priority - neutral colors
+	// Low-medium priority (10-14) - muted with slight accent
+	if (score >= 10) {
+		return {
+			level: "medium",
+			color: "text-muted-foreground",
+			scoreColor: "text-muted-foreground",
+			borderColor: "border-muted-foreground/30",
+			titleColor: "text-foreground group-hover:text-muted-foreground",
+		};
+	}
+	// Low priority (< 10) - very muted
 	return {
 		level: "low",
-		color: "text-muted-foreground",
-		bgColor: "bg-muted/30",
+		color: "text-muted-foreground/70",
+		scoreColor: "text-muted-foreground/60",
 		borderColor: "border-border",
+		titleColor: "text-muted-foreground group-hover:text-foreground",
 	};
 }
 
@@ -387,19 +414,22 @@ export function NewsFeed(): React.ReactElement {
 									>
 										<div
 											className={cn(
-												"px-2.5 py-2 border-l-2 transition-all duration-100 cursor-pointer hover:bg-muted/30",
+												"px-2.5 py-2 border-l-3 transition-all duration-200 cursor-pointer",
+												"hover:bg-muted/20 hover:border-l-4",
 												importance.borderColor,
-												importance.bgColor,
 											)}
 										>
 											{/* Compact header */}
 											<div className="flex items-center justify-between gap-2 mb-1">
 												<div className="flex items-center gap-1.5 min-w-0 flex-1">
-													{/* Score - minimal */}
+													{/* Score - colored by rating */}
 													<span
 														className={cn(
-															"text-[9px] font-bold font-mono tabular-nums shrink-0",
-															importance.color,
+															"text-[9px] font-bold font-mono tabular-nums shrink-0 px-1 py-0.5 rounded",
+															importance.scoreColor,
+															score >= 25 && "bg-primary/10 dark:bg-primary/20",
+															score >= 20 && score < 25 && "bg-blue-500/10 dark:bg-blue-500/20",
+															score >= 15 && score < 20 && "bg-amber-500/10 dark:bg-amber-500/20",
 														)}
 													>
 														{score}
@@ -417,16 +447,11 @@ export function NewsFeed(): React.ReactElement {
 												</span>
 											</div>
 
-											{/* Title - document style */}
+											{/* Title - colored by rating */}
 											<h4
 												className={cn(
-													"text-xs font-medium leading-relaxed line-clamp-2 group-hover:text-primary transition-colors",
-													importance.level === "high" &&
-														"text-primary dark:text-primary",
-													importance.level === "medium" &&
-														"text-foreground",
-													importance.level === "low" &&
-														"text-foreground",
+													"text-xs font-medium leading-relaxed line-clamp-2 transition-colors",
+													importance.titleColor,
 												)}
 											>
 												{item.title}

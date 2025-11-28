@@ -2,11 +2,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import Graphite from "@/components/ui/vectors/logos/graphite";
 import { useAppStore } from "@/stores";
-
-interface UpgradeScreenProps {
-	onComplete?: () => void;
-	endDate?: Date;
-}
+import type { UpgradeScreenProps } from "@/types/components/main/types";
 
 /**
  * Beautiful upgrade screen component with animated progress and status updates

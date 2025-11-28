@@ -36,7 +36,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { NewsFeed } from "./news-feed";
 import { TrendingUp } from "lucide-react";
 
 // Register ECharts components
@@ -1073,9 +1072,6 @@ export const TradingChart = React.memo(function TradingChart({
 							)}
 					</div>
 				</div>
-
-				{/* News Component - Always visible */}
-				<NewsFeed />
 			</div>
 		);
 	}
@@ -1233,9 +1229,6 @@ export const TradingChart = React.memo(function TradingChart({
 					}}
 				/>
 			</div>
-
-			{/* News Component - Always visible */}
-			<NewsFeed />
 		</div>
 	);
 });

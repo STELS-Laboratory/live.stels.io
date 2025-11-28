@@ -1,8 +1,5 @@
 import React from "react";
-
-interface RouteLoaderProps {
-	children: React.ReactNode;
-}
+import type { RouteLoaderProps } from "@/types/components/main/types";
 
 export const RouteLoader: React.FC<RouteLoaderProps> = ({children}) => {
 	return <>{children}</>;

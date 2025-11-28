@@ -25,19 +25,9 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuthStore } from "@/stores/modules/auth.store.ts";
 import { createSignedTransaction } from "@/lib/gliesereum";
+import type { RequestStatus, DeveloperAccessRequestProps } from "@/types/components/auth/types";
 
-/**
- * Request status type
- */
-type RequestStatus = "idle" | "pending" | "success" | "error";
-
-/**
- * Developer Access Request Dialog Props
- */
-export interface DeveloperAccessRequestProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+export type { DeveloperAccessRequestProps };
 
 /**
  * Developer Access Request Dialog Component

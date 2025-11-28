@@ -8,16 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
-
-interface ChunkErrorBoundaryProps {
-  children: ReactNode;
-}
-
-interface ChunkErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-  isChunkError: boolean;
-}
+import type { ChunkErrorBoundaryProps, ChunkErrorBoundaryState } from "@/types/components/main/types";
 
 /**
  * Error boundary that specifically handles chunk loading failures
