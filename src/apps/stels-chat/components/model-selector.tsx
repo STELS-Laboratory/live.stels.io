@@ -149,7 +149,6 @@ export function ModelSelector({
                                 ? "text-green-600 dark:text-green-400"
                                 : "text-amber-600 dark:text-amber-400",
                             )}
-                            title={`Registered (${registeredModel?.status})`}
                           />
                         )}
                       </div>

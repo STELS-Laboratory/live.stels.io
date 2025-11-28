@@ -178,7 +178,7 @@ export function usePublicTransaction(
 				setHasSearched(true);
 				throw new Error("Transaction not found or invalid response");
 			}
-		} catch {
+		} catch(err) {
 			const errorMessage =
 				err instanceof Error
 					? err.message

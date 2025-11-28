@@ -168,7 +168,7 @@ export function usePublicTransactions(
 				setHasSearched(true);
 				throw new Error("Transaction query failed");
 			}
-		} catch {
+		} catch(err) {
 			const errorMessage =
 				err instanceof Error
 					? err.message

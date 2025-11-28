@@ -160,7 +160,7 @@ export function usePublicAssetList(
 			} else {
 				throw new Error("Asset list request failed");
 			}
-		} catch {
+		} catch(err) {
 			const errorMessage =
 				err instanceof Error
 					? err.message
