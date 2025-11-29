@@ -174,8 +174,7 @@ export const useAccountsStore = create<AccountsStore>()(
 
 				// Send account to server
 				sendAccountToServer: async (account: AccountRequest, wallet: Wallet, session: string, apiUrl: string): Promise<boolean> => {
-					try {
-						// CRITICAL: Remove undefined/null optional fields before signing
+					// CRITICAL: Remove undefined/null optional fields before signing
 						// Per gls-det-1 spec: missing keys are NOT serialized (absence, not null)
 						// Server may not include these fields, causing signature mismatch
 						const accountForSigning: AccountRequest = {
@@ -276,9 +275,6 @@ export const useAccountsStore = create<AccountsStore>()(
 						await response.json();
 
 						return true;
-					} catch (error) {
-						throw error;
-					}
 				},
 
 				// Fetch accounts from server

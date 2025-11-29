@@ -1,5 +1,6 @@
 import React, {
 	lazy,
+	startTransition,
 	Suspense,
 	useCallback,
 	useEffect,
@@ -21,7 +22,9 @@ import {
 	Activity,
 	ArrowRight,
 	BarChart3,
+	Coins,
 	Container,
+	DollarSign,
 	Github,
 	Info,
 	Lock,
@@ -30,6 +33,7 @@ import {
 	Search,
 	Send,
 	TrendingUp,
+	Wallet,
 	X,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -50,6 +54,10 @@ import { IndexDetail } from "@/apps/indexes/components/index-detail";
 import type { IndexCode } from "@/apps/indexes/types";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useTheme } from "@/hooks/use_theme";
+import { TokenListItem } from "./token-list-item";
+import { TokenDetailModal } from "./token-detail-modal";
+import { usePublicAssetList } from "@/hooks/use_public_asset_list";
+import { useAllTokenPrices } from "@/hooks/use_token_price";
 
 // Lazy load heavy components for better performance
 const NetworkStats = lazy(() =>
@@ -87,7 +95,7 @@ const DEFAULT_PUBLIC_SOCKET = "wss://beta.stels.dev";
 
 export function WelcomeAuthPage(): React.ReactElement {
 	const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
-	const [activeTab, setActiveTab] = useState<string>("indexes");
+	const [activeTab, setActiveTab] = useState<string>("tokens");
 	const {
 		isConnected: isAuthenticated,
 		connectionSession,
@@ -168,7 +176,7 @@ export function WelcomeAuthPage(): React.ReactElement {
 		// Public WebSocket will be closed automatically by useEffect
 	}, []);
 
-	// Get indexes data - optimized selectors
+	// Get indexes data - use separate selectors to avoid object recreation
 	const indexes = useIndexStore((state) => state.indexes);
 	const indexesKeysString = useIndexStore((state) => state._indexesKeysCache);
 	const setSelectedIndex = useIndexStore((state) => state.setSelectedIndex);
@@ -192,8 +200,11 @@ export function WelcomeAuthPage(): React.ReactElement {
 	// Handle index card click - open modal
 	const handleIndexClick = useCallback(
 		(indexCode: string): void => {
-			setSelectedIndex(indexCode as never);
-			setSelectedIndexForModal(indexCode as IndexCode);
+			// Use startTransition for non-critical UI updates
+			startTransition(() => {
+				setSelectedIndex(indexCode as never);
+				setSelectedIndexForModal(indexCode as IndexCode);
+			});
 		},
 		[setSelectedIndex],
 	);
@@ -230,7 +241,10 @@ export function WelcomeAuthPage(): React.ReactElement {
 
 	const handleMarketClick = useCallback(
 		(market: string, exchange: string): void => {
-			setSelectedMarket({ market, exchange });
+			// Use startTransition for non-critical UI updates
+			startTransition(() => {
+				setSelectedMarket({ market, exchange });
+			});
 		},
 		[],
 	);
@@ -238,6 +252,261 @@ export function WelcomeAuthPage(): React.ReactElement {
 	const handleCloseMarketModal = useCallback((): void => {
 		setSelectedMarket(null);
 	}, []);
+
+	// Token data and state
+	// Determine network ID for API call (lowercase)
+	const networkId = useMemo(() => {
+		if (isAuthenticated && connectionSession?.network) {
+			return connectionSession.network;
+		}
+		// For public connection, determine from socket URL
+		if (DEFAULT_PUBLIC_SOCKET.includes("beta.stels.dev")) {
+			return "testnet";
+		}
+		if (DEFAULT_PUBLIC_SOCKET.includes("mainnet.stels.io")) {
+			return "mainnet";
+		}
+		if (
+			DEFAULT_PUBLIC_SOCKET.includes("10.0.0.238") ||
+			DEFAULT_PUBLIC_SOCKET.includes("localhost")
+		) {
+			return "localnet";
+		}
+		return "testnet";
+	}, [isAuthenticated, connectionSession?.network]);
+
+	const { assets: tokens, loading: tokensLoading, error: tokensError } =
+		usePublicAssetList({
+			network: networkId,
+		});
+
+	// Get token prices from session - base prices
+	const baseTokenPrices = useAllTokenPrices(networkId);
+
+	// Get prices for all tokens dynamically
+	// Optimized: use ref to cache token symbols and prevent unnecessary recalculations
+	const tokenSymbolsRef = useRef<Set<string>>(new Set());
+	const tokenPrices = useMemo(() => {
+		const pricesMap = new Map<string, number>(baseTokenPrices);
+
+		// Build set of current token symbols
+		const currentSymbols = new Set<string>();
+		tokens.forEach((token) => {
+			const symbol = token.raw?.genesis?.token?.metadata?.symbol?.toUpperCase();
+			if (symbol) {
+				currentSymbols.add(symbol);
+			}
+		});
+
+		// Only recalculate if token symbols changed
+		const symbolsChanged =
+			tokenSymbolsRef.current.size !== currentSymbols.size ||
+			Array.from(currentSymbols).some((s) => !tokenSymbolsRef.current.has(s));
+
+		if (!symbolsChanged && tokenSymbolsRef.current.size > 0) {
+			// Symbols haven't changed, just update prices for existing symbols
+			Array.from(currentSymbols).forEach((symbol) => {
+				if (pricesMap.has(symbol)) return;
+
+				// For USDT, use fixed price of 1
+				if (symbol === "USDT") {
+					pricesMap.set(symbol, 1);
+					return;
+				}
+
+				// Try to get price from sessionStorage (only if not in baseTokenPrices)
+				const channelKey =
+					`${networkId}.runtime.ticker.${symbol}/USDT.bybit.spot`;
+				try {
+					const stored = sessionStorage.getItem(channelKey) ||
+						sessionStorage.getItem(channelKey.toLowerCase());
+
+					if (stored) {
+						const tickerData = JSON.parse(stored) as {
+							raw?: {
+								last?: number;
+							};
+						};
+
+						if (tickerData?.raw?.last !== undefined) {
+							pricesMap.set(symbol, tickerData.raw.last);
+						}
+					}
+				} catch {
+					// Error handled silently
+				}
+			});
+		} else {
+			// Symbols changed, recalculate all
+			tokenSymbolsRef.current = currentSymbols;
+
+			// Get prices for all token symbols from the tokens list
+			tokens.forEach((token) => {
+				const symbol = token.raw?.genesis?.token?.metadata?.symbol
+					?.toUpperCase();
+				if (!symbol || pricesMap.has(symbol)) return;
+
+				// For USDT, use fixed price of 1
+				if (symbol === "USDT") {
+					pricesMap.set(symbol, 1);
+					return;
+				}
+
+				// Try to get price from sessionStorage
+				const channelKey =
+					`${networkId}.runtime.ticker.${symbol}/USDT.bybit.spot`;
+				try {
+					const stored = sessionStorage.getItem(channelKey) ||
+						sessionStorage.getItem(channelKey.toLowerCase());
+
+					if (stored) {
+						const tickerData = JSON.parse(stored) as {
+							raw?: {
+								last?: number;
+							};
+						};
+
+						if (tickerData?.raw?.last !== undefined) {
+							pricesMap.set(symbol, tickerData.raw.last);
+						}
+					}
+				} catch {
+					// Error handled silently
+				}
+			});
+		}
+
+		return pricesMap;
+	}, [tokens, baseTokenPrices, networkId]);
+
+	const [selectedToken, setSelectedToken] = useState<typeof tokens[0] | null>(
+		null,
+	);
+	const [selectedTokenIndex, setSelectedTokenIndex] = useState<number | null>(
+		null,
+	);
+
+	const handleTokenClick = useCallback(
+		(token: typeof tokens[0], index: number): void => {
+			// Use startTransition for non-critical UI updates
+			startTransition(() => {
+				setSelectedToken(token);
+				setSelectedTokenIndex(index);
+			});
+		},
+		[],
+	);
+
+	const handleCloseTokenModal = useCallback((): void => {
+		setSelectedToken(null);
+		setSelectedTokenIndex(null);
+	}, []);
+
+	// Calculate network statistics - optimized with early returns and caching
+	const networkStats = useMemo(() => {
+		const validTokens = tokens.filter((token) => token.raw?.genesis?.token);
+
+		// Early return if no tokens
+		if (validTokens.length === 0) {
+			return {
+				totalMarketCap: 0,
+				totalTokens: 0,
+				tokensWithPrice: 0,
+				totalSupply: 0,
+				totalMaxSupply: 0,
+				averagePrice: null,
+			};
+		}
+
+		let totalMarketCap = 0;
+		let tokensWithPrice = 0;
+		let totalSupply = 0;
+		let totalMaxSupply = 0;
+		let totalSupplyWithPrice = 0; // For average price calculation
+
+		// Optimized loop with cached values
+		for (let i = 0; i < validTokens.length; i++) {
+			const token = validTokens[i];
+			const tokenData = token.raw?.genesis?.token;
+			if (!tokenData) continue;
+
+			const symbol = tokenData.metadata?.symbol?.toUpperCase() || "";
+			const price = symbol === "USDT" ? 1 : (tokenPrices.get(symbol) || null);
+			const initialSupply = parseFloat(
+				tokenData.economics?.supply?.initial || "0",
+			);
+			const maxSupply = parseFloat(
+				tokenData.economics?.supply?.max || "0",
+			);
+
+			if (price !== null && price > 0 && initialSupply > 0) {
+				const marketCap = initialSupply * price;
+				totalMarketCap += marketCap;
+				tokensWithPrice++;
+				totalSupplyWithPrice += initialSupply;
+			}
+
+			totalSupply += initialSupply;
+			totalMaxSupply += maxSupply;
+		}
+
+		const averagePrice = tokensWithPrice > 0 && totalSupplyWithPrice > 0
+			? totalMarketCap / totalSupplyWithPrice
+			: null;
+
+		return {
+			totalMarketCap,
+			totalTokens: validTokens.length,
+			tokensWithPrice,
+			totalSupply,
+			totalMaxSupply,
+			averagePrice,
+		};
+	}, [tokens, tokenPrices]);
+
+	// Memoize token list items with sorting by price (descending)
+	// Optimized: separate sorting from rendering, cache price lookups
+	const tokenListItems = useMemo(() => {
+		const validTokens = tokens.filter((token) => token.raw?.genesis?.token);
+
+		if (validTokens.length === 0) {
+			return [];
+		}
+
+		// Pre-compute prices for all tokens to avoid repeated map lookups
+		const tokensWithPrices = validTokens.map((token, index) => {
+			const symbol =
+				token.raw?.genesis?.token?.metadata?.symbol?.toUpperCase() || "";
+			const price = symbol === "USDT" ? 1 : (tokenPrices.get(symbol) || 0);
+			return {
+				token,
+				originalIndex: index,
+				symbol,
+				price,
+			};
+		});
+
+		// Sort tokens by price (descending), then by symbol
+		tokensWithPrices.sort((a, b) => {
+			if (a.price !== b.price) {
+				return b.price - a.price;
+			}
+			return a.symbol.localeCompare(b.symbol);
+		});
+
+		return tokensWithPrices.map(({ token, originalIndex, symbol, price }) => {
+			const displayPrice = symbol === "USDT" ? 1 : (price > 0 ? price : null);
+			return (
+				<TokenListItem
+					key={token.raw?.genesis?.token?.id || originalIndex}
+					token={token as never}
+					price={displayPrice}
+					isSelected={selectedTokenIndex === originalIndex}
+					onClick={() => handleTokenClick(token, originalIndex)}
+				/>
+			);
+		});
+	}, [tokens, tokenPrices, selectedTokenIndex, handleTokenClick]);
 
 	// Sync indexes data from sessionStorage
 	useIndexesSync();
@@ -407,6 +676,13 @@ export function WelcomeAuthPage(): React.ReactElement {
 								>
 									<TabsList className="w-full justify-start bg-muted/30 h-9 sm:h-10 overflow-x-auto">
 										<TabsTrigger
+											value="tokens"
+											className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 flex-shrink-0"
+										>
+											<Coins className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+											<span className="hidden sm:inline">Tokens</span>
+										</TabsTrigger>
+										<TabsTrigger
 											value="indexes"
 											className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 flex-shrink-0"
 										>
@@ -472,7 +748,16 @@ export function WelcomeAuthPage(): React.ReactElement {
 
 			{/* Scrollable Content Area */}
 			<div className="flex-1 overflow-y-auto min-h-0">
-				<Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
+				<Tabs
+					value={activeTab}
+					onValueChange={(value) => {
+						// Use startTransition for tab switching to keep UI responsive
+						startTransition(() => {
+							setActiveTab(value);
+						});
+					}}
+					className="h-full"
+				>
 					<div className="w-full max-w-[1920px] mx-auto p-4 sm:p-6">
 						{/* Indexes Tab - Only render when active */}
 						{activeTab === "indexes" && (
@@ -854,6 +1139,251 @@ export function WelcomeAuthPage(): React.ReactElement {
 							</TabsContent>
 						)}
 
+						{/* Tokens Tab - Only render when active */}
+						{activeTab === "tokens" && (
+							<TabsContent
+								value="tokens"
+								className="mt-0 space-y-6"
+							>
+								<motion.section
+									initial={{ opacity: 0, y: 20 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ duration: 0.5 }}
+									className="space-y-6"
+								>
+									{/* Header with description */}
+									<div className="space-y-2">
+										<div className="flex items-center justify-between">
+											<div className="flex items-center gap-3">
+												{isLoading || tokensLoading
+													? <Skeleton className="h-6 w-6 rounded" />
+													: <Coins className="h-6 w-6 text-primary" />}
+												{isLoading || tokensLoading
+													? <Skeleton className="h-8 w-40" />
+													: (
+														<h2 className="text-2xl font-bold text-foreground">
+															Tokens
+														</h2>
+													)}
+											</div>
+											{isLoading || tokensLoading
+												? <Skeleton className="h-5 w-20 rounded-full" />
+												: (
+													tokenListItems.length > 0 && (
+														<Badge variant="outline" className="text-xs">
+															{tokenListItems.length} active
+														</Badge>
+													)
+												)}
+										</div>
+										{isLoading || tokensLoading
+											? (
+												<div className="space-y-2">
+													<Skeleton className="h-4 w-full max-w-3xl" />
+													<Skeleton className="h-4 w-full max-w-2xl" />
+												</div>
+											)
+											: (
+												<p className="text-sm text-muted-foreground max-w-3xl leading-relaxed">
+													Real-time token information from STELS network. Browse
+													all available tokens with detailed economics,
+													distribution, and technical parameters. All data is
+													continuously updated as new tokens are registered on
+													the network.
+												</p>
+											)}
+									</div>
+
+									{/* Network Assets Overview */}
+									{!isLoading && !tokensLoading && !tokensError &&
+										networkStats.totalTokens > 0 && (
+										<motion.div
+											initial={{ opacity: 0, y: 20 }}
+											animate={{ opacity: 1, y: 0 }}
+											transition={{ duration: 0.5, delay: 0.1 }}
+											className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+										>
+											<Card className="bg-card/80 border-border">
+												<CardContent className="p-4">
+													<div className="flex items-center gap-3 mb-2">
+														<div className="p-2 bg-primary/10 rounded">
+															<DollarSign className="h-5 w-5 text-primary" />
+														</div>
+														<div className="flex-1 min-w-0">
+															<p className="text-xs text-muted-foreground uppercase tracking-wide">
+																Total Market Cap
+															</p>
+															<p className="text-xl sm:text-2xl font-bold text-foreground mt-1">
+																{networkStats.totalMarketCap > 0
+																	? new Intl.NumberFormat("en-US", {
+																		style: "currency",
+																		currency: "USD",
+																		minimumFractionDigits: 0,
+																		maximumFractionDigits: 0,
+																	}).format(networkStats.totalMarketCap)
+																	: "N/A"}
+															</p>
+														</div>
+													</div>
+													<p className="text-xs text-muted-foreground mt-2">
+														{networkStats.tokensWithPrice}{" "}
+														token{networkStats.tokensWithPrice === 1 ? "" : "s"}
+														{" "}
+														with price data
+													</p>
+												</CardContent>
+											</Card>
+
+											<Card className="bg-card/80 border-border">
+												<CardContent className="p-4">
+													<div className="flex items-center gap-3 mb-2">
+														<div className="p-2 bg-amber-500/10 rounded">
+															<Coins className="h-5 w-5 text-amber-500" />
+														</div>
+														<div className="flex-1 min-w-0">
+															<p className="text-xs text-muted-foreground uppercase tracking-wide">
+																Total Tokens
+															</p>
+															<p className="text-xl sm:text-2xl font-bold text-foreground mt-1">
+																{networkStats.totalTokens}
+															</p>
+														</div>
+													</div>
+													<p className="text-xs text-muted-foreground mt-2">
+														Active tokens on network
+													</p>
+												</CardContent>
+											</Card>
+
+											<Card className="bg-card/80 border-border">
+												<CardContent className="p-4">
+													<div className="flex items-center gap-3 mb-2">
+														<div className="p-2 bg-blue-500/10 rounded">
+															<Wallet className="h-5 w-5 text-blue-500" />
+														</div>
+														<div className="flex-1 min-w-0">
+															<p className="text-xs text-muted-foreground uppercase tracking-wide">
+																Total Supply
+															</p>
+															<p className="text-xl sm:text-2xl font-bold text-foreground mt-1">
+																{networkStats.totalSupply >= 1_000_000_000
+																	? `${
+																		(networkStats.totalSupply / 1_000_000_000)
+																			.toFixed(2)
+																	}B`
+																	: networkStats.totalSupply >= 1_000_000
+																	? `${
+																		(networkStats.totalSupply / 1_000_000)
+																			.toFixed(2)
+																	}M`
+																	: networkStats.totalSupply >= 1_000
+																	? `${
+																		(networkStats.totalSupply / 1_000).toFixed(
+																			2,
+																		)
+																	}K`
+																	: networkStats.totalSupply.toLocaleString()}
+															</p>
+														</div>
+													</div>
+													<p className="text-xs text-muted-foreground mt-2">
+														Initial supply across all tokens
+													</p>
+												</CardContent>
+											</Card>
+
+											<Card className="bg-card/80 border-border">
+												<CardContent className="p-4">
+													<div className="flex items-center gap-3 mb-2">
+														<div className="p-2 bg-green-500/10 rounded">
+															<TrendingUp className="h-5 w-5 text-green-500" />
+														</div>
+														<div className="flex-1 min-w-0">
+															<p className="text-xs text-muted-foreground uppercase tracking-wide">
+																Max Supply
+															</p>
+															<p className="text-xl sm:text-2xl font-bold text-foreground mt-1">
+																{networkStats.totalMaxSupply >= 1_000_000_000
+																	? `${
+																		(networkStats.totalMaxSupply /
+																			1_000_000_000).toFixed(2)
+																	}B`
+																	: networkStats.totalMaxSupply >= 1_000_000
+																	? `${
+																		(networkStats.totalMaxSupply / 1_000_000)
+																			.toFixed(2)
+																	}M`
+																	: networkStats.totalMaxSupply >= 1_000
+																	? `${
+																		(networkStats.totalMaxSupply / 1_000)
+																			.toFixed(2)
+																	}K`
+																	: networkStats.totalMaxSupply
+																		.toLocaleString()}
+															</p>
+														</div>
+													</div>
+													<p className="text-xs text-muted-foreground mt-2">
+														Maximum supply capacity
+													</p>
+												</CardContent>
+											</Card>
+										</motion.div>
+									)}
+
+									{isLoading || tokensLoading
+										? (
+											<Card>
+												<CardContent className="p-6 space-y-3">
+													{Array.from({ length: 6 }).map((_, i) => (
+														<Skeleton
+															key={i}
+															className="h-20 w-full rounded border border-border"
+														/>
+													))}
+												</CardContent>
+											</Card>
+										)
+										: tokensError
+										? (
+											<Card>
+												<CardContent className="p-8 text-center text-muted-foreground">
+													<Coins className="h-12 w-12 mx-auto mb-4 opacity-50" />
+													<p className="text-base font-medium mb-2">
+														Error loading tokens
+													</p>
+													<p className="text-sm">{tokensError}</p>
+												</CardContent>
+											</Card>
+										)
+										: tokenListItems.length > 0
+										? (
+											<Card>
+												<CardContent className="p-0">
+													<div className="space-y-2 p-4">
+														{tokenListItems}
+													</div>
+												</CardContent>
+											</Card>
+										)
+										: (
+											<Card>
+												<CardContent className="p-8 text-center text-muted-foreground">
+													<Coins className="h-12 w-12 mx-auto mb-4 opacity-50" />
+													<p className="text-base font-medium mb-2">
+														No tokens available
+													</p>
+													<p className="text-sm">
+														Token data will appear here once tokens are
+														registered on the network.
+													</p>
+												</CardContent>
+											</Card>
+										)}
+								</motion.section>
+							</TabsContent>
+						)}
+
 						{/* News Tab - Only render when active */}
 						{activeTab === "news" && (
 							<TabsContent
@@ -1034,6 +1564,24 @@ export function WelcomeAuthPage(): React.ReactElement {
 						</div>
 					</DialogContent>
 				</Dialog>
+			)}
+
+			{/* Token Detail Modal */}
+			{selectedToken && (
+				<TokenDetailModal
+					token={selectedToken as never}
+					price={(() => {
+						const symbol = selectedToken.raw?.genesis?.token?.metadata?.symbol
+							?.toUpperCase() || "";
+						return symbol === "USDT" ? 1 : (tokenPrices.get(symbol) || null);
+					})()}
+					open={!!selectedToken}
+					onOpenChange={(open) => {
+						if (!open) {
+							handleCloseTokenModal();
+						}
+					}}
+				/>
 			)}
 
 			{/* Authentication Dialog */}
