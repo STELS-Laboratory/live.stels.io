@@ -124,8 +124,7 @@ export function usePublishCertificate(): PublishState & {
 
         setPublishResult(successResult);
         return successResult;
-      } catch {
-
+      } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Failed to publish certificate";
         setPublishError(errorMessage);

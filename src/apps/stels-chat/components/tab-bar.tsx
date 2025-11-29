@@ -28,7 +28,7 @@ export function TabBar(): React.ReactElement {
   };
 
   const handleCloseTab = (
-    e: React.MouseEvent | React.TouchEvent | any,
+    e: React.MouseEvent | React.TouchEvent | React.KeyboardEvent,
     tabId: string,
   ): void => {
     e.stopPropagation();

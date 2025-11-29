@@ -163,7 +163,7 @@ const TypeStep = React.memo(function TypeStep(): React.ReactElement {
                           <img
                             src={cert.token.metadata.icon}
                             alt={cert.token.metadata.symbol}
-                            className="w-full h-full object-contain"
+                            className="w-[70%] h-[70%] object-contain"
                           />
                         )
                         : <Coins className="w-4 h-4 text-muted-foreground" />}
@@ -448,7 +448,7 @@ const MetadataStep = React.memo(function MetadataStep(): React.ReactElement {
                 <img
                   src={iconPreview}
                   alt="Icon preview"
-                  className="w-full h-full object-contain"
+                  className="w-[70%] h-[70%] object-contain"
                 />
               </div>
               <Button

@@ -23,7 +23,6 @@ import { WelcomeAuthPage } from "@/components/auth/welcome_auth_page";
 import { SecurityWarningDialog } from "@/components/auth/security_warning_dialog";
 import { SecurityWarningExtensions } from "@/components/auth/security_warning_extensions";
 import { SessionExpiredModal } from "@/components/auth/session_expired_modal";
-import { StorageScanDialog } from "@/components/auth/storage_scan_dialog";
 import UpdatePrompt from "@/components/main/update_prompt";
 import VersionCheckPrompt from "@/components/main/version_check_prompt";
 import ToastProvider from "@/components/main/toast_provider";
@@ -379,16 +378,16 @@ export default function Dashboard(): React.ReactElement {
 							});
 						});
 					}
-					const delay = getTransitionDelay("initializing", "scanning_storage");
-					await transitionToState("scanning_storage", delay, false);
+					// Skip storage scanning - go directly to hydrating
+					const delay = getTransitionDelay("initializing", "hydrating");
+					await transitionToState("hydrating", delay);
 					break;
 				}
 
 				case "scanning_storage": {
-					if (uiState.storageScanComplete) {
-						const delay = getTransitionDelay("scanning_storage", "hydrating");
-						await transitionToState("hydrating", delay);
-					}
+					// Skip storage scanning - go directly to hydrating
+					const delay = getTransitionDelay("scanning_storage", "hydrating");
+					await transitionToState("hydrating", delay);
 					break;
 				}
 
@@ -539,10 +538,6 @@ export default function Dashboard(): React.ReactElement {
 	const handleUpgradeComplete = useCallback((): void => {
 		setUpgrade(false);
 	}, [setUpgrade]);
-
-	const handleStorageScanComplete = useCallback((): void => {
-		setUIState((prev) => ({ ...prev, storageScanComplete: true }));
-	}, []);
 
 	/**
 	 * Get loading message based on current state
@@ -881,9 +876,8 @@ export default function Dashboard(): React.ReactElement {
 			return renderLoadingScreen(getStateMessage(appState));
 
 		case "scanning_storage":
-			return (
-				<StorageScanDialog onComplete={handleStorageScanComplete} />
-			);
+			// Skip storage scan dialog - show loading screen instead
+			return renderLoadingScreen(getStateMessage("hydrating"));
 
 		case "hydrating":
 		case "checking_session":

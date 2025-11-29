@@ -121,7 +121,7 @@ export function CertificateHistory({
                               <img
                                 src={cert.token.metadata.icon}
                                 alt={cert.token.metadata.symbol}
-                                className="w-full h-full object-contain"
+                                className="w-[70%] h-[70%] object-contain"
                               />
                             )
                             : (

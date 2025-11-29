@@ -143,7 +143,16 @@ export function useAllTokenPrices(
 	network?: string,
 ): Map<string, number> {
 	const { connectionSession } = useAuthStore();
-	const session = useSessionStoreSync() as Record<string, unknown> | null;
+	const sessionStore = useSessionStoreSync();
+	const session = sessionStore as Record<string, unknown> | null;
+	
+	// Manage polling lifecycle - start when hook is used, stop on unmount
+	React.useEffect(() => {
+		sessionStore.startPolling?.();
+		return () => {
+			sessionStore.stopPolling?.();
+		};
+	}, [sessionStore]);
 	const [prices, setPrices] = useState<Map<string, number>>(new Map());
 	const pricesRef = React.useRef<Map<string, number>>(new Map());
 	const stablePricesRef = React.useRef<Map<string, number>>(new Map());

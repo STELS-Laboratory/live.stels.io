@@ -2,7 +2,7 @@
  * Hook for loading asset list via HTTP POST request (public, no auth required)
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 
 // Asset data can be in two formats:
 // 1. Full format with raw.genesis (from session)
@@ -131,9 +131,6 @@ export function usePublicAssetList(
 				webfix: "1.0",
 				method: "assetList",
 				params: [network],
-				body: {
-					network: network,
-				},
 			};
 
 			const response = await fetch(apiUrl, {
@@ -173,10 +170,19 @@ export function usePublicAssetList(
 		}
 	}, [apiUrl, network]);
 
-	// Load asset list on mount
+	// Load asset list on mount and when network changes
+	// Use ref to prevent infinite loops
+	const fetchRef = useRef(false);
 	useEffect(() => {
-		fetchAssetList();
-	}, [fetchAssetList]);
+		// Only fetch once per network/apiUrl combination
+		if (!fetchRef.current) {
+			fetchRef.current = true;
+			fetchAssetList();
+		} else {
+			// Reset flag when network/apiUrl changes
+			fetchRef.current = false;
+		}
+	}, [network, apiUrl, fetchAssetList]);
 
 	return {
 		assets,

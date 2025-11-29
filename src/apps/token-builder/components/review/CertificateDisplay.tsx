@@ -31,15 +31,23 @@ export const CertificateDisplay = React.memo(
 
     const [isPublished, setIsPublished] = useState(false);
     const [autoPublishAttempted, setAutoPublishAttempted] = useState(false);
+    const lastPublishTimeRef = React.useRef<number>(0);
+    const [lastPublishTime, setLastPublishTime] = useState<number>(0);
 
-    // Auto-publish certificate immediately after creation
+    // Auto-publish certificate immediately after creation (with debouncing to prevent 429)
     useEffect(() => {
       if (
         certificate && isConnected && !isPublished && !autoPublishAttempted &&
         !isPublishing
       ) {
+        // Debounce: prevent publishing if last publish was less than 2 seconds ago
+        const now = Date.now();
+        if (now - lastPublishTime < 2000) {
+          return;
+        }
 
         setAutoPublishAttempted(true);
+        setLastPublishTime(now);
 
         publish(certificate)
           .then((result) => {
@@ -50,7 +58,6 @@ export const CertificateDisplay = React.memo(
                 `Token ${certificate.token.metadata.symbol} published to ${certificate.network.name}`,
               );
             } else {
-
               // Don't show error to user - they can manually publish
             }
           })
@@ -66,6 +73,7 @@ export const CertificateDisplay = React.memo(
       isPublishing,
       publish,
       showSuccess,
+      lastPublishTime,
     ]);
 
     // Don't show if no certificate
@@ -105,8 +113,18 @@ export const CertificateDisplay = React.memo(
     /**
      * Publish certificate to the network
      * Sends via WebFix setAsset method
+     * Includes debouncing to prevent 429 errors
      */
     const handlePublish = async (): Promise<void> => {
+      // Debounce: prevent publishing if last publish was less than 3 seconds ago
+      const now = Date.now();
+      if (now - lastPublishTimeRef.current < 3000) {
+        showError("Please wait 3 seconds before publishing again");
+        return;
+      }
+
+      lastPublishTimeRef.current = now;
+
       try {
         const result = await publish(certificate);
 
@@ -119,8 +137,7 @@ export const CertificateDisplay = React.memo(
         } else {
           showError(result.message);
         }
-      } catch {
-
+      } catch (error) {
         showError(
           error instanceof Error
             ? error.message
@@ -142,7 +159,7 @@ export const CertificateDisplay = React.memo(
                     <img
                       src={certificate.token.metadata.icon}
                       alt={certificate.token.metadata.symbol}
-                      className="w-full h-full object-contain"
+                      className="w-[70%] h-[70%] object-contain"
                     />
                   </div>
                 )}
