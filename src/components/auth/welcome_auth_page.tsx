@@ -554,7 +554,7 @@ export function WelcomeAuthPage(): React.ReactElement {
 									We are currently migrating and configuring the Beta Mainnet
 									network. The migration process will continue until{" "}
 									<span className="font-semibold text-foreground">
-										December 1, 2025
+										December 3, 2025
 									</span>
 									. During this period, you may experience temporary service
 									interruptions. We appreciate your patience.
