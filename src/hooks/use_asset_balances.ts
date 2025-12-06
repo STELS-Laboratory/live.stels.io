@@ -475,7 +475,7 @@ export function useAssetBalances(
 				setTotal(cached.length);
 			}
 		}
-	}, [params.address, params.network, connectionSession?.network, balances.length]);
+	}, [params.address, params.network, connectionSession?.network, balances.length, currentNetworkId]);
 	
 	// Track last fetch to prevent unnecessary refetches
 	const lastFetchRef = useRef<{

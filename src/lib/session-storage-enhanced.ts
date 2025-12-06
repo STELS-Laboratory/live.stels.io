@@ -3,8 +3,6 @@
  * Handles large data with IndexedDB fallback, compression, and TTL
  */
 
-import { getSessionStorageManager } from "./gui/ui";
-
 // Constants
 const SESSION_STORAGE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB (typical limit)
 const INDEXEDDB_DB_NAME = "session-storage-large";

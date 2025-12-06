@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { motion } from "framer-motion";
 import {
 	Activity,
 	Server,
@@ -15,16 +14,12 @@ import {
 	Users,
 	Target,
 	Timer,
-	Info,
 	Circle,
-	TrendingUp,
 	AlertTriangle,
 	BarChart3,
 	Database,
-	ChevronDown,
-	ChevronRight,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -215,7 +210,7 @@ export function NetworkStats(): React.ReactElement {
 		);
 	}
 
-	const { network, nodes, nodesNormalized, nodesToUse, totalNodes, totalMined, totalMinedSLI } = networkStats;
+	const { network, nodesNormalized, nodesToUse, totalNodes, totalMined, totalMinedSLI } = networkStats;
 
 	return (
 		<div className="w-full max-w-7xl mx-auto prose-professional space-y-8 pb-12">

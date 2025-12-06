@@ -23,7 +23,8 @@ export class CompatibilityStorageAdapter {
 	 */
 	public getData(
 		channel: string,
-		skipCache = false,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		_skipCache = false,
 	): Record<string, unknown> | null {
 		// Synchronous version for compatibility
 		// Note: This is less efficient, but maintains compatibility
@@ -105,7 +106,8 @@ export class CompatibilityStorageAdapter {
 	/**
 	 * Invalidate cache (compatible with SessionStorageManager.invalidateCache)
 	 */
-	public invalidateCache(channel: string): void {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	public invalidateCache(_channel: string): void {
 		// For compatibility, we'll trigger a re-read
 		// In the new system, cache is managed automatically
 	}

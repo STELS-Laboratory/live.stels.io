@@ -173,8 +173,9 @@ export function usePublicTransactions(
 		params.token_id,
 		params.status,
 		params.limit,
+		params.network,
+		currentNetworkId,
 		params.offset,
-		params.nodeType,
 	]);
 
 	return {

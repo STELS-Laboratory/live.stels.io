@@ -140,7 +140,6 @@ export function SmartTransactionDialog({
         return prev;
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [operations.length, open]);
 
   /**
@@ -195,7 +194,7 @@ export function SmartTransactionDialog({
             cmp: op.cmp,
             right: formatAmount(op.right),
           };
-        case "emit.event":
+        case "emit.event": {
           if (!op.kind) return null;
           let data: Record<string, unknown> | undefined;
           if (op.eventData) {
@@ -210,6 +209,7 @@ export function SmartTransactionDialog({
             kind: op.kind,
             ...(data && { data }),
           };
+        }
         default:
           return null;
       }

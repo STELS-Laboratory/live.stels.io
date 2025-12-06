@@ -182,7 +182,7 @@ export function usePublicBalance(
 		} finally {
 			setLoading(false);
 		}
-	}, [params.address, params.token_id, params.nodeType]);
+	}, [params.address, params.token_id, params.network, currentNetworkId]);
 
 	return {
 		balance,

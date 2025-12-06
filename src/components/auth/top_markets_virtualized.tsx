@@ -3,7 +3,7 @@
  * Example of using VirtualizedGrid for large market lists
  */
 
-import React, { useMemo } from "react";
+import React from "react";
 import { VirtualizedGrid } from "@/components/virtualized/virtualized_list";
 import type { MarketTickerData } from "./top_markets";
 

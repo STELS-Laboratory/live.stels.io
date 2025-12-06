@@ -401,7 +401,7 @@ function Welcome(): ReactElement {
         openAppImmediately();
       }
     }
-  }, [activeAppId, apps, selectedAppId, isLaunching, schemas, session]); // Add session for virtual schemas
+  }, [activeAppId, apps, selectedAppId, isLaunching, schemas, session, currentNetworkId]); // Add session for virtual schemas
 
   // Watch for app closure from tabs - if current app is closed, return to hub
   useEffect(() => {
@@ -464,7 +464,7 @@ function Welcome(): ReactElement {
     if (isLoading) {
       hasLoggedSessionAssetsRef.current = false;
     }
-  }, [isLoading, session]);
+  }, [isLoading, session, currentNetworkId]);
 
   // Filter static router schemas for Web Agents section
   // INCLUDE: widget.app.* (public default apps from public/schemas/)

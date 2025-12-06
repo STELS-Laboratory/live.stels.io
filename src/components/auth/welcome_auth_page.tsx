@@ -26,7 +26,6 @@ import {
 	Container,
 	DollarSign,
 	Github,
-	Info,
 	Lock,
 	Network,
 	Newspaper,
@@ -34,7 +33,6 @@ import {
 	Send,
 	TrendingUp,
 	Wallet,
-	X,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfessionalConnectionFlow } from "./professional_connection_flow";
@@ -535,10 +533,6 @@ export function WelcomeAuthPage(): React.ReactElement {
 	// Sync indexes data from sessionStorage
 	useIndexesSync();
 
-	// Migration banner state
-	const [isMigrationBannerVisible, setIsMigrationBannerVisible] = useState(
-		true,
-	);
 
 	return (
 		<div

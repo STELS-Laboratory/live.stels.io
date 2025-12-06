@@ -38,7 +38,6 @@ export function ChatTab({
 
   const isStreaming = lastMessage?.isStreaming ?? false;
   const lastMessageContent = lastMessage?.content ?? "";
-  const lastMessageThinking = lastMessage?.thinking ?? "";
 
   // Update streaming ref
   useEffect(() => {

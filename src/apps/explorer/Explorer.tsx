@@ -212,7 +212,7 @@ function DataExplorer({
 			window.removeEventListener("storage", handleStorageChange);
 			clearInterval(pollInterval);
 		};
-	}, [loadMarkets]);
+	}, [loadMarkets, currentNetworkId]);
 
 	// Get available markets
 	const availableMarkets = useMemo(() => markets, [markets]);

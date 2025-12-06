@@ -47,7 +47,7 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
 	);
 
 	// Track all channels that need to be subscribed to
-	const [subscribedChannels, setSubscribedChannels] = useState<Set<string>>(new Set());
+	const [, setSubscribedChannels] = useState<Set<string>>(new Set());
 
 	// Function to update merged data from session
 	const updateMergedData = useCallback(

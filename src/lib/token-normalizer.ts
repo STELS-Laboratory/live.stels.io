@@ -223,7 +223,7 @@ function getTokenId(raw: RawAssetData): string {
 	// Try to extract from channel
 	if (raw.channel) {
 		// Extract token ID from channel like "asset.testnet.token:sha256:..."
-		const tokenMatch = raw.channel.match(/token:([^\.]+)/);
+		const tokenMatch = raw.channel.match(/token:([^.]+)/);
 		if (tokenMatch) {
 			return tokenMatch[1];
 		}

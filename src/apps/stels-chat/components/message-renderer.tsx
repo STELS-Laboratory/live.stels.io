@@ -29,12 +29,6 @@ interface MessageRendererProps {
  * Modern JSON parser with balanced bracket matching
  * Supports objects, arrays, nested structures, and streaming JSON
  */
-interface ParseResult {
-  json: unknown;
-  remainingText: string;
-  startIndex: number;
-  endIndex: number;
-}
 
 /**
  * Find balanced JSON boundaries using stack-based bracket matching
@@ -189,55 +183,6 @@ function parseJsonFromText(text: string): {
   }
 
   return null;
-}
-
-/**
- * Parse multiple JSON objects from text
- * Returns array of parsed JSON objects with their positions
- */
-function parseMultipleJsonFromText(
-  text: string,
-): Array<{ json: unknown; start: number; end: number }> {
-  const results: Array<{ json: unknown; start: number; end: number }> = [];
-  let searchIndex = 0;
-
-  while (searchIndex < text.length) {
-    const objectStart = text.indexOf("{", searchIndex);
-    const arrayStart = text.indexOf("[", searchIndex);
-
-    let jsonStart = -1;
-    if (objectStart !== -1 && arrayStart !== -1) {
-      jsonStart = Math.min(objectStart, arrayStart);
-    } else if (objectStart !== -1) {
-      jsonStart = objectStart;
-    } else if (arrayStart !== -1) {
-      jsonStart = arrayStart;
-    } else {
-      break;
-    }
-
-    const boundaries = findJsonBoundaries(text, jsonStart);
-    if (!boundaries) {
-      searchIndex = jsonStart + 1;
-      continue;
-    }
-
-    const jsonCandidate = text.slice(boundaries.start, boundaries.end);
-    try {
-      let cleaned = jsonCandidate.replace(/,(\s*[}\]])/g, "$1");
-      const json = JSON.parse(cleaned);
-      results.push({
-        json,
-        start: boundaries.start,
-        end: boundaries.end,
-      });
-      searchIndex = boundaries.end;
-    } catch {
-      searchIndex = boundaries.end;
-    }
-  }
-
-  return results;
 }
 
 /**

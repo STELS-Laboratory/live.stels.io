@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useNetworkStore } from "@/stores/modules/network.store";
 import type { SonarTransaction } from "@/types/auth/types";
 

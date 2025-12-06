@@ -120,6 +120,10 @@ export function StakingMiningStats({
 	onBack,
 	onAddStaking,
 }: StakingMiningStatsProps): React.ReactElement | null {
+	// Determine default tab based on available data
+	const defaultTab = staking ? "staking" : "mining";
+	const [activeTab, setActiveTab] = useState<string>(defaultTab);
+
 	// Check if mining data exists and has meaningful values
 	// Show mining section if mining object exists, even if values are zero
 	const hasMiningData = mining !== null && mining !== undefined;
@@ -216,10 +220,6 @@ export function StakingMiningStats({
 			</motion.div>
 		);
 	}
-
-	// Determine default tab based on available data
-	const defaultTab = staking ? "staking" : "mining";
-	const [activeTab, setActiveTab] = useState<string>(defaultTab);
 
 	return (
 		<motion.div

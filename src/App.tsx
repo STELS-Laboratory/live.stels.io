@@ -345,7 +345,7 @@ export default function Dashboard(): React.ReactElement {
 				JSON.parse(privateStoreData)?.raw?.session || false;
 
 		return { authStoreData, privateStoreData, hasValidSession };
-	}, [isAuthenticated, isConnected]);
+	}, []);
 
 	// Update ref when session check changes
 	// This ensures we always have the latest session data

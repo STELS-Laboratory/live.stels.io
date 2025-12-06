@@ -23,7 +23,6 @@ import {
   ADDRESSING_SPEC,
   NETWORK_PARAMETERS,
   SECURITY_REQUIREMENTS,
-  TOKEN_SIGN_DOMAIN,
   ACTIVATION_DELAY_MS,
   TOKEN_SCHEMA_URL,
   AVAILABLE_NETWORKS,
@@ -124,7 +123,6 @@ export async function signTokenSchema(
   const addressing = ADDRESSING_SPEC;
   const parameters = NETWORK_PARAMETERS; // Always from constants (network parameters)
   const security = SECURITY_REQUIREMENTS; // Always from constants (network security)
-  const signDomain = TOKEN_SIGN_DOMAIN;
 
   // Prepare token data (signing view - user-defined token information)
   // CRITICAL: Set decimals based on token standard for genesis.json compliance

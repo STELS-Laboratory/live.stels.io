@@ -177,7 +177,7 @@ export function usePublicTransaction(
 		} finally {
 			setLoading(false);
 		}
-	}, [params.tx_hash, params.token_id, params.nodeType]);
+	}, [params.tx_hash, params.token_id, params.network, currentNetworkId]);
 
 	return {
 		transaction,

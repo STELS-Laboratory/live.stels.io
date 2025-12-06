@@ -485,6 +485,7 @@ export function SendTransactionDialog({
 			calculatedFee,
 			memo,
 			selectedTokenId,
+			selectedToken,
 			currentBalance,
 			refetchBalance,
 			createTransaction,

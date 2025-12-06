@@ -16,7 +16,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { FormattedNumber } from "@/components/ui/formatted-number";
 import { cn } from "@/lib/utils";
 import { useSonarTransactions } from "@/hooks/use-sonar-transactions";
-import type { SonarTransaction } from "@/types/auth/types";
 
 
 /**

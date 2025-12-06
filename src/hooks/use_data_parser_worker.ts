@@ -10,12 +10,6 @@ interface ParseOptions {
 	symbol?: string;
 }
 
-interface ParseResult<T> {
-	data: T | null;
-	loading: boolean;
-	error: string | null;
-}
-
 /**
  * Hook for parsing data using Web Worker
  */
@@ -63,12 +57,13 @@ export function useDataParserWorker<T = unknown>(): {
 			console.error("[DataParserWorker] Failed to create worker:", error);
 		}
 
+		const pendingRequests = pendingRequestsRef.current;
 		return () => {
 			if (workerRef.current) {
 				workerRef.current.terminate();
 				workerRef.current = null;
 			}
-			pendingRequestsRef.current.clear();
+			pendingRequests.clear();
 		};
 	}, []);
 

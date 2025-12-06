@@ -3,7 +3,7 @@
  * Efficiently renders large lists by only rendering visible items
  */
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import React, { useState, useRef, useMemo, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
 interface VirtualizedListProps<T> {
@@ -168,7 +168,6 @@ export function VirtualizedGrid<T>({
 	// Get visible items
 	const visibleItems = useMemo(() => {
 		const itemsList: Array<{ item: T; index: number; row: number; col: number }> = [];
-		const rows = Math.ceil(items.length / columns);
 
 		for (let row = visibleRange.startRow; row <= visibleRange.endRow; row++) {
 			for (let col = visibleRange.startCol; col <= visibleRange.endCol; col++) {
@@ -236,7 +235,7 @@ export function VirtualizedGrid<T>({
 						gridTemplateColumns: `repeat(${columns}, ${itemWidth}px)`,
 					}}
 				>
-					{visibleItems.map(({ item, index, row, col }) => (
+					{visibleItems.map(({ item, index }) => (
 						<div
 							key={getKey(item, index)}
 							style={{

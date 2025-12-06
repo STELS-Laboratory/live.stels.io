@@ -223,7 +223,7 @@ export function useAllTokenPrices(
 		pricesRef.current = priceMap;
 		
 		return priceMap;
-	}, [session, network, connectionSession?.network]);
+	}, [session, network, connectionSession?.network, currentNetworkId]);
 
 	// Throttle state updates - only update every 500ms max
 	React.useEffect(() => {
