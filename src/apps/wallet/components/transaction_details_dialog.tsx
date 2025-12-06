@@ -13,19 +13,20 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FormattedNumber } from "@/components/ui/formatted-number";
 import {
 	ArrowDownLeft,
 	ArrowUpRight,
+	Calendar,
 	Check,
 	CheckCircle2,
 	Clock,
-	Copy,
-	XCircle,
-	Hash,
-	Calendar,
-	Wallet,
 	Coins,
+	Copy,
 	FileText,
+	Hash,
+	Wallet,
+	XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TransactionResult } from "@/hooks/use_asset_transactions";
@@ -38,14 +39,6 @@ interface TransactionDetailsDialogProps {
 	transaction: TransactionResult | null;
 	address: string;
 	mobile?: boolean;
-}
-
-/**
- * Format transaction amount with decimals
- */
-function formatAmount(amount: string, decimals: number = 6): string {
-	const num = Number.parseFloat(amount);
-	return num.toFixed(decimals);
 }
 
 /**
@@ -93,11 +86,27 @@ export function TransactionDetailsDialog({
 	// Create map of token_id -> symbol for quick lookup
 	const tokenSymbolMap = useMemo(() => {
 		const map = new Map<string, string>();
-		if (assets) {
+		if (assets && assets.length > 0) {
 			assets.forEach((asset) => {
-				const tokenId = asset.raw.genesis.token.id;
-				const symbol = asset.raw.genesis.token.metadata.symbol;
-				map.set(tokenId.toLowerCase(), symbol);
+				// Skip genesis network documents
+				const isGenesisDoc = asset.channel?.includes(".genesis:") ||
+					(asset.raw?.genesis && !asset.raw.genesis.token &&
+						asset.raw.genesis.genesis);
+
+				if (isGenesisDoc) return;
+
+				// Support both formats: legacy (token.raw.genesis.token) and new (metadata directly)
+				const tokenId = asset.raw?.genesis?.token?.id ||
+					asset.id ||
+					asset.channel ||
+					"";
+				const symbol = asset.raw?.genesis?.token?.metadata?.symbol ||
+					asset.metadata?.symbol ||
+					"";
+
+				if (tokenId && symbol) {
+					map.set(tokenId.toLowerCase(), symbol);
+				}
 			});
 		}
 		return map;
@@ -110,7 +119,6 @@ export function TransactionDetailsDialog({
 			setTimeout(() => setCopiedField(null), 2000);
 			toast.success("Copied!", `${field} copied to clipboard`);
 		} catch {
-
 			toast.error("Copy failed", "Failed to copy to clipboard");
 		}
 	};
@@ -121,8 +129,7 @@ export function TransactionDetailsDialog({
 
 	const tx = transaction.transaction;
 	const isOutgoing = tx.from === address;
-	const tokenSymbol =
-		tokenSymbolMap.get(tx.token_id.toLowerCase()) ||
+	const tokenSymbol = tokenSymbolMap.get(tx.token_id.toLowerCase()) ||
 		tx.currency ||
 		"UNKNOWN";
 
@@ -139,7 +146,11 @@ export function TransactionDetailsDialog({
 		}
 	};
 
-	const getStatusBadgeVariant = (): "default" | "secondary" | "destructive" | "outline" => {
+	const getStatusBadgeVariant = ():
+		| "default"
+		| "secondary"
+		| "destructive"
+		| "outline" => {
 		switch (transaction.status) {
 			case "confirmed":
 				return "default";
@@ -162,11 +173,9 @@ export function TransactionDetailsDialog({
 			>
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
-						{isOutgoing ? (
-							<ArrowUpRight className="size-5 text-red-500" />
-						) : (
-							<ArrowDownLeft className="size-5 text-green-500" />
-						)}
+						{isOutgoing
+							? <ArrowUpRight className="size-5 text-red-500" />
+							: <ArrowDownLeft className="size-5 text-green-500" />}
 						Transaction Details
 					</DialogTitle>
 					<DialogDescription>
@@ -196,12 +205,23 @@ export function TransactionDetailsDialog({
 							<span>Amount</span>
 						</div>
 						<div className="pl-6">
-							<div className="text-2xl font-bold text-foreground">
-								{formatAmount(tx.amount, 6)} {tokenSymbol}
+							<div className="text-2xl font-bold text-foreground flex items-baseline gap-1">
+								<FormattedNumber
+									value={tx.amount}
+									decimals={6}
+									useGrouping={true}
+								/>{" "}
+								{tokenSymbol}
 							</div>
 							{tx.fee && (
-								<div className="text-sm text-muted-foreground mt-1">
-									Fee: {formatAmount(tx.fee, 6)} {tokenSymbol}
+								<div className="text-sm text-muted-foreground mt-1 flex items-baseline gap-1">
+									Fee:{" "}
+									<FormattedNumber
+										value={tx.fee}
+										decimals={6}
+										useGrouping={true}
+									/>{" "}
+									{tokenSymbol}
 								</div>
 							)}
 						</div>
@@ -223,14 +243,11 @@ export function TransactionDetailsDialog({
 									size="sm"
 									className="h-8 w-8 p-0"
 									onClick={() =>
-										handleCopy(isOutgoing ? tx.to : tx.from, "address")
-									}
+										handleCopy(isOutgoing ? tx.to : tx.from, "address")}
 								>
-									{copiedField === "address" ? (
-										<Check className="size-4" />
-									) : (
-										<Copy className="size-4" />
-									)}
+									{copiedField === "address"
+										? <Check className="size-4" />
+										: <Copy className="size-4" />}
 								</Button>
 							</div>
 						</div>
@@ -249,14 +266,11 @@ export function TransactionDetailsDialog({
 									size="sm"
 									className="h-8 w-8 p-0"
 									onClick={() =>
-										handleCopy(isOutgoing ? tx.from : tx.to, "address2")
-									}
+										handleCopy(isOutgoing ? tx.from : tx.to, "address2")}
 								>
-									{copiedField === "address2" ? (
-										<Check className="size-4" />
-									) : (
-										<Copy className="size-4" />
-									)}
+									{copiedField === "address2"
+										? <Check className="size-4" />
+										: <Copy className="size-4" />}
 								</Button>
 							</div>
 						</div>
@@ -278,11 +292,9 @@ export function TransactionDetailsDialog({
 								className="h-8 w-8 p-0"
 								onClick={() => handleCopy(transaction.tx_hash, "hash")}
 							>
-								{copiedField === "hash" ? (
-									<Check className="size-4" />
-								) : (
-									<Copy className="size-4" />
-								)}
+								{copiedField === "hash"
+									? <Check className="size-4" />
+									: <Copy className="size-4" />}
 							</Button>
 						</div>
 					</div>
@@ -350,11 +362,9 @@ export function TransactionDetailsDialog({
 										className="h-7 w-7 p-0"
 										onClick={() => handleCopy(tx.token_id, "token_id")}
 									>
-										{copiedField === "token_id" ? (
-											<Check className="size-3" />
-										) : (
-											<Copy className="size-3" />
-										)}
+										{copiedField === "token_id"
+											? <Check className="size-3" />
+											: <Copy className="size-3" />}
 									</Button>
 								</div>
 							</div>
@@ -387,11 +397,9 @@ export function TransactionDetailsDialog({
 											className="h-7 w-7 p-0"
 											onClick={() => handleCopy(tx.prev_hash!, "prev_hash")}
 										>
-											{copiedField === "prev_hash" ? (
-												<Check className="size-3" />
-											) : (
-												<Copy className="size-3" />
-											)}
+											{copiedField === "prev_hash"
+												? <Check className="size-3" />
+												: <Copy className="size-3" />}
 										</Button>
 									</div>
 								</div>
@@ -420,14 +428,11 @@ export function TransactionDetailsDialog({
 												size="sm"
 												className="h-6 w-6 p-0"
 												onClick={() =>
-													handleCopy(sig.sig, `signature_${index}`)
-												}
+													handleCopy(sig.sig, `signature_${index}`)}
 											>
-												{copiedField === `signature_${index}` ? (
-													<Check className="size-3" />
-												) : (
-													<Copy className="size-3" />
-												)}
+												{copiedField === `signature_${index}`
+													? <Check className="size-3" />
+													: <Copy className="size-3" />}
 											</Button>
 										</div>
 										<div className="space-y-1">
@@ -468,11 +473,9 @@ export function TransactionDetailsDialog({
 											className="h-6 w-6 p-0"
 											onClick={() => handleCopy(key, `pool_key_${index}`)}
 										>
-											{copiedField === `pool_key_${index}` ? (
-												<Check className="size-3" />
-											) : (
-												<Copy className="size-3" />
-											)}
+											{copiedField === `pool_key_${index}`
+												? <Check className="size-3" />
+												: <Copy className="size-3" />}
 										</Button>
 									</div>
 								))}

@@ -3,6 +3,7 @@ import { devtools, persist } from 'zustand/middleware';
 import { createWallet, importWallet, createSignedTransaction, getUncompressedPublicKey } from '@/lib/gliesereum';
 import { clearAllStorage, clearAppStorage } from '@/lib/storage-cleaner';
 import { useWebSocketStore } from '@/hooks/use_web_socket_store';
+import { NETWORK_CONFIGS, useNetworkStore } from './network.store';
 import type {
 	NetworkConfig,
 	ConnectionSession,
@@ -18,36 +19,6 @@ export type {
 	AuthActions,
 	AuthStore,
 };
-
-/**
- * Default network configurations
- */
-const DEFAULT_NETWORKS: NetworkConfig[] = [
-	{
-		id: 'testnet',
-		name: 'Localnet',
-		api: 'http://10.0.0.238:8088',
-		socket: 'ws://10.0.0.238:8088',
-		developer: true,
-		description: 'Development and testing network'
-	},
-	{
-		id: 'testnet',
-		name: 'Testnet',
-		api: 'https://beta.stels.dev',
-		socket: 'wss://beta.stels.dev',
-		developer: false,
-		description: 'Testnet network'
-	},
-	{
-		id: 'mainnet',
-		name: 'Beta Mainnet',
-		api: 'https://mainnet.stels.io',
-		socket: 'wss://mainnet.stels.io',
-		developer: false,
-		description: 'Mainnet Beta Network'
-	}
-];
 
 /**
  * Generate unique node ID
@@ -67,7 +38,7 @@ export const useAuthStore = create<AuthStore>()(
 		wallet: null,
 		isWalletCreated: false,
 		selectedNetwork: null,
-		availableNetworks: DEFAULT_NETWORKS,
+		availableNetworks: Object.values(NETWORK_CONFIGS),
 		isConnected: false,
 		isConnecting: false,
 		connectionSession: null,
@@ -143,6 +114,10 @@ export const useAuthStore = create<AuthStore>()(
 				},
 				
 				selectNetwork: (network: NetworkConfig) => {
+					// Update network store
+					const networkStore = useNetworkStore.getState();
+					networkStore.setNetwork(network.id);
+					
 					set({ 
 						selectedNetwork: network,
 						showNetworkSelector: false,
@@ -420,6 +395,14 @@ export const useAuthStore = create<AuthStore>()(
 						} catch {
 							// Fallback error handled
 						}
+					}
+
+					// 4. Navigate to welcome page after logout
+					try {
+						const { navigateTo } = await import('@/lib/router');
+						navigateTo('welcome');
+					} catch {
+						// Navigation error handled silently
 					}
 
 				}

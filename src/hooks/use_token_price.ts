@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuthStore } from "@/stores";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import useSessionStoreSync from "@/hooks/use_session_store_sync";
 
 /**
@@ -61,6 +62,7 @@ export function useTokenPrice(
 	const [error, setError] = useState<string | null>(null);
 
 	const { connectionSession } = useAuthStore();
+	const { currentNetworkId } = useNetworkStore();
 	const session = useSessionStoreSync() as Record<string, unknown> | null;
 
 	const fetchPrice = useCallback((): void => {
@@ -69,7 +71,7 @@ export function useTokenPrice(
 			return;
 		}
 
-		const network = params.network || connectionSession?.network || "testnet";
+		const network = params.network || connectionSession?.network || currentNetworkId;
 		const symbol = params.symbol.toUpperCase();
 
 		// Build ticker channel key
@@ -112,7 +114,7 @@ export function useTokenPrice(
 			setLoading(false);
 
 		}
-	}, [params.symbol, params.network, connectionSession?.network, session]);
+	}, [params.symbol, params.network, connectionSession?.network, currentNetworkId, session]);
 
 	useEffect(() => {
 		setLoading(true);
@@ -143,6 +145,7 @@ export function useAllTokenPrices(
 	network?: string,
 ): Map<string, number> {
 	const { connectionSession } = useAuthStore();
+	const { currentNetworkId } = useNetworkStore();
 	const sessionStore = useSessionStoreSync();
 	const session = sessionStore as Record<string, unknown> | null;
 	
@@ -161,7 +164,7 @@ export function useAllTokenPrices(
 
 	// Use useMemo to debounce and only update when prices actually change
 	const pricesMap = React.useMemo(() => {
-		const networkName = network || connectionSession?.network || "testnet";
+		const networkName = network || connectionSession?.network || currentNetworkId;
 		const priceMap = new Map<string, number>();
 
 		// Common token symbols to check

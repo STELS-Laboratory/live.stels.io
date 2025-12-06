@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuthStore } from "@/stores";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import {
 	getCachedBalances,
 	setCachedBalances,
@@ -25,6 +26,10 @@ export interface AssetBalanceItem {
 	total_sent: string;
 	total_fees: string;
 	transaction_count: number;
+	mined?: string;
+	mined_sli?: string;
+	total_balance?: string; // Raw total balance (balance + mined)
+	total_balance_sli?: string; // Human-readable total balance (balance + mined)
 }
 
 /**
@@ -107,6 +112,43 @@ export interface RecentTransaction {
 }
 
 /**
+ * Staking data structure
+ */
+export interface StakingData {
+	amount: string;
+	amount_sli: string;
+	locked_until: string;
+	locked_until_date: string;
+	is_locked: boolean;
+	min_stake: string;
+	min_stake_sli: string;
+	is_notary: boolean;
+}
+
+/**
+ * Mining reward history item
+ */
+export interface MiningRewardHistory {
+	epoch: number;
+	amount: string;
+	amount_sli: string;
+	operation_count: number;
+	rating_score: number;
+	vrf_modifier: number;
+	timestamp: number;
+}
+
+/**
+ * Mining data structure
+ */
+export interface MiningData {
+	total_mined: string;
+	total_mined_sli: string;
+	last_reward_epoch: number;
+	rewards_history?: MiningRewardHistory[];
+}
+
+/**
  * All balances response structure
  */
 export interface AssetBalancesResponse {
@@ -119,6 +161,8 @@ export interface AssetBalancesResponse {
 	accounts?: AccountValue[];
 	assets?: AssetRecord[];
 	recent_transactions?: RecentTransaction[];
+	staking?: StakingData;
+	mining?: MiningData;
 }
 
 /**
@@ -140,6 +184,8 @@ export interface UseAssetBalancesReturn {
 	accounts: AccountValue[];
 	assets: AssetRecord[];
 	recentTransactions: RecentTransaction[];
+	staking: StakingData | null;
+	mining: MiningData | null;
 	refetch: () => Promise<void>;
 }
 
@@ -152,8 +198,9 @@ export function useAssetBalances(
 ): UseAssetBalancesReturn {
 	const { connectionSession, isAuthenticated, isConnected } = useAuthStore();
 	
-	// Initialize from global cache if available
-	const network = params.network || connectionSession?.network || "testnet";
+	// Get network from params, connection session, or network store
+	const { currentNetworkId } = useNetworkStore();
+	const network = params.network || connectionSession?.network || currentNetworkId;
 	const cacheKey = params.address ? `${params.address}-${network}` : "";
 	const cachedData = cacheKey ? getCachedBalances(params.address, network) : null;
 	
@@ -166,6 +213,8 @@ export function useAssetBalances(
 	const [accounts, setAccounts] = useState<AccountValue[]>([]);
 	const [assets, setAssets] = useState<AssetRecord[]>([]);
 	const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([]);
+	const [staking, setStaking] = useState<StakingData | null>(null);
+	const [mining, setMining] = useState<MiningData | null>(null);
 
 	// Use refs to track stable values for connectionSession
 	const connectionSessionRef = useRef(connectionSession);
@@ -248,44 +297,95 @@ export function useAssetBalances(
 			const data: {
 				result?: AssetBalancesResponse | {
 					success: boolean;
+					balances?: Array<{
+						// Channel format (new API format)
+						channel?: string;
+						module?: string;
+						widget?: string;
+						raw?: {
+							genesis?: {
+								token?: {
+									id?: string;
+									metadata?: {
+										symbol?: string;
+										decimals?: number;
+										[key: string]: unknown;
+									};
+									[key: string]: unknown;
+								};
+								[key: string]: unknown;
+							};
+							balance?: string;
+							symbol?: string;
+							address?: string;
+							timestamp?: number;
+							[key: string]: unknown;
+						};
+						timestamp?: number;
+						// Simple format (legacy)
+						token_id?: string;
+						balance?: string;
+						decimals?: number;
+						currency?: string;
+						symbol?: string;
+						initial_balance?: string;
+						total_received?: string;
+						total_sent?: string;
+						total_fees?: string;
+						transaction_count?: number;
+						mined?: string;
+						mined_sli?: string;
+						total_balance?: string;
+						total_balance_sli?: string;
+					}>;
+					address?: string;
+					network?: string;
+					total?: number;
+					timestamp?: number;
+					accounts?: AccountValue[];
+					assets?: AssetRecord[];
+					recent_transactions?: RecentTransaction[];
+					staking?: StakingData;
+					mining?: MiningData;
 					[key: string]: unknown;
 				};
 			} = await response.json();
 
 			if (data.result) {
-				// Handle both response formats
-				// Format 1: {result: AssetBalancesResponse}
-				// Format 2: {result: {success: true, balances: ..., total: ..., ...}}
+				// Handle both response formats according to updated API documentation
+				// Format 1: {result: {success: true, balances: [{channel, module, raw: {...}}, ...], ...}}
+				// Format 2: {result: AssetBalancesResponse} (legacy format)
 				if ("success" in data.result && data.result.success) {
-					// Format 2: Extract balances from result
-					const balancesResult = data.result as {
-						success: boolean;
-						address: string;
-						network: string;
-						balances?: Array<{
-							token_id: string;
-							balance: string;
-							decimals?: number;
-							currency?: string;
-							symbol?: string;
-							initial_balance?: string;
-							total_received?: string;
-							total_sent?: string;
-							total_fees?: string;
-							transaction_count?: number;
-						}>;
-						total?: number;
-						timestamp?: number;
-						accounts?: AccountValue[];
-						assets?: AssetRecord[];
-						recent_transactions?: RecentTransaction[];
-						[key: string]: unknown;
-					};
+					// Format 1: Extract balances from result - handle both channel format and simple format
+					const balancesResult = data.result;
+					const rawBalances = balancesResult.balances || [];
 
-					const balancesData: AssetBalanceItem[] =
-						balancesResult.balances?.map((balance) => ({
-							token_id: balance.token_id,
-							balance: balance.balance,
+					const balancesData: AssetBalanceItem[] = rawBalances.map((balance) => {
+						// Check if it's channel format (new API format)
+						if (balance.channel && balance.raw) {
+							const tokenId = balance.raw.genesis?.token?.id || "";
+							const symbol = balance.raw.symbol || balance.raw.genesis?.token?.metadata?.symbol || "";
+							const decimals = balance.raw.genesis?.token?.metadata?.decimals ?? 6;
+							const balanceValue = balance.raw.balance || "0";
+
+							return {
+								token_id: tokenId,
+								balance: balanceValue,
+								decimals,
+								currency: symbol,
+								symbol,
+								initial_balance: "0",
+								total_received: "0",
+								total_sent: "0",
+								total_fees: "0",
+								transaction_count: 0,
+							};
+						}
+
+						// Simple format (legacy)
+						return {
+							token_id: balance.token_id || "",
+							balance: balance.balance || "0",
 							decimals: balance.decimals ?? 6,
 							currency: balance.currency || "",
 							symbol: balance.symbol || "",
@@ -294,7 +394,12 @@ export function useAssetBalances(
 							total_sent: balance.total_sent || "0",
 							total_fees: balance.total_fees || "0",
 							transaction_count: balance.transaction_count || 0,
-						})) || [];
+							mined: balance.mined,
+							mined_sli: balance.mined_sli,
+							total_balance: (balance as { total_balance?: string }).total_balance,
+							total_balance_sli: (balance as { total_balance_sli?: string }).total_balance_sli,
+						};
+					});
 
 					// Update global cache and state
 					// Add timestamp to cached items
@@ -311,6 +416,8 @@ export function useAssetBalances(
 					setAccounts(balancesResult.accounts || []);
 					setAssets(balancesResult.assets || []);
 					setRecentTransactions(balancesResult.recent_transactions || []);
+					setStaking(balancesResult.staking || null);
+					setMining(balancesResult.mining || null);
 
 				} else if ("balances" in data.result) {
 					// Format 1: Direct AssetBalancesResponse
@@ -330,6 +437,8 @@ export function useAssetBalances(
 					setAccounts(balancesResponse.accounts || []);
 					setAssets(balancesResponse.assets || []);
 					setRecentTransactions(balancesResponse.recent_transactions || []);
+					setStaking(balancesResponse.staking || null);
+					setMining(balancesResponse.mining || null);
 
 				} else {
 					throw new Error("Invalid response format");
@@ -359,7 +468,7 @@ export function useAssetBalances(
 		if (balances.length === 0 && params.address) {
 			const cached = getCachedBalances(
 				params.address,
-				params.network || connectionSession?.network || "testnet",
+				params.network || connectionSession?.network || currentNetworkId,
 			);
 			if (cached && cached.length > 0) {
 				setBalances(cached);
@@ -424,6 +533,8 @@ export function useAssetBalances(
 		accounts,
 		assets,
 		recentTransactions,
+		staking,
+		mining,
 		refetch: fetchBalances,
 	};
 }

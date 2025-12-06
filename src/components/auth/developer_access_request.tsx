@@ -81,8 +81,9 @@ export function DeveloperAccessRequestDialog({
         body: JSON.stringify({
           webfix: "1.0",
           method: "requestDeveloperAccess",
-          params: [],
+          params: [connectionSession.network],
           body: {
+            reason: "Development access request",
             transaction: signedTransaction,
             walletAddress: wallet.address,
             publicKey: wallet.publicKey,

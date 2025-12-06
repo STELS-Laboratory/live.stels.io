@@ -470,6 +470,57 @@ export const useStelsChatStore = create<StelsChatStore>()(
                   }
                 : undefined;
 
+              // Throttle state updates to prevent UI blocking
+              let lastUpdateTime = 0;
+              let pendingUpdate: {
+                content?: string;
+                thinking?: string;
+                isStreaming?: boolean;
+              } | null = null;
+              let updateTimeout: NodeJS.Timeout | null = null;
+              const THROTTLE_MS = 50; // Update at most every 50ms
+
+              const flushPendingUpdate = (): void => {
+                if (pendingUpdate) {
+                  get().updateStreamingMessage(tabId, streamingMessageId, pendingUpdate);
+                  pendingUpdate = null;
+                  lastUpdateTime = Date.now();
+                }
+                if (updateTimeout) {
+                  clearTimeout(updateTimeout);
+                  updateTimeout = null;
+                }
+              };
+
+              const scheduleUpdate = (
+                updates: {
+                  content?: string;
+                  thinking?: string;
+                  isStreaming?: boolean;
+                },
+              ): void => {
+                const now = Date.now();
+                const timeSinceLastUpdate = now - lastUpdateTime;
+
+                // Merge with pending update
+                pendingUpdate = {
+                  content: updates.content ?? pendingUpdate?.content,
+                  thinking: updates.thinking ?? pendingUpdate?.thinking,
+                  isStreaming: updates.isStreaming ?? pendingUpdate?.isStreaming,
+                };
+
+                // Update immediately if enough time has passed
+                if (timeSinceLastUpdate >= THROTTLE_MS) {
+                  flushPendingUpdate();
+                } else if (!updateTimeout) {
+                  // Schedule update after throttle delay
+                  const delay = THROTTLE_MS - timeSinceLastUpdate;
+                  updateTimeout = setTimeout(() => {
+                    flushPendingUpdate();
+                  }, delay);
+                }
+              };
+
               for await (const chunk of service.streamChat(
                 tab.model,
                 apiMessages,
@@ -480,13 +531,13 @@ export const useStelsChatStore = create<StelsChatStore>()(
                 // - New format: chunk.message.content
                 if (chunk.response) {
                   fullResponse += chunk.response;
-                  get().updateStreamingMessage(tabId, streamingMessageId, {
+                  scheduleUpdate({
                     content: fullResponse,
                     isStreaming: !chunk.done,
                   });
                 } else if (chunk.message?.content) {
                   fullResponse += chunk.message.content;
-                  get().updateStreamingMessage(tabId, streamingMessageId, {
+                  scheduleUpdate({
                     content: fullResponse,
                     isStreaming: !chunk.done,
                   });
@@ -495,19 +546,25 @@ export const useStelsChatStore = create<StelsChatStore>()(
                 // Handle thinking
                 if (chunk.message?.thinking) {
                   fullThinking += chunk.message.thinking;
-                  get().updateStreamingMessage(tabId, streamingMessageId, {
+                  scheduleUpdate({
                     thinking: fullThinking,
                     isStreaming: !chunk.done,
                   });
                 }
 
                 if (chunk.done) {
-                  // Mark as complete
+                  // Flush any pending updates and mark as complete
+                  flushPendingUpdate();
                   get().updateStreamingMessage(tabId, streamingMessageId, {
                     isStreaming: false,
                   });
                   break;
                 }
+              }
+
+              // Cleanup
+              if (updateTimeout) {
+                clearTimeout(updateTimeout);
               }
 
               set({ isLoading: false });

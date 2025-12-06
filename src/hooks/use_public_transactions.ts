@@ -4,6 +4,7 @@
  */
 
 import { useState, useCallback } from "react";
+import { useNetworkStore } from "@/stores/modules/network.store";
 
 /**
  * Asset transaction structure
@@ -78,24 +79,12 @@ export interface UsePublicTransactionsReturn {
 }
 
 /**
- * Default API URL for public requests
+ * Get API URL from network store
  */
-const DEFAULT_NETWORK = "testnet";
-
-/**
- * Get API URL based on node type selection
- * Network parameter is always "testnet" as per API requirements
- */
-function getApiUrl(_network: string, nodeType?: string): string {
-	// Check localStorage for node type if not provided
-	if (typeof window !== "undefined" && !nodeType) {
-		nodeType = localStorage.getItem("explorer_node") || "testnet";
-	}
-	
-	if (nodeType === "local") {
-		return "http://10.0.0.238:8088/";
-	}
-	return "https://beta.stels.dev/";
+function getApiUrl(networkId: string): string {
+	const networkStore = useNetworkStore.getState();
+	const network = networkStore.getNetwork(networkId);
+	return network ? `${network.api}/` : "http://10.0.0.238:8088/";
 }
 
 /**
@@ -109,6 +98,7 @@ export function usePublicTransactions(
 	const [error, setError] = useState<string | null>(null);
 	const [total, setTotal] = useState<number>(0);
 	const [hasSearched, setHasSearched] = useState<boolean>(false);
+	const { currentNetworkId } = useNetworkStore();
 
 	const fetchTransactions = useCallback(async (): Promise<void> => {
 		if (!params.address || params.address.trim().length === 0) {
@@ -116,12 +106,9 @@ export function usePublicTransactions(
 			return;
 		}
 
-		// Network parameter is always "testnet" as per API requirements
-		const network = DEFAULT_NETWORK;
-		
-		// Get node type from localStorage or params
-		const nodeType = params.nodeType || (typeof window !== "undefined" ? localStorage.getItem("explorer_node") || "testnet" : "testnet");
-		const apiUrl = getApiUrl(network, nodeType);
+		// Use network from params or current network from store
+		const network = params.network || currentNetworkId;
+		const apiUrl = getApiUrl(network);
 
 		setLoading(true);
 		setError(null);

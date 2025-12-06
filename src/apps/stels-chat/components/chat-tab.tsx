@@ -77,73 +77,94 @@ export function ChatTab({
     [isActive],
   );
 
-  // Scroll on message changes
+  // Optimized scroll handling - throttle updates during streaming
   useEffect(() => {
-    if (isActive) {
-      // Small delay to ensure DOM is updated
-      const timeoutId = setTimeout(() => {
-        scrollToBottom();
-      }, 10);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [isActive, tab.messages.length, lastMessage?.id, scrollToBottom]);
+    if (!isActive) return;
 
-  // Scroll on content updates during streaming
-  useEffect(() => {
-    if (isActive && isStreaming) {
-      // Use requestAnimationFrame for smooth updates during streaming
-      const rafId = requestAnimationFrame(() => {
-        scrollToBottom(true);
-      });
-      return () => cancelAnimationFrame(rafId);
+    let rafId: number | null = null;
+    let lastScrollTime = 0;
+    const SCROLL_THROTTLE_MS = 100; // Scroll at most every 100ms during streaming
+
+    const handleScroll = (): void => {
+      const now = Date.now();
+      if (isStreaming) {
+        // During streaming, throttle scroll updates
+        if (now - lastScrollTime >= SCROLL_THROTTLE_MS) {
+          scrollToBottom(true);
+          lastScrollTime = now;
+        } else {
+          // Schedule scroll for later
+          if (!rafId) {
+            rafId = requestAnimationFrame(() => {
+              rafId = null;
+              if (isStreamingRef.current) {
+                scrollToBottom(true);
+                lastScrollTime = Date.now();
+              }
+            });
+          }
+        }
+      } else {
+        // When not streaming, scroll immediately
+        scrollToBottom(false);
+        lastScrollTime = now;
+      }
+    };
+
+    // Initial scroll
+    const timeoutId = setTimeout(handleScroll, 10);
+
+    // Watch for content changes during streaming
+    if (isStreaming && lastMessageRef.current) {
+      const scrollElement = (scrollRef.current?.querySelector(
+        "[data-slot='scroll-area-viewport']",
+      ) as HTMLElement) ||
+        (scrollRef.current?.querySelector(
+          "[data-radix-scroll-area-viewport]",
+        ) as HTMLElement);
+
+      if (scrollElement) {
+        // Use throttled MutationObserver
+        const observer = new MutationObserver(() => {
+          if (isStreamingRef.current) {
+            const now = Date.now();
+            if (now - lastScrollTime >= SCROLL_THROTTLE_MS) {
+              scrollElement.scrollTop = scrollElement.scrollHeight;
+              lastScrollTime = now;
+            }
+          }
+        });
+
+        observer.observe(lastMessageRef.current, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+        });
+
+        return () => {
+          observer.disconnect();
+          clearTimeout(timeoutId);
+          if (rafId) {
+            cancelAnimationFrame(rafId);
+          }
+        };
+      }
     }
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+    };
   }, [
     isActive,
     isStreaming,
+    tab.messages.length,
+    lastMessage?.id,
     lastMessageContent,
-    lastMessageThinking,
     scrollToBottom,
   ]);
-
-  // Use MutationObserver to track DOM changes during streaming
-  useEffect(() => {
-    if (!isActive || !isStreaming) return;
-
-    const scrollElement = (scrollRef.current?.querySelector(
-      "[data-slot='scroll-area-viewport']",
-    ) as HTMLElement) ||
-      (scrollRef.current?.querySelector(
-        "[data-radix-scroll-area-viewport]",
-      ) as HTMLElement);
-
-    if (!scrollElement || !lastMessageRef.current) return;
-
-    // Create observer to watch for content changes
-    const observer = new MutationObserver(() => {
-      if (isStreamingRef.current) {
-        scrollElement.scrollTop = scrollElement.scrollHeight;
-      }
-    });
-
-    // Observe the last message element for changes
-    observer.observe(lastMessageRef.current, {
-      childList: true,
-      subtree: true,
-      characterData: true,
-    });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [isActive, isStreaming, lastMessage?.id]);
-
-  // Scroll when streaming state changes
-  useEffect(() => {
-    if (isActive && !isStreaming && isStreamingRef.current) {
-      // Just finished streaming - scroll to bottom
-      setTimeout(() => scrollToBottom(false), 100);
-    }
-  }, [isActive, isStreaming, scrollToBottom]);
 
   return (
     <div

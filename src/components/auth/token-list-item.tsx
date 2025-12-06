@@ -8,39 +8,10 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Coins } from "lucide-react";
-
-interface TokenData {
-	raw: {
-		genesis: {
-			token: {
-				id: string;
-				metadata: {
-					name: string;
-					symbol: string;
-					decimals: number;
-					description?: string;
-					icon?: string;
-				};
-				economics: {
-					supply: {
-						initial: string;
-						mintingPolicy: string;
-						max: string;
-					};
-					distribution?: Array<{
-						address: string;
-						amount: string;
-					}>;
-				};
-				standard: string;
-			};
-		};
-		status: string;
-	};
-}
+import type { Token } from "@/types/token";
 
 interface TokenListItemProps {
-	token: TokenData;
+	token: Token;
 	price: number | null;
 	isSelected: boolean;
 	onClick: () => void;
@@ -102,14 +73,16 @@ export function TokenListItem({
 	isSelected,
 	onClick,
 }: TokenListItemProps): React.ReactElement {
-	const genesis = token.raw.genesis;
-	const tokenData = genesis.token;
-	const metadata = tokenData.metadata;
-	const economics = tokenData.economics;
-	const supply = economics.supply;
+	const metadata = token.metadata;
+	const supply = token.economics?.supply;
 	
-	const formattedSupply = formatSupply(supply.initial, metadata.decimals);
-	const hasDistribution = economics.distribution && economics.distribution.length > 0;
+	const formattedSupply = supply?.initial 
+		? formatSupply(supply.initial, metadata.decimals)
+		: "N/A";
+	const formattedMaxSupply = supply?.max
+		? formatSupply(supply.max, metadata.decimals)
+		: supply?.max === undefined ? "Unlimited" : "N/A";
+	const hasDistribution = token.economics?.distribution && token.economics.distribution.length > 0;
 	
 	// For USDT, use fixed price of 1
 	const symbolUpper = metadata.symbol.toUpperCase();
@@ -153,12 +126,14 @@ export function TokenListItem({
 					>
 						{metadata.symbol}
 					</Badge>
-					<Badge
-						variant="outline"
-						className="text-xs capitalize shrink-0"
-					>
-						{tokenData.standard}
-					</Badge>
+					{token.standard && (
+						<Badge
+							variant="outline"
+							className="text-xs capitalize shrink-0"
+						>
+							{token.standard}
+						</Badge>
+					)}
 				</div>
 				{metadata.description && (
 					<p className="text-xs text-muted-foreground line-clamp-1">
@@ -190,7 +165,7 @@ export function TokenListItem({
 			{/* Max Supply */}
 			<div className="text-right flex-shrink-0 min-w-[120px] hidden lg:block">
 				<div className="font-semibold text-foreground text-sm">
-					{formatSupply(supply.max, metadata.decimals)}
+					{formattedMaxSupply}
 				</div>
 				<div className="text-xs text-muted-foreground mt-0.5">
 					Max Supply
@@ -199,28 +174,32 @@ export function TokenListItem({
 
 			{/* Policy & Distribution */}
 			<div className="text-right flex-shrink-0 min-w-[100px] hidden lg:block">
-				<Badge
-					variant="outline"
-					className="text-xs capitalize mb-1"
-				>
-					{supply.mintingPolicy}
-				</Badge>
+				{supply?.mintingPolicy && (
+					<Badge
+						variant="outline"
+						className="text-xs capitalize mb-1"
+					>
+						{supply.mintingPolicy}
+					</Badge>
+				)}
 				{hasDistribution && (
 					<div className="text-xs text-muted-foreground">
-						{economics.distribution?.length} holder{economics.distribution?.length === 1 ? "" : "s"}
+						{token.economics.distribution?.length} holder{token.economics.distribution?.length === 1 ? "" : "s"}
 					</div>
 				)}
 			</div>
 
 			{/* Status */}
-			<div className="flex-shrink-0">
-				<Badge
-					variant={token.raw.status === "pending" ? "outline" : "default"}
-					className="text-xs"
-				>
-					{token.raw.status}
-				</Badge>
-			</div>
+			{token.status && (
+				<div className="flex-shrink-0">
+					<Badge
+						variant={token.status === "pending" ? "outline" : "default"}
+						className="text-xs"
+					>
+						{token.status}
+					</Badge>
+				</div>
+			)}
 		</motion.div>
 	);
 }

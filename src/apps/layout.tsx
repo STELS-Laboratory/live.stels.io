@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useAppStore } from "@/stores";
 import { useAuthStore } from "@/stores/modules/auth.store.ts";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import { cn } from "@/lib/utils.ts";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -47,6 +48,7 @@ import type { LayoutProps, NavItem } from "@/types/apps/layout/types";
 function Layout({ children }: LayoutProps): React.ReactElement {
 	const { currentRoute, allowedRoutes, routeLoading } = useAppStore();
 	const { connectionSession } = useAuthStore();
+	const { currentNetworkId } = useNetworkStore();
 	const [showNodeInfo, setShowNodeInfo] = React.useState(false);
 	const [systemStats, setSystemStats] = React.useState<
 		Record<string, unknown> | null
@@ -60,7 +62,8 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 	const getSystemStats = React.useCallback(
 		(): Record<string, unknown> | null => {
 			try {
-				const sonarData = sessionStorage.getItem("testnet.runtime.sonar");
+				const sonarChannel = `${currentNetworkId}.runtime.sonar`;
+				const sonarData = sessionStorage.getItem(sonarChannel);
 				if (sonarData) {
 					return JSON.parse(sonarData) as Record<string, unknown>;
 				}
@@ -69,7 +72,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 		}
 			return null;
 		},
-		[],
+		[currentNetworkId],
 	);
 
 	// Auto-update system stats from sessionStorage

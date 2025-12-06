@@ -26,10 +26,12 @@ export function validateAmountFormat(amount: string): boolean {
 
 /**
  * Validates raw data
+ * According to SMART_TRANSACTIONS_API.md: max 60,000 bytes (soft cap)
  */
 export function validateRawData(rawData: string): boolean {
 	if (!rawData || typeof rawData !== "string") return false;
-	return rawData.length > 0 && rawData.length <= 10000;
+	const bytes = new TextEncoder().encode(rawData).length;
+	return bytes > 0 && bytes <= 60000;
 }
 
 /**
@@ -161,6 +163,10 @@ export function validateSmartOperation(op: SmartOp): boolean {
 			break;
 
 		case "assert.time":
+			// At least one time constraint must be provided
+			if (op.before_ms === undefined && op.after_ms === undefined) {
+				return false;
+			}
 			if (op.before_ms !== undefined) {
 				if (typeof op.before_ms !== "number" || op.before_ms <= 0) {
 					return false;
@@ -171,6 +177,7 @@ export function validateSmartOperation(op: SmartOp): boolean {
 					return false;
 				}
 			}
+			// If both are provided, after_ms should be less than before_ms for a valid time window
 			if (
 				op.before_ms !== undefined &&
 				op.after_ms !== undefined &&

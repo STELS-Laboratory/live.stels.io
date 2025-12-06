@@ -4,13 +4,15 @@
  */
 
 import { useState, useEffect } from "react";
+import { useNetworkStore } from "@/stores/modules/network.store";
 
 /**
  * Hook to get available exchanges for a symbol
- * Scans for channels like: testnet.runtime.book.{symbol}.{exchange}.spot
+ * Scans for channels like: {network}.runtime.book.{symbol}.{exchange}.spot
  */
 export function useAvailableExchanges(symbol: string | null): string[] {
 	const [exchanges, setExchanges] = useState<string[]>([]);
+	const { currentNetworkId } = useNetworkStore();
 
 	useEffect(() => {
 		if (!symbol) {
@@ -21,15 +23,16 @@ export function useAvailableExchanges(symbol: string | null): string[] {
 		const loadExchanges = (): void => {
 			const exchangeSet = new Set<string>();
 
-			// Pattern: testnet.runtime.book.{symbol}.{exchange}.spot
-			// Example: testnet.runtime.book.BCH/USDT.binance.spot
+			// Pattern: {network}.runtime.book.{symbol}.{exchange}.spot
+			// Example: mainnet.runtime.book.BCH/USDT.binance.spot
+			const networkPrefix = currentNetworkId;
 			for (let i = 0; i < sessionStorage.length; i++) {
 				const key = sessionStorage.key(i);
 				if (!key) continue;
 
-				// Match pattern: testnet.runtime.book.{symbol}.{exchange}.spot
+				// Match pattern: {network}.runtime.book.{symbol}.{exchange}.spot
 				const match = key.match(
-					/^testnet\.runtime\.book\.([^/]+\/[^.]+)\.([^.]+)\.spot$/i,
+					new RegExp(`^${networkPrefix}\\.runtime\\.book\\.([^/]+\\/[^.]+)\\.([^.]+)\\.spot$`, "i"),
 				);
 
 				if (match) {
@@ -82,7 +85,7 @@ export function useAvailableExchanges(symbol: string | null): string[] {
 			window.removeEventListener("storage", handleStorageChange);
 			clearInterval(pollInterval);
 		};
-	}, [symbol]);
+	}, [symbol, currentNetworkId]);
 
 	return exchanges;
 }

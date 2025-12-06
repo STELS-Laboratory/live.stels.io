@@ -329,6 +329,7 @@ export default function Dashboard(): React.ReactElement {
 	useAssetList();
 
 	// Memoize session check to avoid repeated localStorage reads
+	// Update when authentication state changes to reflect logout
 	const sessionCheck = useMemo(() => {
 		if (typeof window === "undefined") {
 			return {
@@ -344,21 +345,27 @@ export default function Dashboard(): React.ReactElement {
 				JSON.parse(privateStoreData)?.raw?.session || false;
 
 		return { authStoreData, privateStoreData, hasValidSession };
-	}, []);
+	}, [isAuthenticated, isConnected]);
 
 	// Update ref when session check changes
+	// This ensures we always have the latest session data
 	useEffect(() => {
 		sessionCheckRef.current = sessionCheck;
-	}, [sessionCheck]);
+	}, [sessionCheck, isAuthenticated, isConnected]);
 
 	// Authentication state monitoring effect
+	// Only transition if we're not already in a transition state
 	useEffect(() => {
 		if (
 			appState === "ready" &&
 			(!isAuthenticated || !isConnected) &&
 			currentRoute !== "explorer"
 		) {
-			setAppState("checking_session");
+			// Prevent rapid state changes - use a small delay
+			const timeoutId = setTimeout(() => {
+				setAppState("checking_session");
+			}, 100);
+			return () => clearTimeout(timeoutId);
 		}
 	}, [isAuthenticated, isConnected, appState, currentRoute]);
 
@@ -409,7 +416,8 @@ export default function Dashboard(): React.ReactElement {
 				}
 
 				case "checking_session": {
-					const check = sessionCheckRef.current || sessionCheck;
+					// Always use fresh session check data
+					const check = sessionCheck;
 
 					if (currentRoute === "explorer") {
 						const delay = getTransitionDelay("checking_session", "loading_app");
@@ -426,6 +434,7 @@ export default function Dashboard(): React.ReactElement {
 						const delay = getTransitionDelay("checking_session", "loading_app");
 						await transitionToState("loading_app", delay);
 					} else if (!isAuthenticated || !isConnected) {
+						// User is logged out - go to authenticating state
 						const delay = getTransitionDelay(
 							"checking_session",
 							"authenticating",

@@ -6,20 +6,23 @@
 import React from "react";
 import { motion } from "framer-motion";
 import {
+  Copy,
   CreditCard,
   RefreshCw,
   Shield,
   ShieldOff,
   TrendingUp,
-  Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FormattedNumber } from "@/components/ui/formatted-number";
 import { cn } from "@/lib/utils";
 import { toast } from "@/stores";
 
 interface WalletCardProps {
   cardNumber: string;
   balance: number;
+  balanceSymbol?: string; // Token symbol to display (default: "USDT")
+  balanceDecimals?: number; // Number of decimals for balance formatting (default: 6)
   usdValue: number; // Total portfolio value (tokens + liquidity)
   liquidity: number;
   tokensValue?: number; // Tokens value only (for breakdown)
@@ -28,25 +31,7 @@ interface WalletCardProps {
   onRefresh: () => void;
   walletAddress?: string;
   mobile?: boolean;
-}
-
-/**
- * Format balance with proper decimals
- */
-function formatBalance(balance: number, decimals: number = 6): string {
-  return balance.toFixed(decimals);
-}
-
-/**
- * Format USD value
- */
-function formatUSD(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
+  onClick?: () => void;
 }
 
 /**
@@ -55,6 +40,8 @@ function formatUSD(value: number): string {
 export function WalletCard({
   cardNumber,
   balance,
+  balanceSymbol = "USDT",
+  balanceDecimals = 6,
   usdValue,
   liquidity,
   tokensValue,
@@ -63,6 +50,7 @@ export function WalletCard({
   onRefresh,
   walletAddress,
   mobile = false,
+  onClick,
 }: WalletCardProps): React.ReactElement {
   // Total portfolio value is already passed as usdValue (tokens + liquidity)
   // tokensValue is optional for detailed breakdown
@@ -77,7 +65,10 @@ export function WalletCard({
         className={cn(
           "relative bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-900 dark:from-zinc-800 dark:via-zinc-900 dark:to-black rounded shadow-xl overflow-hidden",
           mobile ? "p-4" : "p-6",
+          onClick && mobile &&
+            "cursor-pointer active:scale-[0.98] transition-transform",
         )}
+        onClick={onClick}
       >
         {/* Card Background Pattern */}
         <div className="absolute inset-0 opacity-5">
@@ -180,7 +171,13 @@ export function WalletCard({
                   mobile ? "text-2xl" : "text-3xl",
                 )}
               >
-                {loading && balance === 0 ? "..." : formatBalance(balance)}
+                {loading && balance === 0 ? "..." : (
+                  <FormattedNumber
+                    value={balance}
+                    decimals={balanceDecimals}
+                    useGrouping={true}
+                  />
+                )}
               </span>
               <span
                 className={cn(
@@ -188,7 +185,7 @@ export function WalletCard({
                   mobile ? "text-xs" : "text-sm",
                 )}
               >
-                USDT
+                {balanceSymbol}
               </span>
             </div>
             <div
@@ -197,11 +194,39 @@ export function WalletCard({
                 mobile ? "text-base" : "text-lg",
               )}
             >
-              {loading && usdValue === 0 ? "..." : formatUSD(usdValue)}
+              {loading && usdValue === 0
+                ? "..."
+                : (
+                  <span className="flex items-baseline gap-0">
+                    <span>$</span>
+                    <FormattedNumber
+                      value={usdValue}
+                      decimals={2}
+                      useGrouping={true}
+                    />
+                  </span>
+                )}
             </div>
             {tokensValue !== undefined && liquidity > 0 && (
               <div className="text-green-400/70 text-[10px] leading-tight">
-                Tokens: {formatUSD(tokensValue)} + Liquidity: {formatUSD(liquidity)}
+                Tokens:{" "}
+                <span className="flex items-baseline gap-0">
+                  <span>$</span>
+                  <FormattedNumber
+                    value={tokensValue || 0}
+                    decimals={2}
+                    useGrouping={true}
+                  />
+                </span>{" "}
+                + Liquidity:{" "}
+                <span className="flex items-baseline gap-0">
+                  <span>$</span>
+                  <FormattedNumber
+                    value={liquidity}
+                    decimals={2}
+                    useGrouping={true}
+                  />
+                </span>
               </div>
             )}
           </div>
@@ -241,28 +266,39 @@ export function WalletCard({
           {/* Liquidity Section */}
           {liquidity > 0 && (
             <div className="space-y-2 pt-2 border-t border-white/10">
-            <div className="flex items-center gap-2">
-              <TrendingUp
-                className={cn(
-                  "text-white/60",
-                  mobile ? "w-3.5 h-3.5" : "w-4 h-4",
-                )}
-              />
-              <div className="text-white/60 text-xs font-medium">
-                Liquidity
+              <div className="flex items-center gap-2">
+                <TrendingUp
+                  className={cn(
+                    "text-white/60",
+                    mobile ? "w-3.5 h-3.5" : "w-4 h-4",
+                  )}
+                />
+                <div className="text-white/60 text-xs font-medium">
+                  Liquidity
+                </div>
               </div>
-            </div>
-            <div
-              className={cn(
-                "text-white/80 font-semibold",
-                mobile ? "text-base" : "text-lg",
-              )}
-            >
-              {loading && liquidity === 0 ? "..." : formatUSD(liquidity)}
-            </div>
-            <div className="text-white/50 text-[10px] leading-tight">
-              From connected trading accounts
-            </div>
+              <div
+                className={cn(
+                  "text-white/80 font-semibold",
+                  mobile ? "text-base" : "text-lg",
+                )}
+              >
+                {loading && liquidity === 0
+                  ? "..."
+                  : (
+                    <span className="flex items-baseline gap-0">
+                      <span>$</span>
+                      <FormattedNumber
+                        value={liquidity}
+                        decimals={2}
+                        useGrouping={true}
+                      />
+                    </span>
+                  )}
+              </div>
+              <div className="text-white/50 text-[10px] leading-tight">
+                From connected trading accounts
+              </div>
             </div>
           )}
         </div>

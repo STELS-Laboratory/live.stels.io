@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import { MarketCandleChart } from "./market_candle_chart";
 import { useCandlesFromSession } from "@/apps/trading/hooks/use-candles-from-session";
 import { importCoinIcon, importExchangeIcon, getFirstLetter } from "@/lib/icon-utils";
@@ -62,15 +63,17 @@ export function MarketTable({
 	const [sortBy, setSortBy] = useState<SortOption>("volume");
 	const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 	const [exchangeFilter, setExchangeFilter] = useState<string>("all");
+	const { currentNetworkId } = useNetworkStore();
 
 	// Get all tickers from sessionStorage
 	const getTickers = useCallback((): MarketTickerData[] => {
 		const tickerList: MarketTickerData[] = [];
+		const tickerPrefix = `${currentNetworkId}.runtime.ticker.`;
 
 		try {
 			for (let i = 0; i < sessionStorage.length; i++) {
 				const key = sessionStorage.key(i);
-				if (key && key.startsWith("testnet.runtime.ticker.")) {
+				if (key && key.startsWith(tickerPrefix)) {
 					try {
 						const data = sessionStorage.getItem(key);
 						if (data) {
@@ -114,7 +117,7 @@ export function MarketTable({
 		}
 
 		return tickerList;
-	}, []);
+	}, [currentNetworkId]);
 
 	// Update tickers periodically - optimized with debouncing
 	React.useEffect(() => {
@@ -146,7 +149,8 @@ export function MarketTable({
 
 		// Listen for storage events (only ticker-related)
 		const handleStorageChange = (e: StorageEvent): void => {
-			if (!e.key || !e.key.startsWith("testnet.runtime.ticker.")) return;
+			const tickerPrefix = `${currentNetworkId}.runtime.ticker.`;
+			if (!e.key || !e.key.startsWith(tickerPrefix)) return;
 			if (timeoutId) return;
 			timeoutId = setTimeout(() => {
 				updateTickers();
@@ -161,7 +165,7 @@ export function MarketTable({
 			clearInterval(interval);
 			window.removeEventListener("storage", handleStorageChange);
 		};
-	}, [getTickers]);
+	}, [getTickers, currentNetworkId]);
 
 	// Get unique exchanges
 	const exchanges = useMemo(() => {

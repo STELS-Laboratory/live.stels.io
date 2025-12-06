@@ -91,11 +91,14 @@ if (themeMode === "system") {
 document.documentElement.classList.add(resolvedTheme);
 document.documentElement.setAttribute("data-theme", resolvedTheme);
 
+// Initialize network store
+import { initializeNetwork } from "@/stores/modules/network.store";
+initializeNetwork();
+
 const rootElement = document.createElement("main");
 document.body.setAttribute("stels", "1.12.00");
 document.body.setAttribute("module", "web");
-document.body.setAttribute("network", "testnet");
-// Session is already set by initSession() above
+// Network attribute is set by initializeNetwork()
 rootElement.className = "sonar";
 document.body.appendChild(rootElement);
 

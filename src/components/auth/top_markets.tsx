@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import { MarketCandleChart } from "./market_candle_chart";
 import { useCandlesFromSession } from "@/apps/trading/hooks/use-candles-from-session";
 import {
@@ -75,6 +76,7 @@ export function TopMarkets({
 	const [sortBy, setSortBy] = useState<SortOption>("liquidity");
 	const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 	const isMobile = useMobile(768);
+	const { currentNetworkId } = useNetworkStore();
 
 	// Cache for tickers to avoid unnecessary recalculations
 	const tickersCacheRef = useRef<Map<string, MarketTickerData>>(new Map());
@@ -87,13 +89,14 @@ export function TopMarkets({
 		const now = Date.now();
 		const cache = tickersCacheRef.current;
 		const updatedKeys = new Set<string>();
+		const tickerPrefix = `${currentNetworkId}.runtime.ticker.`;
 
 		try {
 			// Batch sessionStorage reads to prevent blocking
 			const keys: string[] = [];
 			for (let i = 0; i < sessionStorage.length; i++) {
 				const key = sessionStorage.key(i);
-				if (key && key.startsWith("testnet.runtime.ticker.")) {
+				if (key && key.startsWith(tickerPrefix)) {
 					keys.push(key);
 				}
 			}
@@ -188,7 +191,7 @@ export function TopMarkets({
 
 		lastUpdateRef.current = now;
 		return tickerList;
-	}, []);
+	}, [currentNetworkId]);
 
 	// Update tickers with debouncing and requestAnimationFrame
 	// CRITICAL: Optimized to prevent UI blocking
@@ -259,7 +262,8 @@ export function TopMarkets({
 		// Listen for storage events with debounce (only for ticker updates)
 		const handleStorageChange = (e: StorageEvent): void => {
 			// Only process ticker-related storage events
-			if (!e.key || !e.key.startsWith("testnet.runtime.ticker.")) return;
+			const tickerPrefix = `${currentNetworkId}.runtime.ticker.`;
+			if (!e.key || !e.key.startsWith(tickerPrefix)) return;
 			if (timeoutId) return;
 			timeoutId = setTimeout(() => {
 				updateTickers();
@@ -276,7 +280,7 @@ export function TopMarkets({
 			clearInterval(interval);
 			window.removeEventListener("storage", handleStorageChange);
 		};
-	}, [getTickers]);
+	}, [getTickers, currentNetworkId]);
 
 	// Liquidity already calculated in getTickers, so just use tickers directly
 	const tickersWithLiquidity = tickers;

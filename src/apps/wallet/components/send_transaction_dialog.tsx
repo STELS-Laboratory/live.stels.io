@@ -3,7 +3,7 @@
  * Form for creating and submitting asset transfer transactions
  */
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
 	Dialog,
 	DialogContent,
@@ -24,14 +24,24 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Send, AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, Send } from "lucide-react";
 import { useAuthStore } from "@/stores";
 import { useCreateTransaction } from "@/hooks/use_create_transaction";
-import { useAssetList } from "@/hooks/use_asset_list";
+import { usePublicAssetList } from "@/hooks/use_public_asset_list";
 import { useAssetBalance } from "@/hooks/use_asset_balance";
 import { validateAddress } from "@/lib/gliesereum";
 import type { TokenGenesisDocument } from "@/hooks/use_create_transaction";
+import {
+	createNativeTokenFromGenesis,
+	normalizeTokens,
+} from "@/lib/token-normalizer";
+import type { RawAssetData, Token } from "@/types/token";
 import { cn } from "@/lib/utils";
+import {
+	handleAmountInputChange,
+	validateAmount as validateAmountInput,
+	formatAmountForAPI,
+} from "@/lib/amount-parser";
 
 interface SendTransactionDialogProps {
 	open: boolean;
@@ -59,7 +69,44 @@ export function SendTransactionDialog({
 	const { wallet, connectionSession } = useAuthStore();
 	const { createTransaction, submitTransaction, submitting, error } =
 		useCreateTransaction();
-	const { assets } = useAssetList();
+
+	// Get network ID
+	const networkId = connectionSession?.network || "testnet";
+
+	// Get raw assets from API
+	const { assets: rawAssets } = usePublicAssetList({
+		network: networkId,
+	});
+
+	// Normalize tokens to unified format
+	const normalizedTokens = React.useMemo(() => {
+		return normalizeTokens(rawAssets as RawAssetData[]);
+	}, [rawAssets]);
+
+	// Find genesis document for native token
+	const genesisDoc = React.useMemo(() => {
+		return rawAssets?.find((asset) => {
+			const isGenesisDoc = asset.channel?.includes(".genesis:") ||
+				(asset.raw?.genesis && !asset.raw.genesis.token &&
+					asset.raw.genesis.genesis);
+			return isGenesisDoc;
+		}) as RawAssetData | undefined;
+	}, [rawAssets]);
+
+	// Create native token from genesis document
+	const nativeToken = React.useMemo(() => {
+		if (!genesisDoc) return null;
+		return createNativeTokenFromGenesis(genesisDoc, networkId);
+	}, [genesisDoc, networkId]);
+
+	// Combine normalized tokens with native token
+	const allTokens = React.useMemo(() => {
+		const tokens: Token[] = [...normalizedTokens];
+		if (nativeToken && !tokens.find((t) => t.id === nativeToken.id)) {
+			tokens.unshift(nativeToken); // Add native token at the beginning
+		}
+		return tokens;
+	}, [normalizedTokens, nativeToken]);
 
 	// Form state - must be declared before useAssetBalance hook
 	const [selectedTokenId, setSelectedTokenId] = useState<string>("");
@@ -80,24 +127,139 @@ export function SendTransactionDialog({
 		network: connectionSession?.network,
 	});
 
-	// Get selected token genesis
+	// Get selected token from normalized tokens
 	const selectedToken = useMemo(() => {
-		if (!selectedTokenId || !assets) return null;
-		return assets.find((asset) => asset.raw.genesis.token.id === selectedTokenId);
-	}, [selectedTokenId, assets]);
+		if (!selectedTokenId || !allTokens) return null;
+		return allTokens.find((token) => token.id === selectedTokenId);
+	}, [selectedTokenId, allTokens]);
 
 	const tokenGenesis: TokenGenesisDocument | null = useMemo(() => {
 		if (!selectedToken) return null;
-		// Type assertion is safe here because we know the structure matches
-		// @ts-expect-error - Type assertion is safe because structure matches TokenGenesisDocument
-		return selectedToken.raw.genesis as TokenGenesisDocument;
-	}, [selectedToken]);
+
+		// For normalized tokens, we need to reconstruct genesis document structure
+		// Find the original raw asset data
+		const rawAsset = rawAssets?.find((asset) => {
+			if (selectedToken.standard === "native") {
+				// For native token, find genesis document
+				const isGenesisDoc = asset.channel?.includes(".genesis:") ||
+					(asset.raw?.genesis && !asset.raw.genesis.token &&
+						asset.raw.genesis.genesis);
+				return isGenesisDoc;
+			} else {
+				// For regular tokens, find by token ID
+				const tokenId = asset.raw?.genesis?.token?.id || asset.id || "";
+				return tokenId === selectedToken.id;
+			}
+		}) as RawAssetData | undefined;
+
+		if (!rawAsset?.raw?.genesis) {
+			return null;
+		}
+
+		const genesis = rawAsset.raw.genesis;
+
+		// For native tokens, we need to construct TokenGenesisDocument from network genesis
+		if (selectedToken.standard === "native") {
+			const network = genesis.network;
+			const protocol = genesis.protocol;
+			const parameters = genesis.parameters;
+			const currency = parameters?.currency;
+
+			if (!network || !protocol || !currency) {
+				return null;
+			}
+
+			// Construct TokenGenesisDocument for native token
+			// Use protocol.sign_domains.tx for transactions (per genesis-smart-1.0.json)
+			const tokenGenesisDoc: TokenGenesisDocument = {
+				$schema: rawAsset.raw.$schema || "",
+				version: rawAsset.raw.version || "",
+				network: {
+					id: network.id || networkId,
+					name: network.name || "",
+					environment: network.environment || "",
+					chain_id: network.chain_id ?? 1,
+				},
+				protocol: {
+					tx_version: protocol.tx_version || "smart-1.0",
+					vm_version: protocol.vm_version || "",
+					canonicalization: protocol.canonicalization || "gls-det-1",
+					encoding: protocol.encoding || "utf-8",
+					sign_domains: {
+						// Use tx domain for asset transactions (per protocol)
+						tx: (protocol.sign_domains?.tx ||
+							protocol.sign_domains?.token ||
+							[]) as (string | number)[],
+						// Include other domains for completeness
+						...(protocol.sign_domains?.cosign && {
+							cosign: protocol.sign_domains.cosign,
+						}),
+						...(protocol.sign_domains?.notary && {
+							notary: protocol.sign_domains.notary,
+						}),
+						...(protocol.sign_domains?.genesis && {
+							genesis: protocol.sign_domains.genesis,
+						}),
+						...(protocol.sign_domains?.crl && {
+							crl: protocol.sign_domains.crl,
+						}),
+						// Legacy support
+						...(protocol.sign_domains?.token && {
+							token: protocol.sign_domains.token,
+						}),
+					},
+				},
+				token: {
+					id: selectedToken.id || `native:${networkId}`,
+					metadata: {
+						name: currency.name || currency.symbol || "Native Token",
+						symbol: currency.symbol || "SLI",
+						decimals: currency.decimals ?? 8,
+					},
+				},
+				parameters: {
+					currency: {
+						symbol: currency.symbol || "SLI",
+						decimals: currency.decimals ?? 8,
+					},
+					fees: {
+						base: parameters.fees?.base || "0.00001",
+						per_byte: parameters.fees?.per_byte || "0.00000005",
+						currency: parameters.fees?.currency || "SLI",
+					},
+				},
+			};
+
+			return tokenGenesisDoc;
+		}
+
+		// For regular tokens, use the genesis document as-is
+		// But ensure sign_domains structure is correct
+		const tokenGenesisDoc = genesis as unknown as TokenGenesisDocument;
+
+		// Ensure sign_domains has tx field (for new protocol) or token field (for legacy)
+		if (
+			!tokenGenesisDoc.protocol.sign_domains.tx &&
+			!tokenGenesisDoc.protocol.sign_domains.token
+		) {
+			// Try to get from protocol if available
+			if (genesis.protocol?.sign_domains?.tx) {
+				tokenGenesisDoc.protocol.sign_domains.tx = genesis.protocol.sign_domains
+					.tx as (string | number)[];
+			} else if (genesis.protocol?.sign_domains?.token) {
+				tokenGenesisDoc.protocol.sign_domains.token = genesis.protocol.sign_domains
+					.token as (string | number)[];
+			}
+		}
+
+		return tokenGenesisDoc;
+	}, [selectedToken, rawAssets, networkId]);
 
 	// Calculate fee based on transaction size
 	const calculatedFee = useMemo((): string => {
-		if (!tokenGenesis) return "0.000100";
-		const baseFee = tokenGenesis.parameters.fees.base;
-		const perByteFee = tokenGenesis.parameters.fees.per_byte;
+		if (!tokenGenesis || !tokenGenesis.parameters?.fees) return "0.000100";
+		const baseFee = tokenGenesis.parameters.fees.base || "0.0001";
+		const perByteFee = tokenGenesis.parameters.fees.per_byte || "0.0000002";
 
 		// Estimate transaction size
 		const estimatedSize = JSON.stringify({
@@ -115,6 +277,28 @@ export function SendTransactionDialog({
 	}, [tokenGenesis, to, amount, memo]);
 
 	/**
+	 * Handle amount input change with smart parsing
+	 */
+	const handleAmountChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>): void => {
+			const inputValue = e.target.value;
+			const decimals = selectedToken?.metadata?.decimals || 6;
+			const parsed = handleAmountInputChange(inputValue, decimals);
+			setAmount(parsed);
+
+			// Clear amount error when user types
+			if (errors.amount) {
+				setErrors((prev) => {
+					const newErrors = { ...prev };
+					delete newErrors.amount;
+					return newErrors;
+				});
+			}
+		},
+		[selectedToken?.metadata?.decimals, errors.amount],
+	);
+
+	/**
 	 * Validate form
 	 */
 	const validateForm = useCallback((): boolean => {
@@ -130,24 +314,16 @@ export function SendTransactionDialog({
 			newErrors.to = "Invalid recipient address";
 		}
 
-		if (!amount.trim()) {
-			newErrors.amount = "Amount is required";
-		} else {
-			const decimals = tokenGenesis?.token.metadata.decimals || 6;
-			const amountRegex = new RegExp(`^\\d+\\.\\d{1,${decimals}}$`);
-			if (!amountRegex.test(amount.trim())) {
-				newErrors.amount = `Invalid amount format (must match ${decimals} decimals)`;
-			} else {
-				const amountNum = Number.parseFloat(amount.trim());
-				if (amountNum <= 0) {
-					newErrors.amount = "Amount must be greater than 0";
-				}
-			}
+		// Validate amount using new parser
+		const decimals = selectedToken?.metadata?.decimals || 6;
+		const amountError = validateAmountInput(amount, decimals);
+		if (amountError) {
+			newErrors.amount = amountError;
 		}
 
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
-	}, [selectedTokenId, to, amount, tokenGenesis]);
+	}, [selectedTokenId, to, amount, selectedToken]);
 
 	/**
 	 * Reset form
@@ -168,8 +344,36 @@ export function SendTransactionDialog({
 		async (e: React.FormEvent): Promise<void> => {
 			e.preventDefault();
 
-			if (!wallet || !tokenGenesis || !connectionSession) {
-				setSubmitError("Wallet or token not available");
+			if (!wallet || !connectionSession) {
+				setSubmitError("Wallet or connection not available");
+				return;
+			}
+
+			if (!tokenGenesis) {
+				setSubmitError(
+					`Token genesis document not available for ${
+						selectedToken?.metadata?.symbol || "selected token"
+					}. ` +
+						"Please select a valid token or try again later.",
+				);
+				return;
+			}
+
+			// Validate sign_domains structure
+			const signDomain = tokenGenesis.protocol.sign_domains.tx ||
+				tokenGenesis.protocol.sign_domains.token;
+			if (!Array.isArray(signDomain) || signDomain.length === 0) {
+				setSubmitError(
+					`Invalid sign_domains in token genesis for ${
+						selectedToken?.metadata?.symbol || "selected token"
+					}. ` +
+						"Token genesis document is missing required sign_domains.tx or sign_domains.token.",
+				);
+				return;
+			}
+
+			if (!selectedToken) {
+				setSubmitError("Selected token not found");
 				return;
 			}
 
@@ -178,38 +382,77 @@ export function SendTransactionDialog({
 			}
 
 			// Check balance before transfer
-			if (currentBalance) {
-				const balanceNum = Number.parseFloat(currentBalance.balance);
-				const amountNum = Number.parseFloat(amount.trim());
-				const feeNum = Number.parseFloat(calculatedFee);
-				const required = amountNum + feeNum;
+			if (!currentBalance) {
+				setSubmitError("Balance not loaded. Please wait and try again.");
+				return;
+			}
 
-				if (balanceNum < required) {
-					setSubmitError(
-						`Insufficient balance. Required: ${required.toFixed(
+			// Normalize amount for comparison
+			const decimals = selectedToken?.metadata?.decimals || 6;
+			const normalizedAmount = formatAmountForAPI(amount, decimals);
+			const amountNum = Number.parseFloat(normalizedAmount);
+			const balanceNum = Number.parseFloat(currentBalance.balance);
+			const feeNum = Number.parseFloat(calculatedFee);
+			const required = amountNum + feeNum;
+
+			if (isNaN(balanceNum) || isNaN(amountNum) || isNaN(feeNum)) {
+				setSubmitError("Invalid balance or amount values");
+				return;
+			}
+
+			if (balanceNum < required) {
+				setSubmitError(
+					`Insufficient balance. Required: ${
+						required.toFixed(
 							currentBalance.decimals,
-						)} ${currentBalance.currency}, Available: ${currentBalance.balance} ${currentBalance.currency}`,
-					);
-					return;
-				}
+						)
+					} ${currentBalance.currency}, Available: ${currentBalance.balance} ${currentBalance.currency}`,
+				);
+				return;
 			}
 
 			setSubmitError(null);
 
 			try {
+				// Normalize amount to proper format for API
+				const decimals = selectedToken?.metadata?.decimals || 6;
+				const normalizedAmount = formatAmountForAPI(amount, decimals);
+
 				// Create transaction (prevHash will be null for now, can be fetched separately if needed)
 				const transaction = createTransaction({
 					wallet,
 					tokenGenesis,
 					to: to.trim(),
-					amount: amount.trim(),
+					amount: normalizedAmount,
 					fee: calculatedFee,
 					prevHash: null,
 					memo: memo.trim() || undefined,
 				});
 
 				// Submit transaction
-				await submitTransaction(transaction);
+				const submitResult = await submitTransaction(transaction);
+
+				// Check if transaction was submitted but failed
+				if (submitResult.status === "failed") {
+					const consensusStatus = submitResult.consensus_status || "unknown";
+					let warningMessage = "Transaction was submitted but failed.";
+					
+					if (consensusStatus === "not_found") {
+						warningMessage = 
+							"Transaction was submitted but not found in consensus. " +
+							"It may be pending validation or rejected by the network. " +
+							"Check the transaction list for details.";
+					} else {
+						warningMessage = 
+							"Transaction was submitted but failed. " +
+							"This may be due to insufficient balance, invalid signature, or network issues. " +
+							"Check the transaction list for details.";
+					}
+					
+					setSubmitError(warningMessage);
+					// Don't close dialog, let user see the error
+					return;
+				}
 
 				// Refresh balance after successful transaction
 				if (selectedTokenId) {
@@ -222,13 +465,14 @@ export function SendTransactionDialog({
 				// Reset form and close
 				resetForm();
 				onOpenChange(false);
-			} catch {
-				const errorMessage =
-					err instanceof Error
-						? err.message
-						: "Failed to send transaction";
+			} catch (err) {
+				let errorMessage = "Failed to send transaction";
+				
+				if (err instanceof Error) {
+					errorMessage = err.message;
+				}
+				
 				setSubmitError(errorMessage);
-
 			}
 		},
 		[
@@ -324,15 +568,16 @@ export function SendTransactionDialog({
 								<SelectValue placeholder="Select token" />
 							</SelectTrigger>
 							<SelectContent>
-								{assets?.map((asset) => (
-									<SelectItem
-										key={asset.raw.genesis.token.id}
-										value={asset.raw.genesis.token.id}
-									>
-										{asset.raw.genesis.token.metadata.name} (
-										{asset.raw.genesis.token.metadata.symbol})
-									</SelectItem>
-								))}
+								{allTokens?.map((token) => {
+									return (
+										<SelectItem
+											key={token.id}
+											value={token.id}
+										>
+											{token.metadata.name} ({token.metadata.symbol})
+										</SelectItem>
+									);
+								})}
 							</SelectContent>
 						</Select>
 						{errors.token && (
@@ -362,31 +607,66 @@ export function SendTransactionDialog({
 					<div className="space-y-2">
 						<Label htmlFor="amount">
 							Amount <span className="text-destructive">*</span>
-							{tokenGenesis && (
-								<span className="text-muted-foreground text-xs ml-2">
-									(Decimals: {tokenGenesis.token.metadata.decimals})
-								</span>
-							)}
+							{selectedToken?.metadata?.decimals
+								? (
+									<span className="text-muted-foreground text-xs ml-2">
+										(Max {selectedToken.metadata.decimals} decimals)
+									</span>
+								)
+								: null}
 						</Label>
 						<Input
 							id="amount"
 							type="text"
+							inputMode="decimal"
 							value={amount}
-							onChange={(e) => setAmount(e.target.value)}
-							placeholder={
-								tokenGenesis
-									? `0.${"0".repeat(tokenGenesis.token.metadata.decimals)}`
-									: "0.000000"
-							}
+							onChange={handleAmountChange}
+							placeholder={selectedToken?.metadata?.decimals
+								? `0.${"0".repeat(selectedToken.metadata.decimals)}`
+								: "0.000000"}
 							disabled={submitting}
 							aria-invalid={errors.amount ? "true" : "false"}
+							aria-describedby={
+								errors.amount
+									? "amount-error"
+									: amount
+									? "amount-hint"
+									: "amount-help"
+							}
+							className={cn(errors.amount && "border-destructive")}
 						/>
 						{errors.amount && (
-							<p className="text-xs text-destructive">{errors.amount}</p>
+							<p
+								id="amount-error"
+								className="text-xs text-destructive flex items-center gap-1"
+							>
+								{errors.amount}
+							</p>
 						)}
-						{selectedToken && (
-							<p className="text-xs text-muted-foreground">
-								{selectedToken.raw.genesis.token.metadata.symbol}
+						{!errors.amount && amount && selectedToken?.metadata?.symbol && (
+							<p
+								id="amount-hint"
+								className="text-xs text-muted-foreground"
+							>
+								You're sending {amount} {selectedToken.metadata.symbol}
+							</p>
+						)}
+						{!errors.amount && !amount && (
+							<p
+								id="amount-help"
+								className="text-xs text-muted-foreground"
+							>
+								{selectedToken?.metadata?.symbol
+									? (
+										<>
+											Enter amount in {selectedToken.metadata.symbol}. Formats:{" "}
+											<span className="font-mono">1000</span>,{" "}
+											<span className="font-mono">1,000</span>,{" "}
+											<span className="font-mono">1 000</span>, or{" "}
+											<span className="font-mono">1.000</span>
+										</>
+									)
+									: "Enter amount. Supports: 1000, 1,000, 1 000, or 1.000"}
 							</p>
 						)}
 					</div>
@@ -398,7 +678,8 @@ export function SendTransactionDialog({
 							<div className="p-3 rounded border bg-muted/30">
 								<div className="flex items-center justify-between">
 									<span className="text-sm font-semibold">
-										{currentBalance.balance} {selectedToken.raw.genesis.token.metadata.symbol}
+										{currentBalance.balance}{" "}
+										{selectedToken?.metadata?.symbol || ""}
 									</span>
 									{balanceLoading && (
 										<span className="text-xs text-muted-foreground">
@@ -406,17 +687,19 @@ export function SendTransactionDialog({
 										</span>
 									)}
 								</div>
-								{amount && !balanceLoading && (
+								{amount && !balanceLoading && !errors.amount && (
 									<div className="mt-2 text-xs text-muted-foreground">
 										{(() => {
 											const balanceNum = Number.parseFloat(
 												currentBalance.balance,
 											);
-											const amountNum = Number.parseFloat(amount.trim());
+											const decimals = selectedToken?.metadata?.decimals || 6;
+											const normalizedAmount = formatAmountForAPI(amount, decimals);
+											const amountNum = Number.parseFloat(normalizedAmount);
 											const feeNum = Number.parseFloat(calculatedFee);
 											const required = amountNum + feeNum;
 											const remaining = balanceNum - required;
-											const tokenSymbol = selectedToken.raw.genesis.token.metadata.symbol;
+											const tokenSymbol = selectedToken?.metadata?.symbol || "";
 
 											if (isNaN(amountNum) || amountNum <= 0) {
 												return null;
@@ -428,8 +711,7 @@ export function SendTransactionDialog({
 														Insufficient balance. Need{" "}
 														{Math.abs(remaining).toFixed(
 															currentBalance.decimals,
-														)}{" "}
-														{tokenSymbol} more
+														)} {tokenSymbol} more
 													</span>
 												);
 											}
@@ -438,8 +720,7 @@ export function SendTransactionDialog({
 												<span>
 													After transaction: {remaining.toFixed(
 														currentBalance.decimals,
-													)}{" "}
-													{tokenSymbol}
+													)} {tokenSymbol}
 												</span>
 											);
 										})()}

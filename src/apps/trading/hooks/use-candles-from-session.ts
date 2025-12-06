@@ -1,9 +1,10 @@
 /**
  * Hook to get candles from sessionStorage
- * Pattern: testnet.runtime.candles.{SYMBOL}.{EXCHANGE}.spot.{TIMEFRAME}
+ * Pattern: {network}.runtime.candles.{SYMBOL}.{EXCHANGE}.spot.{TIMEFRAME}
  */
 
 import { useState, useEffect, useMemo } from "react";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import { getSessionStorageManager } from "@/lib/gui/ui";
 
 export interface Candle {
@@ -24,8 +25,9 @@ function getCandlesChannel(
 	symbol: string,
 	exchange: string,
 	timeframe: Timeframe,
+	networkId: string,
 ): string {
-	return `testnet.runtime.candles.${symbol}.${exchange}.spot.${timeframe}`;
+	return `${networkId}.runtime.candles.${symbol}.${exchange}.spot.${timeframe}`;
 }
 
 /**
@@ -67,12 +69,13 @@ export function useCandlesFromSession(
 	timeframe: Timeframe = "15m",
 ): Candle[] {
 	const [candles, setCandles] = useState<Candle[]>([]);
+	const { currentNetworkId } = useNetworkStore();
 	const sessionManager = getSessionStorageManager();
 
 	const channel = useMemo(() => {
 		if (!symbol) return null;
-		return getCandlesChannel(symbol, exchange, timeframe);
-	}, [symbol, exchange, timeframe]);
+		return getCandlesChannel(symbol, exchange, timeframe, currentNetworkId);
+	}, [symbol, exchange, timeframe, currentNetworkId]);
 
 	useEffect(() => {
 		if (!channel) {

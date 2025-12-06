@@ -3,6 +3,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { useNetworkStore } from "@/stores/modules/network.store";
 
 // Asset data can be in two formats:
 // 1. Full format with raw.genesis (from session)
@@ -26,7 +27,48 @@ interface AssetData {
 	};
 	raw?: {
 		genesis: {
-			token: {
+			$schema?: string;
+			version?: string;
+			network?: {
+				id: string;
+				name?: string;
+				environment?: string;
+				chain_id?: number;
+			};
+			genesis?: {
+				id: string;
+				created_at: string;
+				activation_time: string;
+				previous_genesis_id?: string | null;
+				issuer?: {
+					org: string;
+					contact?: string;
+				};
+				[key: string]: unknown;
+			};
+			content?: {
+				hash_alg: string;
+				hash: string;
+				size: number;
+			};
+			protocol?: Record<string, unknown>;
+			wallet_protocol?: Record<string, unknown>;
+			addressing?: Record<string, unknown>;
+			consensus?: Record<string, unknown>;
+			intrinsics?: Record<string, unknown>;
+			smart_ops_spec?: Record<string, unknown>;
+			parameters?: Record<string, unknown>;
+			tx_rules?: Record<string, unknown>;
+			tx_schema?: Record<string, unknown>;
+			schemas?: Record<string, unknown>;
+			state?: Record<string, unknown>;
+			monetary?: Record<string, unknown>;
+			security?: Record<string, unknown>;
+			governance?: Record<string, unknown>;
+			signing_keys?: Array<Record<string, unknown>>;
+			signatures?: Record<string, unknown>;
+			// Legacy token format support
+			token?: {
 				id: string;
 				created_at: string;
 				activation_time: string;
@@ -61,6 +103,12 @@ interface AssetData {
 		publicKey: string;
 		timestamp: number;
 		status: string;
+		validation_result?: {
+			structure_valid?: boolean;
+			signatures_valid?: boolean;
+			schema_valid?: boolean;
+			[key: string]: unknown;
+		};
 	};
 	timestamp?: number;
 }
@@ -89,23 +137,12 @@ export interface UsePublicAssetListReturn {
 }
 
 /**
- * Default API URL for public requests
+ * Get API URL from network store
  */
-const DEFAULT_NETWORK = "testnet";
-
-/**
- * Get API URL based on node type selection
- */
-function getApiUrl(_network: string, nodeType?: string): string {
-	// Check localStorage for node type if not provided
-	if (typeof window !== "undefined" && !nodeType) {
-		nodeType = localStorage.getItem("explorer_node") || "testnet";
-	}
-	
-	if (nodeType === "local") {
-		return "http://10.0.0.238:8088/";
-	}
-	return "https://beta.stels.dev/";
+function getApiUrl(networkId: string): string {
+	const networkStore = useNetworkStore.getState();
+	const network = networkStore.getNetwork(networkId);
+	return network ? `${network.api}/` : "http://10.0.0.238:8088/";
 }
 
 /**
@@ -117,10 +154,10 @@ export function usePublicAssetList(
 	const [assets, setAssets] = useState<AssetData[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const { currentNetworkId } = useNetworkStore();
 
-	const network = params.network || DEFAULT_NETWORK;
-	const nodeType = params.nodeType || (typeof window !== "undefined" ? localStorage.getItem("explorer_node") || "testnet" : "testnet");
-	const apiUrl = getApiUrl(network, nodeType);
+	const network = params.network || currentNetworkId;
+	const apiUrl = getApiUrl(network);
 
 	const fetchAssetList = useCallback(async (): Promise<void> => {
 		setLoading(true);

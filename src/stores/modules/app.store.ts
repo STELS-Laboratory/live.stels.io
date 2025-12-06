@@ -154,7 +154,7 @@ export const useAppStore = create<AppState>()(
 					updateStatus: () => set(getNetworkInfo()),
 					
 					allowedRoutes,
-					currentRoute: 'trading',
+					currentRoute: 'welcome',
 					setRoute: (route: string) => {
 						const {allowedRoutes} = get()
 

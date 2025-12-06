@@ -18,7 +18,7 @@ function getApiService(apiUrl?: string): TradingApiService {
 	const authState = useAuthStore.getState();
 	const sessionApiUrl = authState.connectionSession?.api;
 	const envApiUrl = import.meta.env.VITE_TRADING_API_URL;
-	const finalApiUrl = apiUrl || sessionApiUrl || envApiUrl || "http://localhost:8000";
+	const finalApiUrl = apiUrl || sessionApiUrl || envApiUrl || "http://10.0.0.238:8088";
 
 	// Create new instance if URL changed
 	if (!apiServiceInstance || lastApiUrl !== finalApiUrl) {

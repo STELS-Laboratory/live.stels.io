@@ -5,17 +5,20 @@
 
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Database, Loader2, Shield, Eye, TrendingUp } from "lucide-react";
+import { Database, Eye, Shield, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { StoredAccount } from "@/stores/modules/accounts.store";
 import { useAccountRealtimeData } from "../hooks/use_account_realtime_data";
+import { AccountListSkeleton } from "./wallet_skeletons";
 
 /**
  * Get status badge variant
  */
-function getStatusBadgeVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
+function getStatusBadgeVariant(
+	status: string,
+): "default" | "secondary" | "destructive" | "outline" {
 	switch (status) {
 		case "active":
 			return "default";
@@ -72,7 +75,7 @@ function AccountItem({
 				)}
 			>
 				{isOwner
-					 ? (
+					? (
 						<Shield
 							className={cn(
 								"text-foreground",
@@ -80,7 +83,7 @@ function AccountItem({
 							)}
 						/>
 					)
-					 : (
+					: (
 						<Eye
 							className={cn(
 								"text-muted-foreground",
@@ -152,19 +155,23 @@ function AccountItem({
 						</span>
 					)}
 				</div>
-				
+
 				{/* Real-time Balance Data */}
 				{realtimeData && realtimeData.totalUsdValue > 0 && (
 					<div className={cn("mt-2 space-y-1", mobile && "mt-1.5 space-y-0.5")}>
 						<div className="flex items-center gap-2">
-							<TrendingUp className={cn(
-								"text-amber-500",
-								mobile ? "w-3 h-3" : "w-3.5 h-3.5",
-							)} />
-							<span className={cn(
-								"font-semibold text-foreground",
-								mobile ? "text-xs" : "text-sm",
-							)}>
+							<TrendingUp
+								className={cn(
+									"text-amber-500",
+									mobile ? "w-3 h-3" : "w-3.5 h-3.5",
+								)}
+							/>
+							<span
+								className={cn(
+									"font-semibold text-foreground",
+									mobile ? "text-xs" : "text-sm",
+								)}
+							>
 								${realtimeData.totalUsdValue.toLocaleString("en-US", {
 									minimumFractionDigits: 2,
 									maximumFractionDigits: 2,
@@ -172,10 +179,12 @@ function AccountItem({
 							</span>
 						</div>
 						{realtimeData.coins.length > 0 && (
-							<div className={cn(
-								"flex items-center gap-1.5 flex-wrap",
-								mobile && "gap-1",
-							)}>
+							<div
+								className={cn(
+									"flex items-center gap-1.5 flex-wrap",
+									mobile && "gap-1",
+								)}
+							>
 								{realtimeData.coins
 									.slice(0, mobile ? 2 : 3)
 									.map((coin) => (
@@ -194,10 +203,12 @@ function AccountItem({
 										</Badge>
 									))}
 								{realtimeData.coins.length > (mobile ? 2 : 3) && (
-									<span className={cn(
-										"text-[10px] text-muted-foreground",
-										mobile && "text-[9px]",
-									)}>
+									<span
+										className={cn(
+											"text-[10px] text-muted-foreground",
+											mobile && "text-[9px]",
+										)}
+									>
 										+{realtimeData.coins.length - (mobile ? 2 : 3)} more
 									</span>
 								)}
@@ -251,11 +262,12 @@ export function AccountList({
 			const statusOrder = { active: 0, learn: 1, stopped: 2 };
 			const aStatus = a.account.status || "active";
 			const bStatus = b.account.status || "active";
-			const statusDiff = (statusOrder[aStatus as keyof typeof statusOrder] ?? 3) -
+			const statusDiff =
+				(statusOrder[aStatus as keyof typeof statusOrder] ?? 3) -
 				(statusOrder[bStatus as keyof typeof statusOrder] ?? 3);
-			
+
 			if (statusDiff !== 0) return statusDiff;
-			
+
 			// Then sort by exchange name
 			return a.account.exchange.localeCompare(b.account.exchange);
 		});
@@ -267,21 +279,7 @@ export function AccountList({
 	};
 
 	if (loading) {
-		return (
-			<Card>
-				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<Database className="w-5 h-5" />
-						Accounts
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="flex items-center justify-center py-8">
-						<Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-					</div>
-				</CardContent>
-			</Card>
-		);
+		return <AccountListSkeleton mobile={mobile} />;
 	}
 
 	if (sortedAccounts.length === 0) {

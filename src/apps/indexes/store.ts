@@ -5,6 +5,7 @@
 
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import type {
 	IndexCandleData,
 	IndexCode, IndexData,
@@ -232,18 +233,19 @@ function parseCandleData(entry: unknown): IndexCandleData | null {
 /**
  * Load indexes from sessionStorage
  */
-function loadIndexesFromStorage(): {
+function loadIndexesFromStorage(networkId: string): {
   indexes: Record<string, IndexData>;
   candles: Record<string, IndexCandleData>;
 } {
   const indexes: Record<string, IndexData> = {};
   const candles: Record<string, IndexCandleData> = {};
+  const indexesPrefix = `${networkId}.runtime.indexes.`;
 
   try {
     // Iterate through all sessionStorage keys
     for (let i = 0; i < sessionStorage.length; i++) {
       const key = sessionStorage.key(i);
-      if (!key || !key.startsWith("testnet.runtime.indexes.")) {
+      if (!key || !key.startsWith(indexesPrefix)) {
         continue;
       }
 
@@ -308,6 +310,7 @@ export const useIndexStore = create<IndexStore>()(
         // Actions
         loadIndexes: (): void => {
           const currentState = get();
+          const { currentNetworkId } = useNetworkStore.getState();
           
           // Only set loading if not already loading
           if (!currentState.loading) {
@@ -315,7 +318,7 @@ export const useIndexStore = create<IndexStore>()(
           }
 
           try {
-            const { indexes, candles } = loadIndexesFromStorage();
+            const { indexes, candles } = loadIndexesFromStorage(currentNetworkId);
             
             // Quick check: compare keys and timestamps
             const currentIndexKeys = Object.keys(currentState.indexes).sort().join(',');

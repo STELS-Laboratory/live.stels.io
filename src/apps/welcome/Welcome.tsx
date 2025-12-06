@@ -45,6 +45,7 @@ import { useOpenAppsStore } from "@/stores/modules/open_apps.ts";
 import { useRestoreOpenApps } from "@/hooks/use_restore_open_apps.ts";
 import { useDefaultSchemas } from "@/hooks/use_default_schemas.ts";
 import { toast, useAuthStore } from "@/stores";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import { useAssetList } from "@/hooks/use_asset_list";
 import { useAssetBalance } from "@/hooks/use_asset_balance";
 import { useAssetBalances } from "@/hooks/use_asset_balances";
@@ -69,6 +70,7 @@ function Welcome(): ReactElement {
   const session = useSessionStoreSync() as Record<string, unknown> | null;
   const wallet = useAuthStore((state) => state.wallet);
   const connectionSession = useAuthStore((state) => state.connectionSession);
+  const { currentNetworkId } = useNetworkStore();
   const [schemas, setSchemas] = useState<SchemaProject[]>([]);
 
   // Load asset list from server
@@ -76,18 +78,31 @@ function Welcome(): ReactElement {
 
   // Find TST token for main balance
   const tstToken = useMemo(() => {
-    if (!assets) return null;
-    return assets.find(
-      (asset) =>
-        asset.raw.genesis.token.metadata.symbol === "TST" ||
-        asset.raw.genesis.token.metadata.symbol === "tst",
-    );
+    if (!assets || assets.length === 0) return null;
+    
+    // Filter out genesis network documents and find TST token
+    return assets.find((asset) => {
+      // Skip genesis network documents
+      const isGenesisDoc = asset.channel?.includes(".genesis:") || 
+        (asset.raw?.genesis && !asset.raw.genesis.token && asset.raw.genesis.genesis);
+      
+      if (isGenesisDoc) return false;
+      
+      // Support both formats: legacy (token.raw.genesis.token) and new (metadata directly)
+      const symbol = asset.raw?.genesis?.token?.metadata?.symbol ||
+        asset.metadata?.symbol ||
+        "";
+      
+      return symbol.toUpperCase() === "TST";
+    });
   }, [assets]);
 
   // Get TST balance using getAssetBalance API (only if tstToken is found)
   const { balance: tstBalance, loading: balanceLoading } = useAssetBalance({
     address: wallet?.address || "",
-    token_id: tstToken?.raw.genesis.token.id || "",
+    token_id: tstToken?.raw?.genesis?.token?.id || 
+      tstToken?.id || 
+      "",
     network: connectionSession?.network,
   });
 
@@ -322,8 +337,9 @@ function Welcome(): ReactElement {
 
       if (activeApp.channelKey && session) {
         // For virtual schemas (tokens), recreate from template
+        const tokenWidgetKey = `widget.asset.${currentNetworkId}.token`;
         const templateSchema = schemas.find(
-          (s) => s.widgetKey === "widget.asset.testnet.token",
+          (s) => s.widgetKey === tokenWidgetKey,
         );
 
         if (templateSchema) {
@@ -434,8 +450,9 @@ function Welcome(): ReactElement {
   const hasLoggedSessionAssetsRef = useRef(false);
   useEffect(() => {
     if (!isLoading && session && !hasLoggedSessionAssetsRef.current) {
+      const assetPrefix = `asset.${currentNetworkId}.token:`;
       const assetChannels = Object.keys(session).filter((key) =>
-        key.startsWith("asset.testnet.token:")
+        key.startsWith(assetPrefix)
       );
       if (assetChannels.length > 0) {
         hasLoggedSessionAssetsRef.current = true;
@@ -465,14 +482,15 @@ function Welcome(): ReactElement {
 
   // Find token template schema (ONE schema for ALL tokens)
   const tokenTemplateSchema = useMemo(() => {
+    const tokenWidgetKey = `widget.asset.${currentNetworkId}.token`;
     return schemas.find(
       (schema) =>
         schema.type === "static" &&
-        (schema.widgetKey === "widget.asset.testnet.token" ||
+        (schema.widgetKey === tokenWidgetKey ||
           schema.widgetKey.startsWith("widget.asset.") &&
             !schema.widgetKey.includes("sha256")),
     );
-  }, [schemas]);
+  }, [schemas, currentNetworkId]);
 
   // Track last created schemas to prevent unnecessary recreation
   const lastSchemasHashRef = useRef<string>("");
@@ -490,15 +508,16 @@ function Welcome(): ReactElement {
       .sort()
       .join("|");
     
+    const assetPrefix = `asset.${currentNetworkId}.token:sha256:`;
     const sessionChannelsHash = session
       ? Object.keys(session)
-          .filter((k) => k.startsWith("asset.testnet.token:sha256:"))
+          .filter((k) => k.startsWith(assetPrefix))
           .sort()
           .join("|")
       : "";
     
     const templateId = tokenTemplateSchema.id || "";
-    const combinedHash = `${assetChannelsHash}|${sessionChannelsHash}|${templateId}`;
+    const combinedHash = `${assetChannelsHash}|${sessionChannelsHash}|${templateId}|${currentNetworkId}`;
 
     // Return cached schemas if nothing changed
     if (lastSchemasHashRef.current === combinedHash && lastSchemasRef.current.length > 0) {
@@ -515,9 +534,10 @@ function Welcome(): ReactElement {
     >();
 
     // 1. Add channels from SESSION first (they have the working keys for data access)
+    // assetPrefix already declared above
     if (session) {
       Object.keys(session).forEach((key) => {
-        if (key.startsWith("asset.testnet.token:sha256:")) {
+        if (key.startsWith(assetPrefix)) {
           const normalized = key.toLowerCase();
           // Prefer session version (it's the one that works for data reading)
           if (!channelMap.has(normalized)) {
@@ -534,7 +554,7 @@ function Welcome(): ReactElement {
     // 2. Add channels from server assets (only if not in session)
     assets.forEach((asset) => {
       if (
-        asset.channel && asset.channel.startsWith("asset.testnet.token:sha256:")
+        asset.channel && asset.channel.startsWith(assetPrefix)
       ) {
         const normalized = asset.channel.toLowerCase();
         // Only add if not already present from session
@@ -566,7 +586,7 @@ function Welcome(): ReactElement {
     // Cache the result
     lastSchemasRef.current = virtualSchemas;
     return virtualSchemas;
-  }, [session, tokenTemplateSchema, assets]);
+  }, [session, tokenTemplateSchema, assets, currentNetworkId]);
 
   // Debug: Log schemas only once after loading
   useEffect(() => {

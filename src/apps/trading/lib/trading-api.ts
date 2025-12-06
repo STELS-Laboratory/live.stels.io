@@ -16,7 +16,7 @@ export class TradingApiService {
 	private baseUrl: string;
 	private session: string | null = null;
 
-	constructor(baseUrl: string = "http://localhost:8000") {
+	constructor(baseUrl: string = "http://10.0.0.238:8088") {
 		this.baseUrl = baseUrl;
 	}
 

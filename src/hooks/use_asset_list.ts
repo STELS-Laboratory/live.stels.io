@@ -17,7 +17,48 @@ interface AssetData {
 	widget: string;
 	raw: {
 		genesis: {
-			token: {
+			$schema?: string;
+			version?: string;
+			network?: {
+				id: string;
+				name?: string;
+				environment?: string;
+				chain_id?: number;
+			};
+			genesis?: {
+				id: string;
+				created_at: string;
+				activation_time: string;
+				previous_genesis_id?: string | null;
+				issuer?: {
+					org: string;
+					contact?: string;
+				};
+				[key: string]: unknown;
+			};
+			content?: {
+				hash_alg: string;
+				hash: string;
+				size: number;
+			};
+			protocol?: Record<string, unknown>;
+			wallet_protocol?: Record<string, unknown>;
+			addressing?: Record<string, unknown>;
+			consensus?: Record<string, unknown>;
+			intrinsics?: Record<string, unknown>;
+			smart_ops_spec?: Record<string, unknown>;
+			parameters?: Record<string, unknown>;
+			tx_rules?: Record<string, unknown>;
+			tx_schema?: Record<string, unknown>;
+			schemas?: Record<string, unknown>;
+			state?: Record<string, unknown>;
+			monetary?: Record<string, unknown>;
+			security?: Record<string, unknown>;
+			governance?: Record<string, unknown>;
+			signing_keys?: Array<Record<string, unknown>>;
+			signatures?: Record<string, unknown>;
+			// Legacy token format support
+			token?: {
 				id: string;
 				created_at: string;
 				activation_time: string;
@@ -52,6 +93,12 @@ interface AssetData {
 		publicKey: string;
 		timestamp: number;
 		status: string;
+		validation_result?: {
+			structure_valid?: boolean;
+			signatures_valid?: boolean;
+			schema_valid?: boolean;
+			[key: string]: unknown;
+		};
 	};
 	timestamp: number;
 }

@@ -4,6 +4,7 @@
  */
 
 import { useState, useCallback } from "react";
+import { useNetworkStore } from "@/stores/modules/network.store";
 
 /**
  * Balance response structure
@@ -40,24 +41,12 @@ export interface UsePublicBalanceReturn {
 }
 
 /**
- * Default API URL for public requests
+ * Get API URL from network store
  */
-const DEFAULT_NETWORK = "testnet";
-
-/**
- * Get API URL based on node type selection
- * Network parameter is always "testnet" as per API requirements
- */
-function getApiUrl(_network: string, nodeType?: string): string {
-	// Check localStorage for node type if not provided
-	if (typeof window !== "undefined" && !nodeType) {
-		nodeType = localStorage.getItem("explorer_node") || "testnet";
-	}
-	
-	if (nodeType === "local") {
-		return "http://10.0.0.238:8088/";
-	}
-	return "https://beta.stels.dev/";
+function getApiUrl(networkId: string): string {
+	const networkStore = useNetworkStore.getState();
+	const network = networkStore.getNetwork(networkId);
+	return network ? `${network.api}/` : "http://10.0.0.238:8088/";
 }
 
 /**
@@ -69,6 +58,7 @@ export function usePublicBalance(
 	const [balance, setBalance] = useState<PublicAssetBalance | null>(null);
 	const [loading, setLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string | null>(null);
+	const { currentNetworkId } = useNetworkStore();
 
 	const fetchBalance = useCallback(async (): Promise<void> => {
 		if (!params.address || params.address.trim().length === 0) {
@@ -81,12 +71,9 @@ export function usePublicBalance(
 			return;
 		}
 
-		// Network parameter is always "testnet" as per API requirements
-		const network = DEFAULT_NETWORK;
-		
-		// Get node type from localStorage or params
-		const nodeType = params.nodeType || (typeof window !== "undefined" ? localStorage.getItem("explorer_node") || "testnet" : "testnet");
-		const apiUrl = getApiUrl(network, nodeType);
+		// Use network from params or current network from store
+		const network = params.network || currentNetworkId;
+		const apiUrl = getApiUrl(network);
 
 		setLoading(true);
 		setError(null);
@@ -118,23 +105,63 @@ export function usePublicBalance(
 				throw new Error(`HTTP error! status: ${response.status}`);
 			}
 
-			const data: { result?: { success?: boolean; balance?: PublicAssetBalance; } | PublicAssetBalance } = await response.json();
+			const data: { 
+				result?: {
+					success: boolean;
+					balance?: PublicAssetBalance | {
+						balance: string;
+						currency?: string;
+						decimals?: number;
+						initial_balance?: string;
+						total_received?: string;
+						total_sent?: string;
+						total_fees?: string;
+						transaction_count?: number;
+					};
+					token_id?: string;
+					address?: string;
+					[key: string]: unknown;
+				} | PublicAssetBalance;
+			} = await response.json();
 
 			if (data.result) {
-				if ("success" in data.result && data.result.success && data.result.balance) {
-					const balanceData: PublicAssetBalance = {
-						balance: data.result.balance.balance,
-						currency: data.result.balance.currency || "",
-						decimals: data.result.balance.decimals ?? 6,
-						initial_balance: data.result.balance.initial_balance || "0",
-						total_received: data.result.balance.total_received || "0",
-						total_sent: data.result.balance.total_sent || "0",
-						total_fees: data.result.balance.total_fees || "0",
-						transaction_count: data.result.balance.transaction_count || 0,
-					};
+				// Handle response formats according to updated API documentation
+				// Format 1: {result: {success: true, balance: {balance: "...", currency: "...", ...}, ...}}
+				// Format 2: {result: PublicAssetBalance} (legacy format)
+				if ("success" in data.result && data.result.success) {
+					// Format 1: Extract balance from result.balance object
+					const balanceObj = data.result.balance;
+					
+					if (!balanceObj) {
+						throw new Error("Balance object missing in response");
+					}
+
+					// Handle both object balance (new format) and direct balance (legacy)
+					const balanceData: PublicAssetBalance = typeof balanceObj === "string"
+						? {
+							balance: balanceObj,
+							currency: "",
+							decimals: 6,
+							initial_balance: "0",
+							total_received: "0",
+							total_sent: "0",
+							total_fees: "0",
+							transaction_count: 0,
+						}
+						: {
+							balance: balanceObj.balance,
+							currency: balanceObj.currency || "",
+							decimals: balanceObj.decimals ?? 6,
+							initial_balance: balanceObj.initial_balance || "0",
+							total_received: balanceObj.total_received || "0",
+							total_sent: balanceObj.total_sent || "0",
+							total_fees: balanceObj.total_fees || "0",
+							transaction_count: balanceObj.transaction_count || 0,
+						};
 					setBalance(balanceData);
 
-				} else if ("balance" in data.result) {
+				} else if ("balance" in data.result && typeof data.result.balance === "string") {
+					// Format 2: Legacy direct PublicAssetBalance format
 					const balanceData = data.result as PublicAssetBalance;
 					setBalance(balanceData);
 

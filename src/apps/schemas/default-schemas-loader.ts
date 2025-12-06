@@ -7,6 +7,7 @@ import type { UINode } from "@/lib/gui/ui.ts";
 import type { SchemaProject } from "./types.ts";
 import { generateSchemaId, getSchemaByWidgetKey, saveSchema } from "./db.ts";
 import { getBodySessionId } from "@/lib/session_manager";
+import { useNetworkStore } from "@/stores/modules/network.store";
 
 /**
  * List of default schema files to load from public/schemas/
@@ -97,6 +98,29 @@ async function loadSchemaFromPublic(
       return null;
     }
 
+    // Get current network ID and update channelKeys dynamically
+    const networkStore = useNetworkStore.getState();
+    const currentNetworkId = networkStore.currentNetworkId;
+    
+    // Update channelKeys and channelAliases with current network
+    let channelKeys = metadata.channelKeys || [];
+    let channelAliases = metadata.channelAliases || [];
+    
+    // Replace testnet/mainnet in channelKeys
+    if (channelKeys.length > 0) {
+      channelKeys = channelKeys.map((key) => 
+        key.replace(/^(testnet|mainnet)\./, `${currentNetworkId}.`)
+      );
+    }
+    
+    // Replace testnet/mainnet in channelAliases
+    if (channelAliases.length > 0) {
+      channelAliases = channelAliases.map((alias) => ({
+        ...alias,
+        channelKey: alias.channelKey.replace(/^(testnet|mainnet)\./, `${currentNetworkId}.`),
+      }));
+    }
+
     // Create SchemaProject
     const schema: SchemaProject = {
       id: generateSchemaId(),
@@ -105,9 +129,9 @@ async function loadSchemaFromPublic(
       type: metadata.type,
       widgetKey: widgetKey,
       schema: uiSchema,
-      channelKeys: metadata.channelKeys || [], // Use metadata channelKeys or empty for templates
-      channelAliases: metadata.channelAliases || [],
-      selfChannelKey: metadata.channelKeys?.[0] || null, // Use first channel as self if available
+      channelKeys: channelKeys, // Use updated channelKeys with current network
+      channelAliases: channelAliases, // Use updated channelAliases with current network
+      selfChannelKey: channelKeys[0] || null, // Use first channel as self if available
       nestedSchemas: [],
       createdAt: Date.now(),
       updatedAt: Date.now(),

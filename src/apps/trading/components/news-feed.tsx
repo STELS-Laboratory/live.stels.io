@@ -14,6 +14,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import useSessionStoreSync from "@/hooks/use_session_store_sync";
 import { Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -168,6 +169,7 @@ function getImportanceLevel(score: number): {
  */
 export function NewsFeed(): React.ReactElement {
 	const session = useSessionStoreSync() as Record<string, unknown> | null;
+	const { currentNetworkId } = useNetworkStore();
 	const newsScrollRef = useRef<HTMLDivElement>(null);
 	const [activeCategory, setActiveCategory] = useState<string>("");
 	const [sortBy, setSortBy] = useState<SortOption>("score");
@@ -180,11 +182,12 @@ export function NewsFeed(): React.ReactElement {
 
 		if (!session) return categories;
 
-		// Scan session for all keys starting with testnet.runtime.news.
+		// Scan session for all keys starting with {network}.runtime.news.
+		const newsPrefix = `${currentNetworkId}.runtime.news.`;
 		Object.keys(session).forEach((key) => {
-			if (key.startsWith("testnet.runtime.news.")) {
-				// Extract category from key: testnet.runtime.news.{category}
-				const categoryKey = key.replace("testnet.runtime.news.", "");
+			if (key.startsWith(newsPrefix)) {
+				// Extract category from key: {network}.runtime.news.{category}
+				const categoryKey = key.replace(newsPrefix, "");
 				
 				// Skip if already seen or empty
 				if (!categoryKey || seen.has(categoryKey)) return;
@@ -208,7 +211,7 @@ export function NewsFeed(): React.ReactElement {
 
 		// Sort categories alphabetically by label
 		return categories.sort((a, b) => a.label.localeCompare(b.label));
-	}, [session]);
+	}, [session, currentNetworkId]);
 
 	// Get news data for all discovered categories
 	const allNewsData = useMemo((): Record<string, NewsItem[]> => {

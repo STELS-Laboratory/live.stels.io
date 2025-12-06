@@ -5,9 +5,11 @@
 
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Coins, Loader2 } from "lucide-react";
+import { Coins, Hash } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormattedNumber } from "@/components/ui/formatted-number";
 import { cn } from "@/lib/utils";
+import { TokenListSkeleton } from "./wallet_skeletons";
 import {
   type AssetBalanceItem,
   useAssetBalances,
@@ -16,12 +18,20 @@ import { useAllTokenPrices } from "@/hooks/use_token_price";
 import { useAuthStore } from "@/stores";
 
 interface AssetData {
-  channel: string;
-  module: string;
-  widget: string;
-  raw: {
+  id?: string;
+  channel?: string;
+  module?: string;
+  widget?: string;
+  metadata?: {
+    name: string;
+    symbol: string;
+    decimals: number;
+    description: string;
+    icon?: string;
+  };
+  raw?: {
     genesis: {
-      token: {
+      token?: {
         id: string;
         metadata: {
           name: string;
@@ -31,9 +41,13 @@ interface AssetData {
           icon?: string;
         };
       };
+      // Genesis network document fields (should be filtered out)
+      genesis?: Record<string, unknown>;
+      network?: Record<string, unknown>;
+      [key: string]: unknown;
     };
   };
-  timestamp: number;
+  timestamp?: number;
 }
 
 interface TokenListProps {
@@ -71,12 +85,50 @@ const TokenItemWithBalance = React.memo(function TokenItemWithBalance({
   balancesLoading: loading,
   mobile = false,
 }: TokenItemProps): React.ReactElement {
-  const metadata = asset.raw.genesis.token.metadata;
-  const tokenId = asset.raw.genesis.token.id;
+  // Support both formats: legacy (token.raw.genesis.token) and new (metadata directly)
+  const metadata = asset.raw?.genesis?.token?.metadata || asset.metadata || {
+    name: "Unknown Token",
+    symbol: "UNKNOWN",
+    decimals: 6,
+    description: "",
+  };
+  const tokenId = asset.raw?.genesis?.token?.id || asset.id || asset.channel ||
+    `token-${index}`;
 
   // Look up balance from the balances map
   const balanceData = balances.get(tokenId.toLowerCase());
-  const balance = balanceData ? Number.parseFloat(balanceData.balance) : 0;
+
+  // First, try to use total_balance_sli from API if available (most accurate)
+  // This is the total balance including mined tokens, already in human-readable format
+  let totalBalance = 0;
+  if (balanceData?.total_balance_sli) {
+    const total = Number.parseFloat(balanceData.total_balance_sli);
+    if (!Number.isNaN(total)) {
+      totalBalance = total;
+    }
+  } else {
+    // Fallback: calculate manually if total_balance_sli is not available
+    const decimals = balanceData?.decimals ?? metadata.decimals;
+    const rawBaseBalance = balanceData
+      ? Number.parseFloat(balanceData.balance)
+      : 0;
+
+    // Check if balance is already in human-readable format or in raw format
+    // If balance > 10^decimals, it's likely in raw format
+    const isRawFormat = rawBaseBalance >= Math.pow(10, decimals);
+    const baseBalance = Number.isNaN(rawBaseBalance)
+      ? 0
+      : isRawFormat
+      ? rawBaseBalance / Math.pow(10, decimals)
+      : rawBaseBalance; // Already in human-readable format
+
+    // Add mined tokens to balance (mined_sli is already in human-readable format)
+    const minedBalance = balanceData?.mined_sli
+      ? Number.parseFloat(balanceData.mined_sli)
+      : 0;
+    totalBalance = baseBalance +
+      (Number.isNaN(minedBalance) ? 0 : minedBalance);
+  }
 
   // Check if this is first load (no balances loaded yet)
   const isFirstLoad = loading && balances.size === 0;
@@ -87,12 +139,12 @@ const TokenItemWithBalance = React.memo(function TokenItemWithBalance({
   const isUSDT = symbolUpper === "USDT";
   const price = isUSDT ? 1 : (prices.get(symbolUpper) || null);
 
-  // Calculate USD value: balance * price
+  // Calculate USD value: total balance * price (including mined tokens)
   // Memoize calculation to prevent unnecessary recalculations
   const usdValue = React.useMemo(() => {
-    if (!price || balance <= 0) return 0;
-    return balance * price;
-  }, [price, balance]);
+    if (!price || totalBalance <= 0) return 0;
+    return totalBalance * price;
+  }, [price, totalBalance]);
 
   const token: TokenItem = {
     name: metadata.name,
@@ -100,7 +152,7 @@ const TokenItemWithBalance = React.memo(function TokenItemWithBalance({
     decimals: metadata.decimals,
     description: metadata.description,
     icon: metadata.icon,
-    balance,
+    balance: totalBalance, // Total balance including mined tokens
     usdValue,
   };
 
@@ -193,9 +245,21 @@ const TokenItemWithBalance = React.memo(function TokenItemWithBalance({
         >
           {isFirstLoad && balanceData === undefined
             ? "..."
-            : balance > 0
-            ? balance.toFixed(token.decimals)
-            : "0.000000"}
+            : totalBalance > 0
+            ? (
+              <FormattedNumber
+                value={totalBalance}
+                decimals={token.decimals}
+                useGrouping={true}
+              />
+            )
+            : (
+              <FormattedNumber
+                value={0}
+                decimals={token.decimals}
+                useGrouping={true}
+              />
+            )}
         </div>
         <div
           className={cn(
@@ -210,20 +274,47 @@ const TokenItemWithBalance = React.memo(function TokenItemWithBalance({
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             }).format(token.usdValue)
-            : price && balance > 0
+            : price && totalBalance > 0
             ? "Price unavailable"
             : "$0.00"}
         </div>
+        {/* Mined data */}
+        {balanceData?.mined_sli &&
+          Number.parseFloat(balanceData.mined_sli) > 0 && (
+          <div
+            className={cn(
+              "flex items-center gap-1 justify-end mt-1 text-amber-500",
+              mobile ? "text-[9px]" : "text-[10px]",
+            )}
+          >
+            <Hash className={cn(mobile ? "w-2.5 h-2.5" : "w-3 h-3")} />
+            <span className="font-medium flex items-baseline gap-1">
+              Mined:{" "}
+              <FormattedNumber
+                value={balanceData.mined_sli}
+                decimals={6}
+                useGrouping={true}
+              />{" "}
+              SLI
+            </span>
+          </div>
+        )}
       </div>
     </motion.div>
   );
 }, (prevProps, nextProps) => {
   // Custom comparison function - only re-render if actually changed
-  // Asset changed
-  if (
-    prevProps.asset.raw.genesis.token.id !==
-      nextProps.asset.raw.genesis.token.id
-  ) {
+  // Asset changed - support both formats
+  const prevTokenId = prevProps.asset.raw?.genesis?.token?.id ||
+    prevProps.asset.id ||
+    prevProps.asset.channel ||
+    "";
+  const nextTokenId = nextProps.asset.raw?.genesis?.token?.id ||
+    nextProps.asset.id ||
+    nextProps.asset.channel ||
+    "";
+
+  if (prevTokenId !== nextTokenId) {
     return false;
   }
 
@@ -233,7 +324,7 @@ const TokenItemWithBalance = React.memo(function TokenItemWithBalance({
   }
 
   // Check if balance changed for this token
-  const tokenId = prevProps.asset.raw.genesis.token.id.toLowerCase();
+  const tokenId = prevTokenId.toLowerCase();
   const prevBalance = prevProps.balancesMap.get(tokenId);
   const nextBalance = nextProps.balancesMap.get(tokenId);
 
@@ -399,8 +490,21 @@ export function TokenList({
     const map = new Map<string, AssetData>();
     if (assets && assets.length > 0) {
       for (const asset of assets) {
-        const tokenId = asset.raw.genesis.token.id.toLowerCase();
-        map.set(tokenId, asset);
+        // Skip genesis network documents
+        const isGenesisDoc = asset.channel?.includes(".genesis:") ||
+          (asset.raw?.genesis && !asset.raw.genesis.token &&
+            asset.raw.genesis.genesis);
+
+        if (isGenesisDoc) continue;
+
+        // Support both formats: legacy (token.raw.genesis.token) and new (id directly)
+        const tokenId = asset.raw?.genesis?.token?.id?.toLowerCase() ||
+          asset.id?.toLowerCase() ||
+          asset.channel?.toLowerCase();
+
+        if (tokenId) {
+          map.set(tokenId, asset);
+        }
       }
     }
     return map;
@@ -461,9 +565,26 @@ export function TokenList({
     const assetsMap = new Map<string, AssetData>();
 
     // Add all assets from availableAssets
+    // Filter out genesis network documents (not tokens)
     for (const asset of availableAssets) {
-      const tokenId = asset.raw.genesis.token.id.toLowerCase();
-      assetsMap.set(tokenId, asset);
+      // Check if it's a genesis network document (not a token)
+      const isGenesisDoc = asset.channel?.includes(".genesis:") ||
+        (asset.raw?.genesis && !asset.raw.genesis.token &&
+          asset.raw.genesis.genesis);
+
+      // Skip genesis network documents
+      if (isGenesisDoc) {
+        continue;
+      }
+
+      // Support both formats: legacy (token) and new (metadata)
+      const tokenId = asset.raw?.genesis?.token?.id?.toLowerCase() ||
+        asset.id?.toLowerCase() ||
+        asset.channel?.toLowerCase();
+
+      if (tokenId) {
+        assetsMap.set(tokenId, asset);
+      }
     }
 
     // Add tokens from balances that might not be in assets list
@@ -507,7 +628,11 @@ export function TokenList({
 
     // Convert map to array and calculate USD values
     const tokensWithValue = Array.from(assetsMap.values()).map((asset) => {
-      const tokenId = asset.raw.genesis.token.id.toLowerCase();
+      // Support both formats: legacy (token.raw.genesis.token) and new (id directly)
+      const tokenId = asset.raw?.genesis?.token?.id?.toLowerCase() ||
+        asset.id?.toLowerCase() ||
+        asset.channel?.toLowerCase() ||
+        "";
 
       const balanceData = balancesMap.get(tokenId);
       const balance = balanceData ? Number.parseFloat(balanceData.balance) : 0;
@@ -540,21 +665,7 @@ export function TokenList({
   ]);
 
   if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Coins className="w-5 h-5" />
-            Tokens
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <TokenListSkeleton mobile={mobile} />;
   }
 
   if (tokens.length === 0) {
@@ -590,17 +701,25 @@ export function TokenList({
       </CardHeader>
       <CardContent className={cn(mobile && "px-4 pt-0 pb-4")}>
         <div className={cn(mobile ? "space-y-2" : "space-y-3")}>
-          {tokens.map((asset, index) => (
-            <TokenItemWithBalance
-              key={asset.raw.genesis.token.id}
-              asset={asset}
-              index={index}
-              balancesMap={balancesMap}
-              tokenPrices={tokenPricesStable}
-              balancesLoading={balancesLoading}
-              mobile={mobile}
-            />
-          ))}
+          {tokens.map((asset, index) => {
+            // Support both formats for key generation
+            const tokenId = asset.raw?.genesis?.token?.id ||
+              asset.id ||
+              asset.channel ||
+              `token-${index}`;
+
+            return (
+              <TokenItemWithBalance
+                key={tokenId}
+                asset={asset}
+                index={index}
+                balancesMap={balancesMap}
+                tokenPrices={tokenPricesStable}
+                balancesLoading={balancesLoading}
+                mobile={mobile}
+              />
+            );
+          })}
         </div>
       </CardContent>
     </Card>

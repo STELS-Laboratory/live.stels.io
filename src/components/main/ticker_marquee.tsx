@@ -5,6 +5,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import type { TickerData, TickerMarqueeProps } from "@/types/components/main/types";
 import { TickerItem } from "./ticker_item";
 
@@ -15,16 +16,18 @@ export function TickerMarquee(
   { className }: TickerMarqueeProps,
 ): React.ReactElement | null {
   const [tickers, setTickers] = useState<TickerData[]>([]);
+  const { currentNetworkId } = useNetworkStore();
 
   // Get all tickers from sessionStorage
   const getTickers = React.useCallback((): TickerData[] => {
     const tickerList: TickerData[] = [];
+    const tickerPrefix = `${currentNetworkId}.runtime.ticker.`;
 
     try {
       // Iterate through all sessionStorage keys
       for (let i = 0; i < sessionStorage.length; i++) {
         const key = sessionStorage.key(i);
-        if (key && key.startsWith("testnet.runtime.ticker.")) {
+        if (key && key.startsWith(tickerPrefix)) {
           try {
             const data = sessionStorage.getItem(key);
             if (data) {
@@ -62,7 +65,7 @@ export function TickerMarquee(
 
       return [];
     }
-  }, []);
+  }, [currentNetworkId]);
 
   // Update tickers periodically - optimized with debounce
   useEffect(() => {

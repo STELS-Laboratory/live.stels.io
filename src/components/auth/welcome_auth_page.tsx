@@ -46,6 +46,7 @@ import { useIndexesSync } from "@/apps/indexes/hooks/use-indexes-sync";
 import { LOTTIE_ANIMATIONS } from "./lottie_config";
 import { usePublicWebSocket } from "@/hooks/use_public_web_socket";
 import { useAuthStore } from "@/stores/modules/auth.store";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +59,12 @@ import { TokenListItem } from "./token-list-item";
 import { TokenDetailModal } from "./token-detail-modal";
 import { usePublicAssetList } from "@/hooks/use_public_asset_list";
 import { useAllTokenPrices } from "@/hooks/use_token_price";
+import {
+	createNativeTokenFromGenesis,
+	normalizeTokens,
+} from "@/lib/token-normalizer";
+import type { Token } from "@/types/token";
+import type { RawAssetData } from "@/types/token";
 
 // Lazy load heavy components for better performance
 const NetworkStats = lazy(() =>
@@ -75,11 +82,11 @@ const TopMarkets = lazy(() =>
 	import("./top_markets").then((m) => ({ default: m.TopMarkets }))
 );
 const Explorer = lazy(() => import("@/apps/explorer"));
-
-/**
- * Default public WebSocket server (testnet)
- */
-const DEFAULT_PUBLIC_SOCKET = "wss://beta.stels.dev";
+const RealtimeTransactionFeed = lazy(() =>
+	import("./realtime-transaction-feed").then((m) => ({
+		default: m.RealtimeTransactionFeed,
+	}))
+);
 
 /**
  * Welcome Analytics Dashboard
@@ -102,6 +109,7 @@ export function WelcomeAuthPage(): React.ReactElement {
 		_hasHydrated,
 		isConnecting,
 	} = useAuthStore();
+	const { currentNetwork, currentNetworkId } = useNetworkStore();
 	const publicWsCloseRef = useRef<(() => void) | null>(null);
 	const { resolvedTheme } = useTheme();
 
@@ -109,28 +117,16 @@ export function WelcomeAuthPage(): React.ReactElement {
 	const isLoading = !_hasHydrated || isConnecting;
 
 	// Get current network name
-	const currentNetwork = useMemo(() => {
+	const currentNetworkName = useMemo(() => {
 		// If authenticated, use network from connection session
 		if (isAuthenticated && connectionSession?.network) {
 			// Capitalize first letter
 			return connectionSession.network.charAt(0).toUpperCase() +
 				connectionSession.network.slice(1);
 		}
-		// For public connection, determine from socket URL
-		if (DEFAULT_PUBLIC_SOCKET.includes("beta.stels.dev")) {
-			return "Testnet";
-		}
-		if (DEFAULT_PUBLIC_SOCKET.includes("mainnet.stels.io")) {
-			return "Mainnet";
-		}
-		if (
-			DEFAULT_PUBLIC_SOCKET.includes("10.0.0.238") ||
-			DEFAULT_PUBLIC_SOCKET.includes("localhost")
-		) {
-			return "Localnet";
-		}
-		return "Public";
-	}, [isAuthenticated, connectionSession?.network]);
+		// For public connection, use network store
+		return currentNetwork.name;
+	}, [isAuthenticated, connectionSession?.network, currentNetwork.name]);
 
 	// Apply resolved theme to document (will update automatically when system theme changes)
 	useEffect(() => {
@@ -143,10 +139,10 @@ export function WelcomeAuthPage(): React.ReactElement {
 	// Public WebSocket connection configuration - memoized to prevent re-creation
 	const publicWebSocketConfig = useMemo(
 		() => ({
-			socket: DEFAULT_PUBLIC_SOCKET,
+			socket: currentNetwork.socket,
 			protocols: ["webfix"] as string[],
 		}),
-		[], // Never changes
+		[currentNetwork.socket],
 	);
 
 	/**
@@ -259,26 +255,19 @@ export function WelcomeAuthPage(): React.ReactElement {
 		if (isAuthenticated && connectionSession?.network) {
 			return connectionSession.network;
 		}
-		// For public connection, determine from socket URL
-		if (DEFAULT_PUBLIC_SOCKET.includes("beta.stels.dev")) {
-			return "testnet";
-		}
-		if (DEFAULT_PUBLIC_SOCKET.includes("mainnet.stels.io")) {
-			return "mainnet";
-		}
-		if (
-			DEFAULT_PUBLIC_SOCKET.includes("10.0.0.238") ||
-			DEFAULT_PUBLIC_SOCKET.includes("localhost")
-		) {
-			return "localnet";
-		}
-		return "testnet";
-	}, [isAuthenticated, connectionSession?.network]);
+		// For public connection, use network store
+		return currentNetworkId;
+	}, [isAuthenticated, connectionSession?.network, currentNetworkId]);
 
-	const { assets: tokens, loading: tokensLoading, error: tokensError } =
+	const { assets: rawAssets, loading: tokensLoading, error: tokensError } =
 		usePublicAssetList({
 			network: networkId,
 		});
+
+	// Normalize tokens to unified format
+	const normalizedTokens = useMemo(() => {
+		return normalizeTokens(rawAssets as RawAssetData[]);
+	}, [rawAssets]);
 
 	// Get token prices from session - base prices
 	const baseTokenPrices = useAllTokenPrices(networkId);
@@ -291,8 +280,8 @@ export function WelcomeAuthPage(): React.ReactElement {
 
 		// Build set of current token symbols
 		const currentSymbols = new Set<string>();
-		tokens.forEach((token) => {
-			const symbol = token.raw?.genesis?.token?.metadata?.symbol?.toUpperCase();
+		normalizedTokens.forEach((token) => {
+			const symbol = token.metadata.symbol.toUpperCase();
 			if (symbol) {
 				currentSymbols.add(symbol);
 			}
@@ -341,9 +330,8 @@ export function WelcomeAuthPage(): React.ReactElement {
 			tokenSymbolsRef.current = currentSymbols;
 
 			// Get prices for all token symbols from the tokens list
-			tokens.forEach((token) => {
-				const symbol = token.raw?.genesis?.token?.metadata?.symbol
-					?.toUpperCase();
+			normalizedTokens.forEach((token) => {
+				const symbol = token.metadata.symbol.toUpperCase();
 				if (!symbol || pricesMap.has(symbol)) return;
 
 				// For USDT, use fixed price of 1
@@ -377,9 +365,9 @@ export function WelcomeAuthPage(): React.ReactElement {
 		}
 
 		return pricesMap;
-	}, [tokens, baseTokenPrices, networkId]);
+	}, [normalizedTokens, baseTokenPrices, networkId]);
 
-	const [selectedToken, setSelectedToken] = useState<typeof tokens[0] | null>(
+	const [selectedToken, setSelectedToken] = useState<Token | null>(
 		null,
 	);
 	const [selectedTokenIndex, setSelectedTokenIndex] = useState<number | null>(
@@ -387,7 +375,7 @@ export function WelcomeAuthPage(): React.ReactElement {
 	);
 
 	const handleTokenClick = useCallback(
-		(token: typeof tokens[0], index: number): void => {
+		(token: Token, index: number): void => {
 			// Use startTransition for non-critical UI updates
 			startTransition(() => {
 				setSelectedToken(token);
@@ -404,16 +392,15 @@ export function WelcomeAuthPage(): React.ReactElement {
 
 	// Calculate network statistics - optimized with early returns and caching
 	const networkStats = useMemo(() => {
-		const validTokens = tokens.filter((token) => token.raw?.genesis?.token);
-
 		// Early return if no tokens
-		if (validTokens.length === 0) {
+		if (normalizedTokens.length === 0) {
 			return {
 				totalMarketCap: 0,
 				totalTokens: 0,
 				tokensWithPrice: 0,
 				totalSupply: 0,
 				totalMaxSupply: 0,
+				hasUnlimitedSupply: false,
 				averagePrice: null,
 			};
 		}
@@ -425,19 +412,18 @@ export function WelcomeAuthPage(): React.ReactElement {
 		let totalSupplyWithPrice = 0; // For average price calculation
 
 		// Optimized loop with cached values
-		for (let i = 0; i < validTokens.length; i++) {
-			const token = validTokens[i];
-			const tokenData = token.raw?.genesis?.token;
-			if (!tokenData) continue;
-
-			const symbol = tokenData.metadata?.symbol?.toUpperCase() || "";
+		let hasUnlimitedSupply = false;
+		for (let i = 0; i < normalizedTokens.length; i++) {
+			const token = normalizedTokens[i];
+			const symbol = token.metadata.symbol.toUpperCase();
 			const price = symbol === "USDT" ? 1 : (tokenPrices.get(symbol) || null);
 			const initialSupply = parseFloat(
-				tokenData.economics?.supply?.initial || "0",
+				token.economics?.supply?.initial || "0",
 			);
-			const maxSupply = parseFloat(
-				tokenData.economics?.supply?.max || "0",
-			);
+			// Check if max supply is unlimited (undefined means unlimited)
+			const maxSupply = token.economics?.supply?.max
+				? parseFloat(token.economics.supply.max)
+				: null;
 
 			if (price !== null && price > 0 && initialSupply > 0) {
 				const marketCap = initialSupply * price;
@@ -447,7 +433,13 @@ export function WelcomeAuthPage(): React.ReactElement {
 			}
 
 			totalSupply += initialSupply;
-			totalMaxSupply += maxSupply;
+			// Only add to totalMaxSupply if it's a finite number
+			if (maxSupply !== null && !isNaN(maxSupply)) {
+				totalMaxSupply += maxSupply;
+			} else {
+				// If any token has unlimited supply, mark it
+				hasUnlimitedSupply = true;
+			}
 		}
 
 		const averagePrice = tokensWithPrice > 0 && totalSupplyWithPrice > 0
@@ -456,27 +448,52 @@ export function WelcomeAuthPage(): React.ReactElement {
 
 		return {
 			totalMarketCap,
-			totalTokens: validTokens.length,
+			totalTokens: normalizedTokens.length,
 			tokensWithPrice,
 			totalSupply,
 			totalMaxSupply,
+			hasUnlimitedSupply,
 			averagePrice,
 		};
-	}, [tokens, tokenPrices]);
+	}, [normalizedTokens, tokenPrices]);
 
 	// Memoize token list items with sorting by price (descending)
 	// Optimized: separate sorting from rendering, cache price lookups
 	const tokenListItems = useMemo(() => {
-		const validTokens = tokens.filter((token) => token.raw?.genesis?.token);
+		// If no tokens found, try to extract native token from genesis document
+		if (normalizedTokens.length === 0) {
+			// Find genesis document and extract native token info
+			const genesisDoc = rawAssets.find((asset) => {
+				const isGenesisDoc = asset.channel?.includes(".genesis:") ||
+					(asset.raw?.genesis && !asset.raw.genesis.token &&
+						asset.raw.genesis.genesis);
+				return isGenesisDoc && asset.raw?.genesis?.parameters?.currency;
+			}) as RawAssetData | undefined;
 
-		if (validTokens.length === 0) {
+			if (genesisDoc) {
+				const nativeToken = createNativeTokenFromGenesis(genesisDoc, networkId);
+				if (nativeToken) {
+					const symbol = nativeToken.metadata.symbol.toUpperCase();
+					const price = symbol === "USDT" ? 1 : (tokenPrices.get(symbol) || 0);
+
+					return [
+						<TokenListItem
+							key={nativeToken.id}
+							token={nativeToken}
+							price={symbol === "USDT" ? 1 : (price > 0 ? price : null)}
+							isSelected={false}
+							onClick={() => handleTokenClick(nativeToken as never, 0)}
+						/>,
+					];
+				}
+			}
+
 			return [];
 		}
 
 		// Pre-compute prices for all tokens to avoid repeated map lookups
-		const tokensWithPrices = validTokens.map((token, index) => {
-			const symbol =
-				token.raw?.genesis?.token?.metadata?.symbol?.toUpperCase() || "";
+		const tokensWithPrices = normalizedTokens.map((token, index) => {
+			const symbol = token.metadata.symbol.toUpperCase();
 			const price = symbol === "USDT" ? 1 : (tokenPrices.get(symbol) || 0);
 			return {
 				token,
@@ -498,15 +515,22 @@ export function WelcomeAuthPage(): React.ReactElement {
 			const displayPrice = symbol === "USDT" ? 1 : (price > 0 ? price : null);
 			return (
 				<TokenListItem
-					key={token.raw?.genesis?.token?.id || originalIndex}
-					token={token as never}
+					key={token.id}
+					token={token}
 					price={displayPrice}
 					isSelected={selectedTokenIndex === originalIndex}
-					onClick={() => handleTokenClick(token, originalIndex)}
+					onClick={() => handleTokenClick(token as never, originalIndex)}
 				/>
 			);
 		});
-	}, [tokens, tokenPrices, selectedTokenIndex, handleTokenClick]);
+	}, [
+		normalizedTokens,
+		rawAssets,
+		networkId,
+		tokenPrices,
+		selectedTokenIndex,
+		handleTokenClick,
+	]);
 
 	// Sync indexes data from sessionStorage
 	useIndexesSync();
@@ -521,71 +545,6 @@ export function WelcomeAuthPage(): React.ReactElement {
 			className="h-screen w-full bg-background flex flex-col overflow-hidden"
 			style={{ height: "100vh", maxHeight: "100vh" }}
 		>
-			{/* Migration Banner */}
-			{isMigrationBannerVisible && (
-				<motion.div
-					initial={{ opacity: 0, y: -20 }}
-					animate={{ opacity: 1, y: 0 }}
-					exit={{ opacity: 0, y: -20 }}
-					transition={{ duration: 0.3 }}
-					className="relative flex-shrink-0 bg-gradient-to-r from-primary/20 via-primary/15 to-primary/20 border-b border-primary/30 backdrop-blur-sm z-[60]"
-				>
-					<div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-3.5 gap-3">
-						<div className="flex items-start gap-3 flex-1 min-w-0">
-							<div className="flex-shrink-0 mt-0.5">
-								<div className="relative">
-									<Info className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-									<div className="absolute inset-0 bg-primary/20 rounded-full animate-pulse" />
-								</div>
-							</div>
-							<div className="flex-1 min-w-0">
-								<div className="flex items-center gap-2 flex-wrap">
-									<h3 className="text-sm sm:text-base font-bold text-foreground">
-										Network Migration in Progress
-									</h3>
-									<Badge
-										variant="outline"
-										className="text-[10px] sm:text-xs px-2 py-0.5 border-primary/40 bg-primary/10 text-primary font-semibold"
-									>
-										Beta Mainnet
-									</Badge>
-								</div>
-								<p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">
-									We are currently migrating and configuring the Beta Mainnet
-									network. The migration process will continue until{" "}
-									<span className="font-semibold text-foreground">
-										December 1, 2025
-									</span>
-									. During this period, you may experience temporary service
-									interruptions. We appreciate your patience.
-								</p>
-							</div>
-						</div>
-						<button
-							onClick={() => setIsMigrationBannerVisible(false)}
-							className="flex-shrink-0 p-1.5 hover:bg-primary/10 rounded transition-colors group"
-							aria-label="Dismiss migration notice"
-						>
-							<X className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-						</button>
-					</div>
-					{/* Animated gradient line */}
-					<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary/50 to-transparent">
-						<motion.div
-							className="h-full bg-primary"
-							initial={{ width: "0%" }}
-							animate={{ width: "100%" }}
-							transition={{
-								duration: 3,
-								repeat: Infinity,
-								repeatType: "reverse",
-								ease: "easeInOut",
-							}}
-						/>
-					</div>
-				</motion.div>
-			)}
-
 			{/* Fixed Header with Ticker and Navigation Tabs */}
 			<div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-b border-border z-50">
 				{/* Ticker Marquee */}
@@ -651,7 +610,7 @@ export function WelcomeAuthPage(): React.ReactElement {
 											>
 												<Network className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-primary" />
 												<span className="text-primary font-medium">
-													{currentNetwork}
+													{currentNetworkName}
 												</span>
 											</Badge>
 										</div>
@@ -1023,40 +982,58 @@ export function WelcomeAuthPage(): React.ReactElement {
 											)}
 									</div>
 
-									<Card className="h-full">
-										<CardContent className="p-6">
-											{isLoading
-												? (
-													<div className="space-y-6">
-														<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-															{Array.from({ length: 3 }).map((_, i) => (
-																<div key={i} className="space-y-2">
-																	<Skeleton className="h-4 w-24" />
-																	<Skeleton className="h-8 w-32" />
-																</div>
-															))}
-														</div>
-														<div className="space-y-4">
-															{Array.from({ length: 4 }).map((_, i) => (
-																<Skeleton key={i} className="h-16 w-full" />
-															))}
-														</div>
-													</div>
-												)
-												: (
-													<Suspense
-														fallback={
-															<div className="p-8 text-center text-muted-foreground">
-																<Activity className="h-8 w-8 mx-auto mb-2 animate-pulse" />
-																<p>Loading network statistics...</p>
+									{/* Analytics Grid: Network Stats and Live Transactions */}
+									<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+										{/* Network Statistics */}
+										<Card className="h-full">
+											<CardContent className="p-6">
+												{isLoading
+													? (
+														<div className="space-y-6">
+															<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+																{Array.from({ length: 3 }).map((_, i) => (
+																	<div key={i} className="space-y-2">
+																		<Skeleton className="h-4 w-24" />
+																		<Skeleton className="h-8 w-32" />
+																	</div>
+																))}
 															</div>
-														}
-													>
-														<NetworkStats />
-													</Suspense>
-												)}
-										</CardContent>
-									</Card>
+															<div className="space-y-4">
+																{Array.from({ length: 4 }).map((_, i) => (
+																	<Skeleton key={i} className="h-16 w-full" />
+																))}
+															</div>
+														</div>
+													)
+													: (
+														<Suspense
+															fallback={
+																<div className="p-8 text-center text-muted-foreground">
+																	<Activity className="h-8 w-8 mx-auto mb-2 animate-pulse" />
+																	<p>Loading network statistics...</p>
+																</div>
+															}
+														>
+															<NetworkStats />
+														</Suspense>
+													)}
+											</CardContent>
+										</Card>
+
+										{/* Live Transactions Feed */}
+										<Suspense
+											fallback={
+												<Card>
+													<CardContent className="p-8 text-center text-muted-foreground">
+														<Activity className="h-8 w-8 mx-auto mb-2 animate-pulse" />
+														<p>Loading transactions...</p>
+													</CardContent>
+												</Card>
+											}
+										>
+											<RealtimeTransactionFeed />
+										</Suspense>
+									</div>
 								</motion.section>
 							</TabsContent>
 						)}
@@ -1303,7 +1280,9 @@ export function WelcomeAuthPage(): React.ReactElement {
 																Max Supply
 															</p>
 															<p className="text-xl sm:text-2xl font-bold text-foreground mt-1">
-																{networkStats.totalMaxSupply >= 1_000_000_000
+																{networkStats.hasUnlimitedSupply
+																	? "Unlimited"
+																	: networkStats.totalMaxSupply >= 1_000_000_000
 																	? `${
 																		(networkStats.totalMaxSupply /
 																			1_000_000_000).toFixed(2)
@@ -1569,10 +1548,9 @@ export function WelcomeAuthPage(): React.ReactElement {
 			{/* Token Detail Modal */}
 			{selectedToken && (
 				<TokenDetailModal
-					token={selectedToken as never}
+					token={selectedToken}
 					price={(() => {
-						const symbol = selectedToken.raw?.genesis?.token?.metadata?.symbol
-							?.toUpperCase() || "";
+						const symbol = selectedToken.metadata.symbol.toUpperCase();
 						return symbol === "USDT" ? 1 : (tokenPrices.get(symbol) || null);
 					})()}
 					open={!!selectedToken}

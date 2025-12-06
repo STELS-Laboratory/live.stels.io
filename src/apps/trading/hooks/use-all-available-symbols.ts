@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import { useTradingStore } from "../store";
 
 /**
@@ -12,20 +13,22 @@ import { useTradingStore } from "../store";
  */
 export function useAllAvailableSymbols(): string[] {
 	const [symbols, setSymbols] = useState<string[]>([]);
+	const { currentNetworkId } = useNetworkStore();
 	const { selectedExchange } = useTradingStore();
 
 	useEffect(() => {
 		const loadSymbols = (): void => {
 			const symbolSet = new Set<string>();
+			const networkPrefix = currentNetworkId;
 
-			// Pattern: testnet.runtime.ticker.{symbol}.{exchange}.spot
+			// Pattern: {network}.runtime.ticker.{symbol}.{exchange}.spot
 			for (let i = 0; i < sessionStorage.length; i++) {
 				const key = sessionStorage.key(i);
 				if (!key) continue;
 
-				// Match pattern: testnet.runtime.ticker.{symbol}.{exchange}.spot
+				// Match pattern: {network}.runtime.ticker.{symbol}.{exchange}.spot
 				const match = key.match(
-					/^testnet\.runtime\.ticker\.([^/]+)\/([^.]+)\.([^.]+)\.spot$/i,
+					new RegExp(`^${networkPrefix}\\.runtime\\.ticker\\.([^/]+)\\/([^.]+)\\.([^.]+)\\.spot$`, "i"),
 				);
 
 				if (match) {
@@ -84,7 +87,7 @@ export function useAllAvailableSymbols(): string[] {
 			window.removeEventListener("storage", handleStorageChange);
 			clearInterval(pollInterval);
 		};
-	}, [selectedExchange]);
+	}, [selectedExchange, currentNetworkId]);
 
 	return symbols;
 }

@@ -22,6 +22,13 @@ export const useAuthRestore = (): void => {
 			return;
 		}
 
+		// Don't attempt restoration if explicitly logged out (no wallet and no network)
+		// This prevents restoration attempts after logout
+		if (!wallet && !selectedNetwork) {
+
+			return;
+		}
+
 		// Check if we already have a valid connection
 		if (wallet && selectedNetwork && isConnected && isAuthenticated && connectionSession) {
 

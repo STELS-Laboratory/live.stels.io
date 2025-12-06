@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import { getSessionStorageManager } from "@/lib/gui/ui";
 import type { ExchangeAccount } from "../types";
 
@@ -63,6 +64,7 @@ export function useAvailableSymbols(
 	account: ExchangeAccount | null,
 ): string[] {
 	const [symbols, setSymbols] = useState<string[]>([]);
+	const { currentNetworkId } = useNetworkStore();
 	const sessionManager = getSessionStorageManager();
 
 	useEffect(() => {
@@ -71,15 +73,16 @@ export function useAvailableSymbols(
 			if (!account) {
 				const symbolSet = new Set<string>();
 				const defaultExchange = "bybit";
+				const networkPrefix = currentNetworkId;
 
-				// Pattern: testnet.runtime.ticker.{symbol}.{exchange}.spot
+				// Pattern: {network}.runtime.ticker.{symbol}.{exchange}.spot
 				for (let i = 0; i < sessionStorage.length; i++) {
 					const key = sessionStorage.key(i);
 					if (!key) continue;
 
-					// Match pattern: testnet.runtime.ticker.{symbol}.{exchange}.spot
+					// Match pattern: {network}.runtime.ticker.{symbol}.{exchange}.spot
 					const match = key.match(
-						/^testnet\.runtime\.ticker\.([^/]+)\/([^.]+)\.([^.]+)\.spot$/i,
+						new RegExp(`^${networkPrefix}\\.runtime\\.ticker\\.([^/]+)\\/([^.]+)\\.([^.]+)\\.spot$`, "i"),
 					);
 
 					if (match) {
@@ -130,15 +133,16 @@ export function useAvailableSymbols(
 			// Fallback: scan sessionStorage for ticker channels
 			const symbolSet = new Set<string>();
 			const exchange = account.exchange;
+			const networkPrefix = currentNetworkId;
 
-			// Pattern: testnet.runtime.ticker.{symbol}.{exchange}.spot
+			// Pattern: {network}.runtime.ticker.{symbol}.{exchange}.spot
 			for (let i = 0; i < sessionStorage.length; i++) {
 				const key = sessionStorage.key(i);
 				if (!key) continue;
 
-				// Match pattern: testnet.runtime.ticker.{symbol}.{exchange}.spot
+				// Match pattern: {network}.runtime.ticker.{symbol}.{exchange}.spot
 				const match = key.match(
-					/^testnet\.runtime\.ticker\.([^/]+)\/([^.]+)\.([^.]+)\.spot$/i,
+					new RegExp(`^${networkPrefix}\\.runtime\\.ticker\\.([^/]+)\\/([^.]+)\\.([^.]+)\\.spot$`, "i"),
 				);
 
 				if (match) {
@@ -204,7 +208,7 @@ export function useAvailableSymbols(
 			window.removeEventListener("storage", handleStorageChange);
 			clearInterval(pollInterval);
 		};
-	}, [account, sessionManager]);
+	}, [account, sessionManager, currentNetworkId]);
 
 	return symbols;
 }

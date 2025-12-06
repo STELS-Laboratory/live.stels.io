@@ -28,93 +28,10 @@ import {
 	Copy,
 	ExternalLink,
 } from "lucide-react";
-
-interface TokenData {
-	raw: {
-		genesis: {
-			token: {
-				id: string;
-				created_at: string;
-				activation_time: string;
-				issuer: {
-					address: string;
-					public_key: string;
-					org: string;
-					contact?: string;
-				};
-				standard: string;
-				metadata: {
-					name: string;
-					symbol: string;
-					decimals: number;
-					description?: string;
-					contact?: string;
-					website?: string;
-					icon?: string;
-				};
-				economics: {
-					supply: {
-						initial: string;
-						mintingPolicy: string;
-						max: string;
-					};
-					distribution?: Array<{
-						address: string;
-						amount: string;
-					}>;
-					feeStructure?: {
-						transfer: string;
-					};
-					treasury?: string;
-				};
-			};
-			parameters: {
-				fees: {
-					base: string;
-					per_byte: string;
-					raw_per_byte: string;
-					currency: string;
-				};
-				currency: {
-					symbol: string;
-					decimals: number;
-					fee_unit: string;
-				};
-				limits: {
-					max_tx_size: number;
-					max_signatures: number;
-				};
-				treasury_address: string;
-			};
-			network: {
-				id: string;
-				name: string;
-				environment: string;
-				chain_id: number;
-			};
-			protocol: {
-				tx_version: string;
-				vm_version: string;
-				canonicalization: string;
-				encoding: string;
-			};
-			security?: {
-				der_requirements?: {
-					lowS: boolean;
-					canonical_DER: boolean;
-				};
-			};
-		};
-		address: string;
-		signature: string;
-		publicKey: string;
-		timestamp: number;
-		status: string;
-	};
-}
+import type { Token } from "@/types/token";
 
 interface TokenDetailModalProps {
-	token: TokenData | null;
+	token: Token | null;
 	price: number | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
@@ -196,41 +113,33 @@ export function TokenDetailModal({
 }: TokenDetailModalProps): React.ReactElement | null {
 	const [activeTab, setActiveTab] = React.useState<string>("overview");
 
-	const tokenData = useMemo(() => {
-		if (!token) return null;
-		return token.raw.genesis.token;
-	}, [token]);
-
-	const parameters = useMemo(() => {
-		if (!token) return null;
-		return token.raw.genesis.parameters;
-	}, [token]);
-
-	if (!token || !tokenData) {
+	if (!token) {
 		return null;
 	}
 
-	const metadata = tokenData.metadata;
-	const economics = tokenData.economics;
-	const issuer = tokenData.issuer;
-	const supply = economics.supply;
-	const distribution = economics.distribution || [];
+	const metadata = token.metadata;
+	const economics = token.economics;
+	const issuer = token.issuer;
+	const supply = economics?.supply;
+	const distribution = economics?.distribution || [];
 	const hasDistribution = distribution.length > 0;
 
 	// Calculate distribution percentages
 	// Values are already in main units, no need to adjust for decimals
-	const initialSupplyNum = parseFloat(supply.initial);
-	const maxSupplyNum = parseFloat(supply.max);
+	const initialSupplyNum = supply?.initial ? parseFloat(supply.initial) : 0;
+	const maxSupplyNum = supply?.max ? parseFloat(supply.max) : null; // null means unlimited
 	
 	// For USDT, use fixed price of 1
 	const symbolUpper = metadata.symbol.toUpperCase();
 	const displayPrice = symbolUpper === "USDT" ? 1 : price;
 	
+	const parameters = token.parameters;
+	
 	// Calculate market cap (supply * price)
 	const marketCap = displayPrice !== null && initialSupplyNum > 0
 		? initialSupplyNum * displayPrice
 		: null;
-	const maxMarketCap = displayPrice !== null && maxSupplyNum > 0
+	const maxMarketCap = displayPrice !== null && maxSupplyNum !== null && maxSupplyNum > 0
 		? maxSupplyNum * displayPrice
 		: null;
 
@@ -242,6 +151,9 @@ export function TokenDetailModal({
 			>
 				<DialogHeader className="sr-only">
 					<DialogTitle>Token Details</DialogTitle>
+					<DialogDescription>
+						Detailed information about the selected token
+					</DialogDescription>
 					<DialogDescription>
 						Detailed information about token
 					</DialogDescription>
@@ -275,15 +187,19 @@ export function TokenDetailModal({
 								>
 									{metadata.symbol}
 								</Badge>
-								<Badge variant="outline" className="text-xs capitalize">
-									{tokenData.standard}
-								</Badge>
-								<Badge
-									variant={token.raw.status === "pending" ? "outline" : "default"}
-									className="text-xs"
-								>
-									{token.raw.status}
-								</Badge>
+								{token.standard && (
+									<Badge variant="outline" className="text-xs capitalize">
+										{token.standard}
+									</Badge>
+								)}
+								{token.status && (
+									<Badge
+										variant={token.status === "pending" ? "outline" : "default"}
+										className="text-xs"
+									>
+										{token.status}
+									</Badge>
+								)}
 							</div>
 						</div>
 					</div>
@@ -359,16 +275,18 @@ export function TokenDetailModal({
 												<label className="text-xs text-muted-foreground">Token ID</label>
 												<div className="flex items-center gap-2 mt-1">
 													<code className="text-xs font-mono text-foreground break-all">
-														{tokenData.id}
+														{token.id || "N/A"}
 													</code>
-													<Button
-														variant="ghost"
-														size="sm"
-														className="h-6 w-6 p-0"
-														onClick={() => copyToClipboard(tokenData.id)}
-													>
-														<Copy className="h-3 w-3" />
-													</Button>
+													{token.id && (
+														<Button
+															variant="ghost"
+															size="sm"
+															className="h-6 w-6 p-0"
+															onClick={() => copyToClipboard(token.id)}
+														>
+															<Copy className="h-3 w-3" />
+														</Button>
+													)}
 												</div>
 											</div>
 											<div>
@@ -377,18 +295,22 @@ export function TokenDetailModal({
 													{metadata.decimals}
 												</p>
 											</div>
-											<div>
-												<label className="text-xs text-muted-foreground">Created At</label>
-												<p className="text-sm text-foreground mt-1">
-													{new Date(tokenData.created_at).toLocaleString()}
-												</p>
-											</div>
-											<div>
-												<label className="text-xs text-muted-foreground">Activation Time</label>
-												<p className="text-sm text-foreground mt-1">
-													{new Date(tokenData.activation_time).toLocaleString()}
-												</p>
-											</div>
+											{token.created_at && (
+												<div>
+													<label className="text-xs text-muted-foreground">Created At</label>
+													<p className="text-sm text-foreground mt-1">
+														{new Date(token.created_at).toLocaleString()}
+													</p>
+												</div>
+											)}
+											{token.activation_time && (
+												<div>
+													<label className="text-xs text-muted-foreground">Activation Time</label>
+													<p className="text-sm text-foreground mt-1">
+														{new Date(token.activation_time).toLocaleString()}
+													</p>
+												</div>
+											)}
 										</div>
 										{metadata.description && (
 											<div>
@@ -427,27 +349,33 @@ export function TokenDetailModal({
 											<div>
 												<label className="text-xs text-muted-foreground">Network ID</label>
 												<p className="text-sm font-semibold text-foreground mt-1">
-													{token.raw.genesis.network.id}
+													{token.network?.id || "N/A"}
 												</p>
 											</div>
-											<div>
-												<label className="text-xs text-muted-foreground">Network Name</label>
-												<p className="text-sm text-foreground mt-1">
-													{token.raw.genesis.network.name}
-												</p>
-											</div>
-											<div>
-												<label className="text-xs text-muted-foreground">Chain ID</label>
-												<p className="text-sm text-foreground mt-1">
-													{token.raw.genesis.network.chain_id}
-												</p>
-											</div>
-											<div>
-												<label className="text-xs text-muted-foreground">Environment</label>
-												<Badge variant="outline" className="text-xs mt-1">
-													{token.raw.genesis.network.environment}
-												</Badge>
-											</div>
+											{token.network?.name && (
+												<div>
+													<label className="text-xs text-muted-foreground">Network Name</label>
+													<p className="text-sm text-foreground mt-1">
+														{token.network.name}
+													</p>
+												</div>
+											)}
+											{token.network?.chain_id !== undefined && (
+												<div>
+													<label className="text-xs text-muted-foreground">Chain ID</label>
+													<p className="text-sm text-foreground mt-1">
+														{token.network.chain_id}
+													</p>
+												</div>
+											)}
+											{token.network?.environment && (
+												<div>
+													<label className="text-xs text-muted-foreground">Environment</label>
+													<Badge variant="outline" className="text-xs mt-1">
+														{token.network.environment}
+													</Badge>
+												</div>
+											)}
 										</div>
 									</CardContent>
 								</Card>
@@ -488,34 +416,46 @@ export function TokenDetailModal({
 									</CardHeader>
 									<CardContent className="space-y-4">
 										<div className="grid grid-cols-2 gap-4">
-											<div>
-												<label className="text-xs text-muted-foreground">Initial Supply</label>
-												<p className="text-lg font-bold text-foreground mt-1">
-													{formatSupply(supply.initial, metadata.decimals)} {metadata.symbol}
-												</p>
-												{marketCap !== null && (
-													<p className="text-sm text-muted-foreground mt-1">
-														{formatUSD(marketCap)}
+											{supply?.initial && (
+												<div>
+													<label className="text-xs text-muted-foreground">Initial Supply</label>
+													<p className="text-lg font-bold text-foreground mt-1">
+														{formatSupply(supply.initial, metadata.decimals)} {metadata.symbol}
 													</p>
-												)}
-											</div>
+													{marketCap !== null && (
+														<p className="text-sm text-muted-foreground mt-1">
+															{formatUSD(marketCap)}
+														</p>
+													)}
+												</div>
+											)}
 											<div>
 												<label className="text-xs text-muted-foreground">Max Supply</label>
-												<p className="text-lg font-bold text-foreground mt-1">
-													{formatSupply(supply.max, metadata.decimals)} {metadata.symbol}
-												</p>
-												{maxMarketCap !== null && (
-													<p className="text-sm text-muted-foreground mt-1">
-														{formatUSD(maxMarketCap)}
+												{supply?.max ? (
+													<>
+														<p className="text-lg font-bold text-foreground mt-1">
+															{formatSupply(supply.max, metadata.decimals)} {metadata.symbol}
+														</p>
+														{maxMarketCap !== null && (
+															<p className="text-sm text-muted-foreground mt-1">
+																{formatUSD(maxMarketCap)}
+															</p>
+														)}
+													</>
+												) : (
+													<p className="text-lg font-bold text-foreground mt-1">
+														Unlimited
 													</p>
 												)}
 											</div>
-											<div>
-												<label className="text-xs text-muted-foreground">Minting Policy</label>
-												<Badge variant="outline" className="text-xs mt-1 capitalize">
-													{supply.mintingPolicy}
-												</Badge>
-											</div>
+											{supply?.mintingPolicy && (
+												<div>
+													<label className="text-xs text-muted-foreground">Minting Policy</label>
+													<Badge variant="outline" className="text-xs mt-1 capitalize">
+														{supply.mintingPolicy}
+													</Badge>
+												</div>
+											)}
 										</div>
 									</CardContent>
 								</Card>
@@ -580,26 +520,44 @@ export function TokenDetailModal({
 								)}
 
 								{/* Fee Structure */}
-								{economics.feeStructure && (
+								{economics?.feeStructure && (
 									<Card>
 										<CardHeader>
 											<CardTitle className="text-base">Fee Structure</CardTitle>
 										</CardHeader>
 										<CardContent>
 											<div className="space-y-2">
-												<div className="flex items-center justify-between">
-													<span className="text-sm text-muted-foreground">Transfer Fee</span>
-													<span className="text-sm font-semibold text-foreground">
-														{economics.feeStructure.transfer}
-													</span>
-												</div>
+												{economics.feeStructure.transfer && (
+													<div className="flex items-center justify-between">
+														<span className="text-sm text-muted-foreground">Transfer Fee</span>
+														<span className="text-sm font-semibold text-foreground">
+															{economics.feeStructure.transfer}
+														</span>
+													</div>
+												)}
+												{economics.feeStructure.minting && (
+													<div className="flex items-center justify-between">
+														<span className="text-sm text-muted-foreground">Minting Fee</span>
+														<span className="text-sm font-semibold text-foreground">
+															{economics.feeStructure.minting}
+														</span>
+													</div>
+												)}
+												{economics.feeStructure.burning && (
+													<div className="flex items-center justify-between">
+														<span className="text-sm text-muted-foreground">Burning Fee</span>
+														<span className="text-sm font-semibold text-foreground">
+															{economics.feeStructure.burning}
+														</span>
+													</div>
+												)}
 											</div>
 										</CardContent>
 									</Card>
 								)}
 
 								{/* Treasury */}
-								{economics.treasury && (
+								{economics?.treasury && (
 									<Card>
 										<CardHeader>
 											<CardTitle className="text-base">Treasury</CardTitle>
@@ -627,163 +585,209 @@ export function TokenDetailModal({
 							<TabsContent value="parameters" className="mt-6 space-y-4">
 								{parameters && (
 									<>
-										<Card>
-											<CardHeader>
-												<CardTitle className="text-base">Fees</CardTitle>
-											</CardHeader>
-											<CardContent>
-												<div className="grid grid-cols-2 gap-4">
-													<div>
-														<label className="text-xs text-muted-foreground">Base Fee</label>
-														<p className="text-sm font-semibold text-foreground mt-1">
-															{parameters.fees.base} {parameters.fees.currency}
-														</p>
+										{parameters.fees && (
+											<Card>
+												<CardHeader>
+													<CardTitle className="text-base">Fees</CardTitle>
+												</CardHeader>
+												<CardContent>
+													<div className="grid grid-cols-2 gap-4">
+														{parameters.fees.base && (
+															<div>
+																<label className="text-xs text-muted-foreground">Base Fee</label>
+																<p className="text-sm font-semibold text-foreground mt-1">
+																	{parameters.fees.base} {parameters.fees.currency || ""}
+																</p>
+															</div>
+														)}
+														{parameters.fees.per_byte && (
+															<div>
+																<label className="text-xs text-muted-foreground">Per Byte</label>
+																<p className="text-sm font-semibold text-foreground mt-1">
+																	{parameters.fees.per_byte} {parameters.fees.currency || ""}
+																</p>
+															</div>
+														)}
+														{parameters.fees.raw_per_byte && (
+															<div>
+																<label className="text-xs text-muted-foreground">Raw Per Byte</label>
+																<p className="text-sm font-semibold text-foreground mt-1">
+																	{parameters.fees.raw_per_byte} {parameters.fees.currency || ""}
+																</p>
+															</div>
+														)}
 													</div>
-													<div>
-														<label className="text-xs text-muted-foreground">Per Byte</label>
-														<p className="text-sm font-semibold text-foreground mt-1">
-															{parameters.fees.per_byte} {parameters.fees.currency}
-														</p>
-													</div>
-													<div>
-														<label className="text-xs text-muted-foreground">Raw Per Byte</label>
-														<p className="text-sm font-semibold text-foreground mt-1">
-															{parameters.fees.raw_per_byte} {parameters.fees.currency}
-														</p>
-													</div>
-												</div>
-											</CardContent>
-										</Card>
+												</CardContent>
+											</Card>
+										)}
 
-										<Card>
-											<CardHeader>
-												<CardTitle className="text-base">Currency</CardTitle>
-											</CardHeader>
-											<CardContent>
-												<div className="grid grid-cols-2 gap-4">
-													<div>
-														<label className="text-xs text-muted-foreground">Symbol</label>
-														<p className="text-sm font-semibold text-foreground mt-1">
-															{parameters.currency.symbol}
-														</p>
+										{parameters.currency && (
+											<Card>
+												<CardHeader>
+													<CardTitle className="text-base">Currency</CardTitle>
+												</CardHeader>
+												<CardContent>
+													<div className="grid grid-cols-2 gap-4">
+														{parameters.currency.symbol && (
+															<div>
+																<label className="text-xs text-muted-foreground">Symbol</label>
+																<p className="text-sm font-semibold text-foreground mt-1">
+																	{parameters.currency.symbol}
+																</p>
+															</div>
+														)}
+														{parameters.currency.decimals !== undefined && (
+															<div>
+																<label className="text-xs text-muted-foreground">Decimals</label>
+																<p className="text-sm font-semibold text-foreground mt-1">
+																	{parameters.currency.decimals}
+																</p>
+															</div>
+														)}
+										{parameters.currency.name && (
+											<div>
+												<label className="text-xs text-muted-foreground">Currency Name</label>
+												<p className="text-sm font-semibold text-foreground mt-1">
+													{parameters.currency.name}
+												</p>
+											</div>
+										)}
+										{parameters.currency.fee_unit && (
+											<div className="col-span-2">
+												<label className="text-xs text-muted-foreground">Fee Unit</label>
+												<p className="text-sm text-foreground mt-1">
+													{parameters.currency.fee_unit}
+												</p>
+											</div>
+										)}
 													</div>
-													<div>
-														<label className="text-xs text-muted-foreground">Decimals</label>
-														<p className="text-sm font-semibold text-foreground mt-1">
-															{parameters.currency.decimals}
-														</p>
-													</div>
-													<div className="col-span-2">
-														<label className="text-xs text-muted-foreground">Fee Unit</label>
-														<p className="text-sm text-foreground mt-1">
-															{parameters.currency.fee_unit}
-														</p>
-													</div>
-												</div>
-											</CardContent>
-										</Card>
+												</CardContent>
+											</Card>
+										)}
 
-										<Card>
-											<CardHeader>
-												<CardTitle className="text-base">Limits</CardTitle>
-											</CardHeader>
-											<CardContent>
-												<div className="grid grid-cols-2 gap-4">
-													<div>
-														<label className="text-xs text-muted-foreground">Max TX Size</label>
-														<p className="text-sm font-semibold text-foreground mt-1">
-															{parameters.limits.max_tx_size.toLocaleString()} bytes
-														</p>
+										{parameters.limits && (
+											<Card>
+												<CardHeader>
+													<CardTitle className="text-base">Limits</CardTitle>
+												</CardHeader>
+												<CardContent>
+													<div className="grid grid-cols-2 gap-4">
+														{parameters.limits.max_tx_size !== undefined && (
+															<div>
+																<label className="text-xs text-muted-foreground">Max TX Size</label>
+																<p className="text-sm font-semibold text-foreground mt-1">
+																	{parameters.limits.max_tx_size.toLocaleString()} bytes
+																</p>
+															</div>
+														)}
+														{parameters.limits.max_signatures !== undefined && (
+															<div>
+																<label className="text-xs text-muted-foreground">Max Signatures</label>
+																<p className="text-sm font-semibold text-foreground mt-1">
+																	{parameters.limits.max_signatures}
+																</p>
+															</div>
+														)}
 													</div>
-													<div>
-														<label className="text-xs text-muted-foreground">Max Signatures</label>
-														<p className="text-sm font-semibold text-foreground mt-1">
-															{parameters.limits.max_signatures}
-														</p>
-													</div>
-												</div>
-											</CardContent>
-										</Card>
+												</CardContent>
+											</Card>
+										)}
 
-										<Card>
-											<CardHeader>
-												<CardTitle className="text-base">Treasury Address</CardTitle>
-											</CardHeader>
-											<CardContent>
-												<div className="flex items-center gap-2">
-													<code className="text-xs font-mono text-foreground">
-														{parameters.treasury_address}
-													</code>
-													<Button
-														variant="ghost"
-														size="sm"
-														className="h-6 w-6 p-0"
-														onClick={() => copyToClipboard(parameters.treasury_address)}
-													>
-														<Copy className="h-3 w-3" />
-													</Button>
-												</div>
-											</CardContent>
-										</Card>
+										{parameters.treasury_address && (
+											<Card>
+												<CardHeader>
+													<CardTitle className="text-base">Treasury Address</CardTitle>
+												</CardHeader>
+												<CardContent>
+													<div className="flex items-center gap-2">
+														<code className="text-xs font-mono text-foreground">
+															{parameters.treasury_address}
+														</code>
+														<Button
+															variant="ghost"
+															size="sm"
+															className="h-6 w-6 p-0"
+															onClick={() => copyToClipboard(parameters.treasury_address)}
+														>
+															<Copy className="h-3 w-3" />
+														</Button>
+													</div>
+												</CardContent>
+											</Card>
+										)}
 									</>
 								)}
 							</TabsContent>
 
 							{/* Issuer Tab */}
 							<TabsContent value="issuer" className="mt-6 space-y-4">
-								<Card>
-									<CardHeader>
-										<CardTitle className="text-base">Issuer Information</CardTitle>
-									</CardHeader>
-									<CardContent className="space-y-4">
-										<div>
-											<label className="text-xs text-muted-foreground">Organization</label>
-											<p className="text-sm font-semibold text-foreground mt-1">
-												{issuer.org}
-											</p>
-										</div>
-										<div>
-											<label className="text-xs text-muted-foreground">Address</label>
-											<div className="flex items-center gap-2 mt-1">
-												<code className="text-xs font-mono text-foreground">
-													{issuer.address}
-												</code>
-												<Button
-													variant="ghost"
-													size="sm"
-													className="h-6 w-6 p-0"
-													onClick={() => copyToClipboard(issuer.address)}
-												>
-													<Copy className="h-3 w-3" />
-												</Button>
-											</div>
-										</div>
-										<div>
-											<label className="text-xs text-muted-foreground">Public Key</label>
-											<div className="flex items-center gap-2 mt-1">
-												<code className="text-xs font-mono text-foreground break-all">
-													{issuer.public_key}
-												</code>
-												<Button
-													variant="ghost"
-													size="sm"
-													className="h-6 w-6 p-0"
-													onClick={() => copyToClipboard(issuer.public_key)}
-												>
-													<Copy className="h-3 w-3" />
-												</Button>
-											</div>
-										</div>
-										{issuer.contact && (
-											<div>
-												<label className="text-xs text-muted-foreground">Contact</label>
-												<p className="text-sm text-foreground mt-1">
-													{issuer.contact}
-												</p>
-											</div>
-										)}
-									</CardContent>
-								</Card>
+								{issuer ? (
+									<Card>
+										<CardHeader>
+											<CardTitle className="text-base">Issuer Information</CardTitle>
+										</CardHeader>
+										<CardContent className="space-y-4">
+											{issuer.org && (
+												<div>
+													<label className="text-xs text-muted-foreground">Organization</label>
+													<p className="text-sm font-semibold text-foreground mt-1">
+														{issuer.org}
+													</p>
+												</div>
+											)}
+											{issuer.address && (
+												<div>
+													<label className="text-xs text-muted-foreground">Address</label>
+													<div className="flex items-center gap-2 mt-1">
+														<code className="text-xs font-mono text-foreground">
+															{issuer.address}
+														</code>
+														<Button
+															variant="ghost"
+															size="sm"
+															className="h-6 w-6 p-0"
+															onClick={() => copyToClipboard(issuer.address)}
+														>
+															<Copy className="h-3 w-3" />
+														</Button>
+													</div>
+												</div>
+											)}
+											{issuer.public_key && (
+												<div>
+													<label className="text-xs text-muted-foreground">Public Key</label>
+													<div className="flex items-center gap-2 mt-1">
+														<code className="text-xs font-mono text-foreground break-all">
+															{issuer.public_key}
+														</code>
+														<Button
+															variant="ghost"
+															size="sm"
+															className="h-6 w-6 p-0"
+															onClick={() => copyToClipboard(issuer.public_key)}
+														>
+															<Copy className="h-3 w-3" />
+														</Button>
+													</div>
+												</div>
+											)}
+											{issuer.contact && (
+												<div>
+													<label className="text-xs text-muted-foreground">Contact</label>
+													<p className="text-sm text-foreground mt-1">
+														{issuer.contact}
+													</p>
+												</div>
+											)}
+										</CardContent>
+									</Card>
+								) : (
+									<Card>
+										<CardContent className="p-8 text-center text-muted-foreground">
+											<p className="text-sm">Issuer information not available</p>
+										</CardContent>
+									</Card>
+								)}
 							</TabsContent>
 						</Tabs>
 					</div>

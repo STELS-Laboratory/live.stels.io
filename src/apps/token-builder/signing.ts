@@ -27,8 +27,35 @@ import {
   ACTIVATION_DELAY_MS,
   TOKEN_SCHEMA_URL,
   AVAILABLE_NETWORKS,
+  DEFAULT_UPGRADE_POLICY,
+  CONSENSUS_CONFIG,
+  INTRINSICS_CONFIG,
+  SMART_OPS_SPEC,
+  TRANSACTION_RULES,
+  TRANSACTION_SCHEMA,
+  SCHEMAS_REGISTRY,
+  DEFAULT_STATE_CONFIG,
+  MONETARY_CONFIG,
+  GOVERNANCE_CONFIG,
 } from "./constants";
 import { getDecimalsByStandard } from "./utils";
+import { EC } from "elliptic";
+
+/**
+ * Get compressed public key from uncompressed public key
+ * Converts 130-char uncompressed hex (starts with 04) to 66-char compressed hex (starts with 02 or 03)
+ * 
+ * @param uncompressedKey - Uncompressed public key hex string (130 chars, starts with "04")
+ * @returns Compressed public key hex string (66 chars, starts with "02" or "03")
+ */
+function getCompressedPublicKey(uncompressedKey: string): string {
+  if (!uncompressedKey.startsWith("04") || uncompressedKey.length !== 130) {
+    throw new Error("Invalid uncompressed public key format");
+  }
+  
+  const keyPair = EC.keyFromPublic(uncompressedKey, "hex");
+  return keyPair.getPublic(true, "hex"); // Compressed format (66 chars)
+}
 
 /**
  * Remove null and undefined values from object recursively
@@ -125,77 +152,122 @@ export async function signTokenSchema(
   const hashBytes = sha256(contentBytes);
   const hash = toHex(hashBytes);
 
-  // Create token ID
-  const tokenId = `token:sha256:${hash}`;
+  // Create genesis ID (for genesis-smart-1.0.json compliance)
+  // Use token:sha256: format for tokens, but store in genesis.id field
+  const genesisId = `genesis:sha256:${hash}`;
+  const tokenId = `token:sha256:${hash}`; // Keep for backward compatibility
 
   // Create timestamps
   const now = Date.now();
   const createdAt = new Date(now).toISOString();
   const activationTime = new Date(now + ACTIVATION_DELAY_MS).toISOString();
 
+  // Get compressed public key for signing_keys (genesis-smart-1.0.json requires compressed format)
+  const publicKeyCompressed = getCompressedPublicKey(publicKeyUncompressed);
+
+  // Create signing key (required by genesis-smart-1.0.json)
+  const signingKey = {
+    kid: address, // Use address as kid for tokens
+    alg: "ecdsa-secp256k1" as const,
+    public_key: publicKeyCompressed, // Compressed format (starts with 02 or 03)
+    not_before: createdAt,
+    not_after: new Date(now + 10 * 365 * 24 * 60 * 60 * 1000).toISOString(), // 10 years
+    purpose: ["genesis-sign"] as const,
+  };
+
   // CRITICAL: Create FULL certificate WITHOUT signatures first (per CLIENT_ISSUE_SUMMARY.md)
   // "Создаем документ БЕЗ signatures"
+  // 100% compatible with genesis-smart-1.0.json schema
   const certificateWithoutSignaturesRaw = {
-    // JSON Schema reference
+    // JSON Schema reference (required)
     $schema: TOKEN_SCHEMA_URL,
     
-    // Version
+    // Version (required)
     version: schema.version,
     
-    // Network configuration (from genesis.json)
+    // Network configuration (required)
     network: network,
     
-    // Protocol configuration (from genesis.json)
-    protocol: protocol,
-    
-    // Wallet protocol specification (from genesis.json)
-    wallet_protocol: walletProtocol,
-    
-    // Addressing specification (from genesis.json)
-    addressing: addressing,
-    
-    // Token-specific data
-    token: {
-      id: tokenId,
+    // Genesis data (required) - contains token data adapted to genesis format
+    genesis: {
+      id: genesisId,
       created_at: createdAt,
       activation_time: activationTime,
+      previous_genesis_id: null as const, // First genesis for token
       issuer: {
-        address: address,
-        public_key: publicKeyUncompressed, // CRITICAL: Use UNCOMPRESSED (130 chars) for WebFix!
-        // Use token name as org (fallback to empty string, not "Unknown")
-        org: schema.metadata?.name || "",
-        ...(schema.metadata?.contact && { contact: schema.metadata.contact }),
+        org: schema.metadata?.name || "Token Issuer",
+        contact: schema.metadata?.contact || "issuer@example.com",
       },
-      standard: schema.standard,
-      metadata: {
-        ...schema.metadata,
-        decimals, // Automatically determined by token standard
+      upgrade_policy: DEFAULT_UPGRADE_POLICY,
+      // Store token-specific data in token_data field
+      token_data: {
+        standard: schema.standard,
+        metadata: {
+          ...schema.metadata,
+          decimals, // Automatically determined by token standard
+        },
+        economics: {
+          ...schema.economics,
+          ...(schema.economics.feeStructure && { feeStructure: schema.economics.feeStructure }),
+          ...(schema.economics.treasury && { treasury: schema.economics.treasury }),
+        },
+        ...(schema.governance?.enabled && { governance: schema.governance }),
+        ...(schema.transferRestrictions?.enabled && { transferRestrictions: schema.transferRestrictions }),
+        ...(schema.customFields && Object.keys(schema.customFields).length > 0 && { customFields: schema.customFields }),
       },
-      economics: {
-        ...schema.economics,
-        // CRITICAL: Include feeStructure and treasury if not already present
-        // These may be required by server for genesis-compliance
-        ...(schema.economics.feeStructure && { feeStructure: schema.economics.feeStructure }),
-        ...(schema.economics.treasury && { treasury: schema.economics.treasury }),
-      },
-      // CRITICAL: Only include optional fields if they are enabled and have data (gls-det-1 absence rule)
-      ...(schema.governance?.enabled && { governance: schema.governance }),
-      ...(schema.transferRestrictions?.enabled && { transferRestrictions: schema.transferRestrictions }),
-      ...(schema.customFields && Object.keys(schema.customFields).length > 0 && { customFields: schema.customFields }),
     },
     
-    // Content hash (for integrity verification)
+    // Content hash (required)
     content: {
       hash_alg: "sha256" as const,
       hash: `sha256:${hash}`,
       size: contentBytes.length,
     },
     
-    // Network parameters (from genesis.json)
+    // Protocol configuration (required)
+    protocol: protocol,
+    
+    // Wallet protocol specification (required)
+    wallet_protocol: walletProtocol,
+    
+    // Addressing specification (required)
+    addressing: addressing,
+    
+    // Consensus configuration (required)
+    consensus: CONSENSUS_CONFIG,
+    
+    // Intrinsics configuration (required)
+    intrinsics: INTRINSICS_CONFIG,
+    
+    // Smart operations specification (required)
+    smart_ops_spec: SMART_OPS_SPEC,
+    
+    // Network parameters (required)
     parameters: parameters,
     
-    // Security requirements (from genesis.json)
+    // Transaction rules (required)
+    tx_rules: TRANSACTION_RULES,
+    
+    // Transaction schema (required)
+    tx_schema: TRANSACTION_SCHEMA,
+    
+    // Schemas registry (required)
+    schemas: SCHEMAS_REGISTRY,
+    
+    // State configuration (required)
+    state: DEFAULT_STATE_CONFIG,
+    
+    // Monetary configuration (required)
+    monetary: MONETARY_CONFIG,
+    
+    // Security requirements (required)
     security: security,
+    
+    // Governance configuration (required)
+    governance: GOVERNANCE_CONFIG,
+    
+    // Signing keys (required)
+    signing_keys: [signingKey],
     
     // NOTE: signatures field is NOT included here - will be added after signing
   };
@@ -210,7 +282,8 @@ export async function signTokenSchema(
   const canonicalDocument = deterministicStringify(certificateWithoutSignatures);
 
   // Step 2: Add domain separator as STRING PREFIX (not part of JSON!)
-  const domainStr = signDomain.join(":");  // "STELS-TOKEN-GENESIS:2:v1:chain:2"
+  // Use genesis sign domain from protocol.sign_domains.genesis
+  const domainStr = protocol.sign_domains.genesis.join(":");  // "STELS-GENESIS:2:v1:chain:2"
   const messageString = `${domainStr}:${canonicalDocument}`;
 
   // DEBUG: Log signing details for verification
@@ -228,19 +301,47 @@ export async function signTokenSchema(
   }
 
   // Step 5: Create final certificate WITH signatures
+  // 100% compatible with genesis-smart-1.0.json schema
   const certificate: TokenGenesisCertificate = {
     ...certificateWithoutSignatures,
     signatures: {
       threshold: {
-        type: "single",
+        type: "k-of-n",
+        k: 1,
+        n: 1,
       },
       signers: [
         {
-          kid: publicKeyUncompressed, // CRITICAL: Use UNCOMPRESSED (130 chars) like in example!
+          kid: address, // Use address as kid (matches signing_keys[0].kid)
           alg: "ecdsa-secp256k1",
-          sig: signature,
+          sig: signature, // DER hex signature (starts with 30)
         },
       ],
+    },
+    // Backward compatibility: include token field for legacy support
+    token: {
+      id: tokenId,
+      created_at: createdAt,
+      activation_time: activationTime,
+      issuer: {
+        address: address,
+        public_key: publicKeyUncompressed, // UNCOMPRESSED for backward compatibility
+        org: schema.metadata?.name || "",
+        ...(schema.metadata?.contact && { contact: schema.metadata.contact }),
+      },
+      standard: schema.standard,
+      metadata: {
+        ...schema.metadata,
+        decimals,
+      },
+      economics: {
+        ...schema.economics,
+        ...(schema.economics.feeStructure && { feeStructure: schema.economics.feeStructure }),
+        ...(schema.economics.treasury && { treasury: schema.economics.treasury }),
+      },
+      ...(schema.governance?.enabled && { governance: schema.governance }),
+      ...(schema.transferRestrictions?.enabled && { transferRestrictions: schema.transferRestrictions }),
+      ...(schema.customFields && Object.keys(schema.customFields).length > 0 && { customFields: schema.customFields }),
     },
   };
 
@@ -270,23 +371,44 @@ function isGenesisCertificate(cert: Record<string, unknown>): boolean {
 }
 
 /**
- * Type guard for new token certificate (genesis-compliant)
+ * Type guard for new token certificate (genesis-smart-1.0.json compliant)
+ * Supports both new structure (genesis field) and legacy (token field)
  */
 function isNewTokenCertificate(cert: Record<string, unknown>): boolean {
   try {
-    if (!cert.token || typeof cert.token !== "object") return false;
-    if (!cert.network || typeof cert.network !== "object") return false;
-    if (!cert.protocol || typeof cert.protocol !== "object") return false;
-    if (!cert.signatures || typeof cert.signatures !== "object") return false;
-
-    const token = cert.token as Record<string, unknown>;
-    return (
-      typeof token.id === "string" &&
-      token.id.startsWith("token:") &&
-      typeof token.standard === "string" &&
-      typeof token.metadata === "object" &&
-      token.metadata !== null
-    );
+    // Check for new genesis-smart-1.0.json structure
+    if (cert.genesis && typeof cert.genesis === "object") {
+      const genesis = cert.genesis as Record<string, unknown>;
+      // Check if it's a token genesis (has token_data or id starts with token:)
+      if (genesis.token_data || (typeof genesis.id === "string" && genesis.id.includes("token"))) {
+        return (
+          cert.network !== undefined &&
+          typeof cert.network === "object" &&
+          cert.protocol !== undefined &&
+          typeof cert.protocol === "object" &&
+          cert.signatures !== undefined &&
+          typeof cert.signatures === "object"
+        );
+      }
+    }
+    
+    // Legacy support: check for token field
+    if (cert.token && typeof cert.token === "object") {
+      const token = cert.token as Record<string, unknown>;
+      return (
+        typeof token.id === "string" &&
+        token.id.startsWith("token:") &&
+        typeof token.standard === "string" &&
+        typeof token.metadata === "object" &&
+        token.metadata !== null &&
+        cert.network !== undefined &&
+        typeof cert.network === "object" &&
+        cert.protocol !== undefined &&
+        typeof cert.protocol === "object"
+      );
+    }
+    
+    return false;
   } catch {
     return false;
   }
@@ -394,11 +516,14 @@ export async function verifyTokenCertificate(
       return verifyGenesisCertificate(certificate as Record<string, unknown>);
     }
 
-    // Verify token certificate (genesis-compliant structure)
+    // Verify token certificate (genesis-smart-1.0.json compliant structure)
     const tokenCert = certificate as TokenGenesisCertificate;
     
-    // Check for required fields
-    if (!tokenCert.token || !tokenCert.signatures) {
+    // Check for required fields (new structure uses genesis, legacy uses token)
+    if (!tokenCert.genesis && !tokenCert.token) {
+      return false;
+    }
+    if (!tokenCert.signatures) {
       return false;
     }
 
@@ -407,27 +532,45 @@ export async function verifyTokenCertificate(
     
     // Step 1: Reconstruct certificate WITHOUT signatures (same as signing)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { signatures: _signatures, ...certificateWithoutSignatures } = tokenCert;
+    const { signatures: _signatures, token: _token, ...certificateWithoutSignatures } = tokenCert;
 
-    // Step 2: Canonical serialization of entire document (WITHOUT signatures)
+    // Step 2: Canonical serialization of entire document (WITHOUT signatures and legacy token field)
     const canonicalDocument = deterministicStringify(certificateWithoutSignatures);
 
     // Step 3: Add domain separator as STRING PREFIX (not part of JSON!)
-    const domainStr = tokenCert.protocol.sign_domains.token.join(":");
+    // Use genesis sign domain for new structure, token domain for legacy
+    const domainStr = tokenCert.genesis 
+      ? tokenCert.protocol.sign_domains.genesis.join(":")
+      : (tokenCert.protocol.sign_domains.token?.join(":") || tokenCert.protocol.sign_domains.genesis.join(":"));
     const messageString = `${domainStr}:${canonicalDocument}`;
-
-    // DEBUG: Log verification details
 
     // Step 4: Verify each signature
     for (const sig of tokenCert.signatures.signers) {
-
-      const isValid = verify(messageString, sig.sig, sig.kid);
-
-      if (!isValid) {
-
-        return false;
+      // For new structure, kid is address; for legacy, it might be public key
+      // Find corresponding signing key to get public key
+      let publicKeyForVerification: string;
+      
+      if (tokenCert.signing_keys && tokenCert.signing_keys.length > 0) {
+        // New structure: find signing key by kid
+        const signingKey = tokenCert.signing_keys.find(sk => sk.kid === sig.kid);
+        if (signingKey) {
+          // Convert compressed to uncompressed for verification
+          const keyPair = EC.keyFromPublic(signingKey.public_key, "hex");
+          publicKeyForVerification = keyPair.getPublic(false, "hex");
+        } else {
+          // Fallback: use kid as public key (legacy support)
+          publicKeyForVerification = sig.kid;
+        }
+      } else {
+        // Legacy: use kid as public key
+        publicKeyForVerification = sig.kid;
       }
 
+      const isValid = verify(messageString, sig.sig, publicKeyForVerification);
+
+      if (!isValid) {
+        return false;
+      }
     }
 
     return true;

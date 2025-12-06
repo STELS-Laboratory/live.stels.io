@@ -1,0 +1,882 @@
+{
+  "$schema": "https://stels.io/schemas/genesis-smart-1.0.json",
+  "version": "1.0.0-testnet.smart-1",
+  "network": {
+    "id": "mainnet",
+    "name": "STELS Mainnet Network",
+    "environment": "mainnet",
+    "chain_id": 1
+  },
+  "genesis": {
+    "id": "genesis:sha256:7816437b16409d3d4f2c7a39e5474c619e48247c6b4e8f9873a2c2aa29aae3e3",
+    "created_at": "2025-12-03T06:22:58.725Z",
+    "activation_time": "2025-12-03T06:37:58.725Z",
+    "previous_genesis_id": "genesis",
+    "issuer": {
+      "org": "STELS Laboratory",
+      "contact": "labs@stels.io"
+    },
+    "upgrade_policy": {
+      "allowed": true,
+      "requires_threshold": {
+        "type": "k-of-n",
+        "k": 4,
+        "n": 5
+      },
+      "envelope_domain": [
+        "STELS-GENESIS",
+        1,
+        "v1",
+        "chain:1"
+      ]
+    }
+  },
+  "content": {
+    "hash_alg": "sha256",
+    "hash": "sha256:7816437b16409d3d4f2c7a39e5474c619e48247c6b4e8f9873a2c2aa29aae3e3",
+    "size": 16475
+  },
+  "protocol": {
+    "tx_version": "smart-1.0",
+    "vm_version": "intrinsics-1",
+    "canonicalization": "gls-det-1",
+    "encoding": "utf-8",
+    "canon_specs": {
+      "gls-det-1": {
+        "objects": "sort keys lexicographically (byte-wise), omit undefined, serialize values recursively; for missing keys use absence, for undefined use null iff explicitly present",
+        "arrays": "keep order",
+        "numbers": "JSON.stringify semantics",
+        "strings": "JSON UTF-8, no normalization",
+        "booleans_null": "JSON",
+        "note": "This is a formalization of the provided deterministicStringify()"
+      }
+    },
+    "sign_domains": {
+      "tx": [
+        "STELS-TX",
+        1,
+        "smart-1.0",
+        "chain:1"
+      ],
+      "cosign": [
+        "STELS-COSIGN",
+        1,
+        "chain:1"
+      ],
+      "notary": [
+        "STELS-NOTARY",
+        1,
+        "v2",
+        "chain:1"
+      ],
+      "genesis": [
+        "STELS-GENESIS",
+        1,
+        "v1",
+        "chain:1"
+      ],
+      "crl": [
+        "STELS-CRL",
+        1,
+        "v1",
+        "chain:1"
+      ]
+    }
+  },
+  "wallet_protocol": {
+    "name": "gliesereum-core",
+    "version": "1.0",
+    "sign_alg": "ecdsa-secp256k1",
+    "hash_alg": "sha256",
+    "sig_encoding": "der-hex(lowS,canonical)",
+    "ecdsa_nonce": "rfc6979",
+    "message_canon": "gls-det-1",
+    "pubkey_format": "secp256k1-compressed-hex"
+  },
+  "addressing": {
+    "version_byte": 98,
+    "pubkey_format": "secp256k1-compressed-hex",
+    "address_encoding": [
+      "base58"
+    ],
+    "preferred_encoding": "base58",
+    "payload": "version_byte || RIPEMD160(SHA256(pubkey_compressed))",
+    "checksum": "SHA256(version_byte||h160)[0..4]"
+  },
+  "consensus": {
+    "type": "blockless-quorum",
+    "description": "Event stream with notarized finality via epoch committees.",
+    "window_ms": 400,
+    "max_skew_ms": 500,
+    "time_source": {
+      "mode": "notary-median",
+      "fallback": "system-ntp",
+      "skew_enforcement_ms": 1000
+    },
+    "committee": {
+      "mode": "dynamic-stake-weighted",
+      "epoch_ms": 400,
+      "committee_size": 128000,
+      "quorum_rule": {
+        "type": "fraction",
+        "num": 2,
+        "den": 3,
+        "round_up": true
+      },
+      "selection": {
+        "rng": "vrf",
+        "vrf_alg": "ed25519-vrf",
+        "seed_source": "prev_epoch_beacon",
+        "weight": "stake"
+      },
+      "activation_delay_epochs": 1,
+      "churn_limit": {
+        "enter_frac": 0.08,
+        "exit_frac": 0.08
+      }
+    },
+    "notary_registry": {
+      "min_stake": "1000",
+      "bonding_ms": 259200000,
+      "unbonding_ms": 604800000,
+      "slash": {
+        "double_sign": "0.05",
+        "surround_vote": "0.02"
+      },
+      "key_rotation": {
+        "min_interval_ms": 3600000
+      }
+    },
+    "finality_certificate": {
+      "hash_alg": "sha256",
+      "alg": [
+        "bls12-381-agg",
+        "ecdsa-secp256k1-multi"
+      ],
+      "encoding": {
+        "bls12-381-agg": {
+          "sig": "hex",
+          "bitmap": "base64"
+        },
+        "ecdsa-secp256k1-multi": {
+          "max_signers": 256
+        }
+      }
+    },
+    "notary_envelope": {
+      "schema_ref": "stels://schemas/notary-certificate-v2.json",
+      "sign_domain": [
+        "STELS-NOTARY",
+        1,
+        "v2",
+        "chain:1"
+      ],
+      "equivocation_policy": {
+        "action": "ban",
+        "ban_ms": 3600000
+      }
+    }
+  },
+  "intrinsics": {
+    "determinism": {
+      "profile": "pure-deterministic",
+      "io": {
+        "network": "denied",
+        "filesystem": "denied",
+        "clock": "logical-only"
+      },
+      "state_access": [
+        "accounts",
+        "tx_index",
+        "kv"
+      ]
+    },
+    "security": {
+      "enclave": {
+        "enabled": false
+      }
+    },
+    "registry": [
+      {
+        "name": "smart.exec",
+        "version": "1.0.0",
+        "abi": {
+          "args": [
+            {
+              "name": "ops",
+              "type": "array<smart_op>",
+              "maxItems": 32,
+              "maxBytes": 8192
+            },
+            {
+              "name": "memo",
+              "type": "string",
+              "maxBytes": 256,
+              "optional": true
+            }
+          ],
+          "returns": {
+            "type": "void"
+          }
+        },
+        "preconditions": [
+          "fee >= fee_min(size(tx), ops)",
+          "timestamp within tx_rules.timestamp_rule",
+          "accounts[from].last_tx_hash == prev_hash OR (prev_hash == null AND accounts[from].last_tx_hash == null)",
+          "all asserts in ops hold (time/balance/compare)"
+        ],
+        "state_transition": [
+          "apply transfers in order; each reduces accounts[from] and increases accounts[to]",
+          "collect fee to parameters.treasury_address",
+          "append events (emit) to tx_index (bounded)",
+          "accounts[from].last_tx_hash = tx_hash"
+        ],
+        "fee_policy": {
+          "base": "0.00001",
+          "per_byte": "0.00000005",
+          "raw_per_byte": "0.0000001",
+          "per_op": {
+            "assert.time": "4e-7",
+            "assert.balance": "6e-7",
+            "assert.compare": "6e-7",
+            "transfer": "0.000002",
+            "emit.event": "8e-7"
+          },
+          "currency": "SLI"
+        },
+        "capabilities": [
+          "debit",
+          "credit",
+          "fee_treasury",
+          "events"
+        ],
+        "invariants": [
+          "sum_balances + treasury_collected == constant (testnet relaxed)"
+        ]
+      },
+      {
+        "name": "notary.registry",
+        "version": "1.0.0",
+        "abi": {
+          "args": [
+            {
+              "name": "op",
+              "type": "enum(register,stake,unstake,rotate,exit)"
+            },
+            {
+              "name": "pubkey",
+              "type": "string",
+              "optional": true
+            },
+            {
+              "name": "amount",
+              "type": "string",
+              "optional": true
+            }
+          ],
+          "returns": {
+            "type": "void"
+          }
+        }
+      }
+    ],
+    "dispatch": {
+      "resolver": "max-satisfying",
+      "policy": "prefer_latest_minor",
+      "semver": {
+        "allow": [
+          "~1.0"
+        ],
+        "deny": []
+      },
+      "unknown_method": "reject"
+    }
+  },
+  "smart_ops_spec": {
+    "types": [
+      {
+        "op": "assert.time",
+        "schema": {
+          "before_ms?": "integer>=0",
+          "after_ms?": "integer>=0"
+        },
+        "semantics": "require now<=before_ms and/or now>=after_ms relative to tx.timestamp"
+      },
+      {
+        "op": "assert.balance",
+        "schema": {
+          "address": "address",
+          "gte": "decimal(6)"
+        },
+        "semantics": "require balance[address] >= gte"
+      },
+      {
+        "op": "assert.compare",
+        "schema": {
+          "left": "decimal(6)",
+          "cmp": "enum(<,<=,==,>=,>)",
+          "right": "decimal(6)"
+        },
+        "semantics": "pure arithmetic compare"
+      },
+      {
+        "op": "transfer",
+        "schema": {
+          "to": "address",
+          "amount": "decimal(6)",
+          "memo?": "string<=256B"
+        },
+        "semantics": "move funds from tx.from to to"
+      },
+      {
+        "op": "emit.event",
+        "schema": {
+          "kind": "string<=32",
+          "data?": "object<=1024B"
+        },
+        "semantics": "append small, indexable event; no external effects"
+      }
+    ],
+    "limits": {
+      "max_ops": 32,
+      "max_ops_bytes": 8192,
+      "max_event_data_bytes": 2048
+    }
+  },
+  "parameters": {
+    "fees": {
+      "base": "0.00001",
+      "per_byte": "0.00000005",
+      "raw_per_byte": "0.0000001",
+      "currency": "SLI"
+    },
+    "currency": {
+      "symbol": "SLI",
+      "decimals": 8,
+      "fee_unit": "10^-6 SLI",
+      "name": "Stels Liq Index"
+    },
+    "limits": {
+      "max_tx_size": 65536,
+      "max_signatures": 16
+    },
+    "treasury_address": "ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv",
+    "kv_limits": {
+      "value_max_bytes": 65536,
+      "raw_soft_cap_bytes": 60000,
+      "tx_raw_ttl_ms": 259200000
+    },
+    "mempool": {
+      "max_pending_per_address": 256,
+      "max_pending_bytes_per_address": 8000000,
+      "reject_siblings_on_prev_hash": true,
+      "reject_duplicate_prev_hash": true,
+      "priority": "fee_per_weighted_byte",
+      "ttl_ms": 300000
+    },
+    "gate": {
+      "ttl_ms": 3600000,
+      "max_per_address": 512,
+      "max_total": 2000000,
+      "eviction": "lru",
+      "on_expire": "reject"
+    }
+  },
+  "tx_rules": {
+    "tx_hash": "hex(SHA256(gls-det-1(signing_view)))",
+    "signing_view_exclude": [
+      "signature",
+      "signatures",
+      "cosigs",
+      "verified",
+      "status",
+      "validators",
+      "hash"
+    ],
+    "time_window_ms": 60000,
+    "timestamp_rule": "abs(tx.timestamp - now) <= 59000",
+    "max_tx_size": 65536,
+    "min_fee": "0.00001",
+    "fees_currency": "SLI",
+    "require_prev_hash": true,
+    "fee_policy_composition": "effective_min_fee = max(global_min_fee, method_min_fee) + Σ per_op(ops)",
+    "fee_calculation": {
+      "canon": "gls-det-1(signing_view) encoded as UTF-8",
+      "tx_bytes": "byteLength(UTF8(gls-det-1(signing_view)))",
+      "raw_bytes": "tx.raw ? byteLength(UTF8(tx.raw)) : 0",
+      "formula_linear": "fee_min = fees.base + fees.per_byte * (tx_bytes - raw_bytes) + fees.raw_per_byte * raw_bytes + Σ per_op(ops)",
+      "rounding": "compare as decimals with 6 fraction digits (no binary rounding)"
+    },
+    "mempool_priority": {
+      "raw_weight": "fees.raw_per_byte / fees.per_byte",
+      "weighted_size": "(tx_bytes - raw_bytes) + raw_weight * raw_bytes",
+      "score": "fee / weighted_size",
+      "tie_breaker": "lower tx_bytes first"
+    },
+    "raw_policy": {
+      "allowed": true,
+      "encoding": [
+        "utf8"
+      ],
+      "max_raw_bytes": "min(parameters.kv_limits.raw_soft_cap_bytes, tx_free_space)",
+      "require_hash": true,
+      "bind_in_signature": true,
+      "mime_allowed": [
+        "text/plain"
+      ],
+      "pii_allowed": false,
+      "encryption": [
+        "none"
+      ],
+      "tx_raw_ttl_ms": 259200000
+    },
+    "methods_policy": {
+      "max_methods": 8,
+      "max_methods_bytes": 4096,
+      "types": [
+        "cosign"
+      ],
+      "cosign": {
+        "sig_encoding": "der-hex(lowS)",
+        "kid_format": "secp256k1-compressed-hex",
+        "deadline_required": false,
+        "require_approver_address_match": true,
+        "rate_limit": {
+          "per_approver_per_minute": 60
+        },
+        "action_fee": {
+          "enabled": true,
+          "amount": "0.000001",
+          "currency": "SLI"
+        },
+        "sign_domain": [
+          "STELS-COSIGN",
+          1,
+          "chain:1"
+        ]
+      },
+      "binding": "methods MUST be part of signing_view"
+    },
+    "signature_binding": "require any(sig in signatures: AddressOf(sig.kid) == tx.from)",
+    "fair_ordering": {
+      "mode": "vrf",
+      "vrf_ordering": {
+        "enabled": true,
+        "seed_source": "prev_epoch_beacon"
+      }
+    }
+  },
+  "tx_schema": {
+    "smart": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "stels://schemas/tx-smart-1.0.json",
+      "title": "STELS Smart TX v1.0",
+      "type": "object",
+      "required": [
+        "type",
+        "method",
+        "args",
+        "from",
+        "fee",
+        "currency",
+        "prev_hash",
+        "timestamp",
+        "signatures"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "schemas": {
+    "notary_certificate_v2": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "stels://schemas/notary-certificate-v2.json",
+      "type": "object",
+      "required": [
+        "tx_hash",
+        "chain_id",
+        "committee_epoch",
+        "committee_root",
+        "alg"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "state": {
+    "accounts": [
+      {
+        "address": "ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv",
+        "balance": "4496000000000",
+        "last_tx_hash": null,
+        "stake": {
+          "amount": "100000000000",
+          "locked_until": null
+        }
+      },
+      {
+        "address": "gYjDnckjrKCw3CYVerH1LMbgTWv3dmg6Hu",
+        "balance": "1000000000",
+        "last_tx_hash": null,
+        "stake": {
+          "amount": "100000000000",
+          "locked_until": null
+        }
+      },
+      {
+        "address": "gohgoWbJK7dMf5MUKKtthRJdCAMmoVqDMo",
+        "balance": "1000000000",
+        "last_tx_hash": null,
+        "stake": {
+          "amount": "100000000000",
+          "locked_until": null
+        }
+      },
+      {
+        "address": "gZWDHsUpb9caK9YKXhqcGze5R7FFiZwmLH",
+        "balance": "1000000000",
+        "last_tx_hash": null,
+        "stake": {
+          "amount": "100000000000",
+          "locked_until": null
+        }
+      },
+      {
+        "address": "gaaCeFB4MLiy2y5S7xFfTCdbKSGYpg46se",
+        "balance": "1000000000",
+        "last_tx_hash": null,
+        "stake": {
+          "amount": "100000000000",
+          "locked_until": null
+        }
+      }
+    ],
+    "aliases": {
+      "treasury": "ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv"
+    },
+    "registries": {
+      "intrinsics": [
+        "smart.exec@1.0.0",
+        "notary.registry@1.0.0"
+      ],
+      "genesis": "genesis:sha256:7816437b16409d3d4f2c7a39e5474c619e48247c6b4e8f9873a2c2aa29aae3e3",
+      "notary": {
+        "registry_root": "0000000000000000000000000000000000000000000000000000000000000000",
+        "total_stake": "0",
+        "epoch": 0,
+        "committee_root": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    }
+  },
+  "monetary": {
+    "supply_cap": "2100000000000000",
+    "minting": "disabled",
+    "faucet": {
+      "rate_per_request": "0",
+      "cooldown_ms": 60000
+    },
+    "rewards": {
+      "mode": "execution-mining",
+      "source": "treasury",
+      "unit": "smart_op",
+      "rate_per_unit": "0.001",
+      "max_per_epoch": "10000",
+      "staking": {
+        "required": true,
+        "currency": "SLI",
+        "min_stake": "1000",
+        "max_stake": "100000"
+      },
+      "layers": {
+        "execution": true,
+        "worker_execution": true,
+        "worker_execution_policy": {
+          "min_ops_per_epoch": "1",
+          "max_ops_per_epoch": "1000",
+          "max_reward_share": "0.3"
+        }
+      },
+      "vrf_fairness": {
+        "enabled": true,
+        "modifier_range": {
+          "min": "0.9",
+          "max": "1.1"
+        },
+        "seed_source": "prev_epoch_beacon"
+      },
+      "decentralization_guard": {
+        "enabled": true,
+        "gini_threshold": "0.85",
+        "penalty_multiplier": "1.2",
+        "metrics": [
+          "gini",
+          "theil",
+          "nakamoto"
+        ]
+      },
+      "rating_model": {
+        "mode": "fair-stake-lock-mined-v1",
+        "weights": {
+          "stake": "0.4",
+          "lock": "0.3",
+          "mined": "0.2",
+          "behavior": "0.1"
+        },
+        "window_ms": 604800000,
+        "stake_range": {
+          "min": "1000",
+          "max": "100000"
+        },
+        "lock_range": {
+          "min_ms": 0,
+          "max_ms": 2592000000
+        },
+        "mined_normalization": {
+          "mode": "relative-to-expected",
+          "target_yield": "0.05"
+        },
+        "behavior": {
+          "enabled": true,
+          "latency_weight": "0.1",
+          "availability_weight": "0.2",
+          "stability_weight": "0.1",
+          "anomaly_detection": {
+            "enabled": true,
+            "penalty_threshold": "0.5"
+          }
+        }
+      }
+    },
+    "adaptive_engine": {
+      "enabled": false,
+      "inflation_target": "0.05",
+      "activity_target": "10000",
+      "adjustment_rules": {
+        "inflation_increase": "decrease_rate",
+        "activity_decrease": "decrease_min_stake",
+        "centralization_increase": "increase_lock_range"
+      }
+    }
+  },
+  "security": {
+    "der_requirements": {
+      "lowS": true,
+      "canonical_DER": true
+    }
+  },
+  "governance": {
+    "upgrade_envelope": {
+      "schema": {
+        "fields": [
+          "upgrade_id",
+          "new_genesis_hash",
+          "chain_id",
+          "timestamp"
+        ]
+      },
+      "sign_domain": [
+        "STELS-GENESIS",
+        1,
+        "v1",
+        "chain:1"
+      ],
+      "threshold": {
+        "type": "k-of-n",
+        "k": 4,
+        "n": 5
+      }
+    },
+    "revocation": {
+      "crl": {
+        "seq": 1,
+        "revoked": []
+      },
+      "sign_domain": [
+        "STELS-CRL",
+        1,
+        "v1",
+        "chain:1"
+      ]
+    },
+    "emergency_pause": {
+      "allowed": true,
+      "trigger_threshold": {
+        "k": 4,
+        "n": 5
+      },
+      "max_duration_ms": 3600000
+    }
+  },
+  "signing_keys": [
+    {
+      "kid": "ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv",
+      "alg": "ecdsa-secp256k1",
+      "public_key": "03892f1c484b14f551c61fa997bb647fdfe84fabb48bc868696b07813e700ab631",
+      "not_before": "2025-01-01T05:00:00.000Z",
+      "not_after": "2028-01-01T05:00:00.000Z",
+      "purpose": [
+        "genesis-sign",
+        "upgrade-sign"
+      ]
+    },
+    {
+      "kid": "gYjDnckjrKCw3CYVerH1LMbgTWv3dmg6Hu",
+      "alg": "ecdsa-secp256k1",
+      "public_key": "036da3f9491d99e824e06a7d6aa4727a810fae8e9bea5c3054dad2a1c83a63bc9f",
+      "not_before": "2025-01-01T05:00:00.000Z",
+      "not_after": "2028-01-01T05:00:00.000Z",
+      "purpose": [
+        "genesis-sign",
+        "upgrade-sign"
+      ]
+    },
+    {
+      "kid": "gohgoWbJK7dMf5MUKKtthRJdCAMmoVqDMo",
+      "alg": "ecdsa-secp256k1",
+      "public_key": "02a4bc9ffcbd2e3baec54441adeb23d873caa38b16ab9cf5c6da1eb1ee21303cbf",
+      "not_before": "2025-01-01T05:00:00.000Z",
+      "not_after": "2028-01-01T05:00:00.000Z",
+      "purpose": [
+        "genesis-sign",
+        "upgrade-sign"
+      ]
+    },
+    {
+      "kid": "gZWDHsUpb9caK9YKXhqcGze5R7FFiZwmLH",
+      "alg": "ecdsa-secp256k1",
+      "public_key": "03fc4144e4672148e2b0d1238cfeec68726d8fbdba939f587f4c12ce32d3e6fc96",
+      "not_before": "2025-01-01T05:00:00.000Z",
+      "not_after": "2028-01-01T05:00:00.000Z",
+      "purpose": [
+        "genesis-sign",
+        "upgrade-sign"
+      ]
+    },
+    {
+      "kid": "gaaCeFB4MLiy2y5S7xFfTCdbKSGYpg46se",
+      "alg": "ecdsa-secp256k1",
+      "public_key": "0338925493eec23832f940d7555a57f2ec660da0f733e75d04de0b9bec3af5e10f",
+      "not_before": "2025-01-01T05:00:00.000Z",
+      "not_after": "2028-01-01T05:00:00.000Z",
+      "purpose": [
+        "genesis-sign",
+        "upgrade-sign"
+      ]
+    }
+  ],
+  "signatures": {
+    "threshold": {
+      "type": "k-of-n",
+      "k": 4,
+      "n": 5
+    },
+    "signers": [
+      {
+        "kid": "ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv",
+        "sig": "3045022100a491d3236dc97dcbd2aa5077818b5c625546d26729dcab468a07064f9b959c2302205e0641801c10ae7a1bacce8adda25217bef96bd9d77347dd7f7d83cd65c9080c",
+        "alg": "ecdsa-secp256k1"
+      },
+      {
+        "kid": "gYjDnckjrKCw3CYVerH1LMbgTWv3dmg6Hu",
+        "sig": "3044022010a8db5f70191f420995c2054bbad0a3e394b6ff6a76b296e5a2c0169e9f4a5802207e8adb035338876c25ab2d2b6e1c8bec42d9372846196254b9a32174b9acb848",
+        "alg": "ecdsa-secp256k1"
+      },
+      {
+        "kid": "gohgoWbJK7dMf5MUKKtthRJdCAMmoVqDMo",
+        "sig": "304402202cc56b04d8555e47e5d9e06eed24f949b7612e6c883f243e203f401758a26ebb022043870c8a6f7b472253cf5367f55961e7c1232b331f937647f4b9995ca18693a5",
+        "alg": "ecdsa-secp256k1"
+      },
+      {
+        "kid": "gZWDHsUpb9caK9YKXhqcGze5R7FFiZwmLH",
+        "sig": "304502210092fc55af1a88a6310365dcf96cd6ffe16e5f2c3d0ff1cd08789f914c581b9c9c02200ad03d574c1e6b67fc959934d31c4448d34d53ee79e3e8ab8bccf5d226076eb5",
+        "alg": "ecdsa-secp256k1"
+      },
+      {
+        "kid": "gaaCeFB4MLiy2y5S7xFfTCdbKSGYpg46se",
+        "sig": "3044022019cf9ad177e94ddb5574ea457f0d5305cfb62508ec212b59612329d4e93814c002207d0b569d015761aa76cf5860c92da9694498fa548063cfe23d6880ae694f9d82",
+        "alg": "ecdsa-secp256k1"
+      }
+    ]
+  },
+  "stels_runtime": {
+    "storage": {
+      "kv_namespaces": [
+        {
+          "name": "net",
+          "purpose": "state",
+          "retention_ms": 0
+        },
+        {
+          "name": "local",
+          "purpose": "state",
+          "retention_ms": 0
+        },
+        {
+          "name": "mempool",
+          "purpose": "mempool",
+          "retention_ms": 3600000
+        },
+        {
+          "name": "metrics",
+          "purpose": "metrics",
+          "retention_ms": 1800000
+        },
+        {
+          "name": "logs",
+          "purpose": "logs",
+          "retention_ms": 1800000
+        }
+      ]
+    },
+    "channels": [
+      {
+        "id": "workers/events",
+        "kind": "pubsub"
+      },
+      {
+        "id": "training/events",
+        "kind": "stream"
+      },
+      {
+        "id": "market/orderbook",
+        "kind": "stream"
+      }
+    ]
+  },
+  "stels_policy": {
+    "profile": "mainnet-hard",
+    "strict_mode": true,
+    "rules_version": "1.0"
+  },
+  "observability": {
+    "metrics": {
+      "enabled": true,
+      "endpoints": []
+    },
+    "logging": {
+      "level": "info"
+    }
+  },
+  "deployment": {
+    "profile": "mainnet",
+    "deployed_at": "2025-12-03T06:22:58.725Z",
+    "deployed_by": "STELS Laboratory"
+  },
+  "legal": {
+    "jurisdiction": [
+      "UA"
+    ],
+    "entity": {
+      "name": "STELS Laboratory",
+      "registration_id": "N/A"
+    },
+    "policies": []
+  },
+  "metadata": {
+    "name": "Stels Liq Index",
+    "symbol": "SLI",
+    "decimals": 8,
+    "description": "STELS Mainnet Network - Max supply 21M coins, initial emission 50000 coins, 5 validators with 1000 stake each, 44950 in treasury for new nominators. Execution-mining enabled with full features.",
+    "contact": "labs@stels.io",
+    "website": "https://stels.io",
+    "icon": "M9.87988 0C10.8932 0 11.9333 0.0267439 13 0.0800781C14.0667 0.133411 15.0667 0.213646 16 0.320312C16.96 0.400311 17.747 0.506315 18.3604 0.639648V3.48047C17.667 3.3738 16.8666 3.2802 15.96 3.2002C15.0534 3.1202 14.1201 3.06671 13.1602 3.04004C12.227 2.98671 11.3337 2.95997 10.4805 2.95996C9.0138 2.95996 7.82659 3.02682 6.91992 3.16016C6.0133 3.29349 5.29308 3.53323 4.75977 3.87988C4.17317 4.22655 3.79964 4.7204 3.63965 5.36035C3.50639 5.97352 3.44045 6.71997 3.44043 7.59961C3.44043 8.63959 3.50632 9.45338 3.63965 10.04C3.79962 10.6 4.11973 11.0002 4.59961 11.2402C5.10624 11.4536 5.85327 11.6131 6.83984 11.7197L8.35254 11.8916V6.09082H11.3525V12.2334L13.5195 12.4805C14.4795 12.5605 15.32 12.6932 16.04 12.8799C16.7866 13.0399 17.4267 13.3198 17.96 13.7197C18.4933 14.1197 18.8935 14.6938 19.1602 15.4404C19.32 15.8135 19.4396 16.2267 19.5195 16.6797C19.5995 17.133 19.653 17.6402 19.6797 18.2002C19.733 18.7335 19.7598 19.3334 19.7598 20C19.7598 21.5199 19.6136 22.7865 19.3203 23.7998C19.027 24.7865 18.6134 25.5735 18.0801 26.1602C17.5468 26.7468 16.8934 27.1871 16.1201 27.4805C15.3468 27.7738 14.4795 27.96 13.5195 28.04C12.5865 28.12 11.5734 28.1601 10.4805 28.1602C9.49387 28.1602 8.41348 28.1334 7.24023 28.0801C6.0669 28.0267 4.91981 27.9599 3.7998 27.8799C2.70655 27.7999 1.70642 27.7063 0.799805 27.5996V24.6797C1.75974 24.7597 2.75988 24.8399 3.7998 24.9199C4.86643 24.9999 5.89325 25.0668 6.87988 25.1201C7.89322 25.1735 8.7471 25.2002 9.44043 25.2002C10.8535 25.2002 11.9866 25.1467 12.8398 25.04C13.6931 24.9067 14.4134 24.6669 15 24.3203C15.3999 24.0804 15.6932 23.7602 15.8799 23.3604C16.0665 22.9604 16.1735 22.4933 16.2002 21.96C16.2535 21.4267 16.2803 20.8535 16.2803 20.2402C16.2803 19.3336 16.2535 18.6 16.2002 18.04C16.1469 17.48 15.9998 17.0531 15.7598 16.7598C15.5464 16.4399 15.1862 16.2134 14.6797 16.0801C14.173 15.9201 13.4928 15.7997 12.6396 15.7197L11.3525 15.5762V22.0908H8.35254V15.2432L5.7998 14.96C4.5199 14.8 3.49302 14.5335 2.71973 14.1602C1.94647 13.7602 1.35993 13.2663 0.959961 12.6797C0.58671 12.0664 0.333511 11.3461 0.200195 10.5195C0.0669065 9.66631 0 8.71951 0 7.67969C2.6641e-05 5.99983 0.213008 4.65292 0.639648 3.63965C1.0929 2.62656 1.74653 1.85361 2.59961 1.32031C3.45286 0.787031 4.47984 0.440293 5.67969 0.280273C6.90632 0.0936106 8.3066 4.63896e-06 9.87988 0Z"
+  }
+}

@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuthStore } from "@/stores";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import {
 	getCachedBalance,
 	setCachedBalance,
@@ -51,8 +52,9 @@ export function useAssetBalance(
 ): UseAssetBalanceReturn {
 	const { connectionSession, isAuthenticated, isConnected } = useAuthStore();
 	
-	// Initialize from global cache if available
-	const network = params.network || connectionSession?.network || "testnet";
+	// Get network from params, connection session, or network store
+	const { currentNetworkId } = useNetworkStore();
+	const network = params.network || connectionSession?.network || currentNetworkId;
 	const cachedData = params.address && params.token_id
 		? getCachedBalance(params.address, network, params.token_id)
 		: null;
@@ -148,17 +150,10 @@ export function useAssetBalance(
 				throw new Error(errorMessage);
 			}
 
-			const data: { result?: AssetBalance | { success: boolean; [key: string]: unknown } } =
-				await response.json();
-
-			if (data.result) {
-				// Handle both response formats
-				// Format 1: {result: AssetBalance}
-				// Format 2: {result: {success: true, balance: ..., currency: ..., ...}}
-				if ("success" in data.result && data.result.success) {
-					// Format 2: Extract balance fields from result
-					const balanceResult = data.result as {
-						success: boolean;
+			const data: { 
+				result?: {
+					success: boolean;
+					balance?: AssetBalance | {
 						balance: string;
 						currency?: string;
 						decimals?: number;
@@ -167,42 +162,65 @@ export function useAssetBalance(
 						total_sent?: string;
 						total_fees?: string;
 						transaction_count?: number;
-						[key: string]: unknown;
 					};
+					token_id?: string;
+					address?: string;
+					[key: string]: unknown;
+				} | AssetBalance;
+			} = await response.json();
 
-					// Validate required fields
-					if (!balanceResult.balance) {
-						throw new Error("Balance field missing in response");
+			if (data.result) {
+				// Handle response formats according to updated API documentation
+				// Format 1: {result: {success: true, balance: {balance: "...", currency: "...", ...}, ...}}
+				// Format 2: {result: AssetBalance} (legacy format)
+				if ("success" in data.result && data.result.success) {
+					// Format 1: Extract balance from result.balance object
+					const balanceObj = data.result.balance;
+					
+					if (!balanceObj) {
+						throw new Error("Balance object missing in response");
 					}
 
-					const balanceData: AssetBalance = {
-						balance: balanceResult.balance,
-						currency: balanceResult.currency || "",
-						decimals: balanceResult.decimals ?? 6,
-						initial_balance: balanceResult.initial_balance || "0",
-						total_received: balanceResult.total_received || "0",
-						total_sent: balanceResult.total_sent || "0",
-						total_fees: balanceResult.total_fees || "0",
-						transaction_count: balanceResult.transaction_count || 0,
-					};
+					// Handle both string balance (legacy) and object balance (new format)
+					const balanceData: AssetBalance = typeof balanceObj === "string"
+						? {
+							balance: balanceObj,
+							currency: "",
+							decimals: 6,
+							initial_balance: "0",
+							total_received: "0",
+							total_sent: "0",
+							total_fees: "0",
+							transaction_count: 0,
+						}
+						: {
+							balance: balanceObj.balance,
+							currency: balanceObj.currency || "",
+							decimals: balanceObj.decimals ?? 6,
+							initial_balance: balanceObj.initial_balance || "0",
+							total_received: balanceObj.total_received || "0",
+							total_sent: balanceObj.total_sent || "0",
+							total_fees: balanceObj.total_fees || "0",
+							transaction_count: balanceObj.transaction_count || 0,
+						};
 
-				// Update global cache and state
-				setCachedBalance(params.address, network, params.token_id, {
-					balance: balanceData.balance,
-					currency: balanceData.currency,
-					decimals: balanceData.decimals,
-					initial_balance: balanceData.initial_balance,
-					total_received: balanceData.total_received,
-					total_sent: balanceData.total_sent,
-					total_fees: balanceData.total_fees,
-					transaction_count: balanceData.transaction_count,
-					timestamp: Date.now(),
-				});
-				setBalance(balanceData);
-				setRetryCount(0); // Reset retry count on success
+					// Update global cache and state
+					setCachedBalance(params.address, network, params.token_id, {
+						balance: balanceData.balance,
+						currency: balanceData.currency,
+						decimals: balanceData.decimals,
+						initial_balance: balanceData.initial_balance,
+						total_received: balanceData.total_received,
+						total_sent: balanceData.total_sent,
+						total_fees: balanceData.total_fees,
+						transaction_count: balanceData.transaction_count,
+						timestamp: Date.now(),
+					});
+					setBalance(balanceData);
+					setRetryCount(0); // Reset retry count on success
 
-				} else if ("balance" in data.result) {
-					// Format 1: Direct AssetBalance
+				} else if ("balance" in data.result && typeof data.result.balance === "string") {
+					// Format 2: Legacy direct AssetBalance format
 					const balanceData = data.result as AssetBalance;
 					// Update global cache and state
 					setCachedBalance(params.address, network, params.token_id, {
@@ -225,7 +243,7 @@ export function useAssetBalance(
 			} else {
 				throw new Error("Invalid response format");
 			}
-		} catch {
+		} catch (err) {
 			const errorMessage =
 				err instanceof Error
 					? err.message
@@ -267,7 +285,7 @@ export function useAssetBalance(
 		if (!balance && params.address && params.token_id) {
 			const cached = getCachedBalance(
 				params.address,
-				params.network || connectionSession?.network || "testnet",
+				params.network || connectionSession?.network || currentNetworkId,
 				params.token_id,
 			);
 			if (cached) {

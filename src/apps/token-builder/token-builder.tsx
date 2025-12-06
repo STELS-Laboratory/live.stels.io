@@ -1101,6 +1101,40 @@ function TokenBuilder(): React.ReactElement {
   }, [schema, validateSchema]);
 
   /**
+   * Get errors for current step only
+   * Filters errors to show only those relevant to the current step
+   */
+  const currentStepErrors = useMemo(() => {
+    // Define required fields for each step
+    const stepRequirements: Record<number, string[]> = {
+      0: ["standard"], // Step 1: Standard Selection
+      1: [ // Step 2: Token Information
+        "metadata.name",
+        "metadata.symbol",
+        "metadata.description",
+      ],
+      2: [ // Step 3: Economics
+        "economics.supply.initial",
+        "economics.supply.mintingPolicy",
+      ],
+      3: [], // Step 4: Optional features (all optional)
+      4: [], // Step 5: Review (no validation needed)
+    };
+
+    const requiredFields = stepRequirements[currentStep] || [];
+    const filteredErrors: Record<string, string[]> = {};
+
+    // Only include errors for fields relevant to current step
+    requiredFields.forEach((field) => {
+      if (errors[field]) {
+        filteredErrors[field] = errors[field];
+      }
+    });
+
+    return filteredErrors;
+  }, [currentStep, errors]);
+
+  /**
    * Check if current step is valid (memoized to prevent infinite loops)
    * Does NOT call validateSchema() to avoid triggering re-renders
    */
@@ -1327,10 +1361,10 @@ function TokenBuilder(): React.ReactElement {
         </Button>
 
         <div className="flex items-center gap-2">
-          {Object.keys(errors).length > 0 && (
+          {Object.keys(currentStepErrors).length > 0 && (
             <div className="flex items-center gap-1 text-xs text-red-600">
               <AlertCircle className="w-3 h-3" />
-              <span>{Object.keys(errors).length} errors</span>
+              <span>{Object.keys(currentStepErrors).length} errors</span>
             </div>
           )}
         </div>

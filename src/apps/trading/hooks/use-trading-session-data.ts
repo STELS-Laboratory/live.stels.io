@@ -4,21 +4,22 @@
  */
 
 import { useState, useEffect, useMemo } from "react";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import { getSessionStorageManager } from "@/lib/gui/ui";
 import type { OrderBook, Ticker, AccountBalance, ExchangeAccount } from "../types";
 
 /**
  * Get order book channel name
  */
-function getOrderBookChannel(symbol: string, exchange: string): string {
-	return `testnet.runtime.book.${symbol}.${exchange}.spot`;
+function getOrderBookChannel(symbol: string, exchange: string, networkId: string): string {
+	return `${networkId}.runtime.book.${symbol}.${exchange}.spot`;
 }
 
 /**
  * Get ticker channel name
  */
-function getTickerChannel(symbol: string, exchange: string): string {
-	return `testnet.runtime.ticker.${symbol}.${exchange}.spot`;
+function getTickerChannel(symbol: string, exchange: string, networkId: string): string {
+	return `${networkId}.runtime.ticker.${symbol}.${exchange}.spot`;
 }
 
 /**
@@ -260,12 +261,13 @@ export function useOrderBookFromSession(
 	exchange: string = "bybit",
 ): OrderBook | null {
 	const [orderBook, setOrderBook] = useState<OrderBook | null>(null);
+	const { currentNetworkId } = useNetworkStore();
 	const sessionManager = getSessionStorageManager();
 
 	const channel = useMemo(() => {
 		if (!symbol) return null;
-		return getOrderBookChannel(symbol, exchange);
-	}, [symbol, exchange]);
+		return getOrderBookChannel(symbol, exchange, currentNetworkId);
+	}, [symbol, exchange, currentNetworkId]);
 
 	useEffect(() => {
 		if (!channel) {
@@ -334,12 +336,13 @@ export function useTickerFromSession(
 	exchange: string = "bybit",
 ): Ticker | null {
 	const [ticker, setTicker] = useState<Ticker | null>(null);
+	const { currentNetworkId } = useNetworkStore();
 	const sessionManager = getSessionStorageManager();
 
 	const channel = useMemo(() => {
 		if (!symbol) return null;
-		return getTickerChannel(symbol, exchange);
-	}, [symbol, exchange]);
+		return getTickerChannel(symbol, exchange, currentNetworkId);
+	}, [symbol, exchange, currentNetworkId]);
 
 	useEffect(() => {
 		if (!channel) {

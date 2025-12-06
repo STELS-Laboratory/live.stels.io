@@ -1,6 +1,6 @@
 /**
  * Hook for querying asset transactions
- * Implements getAssetTransactions API method
+ * Implements getAllMyTransactions API method
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";
@@ -41,13 +41,17 @@ export interface TransactionResult {
 	submitted_at: number;
 	tx_hash: string;
 	pool_key: string[];
+	consensus_status?: "pending" | "confirmed" | "not_found";
+	finalized?: boolean;
 }
 
 /**
  * Get transactions parameters
+ * Note: address is optional for getAllMyTransactions (uses session)
+ * Kept for backward compatibility but not sent to API
  */
 export interface GetTransactionsParams {
-	address: string;
+	address?: string; // Optional - not used in getAllMyTransactions (uses session)
 	network?: string;
 	token_id?: string;
 	status?: "pending" | "confirmed" | "failed" | "all";
@@ -63,6 +67,9 @@ interface GetTransactionsResponse {
 	transactions: TransactionResult[];
 	total: number;
 	address: string;
+	network?: string;
+	limit?: number;
+	offset?: number;
 }
 
 /**
@@ -125,12 +132,12 @@ export function useAssetTransactions(
 		const network = params.network || networkRef.current || connectionSessionRef.current.network;
 
 		if (!apiUrl || !network) {
-
 			return;
 		}
 
-		if (!params.address) {
-
+		// Note: address is not required for getAllMyTransactions (uses session)
+		// But we keep the check for backward compatibility
+		if (!params.address && !connectionSessionRef.current.session) {
 			return;
 		}
 
@@ -169,10 +176,9 @@ export function useAssetTransactions(
 		try {
 			const requestBody = {
 				webfix: "1.0",
-				method: "getAssetTransactions",
+				method: "getAllMyTransactions",
 				params: [network],
 				body: {
-					address: params.address,
 					network: params.network || network,
 					token_id: params.token_id,
 					status: params.status || "all",
@@ -203,7 +209,7 @@ export function useAssetTransactions(
 			} else {
 				throw new Error("Transaction query failed");
 			}
-		} catch {
+		} catch (err) {
 			const errorMessage =
 				err instanceof Error
 					? err.message

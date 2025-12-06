@@ -1,0 +1,2943 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stels.io/schemas/genesis-smart-1.0.json",
+  "title": "STELS Genesis Smart Document v1.0",
+  "description": "JSON Schema for STELS monochain genesis configuration document",
+  "$comment": "STELS Genesis Smart v1.0. This schema defines the full genesis document for a STELS monochain network. Security and mainnet/testnet policies are described inline in $comment fields. Validators must implement runtime checks for cross-field consistency, thresholds, and production policy compliance. Extended features (v1.0+): execution-mining rewards, VRF fairness, MEV resistance, adaptive economics, enclave security, behavioral reputation. All extended features are optional for backward compatibility. CRITICAL: This JSON Schema validates structure only. A separate 'Genesis Validator' module MUST be implemented to enforce all $comment invariants: balance sums vs supply_cap, k ≥ ceil(2/3 n) thresholds, cross-field consistency (parameters ↔ tx_rules ↔ monetary), kid uniqueness, weight sums = 1.0, formula validation, and canonical algorithm selections.",
+  "type": "object",
+  "$defs": {
+    "sign_domain_array": {
+      "type": "array",
+      "minItems": 2,
+      "prefixItems": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "description": "Context identifier (e.g., 'tx', 'genesis', 'cosign', 'notary', 'crl')"
+        },
+        {
+          "type": "integer",
+          "description": "Chain ID - must match network.chain_id"
+        }
+      ],
+      "items": {
+        "oneOf": [
+          { "type": "string", "minLength": 1 },
+          { "type": "number" }
+        ]
+      },
+      "description": "Signing domain array. First two elements: [context, chain_id]. Runtime: prefixItems[1] must equal network.chain_id",
+      "examples": [
+        ["tx", 1, "network"],
+        ["genesis", 1],
+        ["cosign", 1, "network"]
+      ]
+    },
+    "k_of_n_threshold": {
+      "type": "object",
+      "required": ["type", "k", "n"],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "n": { "minimum": 3 }
+            }
+          },
+          "then": {
+            "properties": {
+              "k": { "minimum": 2 }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "k-of-n"
+        },
+        "k": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Minimum number of signatures required (threshold). Used for formal governance thresholds"
+        },
+        "n": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Total number of possible signers (eligible keys)"
+        }
+      },
+      "$comment": "Standard: Used for formal governance thresholds (upgrade_envelope, genesis signatures). Runtime: k <= n. Production: if n >= 3, then k >= 2 (prevents weak thresholds like k=1,n=10).",
+      "examples": [
+        {
+          "type": "k-of-n",
+          "k": 3,
+          "n": 5
+        },
+        {
+          "type": "k-of-n",
+          "k": 1,
+          "n": 1
+        }
+      ]
+    },
+    "k_n_pair": {
+      "type": "object",
+      "required": ["k", "n"],
+      "additionalProperties": false,
+      "properties": {
+        "k": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Minimum number required (threshold). Used for operational/emergency thresholds"
+        },
+        "n": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Total number available (eligible keys)"
+        }
+      },
+      "$comment": "Standard: Used for operational/emergency thresholds (emergency_pause). Runtime: k <= n",
+      "examples": [
+        {
+          "k": 2,
+          "n": 3
+        },
+        {
+          "k": 1,
+          "n": 1
+        }
+      ]
+    },
+    "decimal_string": {
+      "type": "string",
+      "pattern": "^[0-9]+(\\.[0-9]+)?$",
+      "description": "Decimal number as string to avoid precision loss. Can be whole number (e.g., '1', '100') or decimal (e.g., '0.001', '1.5', '100.25')",
+      "examples": ["0.001", "1.0", "100.25", "1", "0"]
+    },
+    "non_negative_integer_string": {
+      "type": "string",
+      "pattern": "^[0-9]+$",
+      "description": "Non-negative integer as string to avoid precision loss. For JavaScript number conversion, runtime should validate against safe integer limit (2^53 - 1)",
+      "$comment": "Runtime: validate <= Number.MAX_SAFE_INTEGER",
+      "examples": ["0", "1", "1000000", "9007199254740991"]
+    },
+    "unit_interval_string": {
+      "type": "string",
+      "pattern": "^(0(\\.\\d+)?|1(\\.0+)?)$",
+      "description": "Decimal number in range [0,1] as string. Prevents values like '00.5', '0001', '2.5'. Used for weights, probabilities, ratios.",
+      "examples": ["0", "0.5", "1", "0.25", "1.0", "0.001"]
+    },
+    "sha256_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "SHA256 hash in hexadecimal format (64 characters)"
+    },
+    "genesis_hash": {
+      "type": "string",
+      "pattern": "^genesis:sha256:[0-9a-f]{64}$",
+      "description": "Genesis document hash with prefix"
+    },
+    "base58_address": {
+      "type": "string",
+      "pattern": "^[1-9A-HJ-NP-Za-km-z]{25,34}$",
+      "description": "Base58 encoded address (typically starts with 'g' for STELS network). Runtime validation required: must verify Base58 checksum",
+      "$comment": "Runtime: Base58 checksum validation required"
+    },
+    "svg_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 10000,
+      "description": "SVG path data - string containing SVG path commands (M, L, C, Z, etc.) with coordinates. Supports all standard SVG path syntax including moveto (M, m), lineto (L, l, H, h, V, v), curveto (C, c, S, s, Q, q, T, t), arc (A, a), and closepath (Z, z) commands"
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["name", "symbol", "decimals"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Display name of the token/chain"
+        },
+        "symbol": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 4,
+          "pattern": "^[A-Z]+$",
+          "description": "Token/chain symbol (uppercase letters only, 2-4 characters)"
+        },
+        "decimals": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18,
+          "description": "Number of decimal places for the token"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Human-readable description of the token/chain"
+        },
+        "contact": {
+          "type": "string",
+          "format": "email",
+          "description": "Contact email address"
+        },
+        "website": {
+          "type": "string",
+          "format": "uri",
+          "description": "Official website URL"
+        },
+        "icon": {
+          "$ref": "#/$defs/svg_path",
+          "description": "SVG path data for the token/chain icon"
+        }
+      }
+    }
+  },
+  "required": [
+    "$schema",
+    "version",
+    "network",
+    "genesis",
+    "content",
+    "protocol",
+    "wallet_protocol",
+    "addressing",
+    "consensus",
+    "intrinsics",
+    "smart_ops_spec",
+    "parameters",
+    "tx_rules",
+    "tx_schema",
+    "schemas",
+    "state",
+    "monetary",
+    "security",
+    "governance",
+    "signing_keys",
+    "signatures"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "https://stels.io/schemas/genesis-smart-1.0.json",
+      "description": "Self-describing genesis document: references the JSON Schema that validates this document. NOTE: The root-level $schema (line 2) is the meta-schema identifier for this schema file itself. This property.$schema is part of the genesis data and enables self-describing documents.",
+      "$comment": "Self-describing genesis pattern: root $schema identifies meta-schema (JSON Schema Draft 2020-12), property $schema identifies genesis schema version. Validators should use property $schema to determine which schema version to apply."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9.-]+)?$"
+    },
+    "network": {
+      "type": "object",
+      "required": ["id", "name", "environment", "chain_id"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "environment": {
+          "type": "string",
+          "enum": ["devnet", "testnet", "mainnet"],
+          "description": "Network environment profile. Mainnet has strict production requirements enforced via schema constraints."
+        },
+        "chain_id": {
+          "type": "integer",
+          "minimum": 1,
+          "$comment": "Runtime: chain_id must match sign_domains"
+        }
+      }
+    },
+    "genesis": {
+      "type": "object",
+      "required": [
+        "id",
+        "created_at",
+        "activation_time",
+        "previous_genesis_id",
+        "issuer",
+        "upgrade_policy"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/genesis_hash",
+          "$comment": "Runtime: genesis.id must match content.hash"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when genesis document was created"
+        },
+        "activation_time": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when genesis document becomes active. Should be >= created_at (runtime validation required)",
+          "$comment": "Runtime: activation_time >= created_at"
+        },
+        "previous_genesis_id": {
+          "oneOf": [
+            {
+              "type": "null",
+              "description": "Null for the first genesis document in a chain"
+            },
+            {
+              "$ref": "#/$defs/genesis_hash",
+              "description": "Hash of the previous genesis document"
+            },
+            {
+              "type": "string",
+              "const": "genesis",
+              "description": "Special value 'genesis' indicates this is the first genesis document in the chain (alternative to null)"
+            }
+          ]
+        },
+        "issuer": {
+          "type": "object",
+          "required": ["org", "contact"],
+          "additionalProperties": false,
+          "properties": {
+            "org": {
+              "type": "string",
+              "minLength": 1
+            },
+            "contact": {
+              "type": "string",
+              "format": "email"
+            }
+          }
+        },
+        "upgrade_policy": {
+          "type": "object",
+          "required": ["allowed", "requires_threshold", "envelope_domain"],
+          "additionalProperties": false,
+          "properties": {
+            "allowed": {
+              "type": "boolean"
+            },
+            "requires_threshold": {
+              "$ref": "#/$defs/k_of_n_threshold",
+              "$comment": "CRITICAL: k >= ceil(n * 0.67) required. Consider upgrade delay and key rotation."
+            },
+            "envelope_domain": {
+              "type": "array",
+              "items": {
+                "oneOf": [
+                  { "type": "string" },
+                  { "type": "number" }
+                ]
+              },
+              "minItems": 1
+            }
+          },
+          "$comment": "SECURITY: Require 2/3 majority, upgrade delay, key rotation"
+        }
+      }
+    },
+    "content": {
+      "type": "object",
+      "required": ["hash_alg", "hash", "size"],
+      "additionalProperties": false,
+      "properties": {
+        "hash_alg": {
+          "type": "string",
+          "enum": ["sha256"]
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "SHA256 hash with prefix",
+          "$comment": "Runtime: content.hash must match genesis.id (computed from signing view)"
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "protocol": {
+      "type": "object",
+      "required": [
+        "tx_version",
+        "vm_version",
+        "canonicalization",
+        "encoding",
+        "canon_specs",
+        "sign_domains"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "tx_version": {
+          "type": "string",
+          "pattern": "^smart-[0-9]+\\.[0-9]+$"
+        },
+        "vm_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "canonicalization": {
+          "type": "string",
+          "pattern": "^gls-det-[0-9]+$"
+        },
+        "encoding": {
+          "type": "string",
+          "enum": ["utf-8"]
+        },
+        "canon_specs": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-z0-9_.-]+$"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "maxProperties": 32,
+            "additionalProperties": {
+              "oneOf": [
+                { "type": "string" },
+                { "type": "number" },
+                { "type": "boolean" },
+                { "type": "null" }
+              ]
+            }
+          },
+          "description": "Canonicalization specification parameters. Structure is implementation-specific and defined by the canonicalization algorithm version (e.g., gls-det-1, gls-det-2)",
+          "$comment": "Runtime: validate against algorithm-specific requirements. Property names limited to alphanumeric, underscore, dot, hyphen. Max 32 properties per level."
+        },
+        "sign_domains": {
+          "type": "object",
+          "required": ["tx", "cosign", "notary", "genesis", "crl"],
+          "additionalProperties": false,
+          "properties": {
+            "tx": {
+              "$ref": "#/$defs/sign_domain_array",
+              "description": "Signing domain for transactions. Runtime: prefixItems[1] must equal network.chain_id"
+            },
+            "cosign": {
+              "$ref": "#/$defs/sign_domain_array",
+              "description": "Signing domain for cosignatures. Runtime: prefixItems[1] must equal network.chain_id"
+            },
+            "notary": {
+              "$ref": "#/$defs/sign_domain_array",
+              "description": "Signing domain for notary certificates. Runtime: prefixItems[1] must equal network.chain_id"
+            },
+            "genesis": {
+              "$ref": "#/$defs/sign_domain_array",
+              "description": "Signing domain for genesis documents. Runtime: prefixItems[1] must equal network.chain_id"
+            },
+            "crl": {
+              "$ref": "#/$defs/sign_domain_array",
+              "description": "Signing domain for certificate revocation lists. Runtime: prefixItems[1] must equal network.chain_id"
+            }
+          }
+        },
+        "verifiable_execution": {
+          "type": "object",
+          "required": ["enabled"],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "enabled": { "const": true }
+                }
+              },
+              "then": {
+                "required": ["proof_type"]
+              }
+            }
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable ZK-attested execution proofs for runtime operations"
+            },
+            "proof_type": {
+              "type": "string",
+              "enum": ["zk-stark", "zk-snark", "partial-zk"],
+              "description": "Type of zero-knowledge proof system used for execution attestation. Required when enabled is true"
+            },
+            "circuits": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["name", "version", "checkpoints"],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Circuit identifier (e.g., 'assert', 'balance_check')"
+                  },
+                  "version": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Circuit version"
+                  },
+                  "checkpoints": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "description": "List of critical execution checkpoints that require proof (e.g., 'assert.balance', 'assert.time')"
+                  }
+                }
+              },
+              "minItems": 0,
+              "description": "ZK circuits for critical execution checkpoints. Partial proofs for key steps (asserts, balances) without full block verification."
+            }
+          },
+          "$comment": "ZK-Attested Execution: nodes provide partial proofs of correct operation execution at critical checkpoints. Does not require full SNARK blocks (suitable for blockless-quorum). Provides verifiable execution honesty without increasing notary load, protection against malicious executors, remote audit capability. CRITICAL: For interoperability, specific ZK system (e.g., zk-snark-groth16-bn254) MUST be documented separately or fixed in canon_specs. Schema allows generic proof_type, but runtime must interpret consistently."
+        }
+      }
+    },
+    "wallet_protocol": {
+      "type": "object",
+      "required": [
+        "name",
+        "version",
+        "sign_alg",
+        "hash_alg",
+        "sig_encoding",
+        "ecdsa_nonce",
+        "message_canon",
+        "pubkey_format"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+$"
+        },
+        "sign_alg": {
+          "type": "string",
+          "enum": ["ecdsa-secp256k1"]
+        },
+        "hash_alg": {
+          "type": "string",
+          "enum": ["sha256"]
+        },
+        "sig_encoding": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ecdsa_nonce": {
+          "type": "string",
+          "enum": ["rfc6979"]
+        },
+        "message_canon": {
+          "type": "string",
+          "pattern": "^gls-det-[0-9]+$"
+        },
+        "pubkey_format": {
+          "type": "string",
+          "enum": ["secp256k1-compressed-hex"]
+        }
+      }
+    },
+    "addressing": {
+      "type": "object",
+      "required": [
+        "version_byte",
+        "pubkey_format",
+        "address_encoding",
+        "preferred_encoding",
+        "payload",
+        "checksum"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "version_byte": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "pubkey_format": {
+          "type": "string",
+          "enum": ["secp256k1-compressed-hex"]
+        },
+        "address_encoding": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["base58"]
+          },
+          "minItems": 1
+        },
+        "preferred_encoding": {
+          "type": "string",
+          "enum": ["base58"]
+        },
+        "payload": {
+          "type": "string",
+          "minLength": 1
+        },
+        "checksum": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "consensus": {
+      "type": "object",
+      "required": [
+        "type",
+        "description",
+        "window_ms",
+        "max_skew_ms",
+        "time_source",
+        "committee",
+        "notary_registry",
+        "finality_certificate",
+        "notary_envelope"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "blockless-quorum"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "window_ms": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_skew_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "time_source": {
+          "type": "object",
+          "required": ["mode", "fallback", "skew_enforcement_ms"],
+          "additionalProperties": false,
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["notary-median"],
+              "description": "Primary time source: median time from notary validators"
+            },
+            "fallback": {
+              "type": "string",
+              "enum": ["system-ntp"],
+              "description": "Fallback time source if notary median is unavailable"
+            },
+            "skew_enforcement_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Maximum allowed clock skew in milliseconds before enforcement action",
+              "$comment": "Runtime: skew_enforcement_ms <= max_skew_ms"
+            }
+          },
+          "$comment": "SECURITY: max_skew_ms >= skew_enforcement_ms. Median time prevents manipulation."
+        },
+        "committee": {
+          "type": "object",
+          "required": [
+            "mode",
+            "epoch_ms",
+            "committee_size",
+            "quorum_rule",
+            "selection",
+            "activation_delay_epochs",
+            "churn_limit"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["dynamic-stake-weighted"]
+            },
+            "epoch_ms": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "committee_size": {
+              "type": "integer",
+              "minimum": 4,
+              "maximum": 100,
+              "description": "Committee size for consensus. Minimum 4 for fault tolerance (1/3 Byzantine tolerance). Maximum 100 for performance. Recommended: 5-21 for testnet, 21-100 for mainnet",
+              "$comment": "CRITICAL: min 4 for fault tolerance, max 100 for performance (O(n²) complexity)"
+            },
+            "quorum_rule": {
+              "type": "object",
+              "required": ["type", "num", "den", "round_up"],
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "fraction"
+                },
+                "num": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Numerator of the quorum fraction",
+                  "$comment": "Runtime: num <= den (quorum cannot exceed 100%)"
+                },
+                "den": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Denominator of the quorum fraction",
+                  "$comment": "Runtime: den >= num"
+                },
+                "round_up": {
+                  "type": "boolean",
+                  "description": "If true, round up when calculating quorum size from fraction. If false, round down"
+                }
+              },
+              "description": "Quorum rule defines the minimum number of validators required for consensus. Quorum size = (committee_size * num / den), rounded based on round_up flag",
+              "examples": [
+                {
+                  "type": "fraction",
+                  "num": 2,
+                  "den": 3,
+                  "round_up": true
+                },
+                {
+                  "type": "fraction",
+                  "num": 1,
+                  "den": 2,
+                  "round_up": false
+                }
+              ],
+              "$comment": "CRITICAL: quorum_size = max(1, min(committee_size, calculated)). Validate 1 <= quorum <= committee_size"
+            },
+            "selection": {
+              "type": "object",
+              "required": ["rng", "vrf_alg", "seed_source", "weight"],
+              "additionalProperties": false,
+              "properties": {
+                "rng": {
+                  "type": "string",
+                  "const": "vrf"
+                },
+                "vrf_alg": {
+                  "type": "string",
+                  "enum": ["ed25519-vrf"]
+                },
+                "seed_source": {
+                  "type": "string",
+                  "enum": ["prev_epoch_beacon"]
+                },
+                "weight": {
+                  "type": "string",
+                  "enum": ["stake"]
+                }
+              },
+              "$comment": "SECURITY: Consider 70% VRF / 30% stake ratio, max 10% stake per validator, monitor Gini coefficient"
+            },
+            "activation_delay_epochs": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "churn_limit": {
+              "type": "object",
+              "required": ["enter_frac", "exit_frac"],
+              "additionalProperties": false,
+              "properties": {
+                "enter_frac": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "Maximum fraction of committee that can enter per epoch",
+                  "$comment": "Runtime: enter_frac + exit_frac < 0.2"
+                },
+                "exit_frac": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "Maximum fraction of committee that can exit per epoch",
+                  "$comment": "Runtime: enter_frac + exit_frac < 0.2"
+                }
+              },
+              "$comment": "SECURITY: Validate enter_frac + exit_frac < 0.2. Consider minimum epochs between re-entry"
+            }
+          }
+        },
+        "notary_registry": {
+          "type": "object",
+          "required": [
+            "min_stake",
+            "bonding_ms",
+            "unbonding_ms",
+            "slash",
+            "key_rotation"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "min_stake": {
+              "$ref": "#/$defs/non_negative_integer_string",
+              "description": "Minimum stake required to become a validator (in base currency units)"
+            },
+            "bonding_ms": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "unbonding_ms": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "slash": {
+              "type": "object",
+              "required": ["double_sign", "surround_vote"],
+              "additionalProperties": false,
+              "properties": {
+                "double_sign": {
+                  "$ref": "#/$defs/decimal_string",
+                  "description": "Slashing penalty for double signing (as decimal fraction of stake, e.g., '0.05' = 5%). Recommended: 10-20% for stronger deterrence"
+                },
+                "surround_vote": {
+                  "$ref": "#/$defs/decimal_string",
+                  "description": "Slashing penalty for surround vote attacks (as decimal fraction of stake, e.g., '0.02' = 2%)"
+                }
+              },
+              "$comment": "SECURITY: Consider 10-20% double_sign penalty for stronger deterrence"
+            },
+            "key_rotation": {
+              "type": "object",
+              "required": ["min_interval_ms"],
+              "additionalProperties": false,
+              "properties": {
+                "min_interval_ms": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        },
+        "finality_certificate": {
+          "type": "object",
+          "required": ["hash_alg", "alg", "encoding"],
+          "additionalProperties": false,
+          "properties": {
+            "hash_alg": {
+              "type": "string",
+              "enum": ["sha256"]
+            },
+            "alg": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["bls12-381-agg", "ecdsa-secp256k1-multi"]
+              },
+              "minItems": 1,
+              "description": "Signature algorithms for finality certificates. Multiple algorithms may be supported for compatibility"
+            },
+            "encoding": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object"
+              },
+              "description": "Encoding specification for each algorithm. Structure must match selected algorithm"
+            }
+          },
+          "$comment": "SECURITY: Specify algorithm selection policy. BLS12-381 and ECDSA are incompatible. CRITICAL: For production networks (especially mainnet), a single canonical algorithm MUST be selected. Multiple algorithms are allowed in schema for compatibility/transition, but runtime MUST enforce one algorithm per network. If algorithm change is needed, create new genesis/upgrade."
+        },
+        "notary_envelope": {
+          "type": "object",
+          "required": ["schema_ref", "sign_domain", "equivocation_policy"],
+          "additionalProperties": false,
+          "properties": {
+            "schema_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sign_domain": {
+              "$ref": "#/$defs/sign_domain_array"
+            },
+            "equivocation_policy": {
+              "type": "object",
+              "required": ["action", "ban_ms"],
+              "additionalProperties": false,
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "enum": ["ban"]
+                },
+                "ban_ms": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "intrinsics": {
+      "type": "object",
+      "required": ["determinism", "registry", "dispatch"],
+      "additionalProperties": false,
+      "properties": {
+        "security": {
+          "type": "object",
+          "required": ["enclave"],
+          "additionalProperties": false,
+          "properties": {
+            "enclave": {
+              "type": "object",
+              "required": ["enabled"],
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Enable enclave-backed security for verifiable execution"
+                },
+                "attestation": {
+                  "type": "string",
+                  "enum": ["sgx", "tz", "wasm-shield"],
+                  "description": "Trusted execution environment attestation type. Required when enabled is true"
+                },
+                "verification_required": {
+                  "type": "boolean",
+                  "description": "Whether enclave attestation is mandatory for execution nodes"
+                }
+              },
+              "if": {
+                "properties": {
+                  "enabled": { "const": true }
+                }
+              },
+              "then": {
+                "required": ["attestation"]
+              },
+              "$comment": "Enclave-Backed Security (TEE/WASM Enclave): node provably executes instructions. Prevents nodes from forging runtime state, simulating operations, artificially inflating mined_total. Ideal for blockless-runtime: Intel SGX, ARM TrustZone, WASM-enclave. Attestation type is required only when enabled is true."
+            }
+          },
+          "$comment": "Security configuration for intrinsic execution. Enclave support provides verifiable execution honesty."
+        },
+        "determinism": {
+          "type": "object",
+          "required": ["profile", "io", "state_access"],
+          "additionalProperties": false,
+          "properties": {
+            "profile": {
+              "type": "string",
+              "enum": ["pure-deterministic"]
+            },
+            "io": {
+              "type": "object",
+              "required": ["network", "filesystem", "clock"],
+              "additionalProperties": false,
+              "properties": {
+                "network": {
+                  "type": "string",
+                  "enum": ["denied"]
+                },
+                "filesystem": {
+                  "type": "string",
+                  "enum": ["denied"]
+                },
+                "clock": {
+                  "type": "string",
+                  "enum": ["logical-only"]
+                }
+              }
+            },
+            "state_access": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            }
+          }
+        },
+        "registry": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "version"],
+            "additionalProperties": true
+          },
+          "minItems": 1,
+          "description": "Registry of intrinsic functions/modules available for smart contract execution. Each entry must have name and version, and may include additional implementation-specific fields",
+          "examples": [
+            {
+              "name": "transfer",
+              "version": "1.0.0"
+            },
+            {
+              "name": "assert",
+              "version": "1.0.0",
+              "module": "assertions"
+            }
+          ],
+          "$comment": "Runtime: For each element {name, version}, derive string 'name@version' and ensure it exists in state.registries.intrinsics[]. Format: intrinsics.registry[] = objects, state.registries.intrinsics[] = strings"
+        },
+        "dispatch": {
+          "type": "object",
+          "required": ["resolver", "policy", "semver", "unknown_method"],
+          "additionalProperties": false,
+          "properties": {
+            "resolver": {
+              "type": "string",
+              "enum": ["max-satisfying"]
+            },
+            "policy": {
+              "type": "string",
+              "enum": ["prefer_latest_minor"]
+            },
+            "semver": {
+              "type": "object",
+              "required": ["allow", "deny"],
+              "additionalProperties": false,
+              "properties": {
+                "allow": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "deny": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "unknown_method": {
+              "type": "string",
+              "enum": ["reject"]
+            }
+          }
+        }
+      }
+    },
+    "smart_ops_spec": {
+      "type": "object",
+      "required": ["types", "limits"],
+      "additionalProperties": false,
+      "properties": {
+        "types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["op", "schema", "semantics"],
+            "additionalProperties": false,
+            "properties": {
+              "op": {
+                "type": "string",
+                "enum": [
+                  "assert.time",
+                  "assert.balance",
+                  "assert.compare",
+                  "transfer",
+                  "emit.event"
+                ]
+              },
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "JSON Schema fragment defining the operation's input structure. Can be used for UI form generation and validation"
+              },
+              "semantics": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "required": ["max_ops", "max_ops_bytes", "max_event_data_bytes"],
+          "additionalProperties": false,
+          "properties": {
+            "max_ops": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Maximum number of smart operations per transaction. Must be reasonable to prevent DoS."
+            },
+            "max_ops_bytes": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Maximum total size of smart operations in bytes"
+            },
+            "max_event_data_bytes": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Maximum size of event data in bytes"
+            }
+          },
+          "$comment": "SECURITY: Validate limits prevent DoS. Test with maximum limits, monitor execution time"
+        }
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "required": [
+        "fees",
+        "currency",
+        "limits",
+        "treasury_address",
+        "kv_limits",
+        "mempool",
+        "gate"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "fees": {
+          "type": "object",
+          "required": ["base", "per_byte", "raw_per_byte", "currency"],
+          "additionalProperties": false,
+          "properties": {
+            "base": {
+              "$ref": "#/$defs/decimal_string"
+            },
+            "per_byte": {
+              "$ref": "#/$defs/decimal_string"
+            },
+            "raw_per_byte": {
+              "$ref": "#/$defs/decimal_string"
+            },
+            "currency": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "currency": {
+          "type": "object",
+          "required": ["symbol", "decimals", "fee_unit", "name"],
+          "additionalProperties": false,
+          "properties": {
+            "symbol": {
+              "type": "string",
+              "minLength": 1,
+              "$comment": "CRITICAL: symbol must match parameters.fees.currency and tx_rules.fees_currency"
+            },
+            "decimals": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18
+            },
+            "fee_unit": {
+              "type": "string",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "required": ["max_tx_size", "max_signatures"],
+          "additionalProperties": false,
+          "properties": {
+            "max_tx_size": {
+              "type": "integer",
+              "minimum": 1,
+              "$comment": "Runtime: must match tx_rules.max_tx_size"
+            },
+            "max_signatures": {
+              "type": "integer",
+              "minimum": 1,
+              "$comment": "Runtime: must be >= tx_rules.methods_policy.max_methods (if cosign enabled)"
+            }
+          }
+        },
+        "treasury_address": {
+          "$ref": "#/$defs/base58_address",
+          "description": "Base58 encoded address (typically starts with 'g' for STELS network). Must exist in state.accounts (runtime validation required)",
+          "$comment": "CRITICAL: treasury_address must exist in state.accounts[]. Monitor balance for fee collection"
+        },
+        "kv_limits": {
+          "type": "object",
+          "required": [
+            "value_max_bytes",
+            "raw_soft_cap_bytes",
+            "tx_raw_ttl_ms"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value_max_bytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "raw_soft_cap_bytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "tx_raw_ttl_ms": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "mempool": {
+          "type": "object",
+          "required": [
+            "max_pending_per_address",
+            "max_pending_bytes_per_address",
+            "reject_siblings_on_prev_hash",
+            "reject_duplicate_prev_hash",
+            "priority",
+            "ttl_ms"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "max_pending_per_address": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "max_pending_bytes_per_address": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "reject_siblings_on_prev_hash": {
+              "type": "boolean"
+            },
+            "reject_duplicate_prev_hash": {
+              "type": "boolean"
+            },
+            "priority": {
+              "type": "string",
+              "minLength": 1
+            },
+            "ttl_ms": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "gate": {
+          "type": "object",
+          "required": [
+            "ttl_ms",
+            "max_per_address",
+            "max_total",
+            "eviction",
+            "on_expire"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "ttl_ms": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_per_address": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "max_total": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "eviction": {
+              "type": "string",
+              "enum": ["lru"]
+            },
+            "on_expire": {
+              "type": "string",
+              "enum": ["reject"]
+            }
+          }
+        }
+      }
+    },
+    "tx_rules": {
+      "type": "object",
+      "required": [
+        "tx_hash",
+        "signing_view_exclude",
+        "time_window_ms",
+        "timestamp_rule",
+        "max_tx_size",
+        "min_fee",
+        "fees_currency",
+        "require_prev_hash",
+        "fee_policy_composition",
+        "fee_calculation",
+        "mempool_priority",
+        "raw_policy",
+        "methods_policy",
+        "signature_binding"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "tx_hash": {
+          "type": "string",
+          "minLength": 1
+        },
+        "signing_view_exclude": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "time_window_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "timestamp_rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "max_tx_size": {
+          "type": "integer",
+          "minimum": 1,
+          "$comment": "Runtime: must match parameters.limits.max_tx_size"
+        },
+        "min_fee": {
+          "$ref": "#/$defs/decimal_string",
+          "$comment": "Runtime: min_fee must be <= parameters.fees.base (or reasonable relation)"
+        },
+        "fees_currency": {
+          "type": "string",
+          "minLength": 1
+        },
+        "require_prev_hash": {
+          "type": "boolean"
+        },
+        "fee_policy_composition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fee_calculation": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-z0-9_.-]+$"
+          },
+          "additionalProperties": true,
+          "maxProperties": 32,
+          "description": "Fee calculation policy configuration. Structure is implementation-specific and depends on fee calculation algorithm",
+          "$comment": "SECURITY: Validate fee calculation structure at genesis load. Test edge cases (zero, very large fees). Property names limited to alphanumeric, underscore, dot, hyphen. Max 32 properties. CRITICAL: For interoperability between clients, canonical fee_calculation policy MUST be documented separately. Schema allows flexible structure, but runtime must interpret consistently across all nodes."
+        },
+        "mempool_priority": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-z0-9_.-]+$"
+          },
+          "additionalProperties": true,
+          "maxProperties": 32,
+          "description": "Mempool priority policy configuration. Defines how transactions are prioritized in the mempool",
+          "$comment": "SECURITY: Validate priority policy structure at genesis load to prevent manipulation attacks. Property names limited to alphanumeric, underscore, dot, hyphen. Max 32 properties. CRITICAL: For interoperability between clients, canonical mempool_priority policy MUST be documented separately. Schema allows flexible structure, but runtime must interpret consistently across all nodes."
+        },
+        "raw_policy": {
+          "type": "object",
+          "required": [
+            "allowed",
+            "encoding",
+            "max_raw_bytes",
+            "require_hash",
+            "bind_in_signature",
+            "mime_allowed",
+            "pii_allowed",
+            "encryption",
+            "tx_raw_ttl_ms"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "allowed": {
+              "type": "boolean"
+            },
+            "encoding": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "max_raw_bytes": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]+$",
+                  "description": "Numeric string representing max bytes (fixed value)",
+                  "examples": ["1024", "65536", "1048576"]
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(min|max)\\([^)]+\\)$",
+                  "description": "Formula string using min() or max() functions. Supported functions: min(a, b), max(a, b). Available variables: parameters.kv_limits.raw_soft_cap_bytes, tx_free_space",
+                  "examples": [
+                    "min(parameters.kv_limits.raw_soft_cap_bytes, tx_free_space)",
+                    "max(1024, tx_free_space)",
+                    "min(65536, parameters.kv_limits.raw_soft_cap_bytes)"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Other formula or expression string. Runtime must parse and evaluate this formula. Syntax is implementation-specific",
+                  "examples": [
+                    "parameters.kv_limits.raw_soft_cap_bytes",
+                    "tx_free_space * 0.9"
+                  ]
+                }
+              ],
+              "$comment": "CRITICAL: Sandbox formula evaluation. Production: only numeric strings or min/max formulas allowed. Experimental formulas require feature flag. Validate at genesis load, restrict complexity. Standard: For v1.0 production networks, only numeric strings and min(a,b)/max(a,b) with whitelisted variables are permitted. Validator requirement: If client cannot safely parse formulas, it MUST reject genesis where max_raw_bytes is not pure numeric and not simple min/max with whitelisted variables. Schema defines syntax, standard defines allowed subset, client enforces intersection."
+            },
+            "require_hash": {
+              "type": "boolean"
+            },
+            "bind_in_signature": {
+              "type": "boolean"
+            },
+            "mime_allowed": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "pii_allowed": {
+              "type": "boolean"
+            },
+            "encryption": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "tx_raw_ttl_ms": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "methods_policy": {
+          "type": "object",
+          "required": [
+            "max_methods",
+            "max_methods_bytes",
+            "types",
+            "cosign",
+            "binding"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "max_methods": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "max_methods_bytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "types": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "cosign": {
+              "type": "object",
+              "required": [
+                "sig_encoding",
+                "kid_format",
+                "deadline_required",
+                "require_approver_address_match",
+                "rate_limit",
+                "action_fee",
+                "sign_domain"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "sig_encoding": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "kid_format": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "deadline_required": {
+                  "type": "boolean"
+                },
+                "require_approver_address_match": {
+                  "type": "boolean"
+                },
+                "rate_limit": {
+                  "type": "object",
+                  "required": ["per_approver_per_minute"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "per_approver_per_minute": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Maximum cosignatures per approver per minute. Recommended: 1-100 per minute. Too low prevents legitimate use, too high allows spam."
+                    }
+                  }
+                },
+                "action_fee": {
+                  "type": "object",
+                  "required": ["enabled", "amount", "currency"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "amount": {
+                      "$ref": "#/$defs/decimal_string"
+                    },
+                    "currency": {
+                      "type": "string",
+                      "minLength": 1,
+                      "$comment": "Runtime: must match parameters.currency.symbol"
+                    }
+                  }
+                },
+                "sign_domain": {
+                  "$ref": "#/$defs/sign_domain_array",
+                  "description": "Signing domain for cosignatures. Uses same format as protocol.sign_domains (context, chain_id, ...). Runtime: prefixItems[1] must equal network.chain_id"
+                }
+              }
+            },
+            "binding": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "signature_binding": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fair_ordering": {
+          "type": "object",
+          "required": ["mode"],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "mode": { "const": "commit-reveal" }
+                }
+              },
+              "then": {
+                "required": ["commit_reveal"]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "mode": { "const": "vrf" }
+                }
+              },
+              "then": {
+                "required": ["vrf_ordering"]
+              }
+            }
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["none", "vrf", "commit-reveal"],
+              "description": "Fair ordering mode for transaction processing"
+            },
+            "commit_reveal": {
+              "type": "object",
+              "required": ["enabled", "commit_window_ms", "reveal_window_ms"],
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Enable commit-reveal scheme for transactions"
+                },
+                "commit_window_ms": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Time window for commit phase (transaction sent as hash)"
+                },
+                "reveal_window_ms": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Time window for reveal phase (transaction content disclosed after position set)"
+                }
+              },
+              "$comment": "Commit-Reveal: TX sent as hash → enters mempool. Node reveals content after position established. Prevents front-running attacks."
+            },
+            "vrf_ordering": {
+              "type": "object",
+              "required": ["enabled"],
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Enable VRF-based transaction ordering"
+                },
+                "seed_source": {
+                  "type": "string",
+                  "enum": ["prev_epoch_beacon", "tx_hash"],
+                  "description": "Source for VRF seed in ordering"
+                }
+              },
+              "$comment": "VRF Ordering: transactions sorted by VRF timestamp. Provides fair ordering without predictable manipulation."
+            },
+            "ordering_rule": {
+              "type": "string",
+              "enum": ["vrf_timestamp", "node_distance", "custom"],
+              "description": "Rule for fair transaction ordering",
+              "$comment": "Fair Ordering Service: optional module sorting transactions by VRF timestamp, node distance, or defined ordering rule."
+            }
+          },
+          "$comment": "MEV-Resistance Layer: prevents front-running and transaction ordering manipulation. In blockless-quorum, MEV is minimal but some attacks possible. Commit-reveal and VRF ordering provide protection."
+        }
+      }
+    },
+    "tx_schema": {
+      "type": "object",
+      "required": ["smart"],
+      "additionalProperties": false,
+      "properties": {
+        "smart": {
+          "type": "object",
+          "required": [
+            "$schema",
+            "$id",
+            "title",
+            "type",
+            "required",
+            "additionalProperties"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "$schema": {
+              "type": "string",
+              "minLength": 1,
+              "format": "uri"
+            },
+            "$id": {
+              "type": "string",
+              "minLength": 1,
+              "format": "uri"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "type": {
+              "type": "string",
+              "const": "object"
+            },
+            "required": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "type": "object",
+      "required": ["notary_certificate_v2"],
+      "additionalProperties": false,
+      "properties": {
+        "notary_certificate_v2": {
+          "type": "object",
+          "required": [
+            "$schema",
+            "$id",
+            "type",
+            "required",
+            "additionalProperties"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "$schema": {
+              "type": "string",
+              "minLength": 1,
+              "format": "uri"
+            },
+            "$id": {
+              "type": "string",
+              "minLength": 1,
+              "format": "uri"
+            },
+            "type": {
+              "type": "string",
+              "const": "object"
+            },
+            "required": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "state": {
+      "type": "object",
+      "required": ["accounts", "aliases", "registries"],
+      "additionalProperties": false,
+      "properties": {
+        "accounts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["address", "balance"],
+            "additionalProperties": false,
+            "properties": {
+              "address": {
+                "$ref": "#/$defs/base58_address"
+              },
+              "balance": {
+                "$ref": "#/$defs/non_negative_integer_string",
+                "description": "Account balance as string (to avoid precision loss). Sum of all balances should not exceed supply_cap (runtime validation required)",
+                "$comment": "CRITICAL: All balances non-negative. If supply_cap numeric, sum(balances) <= supply_cap"
+              },
+              "last_tx_hash": {
+                "type": ["string", "null"]
+              },
+              "stake": {
+                "type": "object",
+                "required": ["amount"],
+                "additionalProperties": false,
+                "properties": {
+                  "amount": {
+                    "$ref": "#/$defs/non_negative_integer_string",
+                    "description": "Frozen stake balance for this account (in base units)",
+                    "$comment": "Used for eligibility and weight calculation in execution-mining rewards and rating distribution. Runtime: if stake.amount < rewards.staking.min_stake, account not eligible for execution-mining. If stake.amount > rewards.staking.max_stake, weight capped at max_stake."
+                  },
+                  "locked_until": {
+                    "type": ["string", "null"],
+                    "format": "date-time",
+                    "description": "Optional lock expiration time for stake (ISO 8601)",
+                    "$comment": "If present, may be used in lock_score calculation. If null, lock_score may be 0. Used for calculating effective_lock_ms in rating_model.lock_range."
+                  }
+                },
+                "$comment": "Optional field. If absent, account does not participate in execution-mining (not eligible)."
+              },
+              "mined_total": {
+                "$ref": "#/$defs/non_negative_integer_string",
+                "description": "Total amount of native rewards mined by this account within the rating window (in base units)",
+                "$comment": "Maintained by runtime. Used for mined_score in rating_model. Window interpretation defined by monetary.rewards.rating_model.window_ms. In genesis usually 0 or absent (runtime initializes)."
+              },
+              "rating": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Fairness rating of this account/node in range [0,100]",
+                "$comment": "Optional field. May be stored in state as snapshot or calculated by runtime on-the-fly from rating_model. In genesis usually 0 or absent (runtime calculates on first rating computation)."
+              }
+            }
+          },
+          "minItems": 0
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "roles"],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Node identifier (address, pubkey, or node_id)"
+              },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "validator",
+                    "observer",
+                    "ai_trainer",
+                    "data_oracle",
+                    "gateway",
+                    "worker"
+                  ]
+                },
+                "minItems": 1,
+                "uniqueItems": true,
+                "description": "Roles assigned to this node. Determines which rewards layers node is eligible for. 'worker' role enables off-chain worker execution rewards."
+              }
+            }
+          },
+          "minItems": 0,
+          "$comment": "Node roles configuration. Links to monetary.rewards.layers: nodes with 'ai_trainer' role eligible for ai_training rewards, 'data_oracle' for data_oracle rewards. Used by STELS Live/dashboards to display node capabilities."
+        },
+        "aliases": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "registries": {
+          "type": "object",
+          "required": ["intrinsics", "genesis", "notary"],
+          "additionalProperties": false,
+          "properties": {
+            "intrinsics": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[^@]+@[^@]+$"
+              },
+              "uniqueItems": true,
+              "$comment": "CRITICAL: Validate 'name@version' format and match intrinsics.registry[] on genesis load. Must be unique."
+            },
+            "genesis": {
+              "$ref": "#/$defs/genesis_hash"
+            },
+            "notary": {
+              "type": "object",
+              "required": [
+                "registry_root",
+                "total_stake",
+                "epoch",
+                "committee_root"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "registry_root": {
+                  "$ref": "#/$defs/sha256_hash"
+                },
+                "total_stake": {
+                  "$ref": "#/$defs/non_negative_integer_string"
+                },
+                "epoch": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "committee_root": {
+                  "$ref": "#/$defs/sha256_hash"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "monetary": {
+      "type": "object",
+      "required": ["supply_cap", "minting", "faucet"],
+      "additionalProperties": false,
+      "properties": {
+        "supply_cap": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/non_negative_integer_string",
+              "description": "Numeric string representing maximum supply"
+            },
+            {
+              "type": "string",
+              "enum": ["testnet-unbounded", "unbounded", "unlimited"],
+              "description": "Special value indicating no supply cap"
+            }
+          ],
+          "$comment": "CRITICAL: If supply_cap numeric, sum(state.accounts[].balance) <= supply_cap. Standard: Mainnet requires numeric supply_cap. Testnet may use 'testnet-unbounded'. Production alert if unbounded/unlimited"
+        },
+        "minting": {
+          "type": "string",
+          "enum": ["disabled", "enabled"],
+          "$comment": "Standard: Mainnet typically 'disabled'. Testnet may be 'enabled'. Runtime: If disabled and supply_cap numeric, faucet may exhaust supply. Monitor supply vs cap."
+        },
+        "faucet": {
+          "type": "object",
+          "required": ["rate_per_request", "cooldown_ms"],
+          "additionalProperties": false,
+          "properties": {
+            "rate_per_request": {
+              "$ref": "#/$defs/non_negative_integer_string",
+              "$comment": "Standard: Mainnet requires strict limits or disabled. Testnet may have relaxed limits. Runtime: If supply_cap numeric, ensure faucet cannot exceed cap over time"
+            },
+            "cooldown_ms": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "$comment": "Standard: Mainnet typically disabled or very strict limits with KYC pools. Testnet may have relaxed limits. Runtime: If minting disabled and supply_cap numeric, validate faucet won't exceed cap"
+        },
+        "rewards": {
+          "type": "object",
+          "required": [
+            "mode",
+            "source",
+            "unit",
+            "rate_per_unit",
+            "max_per_epoch",
+            "staking",
+            "rating_model"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["disabled", "execution-mining"],
+              "description": "Rewards mode. If 'execution-mining', nominators receive native rewards for runtime operations",
+              "$comment": "Standard: Mainnet v1.0 may start with 'disabled'. Testnet/experimental networks may enable 'execution-mining'. When mode='disabled', network behavior remains unchanged (backward compatibility)."
+            },
+            "source": {
+              "type": "string",
+              "enum": ["minting", "treasury", "fees", "hybrid"],
+              "description": "Source of rewards: newly minted supply, treasury account, fee pool, or hybrid",
+              "$comment": "Runtime: if source includes 'minting', monetary.minting must be 'enabled', and total supply (including rewards) must not exceed supply_cap."
+            },
+            "unit": {
+              "type": "string",
+              "enum": ["smart_op", "tx", "gas_unit"],
+              "description": "Unit of work used for calculating rewards",
+              "$comment": "Standard v1.0: recommended 'smart_op' or 'tx'. 'gas_unit' reserved for future gas model."
+            },
+            "rate_per_unit": {
+              "$ref": "#/$defs/decimal_string",
+              "description": "Base reward in native currency units per unit of work (before caps and weighting)"
+            },
+            "max_per_epoch": {
+              "$ref": "#/$defs/non_negative_integer_string",
+              "description": "Hard cap on total execution-mining rewards per epoch (in base currency units)",
+              "$comment": "CRITICAL: Limits inflation/distribution. Runtime must guarantee that total rewards per epoch do not exceed this value."
+            },
+            "staking": {
+              "type": "object",
+              "required": ["required", "currency", "min_stake", "max_stake"],
+              "additionalProperties": false,
+              "properties": {
+                "required": {
+                  "type": "boolean",
+                  "description": "Whether staking is mandatory for participation in execution-mining rewards",
+                  "$comment": "In target user model: should be true. Value false reserved for special modes."
+                },
+                "currency": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Stake currency symbol",
+                  "$comment": "CRITICAL Runtime: must match parameters.currency.symbol and parameters.fees.currency."
+                },
+                "min_stake": {
+                  "$ref": "#/$defs/non_negative_integer_string",
+                  "description": "Minimum stake required to be eligible for rewards (in base units)",
+                  "examples": ["1000"],
+                  "$comment": "In current model: 1000 units. If token has decimals, value is specified in smallest units (raw). Runtime: stake.amount < min_stake → account not eligible for execution-mining."
+                },
+                "max_stake": {
+                  "$ref": "#/$defs/non_negative_integer_string",
+                  "description": "Maximum effective stake counted for rewards and rating (in base units)",
+                  "examples": ["10000"],
+                  "$comment": "Runtime: max_stake >= min_stake. Stake above max_stake does not increase weight (capped at max_stake)."
+                }
+              },
+              "$comment": "Defines participation conditions: account participates in mining only if stake.amount ∈ [min_stake; max_stake]. Runtime: staking.min_stake <= rating_model.stake_range.min <= rating_model.stake_range.max <= staking.max_stake."
+            },
+            "vrf_fairness": {
+              "type": "object",
+              "required": ["enabled", "modifier_range"],
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Enable VRF-based fairness modifier for reward distribution"
+                },
+                "modifier_range": {
+                  "type": "object",
+                  "required": ["min", "max"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "min": {
+                      "$ref": "#/$defs/decimal_string",
+                      "description": "Minimum VRF modifier value (e.g., '0.9')",
+                      "examples": ["0.9"]
+                    },
+                    "max": {
+                      "$ref": "#/$defs/decimal_string",
+                      "description": "Maximum VRF modifier value (e.g., '1.1')",
+                      "examples": ["1.1"]
+                    }
+                  },
+                  "$comment": "Runtime: modifier_range.min < 1.0 < modifier_range.max. VRF_modifier applied as: reward = base_reward * fairness_weight * VRF_modifier"
+                },
+                "seed_source": {
+                  "type": "string",
+                  "enum": ["prev_epoch_beacon", "tx_hash"],
+                  "description": "Source for VRF seed generation",
+                  "$comment": "Uses same VRF as consensus committee selection. Does not affect consensus finalization, only economics."
+                }
+              },
+              "if": {
+                "properties": {
+                  "enabled": { "const": true }
+                }
+              },
+              "then": {
+                "required": ["seed_source"]
+              },
+              "$comment": "VRF-Based Fairness Boost: reduces bot attacks, prevents perfect mining predictability, improves distribution for small stakers. Does not interfere with consensus, only affects reward economics."
+            },
+            "decentralization_guard": {
+              "type": "object",
+              "required": ["enabled", "gini_threshold", "penalty_multiplier"],
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Enable adaptive anti-Sybil economic shield based on stake distribution"
+                },
+                "gini_threshold": {
+                  "allOf": [
+                    { "$ref": "#/$defs/decimal_string" },
+                    { "pattern": "^(0\\.[5-8][0-9]?|0\\.9[0-8])$" }
+                  ],
+                  "description": "Gini coefficient threshold triggering automatic penalties (e.g., '0.85'). Must be in range [0.50, 0.98] for production safety.",
+                  "examples": ["0.85"]
+                },
+                "penalty_multiplier": {
+                  "$ref": "#/$defs/decimal_string",
+                  "description": "Multiplier applied to min_stake and double_sign penalty when Gini threshold exceeded",
+                  "examples": ["1.2"]
+                },
+                "metrics": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": ["gini", "theil", "nakamoto"]
+                  },
+                  "minItems": 1,
+                  "description": "Decentralization metrics to monitor (Gini coefficient, Theil index, Nakamoto coefficient)"
+                }
+              },
+              "$comment": "Adaptive Anti-Sybil Economic Shield (Gini-Guard): if network Gini > gini_threshold, automatically increases min_stake requirements, increases double_sign penalty, decreases max_per_epoch. Protects against stake centralization attacks."
+            },
+            "layers": {
+              "type": "object",
+              "required": ["execution"],
+              "additionalProperties": false,
+              "properties": {
+                "execution": {
+                  "type": "boolean",
+                  "description": "Rewards for executing operations (execution-mining)"
+                },
+                "data_oracle": {
+                  "type": "boolean",
+                  "description": "Rewards for providing oracle data"
+                },
+                "ai_training": {
+                  "type": "boolean",
+                  "description": "Rewards for participating in AI model training"
+                },
+                "ai_training_policy": {
+                  "type": "object",
+                  "required": ["min_dataset_size", "max_update_freq_ms"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "min_dataset_size": {
+                      "$ref": "#/$defs/non_negative_integer_string",
+                      "description": "Minimum dataset size required for AI training rewards (in samples/records)"
+                    },
+                    "max_update_freq_ms": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Maximum update frequency for AI model training (in milliseconds). Prevents spam updates."
+                    }
+                  },
+                  "$comment": "AI Training Policy: defines requirements for nodes participating in AI model training rewards. Only applicable when ai_training is true."
+                },
+                "availability": {
+                  "type": "boolean",
+                  "description": "Rewards for node uptime and low latency"
+                },
+                "worker_execution": {
+                  "type": "boolean",
+                  "description": "Rewards for off-chain worker nodes executing operations (strategies, AI agents, HFT workers etc.)"
+                },
+                "worker_execution_policy": {
+                  "type": "object",
+                  "required": [
+                    "min_ops_per_epoch",
+                    "max_ops_per_epoch",
+                    "max_reward_share"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "min_ops_per_epoch": {
+                      "$ref": "#/$defs/non_negative_integer_string",
+                      "description": "Minimum number of worker operations per epoch to be eligible for rewards"
+                    },
+                    "max_ops_per_epoch": {
+                      "$ref": "#/$defs/non_negative_integer_string",
+                      "description": "Maximum number of worker operations per epoch that can be rewarded (anti-DoS cap)"
+                    },
+                    "max_reward_share": {
+                      "$ref": "#/$defs/decimal_string",
+                      "description": "Maximum fraction of epoch rewards that can go to worker_execution (e.g., '0.3' = 30%)"
+                    }
+                  },
+                  "$comment": "Worker execution mining: off-chain workers (state.nodes.roles includes 'worker') receive rewards for executed operations. Runtime: track worker_ops per node, apply min/max constraints, cap total rewards by max_reward_share * monetary.rewards.max_per_epoch. Worker events published to stels_runtime.channels with id='workers/events'."
+                }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "ai_training": { "const": true }
+                    }
+                  },
+                  "then": {
+                    "required": ["ai_training_policy"]
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "worker_execution": { "const": true }
+                    }
+                  },
+                  "then": {
+                    "required": ["worker_execution_policy"]
+                  }
+                }
+              ],
+              "$comment": "Multi-Layer Rewards: enables rewards for execution, data provision, AI training participation, worker execution, and node availability. Core consensus remains unchanged. NOTE: layers is optional in rewards, but if present, execution field is required (structure is stable). Runtime decides whether to ignore layers when mode='disabled'. Worker execution provides second-level mining: base execution (validators/network nodes) + worker execution (off-chain workers/agents)."
+            },
+            "rating_model": {
+              "type": "object",
+              "required": [
+                "mode",
+                "weights",
+                "window_ms",
+                "stake_range",
+                "lock_range",
+                "mined_normalization"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "type": "string",
+                  "enum": ["fair-stake-lock-mined-v1"],
+                  "description": "Rating model combining stake amount, lock duration and mined rewards into a fairness score"
+                },
+                "weights": {
+                  "type": "object",
+                  "required": ["stake", "lock", "mined", "behavior"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "stake": {
+                      "$ref": "#/$defs/unit_interval_string",
+                      "description": "Weight of stake factor in [0,1]"
+                    },
+                    "lock": {
+                      "$ref": "#/$defs/unit_interval_string",
+                      "description": "Weight of lock duration factor in [0,1]"
+                    },
+                    "mined": {
+                      "$ref": "#/$defs/unit_interval_string",
+                      "description": "Weight of mined rewards factor in [0,1]"
+                    },
+                    "behavior": {
+                      "$ref": "#/$defs/unit_interval_string",
+                      "description": "Weight of behavioral score factor in [0,1]. Used when rating_model.behavior.enabled is true"
+                    }
+                  },
+                  "$comment": "CRITICAL Runtime: stake + lock + mined + behavior MUST equal 1.0 (with floating-point tolerance, e.g. ±0.0001). If behavior.enabled is false, behavior weight should be 0 and behavioral score is not included in rating calculation."
+                },
+                "window_ms": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Time window in milliseconds for rating calculation (e.g. 7 days, 30 days)",
+                  "$comment": "Defines time period for which mined_total is considered. Recommended to be multiple of consensus.committee.epoch_ms. Used for calculating mined_score in rating_model."
+                },
+                "stake_range": {
+                  "type": "object",
+                  "required": ["min", "max"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "min": {
+                      "$ref": "#/$defs/non_negative_integer_string",
+                      "description": "Minimum stake considered for stake_score normalization",
+                      "examples": ["1000"]
+                    },
+                    "max": {
+                      "$ref": "#/$defs/non_negative_integer_string",
+                      "description": "Maximum stake that corresponds to stake_score = 1.0",
+                      "examples": ["10000"]
+                    }
+                  },
+                  "$comment": "Runtime: stake_score calculated as normalization of stake.amount in [min; max]. Usually matches rewards.staking.min_stake/max_stake. Runtime: staking.min_stake <= stake_range.min <= stake_range.max <= staking.max_stake."
+                },
+                "lock_range": {
+                  "type": "object",
+                  "required": ["min_ms", "max_ms"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "min_ms": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Minimum lock duration to get non-zero lock_score"
+                    },
+                    "max_ms": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Lock duration that corresponds to lock_score = 1.0"
+                    }
+                  },
+                  "$comment": "Runtime: lock_score = clamp((effective_lock_ms - min_ms) / (max_ms - min_ms), 0, 1). effective_lock_ms calculated from stake.locked_until relative to current time."
+                },
+                "mined_normalization": {
+                  "type": "object",
+                  "required": ["mode", "target_yield"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "mode": {
+                      "type": "string",
+                      "enum": ["relative-to-expected"],
+                      "description": "How mined rewards are normalized against expected yield"
+                    },
+                    "target_yield": {
+                      "$ref": "#/$defs/decimal_string",
+                      "description": "Expected yield per unit stake over window_ms (e.g. '0.05' = 5% per window)"
+                    }
+                  },
+                  "$comment": "Runtime: expected_mined = stake.amount * target_yield; mined_score = clamp(mined_total / expected_mined, 0, 1). mined_total taken from state.accounts[].mined_total over window_ms period."
+                },
+                "lock_autoscale": {
+                  "type": "object",
+                  "required": ["enabled"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Enable automatic adjustment of lock_range based on network participation"
+                    },
+                    "min_participants": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Minimum participant count threshold for autoscaling activation"
+                    },
+                    "scale_factor": {
+                      "$ref": "#/$defs/decimal_string",
+                      "description": "Multiplier for lock_range adjustment (e.g., '1.2' = 20% increase)",
+                      "examples": ["1.2"]
+                    },
+                    "adjustment_epochs": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Number of epochs between lock_range adjustments"
+                    }
+                  },
+                  "if": {
+                    "properties": {
+                      "enabled": { "const": true }
+                    }
+                  },
+                  "then": {
+                    "required": [
+                      "min_participants",
+                      "scale_factor",
+                      "adjustment_epochs"
+                    ]
+                  },
+                  "$comment": "Dynamic Stake Locking: automatically increases lock_range.min_ms and lock_range.max_ms when network is overheated (too many participants). Decreases lock importance when participant count is low. System self-manages stake locking without breaking consensus."
+                },
+                "behavior": {
+                  "type": "object",
+                  "required": ["enabled"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Enable behavioral analysis for node reputation v2"
+                    },
+                    "latency_weight": {
+                      "$ref": "#/$defs/decimal_string",
+                      "description": "Weight of latency factor in behavioral score [0,1]",
+                      "examples": ["0.1"]
+                    },
+                    "availability_weight": {
+                      "$ref": "#/$defs/decimal_string",
+                      "description": "Weight of uptime/availability factor in behavioral score [0,1]",
+                      "examples": ["0.2"]
+                    },
+                    "stability_weight": {
+                      "$ref": "#/$defs/decimal_string",
+                      "description": "Weight of operation sequence stability factor in behavioral score [0,1]",
+                      "examples": ["0.1"]
+                    },
+                    "anomaly_detection": {
+                      "type": "object",
+                      "required": ["enabled"],
+                      "additionalProperties": false,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Enable detection of suspicious patterns (Sybil multipliers, missed operations, anomalous sequences)"
+                        },
+                        "penalty_threshold": {
+                          "$ref": "#/$defs/decimal_string",
+                          "description": "Behavioral score threshold below which penalties apply",
+                          "examples": ["0.5"]
+                        }
+                      }
+                    }
+                  },
+                  "$comment": "Node Reputation v2: behavioral model analyzing missed operations, anomalous sequences, suspicious patterns (Sybil multipliers), final latency. Provides anti-fraud protection, economic security, fair distribution. Behavioral score integrated into overall rating calculation."
+                }
+              },
+              "$comment": "Rating calculated as rating = round(100 * (w_stake*stake_score + w_lock*lock_score + w_mined*mined_score + w_behavior*behavior_score)), in range [0,100]. If behavior.enabled is false, behavior_score = 0 and w_behavior should be 0. Used for fair reward distribution. Runtime validates formula but does not check it in JSON Schema."
+            }
+          },
+          "$comment": "Execution-mining rewards configuration. When mode='disabled', section may be present but is ignored (backward compatibility)."
+        },
+        "adaptive_engine": {
+          "type": "object",
+          "required": ["enabled"],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable adaptive monetary engine for self-balancing network economics"
+            },
+            "inflation_target": {
+              "$ref": "#/$defs/decimal_string",
+              "description": "Target inflation rate per epoch (e.g., '0.05' = 5%)",
+              "examples": ["0.05"]
+            },
+            "activity_target": {
+              "$ref": "#/$defs/non_negative_integer_string",
+              "description": "Target operations per epoch for activity-based adjustments",
+              "examples": ["10000"]
+            },
+            "adjustment_rules": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "inflation_increase": {
+                  "type": "string",
+                  "enum": ["decrease_rate", "increase_max_per_epoch"],
+                  "description": "Action when inflation exceeds target"
+                },
+                "activity_decrease": {
+                  "type": "string",
+                  "enum": ["decrease_min_stake", "increase_rate"],
+                  "description": "Action when activity falls below target"
+                },
+                "centralization_increase": {
+                  "type": "string",
+                  "enum": ["increase_lock_range", "increase_min_stake"],
+                  "description": "Action when centralization (Gini) increases"
+                }
+              },
+              "$comment": "Network Health Algorithm: network self-regulates economics. If inflation ↑ → decreases rate_per_unit. If activity ↓ → decreases min_stake. If centralization ↑ → increases lock_range. All rules are required when adaptive_engine.enabled is true (enforced via if/then)."
+            }
+          },
+          "if": {
+            "properties": {
+              "enabled": { "const": true }
+            }
+          },
+          "then": {
+            "required": ["adjustment_rules"],
+            "properties": {
+              "adjustment_rules": {
+                "required": [
+                  "inflation_increase",
+                  "activity_decrease",
+                  "centralization_increase"
+                ]
+              }
+            }
+          },
+          "$comment": "Adaptive Monetary Engine: network automatically adjusts economic parameters based on inflation, activity, and centralization metrics. Self-balancing governance without manual intervention."
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "required": ["der_requirements"],
+      "additionalProperties": false,
+      "properties": {
+        "der_requirements": {
+          "type": "object",
+          "required": ["lowS", "canonical_DER"],
+          "additionalProperties": false,
+          "properties": {
+            "lowS": {
+              "type": "boolean"
+            },
+            "canonical_DER": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "required": ["upgrade_envelope", "revocation", "emergency_pause"],
+      "additionalProperties": false,
+      "properties": {
+        "upgrade_envelope": {
+          "type": "object",
+          "required": ["schema", "sign_domain", "threshold"],
+          "additionalProperties": false,
+          "properties": {
+            "schema": {
+              "type": "object",
+              "required": ["fields"],
+              "additionalProperties": false,
+              "properties": {
+                "fields": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "sign_domain": {
+              "$ref": "#/$defs/sign_domain_array"
+            },
+            "threshold": {
+              "$ref": "#/$defs/k_of_n_threshold"
+            }
+          }
+        },
+        "revocation": {
+          "type": "object",
+          "required": ["crl", "sign_domain"],
+          "additionalProperties": false,
+          "properties": {
+            "crl": {
+              "type": "object",
+              "required": ["seq", "revoked"],
+              "additionalProperties": false,
+              "properties": {
+                "seq": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "CRL sequence number. Must be monotonic (increasing) for each update"
+                },
+                "revoked": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "description": "Array of revoked key identifiers (KIDs). Must be unique and non-empty.",
+                  "$comment": "CRITICAL: CRL exists only when there are keys to revoke. If empty CRL (no revoked keys snapshot) is needed in future, change to minItems: 0. Current strict variant: CRL created only when revocation is required."
+                }
+              },
+              "$comment": "SECURITY: CRL sequence must be monotonic. Monitor update frequency"
+            },
+            "sign_domain": {
+              "$ref": "#/$defs/sign_domain_array",
+              "description": "Signing domain for CRL signatures. Uses same format as protocol.sign_domains (context, chain_id, ...). Runtime: prefixItems[1] must equal network.chain_id"
+            }
+          }
+        },
+        "emergency_pause": {
+          "type": "object",
+          "required": ["allowed", "trigger_threshold", "max_duration_ms"],
+          "additionalProperties": false,
+          "properties": {
+            "allowed": {
+              "type": "boolean"
+            },
+            "trigger_threshold": {
+              "$ref": "#/$defs/k_n_pair",
+              "$comment": "SECURITY: k >= ceil(n * 0.67) required. Consider cooldown period between pauses"
+            },
+            "max_duration_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Maximum duration for emergency pause in milliseconds"
+            }
+          },
+          "$comment": "SECURITY: Require 2/3 majority, cooldown period, monitor frequency, alert community"
+        }
+      }
+    },
+    "signing_keys": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "kid",
+          "alg",
+          "public_key",
+          "not_before",
+          "not_after",
+          "purpose"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "kid": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Key identifier - can be an address (base58) or public key (hex). Must match a corresponding entry in signing_keys or be derivable from public_key"
+          },
+          "alg": {
+            "type": "string",
+            "enum": ["ecdsa-secp256k1"]
+          },
+          "public_key": {
+            "type": "string",
+            "pattern": "^0[23][0-9a-f]{64}$",
+            "description": "Compressed secp256k1 public key in hex format (starts with 02 or 03)"
+          },
+          "not_before": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Key validity start time (ISO 8601)"
+          },
+          "not_after": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Key validity end time (ISO 8601). Must be > not_before",
+            "$comment": "Runtime: not_after > not_before"
+          },
+          "purpose": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["genesis-sign", "upgrade-sign"]
+            },
+            "minItems": 1
+          }
+        }
+      },
+      "minItems": 1,
+      "$comment": "CRITICAL: Validate not_after > not_before. Rotate keys 30 days before expiration. Monitor expiration warnings"
+    },
+    "signatures": {
+      "type": "object",
+      "required": ["threshold", "signers"],
+      "additionalProperties": false,
+      "properties": {
+        "threshold": {
+          "$ref": "#/$defs/k_of_n_threshold",
+          "$comment": "CRITICAL: k <= n, k >= ceil(n * 0.5). n = count of eligible keys. Eligible = signing_keys[i].purpose includes 'genesis-sign' (for genesis) or 'upgrade-sign' (for upgrades). Validate: threshold.n === eligible_keys.size, signers[].kid ⊆ eligible_keys, signers.length >= threshold.k"
+        },
+        "signers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["kid", "sig", "alg"],
+            "additionalProperties": false,
+            "properties": {
+              "kid": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Key identifier - must match a kid in signing_keys array. Can be an address (base58) or other identifier.",
+                "$comment": "Runtime: all signers[].kid must exist in signing_keys[]"
+              },
+              "sig": {
+                "type": "string",
+                "pattern": "^30[4-9a-f][0-9a-f]{64,}$",
+                "minLength": 136,
+                "maxLength": 144,
+                "description": "DER-encoded ECDSA signature in hexadecimal format. Must start with 0x30 (DER SEQUENCE tag), followed by valid DER structure. For secp256k1, typical length is 68-72 bytes (136-144 hex characters). ASN.1-DER theoretically allows 69 bytes (if r/s are very short with leading zeros trimmed), but this is rare in practice.",
+                "$comment": "Runtime: validate DER-encoded ECDSA signature structure"
+              },
+              "alg": {
+                "type": "string",
+                "enum": ["ecdsa-secp256k1"]
+              }
+            }
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "$comment": "CRITICAL: All signers must be unique. NOTE: uniqueItems: true in JSON Schema means structural uniqueness of entire objects, NOT uniqueness by kid field. Two different objects with same kid but different sig will pass schema validation. Runtime MUST enforce kid uniqueness separately - check that all signers[].kid are unique, not just that objects are structurally different."
+        }
+      }
+    },
+    "stels_policy": {
+      "type": "object",
+      "required": ["profile", "strict_mode"],
+      "additionalProperties": false,
+      "properties": {
+        "profile": {
+          "type": "string",
+          "enum": ["devnet", "testnet", "mainnet-hard"],
+          "description": "STELS policy profile. Determines strictness of runtime validation"
+        },
+        "strict_mode": {
+          "type": "boolean",
+          "description": "If true, nodes MUST validate all runtime invariants from this document (balance sums, k ≥ ceil(2/3 n), cross-field consistency, etc.)"
+        },
+        "rules_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+$",
+          "description": "Version of STELS policy rules. Separate from JSON Schema version."
+        }
+      },
+      "$comment": "STELS Policy Layer: formalizes runtime validation rules that cannot be expressed in JSON Schema. Separates format (JSON Schema) from strict STELS rules (policy), which can be versioned independently. Genesis Validator MUST implement policy checks when strict_mode is true."
+    },
+    "stels_runtime": {
+      "type": "object",
+      "required": ["storage", "channels"],
+      "additionalProperties": false,
+      "properties": {
+        "storage": {
+          "type": "object",
+          "required": ["kv_namespaces"],
+          "additionalProperties": false,
+          "properties": {
+            "kv_namespaces": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["name", "purpose", "retention_ms"],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "KV namespace name (e.g., 'net', 'local')"
+                  },
+                  "purpose": {
+                    "type": "string",
+                    "enum": [
+                      "state",
+                      "mempool",
+                      "metrics",
+                      "ai_training",
+                      "logs"
+                    ],
+                    "description": "Purpose of this KV namespace"
+                  },
+                  "retention_ms": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Data retention period in milliseconds. 0 means no expiration."
+                  }
+                }
+              },
+              "minItems": 1,
+              "$comment": "KV namespaces configuration. Nodes MUST initialize these namespaces at startup."
+            }
+          }
+        },
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "kind"],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Channel identifier (e.g., 'training/events', 'collective/delta', 'market/orderbook')"
+              },
+              "kind": {
+                "type": "string",
+                "enum": ["pubsub", "stream", "queue"],
+                "description": "Channel type: pubsub (broadcast), stream (SSE/WebSocket), queue (FIFO)"
+              }
+            }
+          },
+          "minItems": 0,
+          "$comment": "WebFIX channels configuration. Nodes MUST initialize these channels. Frontends/AI-nodes can auto-configure connections based on this. Standard channel 'workers/events' (kind: pubsub or stream) is used for worker execution events: worker_id, op_id, tx_hash (if operation linked to chain), metrics (latency, success, fee_paid). Runtime reads from this channel to track worker operations for rewards calculation."
+        }
+      },
+      "$comment": "STELS Runtime Configuration: defines Deno KV namespaces and WebFIX channels. Allows nodes to auto-configure storage and communication channels at startup. Frontends/AI-workers can read genesis to discover available channels."
+    },
+    "observability": {
+      "type": "object",
+      "required": ["metrics", "logging"],
+      "additionalProperties": false,
+      "properties": {
+        "metrics": {
+          "type": "object",
+          "required": ["enabled", "endpoints"],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable metrics collection and export"
+            },
+            "endpoints": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uri",
+                "description": "Metrics endpoint URI (e.g., Prometheus, custom telemetry)"
+              },
+              "minItems": 0,
+              "$comment": "Metrics endpoints. STELS Live/sonar can discover these from genesis instead of .env"
+            }
+          }
+        },
+        "logging": {
+          "type": "object",
+          "required": ["level"],
+          "additionalProperties": false,
+          "properties": {
+            "level": {
+              "type": "string",
+              "enum": ["debug", "info", "warn", "error"],
+              "description": "Logging level for network nodes"
+            }
+          }
+        }
+      },
+      "$comment": "Observability Configuration: defines metrics and logging settings. STELS Live/sonar can auto-configure monitoring based on this. Different levels for devnet/testnet/mainnet."
+    },
+    "legal": {
+      "type": "object",
+      "required": ["jurisdiction", "entity", "policies"],
+      "additionalProperties": false,
+      "properties": {
+        "jurisdiction": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "description": "Countries/zones whose laws apply (e.g., 'UA', 'EU', 'US-CA')"
+        },
+        "entity": {
+          "type": "object",
+          "required": ["name", "registration_id"],
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Legal entity name"
+            },
+            "registration_id": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Registration number/ID in jurisdiction"
+            }
+          }
+        },
+        "policies": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "description": "References to legal policies, terms of service, privacy policy (URIs or identifiers)"
+        }
+      },
+      "$comment": "Legal/Compliance Information: jurisdiction, entity registration, policy references. Useful for PDF/whitepaper generation, regulatory filings, audit trails. Required for mainnet compliance."
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Namespaced extensions for experimental features or client-specific configurations. Core protocol nodes may ignore unknown extensions, but STELS nodes should understand stels.* namespaces.",
+      "additionalProperties": {
+        "type": "object"
+      },
+      "$comment": "Extensions namespace: allows future expansion without breaking core schema. Use format: extensions[\"stels.experimental.xyz\"]. Core nodes ignore unknown extensions, STELS nodes can implement specific extensions."
+    },
+    "metadata": {
+      "$ref": "#/$defs/metadata",
+      "description": "Optional metadata for token/chain display information including name, symbol, icon, and contact details",
+      "$comment": "NOTE: metadata is not in root.required - this is an optional display layer. Genesis can be signed without marketing fields. Useful for tooling/UI but not required for network operation."
+    },
+    "deployment": {
+      "type": "object",
+      "required": ["profile", "deployed_at", "deployed_by"],
+      "additionalProperties": false,
+      "properties": {
+        "profile": {
+          "type": "string",
+          "enum": ["devnet", "testnet", "mainnet"],
+          "description": "Deployment profile. Must match network.environment"
+        },
+        "deployed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when genesis was deployed"
+        },
+        "deployed_by": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Identifier of entity/person who deployed this genesis (e.g., wallet address, username)"
+        }
+      },
+      "$comment": "Production metadata for DevOps/audit: who, when, and which profile deployed this genesis. Required for mainnet (enforced via allOf). For devnet/testnet, deployment is optional but if present must be complete (all required fields)."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "network": {
+            "properties": {
+              "environment": { "const": "mainnet" }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": ["deployment", "stels_policy"],
+        "properties": {
+          "monetary": {
+            "properties": {
+              "supply_cap": {
+                "oneOf": [
+                  { "$ref": "#/$defs/non_negative_integer_string" }
+                ]
+              },
+              "minting": {
+                "const": "disabled"
+              },
+              "faucet": {
+                "properties": {
+                  "rate_per_request": {
+                    "const": "0"
+                  }
+                }
+              }
+            },
+            "required": ["rewards", "adaptive_engine"]
+          },
+          "tx_rules": {
+            "required": ["fair_ordering"],
+            "properties": {
+              "raw_policy": {
+                "properties": {
+                  "max_raw_bytes": {
+                    "oneOf": [
+                      { "type": "string", "pattern": "^[0-9]+$" },
+                      {
+                        "type": "string",
+                        "pattern": "^(min|max)\\((parameters\\.kv_limits\\.raw_soft_cap_bytes|tx_free_space),\\s*(parameters\\.kv_limits\\.raw_soft_cap_bytes|tx_free_space|[0-9]+)\\)$"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "deployment": {
+            "required": ["profile", "deployed_at", "deployed_by"],
+            "properties": {
+              "profile": { "const": "mainnet" }
+            }
+          },
+          "intrinsics": {
+            "required": ["determinism", "registry", "dispatch", "security"]
+          },
+          "governance": {
+            "properties": {
+              "emergency_pause": {
+                "properties": {
+                  "trigger_threshold": {
+                    "properties": {
+                      "n": { "minimum": 3 },
+                      "k": { "minimum": 2 }
+                    }
+                  }
+                }
+              },
+              "upgrade_envelope": {
+                "properties": {
+                  "threshold": {
+                    "properties": {
+                      "n": { "minimum": 3 },
+                      "k": { "minimum": 2 }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "legal": {
+            "required": ["jurisdiction", "entity", "policies"]
+          },
+          "stels_policy": {
+            "required": ["profile", "strict_mode"],
+            "properties": {
+              "profile": { "const": "mainnet-hard" },
+              "strict_mode": { "const": true }
+            }
+          },
+          "observability": {
+            "properties": {
+              "metrics": {
+                "properties": {
+                  "enabled": { "const": true }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "monetary": {
+            "properties": {
+              "rewards": {
+                "properties": {
+                  "mode": { "const": "execution-mining" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "monetary": {
+            "properties": {
+              "rewards": {
+                "required": ["vrf_fairness", "decentralization_guard"]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["deployment", "network"]
+      },
+      "then": {
+        "properties": {
+          "deployment": {
+            "properties": {
+              "profile": {
+                "enum": ["devnet", "testnet", "mainnet"]
+              }
+            }
+          }
+        }
+      },
+      "$comment": "Runtime: deployment.profile should match network.environment. Schema validates enum, but exact match (deployment.profile == network.environment) MUST be checked by Genesis Validator."
+    }
+  ]
+}

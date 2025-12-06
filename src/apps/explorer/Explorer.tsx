@@ -42,6 +42,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import { usePublicTransaction } from "@/hooks/use_public_transaction";
 import { usePublicTransactions } from "@/hooks/use_public_transactions";
 import { usePublicAssetList } from "@/hooks/use_public_asset_list";
@@ -108,6 +109,7 @@ function DataExplorer({
 		"markets",
 	);
 	const [markets, setMarkets] = useState<MarketData[]>([]);
+	const { currentNetworkId } = useNetworkStore();
 
 	// Get indexes data
 	const indexesKeysString = useIndexStore((state) => state._indexesKeysCache);
@@ -115,16 +117,19 @@ function DataExplorer({
 	// Load markets from sessionStorage
 	const loadMarkets = useCallback((): void => {
 		const marketMap = new Map<string, MarketData>();
+		const tickerPrefix = `${currentNetworkId}.runtime.ticker.`;
+		const tickerPattern = new RegExp(
+			`^${currentNetworkId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\.runtime\\.ticker\\.([^/]+)/([^.]+)\\.([^.]+)\\.spot$`,
+			"i",
+		);
 
 		try {
-			// Pattern: testnet.runtime.ticker.{symbol}.{exchange}.spot
+			// Pattern: {network}.runtime.ticker.{symbol}.{exchange}.spot
 			for (let i = 0; i < sessionStorage.length; i++) {
 				const key = sessionStorage.key(i);
-				if (!key || !key.startsWith("testnet.runtime.ticker.")) continue;
+				if (!key || !key.startsWith(tickerPrefix)) continue;
 
-				const match = key.match(
-					/^testnet\.runtime\.ticker\.([^/]+)\/([^.]+)\.([^.]+)\.spot$/i,
-				);
+				const match = key.match(tickerPattern);
 
 				if (match) {
 					const [, base, quote, exchange] = match;
@@ -175,7 +180,7 @@ function DataExplorer({
 		}
 
 		setMarkets(Array.from(marketMap.values()));
-	}, []);
+	}, [currentNetworkId]);
 
 	// Load markets on mount and listen to storage changes
 	useEffect(() => {
@@ -183,7 +188,8 @@ function DataExplorer({
 		loadMarkets();
 
 		const handleStorageChange = (e: StorageEvent): void => {
-			if (e.key && e.key.startsWith("testnet.runtime.ticker.")) {
+			const tickerPrefix = `${currentNetworkId}.runtime.ticker.`;
+			if (e.key && e.key.startsWith(tickerPrefix)) {
 				loadMarkets();
 			}
 		};
@@ -593,6 +599,7 @@ function IndexCard({
  */
 function BlockchainExplorer(): React.ReactElement {
 	const mobile = useMobile();
+	const { currentNetworkId } = useNetworkStore();
 	const [activeTab, setActiveTab] = useState<"transaction" | "address">(
 		"transaction",
 	);
@@ -605,12 +612,12 @@ function BlockchainExplorer(): React.ReactElement {
 	// Network/Node selection
 	const [nodeType, setNodeType] = useState<string>(() => {
 		if (typeof window !== "undefined") {
-			return localStorage.getItem("explorer_node") || "testnet";
+			return localStorage.getItem("explorer_node") || currentNetworkId;
 		}
-		return "testnet";
+		return currentNetworkId;
 	});
 
-	const network = "testnet";
+	const network = currentNetworkId;
 
 	const handleNodeTypeChange = (value: string): void => {
 		setNodeType(value);

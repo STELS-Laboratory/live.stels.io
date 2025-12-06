@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useMemo } from "react";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import { getSessionStorageManager } from "@/lib/gui/ui";
 import type { TradingTrade } from "../types";
 
@@ -13,8 +14,9 @@ import type { TradingTrade } from "../types";
 function getMarketTradesChannel(
 	symbol: string,
 	exchange: string,
+	networkId: string,
 ): string {
-	return `testnet.runtime.trades.${symbol}.${exchange}.spot`;
+	return `${networkId}.runtime.trades.${symbol}.${exchange}.spot`;
 }
 
 /**
@@ -71,12 +73,13 @@ export function useMarketTradesFromSession(
 	limit: number = 20,
 ): TradingTrade[] {
 	const [trades, setTrades] = useState<TradingTrade[]>([]);
+	const { currentNetworkId } = useNetworkStore();
 	const sessionManager = getSessionStorageManager();
 
 	const channel = useMemo(() => {
 		if (!symbol) return null;
-		return getMarketTradesChannel(symbol, exchange);
-	}, [symbol, exchange]);
+		return getMarketTradesChannel(symbol, exchange, currentNetworkId);
+	}, [symbol, exchange, currentNetworkId]);
 
 	useEffect(() => {
 		if (!channel) {
