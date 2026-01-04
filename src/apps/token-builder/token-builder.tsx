@@ -572,7 +572,7 @@ const EconomicsStep = React.memo(function EconomicsStep(): React.ReactElement {
         )}
       </div>
 
-      {/* Max Supply - только для non-fixed policies */}
+      {/* Max Supply - only for non-fixed policies */}
       {schema.economics?.supply?.mintingPolicy !== "fixed" && (
         <div>
           <Label htmlFor="max" className="text-xs">

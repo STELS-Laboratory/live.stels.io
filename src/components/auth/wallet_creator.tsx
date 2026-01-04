@@ -74,11 +74,12 @@ export function WalletCreator(
 
   // Enhanced private key validation
   const validatePrivateKey = (key: string): boolean => {
-    // Remove any whitespace and 0x prefix
+    
     const cleanKey = key.replace(/^0x/, "").replace(/\s/g, "");
 
-    // Check if it's a valid hex string
-    if (!/^[0-9a-fA-F]+$/.test(cleanKey)) {
+    const isHex = /^[0-9a-fA-F]+$/.test(cleanKey);
+    
+    if (!isHex) {
       setValidationState({
         isValid: false,
         message:
@@ -87,8 +88,7 @@ export function WalletCreator(
       });
       return false;
     }
-
-    // Check length (64 characters for 256-bit key)
+    
     if (cleanKey.length !== 64) {
       setValidationState({
         isValid: false,
@@ -134,10 +134,13 @@ export function WalletCreator(
   };
 
   const handleImportWallet = async (): Promise<void> => {
+    
     if (!privateKey.trim()) {
       setError("Private key is required");
       return;
     }
+
+    const cleanedKey = privateKey.trim();
 
     if (!validatePrivateKey(privateKey)) {
       setError("Please enter a valid private key");
@@ -149,10 +152,9 @@ export function WalletCreator(
     clearConnectionError();
 
     try {
-      // Small delay for better UX
       await new Promise((resolve) => setTimeout(resolve, 200));
 
-      const success = importExistingWallet(privateKey.trim());
+      const success = importExistingWallet(cleanedKey);
 
       if (success) {
         setPrivateKey("");
@@ -176,8 +178,11 @@ export function WalletCreator(
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     // Reset file input
     if (event.target) {
@@ -185,10 +190,8 @@ export function WalletCreator(
     }
 
     try {
-      // Read file content
       const text = await file.text();
       
-      // Try to parse as encrypted JSON file
       try {
         const parsed = JSON.parse(text);
         
@@ -211,10 +214,9 @@ export function WalletCreator(
           return;
         }
       } catch {
-        // Not JSON or not encrypted format, continue with plain text processing
+        // Ignore JSON parse errors, continue with text processing
       }
       
-      // Plain text processing (for unencrypted files)
       // Clean and extract private key
       // Remove whitespace, newlines, 0x prefix, and any other non-hex characters
       let cleanedKey = text
@@ -223,6 +225,7 @@ export function WalletCreator(
         .replace(/\n/g, "") // Remove newlines
         .replace(/\r/g, "") // Remove carriage returns
         .trim();
+
 
       // If file contains JSON, try to extract privateKey field
       if (cleanedKey.startsWith("{") || cleanedKey.startsWith("[")) {
@@ -237,24 +240,23 @@ export function WalletCreator(
             .replace(/\r/g, "")
             .trim();
         } catch {
-          // Not valid JSON, continue with original cleaned key
+          // Ignore JSON parse errors, continue with text processing
         }
       }
 
       // Validate and set
       if (cleanedKey.length > 0) {
         setPrivateKey(cleanedKey);
-        // Validation will happen automatically via useEffect
       } else {
         setError("Could not extract private key from file. Please ensure the file contains a valid 64-character hexadecimal private key.");
       }
     } catch {
-
       setError("Failed to read file. Please ensure the file is a valid text file.");
     }
   };
 
   const handleDecryptFile = async (): Promise<void> => {
+
     if (!password || !pendingEncryptedData) {
       setPasswordError("Password is required");
       return;
@@ -270,13 +272,13 @@ export function WalletCreator(
         pendingEncryptedData.iterations,
       );
 
-      // Clean the decrypted key
       const cleanedKey = decryptedKey
         .replace(/^0x/i, "")
         .replace(/\s/g, "")
         .replace(/\n/g, "")
         .replace(/\r/g, "")
         .trim();
+
 
       // Validate and set
       if (cleanedKey.length > 0) {
@@ -288,8 +290,7 @@ export function WalletCreator(
       } else {
         setPasswordError("Decrypted key is invalid. Please check your password.");
       }
-    } catch {
-
+    } catch (error) {
       setPasswordError(
         error instanceof Error && error.message.includes("decrypt")
           ? "Incorrect password. Please try again."

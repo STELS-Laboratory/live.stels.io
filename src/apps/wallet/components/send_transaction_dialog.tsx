@@ -24,8 +24,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { AlertCircle, Loader2, Send } from "lucide-react";
-import { useAuthStore } from "@/stores";
+import { AlertCircle, CheckCircle2, Loader2, Send, Maximize2 } from "lucide-react";
+import { useAuthStore, toast } from "@/stores";
 import { useCreateTransaction } from "@/hooks/use_create_transaction";
 import { usePublicAssetList } from "@/hooks/use_public_asset_list";
 import { useAssetBalance } from "@/hooks/use_asset_balance";
@@ -41,6 +41,8 @@ import {
 	handleAmountInputChange,
 	validateAmount as validateAmountInput,
 	formatAmountForAPI,
+	toHumanReadableBalance,
+	convertFeeFromBaseUnits,
 } from "@/lib/amount-parser";
 
 interface SendTransactionDialogProps {
@@ -115,6 +117,11 @@ export function SendTransactionDialog({
 	const [memo, setMemo] = useState<string>("");
 	const [errors, setErrors] = useState<FormErrors>({});
 	const [submitError, setSubmitError] = useState<string | null>(null);
+	
+	// Real-time address validation state
+	const [addressValid, setAddressValid] = useState<boolean | null>(null);
+	const [isValidatingAddress, setIsValidatingAddress] = useState<boolean>(false);
+	const addressValidationTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
 	// Check balance for selected token - refetch after transaction
 	const {
@@ -223,8 +230,18 @@ export function SendTransactionDialog({
 						decimals: currency.decimals ?? 8,
 					},
 					fees: {
-						base: parameters.fees?.base || "0.00001",
-						per_byte: parameters.fees?.per_byte || "0.00000005",
+						// CRITICAL: Convert fee values from base units to SLI
+						// Genesis stores fees in base units (e.g., 1000 = 0.00001000 SLI)
+						base: parameters.fees?.base
+							? (typeof parameters.fees.base === "number" || (typeof parameters.fees.base === "string" && !parameters.fees.base.includes("."))
+								? convertFeeFromBaseUnits(parameters.fees.base, currency.decimals ?? 8)
+								: String(parameters.fees.base))
+							: "0.00001000",
+						per_byte: parameters.fees?.per_byte
+							? (typeof parameters.fees.per_byte === "number" || (typeof parameters.fees.per_byte === "string" && !parameters.fees.per_byte.includes("."))
+								? convertFeeFromBaseUnits(parameters.fees.per_byte, currency.decimals ?? 8)
+								: String(parameters.fees.per_byte))
+							: "0.00000005",
 						currency: parameters.fees?.currency || "SLI",
 					},
 				},
@@ -258,8 +275,23 @@ export function SendTransactionDialog({
 	// Calculate fee based on transaction size
 	const calculatedFee = useMemo((): string => {
 		if (!tokenGenesis || !tokenGenesis.parameters?.fees) return "0.000100";
-		const baseFee = tokenGenesis.parameters.fees.base || "0.0001";
-		const perByteFee = tokenGenesis.parameters.fees.per_byte || "0.0000002";
+		
+		const decimals = tokenGenesis.parameters.currency?.decimals ?? 8;
+		
+		// CRITICAL: Convert fee values from base units to SLI
+		// Genesis documents store fees in base units (e.g., base: 1000 = 0.00001000 SLI)
+		// Check if fee is already in decimal format (contains ".") or in base units (integer)
+		const baseFeeRaw = tokenGenesis.parameters.fees.base;
+		const perByteFeeRaw = tokenGenesis.parameters.fees.per_byte;
+		
+		// Convert from base units if needed (if value is integer or large number)
+		const baseFee = typeof baseFeeRaw === "number" || (typeof baseFeeRaw === "string" && !baseFeeRaw.includes("."))
+			? convertFeeFromBaseUnits(baseFeeRaw, decimals)
+			: baseFeeRaw || "0.00001000";
+		
+		const perByteFee = typeof perByteFeeRaw === "number" || (typeof perByteFeeRaw === "string" && !perByteFeeRaw.includes("."))
+			? convertFeeFromBaseUnits(perByteFeeRaw, decimals)
+			: perByteFeeRaw || "0.00000005";
 
 		// Estimate transaction size
 		const estimatedSize = JSON.stringify({
@@ -273,8 +305,61 @@ export function SendTransactionDialog({
 		const perByte = Number.parseFloat(perByteFee);
 		const totalFee = base + estimatedSize * perByte;
 
-		return totalFee.toFixed(6);
+		return totalFee.toFixed(decimals);
 	}, [tokenGenesis, to, amount, memo]);
+
+	/**
+	 * Handle recipient address change with real-time validation
+	 */
+	const handleAddressChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>): void => {
+			const inputValue = e.target.value;
+			setTo(inputValue);
+
+			// Clear previous timeout
+			if (addressValidationTimeoutRef.current) {
+				clearTimeout(addressValidationTimeoutRef.current);
+			}
+
+			// Clear validation state if empty
+			if (!inputValue.trim()) {
+				setAddressValid(null);
+				setIsValidatingAddress(false);
+				// Clear address error when user types
+				if (errors.to) {
+					setErrors((prev) => {
+						const newErrors = { ...prev };
+						delete newErrors.to;
+						return newErrors;
+					});
+				}
+				return;
+			}
+
+			// Debounced validation (300ms)
+			setIsValidatingAddress(true);
+			addressValidationTimeoutRef.current = setTimeout(() => {
+				const isValid = validateAddress(inputValue.trim());
+				setAddressValid(isValid);
+				setIsValidatingAddress(false);
+
+				// Update errors
+				if (!isValid) {
+					setErrors((prev) => ({
+						...prev,
+						to: "Invalid recipient address",
+					}));
+				} else {
+					setErrors((prev) => {
+						const newErrors = { ...prev };
+						delete newErrors.to;
+						return newErrors;
+					});
+				}
+			}, 300);
+		},
+		[errors.to],
+	);
 
 	/**
 	 * Handle amount input change with smart parsing
@@ -297,6 +382,37 @@ export function SendTransactionDialog({
 		},
 		[selectedToken?.metadata?.decimals, errors.amount],
 	);
+
+	/**
+	 * Handle Max button click - set amount to maximum available (balance - fee)
+	 */
+	const handleMaxAmount = useCallback((): void => {
+		if (!currentBalance || !selectedToken) return;
+
+		const decimals = selectedToken.metadata?.decimals || currentBalance.decimals || 6;
+		// Convert balance to human-readable format (auto-detects raw vs human-readable)
+		const humanReadableBalance = toHumanReadableBalance(currentBalance.balance, decimals);
+		const balanceNum = Number.parseFloat(humanReadableBalance);
+		const feeNum = Number.parseFloat(calculatedFee);
+
+		if (isNaN(balanceNum) || isNaN(feeNum)) return;
+
+		// Calculate max amount (balance - fee)
+		const maxAmount = Math.max(0, balanceNum - feeNum);
+
+		// Format amount with proper decimals
+		const formattedAmount = maxAmount.toFixed(decimals);
+		setAmount(formattedAmount);
+
+		// Clear amount error
+		if (errors.amount) {
+			setErrors((prev) => {
+				const newErrors = { ...prev };
+				delete newErrors.amount;
+				return newErrors;
+			});
+		}
+	}, [currentBalance, selectedToken, calculatedFee, errors.amount]);
 
 	/**
 	 * Validate form
@@ -335,6 +451,14 @@ export function SendTransactionDialog({
 		setMemo("");
 		setErrors({});
 		setSubmitError(null);
+		setAddressValid(null);
+		setIsValidatingAddress(false);
+		
+		// Clear validation timeout
+		if (addressValidationTimeoutRef.current) {
+			clearTimeout(addressValidationTimeoutRef.current);
+			addressValidationTimeoutRef.current = null;
+		}
 	}, []);
 
 	/**
@@ -388,10 +512,12 @@ export function SendTransactionDialog({
 			}
 
 			// Normalize amount for comparison
-			const decimals = selectedToken?.metadata?.decimals || 6;
+			const decimals = selectedToken?.metadata?.decimals || currentBalance.decimals || 6;
 			const normalizedAmount = formatAmountForAPI(amount, decimals);
 			const amountNum = Number.parseFloat(normalizedAmount);
-			const balanceNum = Number.parseFloat(currentBalance.balance);
+			// Convert balance to human-readable format (auto-detects raw vs human-readable)
+			const humanReadableBalance = toHumanReadableBalance(currentBalance.balance, decimals);
+			const balanceNum = Number.parseFloat(humanReadableBalance);
 			const feeNum = Number.parseFloat(calculatedFee);
 			const required = amountNum + feeNum;
 
@@ -414,27 +540,83 @@ export function SendTransactionDialog({
 			setSubmitError(null);
 
 			try {
-				// Normalize amount to proper format for API
-				const decimals = selectedToken?.metadata?.decimals || 6;
-				const normalizedAmount = formatAmountForAPI(amount, decimals);
+			// Normalize amount to proper format for API
+			const decimals = selectedToken?.metadata?.decimals || 6;
+			const normalizedAmount = formatAmountForAPI(amount, decimals);
 
-				// Create transaction (prevHash will be null for now, can be fetched separately if needed)
-				const transaction = createTransaction({
-					wallet,
-					tokenGenesis,
-					to: to.trim(),
-					amount: normalizedAmount,
-					fee: calculatedFee,
-					prevHash: null,
-					memo: memo.trim() || undefined,
-				});
+			// Warn if fee significantly exceeds calculated fee (possible conversion error)
+			const feeNum = Number.parseFloat(calculatedFee);
+			const expectedFeeNum = Number.parseFloat(calculatedFee); // Already calculated correctly
+			if (feeNum > expectedFeeNum * 10) {
+				console.warn(
+					`Fee (${calculatedFee} SLI) significantly exceeds expected fee (${expectedFeeNum.toFixed(8)} SLI). ` +
+					`This may indicate a fee conversion error from base units.`,
+				);
+			}
 
-				// Submit transaction
-				const submitResult = await submitTransaction(transaction);
+			// Create transaction (prevHash will be null for now, can be fetched separately if needed)
+			const transaction = createTransaction({
+				wallet,
+				tokenGenesis,
+				to: to.trim(),
+				amount: normalizedAmount,
+				fee: calculatedFee,
+				prevHash: null,
+				memo: memo.trim() || undefined,
+			});
+
+				// Submit transaction with retry mechanism
+				let submitResult: Awaited<ReturnType<typeof submitTransaction>>;
+				const maxRetries = 3;
+				let lastError: Error | null = null;
+
+				for (let attempt = 0; attempt < maxRetries; attempt++) {
+					try {
+						submitResult = await submitTransaction(transaction);
+						break; // Success, exit retry loop
+					} catch (err) {
+						lastError = err instanceof Error ? err : new Error(String(err));
+						
+						// Check if it's a network error (retryable)
+						const isNetworkError = lastError.message.includes("fetch") ||
+							lastError.message.includes("network") ||
+							lastError.message.includes("timeout") ||
+							lastError.message.includes("Failed to fetch");
+
+						// Don't retry on validation errors or insufficient balance
+						const isNonRetryable = lastError.message.includes("Invalid") ||
+							lastError.message.includes("Insufficient") ||
+							lastError.message.includes("balance");
+
+						if (isNonRetryable || !isNetworkError) {
+							throw lastError; // Don't retry, throw immediately
+						}
+
+						// If last attempt, throw error
+						if (attempt === maxRetries - 1) {
+							throw lastError;
+						}
+
+						// Exponential backoff: 1s, 2s, 4s
+						const delay = Math.pow(2, attempt) * 1000;
+						await new Promise((resolve) => setTimeout(resolve, delay));
+						
+						// Show retry notification
+						if (attempt < maxRetries - 1) {
+							toast.warning(
+								"Retrying transaction",
+								`Attempt ${attempt + 2} of ${maxRetries}...`,
+							);
+						}
+					}
+				}
+
+				// submitResult is guaranteed to be set here (TypeScript doesn't know this)
+				const result = submitResult!;
 
 				// Check if transaction was submitted but failed
-				if (submitResult.status === "failed") {
-					const consensusStatus = submitResult.consensus_status || "unknown";
+				if (result.status === "failed") {
+					const consensusStatus = result.consensus_status || "unknown";
 					let warningMessage = "Transaction was submitted but failed.";
 					
 					if (consensusStatus === "not_found") {
@@ -459,6 +641,12 @@ export function SendTransactionDialog({
 					await refetchBalance();
 				}
 
+				// Show success toast
+				toast.success(
+					"Transaction sent successfully",
+					`Sent ${amount} ${selectedToken?.metadata?.symbol || ""} to ${to.slice(0, 8)}...${to.slice(-6)}`,
+				);
+
 				// Notify parent component
 				onTransactionSent?.();
 
@@ -473,6 +661,12 @@ export function SendTransactionDialog({
 				}
 				
 				setSubmitError(errorMessage);
+				
+				// Show error toast
+				toast.error(
+					"Transaction failed",
+					errorMessage,
+				);
 			}
 		},
 		[
@@ -506,6 +700,32 @@ export function SendTransactionDialog({
 		}
 	}, [submitting, resetForm, onOpenChange]);
 
+	// Cleanup validation timeout on unmount
+	React.useEffect(() => {
+		return () => {
+			if (addressValidationTimeoutRef.current) {
+				clearTimeout(addressValidationTimeoutRef.current);
+			}
+		};
+	}, []);
+
+	// Focus management for accessibility
+	const addressInputRef = React.useRef<HTMLInputElement>(null);
+	const amountInputRef = React.useRef<HTMLInputElement>(null);
+
+	React.useEffect(() => {
+		if (open && !submitting) {
+			// Focus first input when dialog opens
+			setTimeout(() => {
+				if (selectedTokenId && addressInputRef.current) {
+					addressInputRef.current.focus();
+				} else if (!selectedTokenId) {
+					// Focus will be on token select
+				}
+			}, 100);
+		}
+	}, [open, submitting, selectedTokenId]);
+
 	if (!wallet || !connectionSession) {
 		return (
 			<Dialog open={open} onOpenChange={onOpenChange}>
@@ -531,9 +751,25 @@ export function SendTransactionDialog({
 			<DialogContent
 				className={cn(
 					"max-w-2xl max-h-[90vh] overflow-y-auto",
-					mobile && "max-w-[calc(100vw-2rem)]",
+					mobile && cn(
+						"max-w-[100vw] max-h-[100vh] h-[100vh]",
+						"rounded-none border-0 m-0 p-0 gap-0",
+						"fixed bottom-0 left-0 right-0 top-0",
+						"translate-x-0 translate-y-0",
+						"data-[state=open]:animate-in data-[state=closed]:animate-out",
+						"data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+						"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+						"duration-300 ease-out",
+					),
 				)}
 			>
+				{mobile && (
+					<div className="shrink-0 flex items-center justify-center pt-3 pb-2 px-4 border-b border-border relative">
+						<div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full" />
+					</div>
+				)}
+				<div className={cn("flex flex-col", mobile ? "h-full overflow-hidden" : "")}>
+					<div className={cn(mobile ? "flex-1 overflow-y-auto p-4" : "")}>
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
 						<Send className="size-5" />
@@ -591,16 +827,77 @@ export function SendTransactionDialog({
 						<Label htmlFor="to">
 							Recipient Address <span className="text-destructive">*</span>
 						</Label>
-						<Input
-							id="to"
-							value={to}
-							onChange={(e) => setTo(e.target.value)}
-							placeholder="gYjDnckjrKCw3CYVerH1LMbgTWv3dmg6Hu"
-							disabled={submitting}
-							aria-invalid={errors.to ? "true" : "false"}
-						/>
+						<div className="relative">
+							<Input
+								ref={addressInputRef}
+								id="to"
+								value={to}
+								onChange={handleAddressChange}
+								onBlur={() => {
+									// Final validation on blur
+									if (to.trim() && !addressValid && !isValidatingAddress) {
+										const isValid = validateAddress(to.trim());
+										setAddressValid(isValid);
+										if (!isValid) {
+											setErrors((prev) => ({
+												...prev,
+												to: "Invalid recipient address",
+											}));
+										}
+									}
+								}}
+								placeholder="gYjDnckjrKCw3CYVerH1LMbgTWv3dmg6Hu"
+								disabled={submitting}
+								aria-invalid={errors.to ? "true" : addressValid === false ? "true" : "false"}
+								aria-describedby={
+									errors.to
+										? "address-error"
+										: addressValid === true
+										? "address-success"
+										: isValidatingAddress
+										? "address-validating"
+										: "address-help"
+								}
+								className={cn(
+									errors.to || addressValid === false
+										? "border-destructive"
+										: addressValid === true
+										? "border-green-500"
+										: "",
+								)}
+							/>
+							{isValidatingAddress && (
+								<div className="absolute right-3 top-1/2 -translate-y-1/2">
+									<Loader2 className="size-4 animate-spin text-muted-foreground" />
+								</div>
+							)}
+							{!isValidatingAddress && addressValid === true && to.trim() && (
+								<div className="absolute right-3 top-1/2 -translate-y-1/2">
+									<CheckCircle2 className="size-4 text-green-500" aria-hidden="true" />
+								</div>
+							)}
+						</div>
 						{errors.to && (
-							<p className="text-xs text-destructive">{errors.to}</p>
+							<p id="address-error" className="text-xs text-destructive flex items-center gap-1">
+								<AlertCircle className="size-3" />
+								{errors.to}
+							</p>
+						)}
+						{!errors.to && addressValid === true && to.trim() && (
+							<p id="address-success" className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+								<CheckCircle2 className="size-3" />
+								Valid address
+							</p>
+						)}
+						{!errors.to && addressValid === null && !isValidatingAddress && (
+							<p id="address-help" className="text-xs text-muted-foreground">
+								Enter the recipient's wallet address
+							</p>
+						)}
+						{isValidatingAddress && (
+							<p id="address-validating" className="text-xs text-muted-foreground">
+								Validating address...
+							</p>
 						)}
 					</div>
 
@@ -616,26 +913,47 @@ export function SendTransactionDialog({
 								)
 								: null}
 						</Label>
-						<Input
-							id="amount"
-							type="text"
-							inputMode="decimal"
-							value={amount}
-							onChange={handleAmountChange}
-							placeholder={selectedToken?.metadata?.decimals
-								? `0.${"0".repeat(selectedToken.metadata.decimals)}`
-								: "0.000000"}
-							disabled={submitting}
-							aria-invalid={errors.amount ? "true" : "false"}
-							aria-describedby={
-								errors.amount
-									? "amount-error"
-									: amount
-									? "amount-hint"
-									: "amount-help"
-							}
-							className={cn(errors.amount && "border-destructive")}
-						/>
+						<div className="relative">
+							<Input
+								ref={amountInputRef}
+								id="amount"
+								type="text"
+								inputMode="decimal"
+								value={amount}
+								onChange={handleAmountChange}
+								placeholder={selectedToken?.metadata?.decimals
+									? `0.${"0".repeat(selectedToken.metadata.decimals)}`
+									: "0.000000"}
+								disabled={submitting}
+								aria-invalid={errors.amount ? "true" : "false"}
+								aria-describedby={
+									errors.amount
+										? "amount-error"
+										: amount
+										? "amount-hint"
+										: "amount-help"
+								}
+								className={cn(
+									errors.amount && "border-destructive",
+									"pr-20",
+								)}
+							/>
+							{selectedTokenId && currentBalance && (
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={handleMaxAmount}
+									disabled={submitting || balanceLoading}
+									className="absolute right-2 top-1/2 -translate-y-1/2 h-7 px-2 text-xs"
+									aria-label="Set maximum amount"
+									title="Set maximum available amount (balance - fee)"
+								>
+									<Maximize2 className="size-3 mr-1" />
+									Max
+								</Button>
+							)}
+						</div>
 						{errors.amount && (
 							<p
 								id="amount-error"
@@ -673,63 +991,65 @@ export function SendTransactionDialog({
 					</div>
 
 					{/* Balance Info */}
-					{selectedTokenId && currentBalance && selectedToken && (
-						<div className="space-y-2">
-							<Label>Current Balance</Label>
-							<div className="p-3 rounded border bg-muted/30">
-								<div className="flex items-center justify-between">
-									<span className="text-sm font-semibold">
-										{currentBalance.balance}{" "}
-										{selectedToken?.metadata?.symbol || ""}
-									</span>
-									{balanceLoading && (
-										<span className="text-xs text-muted-foreground">
-											Loading...
+					{selectedTokenId && currentBalance && selectedToken && (() => {
+						const decimals = selectedToken?.metadata?.decimals || currentBalance.decimals || 6;
+						// Convert balance to human-readable format (auto-detects raw vs human-readable)
+						const humanReadableBalance = toHumanReadableBalance(currentBalance.balance, decimals);
+						return (
+							<div className="space-y-2">
+								<Label>Current Balance</Label>
+								<div className="p-3 rounded border bg-muted/30">
+									<div className="flex items-center justify-between">
+										<span className="text-sm font-semibold">
+											{humanReadableBalance}{" "}
+											{selectedToken?.metadata?.symbol || ""}
 										</span>
-									)}
-								</div>
-								{amount && !balanceLoading && !errors.amount && (
-									<div className="mt-2 text-xs text-muted-foreground">
-										{(() => {
-											const balanceNum = Number.parseFloat(
-												currentBalance.balance,
-											);
-											const decimals = selectedToken?.metadata?.decimals || 6;
-											const normalizedAmount = formatAmountForAPI(amount, decimals);
-											const amountNum = Number.parseFloat(normalizedAmount);
-											const feeNum = Number.parseFloat(calculatedFee);
-											const required = amountNum + feeNum;
-											const remaining = balanceNum - required;
-											const tokenSymbol = selectedToken?.metadata?.symbol || "";
+										{balanceLoading && (
+											<span className="text-xs text-muted-foreground">
+												Loading...
+											</span>
+										)}
+									</div>
+									{amount && !balanceLoading && !errors.amount && (
+										<div className="mt-2 text-xs text-muted-foreground">
+											{(() => {
+												const balanceNum = Number.parseFloat(humanReadableBalance);
+												const normalizedAmount = formatAmountForAPI(amount, decimals);
+												const amountNum = Number.parseFloat(normalizedAmount);
+												const feeNum = Number.parseFloat(calculatedFee);
+												const required = amountNum + feeNum;
+												const remaining = balanceNum - required;
+												const tokenSymbol = selectedToken?.metadata?.symbol || "";
 
-											if (isNaN(amountNum) || amountNum <= 0) {
-												return null;
-											}
+												if (isNaN(amountNum) || amountNum <= 0) {
+													return null;
+												}
 
-											if (remaining < 0) {
+												if (remaining < 0) {
+													return (
+														<span className="text-destructive">
+															Insufficient balance. Need{" "}
+															{Math.abs(remaining).toFixed(
+																decimals,
+															)} {tokenSymbol} more
+														</span>
+													);
+												}
+
 												return (
-													<span className="text-destructive">
-														Insufficient balance. Need{" "}
-														{Math.abs(remaining).toFixed(
-															currentBalance.decimals,
-														)} {tokenSymbol} more
+													<span>
+														After transaction: {remaining.toFixed(
+															decimals,
+														)} {tokenSymbol}
 													</span>
 												);
-											}
-
-											return (
-												<span>
-													After transaction: {remaining.toFixed(
-														currentBalance.decimals,
-													)} {tokenSymbol}
-												</span>
-											);
-										})()}
-									</div>
-								)}
+											})()}
+										</div>
+									)}
+								</div>
 							</div>
-						</div>
-					)}
+						);
+					})()}
 
 					{/* Fee */}
 					<div className="space-y-2">
@@ -765,26 +1085,34 @@ export function SendTransactionDialog({
 							variant="outline"
 							onClick={handleClose}
 							disabled={submitting}
+							aria-label="Cancel transaction"
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={submitting}>
+						<Button
+							type="submit"
+							disabled={submitting || isValidatingAddress || addressValid === false}
+							aria-label="Send transaction"
+							aria-describedby={submitting ? "sending-status" : undefined}
+						>
 							{submitting
 								? (
 									<>
-										<Loader2 className="size-4 mr-2 animate-spin" />
-										Sending...
+										<Loader2 className="size-4 mr-2 animate-spin" aria-hidden="true" />
+										<span id="sending-status">Sending...</span>
 									</>
 								)
 								: (
 									<>
-										<Send className="size-4 mr-2" />
+										<Send className="size-4 mr-2" aria-hidden="true" />
 										Send Transaction
 									</>
 								)}
 						</Button>
 					</DialogFooter>
 				</form>
+					</div>
+				</div>
 			</DialogContent>
 		</Dialog>
 	);

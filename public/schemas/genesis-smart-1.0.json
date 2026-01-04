@@ -110,23 +110,22 @@
       ]
     },
     "decimal_string": {
-      "type": "string",
-      "pattern": "^[0-9]+(\\.[0-9]+)?$",
-      "description": "Decimal number as string to avoid precision loss. Can be whole number (e.g., '1', '100') or decimal (e.g., '0.001', '1.5', '100.25')",
-      "examples": ["0.001", "1.0", "100.25", "1", "0"]
+      "type": "number",
+      "description": "Decimal number (numeric; was string in earlier versions)",
+      "examples": [0.001, 1.0, 100.25, 1, 0]
     },
     "non_negative_integer_string": {
-      "type": "string",
-      "pattern": "^[0-9]+$",
-      "description": "Non-negative integer as string to avoid precision loss. For JavaScript number conversion, runtime should validate against safe integer limit (2^53 - 1)",
+      "type": "number",
+      "minimum": 0,
       "$comment": "Runtime: validate <= Number.MAX_SAFE_INTEGER",
-      "examples": ["0", "1", "1000000", "9007199254740991"]
+      "examples": [0, 1, 1000000, 9007199254740991]
     },
     "unit_interval_string": {
-      "type": "string",
-      "pattern": "^(0(\\.\\d+)?|1(\\.0+)?)$",
-      "description": "Decimal number in range [0,1] as string. Prevents values like '00.5', '0001', '2.5'. Used for weights, probabilities, ratios.",
-      "examples": ["0", "0.5", "1", "0.25", "1.0", "0.001"]
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Number in range [0,1] (was string). Used for weights, probabilities, ratios.",
+      "examples": [0, 0.5, 1, 0.25, 1.0, 0.001]
     },
     "sha256_hash": {
       "type": "string",
@@ -217,7 +216,10 @@
     "security",
     "governance",
     "signing_keys",
-    "signatures"
+    "signatures",
+    "stels_runtime",
+    "stels_policy",
+    "observability"
   ],
   "additionalProperties": false,
   "properties": {
@@ -235,26 +237,34 @@
       "type": "object",
       "required": ["id", "name", "environment", "chain_id"],
       "additionalProperties": false,
+      "description": "Network configuration. All fields are REQUIRED for network identification and operation.",
       "properties": {
         "id": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "description": "Network identifier (e.g., 'testnet', 'mainnet', 'devnet'). REQUIRED for network identification.",
+          "$comment": "CRITICAL: This field is REQUIRED. Used for network identification, KV namespace separation, and transaction validation."
         },
         "name": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "description": "Human-readable network name (e.g., 'STELS Testnet Network'). REQUIRED for display and identification.",
+          "$comment": "CRITICAL: This field is REQUIRED. Used for UI display, documentation, and network identification."
         },
         "environment": {
           "type": "string",
           "enum": ["devnet", "testnet", "mainnet"],
-          "description": "Network environment profile. Mainnet has strict production requirements enforced via schema constraints."
+          "description": "Network environment profile. REQUIRED. Mainnet has strict production requirements enforced via schema constraints.",
+          "$comment": "CRITICAL: This field is REQUIRED. Determines which schema constraints apply (mainnet vs testnet/devnet). Used for validation rules, policy enforcement, and feature availability."
         },
         "chain_id": {
           "type": "integer",
           "minimum": 1,
-          "$comment": "Runtime: chain_id must match sign_domains"
+          "description": "Chain identifier. REQUIRED for transaction signing domains and network separation.",
+          "$comment": "CRITICAL: This field is REQUIRED. Runtime: chain_id must match sign_domains. Used for transaction validation, signature domains, and preventing cross-chain attacks."
         }
-      }
+      },
+      "$comment": "CRITICAL: All fields in network object are REQUIRED. Network identification is fundamental to blockchain operation - without id, name, environment, and chain_id, the network cannot function properly."
     },
     "genesis": {
       "type": "object",
@@ -799,12 +809,16 @@
               "additionalProperties": false,
               "properties": {
                 "double_sign": {
-                  "$ref": "#/$defs/decimal_string",
-                  "description": "Slashing penalty for double signing (as decimal fraction of stake, e.g., '0.05' = 5%). Recommended: 10-20% for stronger deterrence"
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "Slashing penalty for double signing (as decimal fraction of stake, e.g., 0.05 = 5%). Recommended: 10-20% for stronger deterrence"
                 },
                 "surround_vote": {
-                  "$ref": "#/$defs/decimal_string",
-                  "description": "Slashing penalty for surround vote attacks (as decimal fraction of stake, e.g., '0.02' = 2%)"
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "Slashing penalty for surround vote attacks (as decimal fraction of stake, e.g., 0.02 = 2%)"
                 }
               },
               "$comment": "SECURITY: Consider 10-20% double_sign penalty for stronger deterrence"
@@ -1103,13 +1117,19 @@
           "additionalProperties": false,
           "properties": {
             "base": {
-              "$ref": "#/$defs/decimal_string"
+              "type": "integer",
+              "minimum": 0,
+              "description": "Base fee amount in base units (smallest currency unit)"
             },
             "per_byte": {
-              "$ref": "#/$defs/decimal_string"
+              "type": "integer",
+              "minimum": 0,
+              "description": "Fee per byte in base units (smallest currency unit)"
             },
             "raw_per_byte": {
-              "$ref": "#/$defs/decimal_string"
+              "type": "integer",
+              "minimum": 0,
+              "description": "Fee per raw byte in base units (smallest currency unit)"
             },
             "currency": {
               "type": "string",
@@ -1381,18 +1401,9 @@
                     "max(1024, tx_free_space)",
                     "min(65536, parameters.kv_limits.raw_soft_cap_bytes)"
                   ]
-                },
-                {
-                  "type": "string",
-                  "minLength": 1,
-                  "description": "Other formula or expression string. Runtime must parse and evaluate this formula. Syntax is implementation-specific",
-                  "examples": [
-                    "parameters.kv_limits.raw_soft_cap_bytes",
-                    "tx_free_space * 0.9"
-                  ]
                 }
               ],
-              "$comment": "CRITICAL: Sandbox formula evaluation. Production: only numeric strings or min/max formulas allowed. Experimental formulas require feature flag. Validate at genesis load, restrict complexity. Standard: For v1.0 production networks, only numeric strings and min(a,b)/max(a,b) with whitelisted variables are permitted. Validator requirement: If client cannot safely parse formulas, it MUST reject genesis where max_raw_bytes is not pure numeric and not simple min/max with whitelisted variables. Schema defines syntax, standard defines allowed subset, client enforces intersection."
+              "$comment": "Allows numeric strings or simple min/max formulas referencing whitelisted variables."
             },
             "require_hash": {
               "type": "boolean"
@@ -1497,7 +1508,9 @@
                       "type": "boolean"
                     },
                     "amount": {
-                      "$ref": "#/$defs/decimal_string"
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Fee amount for cosign action in base units (smallest currency unit)"
                     },
                     "currency": {
                       "type": "string",
@@ -1713,8 +1726,9 @@
                 "$ref": "#/$defs/base58_address"
               },
               "balance": {
-                "$ref": "#/$defs/non_negative_integer_string",
-                "description": "Account balance as string (to avoid precision loss). Sum of all balances should not exceed supply_cap (runtime validation required)",
+                "type": "number",
+                "minimum": 0,
+                "description": "Account balance. Sum of all balances should not exceed supply_cap (runtime validation required)",
                 "$comment": "CRITICAL: All balances non-negative. If supply_cap numeric, sum(balances) <= supply_cap"
               },
               "last_tx_hash": {
@@ -1726,7 +1740,8 @@
                 "additionalProperties": false,
                 "properties": {
                   "amount": {
-                    "$ref": "#/$defs/non_negative_integer_string",
+                    "type": "number",
+                    "minimum": 0,
                     "description": "Frozen stake balance for this account (in base units)",
                     "$comment": "Used for eligibility and weight calculation in execution-mining rewards and rating distribution. Runtime: if stake.amount < rewards.staking.min_stake, account not eligible for execution-mining. If stake.amount > rewards.staking.max_stake, weight capped at max_stake."
                   },
@@ -1740,7 +1755,8 @@
                 "$comment": "Optional field. If absent, account does not participate in execution-mining (not eligible)."
               },
               "mined_total": {
-                "$ref": "#/$defs/non_negative_integer_string",
+                "type": "number",
+                "minimum": 0,
                 "description": "Total amount of native rewards mined by this account within the rating window (in base units)",
                 "$comment": "Maintained by runtime. Used for mined_score in rating_model. Window interpretation defined by monetary.rewards.rating_model.window_ms. In genesis usually 0 or absent (runtime initializes)."
               },
@@ -1850,8 +1866,9 @@
         "supply_cap": {
           "oneOf": [
             {
-              "$ref": "#/$defs/non_negative_integer_string",
-              "description": "Numeric string representing maximum supply"
+              "type": "number",
+              "minimum": 0,
+              "description": "Numeric maximum supply"
             },
             {
               "type": "string",
@@ -1872,7 +1889,9 @@
           "additionalProperties": false,
           "properties": {
             "rate_per_request": {
-              "$ref": "#/$defs/non_negative_integer_string",
+              "type": "integer",
+              "minimum": 0,
+              "description": "Amount of tokens distributed per faucet request",
               "$comment": "Standard: Mainnet requires strict limits or disabled. Testnet may have relaxed limits. Runtime: If supply_cap numeric, ensure faucet cannot exceed cap over time"
             },
             "cooldown_ms": {
@@ -1914,11 +1933,13 @@
               "$comment": "Standard v1.0: recommended 'smart_op' or 'tx'. 'gas_unit' reserved for future gas model."
             },
             "rate_per_unit": {
-              "$ref": "#/$defs/decimal_string",
+              "type": "number",
+              "minimum": 0,
               "description": "Base reward in native currency units per unit of work (before caps and weighting)"
             },
             "max_per_epoch": {
-              "$ref": "#/$defs/non_negative_integer_string",
+              "type": "integer",
+              "minimum": 0,
               "description": "Hard cap on total execution-mining rewards per epoch (in base currency units)",
               "$comment": "CRITICAL: Limits inflation/distribution. Runtime must guarantee that total rewards per epoch do not exceed this value."
             },
@@ -1941,13 +1962,13 @@
                 "min_stake": {
                   "$ref": "#/$defs/non_negative_integer_string",
                   "description": "Minimum stake required to be eligible for rewards (in base units)",
-                  "examples": ["1000"],
+                  "examples": [1000],
                   "$comment": "In current model: 1000 units. If token has decimals, value is specified in smallest units (raw). Runtime: stake.amount < min_stake → account not eligible for execution-mining."
                 },
                 "max_stake": {
                   "$ref": "#/$defs/non_negative_integer_string",
                   "description": "Maximum effective stake counted for rewards and rating (in base units)",
-                  "examples": ["10000"],
+                  "examples": [10000],
                   "$comment": "Runtime: max_stake >= min_stake. Stake above max_stake does not increase weight (capped at max_stake)."
                 }
               },
@@ -2331,25 +2352,30 @@
             },
             "adjustment_rules": {
               "type": "object",
+              "required": [
+                "inflation_increase",
+                "activity_decrease",
+                "centralization_increase"
+              ],
               "additionalProperties": false,
               "properties": {
                 "inflation_increase": {
                   "type": "string",
                   "enum": ["decrease_rate", "increase_max_per_epoch"],
-                  "description": "Action when inflation exceeds target"
+                  "description": "Action when inflation exceeds target. REQUIRED when adaptive_engine.enabled is true."
                 },
                 "activity_decrease": {
                   "type": "string",
                   "enum": ["decrease_min_stake", "increase_rate"],
-                  "description": "Action when activity falls below target"
+                  "description": "Action when activity falls below target. REQUIRED when adaptive_engine.enabled is true."
                 },
                 "centralization_increase": {
                   "type": "string",
                   "enum": ["increase_lock_range", "increase_min_stake"],
-                  "description": "Action when centralization (Gini) increases"
+                  "description": "Action when centralization (Gini) increases. REQUIRED when adaptive_engine.enabled is true."
                 }
               },
-              "$comment": "Network Health Algorithm: network self-regulates economics. If inflation ↑ → decreases rate_per_unit. If activity ↓ → decreases min_stake. If centralization ↑ → increases lock_range. All rules are required when adaptive_engine.enabled is true (enforced via if/then)."
+              "$comment": "Network Health Algorithm: network self-regulates economics. If inflation ↑ → decreases rate_per_unit. If activity ↓ → decreases min_stake. If centralization ↑ → increases lock_range. All rules are REQUIRED when adaptive_engine.enabled is true (enforced via if/then)."
             }
           },
           "if": {
@@ -2499,7 +2525,17 @@
           "kid": {
             "type": "string",
             "minLength": 1,
-            "description": "Key identifier - can be an address (base58) or public key (hex). Must match a corresponding entry in signing_keys or be derivable from public_key"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/base58_address"
+              },
+              {
+                "pattern": "^0[234][0-9a-f]{64}$",
+                "description": "Public key in hex format (uncompressed '04' or compressed '02'/'03')"
+              }
+            ],
+            "description": "Key identifier - must be either a base58 address (25-34 chars, pattern: ^[1-9A-HJ-NP-Za-km-z]{25,34}$) or a public key in hex format (66 chars, pattern: ^0[234][0-9a-f]{64}$). Must match a corresponding entry in signing_keys or be derivable from public_key",
+            "$comment": "Runtime: validate that kid is either valid base58 address (with checksum validation) or valid secp256k1 public key hex. Base58 addresses typically start with 'g' for STELS network (version_byte=98)"
           },
           "alg": {
             "type": "string",
@@ -2553,8 +2589,17 @@
               "kid": {
                 "type": "string",
                 "minLength": 1,
-                "description": "Key identifier - must match a kid in signing_keys array. Can be an address (base58) or other identifier.",
-                "$comment": "Runtime: all signers[].kid must exist in signing_keys[]"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/base58_address"
+                  },
+                  {
+                    "pattern": "^0[234][0-9a-f]{64}$",
+                    "description": "Public key in hex format (uncompressed '04' or compressed '02'/'03')"
+                  }
+                ],
+                "description": "Key identifier - must be either a base58 address (25-34 chars, pattern: ^[1-9A-HJ-NP-Za-km-z]{25,34}$) or a public key in hex format (66 chars, pattern: ^0[234][0-9a-f]{64}$). Must match a kid in signing_keys array.",
+                "$comment": "Runtime: all signers[].kid must exist in signing_keys[]. Validate that kid is either valid base58 address (with checksum validation) or valid secp256k1 public key hex. Base58 addresses typically start with 'g' for STELS network (version_byte=98)"
               },
               "sig": {
                 "type": "string",
@@ -2666,7 +2711,7 @@
           "$comment": "WebFIX channels configuration. Nodes MUST initialize these channels. Frontends/AI-nodes can auto-configure connections based on this. Standard channel 'workers/events' (kind: pubsub or stream) is used for worker execution events: worker_id, op_id, tx_hash (if operation linked to chain), metrics (latency, success, fee_paid). Runtime reads from this channel to track worker operations for rewards calculation."
         }
       },
-      "$comment": "STELS Runtime Configuration: defines Deno KV namespaces and WebFIX channels. Allows nodes to auto-configure storage and communication channels at startup. Frontends/AI-workers can read genesis to discover available channels."
+      "$comment": "STELS Runtime Configuration: defines KV namespaces and WebFIX channels. Allows nodes to auto-configure storage and communication channels at startup. Frontends/AI-workers can read genesis to discover available channels."
     },
     "observability": {
       "type": "object",
@@ -2816,7 +2861,7 @@
               "faucet": {
                 "properties": {
                   "rate_per_request": {
-                    "const": "0"
+                    "const": 0
                   }
                 }
               }

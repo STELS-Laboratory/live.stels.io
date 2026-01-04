@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useNetworkStore } from "@/stores/modules/network.store";
 import type { TickerData, TickerMarqueeProps } from "@/types/components/main/types";
 import { TickerItem } from "./ticker_item";
+import { useTimerManager } from "@/lib/timer-manager";
 
 /**
  * Ticker Marquee Component
@@ -17,6 +18,7 @@ export function TickerMarquee(
 ): React.ReactElement | null {
   const [tickers, setTickers] = useState<TickerData[]>([]);
   const { currentNetworkId } = useNetworkStore();
+  const { setTimeout, setInterval, clear } = useTimerManager();
 
   // Get all tickers from sessionStorage
   const getTickers = React.useCallback((): TickerData[] => {
@@ -67,18 +69,61 @@ export function TickerMarquee(
     }
   }, [currentNetworkId]);
 
-  // Update tickers periodically - optimized with debounce
+  // Update tickers reactively using storage events - optimized
   useEffect(() => {
     // Initial load
     setTickers(getTickers());
 
-    // Update every 3 seconds (reduced frequency for better performance)
-    const interval = setInterval(() => {
-      setTickers(getTickers());
-    }, 3000);
+    // Cache last tickers to avoid unnecessary updates
+    let lastTickersHash = "";
+    const updateTickers = (): void => {
+      const newTickers = getTickers();
+      // Simple hash comparison to avoid unnecessary updates
+      const newHash = JSON.stringify(newTickers.map(t => `${t.market}-${t.last}`));
+      if (newHash !== lastTickersHash) {
+        lastTickersHash = newHash;
+        setTickers(newTickers);
+      }
+    };
 
-    return () => clearInterval(interval);
-  }, [getTickers]);
+    // Handle storage events (works across tabs)
+    const handleStorageChange = (e: StorageEvent): void => {
+      const tickerPrefix = `${currentNetworkId}.runtime.ticker.`;
+      if (e.key && e.key.startsWith(tickerPrefix)) {
+        // Debounce updates using TimerManager
+        if (updateTimeoutId) clear(updateTimeoutId);
+        updateTimeoutId = setTimeout(() => {
+          updateTickers();
+        }, 100, "TickerMarquee storage update");
+      }
+    };
+
+    // Handle custom sessionStorageChange event (for same-tab updates)
+    const handleSessionStorageChange = (): void => {
+      if (updateTimeoutId) clear(updateTimeoutId);
+      updateTimeoutId = setTimeout(() => {
+        updateTickers();
+      }, 100, "TickerMarquee sessionStorage update");
+    };
+
+    let updateTimeoutId: string | null = null;
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("sessionStorageChange", handleSessionStorageChange as EventListener);
+
+    // Fallback polling - only every 30 seconds as backup
+    const intervalId = setInterval(() => {
+      updateTickers();
+    }, 30000, "TickerMarquee fallback polling");
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("sessionStorageChange", handleSessionStorageChange as EventListener);
+      if (updateTimeoutId) clear(updateTimeoutId);
+      clear(intervalId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getTickers, currentNetworkId]); // clear, setInterval, setTimeout are stable from useTimerManager
 
   // Memoize duplicated tickers to prevent unnecessary recalculations
   const duplicatedTickers = useMemo(() => {

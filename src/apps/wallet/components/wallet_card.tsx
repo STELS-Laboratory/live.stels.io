@@ -134,6 +134,8 @@ export function WalletCard({
                 size="sm"
                 onClick={onRefresh}
                 disabled={loading}
+                aria-label={loading ? "Refreshing balance" : "Refresh wallet balance"}
+                aria-describedby="balance-description"
                 className={cn(
                   "text-white/60 hover:text-white hover:bg-white/10 p-0",
                   mobile ? "h-8 w-8" : "h-8 w-8",
@@ -144,6 +146,7 @@ export function WalletCard({
                     loading && "animate-spin",
                     mobile ? "w-4 h-4" : "w-4 h-4",
                   )}
+                  aria-hidden="true"
                 />
               </Button>
             </div>
@@ -166,10 +169,13 @@ export function WalletCard({
             </div>
             <div className="flex items-baseline gap-2">
               <span
+                id="balance-description"
                 className={cn(
                   "font-bold text-white",
                   mobile ? "text-2xl" : "text-3xl",
                 )}
+                aria-live="polite"
+                aria-atomic="true"
               >
                 {loading && balance === 0 ? "..." : (
                   <FormattedNumber
@@ -184,6 +190,7 @@ export function WalletCard({
                   "text-white/60 font-medium",
                   mobile ? "text-xs" : "text-sm",
                 )}
+                aria-label={`Balance in ${balanceSymbol}`}
               >
                 {balanceSymbol}
               </span>

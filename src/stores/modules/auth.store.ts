@@ -68,20 +68,50 @@ export const useAuthStore = create<AuthStore>()(
 				},
 				
 				importExistingWallet: (privateKey: string): boolean => {
+					console.group("[WALLET_IMPORT] Auth Store: importExistingWallet");
+					console.log("[WALLET_IMPORT] Step 1: Received private key from UI");
+					console.log("[WALLET_IMPORT] Private key length:", privateKey.length);
+					console.log("[WALLET_IMPORT] Private key preview:", privateKey.substring(0, 8) + "..." + privateKey.substring(privateKey.length - 8));
+					
 					try {
+						console.log("[WALLET_IMPORT] Step 2: Calling importWallet from gliesereum library");
+						const startTime = performance.now();
 						const wallet = importWallet(privateKey);
+						const endTime = performance.now();
+						console.log("[WALLET_IMPORT] importWallet completed in", (endTime - startTime).toFixed(2), "ms");
+						
+						console.log("[WALLET_IMPORT] Step 3: Wallet object created successfully");
+						console.log("[WALLET_IMPORT] Wallet details:", {
+							address: wallet.address,
+							publicKeyLength: wallet.publicKey.length,
+							publicKeyPreview: wallet.publicKey.substring(0, 10) + "..." + wallet.publicKey.substring(wallet.publicKey.length - 10),
+							privateKeyLength: wallet.privateKey.length,
+							hasBiometric: wallet.biometric !== null,
+							cardNumber: wallet.number,
+						});
+						
+						console.log("[WALLET_IMPORT] Step 4: Updating auth store state");
 						set({
 							wallet,
 							isWalletCreated: true,
 							connectionError: null
 						});
-
+						
+						console.log("[WALLET_IMPORT] ✅ Wallet imported and stored successfully");
+						console.groupEnd();
 						return true;
 					} catch(error) {
+						console.error("[WALLET_IMPORT] ❌ Error in importExistingWallet:", error);
+						console.error("[WALLET_IMPORT] Error details:", {
+							message: error instanceof Error ? error.message : "Unknown error",
+							stack: error instanceof Error ? error.stack : undefined,
+							errorType: error instanceof Error ? error.constructor.name : typeof error,
+						});
 
 						set({
 							connectionError: error instanceof Error ? error.message : 'Invalid private key'
 						});
+						console.groupEnd();
 						return false;
 					}
 				},

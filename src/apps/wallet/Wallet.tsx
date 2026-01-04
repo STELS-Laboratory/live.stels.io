@@ -18,6 +18,7 @@ import { WalletCard } from "./components/wallet_card";
 import { TokenList } from "./components/token_list";
 import { AccountList } from "./components/account_list";
 import { AddAccountDialog } from "./components/add_account_dialog";
+import { EditAccountDialog } from "./components/edit_account_dialog";
 import { AccountDetailsDialog } from "./components/account_details_dialog";
 import { TransactionList } from "./components/transaction_list";
 import { SendTransactionDialog } from "./components/send_transaction_dialog";
@@ -107,6 +108,7 @@ function Wallet(): React.ReactElement {
 	const [isAccountDetailsOpen, setIsAccountDetailsOpen] = useState<boolean>(
 		false,
 	);
+	const [isEditAccountOpen, setIsEditAccountOpen] = useState<boolean>(false);
 	const [isSendTransactionOpen, setIsSendTransactionOpen] = useState<boolean>(
 		false,
 	);
@@ -435,6 +437,49 @@ function Wallet(): React.ReactElement {
 		} | null
 	>(null);
 
+	// Keyboard shortcuts for accessibility
+	useEffect(() => {
+		if (!isAuthenticated || !isConnected) return;
+
+		const handleKeyDown = (e: KeyboardEvent): void => {
+			// Ctrl+S or Cmd+S: Open send transaction dialog
+			if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+				e.preventDefault();
+				if (hasWallet) {
+					setIsSendTransactionOpen(true);
+				}
+			}
+			// Escape: Close any open dialogs
+			if (e.key === "Escape") {
+				if (isSendTransactionOpen) {
+					setIsSendTransactionOpen(false);
+				}
+				if (isSmartTransactionOpen) {
+					setIsSmartTransactionOpen(false);
+				}
+				if (isAddAccountDialogOpen) {
+					setIsAddAccountDialogOpen(false);
+				}
+				if (isAccountDetailsOpen) {
+					setIsAccountDetailsOpen(false);
+				}
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [
+		isAuthenticated,
+		isConnected,
+		hasWallet,
+		isSendTransactionOpen,
+		isSmartTransactionOpen,
+		isAddAccountDialogOpen,
+		isAccountDetailsOpen,
+	]);
+
 	// Fetch transactions when transactions tab is opened
 	useEffect(() => {
 		if (
@@ -600,24 +645,30 @@ function Wallet(): React.ReactElement {
 								onClick={() => setIsSendTransactionOpen(true)}
 								variant="default"
 								className={cn(mobile ? "w-full" : "")}
+								aria-label="Send transaction"
+								title="Send transaction (Ctrl+S)"
 							>
-								<Send className="size-4 mr-2" />
+								<Send className="size-4 mr-2" aria-hidden="true" />
 								Send
 							</Button>
 							<Button
 								onClick={() => setIsSmartTransactionOpen(true)}
 								variant="default"
 								className={cn(mobile ? "w-full" : "")}
+								aria-label="Create smart transaction"
+								title="Smart transaction"
 							>
-								<Zap className="size-4 mr-2" />
+								<Zap className="size-4 mr-2" aria-hidden="true" />
 								Smart
 							</Button>
 							<Button
 								onClick={() => setIsAddAccountDialogOpen(true)}
 								variant="outline"
 								className={cn(mobile ? "w-full" : "")}
+								aria-label="Add trading account"
+								title="Add trading account"
 							>
-								<PlusIcon className="size-4 mr-2" />
+								<PlusIcon className="size-4 mr-2" aria-hidden="true" />
 								Add Account
 							</Button>
 						</div>
@@ -755,12 +806,26 @@ function Wallet(): React.ReactElement {
 			<AddAccountDialog
 				open={isAddAccountDialogOpen}
 				onOpenChange={setIsAddAccountDialogOpen}
+				mobile={mobile}
 			/>
 
 			{/* Account Details Dialog */}
 			<AccountDetailsDialog
 				open={isAccountDetailsOpen}
 				onOpenChange={setIsAccountDetailsOpen}
+				account={selectedAccount}
+				mobile={mobile}
+				onEdit={(account) => {
+					setSelectedAccount(account);
+					setIsAccountDetailsOpen(false);
+					setIsEditAccountOpen(true);
+				}}
+			/>
+
+			{/* Edit Account Dialog */}
+			<EditAccountDialog
+				open={isEditAccountOpen}
+				onOpenChange={setIsEditAccountOpen}
 				account={selectedAccount}
 				mobile={mobile}
 			/>

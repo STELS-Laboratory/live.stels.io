@@ -5,6 +5,7 @@
 
 import type { Token, RawAssetData, TokenMetadata, TokenEconomics, TokenIssuer, NetworkInfo, NetworkParameters, ProtocolInfo, SecurityRequirements } from "@/types/token";
 import { isGenesisDocument, isValidToken } from "@/types/token";
+import { convertFeeFromBaseUnits } from "@/lib/amount-parser";
 
 /**
  * Normalize token metadata from various formats
@@ -147,11 +148,29 @@ function normalizeParameters(
 	}
 	
 	const params = raw.raw.genesis.parameters;
+	const decimals = params.currency?.decimals ?? 8;
+	
+	// CRITICAL: Convert fee values from base units to SLI decimal format
+	// Genesis documents store fees in base units (e.g., base: 1000 = 0.00001000 SLI)
+	const baseFeeRaw = params.fees?.base;
+	const perByteFeeRaw = params.fees?.per_byte;
+	const rawPerByteFeeRaw = params.fees?.raw_per_byte;
+	
+	// Helper to convert fee if it's in base units (integer or large number)
+	const convertFee = (fee: unknown): string => {
+		if (!fee) return "0";
+		// If it's a number or string without decimal point, it's likely in base units
+		if (typeof fee === "number" || (typeof fee === "string" && !fee.includes("."))) {
+			return convertFeeFromBaseUnits(fee, decimals);
+		}
+		return String(fee);
+	};
+	
 	return {
 		fees: {
-			base: params.fees?.base || "0.0001",
-			per_byte: params.fees?.per_byte || "0.0000002",
-			raw_per_byte: params.fees?.raw_per_byte,
+			base: convertFee(baseFeeRaw) || "0.00001000",
+			per_byte: convertFee(perByteFeeRaw) || "0.00000005",
+			raw_per_byte: rawPerByteFeeRaw ? convertFee(rawPerByteFeeRaw) : undefined,
 			currency: params.fees?.currency || "SLI",
 		},
 		currency: {

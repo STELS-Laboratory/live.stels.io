@@ -36,6 +36,9 @@ import {
   DEFAULT_STATE_CONFIG,
   MONETARY_CONFIG,
   GOVERNANCE_CONFIG,
+  STELS_RUNTIME,
+  STELS_POLICY,
+  OBSERVABILITY_CONFIG,
 } from "./constants";
 import { getDecimalsByStandard } from "./utils";
 import { EC } from "elliptic";
@@ -174,7 +177,7 @@ export async function signTokenSchema(
   };
 
   // CRITICAL: Create FULL certificate WITHOUT signatures first (per CLIENT_ISSUE_SUMMARY.md)
-  // "Создаем документ БЕЗ signatures"
+  // "Create document WITHOUT signatures"
   // 100% compatible with genesis-smart-1.0.json schema
   const certificateWithoutSignaturesRaw = {
     // JSON Schema reference (required)
@@ -263,6 +266,15 @@ export async function signTokenSchema(
     
     // Governance configuration (required)
     governance: GOVERNANCE_CONFIG,
+    
+    // STELS Runtime configuration (required)
+    stels_runtime: STELS_RUNTIME,
+    
+    // STELS Policy configuration (required)
+    stels_policy: STELS_POLICY,
+    
+    // Observability configuration (required)
+    observability: OBSERVABILITY_CONFIG,
     
     // Signing keys (required)
     signing_keys: [signingKey],
@@ -526,7 +538,7 @@ export async function verifyTokenCertificate(
     }
 
     // CRITICAL VERIFICATION PROCESS (per CLIENT_ISSUE_SUMMARY.md):
-    // "Создаем документ БЕЗ signatures"
+    // "Create document WITHOUT signatures"
     
     // Step 1: Reconstruct certificate WITHOUT signatures (same as signing)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

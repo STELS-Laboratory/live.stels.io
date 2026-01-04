@@ -1,5 +1,5 @@
 /**
- * Professional JavaScript Code Formatter for CodeMirror 6
+ * Professional JavaScript Code Formatter
  * 
  * Simple and reliable formatter with 2-space indentation.
  * Focuses on proper indentation without breaking code structure.
@@ -148,7 +148,6 @@ export function formatJavaScript(code: string): string {
     return formattedLines.join("\n");
   } catch {
     // If formatting fails, return original code
-
     return code;
   }
 }

@@ -3,6 +3,7 @@ import {
 	Suspense,
 	useCallback,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
 } from "react";
@@ -14,6 +15,7 @@ import {
 	ArrowDown,
 	ArrowUp,
 	Code,
+	Coins,
 	Cpu,
 	Crown,
 	Database,
@@ -25,9 +27,11 @@ import {
 	Play,
 	Plus,
 	PowerOff,
+	Redo,
 	RotateCcw,
 	Save,
 	Search,
+	Undo,
 	Server,
 	Settings,
 	Square,
@@ -40,10 +44,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Lazy load CodeMirror Editor for performance (~120 KB gzipped vs Monaco's 990 KB)
-const CodeMirrorEditor = lazy(() =>
-	import("@/components/editor/codemirror_editor")
+// Lazy load Monaco Editor for professional code editing
+const MonacoEditor = lazy(() =>
+	import("@/components/editor/monaco_editor")
 );
 import {
 	useEditorStore,
@@ -73,11 +78,20 @@ import { CreateWorkerDialog } from "./ami_editor/create_worker_dialog";
 import { LeaderInfoCard } from "./ami_editor/leader_info_card";
 import { WorkerStatsPanel } from "./ami_editor/worker_stats_panel";
 import { WorkerLogsPanel } from "./ami_editor/worker_logs_panel";
+import { WorkerEconomicsPanel } from "./ami_editor/worker_economics_panel";
 import { StopAllDialog } from "./ami_editor/stop_all_dialog";
 import { MigrateWorkerDialog } from "./ami_editor/migrate_worker_dialog";
+import { ConfirmToggleDialog } from "./ami_editor/confirm_toggle_dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DeveloperAccessRequestDialog } from "@/components/auth/developer_access_request";
 import { navigateTo } from "@/lib/router";
+import { toast } from "@/stores";
+import {
+	validateDependencies,
+	validateVersion,
+	validateNodeId,
+	validateAccountId,
+} from "./utils/validation.ts";
 
 export function AMIEditor(): JSX.Element {
 	const mobile = useMobile();
@@ -95,7 +109,8 @@ export function AMIEditor(): JSX.Element {
 
 	const [workers, setWorkers] = useState<Worker[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [updating, setUpdating] = useState(false);
+	const [saving, setSaving] = useState(false);
+	const [toggling, setToggling] = useState(false);
 	const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
 	const [currentScript, setCurrentScriptInternal] = useState<string>("");
 
@@ -121,6 +136,7 @@ export function AMIEditor(): JSX.Element {
 	const [showStopAllDialog, setShowStopAllDialog] = useState(false);
 	const [showMigrateDialog, setShowMigrateDialog] = useState(false);
 	const [workerToMigrate, setWorkerToMigrate] = useState<Worker | null>(null);
+	const [showToggleConfirmDialog, setShowToggleConfirmDialog] = useState(false);
 	const [showDeveloperAccessDialog, setShowDeveloperAccessDialog] = useState(
 		false,
 	);
@@ -140,9 +156,15 @@ export function AMIEditor(): JSX.Element {
 	});
 	const [activeTab, setActiveTab] = useState("code");
 	const [formatCodeFn, setFormatCodeFn] = useState<(() => void) | null>(null);
+	const [undoFn, setUndoFn] = useState<(() => void) | null>(null);
+	const [redoFn, setRedoFn] = useState<(() => void) | null>(null);
 
 	// Cache for formatted scripts (sid -> formatted code)
 	const formattedScriptsCache = useRef<Map<string, string>>(new Map());
+	
+	// AbortController for canceling in-flight requests
+	const abortControllerRef = useRef<AbortController | null>(null);
+	const loadWorkersTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 	// Check developer access on mount
 	useEffect(() => {
@@ -158,30 +180,83 @@ export function AMIEditor(): JSX.Element {
 		}
 	}, [wallet, connectionSession]);
 
-	// Load workers
-	const loadWorkers = async () => {
+	// Load workers with debounce and abort controller
+	const loadWorkers = useCallback(async () => {
 		// Only load workers if user has developer permissions
 		if (!connectionSession?.developer) {
 			setLoading(false);
 			return;
 		}
 
+		// Cancel previous request if still in flight
+		if (abortControllerRef.current) {
+			abortControllerRef.current.abort();
+		}
+
+		// Create new abort controller for this request
+		const abortController = new AbortController();
+		abortControllerRef.current = abortController;
+
 		setLoading(true);
 		try {
 			await listWorkers();
+			
+			// Check if request was aborted
+			if (abortController.signal.aborted) {
+				return;
+			}
+			
 			const w = useEditorStore.getState().workers;
 			setWorkers(w);
 			setLoading(false);
-		} catch {
+		} catch (error) {
+			// Ignore abort errors
+			if (error instanceof Error && error.name === "AbortError") {
+				return;
+			}
+			
+			console.error("Failed to load workers:", error);
+			toast.error(
+				"Failed to load workers",
+				error instanceof Error ? error.message : "Unknown error occurred",
+			);
 
 			setLoading(false);
+		} finally {
+			// Clear abort controller if this was the active request
+			if (abortControllerRef.current === abortController) {
+				abortControllerRef.current = null;
+			}
 		}
-	};
+	}, [connectionSession?.developer, listWorkers]);
+
+	// Debounced load workers
+	const debouncedLoadWorkers = useCallback(() => {
+		// Clear existing timeout
+		if (loadWorkersTimeoutRef.current) {
+			clearTimeout(loadWorkersTimeoutRef.current);
+		}
+
+		// Set new timeout
+		loadWorkersTimeoutRef.current = setTimeout(() => {
+			loadWorkers();
+		}, 300); // 300ms debounce
+	}, [loadWorkers]);
 
 	useEffect(() => {
-		loadWorkers();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [listWorkers]);
+		debouncedLoadWorkers();
+		
+		return () => {
+			// Cleanup on unmount
+			if (loadWorkersTimeoutRef.current) {
+				clearTimeout(loadWorkersTimeoutRef.current);
+			}
+			if (abortControllerRef.current) {
+				abortControllerRef.current.abort();
+				abortControllerRef.current = null;
+			}
+		};
+	}, [debouncedLoadWorkers]);
 
 	useEffect(() => {
 		if (newlyCreatedWorker) {
@@ -192,17 +267,193 @@ export function AMIEditor(): JSX.Element {
 		}
 	}, [newlyCreatedWorker]);
 
-	// Hotkey: Cmd+S / Ctrl+S to save changes
+	// Compute filtered workers (moved before useEffect to avoid dependency issues)
+	const filteredWorkers = useMemo(() => {
+		return workers
+			.filter((protocol) => {
+				// Safety check - ensure protocol has required structure
+				if (!protocol?.value?.raw) {
+					return false;
+				}
+
+				// Search filter
+				const matchesSearch = !searchTerm ||
+					protocol.value.raw.note?.toLowerCase().includes(
+						searchTerm.toLowerCase(),
+					) ||
+					protocol.value.raw.sid?.toLowerCase().includes(
+						searchTerm.toLowerCase(),
+					) ||
+					protocol.value.raw.nid?.toLowerCase().includes(
+						searchTerm.toLowerCase(),
+					) ||
+					protocol.value.raw.version?.toLowerCase().includes(
+						searchTerm.toLowerCase(),
+					);
+
+				// Active status filter
+				const matchesActive = filterActive === null ||
+					protocol.value.raw.active === filterActive;
+
+				// Execution mode filter
+				const workerExecMode = protocol.value.raw.executionMode ||
+					"parallel";
+				const matchesExecMode = !filterExecutionMode ||
+					workerExecMode === filterExecutionMode;
+
+				// Priority filter
+				const workerPriority = protocol.value.raw.priority || "normal";
+				const matchesPriority = !filterPriority ||
+					workerPriority === filterPriority;
+
+				// Scope filter
+				const workerScope = protocol.value.raw.scope || "local";
+				const matchesScope = !filterScope || workerScope === filterScope;
+
+				return matchesSearch && matchesActive && matchesExecMode &&
+					matchesPriority && matchesScope;
+			})
+			.sort((a, b) => {
+				// Smart Sort: Local > Active > Date
+				if (sortOrder === "desc") {
+					// 1. Sort by scope (local first)
+					const scopeA = a.value.raw.scope || "local";
+					const scopeB = b.value.raw.scope || "local";
+					if (scopeA !== scopeB) {
+						return scopeA === "local" ? -1 : 1;
+					}
+
+					// 2. Sort by active status (active first)
+					const activeA = a.value.raw.active ? 1 : 0;
+					const activeB = b.value.raw.active ? 1 : 0;
+					if (activeA !== activeB) {
+						return activeB - activeA;
+					}
+
+					// 3. Sort by timestamp (newest first)
+					return b.value.raw.timestamp - a.value.raw.timestamp;
+				}
+
+				// Ascending: oldest first
+				return a.value.raw.timestamp - b.value.raw.timestamp;
+			});
+	}, [workers, searchTerm, filterActive, filterExecutionMode, filterPriority, filterScope, sortOrder]);
+
+	// Keyboard shortcuts for better usability
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent): void => {
-			// Check for Cmd+S (Mac) or Ctrl+S (Windows/Linux)
-			if ((e.metaKey || e.ctrlKey) && e.key === "s") {
-				e.preventDefault(); // Prevent browser's save dialog
-
-				// Only save if there are changes and a worker is selected
-				if (selectedWorker && (isEditing || isEditingNote || isEditingConfig)) {
-					handleSaveAll();
+			// Ignore shortcuts when typing in inputs/textarea
+			if (
+				e.target instanceof HTMLInputElement ||
+				e.target instanceof HTMLTextAreaElement ||
+				(e.target instanceof HTMLElement && e.target.isContentEditable)
+			) {
+				// Allow Cmd+S even in editor
+				if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+					e.preventDefault();
+					if (selectedWorker && (isEditing || isEditingNote || isEditingConfig)) {
+						handleSaveAll();
+					}
 				}
+				return;
+			}
+
+			const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+			const modKey = isMac ? e.metaKey : e.ctrlKey;
+
+			if (modKey) {
+				// Cmd/Ctrl + S: Save changes
+				if (e.key === "s" || e.key === "S") {
+					e.preventDefault();
+					if (selectedWorker && (isEditing || isEditingNote || isEditingConfig)) {
+						handleSaveAll();
+					}
+					return;
+				}
+
+				// Cmd/Ctrl + N: Create new worker
+				if (e.key === "n" || e.key === "N") {
+					e.preventDefault();
+					setShowCreateDialog(true);
+					return;
+				}
+
+				// Cmd/Ctrl + F: Focus search
+				if (e.key === "f" || e.key === "F") {
+					e.preventDefault();
+					const searchInput = document.querySelector<HTMLInputElement>(
+						'input[aria-label*="Search workers"]',
+					);
+					searchInput?.focus();
+					return;
+				}
+
+				// Cmd/Ctrl + K: Quick actions (toggle worker)
+				if (e.key === "k" || e.key === "K") {
+					e.preventDefault();
+					if (selectedWorker) {
+						handleToggleWorkerStatusClick(selectedWorker);
+					}
+					return;
+				}
+
+				// Cmd/Ctrl + 1-4: Switch tabs
+				if (e.key >= "1" && e.key <= "4") {
+					e.preventDefault();
+					const tabMap: Record<string, string> = {
+						"1": "code",
+						"2": "config",
+						"3": "prompts",
+						"4": "logs",
+					};
+					const tab = tabMap[e.key];
+					if (tab && selectedWorker) {
+						setActiveTab(tab);
+					}
+					return;
+				}
+			}
+
+			// Escape: Close dialogs
+			if (e.key === "Escape") {
+				if (showCreateDialog) {
+					setShowCreateDialog(false);
+					return;
+				}
+				if (showMigrateDialog) {
+					setShowMigrateDialog(false);
+					return;
+				}
+				if (showStopAllDialog) {
+					setShowStopAllDialog(false);
+					return;
+				}
+				if (showToggleConfirmDialog) {
+					setShowToggleConfirmDialog(false);
+					return;
+				}
+				if (showStatsPanel) {
+					setShowStatsPanel(false);
+					return;
+				}
+			}
+
+			// Arrow keys: Navigate worker list
+			if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+				if (filteredWorkers.length === 0) return;
+				e.preventDefault();
+				const currentIndex = selectedWorker
+					? filteredWorkers.findIndex(
+						(w) => w.value.raw.sid === selectedWorker.value.raw.sid,
+					)
+					: -1;
+				const nextIndex = e.key === "ArrowDown"
+					? (currentIndex + 1) % filteredWorkers.length
+					: currentIndex <= 0
+					? filteredWorkers.length - 1
+					: currentIndex - 1;
+				handleSelectWorker(filteredWorkers[nextIndex]);
+				return;
 			}
 		};
 
@@ -212,7 +463,19 @@ export function AMIEditor(): JSX.Element {
 			window.removeEventListener("keydown", handleKeyDown);
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedWorker, isEditing, isEditingNote, isEditingConfig]);
+	}, [
+		selectedWorker,
+		isEditing,
+		isEditingNote,
+		isEditingConfig,
+		filteredWorkers,
+		showCreateDialog,
+		showMigrateDialog,
+		showStopAllDialog,
+		showToggleConfirmDialog,
+		showStatsPanel,
+		activeTab,
+	]);
 
 	const handleCreateWorker = async (
 		request: WorkerCreateRequest,
@@ -263,6 +526,7 @@ export function AMIEditor(): JSX.Element {
 			setIsEditingNote(false);
 			setIsEditingConfig(false);
 			setNewlyCreatedWorker(newWorker.value.raw.sid);
+			toast.success("Worker created successfully", `ID: ${newWorker.value.raw.sid}`);
 		}
 	};
 
@@ -423,15 +687,44 @@ export function AMIEditor(): JSX.Element {
 		}
 	};
 
+	const handleToggleWorkerStatusClick = (worker?: Worker) => {
+		const targetWorker = worker || selectedWorker;
+		if (!targetWorker) return;
+		setSelectedWorker(targetWorker);
+		setShowToggleConfirmDialog(true);
+	};
+
 	const handleToggleWorkerStatus = async () => {
 		if (!selectedWorker) return;
-		setUpdating(true);
+		
+		// Optimistic update - update UI immediately
+		const previousState = selectedWorker.value.raw.active;
+		const optimisticWorker: Worker = {
+			...selectedWorker,
+			value: {
+				...selectedWorker.value,
+				raw: {
+					...selectedWorker.value.raw,
+					active: !previousState,
+				},
+			},
+		};
+		
+		// Update UI immediately
+		setSelectedWorker(optimisticWorker);
+		setWorkers((prev) =>
+			prev.map((w) =>
+				w.value.raw.sid === selectedWorker.value.raw.sid ? optimisticWorker : w
+			)
+		);
+		
+		setToggling(true);
 		try {
 			// API requires FULL raw object with ALL fields
 			const updatedRaw = {
 				sid: selectedWorker.value.raw.sid,
 				nid: selectedWorker.value.raw.nid,
-				active: !selectedWorker.value.raw.active,
+				active: !previousState,
 				mode: selectedWorker.value.raw.mode || "loop",
 				scope: selectedWorker.value.raw.scope || "local",
 				executionMode: selectedWorker.value.raw.executionMode ||
@@ -461,10 +754,22 @@ export function AMIEditor(): JSX.Element {
 				);
 				setSelectedWorker(result);
 			}
-		} catch {
-			// Error handled silently
+		} catch (error) {
+			// Revert optimistic update on error
+			setSelectedWorker(selectedWorker);
+			setWorkers((prev) =>
+				prev.map((w) =>
+					w.value.raw.sid === selectedWorker.value.raw.sid ? selectedWorker : w
+				)
+			);
+			
+			console.error("Failed to toggle worker status:", error);
+			toast.error(
+				"Failed to toggle worker status",
+				error instanceof Error ? error.message : "Unknown error occurred",
+			);
 		} finally {
-			setUpdating(false);
+			setToggling(false);
 		}
 	};
 
@@ -488,7 +793,39 @@ export function AMIEditor(): JSX.Element {
 			return;
 		}
 
-		setUpdating(true);
+		// Validate dependencies
+		const depsValidation = validateDependencies(currentConfig.dependencies);
+		if (!depsValidation.valid) {
+			setValidationError(depsValidation.error || "Invalid dependencies");
+			return;
+		}
+
+		// Validate version
+		const versionValidation = validateVersion(currentConfig.version);
+		if (!versionValidation.valid) {
+			setValidationError(versionValidation.error || "Invalid version");
+			return;
+		}
+
+		// Validate node ID if provided
+		if (currentConfig.nid) {
+			const nidValidation = validateNodeId(currentConfig.nid);
+			if (!nidValidation.valid) {
+				setValidationError(nidValidation.error || "Invalid node ID");
+				return;
+			}
+		}
+
+		// Validate account ID if provided
+		if (currentConfig.accountId) {
+			const accountValidation = validateAccountId(currentConfig.accountId);
+			if (!accountValidation.valid) {
+				setValidationError(accountValidation.error || "Invalid account ID");
+				return;
+			}
+		}
+
+		setSaving(true);
 		try {
 			// API requires FULL raw object with ALL fields (not partial update)
 			const updatedRaw = {
@@ -560,11 +897,19 @@ export function AMIEditor(): JSX.Element {
 				setIsEditingNote(false);
 				setIsEditingConfig(false);
 				setValidationError(null);
+				toast.success("Worker saved successfully");
+			} else {
+				toast.error("Failed to save worker", "No response from server");
 			}
-		} catch {
-			// Error handled silently
+		} catch (error) {
+			console.error("Failed to save worker:", error);
+			const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+			toast.error(
+				"Failed to save worker",
+				`${errorMessage}. Please check your connection and try again.`,
+			);
 		} finally {
-			setUpdating(false);
+			setSaving(false);
 		}
 	};
 
@@ -580,7 +925,12 @@ export function AMIEditor(): JSX.Element {
 			await loadWorkers();
 
 			return result;
-		} catch {
+		} catch (error) {
+			console.error("Failed to stop all workers:", error);
+			toast.error(
+				"Failed to stop all workers",
+				error instanceof Error ? error.message : "Unknown error occurred",
+			);
 
 			throw error;
 		}
@@ -595,9 +945,17 @@ export function AMIEditor(): JSX.Element {
 				// Add to workers list
 				setWorkers((prev) => [migratedWorker, ...prev]);
 				setNewlyCreatedWorker(migratedWorker.value.raw.sid);
+				setSelectedWorker(migratedWorker); // Auto-select migrated worker
+				toast.success("Worker migrated successfully", `New ID: ${migratedWorker.value.raw.sid}`);
 			}
 			return migratedWorker;
-		} catch {
+		} catch (error) {
+			console.error("Failed to migrate worker:", error);
+			const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+			toast.error(
+				"Failed to migrate worker",
+				`${errorMessage}. Ensure the worker is stopped and network is available.`,
+			);
 
 			throw error;
 		}
@@ -617,70 +975,6 @@ export function AMIEditor(): JSX.Element {
 		}
 	};
 
-	const filteredWorkers = workers
-		.filter((protocol) => {
-			// Search filter
-			const matchesSearch = !searchTerm ||
-				protocol.value.raw.note.toLowerCase().includes(
-					searchTerm.toLowerCase(),
-				) ||
-				protocol.value.raw.sid.toLowerCase().includes(
-					searchTerm.toLowerCase(),
-				) ||
-				protocol.value.raw.nid.toLowerCase().includes(
-					searchTerm.toLowerCase(),
-				) ||
-				protocol.value.raw.version.toLowerCase().includes(
-					searchTerm.toLowerCase(),
-				);
-
-			// Active status filter
-			const matchesActive = filterActive === null ||
-				protocol.value.raw.active === filterActive;
-
-			// Execution mode filter
-			const workerExecMode = protocol.value.raw.executionMode ||
-				"parallel";
-			const matchesExecMode = !filterExecutionMode ||
-				workerExecMode === filterExecutionMode;
-
-			// Priority filter
-			const workerPriority = protocol.value.raw.priority || "normal";
-			const matchesPriority = !filterPriority ||
-				workerPriority === filterPriority;
-
-			// Scope filter
-			const workerScope = protocol.value.raw.scope || "local";
-			const matchesScope = !filterScope || workerScope === filterScope;
-
-			return matchesSearch && matchesActive && matchesExecMode &&
-				matchesPriority && matchesScope;
-		})
-		.sort((a, b) => {
-			// Smart Sort: Local > Active > Date
-			if (sortOrder === "desc") {
-				// 1. Sort by scope (local first)
-				const scopeA = a.value.raw.scope || "local";
-				const scopeB = b.value.raw.scope || "local";
-				if (scopeA !== scopeB) {
-					return scopeA === "local" ? -1 : 1;
-				}
-
-				// 2. Sort by active status (active first)
-				const activeA = a.value.raw.active ? 1 : 0;
-				const activeB = b.value.raw.active ? 1 : 0;
-				if (activeA !== activeB) {
-					return activeB - activeA;
-				}
-
-				// 3. Sort by timestamp (newest first)
-				return b.value.raw.timestamp - a.value.raw.timestamp;
-			}
-
-			// Ascending: oldest first
-			return a.value.raw.timestamp - b.value.raw.timestamp;
-		});
-
 	const getTimeAgo = (timestamp: number) => {
 		const minutes = Math.floor((Date.now() - timestamp) / 1000 / 60);
 		if (minutes < 60) return `${minutes}m`;
@@ -692,38 +986,42 @@ export function AMIEditor(): JSX.Element {
 
 	if (mobile) {
 		return (
-			<div className="h-full bg-background p-4 flex items-center justify-center">
-				<div className="text-center max-w-sm mx-auto">
-					<div className="w-16 h-16 bg-card rounded flex items-center justify-center mb-4 mx-auto">
-						<Code className="w-8 h-8 text-amber-700 dark:text-amber-400" />
+			<div className="h-full bg-gradient-to-br from-background via-muted/10 to-background p-4 flex items-center justify-center">
+				<div className="text-center max-w-sm mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+					<div className="relative mb-4 mx-auto w-20 h-20">
+						{/* Animated background */}
+						<div className="absolute inset-0 bg-amber-500/10 rounded-lg animate-pulse" />
+						<div className="relative w-16 h-16 bg-card rounded-lg flex items-center justify-center border border-amber-500/20 shadow-lg">
+							<Code className="w-8 h-8 text-amber-700 dark:text-amber-400 transition-transform duration-300" />
+						</div>
 					</div>
-					<h2 className="text-amber-700 dark:text-amber-400 font-mono text-lg font-bold mb-2">
+					<h2 className="text-amber-700 dark:text-amber-400 font-mono text-lg font-bold mb-2 animate-in fade-in duration-700">
 						PROTOCOL EDITOR
 					</h2>
-					<p className="text-muted-foreground font-mono text-sm mb-6">
+					<p className="text-muted-foreground font-mono text-sm mb-6 animate-in fade-in duration-700" style={{ animationDelay: "100ms" }}>
 						Desktop interface required
 					</p>
-					<div className="p-4 bg-card/10 border border-border rounded text-left">
-						<p className="text-xs text-muted-foreground mb-3">
+					<div className="p-4 bg-card/50 border border-border rounded-lg text-left shadow-sm animate-in fade-in duration-700" style={{ animationDelay: "200ms" }}>
+						<p className="text-xs text-muted-foreground mb-3 font-semibold">
 							The Protocol Editor requires a desktop display for optimal
 							workflow:
 						</p>
 						<ul className="text-xs text-muted-foreground space-y-2">
-							<li className="flex items-start gap-2">
-								<span className="text-amber-500">•</span>
-								<span>Monaco code editor with syntax highlighting</span>
+							<li className="flex items-start gap-2 transition-colors duration-200 hover:text-foreground">
+								<span className="text-amber-500 mt-0.5">•</span>
+								<span>Monaco Editor with syntax highlighting</span>
 							</li>
-							<li className="flex items-start gap-2">
-								<span className="text-amber-500">•</span>
+							<li className="flex items-start gap-2 transition-colors duration-200 hover:text-foreground">
+								<span className="text-amber-500 mt-0.5">•</span>
 								<span>Split-panel layout for code and worker list</span>
 							</li>
-							<li className="flex items-start gap-2">
-								<span className="text-amber-500">•</span>
+							<li className="flex items-start gap-2 transition-colors duration-200 hover:text-foreground">
+								<span className="text-amber-500 mt-0.5">•</span>
 								<span>Real-time execution logs and statistics</span>
 							</li>
 						</ul>
 					</div>
-					<p className="text-xs text-muted-foreground mt-4">
+					<p className="text-xs text-muted-foreground mt-4 animate-in fade-in duration-700" style={{ animationDelay: "300ms" }}>
 						Please open STELS on a desktop browser to access the Protocol Editor
 					</p>
 				</div>
@@ -738,9 +1036,9 @@ export function AMIEditor(): JSX.Element {
 					<div className="relative mb-6">
 						<div className="w-16 h-16 border-4 border-border border-t-amber-400 rounded-full animate-spin mx-auto">
 						</div>
-						<Cpu className="w-6 h-6 text-amber-700 dark:text-amber-700 dark:text-amber-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+						<Cpu className="w-6 h-6 text-amber-700 dark:text-amber-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
 					</div>
-					<div className="text-amber-700 dark:text-amber-700 dark:text-amber-400 font-mono text-sm font-bold">
+					<div className="text-amber-700 dark:text-amber-400 font-mono text-sm font-bold">
 						LOADING PROTOCOL REGISTRY
 					</div>
 				</div>
@@ -759,13 +1057,13 @@ export function AMIEditor(): JSX.Element {
 					gutterSize={2}
 				>
 					{/* Left Panel - Workers Registry */}
-					<div className="h-full bg-card flex flex-col overflow-hidden">
+					<div className="h-full bg-card flex flex-col overflow-hidden" role="complementary" aria-labelledby="registry-header">
 						{/* Header - Compact */}
 						<div className="px-3 py-2 border-b border-border bg-card">
 							<div className="flex items-center justify-between mb-2">
 								<div className="flex items-center gap-2">
-									<Database className="w-3.5 h-3.5 text-amber-700 dark:text-amber-700 dark:text-amber-400" />
-									<h2 className="text-amber-700 dark:text-amber-700 dark:text-amber-400 font-mono text-xs font-bold uppercase tracking-wide">
+									<Database className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
+													<h2 className="text-amber-700 dark:text-amber-400 font-mono text-xs font-bold uppercase tracking-wide" id="registry-header">
 										Protocol Registry
 									</h2>
 								</div>
@@ -795,7 +1093,7 @@ export function AMIEditor(): JSX.Element {
 													onClick={() => setShowStopAllDialog(true)}
 													disabled={workers.filter((w) => w.value.raw.active)
 														.length === 0}
-													className="h-6 w-6 p-0 text-red-700 dark:text-red-700 dark:text-red-400 hover:text-red-800 dark:text-red-300"
+													className="h-6 w-6 p-0 text-red-700 dark:text-red-400 hover:text-red-800 dark:text-red-300"
 												>
 													<Square className="w-3.5 h-3.5" />
 												</Button>
@@ -832,29 +1130,38 @@ export function AMIEditor(): JSX.Element {
 							<div className="space-y-1">
 								{/* Search */}
 								<div className="relative">
-									<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-muted-foreground" />
+									<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-muted-foreground transition-colors duration-200" />
 									<Input
-										placeholder="Search workers..."
+										placeholder="Search workers... (⌘F)"
 										value={searchTerm}
 										onChange={(e) => setSearchTerm(e.target.value)}
-										className="pl-7 pr-7 bg-input border-border text-foreground placeholder:text-muted-foreground h-6 text-[11px] focus:border-amber-500 focus:ring-amber-500/20"
+										className="pl-7 pr-7 bg-input border-border text-foreground placeholder:text-muted-foreground h-6 text-[11px] focus:border-amber-500 focus:ring-amber-500/20 transition-all duration-200 hover:border-amber-500/50"
+										aria-label="Search workers by ID, note, or version"
 									/>
 									{searchTerm && (
 										<Button
 											size="sm"
 											variant="ghost"
-											className="absolute right-1 top-1/2 transform -translate-y-1/2 h-4 w-4 p-0 text-muted-foreground hover:text-foreground"
+											className="absolute right-1 top-1/2 transform -translate-y-1/2 h-4 w-4 p-0 text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-110 hover:bg-muted/50"
 											onClick={() => setSearchTerm("")}
+											title="Clear search (Esc)"
 										>
-											<X className="w-3 h-3" />
+											<X className="w-3 h-3 transition-transform duration-200 group-hover:rotate-90" />
 										</Button>
+									)}
+									{!searchTerm && (
+										<div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+											<kbd className="px-1 py-0.5 text-[9px] bg-muted/50 rounded border border-border/50 text-muted-foreground">
+												⌘F
+											</kbd>
+										</div>
 									)}
 								</div>
 
 								{/* Professional Filters */}
 								<div className="flex items-center gap-1.5 flex-wrap">
 									{/* Status Filter */}
-									<div className="flex items-center gap-0.5 bg-muted/30 rounded px-1 py-0.5">
+									<div className="flex items-center gap-0.5 bg-muted/30 rounded-lg px-1 py-0.5 border border-border/50">
 										<span className="text-[9px] text-muted-foreground uppercase font-semibold mr-0.5">
 											Status
 										</span>
@@ -862,10 +1169,10 @@ export function AMIEditor(): JSX.Element {
 											size="sm"
 											variant="ghost"
 											onClick={() => setFilterActive(null)}
-											className={`h-5 px-1.5 text-[10px] ${
+											className={`h-5 px-1.5 text-[10px] transition-all duration-200 ${
 												filterActive === null
-													? "bg-card text-foreground"
-													: "text-muted-foreground hover:text-foreground"
+													? "bg-card text-foreground shadow-sm"
+													: "text-muted-foreground hover:text-foreground hover:bg-muted/50"
 											}`}
 										>
 											All
@@ -874,32 +1181,32 @@ export function AMIEditor(): JSX.Element {
 											size="sm"
 											variant="ghost"
 											onClick={() => setFilterActive(true)}
-											className={`h-5 px-1.5 text-[10px] ${
+											className={`h-5 px-1.5 text-[10px] transition-all duration-200 hover:scale-105 ${
 												filterActive === true
-													? "bg-green-500/20 text-green-700 dark:text-green-700 dark:text-green-600"
-													: "text-muted-foreground hover:text-green-700 dark:text-green-700 dark:text-green-600"
+													? "bg-green-500/20 text-green-700 dark:text-green-600 shadow-sm"
+													: "text-muted-foreground hover:text-green-700 dark:text-green-600 hover:bg-green-500/10"
 											}`}
 										>
-											<Play className="w-2.5 h-2.5 mr-0.5" />
+											<Play className="w-2.5 h-2.5 mr-0.5 transition-transform duration-200 group-hover:scale-110" />
 											Active
 										</Button>
 										<Button
 											size="sm"
 											variant="ghost"
 											onClick={() => setFilterActive(false)}
-											className={`h-5 px-1.5 text-[10px] ${
+											className={`h-5 px-1.5 text-[10px] transition-all duration-200 hover:scale-105 ${
 												filterActive === false
-													? "bg-red-500/20 text-red-700 dark:text-red-700 dark:text-red-400"
-													: "text-muted-foreground hover:text-red-700 dark:text-red-700 dark:text-red-400"
+													? "bg-red-500/20 text-red-700 dark:text-red-400 shadow-sm"
+													: "text-muted-foreground hover:text-red-700 dark:text-red-400 hover:bg-red-500/10"
 											}`}
 										>
-											<Square className="w-2.5 h-2.5 mr-0.5" />
+											<Square className="w-2.5 h-2.5 mr-0.5 transition-transform duration-200 group-hover:scale-110" />
 											Stopped
 										</Button>
 									</div>
 
 									{/* Scope Filter */}
-									<div className="flex items-center gap-0.5 bg-muted/30 rounded px-1 py-0.5">
+									<div className="flex items-center gap-0.5 bg-muted/30 rounded-lg px-1 py-0.5 border border-border/50">
 										<span className="text-[9px] text-muted-foreground uppercase font-semibold mr-0.5">
 											Scope
 										</span>
@@ -907,10 +1214,10 @@ export function AMIEditor(): JSX.Element {
 											size="sm"
 											variant="ghost"
 											onClick={() => setFilterScope(null)}
-											className={`h-5 px-1.5 text-[10px] ${
+											className={`h-5 px-1.5 text-[10px] transition-all duration-200 ${
 												filterScope === null
-													? "bg-card text-foreground"
-													: "text-muted-foreground hover:text-foreground"
+													? "bg-card text-foreground shadow-sm"
+													: "text-muted-foreground hover:text-foreground hover:bg-muted/50"
 											}`}
 										>
 											All
@@ -919,32 +1226,32 @@ export function AMIEditor(): JSX.Element {
 											size="sm"
 											variant="ghost"
 											onClick={() => setFilterScope("local")}
-											className={`h-5 px-1.5 text-[10px] ${
+											className={`h-5 px-1.5 text-[10px] transition-all duration-200 hover:scale-105 ${
 												filterScope === "local"
-													? "bg-blue-500/20 text-blue-700 dark:text-blue-700 dark:text-blue-400"
-													: "text-muted-foreground hover:text-blue-700 dark:text-blue-700 dark:text-blue-400"
+													? "bg-blue-500/20 text-blue-700 dark:text-blue-400 shadow-sm"
+													: "text-muted-foreground hover:text-blue-700 dark:text-blue-400 hover:bg-blue-500/10"
 											}`}
 										>
-											<Server className="w-2.5 h-2.5 mr-0.5" />
+											<Server className="w-2.5 h-2.5 mr-0.5 transition-transform duration-200 group-hover:scale-110" />
 											Local
 										</Button>
 										<Button
 											size="sm"
 											variant="ghost"
 											onClick={() => setFilterScope("network")}
-											className={`h-5 px-1.5 text-[10px] ${
+											className={`h-5 px-1.5 text-[10px] transition-all duration-200 hover:scale-105 ${
 												filterScope === "network"
-													? "bg-green-500/20 text-green-700 dark:text-green-700 dark:text-green-600"
-													: "text-muted-foreground hover:text-green-700 dark:text-green-700 dark:text-green-600"
+													? "bg-green-500/20 text-green-700 dark:text-green-600 shadow-sm"
+													: "text-muted-foreground hover:text-green-700 dark:text-green-600 hover:bg-green-500/10"
 											}`}
 										>
-											<Globe className="w-2.5 h-2.5 mr-0.5" />
+											<Globe className="w-2.5 h-2.5 mr-0.5 transition-transform duration-200 group-hover:scale-110" />
 											Network
 										</Button>
 									</div>
 
 									{/* Execution Mode Filter */}
-									<div className="flex items-center gap-0.5 bg-muted/30 rounded px-1 py-0.5">
+									<div className="flex items-center gap-0.5 bg-muted/30 rounded-lg px-1 py-0.5 border border-border/50">
 										<span className="text-[9px] text-muted-foreground uppercase font-semibold mr-0.5">
 											Mode
 										</span>
@@ -952,10 +1259,10 @@ export function AMIEditor(): JSX.Element {
 											size="sm"
 											variant="ghost"
 											onClick={() => setFilterExecutionMode(null)}
-											className={`h-5 px-1.5 text-[10px] ${
+											className={`h-5 px-1.5 text-[10px] transition-all duration-200 ${
 												filterExecutionMode === null
-													? "bg-card text-foreground"
-													: "text-muted-foreground hover:text-foreground"
+													? "bg-card text-foreground shadow-sm"
+													: "text-muted-foreground hover:text-foreground hover:bg-muted/50"
 											}`}
 										>
 											All
@@ -964,39 +1271,39 @@ export function AMIEditor(): JSX.Element {
 											size="sm"
 											variant="ghost"
 											onClick={() => setFilterExecutionMode("leader")}
-											className={`h-5 px-1.5 text-[10px] ${
+											className={`h-5 px-1.5 text-[10px] transition-all duration-200 hover:scale-105 ${
 												filterExecutionMode === "leader"
-													? "bg-amber-500/20 text-amber-700 dark:text-amber-700 dark:text-amber-400"
-													: "text-muted-foreground hover:text-amber-700 dark:text-amber-700 dark:text-amber-400"
+													? "bg-amber-500/20 text-amber-700 dark:text-amber-400 shadow-sm"
+													: "text-muted-foreground hover:text-amber-700 dark:text-amber-400 hover:bg-amber-500/10"
 											}`}
 										>
-											<Crown className="w-2.5 h-2.5 mr-0.5" />
+											<Crown className="w-2.5 h-2.5 mr-0.5 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12" />
 											Leader
 										</Button>
 										<Button
 											size="sm"
 											variant="ghost"
 											onClick={() => setFilterExecutionMode("parallel")}
-											className={`h-5 px-1.5 text-[10px] ${
+											className={`h-5 px-1.5 text-[10px] transition-all duration-200 hover:scale-105 ${
 												filterExecutionMode === "parallel"
-													? "bg-blue-500/20 text-blue-700 dark:text-blue-700 dark:text-blue-400"
-													: "text-muted-foreground hover:text-blue-700 dark:text-blue-700 dark:text-blue-400"
+													? "bg-blue-500/20 text-blue-700 dark:text-blue-400 shadow-sm"
+													: "text-muted-foreground hover:text-blue-700 dark:text-blue-400 hover:bg-blue-500/10"
 											}`}
 										>
-											<Cpu className="w-2.5 h-2.5 mr-0.5" />
+											<Cpu className="w-2.5 h-2.5 mr-0.5 transition-transform duration-200 group-hover:scale-110" />
 											Parallel
 										</Button>
 										<Button
 											size="sm"
 											variant="ghost"
 											onClick={() => setFilterExecutionMode("exclusive")}
-											className={`h-5 px-1.5 text-[10px] ${
+											className={`h-5 px-1.5 text-[10px] transition-all duration-200 hover:scale-105 ${
 												filterExecutionMode === "exclusive"
-													? "bg-purple-500/20 text-purple-700 dark:text-purple-700 dark:text-purple-400"
-													: "text-muted-foreground hover:text-purple-700 dark:text-purple-700 dark:text-purple-400"
+													? "bg-purple-500/20 text-purple-700 dark:text-purple-400 shadow-sm"
+													: "text-muted-foreground hover:text-purple-700 dark:text-purple-400 hover:bg-purple-500/10"
 											}`}
 										>
-											<Zap className="w-2.5 h-2.5 mr-0.5" />
+											<Zap className="w-2.5 h-2.5 mr-0.5 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12" />
 											Exclusive
 										</Button>
 									</div>
@@ -1010,14 +1317,14 @@ export function AMIEditor(): JSX.Element {
 											variant="ghost"
 											onClick={() =>
 												setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-											className="h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground"
+											className="h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-105 hover:bg-muted/50"
 											title={sortOrder === "asc"
 												? "Oldest first"
 												: "Newest first"}
 										>
 											{sortOrder === "asc"
-												? <ArrowUp className="w-3 h-3" />
-												: <ArrowDown className="w-3 h-3" />}
+												? <ArrowUp className="w-3 h-3 transition-transform duration-200 group-hover:-translate-y-0.5" />
+												: <ArrowDown className="w-3 h-3 transition-transform duration-200 group-hover:translate-y-0.5" />}
 										</Button>
 
 										{(searchTerm || filterActive !== null ||
@@ -1026,7 +1333,7 @@ export function AMIEditor(): JSX.Element {
 											<Button
 												size="sm"
 												variant="ghost"
-												className="h-6 px-2 text-[10px] text-muted-foreground hover:text-amber-700 dark:text-amber-700 dark:text-amber-400"
+												className="h-6 px-2 text-[10px] text-muted-foreground hover:text-amber-700 dark:text-amber-400"
 												onClick={() => {
 													setSearchTerm("");
 													setFilterActive(null);
@@ -1041,7 +1348,7 @@ export function AMIEditor(): JSX.Element {
 											</Button>
 										)}
 
-										<div className="text-[10px] text-amber-700 dark:text-amber-700 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded font-mono">
+										<div className="text-[10px] text-amber-700 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded font-mono">
 											{filteredWorkers.length}/{workers.length}
 										</div>
 									</div>
@@ -1050,9 +1357,64 @@ export function AMIEditor(): JSX.Element {
 						</div>
 
 						{/* Workers List - File System Style */}
-						<ScrollArea className="flex-1 overflow-y-auto">
+						<ScrollArea className="flex-1 overflow-y-auto" role="list" aria-label="Workers list">
 							<div className="py-1">
-								{filteredWorkers.map((protocol, index) => {
+								{loading ? (
+									// Skeleton loaders with stagger animation
+									<div className="space-y-1">
+										{Array.from({ length: 5 }).map((_, i) => (
+											<div
+												key={i}
+												className="px-2 py-1.5 animate-in fade-in slide-in-from-left-4"
+												style={{
+													animationDelay: `${i * 50}ms`,
+													animationDuration: "300ms",
+												}}
+											>
+												<div className="flex items-center gap-1.5">
+													<Skeleton className="w-4 h-4 rounded" />
+													<Skeleton className="h-4 flex-1 max-w-[200px]" />
+													<Skeleton className="h-3 w-6 rounded" />
+													<Skeleton className="h-3 w-6 rounded ml-auto" />
+												</div>
+												<Skeleton className="h-3 w-32 ml-5 mt-0.5" />
+											</div>
+										))}
+									</div>
+								) : filteredWorkers.length === 0 ? (
+									// Empty state with beautiful design
+									<div className="flex flex-col items-center justify-center py-12 px-4">
+										<div className="relative mb-4">
+											<div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center">
+												<FileCode className="w-8 h-8 text-muted-foreground/50" />
+											</div>
+											<div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500/20 rounded-full border-2 border-background animate-pulse" />
+										</div>
+										<h3 className="text-sm font-semibold text-foreground mb-1">
+											No workers found
+										</h3>
+										<p className="text-xs text-muted-foreground text-center max-w-xs mb-4">
+											{searchTerm || filterActive !== null ||
+												filterExecutionMode || filterPriority ||
+												filterScope !== "local"
+												? "Try adjusting your filters or search terms"
+												: "Create your first worker to get started"}
+										</p>
+										{!searchTerm && filterActive === null &&
+											!filterExecutionMode && !filterPriority &&
+											filterScope === "local" && (
+											<Button
+												onClick={() => setShowCreateDialog(true)}
+												size="sm"
+												className="bg-amber-500 hover:bg-amber-600 text-black font-bold transition-all duration-200 hover:scale-105"
+											>
+												<Plus className="w-3 h-3 mr-1" />
+												Create Worker
+											</Button>
+										)}
+									</div>
+								) : (
+									filteredWorkers.map((protocol, index) => {
 									const isNewlyCreated =
 										newlyCreatedWorker === protocol.value.raw.sid;
 									const isSelected =
@@ -1071,14 +1433,30 @@ export function AMIEditor(): JSX.Element {
 									return (
 										<div
 											key={uniqueKey}
-											className={`group flex flex-col px-2 py-1.5 cursor-pointer transition-colors ${
+											role="listitem"
+											aria-selected={isSelected}
+											aria-label={`Worker ${protocol.value.raw.sid}${protocol.value.raw.active ? ", active" : ", stopped"}`}
+											className={`group flex flex-col px-2 py-1.5 cursor-pointer transition-all duration-200 ease-out ${
 												isSelected
-													? "bg-amber-500/20"
+													? "bg-amber-500/20 border-l-2 border-amber-500 shadow-sm"
 													: isNewlyCreated
-													? "bg-green-500/10 animate-pulse"
-													: "hover:bg-muted/50"
+													? "bg-green-500/10 animate-pulse border-l-2 border-green-500"
+													: "hover:bg-muted/50 hover:border-l-2 hover:border-muted-foreground/30 hover:shadow-sm"
 											}`}
 											onClick={() => handleSelectWorker(protocol)}
+											onKeyDown={(e) => {
+												if (e.key === "Enter" || e.key === " ") {
+													e.preventDefault();
+													handleSelectWorker(protocol);
+												}
+												// Delete key to show delete option (future feature)
+												if (e.key === "Delete" || e.key === "Backspace") {
+													e.preventDefault();
+													// Could add delete confirmation here
+												}
+											}}
+											tabIndex={0}
+											title={`${protocol.value.raw.sid} - ${protocol.value.raw.active ? "Active" : "Stopped"} - Press Enter to select, Arrow keys to navigate`}
 										>
 											{/* Main row */}
 											<div className="flex items-center gap-1.5">
@@ -1089,9 +1467,9 @@ export function AMIEditor(): JSX.Element {
 															isNewlyCreated
 																? "text-green-700 dark:text-green-700 dark:text-green-600"
 																: isSelected
-																? "text-amber-700 dark:text-amber-700 dark:text-amber-400"
+																? "text-amber-700 dark:text-amber-400"
 																: protocol.value.raw.active
-																? "text-blue-700 dark:text-blue-700 dark:text-blue-400"
+																? "text-blue-700 dark:text-blue-400"
 																: "text-muted-foreground"
 														}`}
 													/>
@@ -1110,10 +1488,10 @@ export function AMIEditor(): JSX.Element {
 													<span
 														className={`font-mono text-[11px] font-semibold truncate ${
 															isSelected
-																? "text-amber-700 dark:text-amber-700 dark:text-amber-400"
+																? "text-amber-700 dark:text-amber-400"
 																: protocol.value.raw.active
 																? "text-green-700 dark:text-green-700 dark:text-green-600"
-																: "text-red-700 dark:text-red-700 dark:text-red-400"
+																: "text-red-700 dark:text-red-400"
 														}`}
 													>
 														{protocol.value.raw.sid}
@@ -1125,7 +1503,7 @@ export function AMIEditor(): JSX.Element {
 															className={`text-[8px] px-0.5 rounded ${
 																scope === "network"
 																	? "bg-green-500/20 text-green-700 dark:text-green-700 dark:text-green-600"
-																	: "bg-blue-500/20 text-blue-700 dark:text-blue-700 dark:text-blue-400"
+																	: "bg-blue-500/20 text-blue-700 dark:text-blue-400"
 															}`}
 															title={scope}
 														>
@@ -1134,10 +1512,10 @@ export function AMIEditor(): JSX.Element {
 														<span
 															className={`text-[8px] px-0.5 rounded ${
 																execMode === "leader"
-																	? "bg-amber-500/20 text-amber-700 dark:text-amber-700 dark:text-amber-400"
+																	? "bg-amber-500/20 text-amber-700 dark:text-amber-400"
 																	: execMode === "parallel"
-																	? "bg-blue-500/20 text-blue-700 dark:text-blue-700 dark:text-blue-400"
-																	: "bg-purple-500/20 text-purple-700 dark:text-purple-700 dark:text-purple-400"
+																	? "bg-blue-500/20 text-blue-700 dark:text-blue-400"
+																	: "bg-purple-500/20 text-purple-700 dark:text-purple-400"
 															}`}
 															title={execMode}
 														>
@@ -1161,10 +1539,10 @@ export function AMIEditor(): JSX.Element {
 																e.stopPropagation();
 																handleOpenMigrateDialog(protocol);
 															}}
-															className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-green-700 dark:text-green-700 dark:text-green-600"
+															className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-all duration-200 text-muted-foreground hover:text-green-700 dark:text-green-700 dark:text-green-600 hover:scale-110 hover:bg-green-500/10"
 															title="Migrate to network"
 														>
-															<Upload className="w-2.5 h-2.5" />
+															<Upload className="w-2.5 h-2.5 transition-transform duration-200 group-hover:translate-y-[-2px]" />
 														</Button>
 													)}
 
@@ -1185,22 +1563,25 @@ export function AMIEditor(): JSX.Element {
 											)}
 										</div>
 									);
-								})}
+								})
+								)}
 							</div>
 						</ScrollArea>
 
 						{/* Footer - File System Style */}
-						<div className="px-2 py-1 border-t border-border bg-card/10">
+						<div className="px-2 py-1 border-t border-border bg-card/10 backdrop-blur-sm">
 							<div className="flex items-center justify-between text-[9px] font-mono text-muted-foreground">
-								<span>
+								<span className="transition-colors duration-200">
 									{filteredWorkers.length} items
 								</span>
 								<div className="flex items-center gap-2">
-									<span className="text-green-700 dark:text-green-700 dark:text-green-600">
+									<span className="text-green-700 dark:text-green-600 transition-colors duration-200 flex items-center gap-1">
+										<div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse shadow-sm shadow-green-400/50" />
 										{workers.filter((w) => w.value.raw.active).length} active
 									</span>
-									<span>•</span>
-									<span className="text-red-700 dark:text-red-700 dark:text-red-400">
+									<span className="text-muted-foreground/50">•</span>
+									<span className="text-red-700 dark:text-red-400 transition-colors duration-200 flex items-center gap-1">
+										<div className="w-1.5 h-1.5 bg-red-400 rounded-full shadow-sm shadow-red-400/30" />
 										{workers.filter((w) => !w.value.raw.active).length} stopped
 									</span>
 								</div>
@@ -1214,13 +1595,21 @@ export function AMIEditor(): JSX.Element {
 							? (
 								<div className="h-full flex flex-col">
 									{/* Editor Header - Compact */}
-									<div className="bg-card border-b border-border px-3 py-2">
+									<div className="bg-card border-b border-border px-3 py-2 shadow-sm">
+										{(isEditing || isEditingNote || isEditingConfig) && (
+											<div className="absolute top-2 right-2 z-10">
+												<div className="flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 border border-amber-500/30 rounded text-[10px] text-amber-700 dark:text-amber-400 font-mono">
+													<div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+													<span>Unsaved changes</span>
+												</div>
+											</div>
+										)}
 										<div className="flex items-center justify-between">
 											<div className="flex items-center gap-2 flex-1 min-w-0">
-												<div className="relative w-7 h-7 bg-muted rounded flex items-center justify-center flex-shrink-0">
-													<Terminal className="w-3.5 h-3.5 text-amber-700 dark:text-amber-700 dark:text-amber-400" />
+												<div className="relative w-7 h-7 bg-muted rounded flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:bg-muted/80 hover:scale-105">
+													<Terminal className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 transition-transform duration-200" />
 													{selectedWorker.value.raw.active && (
-														<div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+														<div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-sm shadow-green-400/50" />
 													)}
 												</div>
 												<div className="flex-1 min-w-0">
@@ -1243,7 +1632,7 @@ export function AMIEditor(): JSX.Element {
 																		className={`text-[9px] px-1 py-0.5 rounded font-mono ${
 																			scope === "network"
 																				? "bg-green-500/10 text-green-700 dark:text-green-700 dark:text-green-600"
-																				: "bg-blue-500/10 text-blue-700 dark:text-blue-700 dark:text-blue-400"
+																				: "bg-blue-500/10 text-blue-700 dark:text-blue-400"
 																		}`}
 																	>
 																		{scope === "network" ? "NET" : "LOC"}
@@ -1251,10 +1640,10 @@ export function AMIEditor(): JSX.Element {
 																	<span
 																		className={`text-[9px] px-1 py-0.5 rounded font-mono ${
 																			execMode === "leader"
-																				? "bg-amber-500/10 text-amber-700 dark:text-amber-700 dark:text-amber-400"
+																				? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
 																				: execMode === "parallel"
-																				? "bg-blue-500/10 text-blue-700 dark:text-blue-700 dark:text-blue-400"
-																				: "bg-purple-500/10 text-purple-700 dark:text-purple-700 dark:text-purple-400"
+																				? "bg-blue-500/10 text-blue-700 dark:text-blue-400"
+																				: "bg-purple-500/10 text-purple-700 dark:text-purple-400"
 																		}`}
 																	>
 																		{execMode === "leader"
@@ -1266,12 +1655,12 @@ export function AMIEditor(): JSX.Element {
 																	<span
 																		className={`text-[9px] px-1 py-0.5 rounded font-mono ${
 																			priority === "critical"
-																				? "bg-red-500/10 text-red-700 dark:text-red-700 dark:text-red-400"
+																				? "bg-red-500/10 text-red-700 dark:text-red-400"
 																				: priority === "high"
-																				? "bg-orange-500/10 text-orange-700 dark:text-orange-700 dark:text-orange-400"
+																				? "bg-orange-500/10 text-orange-700 dark:text-orange-400"
 																				: priority === "normal"
 																				? "bg-green-500/10 text-green-700 dark:text-green-700 dark:text-green-600"
-																				: "bg-blue-500/10 text-blue-700 dark:text-blue-700 dark:text-blue-400"
+																				: "bg-blue-500/10 text-blue-700 dark:text-blue-400"
 																		}`}
 																	>
 																		{priority === "critical"
@@ -1304,13 +1693,18 @@ export function AMIEditor(): JSX.Element {
 																		handleOpenMigrateDialog(selectedWorker)}
 																	size="sm"
 																	variant="ghost"
-																	className="h-6 w-6 p-0 text-blue-700 dark:text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:text-blue-300"
+																	className="h-6 w-6 p-0 text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:text-blue-300"
 																>
 																	<Upload className="w-3 h-3" />
 																</Button>
 															</TooltipTrigger>
 															<TooltipContent side="bottom">
-																Migrate to Network
+																<div className="space-y-1">
+																	<p className="font-semibold">Migrate to Network</p>
+																	<p className="text-xs text-muted-foreground">
+																		Create a network copy with new ID
+																	</p>
+																</div>
 															</TooltipContent>
 														</Tooltip>
 													)}
@@ -1319,16 +1713,16 @@ export function AMIEditor(): JSX.Element {
 													<Tooltip delayDuration={100}>
 														<TooltipTrigger asChild>
 															<Button
-																onClick={handleToggleWorkerStatus}
+																onClick={() => handleToggleWorkerStatusClick()}
 																size="sm"
-																disabled={updating}
-																className={`h-6 w-6 p-0 ${
-																	selectedWorker.value.raw.active
-																		? "bg-red-500 hover:bg-red-600 text-white dark:text-white"
-																		: "bg-green-500 hover:bg-green-600 text-white dark:text-white"
-																}`}
-															>
-																{updating
+																disabled={toggling}
+															className={`h-6 w-6 p-0 ${
+																selectedWorker.value.raw.active
+																	? "bg-red-500 hover:bg-red-600 text-white dark:text-white"
+																	: "bg-green-500 hover:bg-green-600 text-white dark:text-white"
+															}`}
+														>
+															{toggling
 																	? (
 																		<Settings className="animate-spin w-3 h-3" />
 																	)
@@ -1338,9 +1732,21 @@ export function AMIEditor(): JSX.Element {
 															</Button>
 														</TooltipTrigger>
 														<TooltipContent side="bottom">
-															{selectedWorker.value.raw.active
-																? "Stop Worker"
-																: "Start Worker"}
+															<div className="space-y-1">
+																<p className="font-semibold">
+																	{selectedWorker.value.raw.active
+																		? "Stop Worker"
+																		: "Start Worker"}
+																</p>
+																<p className="text-xs text-muted-foreground">
+																	{selectedWorker.value.raw.active
+																		? "Deactivate this worker"
+																		: "Activate this worker"}
+																</p>
+																<p className="text-xs text-muted-foreground mt-1 pt-1 border-t border-border">
+																	Shortcut: ⌘K
+																</p>
+															</div>
 														</TooltipContent>
 													</Tooltip>
 												</div>
@@ -1354,36 +1760,48 @@ export function AMIEditor(): JSX.Element {
 										onValueChange={setActiveTab}
 										className="flex-1 flex flex-col min-h-0 p-0 m-0 gap-0"
 									>
-										<div className="bg-card border-b border-border px-2 py-1.5">
+										<div className="bg-card border-b border-border px-2 py-1.5 shadow-sm">
 											<div className="flex items-center justify-between">
-												<TabsList className="bg-muted/30 p-0.5 h-7">
+												<TabsList className="bg-muted/30 p-0.5 h-7 transition-all duration-200">
 													<TabsTrigger
 														value="code"
-														className="text-[11px] h-6 px-2"
+														className="text-[11px] h-6 px-2 transition-all duration-200 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-700 dark:data-[state=active]:text-amber-400 hover:bg-muted/50"
+														title="Code Editor (⌘1)"
 													>
-														<Code className="w-3 h-3 mr-1" />
+														<Code className="w-3 h-3 mr-1 transition-transform duration-200 group-data-[state=active]:scale-110" />
 														Code
 													</TabsTrigger>
 													<TabsTrigger
 														value="config"
-														className="text-[11px] h-6 px-2"
+														className="text-[11px] h-6 px-2 transition-all duration-200 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-700 dark:data-[state=active]:text-amber-400 hover:bg-muted/50"
+														title="Configuration (⌘2)"
 													>
-														<Settings className="w-3 h-3 mr-1" />
+														<Settings className="w-3 h-3 mr-1 transition-transform duration-200 group-data-[state=active]:scale-110" />
 														Config
 													</TabsTrigger>
 													<TabsTrigger
 														value="prompts"
-														className="text-[11px] h-6 px-2"
+														className="text-[11px] h-6 px-2 transition-all duration-200 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-700 dark:data-[state=active]:text-amber-400 hover:bg-muted/50"
+														title="Prompts (⌘3)"
 													>
-														<FileText className="w-3 h-3 mr-1" />
+														<FileText className="w-3 h-3 mr-1 transition-transform duration-200 group-data-[state=active]:scale-110" />
 														Prompts
 													</TabsTrigger>
 													<TabsTrigger
 														value="logs"
-														className="text-[11px] h-6 px-2"
+														className="text-[11px] h-6 px-2 transition-all duration-200 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-700 dark:data-[state=active]:text-amber-400 hover:bg-muted/50"
+														title="Logs (⌘4)"
 													>
-														<Terminal className="w-3 h-3 mr-1" />
+														<Terminal className="w-3 h-3 mr-1 transition-transform duration-200 group-data-[state=active]:scale-110" />
 														Logs
+													</TabsTrigger>
+													<TabsTrigger
+														value="economics"
+														className="text-[11px] h-6 px-2 transition-all duration-200 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-700 dark:data-[state=active]:text-amber-400 hover:bg-muted/50"
+														title="Economics (⌘5)"
+													>
+														<Coins className="w-3 h-3 mr-1 transition-transform duration-200 group-data-[state=active]:scale-110" />
+														Economics
 													</TabsTrigger>
 													{selectedWorker.value.raw.executionMode ===
 															"leader" && (
@@ -1399,6 +1817,42 @@ export function AMIEditor(): JSX.Element {
 
 												<TooltipProvider>
 													<div className="flex items-center gap-1">
+														{/* Undo/Redo buttons - always visible */}
+														{activeTab === "code" && undoFn && (
+															<>
+																<Tooltip delayDuration={100}>
+																	<TooltipTrigger asChild>
+																		<Button
+																			onClick={() => undoFn()}
+																			variant="ghost"
+																			size="sm"
+																			className="h-6 w-6 p-0 text-muted-foreground hover:text-amber-700 dark:text-amber-400 transition-all duration-200 hover:scale-110 hover:bg-amber-500/10"
+																		>
+																			<Undo className="w-3 h-3 transition-transform duration-200 hover:-translate-x-0.5" />
+																		</Button>
+																	</TooltipTrigger>
+																	<TooltipContent side="bottom">
+																		Undo (⌘Z)
+																	</TooltipContent>
+																</Tooltip>
+																<Tooltip delayDuration={100}>
+																	<TooltipTrigger asChild>
+																		<Button
+																			onClick={() => redoFn?.()}
+																			variant="ghost"
+																			size="sm"
+																			className="h-6 w-6 p-0 text-muted-foreground hover:text-amber-700 dark:text-amber-400 transition-all duration-200 hover:scale-110 hover:bg-amber-500/10 disabled:opacity-30"
+																			disabled={!redoFn}
+																		>
+																			<Redo className="w-3 h-3 transition-transform duration-200 hover:translate-x-0.5" />
+																		</Button>
+																	</TooltipTrigger>
+																	<TooltipContent side="bottom">
+																		Redo (⌘⇧Z)
+																	</TooltipContent>
+																</Tooltip>
+															</>
+														)}
 														{/* Format button - always visible */}
 														{activeTab === "code" && formatCodeFn && (
 															<Tooltip delayDuration={100}>
@@ -1408,9 +1862,9 @@ export function AMIEditor(): JSX.Element {
 																			formatCodeFn()}
 																		variant="ghost"
 																		size="sm"
-																		className="h-6 w-6 p-0 text-muted-foreground hover:text-blue-700 dark:text-blue-400"
+																		className="h-6 w-6 p-0 text-muted-foreground hover:text-blue-700 dark:text-blue-400 transition-all duration-200 hover:scale-110 hover:bg-blue-500/10"
 																	>
-																		<AlignJustify className="w-3 h-3" />
+																		<AlignJustify className="w-3 h-3 transition-transform duration-200 hover:rotate-90" />
 																	</Button>
 																</TooltipTrigger>
 																<TooltipContent side="bottom">
@@ -1432,7 +1886,7 @@ export function AMIEditor(): JSX.Element {
 																				}}
 																				variant="ghost"
 																				size="sm"
-																				className="h-6 w-6 p-0 text-muted-foreground hover:text-amber-700 dark:text-amber-700 dark:text-amber-400"
+																				className="h-6 w-6 p-0 text-muted-foreground hover:text-amber-700 dark:text-amber-400"
 																			>
 																				<RotateCcw className="w-3 h-3" />
 																			</Button>
@@ -1448,7 +1902,7 @@ export function AMIEditor(): JSX.Element {
 																				onClick={handleSaveAll}
 																				size="sm"
 																				className="h-6 px-2 bg-amber-500 hover:bg-amber-600 text-zinc-950 dark:text-black"
-																				disabled={updating}
+																				disabled={saving}
 																			>
 																				<Save className="w-3 h-3 mr-1" />
 																				<span className="text-[10px] font-bold">
@@ -1488,11 +1942,15 @@ export function AMIEditor(): JSX.Element {
 													</div>
 												}
 											>
-												<CodeMirrorEditor
+												<MonacoEditor
 													script={currentScript}
 													handleEditorChange={handleEditorChange}
 													onEditorReady={(formatFn) =>
 														setFormatCodeFn(() => formatFn)}
+													onUndoRedoReady={(undo, redo) => {
+														setUndoFn(() => undo);
+														setRedoFn(() => redo);
+													}}
 												/>
 											</Suspense>
 										</TabsContent>
@@ -1507,7 +1965,7 @@ export function AMIEditor(): JSX.Element {
 												{validationError && (
 													<Alert className="border-red-500/30 bg-red-500/10">
 														<AlertCircle className="h-4 w-4 text-red-500" />
-														<AlertDescription className="text-red-700 dark:text-red-700 dark:text-red-400">
+														<AlertDescription className="text-red-700 dark:text-red-400">
 															{validationError}
 														</AlertDescription>
 													</Alert>
@@ -1529,7 +1987,7 @@ export function AMIEditor(): JSX.Element {
 														<SelectContent>
 															<SelectItem value="local">
 																<div className="flex items-center gap-2">
-																	<Server className="w-4 h-4 text-blue-700 dark:text-blue-700 dark:text-blue-400" />
+																	<Server className="w-4 h-4 text-blue-700 dark:text-blue-400" />
 																	<span>Local</span>
 																	<span className="text-xs text-muted-foreground">
 																		(This node only)
@@ -1558,7 +2016,7 @@ export function AMIEditor(): JSX.Element {
 																			handleOpenMigrateDialog(selectedWorker);
 																		}
 																	}}
-																	className="text-blue-700 dark:text-blue-700 dark:text-blue-400 hover:text-blue-500 underline font-medium"
+																	className="text-blue-700 dark:text-blue-400 hover:text-blue-500 underline font-medium"
 																>
 																	Migrate to Network
 																</button>{" "}
@@ -1573,7 +2031,7 @@ export function AMIEditor(): JSX.Element {
 												{currentConfig.scope === "local" && (
 													<Alert className="border-blue-500/30 bg-blue-500/10">
 														<AlertCircle className="h-4 w-4 text-blue-500" />
-														<AlertDescription className="text-blue-700 dark:text-blue-700 dark:text-blue-400 text-xs">
+														<AlertDescription className="text-blue-700 dark:text-blue-400 text-xs">
 															<strong>Local scope:</strong>{" "}
 															Worker executes only on this node in leader mode.
 															Parallel and exclusive modes are only available
@@ -1732,11 +2190,25 @@ export function AMIEditor(): JSX.Element {
 														</div>
 														<Input
 															value={currentConfig.version}
-															onChange={(e) =>
-																handleConfigChange("version", e.target.value)}
+															onChange={(e) => {
+																const validation = validateVersion(e.target.value);
+																if (validation.valid) {
+																	handleConfigChange("version", e.target.value);
+																	setValidationError(null);
+																} else {
+																	setValidationError(validation.error || "Invalid version");
+																}
+															}}
 															placeholder="1.19.2"
 															className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
+															aria-label="Version"
+															aria-invalid={validationError?.includes("version") || false}
 														/>
+														{validationError?.includes("version") && (
+															<p className="text-xs text-red-700 dark:text-red-400">
+																{validationError}
+															</p>
+														)}
 													</div>
 												</div>
 
@@ -1749,11 +2221,25 @@ export function AMIEditor(): JSX.Element {
 														</div>
 														<Input
 															value={currentConfig.nid}
-															onChange={(e) =>
-																handleConfigChange("nid", e.target.value)}
+															onChange={(e) => {
+																const validation = validateNodeId(e.target.value);
+																if (validation.valid) {
+																	handleConfigChange("nid", e.target.value);
+																	setValidationError(null);
+																} else {
+																	setValidationError(validation.error || "Invalid node ID");
+																}
+															}}
 															placeholder="s-0001"
 															className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
+															aria-label="Node ID (optional)"
+															aria-invalid={validationError?.includes("node ID") || false}
 														/>
+														{validationError?.includes("node ID") && (
+															<p className="text-xs text-red-700 dark:text-red-400">
+																{validationError}
+															</p>
+														)}
 													</div>
 
 													<div className="space-y-1.5">
@@ -1763,15 +2249,27 @@ export function AMIEditor(): JSX.Element {
 														</div>
 														<Input
 															value={currentConfig.dependencies.join(", ")}
-															onChange={(e) =>
-																handleConfigChange(
-																	"dependencies",
-																	e.target.value.split(",").map((d) => d.trim())
-																		.filter(Boolean),
-																)}
+															onChange={(e) => {
+																const deps = e.target.value.split(",").map((d) => d.trim())
+																	.filter(Boolean);
+																const validation = validateDependencies(deps);
+																if (validation.valid) {
+																	handleConfigChange("dependencies", deps);
+																	setValidationError(null);
+																} else {
+																	setValidationError(validation.error || "Invalid dependencies");
+																}
+															}}
 															placeholder="gliesereum"
 															className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
+															aria-label="Dependencies (comma-separated)"
+															aria-invalid={validationError?.includes("dependencies") || false}
 														/>
+														{validationError?.includes("dependencies") && (
+															<p className="text-xs text-red-700 dark:text-red-400">
+																{validationError}
+															</p>
+														)}
 													</div>
 												</div>
 
@@ -1784,11 +2282,25 @@ export function AMIEditor(): JSX.Element {
 														</div>
 														<Input
 															value={currentConfig.accountId}
-															onChange={(e) =>
-																handleConfigChange("accountId", e.target.value)}
+															onChange={(e) => {
+																const validation = validateAccountId(e.target.value);
+																if (validation.valid) {
+																	handleConfigChange("accountId", e.target.value);
+																	setValidationError(null);
+																} else {
+																	setValidationError(validation.error || "Invalid account ID");
+																}
+															}}
 															placeholder="g-bhts"
 															className="bg-muted border-border text-card-foreground text-xs h-8 font-mono"
+															aria-label="Account ID (optional)"
+															aria-invalid={validationError?.includes("account ID") || false}
 														/>
+														{validationError?.includes("account ID") && (
+															<p className="text-xs text-red-700 dark:text-red-400">
+																{validationError}
+															</p>
+														)}
 													</div>
 
 													{currentConfig.executionMode === "exclusive" && (
@@ -1823,6 +2335,7 @@ export function AMIEditor(): JSX.Element {
 													) => handleNoteChange(e.target.value)}
 													placeholder="Worker prompts and instructions..."
 													className="bg-input border-border text-foreground placeholder:text-muted-foreground text-[11px] resize-none min-h-[200px] focus:border-blue-500 focus:ring-blue-500/20"
+													aria-label="Worker prompts and instructions"
 												/>
 											</div>
 										</TabsContent>
@@ -1835,6 +2348,18 @@ export function AMIEditor(): JSX.Element {
 											<WorkerLogsPanel
 												workerId={selectedWorker.value.raw.sid}
 											/>
+										</TabsContent>
+
+										{/* Tab: Economics */}
+										<TabsContent
+											value="economics"
+											className="flex-1 m-0 p-0 min-h-0 gap-0"
+										>
+											<ScrollArea className="h-full">
+												<div className="p-4">
+													<WorkerEconomicsPanel worker={selectedWorker} />
+												</div>
+											</ScrollArea>
 										</TabsContent>
 
 										{/* Tab: Leader Info */}
@@ -1859,9 +2384,9 @@ export function AMIEditor(): JSX.Element {
 								<div className="h-full flex items-center justify-center">
 									<div className="text-center max-w-md">
 										<div className="w-20 h-20 bg-muted rounded flex items-center justify-center mb-6 mx-auto">
-											<Code className="w-10 h-10 text-amber-700 dark:text-amber-700 dark:text-amber-400" />
+											<Code className="w-10 h-10 text-amber-700 dark:text-amber-400" />
 										</div>
-										<h3 className="text-amber-700 dark:text-amber-700 dark:text-amber-400 font-mono text-xl font-bold mb-2">
+										<h3 className="text-amber-700 dark:text-amber-400 font-mono text-xl font-bold mb-2">
 											CODE EDITOR
 										</h3>
 										<p className="text-muted-foreground text-sm mb-6">
@@ -1902,6 +2427,15 @@ export function AMIEditor(): JSX.Element {
 					onMigrate={handleMigrateWorker}
 				/>
 
+				{/* Toggle Worker Status Confirmation Dialog */}
+				<ConfirmToggleDialog
+					open={showToggleConfirmDialog}
+					onOpenChange={setShowToggleConfirmDialog}
+					worker={selectedWorker}
+					onConfirm={handleToggleWorkerStatus}
+					isToggling={toggling}
+				/>
+
 				{/* Stats Panel */}
 				{showStatsPanel && (
 					<div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -1938,7 +2472,7 @@ export function AMIEditor(): JSX.Element {
 						<div className="absolute inset-0" />
 					</div>
 
-					<h2 className="text-amber-700 dark:text-amber-700 dark:text-amber-400 font-mono text-2xl font-bold mb-3">
+					<h2 className="text-amber-700 dark:text-amber-400 font-mono text-2xl font-bold mb-3">
 						WALLET REQUIRED
 					</h2>
 
@@ -1951,7 +2485,7 @@ export function AMIEditor(): JSX.Element {
 						<div className="bg-card/10 border border-border rounded p-4">
 							<div className="flex items-center gap-3 mb-3">
 								<div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
-									<Database className="w-4 h-4 text-blue-700 dark:text-blue-700 dark:text-blue-400" />
+									<Database className="w-4 h-4 text-blue-700 dark:text-blue-400" />
 								</div>
 								<span className="text-card-foreground font-mono text-sm font-bold">
 									PROTOCOL REGISTRY

@@ -5,6 +5,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { useTimerManager } from "@/lib/timer-manager";
 import {
 	AlertCircle,
 	ArrowDownLeft,
@@ -110,6 +111,7 @@ function DataExplorer({
 	);
 	const [markets, setMarkets] = useState<MarketData[]>([]);
 	const { currentNetworkId } = useNetworkStore();
+	const { setTimeout, setInterval, clear } = useTimerManager();
 
 	// Get indexes data
 	const indexesKeysString = useIndexStore((state) => state._indexesKeysCache);
@@ -182,37 +184,73 @@ function DataExplorer({
 		setMarkets(Array.from(marketMap.values()));
 	}, [currentNetworkId]);
 
-	// Load markets on mount and listen to storage changes
+	// Load markets on mount and listen to storage changes - optimized
 	useEffect(() => {
 		// Initial load
 		loadMarkets();
 
-		const handleStorageChange = (e: StorageEvent): void => {
-			const tickerPrefix = `${currentNetworkId}.runtime.ticker.`;
-			if (e.key && e.key.startsWith(tickerPrefix)) {
+		// Cache last markets to avoid unnecessary updates
+		let lastMarketsHash = "";
+		const updateMarkets = (): void => {
+			const newMarkets = Array.from(new Map<string, MarketData>().values());
+			// Simple hash comparison to avoid unnecessary updates
+			const newHash = JSON.stringify(newMarkets.map(m => `${m.market}-${m.last}`));
+			if (newHash !== lastMarketsHash) {
+				lastMarketsHash = newHash;
 				loadMarkets();
 			}
 		};
 
-		window.addEventListener("storage", handleStorageChange);
+		// Handle storage events (works across tabs)
+		const handleStorageChange = (e: StorageEvent): void => {
+			const tickerPrefix = `${currentNetworkId}.runtime.ticker.`;
+			if (e.key && e.key.startsWith(tickerPrefix)) {
+				// Debounce updates using TimerManager
+				if (updateTimeoutId) clear(updateTimeoutId);
+				updateTimeoutId = setTimeout(() => {
+					updateMarkets();
+				}, 200, "DataExplorer storage update");
+			}
+		};
 
-		// Polling fallback for same-tab updates
-		// Use requestAnimationFrame to avoid blocking
+		// Handle custom sessionStorageChange event (for same-tab updates)
+		const handleSessionStorageChange = (): void => {
+			if (updateTimeoutId) clear(updateTimeoutId);
+			updateTimeoutId = setTimeout(() => {
+				updateMarkets();
+			}, 200, "DataExplorer sessionStorage update");
+		};
+
+		let updateTimeoutId: string | null = null;
+
+		window.addEventListener("storage", handleStorageChange);
+		window.addEventListener("sessionStorageChange", handleSessionStorageChange as EventListener);
+
+		// Fallback polling - only every 15 seconds as backup
 		let lastPollTime = 0;
-		const pollInterval = setInterval(() => {
+		const pollIntervalId = setInterval(() => {
 			const now = Date.now();
-			if (now - lastPollTime < 5000) return; // Throttle to 5 seconds
+			if (now - lastPollTime < 15000) return; // Throttle to 15 seconds
 			lastPollTime = now;
-			requestAnimationFrame(() => {
-				loadMarkets();
-			});
-		}, 2000); // Check every 2 seconds
+			// Use requestIdleCallback if available, otherwise use setTimeout
+			if (typeof requestIdleCallback !== "undefined") {
+				requestIdleCallback(() => {
+					updateMarkets();
+				}, { timeout: 1000 });
+			} else {
+				setTimeout(() => {
+					updateMarkets();
+				}, 100, "DataExplorer idle update");
+			}
+		}, 15000, "DataExplorer fallback polling"); // Check every 15 seconds (reduced from 2 seconds)
 
 		return () => {
 			window.removeEventListener("storage", handleStorageChange);
-			clearInterval(pollInterval);
+			window.removeEventListener("sessionStorageChange", handleSessionStorageChange as EventListener);
+			if (updateTimeoutId) clear(updateTimeoutId);
+			clear(pollIntervalId);
 		};
-	}, [loadMarkets, currentNetworkId]);
+	}, [loadMarkets, currentNetworkId, setTimeout, setInterval, clear]);
 
 	// Get available markets
 	const availableMarkets = useMemo(() => markets, [markets]);
@@ -444,9 +482,9 @@ function DataExplorer({
 }
 
 /**
- * Market Card Component
+ * Market Card Component - Memoized for performance
  */
-function MarketCard({
+const MarketCard = React.memo(function MarketCard({
 	market,
 	index,
 	onClick,
@@ -542,12 +580,24 @@ function MarketCard({
 			</Card>
 		</motion.div>
 	);
-}
+}, (prevProps, nextProps) => {
+	// Custom comparison - return true if props are equal (skip re-render)
+	// Return false if props changed (re-render needed)
+	const propsEqual = (
+		prevProps.market.market === nextProps.market.market &&
+		prevProps.market.exchange === nextProps.market.exchange &&
+		prevProps.market.last === nextProps.market.last &&
+		prevProps.market.change === nextProps.market.change &&
+		prevProps.market.percentage === nextProps.market.percentage &&
+		prevProps.index === nextProps.index
+	);
+	return propsEqual;
+});
 
 /**
- * Index Card Component
+ * Index Card Component - Memoized for performance
  */
-function IndexCard({
+const IndexCard = React.memo(function IndexCard({
 	metadata,
 	index,
 	onClick,
@@ -592,7 +642,16 @@ function IndexCard({
 			</Card>
 		</motion.div>
 	);
-}
+}, (prevProps, nextProps) => {
+	// Custom comparison - return true if props are equal (skip re-render)
+	// Return false if props changed (re-render needed)
+	const propsEqual = (
+		prevProps.metadata.code === nextProps.metadata.code &&
+		prevProps.metadata.name === nextProps.metadata.name &&
+		prevProps.index === nextProps.index
+	);
+	return propsEqual;
+});
 
 /**
  * Blockchain Explorer Component
@@ -781,7 +840,7 @@ function BlockchainExplorer(): React.ReactElement {
 							<option value="local">Local</option>
 						</select>
 						{nodeType === "local" && (
-							<span className="text-xs text-amber-500">(10.0.0.238:8088)</span>
+							<span className="text-xs text-amber-500">(10.0.0.206:8088)</span>
 						)}
 					</div>
 				</CardContent>

@@ -46,7 +46,7 @@ export interface UsePublicBalanceReturn {
 function getApiUrl(networkId: string): string {
 	const networkStore = useNetworkStore.getState();
 	const network = networkStore.getNetwork(networkId);
-	return network ? `${network.api}/` : "http://10.0.0.238:8088/";
+	return network ? `${network.api}/` : "http://10.0.0.206:8088/";
 }
 
 /**
@@ -126,38 +126,59 @@ export function usePublicBalance(
 
 			if (data.result) {
 				// Handle response formats according to updated API documentation
-				// Format 1: {result: {success: true, balance: {balance: "...", currency: "...", ...}, ...}}
-				// Format 2: {result: PublicAssetBalance} (legacy format)
+				// Format 1: {result: {success: true, balance: "...", currency: "...", ...}} (balance fields directly in result)
+				// Format 2: {result: {success: true, balance: {balance: "...", currency: "...", ...}, ...}} (nested balance object)
+				// Format 3: {result: PublicAssetBalance} (legacy format)
 				if ("success" in data.result && data.result.success) {
-					// Format 1: Extract balance from result.balance object
+					// Check if balance fields are directly in result (Format 1)
+					const hasDirectBalanceFields = "balance" in data.result && 
+						typeof data.result.balance === "string" &&
+						("currency" in data.result || "decimals" in data.result);
+					
+					// Check if balance is nested in result.balance (Format 2)
 					const balanceObj = data.result.balance;
 					
-					if (!balanceObj) {
-						throw new Error("Balance object missing in response");
-					}
-
-					// Handle both object balance (new format) and direct balance (legacy)
-					const balanceData: PublicAssetBalance = typeof balanceObj === "string"
-						? {
-							balance: balanceObj,
-							currency: "",
-							decimals: 6,
-							initial_balance: "0",
-							total_received: "0",
-							total_sent: "0",
-							total_fees: "0",
-							transaction_count: 0,
-						}
-						: {
-							balance: balanceObj.balance,
-							currency: balanceObj.currency || "",
-							decimals: balanceObj.decimals ?? 6,
-							initial_balance: balanceObj.initial_balance || "0",
-							total_received: balanceObj.total_received || "0",
-							total_sent: balanceObj.total_sent || "0",
-							total_fees: balanceObj.total_fees || "0",
-							transaction_count: balanceObj.transaction_count || 0,
+					let balanceData: PublicAssetBalance;
+					
+					if (hasDirectBalanceFields) {
+						// Format 1: Balance fields directly in result
+						balanceData = {
+							balance: (data.result.balance as string) || "0",
+							currency: (data.result.currency as string) || "",
+							decimals: (data.result.decimals as number) ?? 6,
+							initial_balance: (data.result.initial_balance as string) || "0",
+							total_received: (data.result.total_received as string) || "0",
+							total_sent: (data.result.total_sent as string) || "0",
+							total_fees: (data.result.total_fees as string) || "0",
+							transaction_count: (data.result.transaction_count as number) || 0,
 						};
+					} else if (balanceObj) {
+						// Format 2: Balance nested in result.balance object
+						// Handle both string balance (legacy) and object balance (new format)
+						balanceData = typeof balanceObj === "string"
+							? {
+								balance: balanceObj,
+								currency: "",
+								decimals: 6,
+								initial_balance: "0",
+								total_received: "0",
+								total_sent: "0",
+								total_fees: "0",
+								transaction_count: 0,
+							}
+							: {
+								balance: balanceObj.balance,
+								currency: balanceObj.currency || "",
+								decimals: balanceObj.decimals ?? 6,
+								initial_balance: balanceObj.initial_balance || "0",
+								total_received: balanceObj.total_received || "0",
+								total_sent: balanceObj.total_sent || "0",
+								total_fees: balanceObj.total_fees || "0",
+								transaction_count: balanceObj.transaction_count || 0,
+							};
+					} else {
+						throw new Error("Balance data missing in response");
+					}
 					setBalance(balanceData);
 
 				} else if ("balance" in data.result && typeof data.result.balance === "string") {

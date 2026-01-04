@@ -11,7 +11,7 @@ import { initChunkErrorHandlers } from "@/lib/chunk_error_handler";
 import ChunkErrorBoundary from "@/components/main/chunk_error_boundary";
 import { createNewSession, initSession } from "@/lib/session_manager";
 import { getCurrentVersion } from "@/lib/version_check";
-// CodeMirror doesn't need pre-configuration
+// Monaco Editor is configured in monaco_editor.tsx component
 
 // Service Worker registration is handled by UpdatePrompt component
 // Using registerType: 'prompt' in vite.config.ts

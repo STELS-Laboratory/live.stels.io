@@ -84,7 +84,7 @@ export interface UsePublicTransactionsReturn {
 function getApiUrl(networkId: string): string {
 	const networkStore = useNetworkStore.getState();
 	const network = networkStore.getNetwork(networkId);
-	return network ? `${network.api}/` : "http://10.0.0.238:8088/";
+	return network ? `${network.api}/` : "http://10.0.0.206:8088/";
 }
 
 /**

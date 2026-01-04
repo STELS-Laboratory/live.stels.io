@@ -30,26 +30,37 @@ const VERSION_BYTE = 98; // Gliesereum's version byte (character 'g')
 export function validateAddress(address: string): boolean {
 	try {
 		const decoded = bs58.decode(address);
+		
 		if (decoded.length < CHECKSUM_SIZE + 1) {
 			throw new Error("Address length too short.");
 		}
+		
 		const version = decoded[0];
+		
 		if (version !== VERSION_BYTE) {
 			throw new Error("Invalid address version byte.");
 		}
+		
 		const payload = decoded.slice(1, -CHECKSUM_SIZE);
 		const actualChecksum = decoded.slice(-CHECKSUM_SIZE);
+
+
 		const expectedChecksum = createChecksum(
 			concatUint8([Uint8Array.of(version), payload]),
 		);
 
 		// Constant-time comparison
-		if (expectedChecksum.length !== actualChecksum.length) return false;
+		if (expectedChecksum.length !== actualChecksum.length) {
+			return false;
+		}
+		
 		let result = 0;
 		for (let i = 0; i < expectedChecksum.length; i++) {
 			result |= expectedChecksum[i] ^ actualChecksum[i];
 		}
-		return result === 0;
+		
+		const isValid = result === 0;
+		return isValid;
 	} catch {
 		return false;
 	}
@@ -64,7 +75,9 @@ export function getAddress(publicKey: Uint8Array): string {
 	const versionAndHash = concatUint8([Uint8Array.of(VERSION_BYTE), pubKeyHash]);
 	const checksum = createChecksum(versionAndHash);
 	const fullPayload = concatUint8([versionAndHash, checksum]);
-	return bs58.encode(fullPayload);
+	const address = bs58.encode(fullPayload);
+	
+	return address;
 }
 
 /**
@@ -89,22 +102,29 @@ export function createWallet(): Wallet {
  * Imports Wallet from private key
  */
 export function importWallet(privateKey: string): Wallet {
-	if (!/^[0-9a-fA-F]{64}$/.test(privateKey)) {
+	// Validate format: must be exactly 64 hex characters
+	const formatRegex = /^[0-9a-fA-F]{64}$/;
+	const isValidFormat = formatRegex.test(privateKey);
+	
+	if (!isValidFormat) {
 		throw new Error("Invalid private key format");
 	}
 
 	const keyPair = EC.keyFromPrivate(privateKey, "hex");
-	const publicKey = keyPair.getPublic(true, "hex"); // Compressed (66 chars)
+	const publicKey = keyPair.getPublic(true, "hex");
 	const publicKeyBytes = hexToUint8Array(publicKey);
 	const address = getAddress(publicKeyBytes);
+	const cardNum = cardNumber(address);
 
-	return {
+	const wallet = {
 		publicKey,
 		privateKey,
 		address,
 		biometric: null,
-		number: cardNumber(address),
+		number: cardNum,
 	};
+	
+	return wallet;
 }
 
 /**

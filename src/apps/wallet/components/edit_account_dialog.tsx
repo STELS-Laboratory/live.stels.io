@@ -1,9 +1,10 @@
 /**
- * Add Account Dialog Component
- * Professional form for adding trading accounts to the wallet
+ * Edit Account Dialog Component
+ * Wizard-based form for editing existing trading accounts
+ * Reuses Add Account Dialog logic with pre-filled values
  */
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { PlusIcon, XIcon, AlertCircleIcon, ChevronLeft, ChevronRight, CheckCircle2, Loader2 } from "lucide-react";
 import {
 	Dialog,
@@ -31,11 +32,12 @@ import { cn } from "@/lib/utils";
 import { useAuthStore, toast } from "@/stores";
 import { useAccountsStore } from "@/stores/modules/accounts.store";
 import type { AccountRequest, ProtocolData } from "@/lib/api-types";
+import type { StoredAccount } from "@/stores/modules/accounts.store";
 
-interface AddAccountDialogProps {
+interface EditAccountDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	mobile?: boolean;
+	account: StoredAccount | null;
 }
 
 interface FormErrors {
@@ -52,15 +54,63 @@ interface FormErrors {
 }
 
 /**
- * Add Account Dialog Component
+ * Edit Account Dialog Component
  */
-export function AddAccountDialog({
+export function EditAccountDialog({
 	open,
 	onOpenChange,
+	account,
 	mobile = false,
-}: AddAccountDialogProps): React.ReactElement {
+}: EditAccountDialogProps): React.ReactElement {
 	const { wallet, connectionSession } = useAuthStore();
-	const { sendAccountToServer } = useAccountsStore();
+	const { updateAccount, sendAccountToServer } = useAccountsStore();
+
+	// Initialize form state from account data
+	const initializeForm = useCallback((): void => {
+		if (!account) return;
+
+		setNid(account.account.nid || "");
+		setConnection(account.account.connection ?? true);
+		setExchange(account.account.exchange || "");
+		setNote(account.account.note || "");
+		setApiKey(account.account.apiKey || "");
+		setSecret(account.account.secret || "");
+		setStatus(account.account.status || "active");
+		setPassword(account.account.password || "");
+		setViewers(account.account.viewers || []);
+		setViewerInput("");
+
+		// Protocol fields
+		if (account.account.protocol) {
+			setStrategy(account.account.protocol.strategy || "Anna Ariadna");
+			setTradingStyle(account.account.protocol.tradingStyle || "Intelligent Position Trading");
+			setMaxRiskPerTrade(account.account.protocol.maxRiskPerTrade || 1);
+			setMaxLeverage(account.account.protocol.maxLeverage || 5);
+			setMaxDrawdown(account.account.protocol.maxDrawdown || 15);
+			setStopLoss(account.account.protocol.stopLoss || 3);
+			setTakeProfit(account.account.protocol.takeProfit || 9);
+			setRiskRewardRatio(account.account.protocol.riskRewardRatio || 3);
+			setPositionSizing(account.account.protocol.positionSizing || "Dynamic Volatility Adjusted");
+			setPortfolioAllocation(account.account.protocol.portfolioAllocation || 75);
+			setSlippageTolerance(account.account.protocol.slippageTolerance || 0.25);
+			setMarkets(account.account.protocol.markets || ["BTC/USDT", "ETH/USDT", "SOL/USDT"]);
+			setOrderTypes(account.account.protocol.orderTypes || ["Limit", "Stop-Limit"]);
+			setTimeframes(account.account.protocol.timeframes || ["1d", "3d", "1w"]);
+			setMarketConditions(account.account.protocol.marketConditions || ["Trending", "High Volume"]);
+			setHedgingEnabled(account.account.protocol.hedgingEnabled ?? true);
+			setScalingEnabled(account.account.protocol.scalingEnabled ?? true);
+			setTrailingStopEnabled(account.account.protocol.trailingStopEnabled ?? true);
+			setDynamicPositionSizing(account.account.protocol.dynamicPositionSizing ?? true);
+		}
+	}, [account]);
+
+	// Initialize form when account changes
+	useEffect(() => {
+		if (open && account) {
+			initializeForm();
+			setCurrentStep(0);
+		}
+	}, [open, account, initializeForm]);
 
 	// Basic account fields
 	const [nid, setNid] = useState<string>("");
@@ -74,7 +124,7 @@ export function AddAccountDialog({
 	const [viewers, setViewers] = useState<string[]>([]);
 	const [viewerInput, setViewerInput] = useState<string>("");
 
-	// Protocol fields - always required with default values
+	// Protocol fields
 	const [strategy, setStrategy] = useState<string>("Anna Ariadna");
 	const [tradingStyle, setTradingStyle] = useState<string>("Intelligent Position Trading");
 	const [maxRiskPerTrade, setMaxRiskPerTrade] = useState<number>(1);
@@ -111,50 +161,84 @@ export function AddAccountDialog({
 		{ id: "basic", title: "Basic Information", description: "Account details and settings" },
 		{ id: "credentials", title: "API Credentials", description: "Exchange API keys and security" },
 		{ id: "protocol", title: "Trading Protocol", description: "Trading strategy and risk management" },
-		{ id: "review", title: "Review & Confirm", description: "Review all settings before submitting" },
+		{ id: "review", title: "Review & Confirm", description: "Review all changes before saving" },
 	];
 
-	/**
-	 * Reset form to initial state
-	 */
-	const resetForm = useCallback((): void => {
-		setNid("");
-		setConnection(true);
-		setExchange("");
-		setNote("");
-		setApiKey("");
-		setSecret("");
-		setStatus("active");
-		setPassword("");
-		setViewers([]);
-		setViewerInput("");
-		setStrategy("Anna Ariadna");
-		setTradingStyle("Intelligent Position Trading");
-		setMaxRiskPerTrade(1);
-		setMaxLeverage(5);
-		setMaxDrawdown(15);
-		setStopLoss(3);
-		setTakeProfit(9);
-		setRiskRewardRatio(3);
-		setPositionSizing("Dynamic Volatility Adjusted");
-		setPortfolioAllocation(75);
-		setSlippageTolerance(0.25);
-		setMarkets(["BTC/USDT", "ETH/USDT", "SOL/USDT"]);
-		setMarketInput("");
-		setOrderTypes(["Limit", "Stop-Limit"]);
-		setOrderTypeInput("");
-		setTimeframes(["1d", "3d", "1w"]);
-		setTimeframeInput("");
-		setMarketConditions(["Trending", "High Volume"]);
-		setConditionInput("");
-		setHedgingEnabled(true);
-		setScalingEnabled(true);
-		setTrailingStopEnabled(true);
-		setDynamicPositionSizing(true);
-		setError(null);
-		setErrors({});
-		setCurrentStep(0);
-	}, []);
+	// Calculate progress percentage
+	const progress = useMemo(() => {
+		return ((currentStep + 1) / totalSteps) * 100;
+	}, [currentStep, totalSteps]);
+
+	// Helper functions (same as Add Account Dialog)
+	const handleAddViewer = useCallback((): void => {
+		if (viewerInput.trim() && !viewers.includes(viewerInput.trim())) {
+			setViewers([...viewers, viewerInput.trim()]);
+			setViewerInput("");
+		}
+	}, [viewerInput, viewers]);
+
+	const handleRemoveViewer = useCallback(
+		(index: number): void => {
+			setViewers(viewers.filter((_, i) => i !== index));
+		},
+		[viewers],
+	);
+
+	const handleAddMarket = useCallback((): void => {
+		if (marketInput.trim() && !markets.includes(marketInput.trim())) {
+			setMarkets([...markets, marketInput.trim()]);
+			setMarketInput("");
+		}
+	}, [marketInput, markets]);
+
+	const handleRemoveMarket = useCallback(
+		(index: number): void => {
+			setMarkets(markets.filter((_, i) => i !== index));
+		},
+		[markets],
+	);
+
+	const handleAddOrderType = useCallback((): void => {
+		if (orderTypeInput.trim() && !orderTypes.includes(orderTypeInput.trim())) {
+			setOrderTypes([...orderTypes, orderTypeInput.trim()]);
+			setOrderTypeInput("");
+		}
+	}, [orderTypeInput, orderTypes]);
+
+	const handleRemoveOrderType = useCallback(
+		(index: number): void => {
+			setOrderTypes(orderTypes.filter((_, i) => i !== index));
+		},
+		[orderTypes],
+	);
+
+	const handleAddTimeframe = useCallback((): void => {
+		if (timeframeInput.trim() && !timeframes.includes(timeframeInput.trim())) {
+			setTimeframes([...timeframes, timeframeInput.trim()]);
+			setTimeframeInput("");
+		}
+	}, [timeframeInput, timeframes]);
+
+	const handleRemoveTimeframe = useCallback(
+		(index: number): void => {
+			setTimeframes(timeframes.filter((_, i) => i !== index));
+		},
+		[timeframes],
+	);
+
+	const handleAddCondition = useCallback((): void => {
+		if (conditionInput.trim() && !marketConditions.includes(conditionInput.trim())) {
+			setMarketConditions([...marketConditions, conditionInput.trim()]);
+			setConditionInput("");
+		}
+	}, [conditionInput, marketConditions]);
+
+	const handleRemoveCondition = useCallback(
+		(index: number): void => {
+			setMarketConditions(marketConditions.filter((_, i) => i !== index));
+		},
+		[marketConditions],
+	);
 
 	/**
 	 * Validate current step
@@ -163,7 +247,6 @@ export function AddAccountDialog({
 		const newErrors: FormErrors = { ...errors };
 
 		if (currentStep === 0) {
-			// Step 1: Basic Information
 			if (!nid.trim()) {
 				newErrors.nid = "Account ID (nid) is required";
 			}
@@ -171,7 +254,6 @@ export function AddAccountDialog({
 				newErrors.exchange = "Exchange is required";
 			}
 		} else if (currentStep === 1) {
-			// Step 2: API Credentials
 			if (!apiKey.trim()) {
 				newErrors.apiKey = "API Key is required";
 			}
@@ -179,7 +261,6 @@ export function AddAccountDialog({
 				newErrors.secret = "Secret is required";
 			}
 		} else if (currentStep === 2) {
-			// Step 3: Trading Protocol
 			if (!strategy.trim()) {
 				newErrors.protocol = { ...newErrors.protocol, strategy: "Strategy is required" };
 			}
@@ -219,7 +300,7 @@ export function AddAccountDialog({
 	]);
 
 	/**
-	 * Validate entire form (for final submission)
+	 * Validate entire form
 	 */
 	const validateForm = useCallback((): boolean => {
 		const newErrors: FormErrors = {};
@@ -277,7 +358,6 @@ export function AddAccountDialog({
 	const handleNextStep = useCallback((): void => {
 		if (validateCurrentStep() && currentStep < totalSteps - 1) {
 			setCurrentStep(currentStep + 1);
-			// Scroll to top of dialog
 			window.scrollTo({ top: 0, behavior: "smooth" });
 		}
 	}, [currentStep, totalSteps, validateCurrentStep]);
@@ -288,110 +368,9 @@ export function AddAccountDialog({
 	const handlePreviousStep = useCallback((): void => {
 		if (currentStep > 0) {
 			setCurrentStep(currentStep - 1);
-			// Scroll to top of dialog
 			window.scrollTo({ top: 0, behavior: "smooth" });
 		}
 	}, [currentStep]);
-
-	/**
-	 * Add viewer address
-	 */
-	const handleAddViewer = useCallback((): void => {
-		if (viewerInput.trim() && !viewers.includes(viewerInput.trim())) {
-			setViewers([...viewers, viewerInput.trim()]);
-			setViewerInput("");
-		}
-	}, [viewerInput, viewers]);
-
-	/**
-	 * Remove viewer address
-	 */
-	const handleRemoveViewer = useCallback(
-		(index: number): void => {
-			setViewers(viewers.filter((_, i) => i !== index));
-		},
-		[viewers],
-	);
-
-	/**
-	 * Add market
-	 */
-	const handleAddMarket = useCallback((): void => {
-		if (marketInput.trim() && !markets.includes(marketInput.trim())) {
-			setMarkets([...markets, marketInput.trim()]);
-			setMarketInput("");
-		}
-	}, [marketInput, markets]);
-
-	/**
-	 * Remove market
-	 */
-	const handleRemoveMarket = useCallback(
-		(index: number): void => {
-			setMarkets(markets.filter((_, i) => i !== index));
-		},
-		[markets],
-	);
-
-	/**
-	 * Add order type
-	 */
-	const handleAddOrderType = useCallback((): void => {
-		if (orderTypeInput.trim() && !orderTypes.includes(orderTypeInput.trim())) {
-			setOrderTypes([...orderTypes, orderTypeInput.trim()]);
-			setOrderTypeInput("");
-		}
-	}, [orderTypeInput, orderTypes]);
-
-	/**
-	 * Remove order type
-	 */
-	const handleRemoveOrderType = useCallback(
-		(index: number): void => {
-			setOrderTypes(orderTypes.filter((_, i) => i !== index));
-		},
-		[orderTypes],
-	);
-
-	/**
-	 * Add timeframe
-	 */
-	const handleAddTimeframe = useCallback((): void => {
-		if (timeframeInput.trim() && !timeframes.includes(timeframeInput.trim())) {
-			setTimeframes([...timeframes, timeframeInput.trim()]);
-			setTimeframeInput("");
-		}
-	}, [timeframeInput, timeframes]);
-
-	/**
-	 * Remove timeframe
-	 */
-	const handleRemoveTimeframe = useCallback(
-		(index: number): void => {
-			setTimeframes(timeframes.filter((_, i) => i !== index));
-		},
-		[timeframes],
-	);
-
-	/**
-	 * Add market condition
-	 */
-	const handleAddCondition = useCallback((): void => {
-		if (conditionInput.trim() && !marketConditions.includes(conditionInput.trim())) {
-			setMarketConditions([...marketConditions, conditionInput.trim()]);
-			setConditionInput("");
-		}
-	}, [conditionInput, marketConditions]);
-
-	/**
-	 * Remove market condition
-	 */
-	const handleRemoveCondition = useCallback(
-		(index: number): void => {
-			setMarketConditions(marketConditions.filter((_, i) => i !== index));
-		},
-		[marketConditions],
-	);
 
 	/**
 	 * Handle form submission
@@ -404,6 +383,11 @@ export function AddAccountDialog({
 
 		if (!connectionSession) {
 			setError("Not connected to network");
+			return;
+		}
+
+		if (!account) {
+			setError("Account not found");
 			return;
 		}
 
@@ -438,7 +422,7 @@ export function AddAccountDialog({
 				dynamicPositionSizing,
 			};
 
-			const account: AccountRequest = {
+			const accountUpdates: Partial<AccountRequest> = {
 				nid: nid.trim(),
 				connection,
 				exchange: exchange.trim(),
@@ -451,11 +435,21 @@ export function AddAccountDialog({
 				protocol,
 			};
 
-			// Send to server - use compressed public key as per example
-			// Example shows compressed public key (66 chars starting with 03/02)
-			// Use accounts store method which handles signing correctly
+			// Update in local store
+			const success = updateAccount(account.id, accountUpdates, wallet);
+			if (!success) {
+				throw new Error("Failed to update account in local store");
+			}
+
+			// Send updated account to server
+			const fullAccount: AccountRequest = {
+				...account.account,
+				...accountUpdates,
+				id: account.id,
+			};
+
 			await sendAccountToServer(
-				account,
+				fullAccount,
 				wallet,
 				connectionSession.session,
 				connectionSession.api,
@@ -463,19 +457,18 @@ export function AddAccountDialog({
 
 			// Show success toast
 			toast.success(
-				"Account added successfully",
-				`Trading account "${nid}" has been added to your wallet`,
+				"Account updated successfully",
+				`Trading account "${nid}" has been updated`,
 			);
 
-			// Close dialog and reset form
-			resetForm();
+			// Close dialog
 			onOpenChange(false);
 		} catch (err: unknown) {
 			const errorMessage =
-				err instanceof Error ? err.message : "Failed to add account";
+				err instanceof Error ? err.message : "Failed to update account";
 			setError(errorMessage);
 			toast.error(
-				"Failed to add account",
+				"Failed to update account",
 				errorMessage,
 			);
 		} finally {
@@ -484,7 +477,9 @@ export function AddAccountDialog({
 	}, [
 		wallet,
 		connectionSession,
+		account,
 		validateForm,
+		updateAccount,
 		sendAccountToServer,
 		nid,
 		connection,
@@ -514,7 +509,6 @@ export function AddAccountDialog({
 		scalingEnabled,
 		trailingStopEnabled,
 		dynamicPositionSizing,
-		resetForm,
 		onOpenChange,
 	]);
 
@@ -523,22 +517,16 @@ export function AddAccountDialog({
 	 */
 	const handleClose = useCallback((): void => {
 		if (!isSubmitting) {
-			resetForm();
 			onOpenChange(false);
 		}
-	}, [isSubmitting, resetForm, onOpenChange]);
-
-	// Calculate progress percentage
-	const progress = useMemo(() => {
-		return ((currentStep + 1) / totalSteps) * 100;
-	}, [currentStep, totalSteps]);
+	}, [isSubmitting, onOpenChange]);
 
 	if (!wallet || !connectionSession) {
 		return (
 			<Dialog open={open} onOpenChange={onOpenChange}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Cannot Add Account</DialogTitle>
+						<DialogTitle>Cannot Edit Account</DialogTitle>
 						<DialogDescription>
 							{!wallet
 								? "Wallet not found. Please create or import a wallet first."
@@ -553,6 +541,25 @@ export function AddAccountDialog({
 		);
 	}
 
+	if (!account) {
+		return (
+			<Dialog open={open} onOpenChange={onOpenChange}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Cannot Edit Account</DialogTitle>
+						<DialogDescription>No account selected</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button onClick={handleClose}>Close</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+		);
+	}
+
+	// Reuse the same form structure as Add Account Dialog
+	// Import and reuse the form components from add_account_dialog.tsx
+	// For now, return a simplified version that redirects to Add Account Dialog with pre-filled data
 	return (
 		<Dialog open={open} onOpenChange={handleClose}>
 			<DialogContent
@@ -577,9 +584,9 @@ export function AddAccountDialog({
 				)}
 				<div className={cn("flex flex-col", mobile ? "h-full overflow-hidden" : "")}>
 					<div className={cn(mobile ? "flex-1 overflow-y-auto p-4" : "")}>
-				<DialogHeader className={cn(mobile && "px-4 pt-4 pb-2")}>
+				<DialogHeader className={cn(mobile && "px-0 pt-0 pb-2")}>
 					<DialogTitle className="flex items-center justify-between">
-						<span>Add Trading Account</span>
+						<span>Edit Trading Account</span>
 						<span className="text-sm font-normal text-muted-foreground">
 							Step {currentStep + 1} of {totalSteps}
 						</span>
@@ -622,7 +629,7 @@ export function AddAccountDialog({
 				</DialogHeader>
 
 				{error && (
-					<Alert variant="destructive" className={cn("mt-4", mobile && "mx-4")}>
+					<Alert variant="destructive" className={cn("mt-4", mobile && "mx-0")}>
 						<AlertCircleIcon className="size-4" />
 						<AlertDescription>{error}</AlertDescription>
 					</Alert>
@@ -637,105 +644,105 @@ export function AddAccountDialog({
 							handleNextStep();
 						}
 					}}
-					className={cn("space-y-6", mobile ? "mt-4 px-4" : "mt-6")}
+					className={cn("space-y-6", mobile ? "mt-4" : "mt-6")}
 				>
-					{/* Step 1: Basic Account Information */}
+					{/* Step 1: Basic Information */}
 					{currentStep === 0 && (
 						<div className="space-y-4">
 							<h3 className="text-sm font-semibold text-foreground">
 								Basic Information
 							</h3>
 
-						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+								<div className="space-y-2">
+									<Label htmlFor="nid">
+										Account ID (nid) <span className="text-destructive">*</span>
+									</Label>
+									<Input
+										id="nid"
+										value={nid}
+										onChange={(e) => setNid(e.target.value)}
+										placeholder="bhts"
+										aria-invalid={errors.nid ? "true" : "false"}
+										disabled={isSubmitting}
+									/>
+									{errors.nid && (
+										<p className="text-xs text-destructive">{errors.nid}</p>
+									)}
+								</div>
+
+								<div className="space-y-2">
+									<Label htmlFor="exchange">
+										Exchange <span className="text-destructive">*</span>
+									</Label>
+									<Select
+										value={exchange}
+										onValueChange={setExchange}
+										disabled={isSubmitting}
+									>
+										<SelectTrigger id="exchange" aria-invalid={errors.exchange ? "true" : "false"}>
+											<SelectValue placeholder="Select exchange" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="bybit">Bybit</SelectItem>
+											<SelectItem value="binance">Binance</SelectItem>
+											<SelectItem value="okx">OKX</SelectItem>
+											<SelectItem value="kraken">Kraken</SelectItem>
+											<SelectItem value="coinbase">Coinbase</SelectItem>
+										</SelectContent>
+									</Select>
+									{errors.exchange && (
+										<p className="text-xs text-destructive">{errors.exchange}</p>
+									)}
+								</div>
+							</div>
+
 							<div className="space-y-2">
-								<Label htmlFor="nid">
-									Account ID (nid) <span className="text-destructive">*</span>
-								</Label>
-								<Input
-									id="nid"
-									value={nid}
-									onChange={(e) => setNid(e.target.value)}
-									placeholder="bhts"
-									aria-invalid={errors.nid ? "true" : "false"}
+								<Label htmlFor="note">Note</Label>
+								<Textarea
+									id="note"
+									value={note}
+									onChange={(e) => setNote(e.target.value)}
+									placeholder="BHTS primary trading account."
 									disabled={isSubmitting}
+									className="min-h-[4rem]"
 								/>
-								{errors.nid && (
-									<p className="text-xs text-destructive">{errors.nid}</p>
-								)}
 							</div>
 
-							<div className="space-y-2">
-								<Label htmlFor="exchange">
-									Exchange <span className="text-destructive">*</span>
-								</Label>
-								<Select
-									value={exchange}
-									onValueChange={setExchange}
-									disabled={isSubmitting}
-								>
-									<SelectTrigger id="exchange" aria-invalid={errors.exchange ? "true" : "false"}>
-										<SelectValue placeholder="Select exchange" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="bybit">Bybit</SelectItem>
-										<SelectItem value="binance">Binance</SelectItem>
-										<SelectItem value="okx">OKX</SelectItem>
-										<SelectItem value="kraken">Kraken</SelectItem>
-										<SelectItem value="coinbase">Coinbase</SelectItem>
-									</SelectContent>
-								</Select>
-								{errors.exchange && (
-									<p className="text-xs text-destructive">{errors.exchange}</p>
-								)}
-							</div>
-						</div>
+							<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+								<div className="space-y-2">
+									<Label htmlFor="status">Status</Label>
+									<Select
+										value={status}
+										onValueChange={(value: "active" | "learn" | "stopped") =>
+											setStatus(value)
+										}
+										disabled={isSubmitting}
+									>
+										<SelectTrigger id="status">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="active">Active</SelectItem>
+											<SelectItem value="learn">Learn</SelectItem>
+											<SelectItem value="stopped">Stopped</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
 
-						<div className="space-y-2">
-							<Label htmlFor="note">Note</Label>
-							<Textarea
-								id="note"
-								value={note}
-								onChange={(e) => setNote(e.target.value)}
-								placeholder="BHTS primary trading account."
-								disabled={isSubmitting}
-								className="min-h-[4rem]"
-							/>
-						</div>
-
-						<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-							<div className="space-y-2">
-								<Label htmlFor="status">Status</Label>
-								<Select
-									value={status}
-									onValueChange={(value: "active" | "learn" | "stopped") =>
-										setStatus(value)
-									}
-									disabled={isSubmitting}
-								>
-									<SelectTrigger id="status">
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="active">Active</SelectItem>
-										<SelectItem value="learn">Learn</SelectItem>
-										<SelectItem value="stopped">Stopped</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
-
-							<div className="flex items-end space-x-2">
-								<Switch
-									id="connection"
-									checked={connection}
-									onCheckedChange={setConnection}
-									disabled={isSubmitting}
-								/>
-								<Label htmlFor="connection" className="cursor-pointer">
-									Connection enabled
-								</Label>
+								<div className="flex items-end space-x-2">
+									<Switch
+										id="connection"
+										checked={connection}
+										onCheckedChange={setConnection}
+										disabled={isSubmitting}
+									/>
+									<Label htmlFor="connection" className="cursor-pointer">
+										Connection enabled
+									</Label>
+								</div>
 							</div>
 						</div>
-					</div>
 					)}
 
 					{/* Step 2: API Credentials */}
@@ -745,105 +752,105 @@ export function AddAccountDialog({
 								API Credentials
 							</h3>
 
-						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-							<div className="space-y-2">
-								<Label htmlFor="apiKey">
-									API Key <span className="text-destructive">*</span>
-								</Label>
-								<Input
-									id="apiKey"
-									type="password"
-									value={apiKey}
-									onChange={(e) => setApiKey(e.target.value)}
-									placeholder="oR1o2UfHbxeOfdwR2U"
-									aria-invalid={errors.apiKey ? "true" : "false"}
-									disabled={isSubmitting}
-								/>
-								{errors.apiKey && (
-									<p className="text-xs text-destructive">{errors.apiKey}</p>
-								)}
-							</div>
-
-							<div className="space-y-2">
-								<Label htmlFor="secret">
-									Secret <span className="text-destructive">*</span>
-								</Label>
-								<Input
-									id="secret"
-									type="password"
-									value={secret}
-									onChange={(e) => setSecret(e.target.value)}
-									placeholder="Enter secret key"
-									aria-invalid={errors.secret ? "true" : "false"}
-									disabled={isSubmitting}
-								/>
-								{errors.secret && (
-									<p className="text-xs text-destructive">{errors.secret}</p>
-								)}
-							</div>
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="password">Password (optional)</Label>
-							<Input
-								id="password"
-								type="password"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								placeholder="Account password"
-								disabled={isSubmitting}
-							/>
-						</div>
-
-						{/* Viewers */}
-						<div className="space-y-2">
-							<Label htmlFor="viewer">Viewers (addresses)</Label>
-							<div className="flex gap-2">
-								<Input
-									id="viewer"
-									value={viewerInput}
-									onChange={(e) => setViewerInput(e.target.value)}
-									placeholder="ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv"
-									disabled={isSubmitting}
-									onKeyDown={(e) => {
-										if (e.key === "Enter") {
-											e.preventDefault();
-											handleAddViewer();
-										}
-									}}
-								/>
-								<Button
-									type="button"
-									variant="outline"
-									size="default"
-									onClick={handleAddViewer}
-									disabled={isSubmitting || !viewerInput.trim()}
-								>
-									<PlusIcon className="size-4" />
-								</Button>
-							</div>
-							{viewers.length > 0 && (
-								<div className="flex flex-wrap gap-2 mt-2">
-									{viewers.map((viewer, index) => (
-										<div
-											key={index}
-											className="flex items-center gap-2 px-2 py-1 bg-muted rounded text-sm"
-										>
-											<span className="text-xs">{viewer}</span>
-											<button
-												type="button"
-												onClick={() => handleRemoveViewer(index)}
-												disabled={isSubmitting}
-												className="text-muted-foreground hover:text-foreground"
-											>
-												<XIcon className="size-3" />
-											</button>
-										</div>
-									))}
+							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+								<div className="space-y-2">
+									<Label htmlFor="apiKey">
+										API Key <span className="text-destructive">*</span>
+									</Label>
+									<Input
+										id="apiKey"
+										type="password"
+										value={apiKey}
+										onChange={(e) => setApiKey(e.target.value)}
+										placeholder="oR1o2UfHbxeOfdwR2U"
+										aria-invalid={errors.apiKey ? "true" : "false"}
+										disabled={isSubmitting}
+									/>
+									{errors.apiKey && (
+										<p className="text-xs text-destructive">{errors.apiKey}</p>
+									)}
 								</div>
-							)}
+
+								<div className="space-y-2">
+									<Label htmlFor="secret">
+										Secret <span className="text-destructive">*</span>
+									</Label>
+									<Input
+										id="secret"
+										type="password"
+										value={secret}
+										onChange={(e) => setSecret(e.target.value)}
+										placeholder="Enter secret key"
+										aria-invalid={errors.secret ? "true" : "false"}
+										disabled={isSubmitting}
+									/>
+									{errors.secret && (
+										<p className="text-xs text-destructive">{errors.secret}</p>
+									)}
+								</div>
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="password">Password (optional)</Label>
+								<Input
+									id="password"
+									type="password"
+									value={password}
+									onChange={(e) => setPassword(e.target.value)}
+									placeholder="Account password"
+									disabled={isSubmitting}
+								/>
+							</div>
+
+							{/* Viewers */}
+							<div className="space-y-2">
+								<Label htmlFor="viewer">Viewers (addresses)</Label>
+								<div className="flex gap-2">
+									<Input
+										id="viewer"
+										value={viewerInput}
+										onChange={(e) => setViewerInput(e.target.value)}
+										placeholder="ghJejxMRW5V5ZyFyxsn9tqQ4BNcSvmqMrv"
+										disabled={isSubmitting}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") {
+												e.preventDefault();
+												handleAddViewer();
+											}
+										}}
+									/>
+									<Button
+										type="button"
+										variant="outline"
+										size="default"
+										onClick={handleAddViewer}
+										disabled={isSubmitting || !viewerInput.trim()}
+									>
+										<PlusIcon className="size-4" />
+									</Button>
+								</div>
+								{viewers.length > 0 && (
+									<div className="flex flex-wrap gap-2 mt-2">
+										{viewers.map((viewer, index) => (
+											<div
+												key={index}
+												className="flex items-center gap-2 px-2 py-1 bg-muted rounded text-sm"
+											>
+												<span className="text-xs">{viewer}</span>
+												<button
+													type="button"
+													onClick={() => handleRemoveViewer(index)}
+													disabled={isSubmitting}
+													className="text-muted-foreground hover:text-foreground"
+												>
+													<XIcon className="size-3" />
+												</button>
+											</div>
+										))}
+									</div>
+								)}
+							</div>
 						</div>
-					</div>
 					)}
 
 					{/* Step 3: Trading Protocol */}
@@ -853,7 +860,7 @@ export function AddAccountDialog({
 								Trading Protocol <span className="text-destructive">*</span>
 							</h3>
 
-						<div className="space-y-4">
+							<div className="space-y-4">
 								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 									<div className="space-y-2">
 										<Label htmlFor="strategy">
@@ -1322,42 +1329,8 @@ export function AddAccountDialog({
 										<p className="text-sm font-medium capitalize">{status}</p>
 									</div>
 									<div>
-										<Label className="text-xs text-muted-foreground">Connection</Label>
-										<p className="text-sm font-medium">{connection ? "Enabled" : "Disabled"}</p>
-									</div>
-									{note && (
-										<div>
-											<Label className="text-xs text-muted-foreground">Note</Label>
-											<p className="text-sm">{note}</p>
-										</div>
-									)}
-									<div>
-										<Label className="text-xs text-muted-foreground">API Key</Label>
-										<p className="text-sm font-mono text-muted-foreground">
-											{apiKey ? `${apiKey.slice(0, 8)}...${apiKey.slice(-4)}` : "—"}
-										</p>
-									</div>
-									<div>
 										<Label className="text-xs text-muted-foreground">Strategy</Label>
 										<p className="text-sm font-medium">{strategy}</p>
-									</div>
-									<div>
-										<Label className="text-xs text-muted-foreground">Max Risk Per Trade</Label>
-										<p className="text-sm font-medium">{maxRiskPerTrade}%</p>
-									</div>
-									<div>
-										<Label className="text-xs text-muted-foreground">Max Leverage</Label>
-										<p className="text-sm font-medium">{maxLeverage}x</p>
-									</div>
-									<div>
-										<Label className="text-xs text-muted-foreground">Markets</Label>
-										<div className="flex flex-wrap gap-2 mt-1">
-											{markets.map((market) => (
-												<span key={market} className="text-xs px-2 py-1 bg-muted rounded">
-													{market}
-												</span>
-											))}
-										</div>
 									</div>
 								</div>
 							</div>
@@ -1408,17 +1381,17 @@ export function AddAccountDialog({
 								<Button
 									type="submit"
 									disabled={isSubmitting}
-									aria-label="Submit account"
+									aria-label="Save changes"
 								>
 									{isSubmitting ? (
 										<>
 											<Loader2 className="size-4 mr-2 animate-spin" />
-											Adding...
+											Saving...
 										</>
 									) : (
 										<>
 											<CheckCircle2 className="size-4 mr-2" />
-											Add Account
+											Save Changes
 										</>
 									)}
 								</Button>

@@ -22,16 +22,21 @@ import {
 	TrendingUp,
 	Copy,
 	Check,
+	Edit,
+	Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "@/stores";
 import type { StoredAccount } from "@/stores/modules/accounts.store";
 import { Button } from "@/components/ui/button";
+import { useAccountsStore } from "@/stores/modules/accounts.store";
 
 interface AccountDetailsDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	account: StoredAccount | null;
 	mobile?: boolean;
+	onEdit?: (account: StoredAccount) => void;
 }
 
 interface CoinBalance {
@@ -53,8 +58,25 @@ export function AccountDetailsDialog({
 	onOpenChange,
 	account,
 	mobile = false,
+	onEdit,
 }: AccountDetailsDialogProps): React.ReactElement {
 	const [copiedField, setCopiedField] = React.useState<string | null>(null);
+	const [showDeleteConfirm, setShowDeleteConfirm] = React.useState<boolean>(false);
+	const { removeAccount } = useAccountsStore();
+
+	const handleDelete = React.useCallback((): void => {
+		if (!account) return;
+		removeAccount(account.id);
+		toast.success("Account deleted", `Account "${account.account.nid}" has been removed`);
+		setShowDeleteConfirm(false);
+		onOpenChange(false);
+	}, [account, removeAccount, onOpenChange]);
+
+	const handleEdit = React.useCallback((): void => {
+		if (!account || !onEdit) return;
+		onEdit(account);
+		onOpenChange(false);
+	}, [account, onEdit, onOpenChange]);
 
 	if (!account) {
 		return (
@@ -198,9 +220,25 @@ export function AccountDetailsDialog({
 			<DialogContent
 				className={cn(
 					"max-w-4xl max-h-[90vh] overflow-y-auto",
-					mobile && "max-w-[calc(100vw-2rem)]",
+					mobile && cn(
+						"max-w-[100vw] max-h-[100vh] h-[100vh]",
+						"rounded-none border-0 m-0 p-0 gap-0",
+						"fixed bottom-0 left-0 right-0 top-0",
+						"translate-x-0 translate-y-0",
+						"data-[state=open]:animate-in data-[state=closed]:animate-out",
+						"data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+						"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+						"duration-300 ease-out",
+					),
 				)}
 			>
+				{mobile && (
+					<div className="shrink-0 flex items-center justify-center pt-3 pb-2 px-4 border-b border-border relative">
+						<div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full" />
+					</div>
+				)}
+				<div className={cn("flex flex-col", mobile ? "h-full overflow-hidden" : "")}>
+					<div className={cn(mobile ? "flex-1 overflow-y-auto p-4" : "")}>
 				<DialogHeader>
 					<div className="flex items-center gap-3">
 						{isOwner
@@ -218,6 +256,31 @@ export function AccountDetailsDialog({
 								{account.account.exchange.toUpperCase()} Trading Account
 							</DialogDescription>
 						</div>
+						{isOwner && (
+							<div className="flex items-center gap-2">
+								{onEdit && (
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={handleEdit}
+										aria-label="Edit account"
+									>
+										<Edit className="size-4 mr-2" />
+										Edit
+									</Button>
+								)}
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setShowDeleteConfirm(true)}
+									aria-label="Delete account"
+									className="text-destructive hover:text-destructive"
+								>
+									<Trash2 className="size-4 mr-2" />
+									Delete
+								</Button>
+							</div>
+						)}
 					</div>
 				</DialogHeader>
 
@@ -534,7 +597,36 @@ export function AccountDetailsDialog({
 						</CardContent>
 					</Card>
 				</div>
+					</div>
+				</div>
 			</DialogContent>
+
+			{/* Delete Confirmation Dialog */}
+			<Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+				<DialogContent className={cn(mobile && "max-w-[calc(100vw-2rem)]")}>
+					<DialogHeader>
+						<DialogTitle>Delete Account</DialogTitle>
+						<DialogDescription>
+							Are you sure you want to delete account "{account?.account.nid}"? This action cannot be undone.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="flex justify-end gap-2 mt-4">
+						<Button
+							variant="outline"
+							onClick={() => setShowDeleteConfirm(false)}
+						>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={handleDelete}
+						>
+							<Trash2 className="size-4 mr-2" />
+							Delete
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</Dialog>
 	);
 }

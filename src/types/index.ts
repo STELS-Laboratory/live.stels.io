@@ -127,7 +127,5 @@ export type {
 	PanelTabProps,
 	PanelManagerProps,
 	PanelCardProps,
-	CodeMirrorEditorProps,
-	Completion,
 } from "./components";
 

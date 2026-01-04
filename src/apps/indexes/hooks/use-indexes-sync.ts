@@ -4,6 +4,7 @@
 
 import { useEffect, useRef } from "react";
 import { useIndexStore } from "../store";
+import { useTimerManager } from "@/lib/timer-manager";
 
 /**
  * Hook to sync indexes data from sessionStorage
@@ -12,7 +13,8 @@ import { useIndexStore } from "../store";
 export function useIndexesSync(): void {
   const loadIndexesRef = useRef(useIndexStore.getState().loadIndexes);
   const lastLoadRef = useRef<number>(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const { setInterval, clear } = useTimerManager();
+  const intervalIdRef = useRef<string | null>(null);
 
   // Update ref when store changes
   useEffect(() => {
@@ -28,20 +30,20 @@ export function useIndexesSync(): void {
     // Use debouncing to prevent excessive calls
     const POLLING_INTERVAL = 3000; // 3 seconds instead of 1
     
-    intervalRef.current = setInterval(() => {
+    intervalIdRef.current = setInterval(() => {
       const now = Date.now();
       // Only load if at least 3 seconds have passed since last load
       if (now - lastLoadRef.current >= POLLING_INTERVAL) {
         loadIndexesRef.current();
         lastLoadRef.current = now;
       }
-    }, POLLING_INTERVAL);
+    }, POLLING_INTERVAL, "IndexesSync polling");
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
+      if (intervalIdRef.current) {
+        clear(intervalIdRef.current);
+        intervalIdRef.current = null;
       }
     };
-  }, []); // Empty deps - use ref to avoid infinite loop
+  }, [setInterval, clear]); // Include TimerManager functions
 }

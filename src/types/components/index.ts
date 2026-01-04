@@ -80,8 +80,5 @@ export type {
 } from "./panels/types";
 
 // Editor component types
-export type {
-	CodeMirrorEditorProps,
-	Completion,
-} from "./editor/types";
+// (No editor-specific types exported currently)
 

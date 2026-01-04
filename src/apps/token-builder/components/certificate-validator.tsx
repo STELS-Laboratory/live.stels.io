@@ -133,14 +133,31 @@ export function CertificateValidator({
 
         const cert = certificate as Record<string, unknown>;
 
-        // Validate genesis-specific fields
-        if (!cert.genesis) genesisErrors.push("Missing genesis data");
+        // Validate all required fields from genesis-smart-1.0.json
+        if (!cert.$schema) genesisErrors.push("Missing $schema");
+        if (!cert.version) genesisErrors.push("Missing version");
         if (!cert.network) genesisErrors.push("Missing network configuration");
-        if (!cert.protocol) {
-          genesisErrors.push("Missing protocol configuration");
-        }
+        if (!cert.genesis) genesisErrors.push("Missing genesis data");
         if (!cert.content) genesisErrors.push("Missing content hash");
+        if (!cert.protocol) genesisErrors.push("Missing protocol configuration");
+        if (!cert.wallet_protocol) genesisErrors.push("Missing wallet_protocol");
+        if (!cert.addressing) genesisErrors.push("Missing addressing specification");
+        if (!cert.consensus) genesisErrors.push("Missing consensus configuration");
+        if (!cert.intrinsics) genesisErrors.push("Missing intrinsics configuration");
+        if (!cert.smart_ops_spec) genesisErrors.push("Missing smart_ops_spec");
+        if (!cert.parameters) genesisErrors.push("Missing parameters");
+        if (!cert.tx_rules) genesisErrors.push("Missing tx_rules");
+        if (!cert.tx_schema) genesisErrors.push("Missing tx_schema");
+        if (!cert.schemas) genesisErrors.push("Missing schemas registry");
+        if (!cert.state) genesisErrors.push("Missing state configuration");
+        if (!cert.monetary) genesisErrors.push("Missing monetary configuration");
+        if (!cert.security) genesisErrors.push("Missing security requirements");
+        if (!cert.governance) genesisErrors.push("Missing governance configuration");
+        if (!cert.signing_keys) genesisErrors.push("Missing signing_keys");
         if (!cert.signatures) genesisErrors.push("Missing signatures");
+        if (!cert.stels_runtime) genesisErrors.push("Missing stels_runtime");
+        if (!cert.stels_policy) genesisErrors.push("Missing stels_policy");
+        if (!cert.observability) genesisErrors.push("Missing observability");
 
         // Check genesis.id format
         if (cert.genesis && typeof cert.genesis === "object") {

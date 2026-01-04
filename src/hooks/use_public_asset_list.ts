@@ -142,7 +142,7 @@ export interface UsePublicAssetListReturn {
 function getApiUrl(networkId: string): string {
 	const networkStore = useNetworkStore.getState();
 	const network = networkStore.getNetwork(networkId);
-	return network ? `${network.api}/` : "http://10.0.0.238:8088/";
+	return network ? `${network.api}/` : "http://10.0.0.206:8088/";
 }
 
 /**
@@ -208,16 +208,16 @@ export function usePublicAssetList(
 	}, [apiUrl, network]);
 
 	// Load asset list on mount and when network changes
-	// Use ref to prevent infinite loops
-	const fetchRef = useRef(false);
+	// Track previous values to avoid unnecessary fetches
+	const prevNetworkRef = useRef<string | undefined>();
+	const prevApiUrlRef = useRef<string | undefined>();
+	
 	useEffect(() => {
-		// Only fetch once per network/apiUrl combination
-		if (!fetchRef.current) {
-			fetchRef.current = true;
+		// Only fetch if network or apiUrl actually changed
+		if (prevNetworkRef.current !== network || prevApiUrlRef.current !== apiUrl) {
+			prevNetworkRef.current = network;
+			prevApiUrlRef.current = apiUrl;
 			fetchAssetList();
-		} else {
-			// Reset flag when network/apiUrl changes
-			fetchRef.current = false;
 		}
 	}, [network, apiUrl, fetchAssetList]);
 

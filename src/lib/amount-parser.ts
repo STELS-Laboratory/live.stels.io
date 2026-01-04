@@ -286,6 +286,36 @@ export function validateAmount(
 }
 
 /**
+ * Detect if balance is in raw format (base units) or human-readable format
+ * @param balance - Balance string to check
+ * @param decimals - Number of decimal places
+ * @returns true if balance appears to be in raw format, false if human-readable
+ */
+export function isRawBalanceFormat(balance: string, decimals: number = 8): boolean {
+	if (!balance || balance.trim() === "") {
+		return false;
+	}
+	
+	// If it contains a decimal point, it's likely human-readable
+	if (balance.includes(".")) {
+		return false;
+	}
+	
+	// If it's a very large integer (much larger than reasonable human-readable values),
+	// it's likely raw format
+	const num = Number.parseFloat(balance);
+	if (Number.isNaN(num)) {
+		return false;
+	}
+	
+	// If the number is very large (e.g., > 1e10 for 8 decimals would be > 100 SLI in raw),
+	// it's likely raw format. Otherwise, it could be either, but we'll assume human-readable
+	// for small numbers to be safe
+	const threshold = Math.pow(10, decimals + 2); // e.g., 1e10 for 8 decimals
+	return num >= threshold;
+}
+
+/**
  * Convert raw balance (base units) to human-readable format
  * @param rawBalance - Raw balance string (e.g., "4496000000000" for 44960 SLI with 8 decimals)
  * @param decimals - Number of decimal places (8 for SLI per protocol)
@@ -305,6 +335,59 @@ export function fromRawBalance(
 	// Divide by 10^decimals to convert from base units
 	const humanReadable = num / Math.pow(10, decimals);
 	return formatAmountForAPI(humanReadable.toString(), decimals);
+}
+
+/**
+ * Convert balance to human-readable format, auto-detecting the input format
+ * @param balance - Balance string (either raw or human-readable)
+ * @param decimals - Number of decimal places
+ * @returns Human-readable amount string
+ */
+export function toHumanReadableBalance(
+	balance: string,
+	decimals: number = 8,
+): string {
+	if (!balance || balance.trim() === "") {
+		return "0." + "0".repeat(decimals);
+	}
+	
+	// If it's already in human-readable format (has decimal point), return as-is (formatted)
+	if (balance.includes(".")) {
+		return formatAmountForAPI(balance, decimals);
+	}
+	
+	// Check if it's raw format
+	if (isRawBalanceFormat(balance, decimals)) {
+		return fromRawBalance(balance, decimals);
+	}
+	
+	// If it's a small integer without decimal point, assume it's already human-readable
+	// (e.g., "0" or "100" should be treated as "0.00" or "100.00")
+	return formatAmountForAPI(balance, decimals);
+}
+
+/**
+ * Convert fee from base units to SLI decimal format
+ * Genesis documents store fee values in base units (e.g., 1000 = 0.00001000 SLI)
+ * @param feeBaseUnits - Fee value in base units (number or string)
+ * @param decimals - Number of decimal places (default: 8)
+ * @returns Fee in SLI decimal format (e.g., "0.00001000")
+ */
+export function convertFeeFromBaseUnits(
+	feeBaseUnits: number | string,
+	decimals: number = 8,
+): string {
+	const baseUnits = typeof feeBaseUnits === "string"
+		? Number.parseFloat(feeBaseUnits)
+		: feeBaseUnits;
+	
+	if (Number.isNaN(baseUnits) || baseUnits < 0) {
+		return "0";
+	}
+	
+	// Convert from base units to SLI: divide by 10^decimals
+	const feeInSLI = baseUnits / Math.pow(10, decimals);
+	return feeInSLI.toFixed(decimals);
 }
 
 /**

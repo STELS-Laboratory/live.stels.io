@@ -34,11 +34,13 @@ export interface AssetTransaction {
 
 /**
  * Transaction query result
+ * Note: transaction, status, and submitted_at are optional because
+ * the API may return incomplete transaction data (only tx_hash and pool_key)
  */
 export interface TransactionResult {
-	transaction: AssetTransaction;
-	status: "pending" | "confirmed" | "failed";
-	submitted_at: number;
+	transaction?: AssetTransaction;
+	status?: "pending" | "confirmed" | "failed";
+	submitted_at?: number;
 	tx_hash: string;
 	pool_key: string[];
 	consensus_status?: "pending" | "confirmed" | "not_found";

@@ -92,14 +92,14 @@ export default function Indexes(): React.ReactElement {
     return state.indexes[state.selectedIndex] || null;
   });
 
-  // Categories for filter
-  const categories = [
+  // Categories for filter - extracted outside component to prevent recreation
+  const categories = useMemo(() => [
     { value: "market", label: "Market" },
     { value: "sentiment", label: "Sentiment" },
     { value: "technical", label: "Technical" },
     { value: "liquidity", label: "Liquidity" },
     { value: "arbitrage", label: "Arbitrage" },
-  ];
+  ], []);
 
   return (
     <div className="h-full flex flex-col bg-background">

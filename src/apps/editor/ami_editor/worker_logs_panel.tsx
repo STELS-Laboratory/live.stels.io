@@ -20,6 +20,9 @@ import {
 import { cn } from "@/lib/utils.ts";
 import { useAuthStore } from "@/stores/modules/auth.store.ts";
 
+// Maximum number of logs to keep in memory to prevent UI overload
+const MAX_LOGS = 100;
+
 interface WorkerLogsPanelProps {
   workerId: string;
   onClose?: () => void;
@@ -33,6 +36,7 @@ export function WorkerLogsPanel({
   onClose,
 }: WorkerLogsPanelProps): React.ReactElement {
   const [logs, setLogs] = useState<string[]>([]);
+  const [totalLogsCount, setTotalLogsCount] = useState(0); // Track total logs received
   const [connected, setConnected] = useState(false);
   const [following, setFollowing] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -119,7 +123,15 @@ export function WorkerLogsPanel({
                         break;
 
                       case "log":
-                        setLogs((prev) => [...prev, data.content]);
+                        setLogs((prev) => {
+                          const newLogs = [...prev, data.content];
+                          // Keep only the last MAX_LOGS entries
+                          if (newLogs.length > MAX_LOGS) {
+                            return newLogs.slice(-MAX_LOGS);
+                          }
+                          return newLogs;
+                        });
+                        setTotalLogsCount((prev) => prev + 1);
                         break;
 
                       case "complete":
@@ -133,23 +145,34 @@ export function WorkerLogsPanel({
                         reader.cancel();
                         return;
                     }
-                  } catch {
-			// Error handled silently
-		}
+                  } catch (parseError) {
+                    console.warn("Failed to parse SSE message:", parseError);
+                    // Continue processing other messages
+                  }
                 }
               }
             }
           }
-        } catch {
+        } catch (err) {
           if (err instanceof Error && err.name !== "AbortError") {
+            console.error("Log stream read error:", err);
             setError(err.message);
             setConnected(false);
+          }
+        } finally {
+          // Ensure reader is cleaned up even if loop exits
+          if (readerRef.current) {
+            readerRef.current.cancel().catch(() => {
+              // Ignore cleanup errors
+            });
+            readerRef.current = null;
           }
         }
       };
 
       readStream();
-    } catch {
+    } catch (err) {
+      console.error("Failed to connect to log stream:", err);
       setError(
         err instanceof Error ? err.message : "Failed to connect to log stream",
       );
@@ -161,8 +184,11 @@ export function WorkerLogsPanel({
   const disconnect = (): void => {
     if (readerRef.current) {
       // Cancel the reader stream
-      readerRef.current.cancel().catch(() => {
-        // Ignore cancel errors
+      readerRef.current.cancel().catch((error) => {
+        // Log but don't throw - cleanup errors are expected
+        if (error.name !== "AbortError") {
+          console.warn("Error canceling log stream reader:", error);
+        }
       });
       readerRef.current = null;
       setConnected(false);
@@ -179,6 +205,7 @@ export function WorkerLogsPanel({
   // Clear logs
   const clearLogs = (): void => {
     setLogs([]);
+    setTotalLogsCount(0);
   };
 
   // Download logs
@@ -210,6 +237,7 @@ export function WorkerLogsPanel({
   useEffect(() => {
     // Clear previous worker's logs
     setLogs([]);
+    setTotalLogsCount(0);
     setError(null);
 
     // Add separator message for new worker
@@ -218,12 +246,21 @@ export function WorkerLogsPanel({
         new Date().toISOString()
       }\n# ─────────────────────────────────────────────────────────────────\n`;
     setLogs([separator]);
+    setTotalLogsCount(1);
 
     // Connect to new worker
     connect(following);
 
+    // Cleanup: ensure reader is properly closed
     return () => {
       disconnect();
+      // Additional cleanup: clear any pending timeouts
+      if (readerRef.current) {
+        readerRef.current.cancel().catch(() => {
+          // Ignore cleanup errors
+        });
+        readerRef.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workerId]);
@@ -331,6 +368,11 @@ export function WorkerLogsPanel({
 
           <div className="ml-auto text-[10px] text-muted-foreground font-mono">
             {logs.length}
+            {totalLogsCount > MAX_LOGS && (
+              <span className="text-yellow-600 dark:text-yellow-500 ml-1">
+                /{totalLogsCount}
+              </span>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -390,6 +432,13 @@ export function WorkerLogsPanel({
               )
               : (
                 <div className="space-y-0">
+                  {/* Show message when logs are truncated */}
+                  {totalLogsCount > MAX_LOGS && (
+                    <div className="text-yellow-600 dark:text-yellow-500 text-[10px] mb-2 pb-2 border-b border-yellow-500/20">
+                      <span className="font-semibold">⚠</span> Showing last {MAX_LOGS} of {totalLogsCount} logs. 
+                      Older logs have been removed to prevent UI overload.
+                    </div>
+                  )}
                   {logs.map((line, index) => {
                     // Parse log line for terminal styling
                     const isComment = line.startsWith("#");

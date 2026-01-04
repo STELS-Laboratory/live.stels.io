@@ -498,6 +498,45 @@ export interface GovernanceConfig {
 }
 
 /**
+ * STELS Runtime configuration (from genesis-smart-1.0.json)
+ */
+export interface StelsRuntime {
+  storage: {
+    kv_namespaces: Array<{
+      name: string;
+      purpose: "state" | "mempool" | "metrics" | "ai_training" | "logs";
+      retention_ms: number;
+    }>;
+  };
+  channels: Array<{
+    id: string;
+    kind: "pubsub" | "stream" | "queue";
+  }>;
+}
+
+/**
+ * STELS Policy configuration (from genesis-smart-1.0.json)
+ */
+export interface StelsPolicy {
+  profile: "devnet" | "testnet" | "mainnet-hard";
+  strict_mode: boolean;
+  rules_version?: string;
+}
+
+/**
+ * Observability configuration (from genesis-smart-1.0.json)
+ */
+export interface Observability {
+  metrics: {
+    enabled: boolean;
+    endpoints: string[];
+  };
+  logging: {
+    level: "debug" | "info" | "warn" | "error";
+  };
+}
+
+/**
  * Signing key (from genesis-smart-1.0.json)
  */
 export interface SigningKey {
@@ -663,6 +702,15 @@ export interface TokenGenesisCertificate {
   
   // Cryptographic signatures (required)
   signatures: Signatures;
+  
+  // STELS Runtime configuration (required)
+  stels_runtime: StelsRuntime;
+  
+  // STELS Policy configuration (required)
+  stels_policy: StelsPolicy;
+  
+  // Observability configuration (required)
+  observability: Observability;
   
   // Backward compatibility: token field (optional, for legacy support)
   token?: TokenData;

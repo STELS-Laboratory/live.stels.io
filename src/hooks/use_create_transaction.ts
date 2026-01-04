@@ -191,9 +191,10 @@ function convertToConsensusFormat(
 	const amountBase = toBaseUnits(transaction.amount, decimals);
 	
 	// Fee remains in decimal format (not converted to base units)
-	// According to CLIENT_TRANSACTION_UTILS.md: "Fee остается в десятичном формате"
+	// According to CLIENT_TRANSACTION_UTILS.md: "Fee remains in decimal format"
 
 	// Convert to smart transaction format (consensus format)
+	// CRITICAL: Match exact structure expected by server for native token transactions
 	const consensusTx: Record<string, unknown> = {
 		type: "smart",
 		method: "smart.exec",
@@ -205,14 +206,14 @@ function convertToConsensusFormat(
 					amount: amountBase, // Amount in base units
 				},
 			],
-			// Add memo only if present
-			...(transaction.memo && { memo: transaction.memo }),
+			// Add memo only if present (don't include if undefined)
+			...(transaction.memo && transaction.memo.trim() !== "" && { memo: transaction.memo }),
 		},
 		from: transaction.from,
 		fee: transaction.fee, // Fee in decimal format (not converted)
 		currency: transaction.currency,
+		prev_hash: transaction.prev_hash ?? null, // Explicitly set to null if undefined
 		timestamp: transaction.timestamp,
-		prev_hash: transaction.prev_hash ?? null,
 	};
 
 	return consensusTx;
@@ -244,7 +245,22 @@ function signNativeTokenTransaction(
 
 	// 2. Create signing view (exclude signature fields)
 	// According to tx_rules.signing_view_exclude
-	const signingView: Record<string, unknown> = { ...consensusTx };
+	// CRITICAL: Build signing view explicitly to match server expectations
+	// Order matters for canonical serialization (gls-det-1)
+	const signingView: Record<string, unknown> = {
+		type: consensusTx.type,
+		method: consensusTx.method,
+		args: consensusTx.args,
+		from: consensusTx.from,
+		fee: consensusTx.fee,
+		currency: consensusTx.currency,
+		prev_hash: consensusTx.prev_hash ?? null, // Explicitly set to null if undefined
+		timestamp: consensusTx.timestamp,
+	};
+	
+	// CRITICAL: Remove null/undefined values per gls-det-1 spec
+	// But keep prev_hash: null if it's explicitly null (required field)
+	// Remove any signature-related fields that might have been copied
 	delete signingView.signature;
 	delete signingView.signatures;
 	delete signingView.cosigs;
@@ -254,11 +270,22 @@ function signNativeTokenTransaction(
 	delete signingView.hash;
 
 	// 3. Canonicalize signing view
+	// deterministicStringify handles null values correctly per gls-det-1
 	const canonicalData = deterministicStringify(signingView);
 
 	// 4. Create domain-separated message
 	const domainStr = signDomain.map(String).join(":");
 	const messageToSign = `${domainStr}:${canonicalData}`;
+
+	// DEBUG: Log signing details for native token transactions
+	if (process.env.NODE_ENV === "development") {
+		console.log("[Native Token Signing]", {
+			domain: domainStr,
+			signingView,
+			canonicalLength: canonicalData.length,
+			messageLength: messageToSign.length,
+		});
+	}
 
 	// 5. Sign message
 	const signature = sign(messageToSign, wallet.privateKey);
@@ -409,12 +436,24 @@ export function createAssetTransaction(
 
 /**
  * Submit asset transaction to API
+ * According to API.md:
+ * - For native tokens: transaction is signed in consensus format but submitted as asset.transfer
+ * - Server automatically converts native token transactions to smart format internally
+ * - For custom tokens: transaction is submitted as-is
  */
 async function submitAssetTransaction(
 	transaction: AssetTransaction,
 	apiUrl: string,
 	session: string,
 ): Promise<SubmitTransactionResponse> {
+	// CRITICAL: For native tokens, convert to smart transaction format before submission
+	// For both native and custom tokens, submit as asset.transfer
+	// According to API.md:
+	// - For native tokens: transaction is signed in consensus format but submitted as asset.transfer
+	// - Server automatically converts native token transactions to smart format
+	// - For custom tokens: transaction is submitted as-is
+	
+	// For custom tokens, submit as asset transaction
 	const response = await fetch(apiUrl, {
 		method: "POST",
 		headers: {

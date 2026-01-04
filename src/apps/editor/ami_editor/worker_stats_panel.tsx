@@ -181,8 +181,8 @@ export function WorkerStatsPanel({
               Errors
             </div>
             <div className="flex items-center gap-1">
-              <XCircle className="h-3 w-3 text-red-700 dark:text-red-700 dark:text-red-400" />
-              <span className="text-sm font-bold text-red-700 dark:text-red-700 dark:text-red-400">
+              <XCircle className="h-3 w-3 text-red-700 dark:text-red-400" />
+              <span className="text-sm font-bold text-red-700 dark:text-red-400">
                 {totals.errors}
               </span>
             </div>
@@ -193,15 +193,15 @@ export function WorkerStatsPanel({
               Rate
             </div>
             <div className="flex items-center gap-1">
-              <AlertTriangle className="h-3 w-3 text-orange-700 dark:text-orange-700 dark:text-orange-400" />
+              <AlertTriangle className="h-3 w-3 text-orange-700 dark:text-orange-400" />
               <span
                 className={cn(
                   "text-sm font-bold",
                   avgErrorRate < 5
                     ? "text-green-700 dark:text-green-700 dark:text-green-600"
                     : avgErrorRate < 15
-                    ? "text-orange-700 dark:text-orange-700 dark:text-orange-400"
-                    : "text-red-700 dark:text-red-700 dark:text-red-400",
+                    ? "text-orange-700 dark:text-orange-400"
+                    : "text-red-700 dark:text-red-400",
                 )}
               >
                 {avgErrorRate.toFixed(1)}%
@@ -219,8 +219,8 @@ export function WorkerStatsPanel({
             <div className="grid grid-cols-2 gap-2">
               <div className="flex items-center justify-between p-2 bg-orange-500/5 border border-orange-500/30">
                 <div className="flex items-center gap-1.5">
-                  <AlertCircle className="h-3 w-3 text-orange-700 dark:text-orange-700 dark:text-orange-400" />
-                  <span className="text-xs text-orange-700 dark:text-orange-700 dark:text-orange-400">
+                  <AlertCircle className="h-3 w-3 text-orange-700 dark:text-orange-400" />
+                  <span className="text-xs text-orange-700 dark:text-orange-400">
                     Network
                   </span>
                 </div>
@@ -231,8 +231,8 @@ export function WorkerStatsPanel({
 
               <div className="flex items-center justify-between p-2 bg-red-500/5 border border-red-500/30">
                 <div className="flex items-center gap-1.5">
-                  <XCircle className="h-3 w-3 text-red-700 dark:text-red-700 dark:text-red-400" />
-                  <span className="text-xs text-red-700 dark:text-red-700 dark:text-red-400">
+                  <XCircle className="h-3 w-3 text-red-700 dark:text-red-400" />
+                  <span className="text-xs text-red-700 dark:text-red-400">
                     Critical
                   </span>
                 </div>
@@ -286,7 +286,7 @@ export function WorkerStatsPanel({
                     <span className="text-muted-foreground">
                       {stat.executions}
                     </span>
-                    <span className="text-red-700 dark:text-red-700 dark:text-red-400">
+                    <span className="text-red-700 dark:text-red-400">
                       {stat.errors}
                     </span>
                     <span
@@ -295,8 +295,8 @@ export function WorkerStatsPanel({
                         stat.errorRate < 5
                           ? "text-green-700 dark:text-green-700 dark:text-green-600"
                           : stat.errorRate < 15
-                          ? "text-orange-700 dark:text-orange-700 dark:text-orange-400"
-                          : "text-red-700 dark:text-red-700 dark:text-red-400",
+                          ? "text-orange-700 dark:text-orange-400"
+                          : "text-red-700 dark:text-red-400",
                       )}
                     >
                       {stat.errorRate.toFixed(1)}%
@@ -342,7 +342,7 @@ export function WorkerStatsPanel({
             <div className="flex items-start gap-2">
               <AlertCircle className="h-4 w-4 text-red-500 mt-0.5" />
               <div>
-                <p className="text-xs text-red-700 dark:text-red-700 dark:text-red-400 font-medium mb-1">
+                <p className="text-xs text-red-700 dark:text-red-400 font-medium mb-1">
                   Failed to load statistics
                 </p>
                 <p className="text-xs text-red-800 dark:text-red-300">

@@ -128,13 +128,18 @@ export function TransactionDetailsDialog({
 	}
 
 	const tx = transaction.transaction;
-	const isOutgoing = tx.from === address;
-	const tokenSymbol = tokenSymbolMap.get(tx.token_id.toLowerCase()) ||
-		tx.currency ||
-		"UNKNOWN";
+	const hasFullData = !!(
+		tx &&
+		typeof tx === "object" &&
+		typeof tx.from === "string" &&
+		typeof tx.to === "string" &&
+		tx.from.length > 0 &&
+		tx.to.length > 0
+	);
 
 	const getStatusIcon = (): React.ReactElement => {
-		switch (transaction.status) {
+		const status = transaction.consensus_status || transaction.status || "pending";
+		switch (status) {
 			case "confirmed":
 				return <CheckCircle2 className="size-5 text-green-500" />;
 			case "pending":
@@ -151,7 +156,8 @@ export function TransactionDetailsDialog({
 		| "secondary"
 		| "destructive"
 		| "outline" => {
-		switch (transaction.status) {
+		const status = transaction.consensus_status || transaction.status || "pending";
+		switch (status) {
 			case "confirmed":
 				return "default";
 			case "pending":
@@ -162,6 +168,128 @@ export function TransactionDetailsDialog({
 				return "outline";
 		}
 	};
+
+	// Show limited view for incomplete transactions
+	if (!hasFullData) {
+		const displayStatus = transaction.consensus_status || transaction.status || "pending";
+		return (
+			<Dialog open={open} onOpenChange={onOpenChange}>
+				<DialogContent
+					className={cn(
+						"max-w-3xl max-h-[90vh] overflow-y-auto",
+						mobile && "max-w-[calc(100vw-2rem)]",
+					)}
+				>
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2">
+							<Clock className="size-5 text-amber-500" />
+							Transaction Details
+						</DialogTitle>
+						<DialogDescription>
+							Transaction data is being loaded
+						</DialogDescription>
+					</DialogHeader>
+
+					<div className={cn("space-y-4", mobile && "space-y-3")}>
+						{/* Status Badge */}
+						<div className="flex items-center gap-2">
+							<Badge
+								variant={getStatusBadgeVariant()}
+								className="text-sm flex items-center gap-2 px-3 py-1.5"
+							>
+								{getStatusIcon()}
+								{displayStatus.toUpperCase()}
+							</Badge>
+							<span className="text-sm text-muted-foreground">
+								Loading transaction data...
+							</span>
+						</div>
+
+						{/* Transaction Hash */}
+						<div className="space-y-2">
+							<div className="flex items-center gap-2 text-sm text-muted-foreground">
+								<Hash className="size-4" />
+								<span>Transaction Hash</span>
+							</div>
+							<div className="pl-6 flex items-center gap-2">
+								<code className="flex-1 font-mono text-sm bg-muted px-3 py-2 rounded border border-border break-all">
+									{transaction.tx_hash}
+								</code>
+								<Button
+									variant="ghost"
+									size="sm"
+									className="h-8 w-8 p-0"
+									onClick={() => handleCopy(transaction.tx_hash, "hash")}
+								>
+									{copiedField === "hash"
+										? <Check className="size-4" />
+										: <Copy className="size-4" />}
+								</Button>
+							</div>
+						</div>
+
+						{/* Timestamp if available */}
+						{transaction.submitted_at && (
+							<div className="space-y-2">
+								<div className="flex items-center gap-2 text-sm text-muted-foreground">
+									<Calendar className="size-4" />
+									<span>Submitted</span>
+								</div>
+								<div className="pl-6 text-sm text-foreground">
+									{formatTimestamp(transaction.submitted_at)}
+								</div>
+								<div className="pl-6 text-xs text-muted-foreground">
+									{formatDate(transaction.submitted_at)}
+								</div>
+							</div>
+						)}
+
+						{/* Pool Keys */}
+						{transaction.pool_key && transaction.pool_key.length > 0 && (
+							<div className="space-y-3 pt-2 border-t border-border">
+								<h3 className="text-sm font-semibold text-foreground">
+									Pool Keys ({transaction.pool_key.length})
+								</h3>
+								<div className="space-y-2">
+									{transaction.pool_key.map((key, index) => (
+										<div
+											key={index}
+											className="flex items-center gap-2 bg-muted/50 px-3 py-2 rounded border border-border"
+										>
+											<code className="flex-1 font-mono text-xs break-all">
+												{key}
+											</code>
+											<Button
+												variant="ghost"
+												size="sm"
+												className="h-6 w-6 p-0"
+												onClick={() => handleCopy(key, `pool_key_${index}`)}
+											>
+												{copiedField === `pool_key_${index}`
+													? <Check className="size-3" />
+													: <Copy className="size-3" />}
+											</Button>
+										</div>
+									))}
+								</div>
+							</div>
+						)}
+
+						<div className="pt-4 border-t border-border">
+							<p className="text-sm text-muted-foreground text-center">
+								Full transaction details will be available once the transaction is fully loaded.
+							</p>
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
+		);
+	}
+
+	const isOutgoing = tx.from === address;
+	const tokenSymbol = tokenSymbolMap.get(tx.token_id.toLowerCase()) ||
+		tx.currency ||
+		"UNKNOWN";
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -191,7 +319,7 @@ export function TransactionDetailsDialog({
 							className="text-sm flex items-center gap-2 px-3 py-1.5"
 						>
 							{getStatusIcon()}
-							{transaction.status.toUpperCase()}
+							{(transaction.consensus_status || transaction.status || "pending").toUpperCase()}
 						</Badge>
 						<span className="text-sm text-muted-foreground">
 							{isOutgoing ? "Outgoing" : "Incoming"} Transaction
@@ -306,12 +434,16 @@ export function TransactionDetailsDialog({
 								<Calendar className="size-4" />
 								<span>Submitted</span>
 							</div>
-							<div className="pl-6 text-sm text-foreground">
-								{formatTimestamp(transaction.submitted_at)}
-							</div>
-							<div className="pl-6 text-xs text-muted-foreground">
-								{formatDate(transaction.submitted_at)}
-							</div>
+							{transaction.submitted_at && (
+								<>
+									<div className="pl-6 text-sm text-foreground">
+										{formatTimestamp(transaction.submitted_at)}
+									</div>
+									<div className="pl-6 text-xs text-muted-foreground">
+										{formatDate(transaction.submitted_at)}
+									</div>
+								</>
+							)}
 						</div>
 						{tx.timestamp && (
 							<div className="space-y-2">

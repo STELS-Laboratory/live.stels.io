@@ -128,6 +128,8 @@ async function submitSmartTransaction(
 		throw new Error(`Invalid smart transaction${errorDetails}`);
 	}
 
+	// CRITICAL: API uses submitAssetTransaction for all transaction types
+	// The server recognizes transaction type from the transaction.type field
 	const response = await fetch(apiUrl, {
 		method: "POST",
 		headers: {
@@ -136,7 +138,7 @@ async function submitSmartTransaction(
 		},
 		body: JSON.stringify({
 			webfix: "1.0",
-			method: "submitSmartTransaction",
+			method: "submitAssetTransaction",
 			params: [network],
 			body: {
 				transaction,

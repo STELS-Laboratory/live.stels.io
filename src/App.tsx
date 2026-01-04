@@ -345,7 +345,8 @@ export default function Dashboard(): React.ReactElement {
 				JSON.parse(privateStoreData)?.raw?.session || false;
 
 		return { authStoreData, privateStoreData, hasValidSession };
-	}, []);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isAuthenticated, isConnected]); // Update when auth state changes (deps used indirectly via localStorage)
 
 	// Update ref when session check changes
 	// This ensures we always have the latest session data

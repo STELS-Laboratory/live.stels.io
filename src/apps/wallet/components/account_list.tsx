@@ -62,8 +62,17 @@ function AccountItem({
 				ease: [0.16, 1, 0.3, 1],
 			}}
 			onClick={onClick}
+			onKeyDown={(e) => {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					onClick?.();
+				}
+			}}
+			tabIndex={0}
+			role="button"
+			aria-label={`${account.account.nid} account on ${account.account.exchange}, status: ${status}, ${isOwner ? "owner" : "viewer"}`}
 			className={cn(
-				"flex items-center rounded border border-border bg-card hover:bg-muted/50 transition-colors cursor-pointer",
+				"flex items-center rounded border border-border bg-card hover:bg-muted/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
 				mobile ? "gap-2 p-3" : "gap-4 p-4",
 			)}
 		>

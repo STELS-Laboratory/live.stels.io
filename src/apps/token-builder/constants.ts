@@ -21,6 +21,9 @@ import type {
   MonetaryConfig,
   GovernanceConfig,
   UpgradePolicy,
+  StelsRuntime,
+  StelsPolicy,
+  Observability,
 } from "./types";
 
 /**
@@ -488,5 +491,79 @@ export const GOVERNANCE_CONFIG: GovernanceConfig = {
       n: 5,
     },
     max_duration_ms: 86400000, // 24 hours
+  },
+};
+
+/**
+ * STELS Runtime configuration
+ * 100% compatible with genesis-smart-1.0.json schema
+ */
+export const STELS_RUNTIME: StelsRuntime = {
+  storage: {
+    kv_namespaces: [
+      {
+        name: "net",
+        purpose: "state",
+        retention_ms: 0,
+      },
+      {
+        name: "local",
+        purpose: "state",
+        retention_ms: 0,
+      },
+      {
+        name: "mempool",
+        purpose: "mempool",
+        retention_ms: 3600000, // 1 hour
+      },
+      {
+        name: "metrics",
+        purpose: "metrics",
+        retention_ms: 1800000, // 30 minutes
+      },
+      {
+        name: "logs",
+        purpose: "logs",
+        retention_ms: 1800000, // 30 minutes
+      },
+    ],
+  },
+  channels: [
+    {
+      id: "workers/events",
+      kind: "pubsub",
+    },
+    {
+      id: "training/events",
+      kind: "stream",
+    },
+    {
+      id: "market/orderbook",
+      kind: "stream",
+    },
+  ],
+};
+
+/**
+ * STELS Policy configuration
+ * 100% compatible with genesis-smart-1.0.json schema
+ */
+export const STELS_POLICY: StelsPolicy = {
+  profile: "testnet",
+  strict_mode: false,
+  rules_version: "1.0",
+};
+
+/**
+ * Observability configuration
+ * 100% compatible with genesis-smart-1.0.json schema
+ */
+export const OBSERVABILITY_CONFIG: Observability = {
+  metrics: {
+    enabled: true,
+    endpoints: [],
+  },
+  logging: {
+    level: "info",
   },
 };

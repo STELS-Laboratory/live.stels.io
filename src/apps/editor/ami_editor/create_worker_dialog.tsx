@@ -23,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertCircle,
@@ -32,94 +31,16 @@ import {
   Cpu,
   Layers,
   Rocket,
-  Server,
   Sparkles,
+  Server,
   Zap,
 } from "lucide-react";
-import { cn } from "@/lib/utils.ts";
 import type { WorkerCreateRequest } from "../store.ts";
-import { getTemplateById, WORKER_TEMPLATES } from "./templates.ts";
 
 interface CreateWorkerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (request: WorkerCreateRequest) => Promise<void>;
-}
-
-/**
- * Get icon for execution mode
- */
-function getExecutionModeIcon(
-  mode: "parallel" | "leader" | "exclusive",
-): React.ReactNode {
-  switch (mode) {
-    case "parallel":
-      return <Boxes className="w-4 h-4" />;
-    case "leader":
-      return <Zap className="w-4 h-4" />;
-    case "exclusive":
-      return <Server className="w-4 h-4" />;
-    default:
-      return <Cpu className="w-4 h-4" />;
-  }
-}
-
-/**
- * Get color for execution mode
- */
-function getExecutionModeColor(
-  mode: "parallel" | "leader" | "exclusive",
-): string {
-  switch (mode) {
-    case "parallel":
-      return "text-blue-700 dark:text-blue-700 dark:text-blue-400";
-    case "leader":
-      return "text-amber-700 dark:text-amber-700 dark:text-amber-400";
-    case "exclusive":
-      return "text-purple-700 dark:text-purple-700 dark:text-purple-400";
-    default:
-      return "text-muted-foreground";
-  }
-}
-
-/**
- * Get icon for priority
- */
-function getPriorityIcon(
-  priority: "critical" | "high" | "normal" | "low",
-): React.ReactNode {
-  switch (priority) {
-    case "critical":
-      return <Rocket className="w-4 h-4" />;
-    case "high":
-      return <Zap className="w-4 h-4" />;
-    case "normal":
-      return <Layers className="w-4 h-4" />;
-    case "low":
-      return <Server className="w-4 h-4" />;
-    default:
-      return <Cpu className="w-4 h-4" />;
-  }
-}
-
-/**
- * Get color for priority
- */
-function getPriorityColor(
-  priority: "critical" | "high" | "normal" | "low",
-): string {
-  switch (priority) {
-    case "critical":
-      return "text-red-700 dark:text-red-700 dark:text-red-400";
-    case "high":
-      return "text-orange-700 dark:text-orange-700 dark:text-orange-400";
-    case "normal":
-      return "text-green-700 dark:text-green-700 dark:text-green-600";
-    case "low":
-      return "text-blue-700 dark:text-blue-700 dark:text-blue-400";
-    default:
-      return "text-muted-foreground";
-  }
 }
 
 /**
@@ -130,8 +51,6 @@ export function CreateWorkerDialog({
   onOpenChange,
   onSubmit,
 }: CreateWorkerDialogProps): React.ReactElement {
-  const [step, setStep] = useState<1 | 2>(1);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>("empty");
   const [formData, setFormData] = useState<WorkerCreateRequest>({
     scriptContent: "",
     dependencies: ["gliesereum"],
@@ -144,17 +63,6 @@ export function CreateWorkerDialog({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const handleTemplateSelect = (templateId: string): void => {
-    const template = getTemplateById(templateId);
-    if (template) {
-      setSelectedTemplate(templateId);
-      setFormData({
-        ...template.config,
-        note: template.description,
-      });
-    }
-  };
 
   const handleSubmit = async (): Promise<void> => {
     setError(null);
@@ -189,7 +97,7 @@ export function CreateWorkerDialog({
     try {
       await onSubmit(formData);
       handleClose();
-    } catch {
+    } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to create worker",
       );
@@ -199,8 +107,6 @@ export function CreateWorkerDialog({
   };
 
   const handleClose = (): void => {
-    setStep(1);
-    setSelectedTemplate("empty");
     setFormData({
       scriptContent: "",
       dependencies: ["gliesereum"],
@@ -225,13 +131,11 @@ export function CreateWorkerDialog({
               <Sparkles className="h-5 w-5 text-amber-500" />
             </div>
             <span className="text-foreground">
-              {step === 1 ? "Select Template" : "Configure Worker"}
+              Create New Worker
             </span>
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            {step === 1
-              ? "Choose a pre-built template or start from scratch"
-              : "Configure execution mode, priority, and script details"}
+            Configure execution mode, priority, and script details
           </DialogDescription>
         </DialogHeader>
 
@@ -247,89 +151,7 @@ export function CreateWorkerDialog({
           </Alert>
         )}
 
-        {step === 1
-          ? (
-            // Step 1: Template Selection
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-3">
-                {Object.values(WORKER_TEMPLATES).map((template) => (
-                  <button
-                    key={template.id}
-                    onClick={() => handleTemplateSelect(template.id)}
-                    className={cn(
-                      "relative p-4 border text-left transition-all duration-200",
-                      selectedTemplate === template.id
-                        ? "bg-amber-500/10 border-amber-500/30"
-                        : "bg-muted/30 border-border hover:bg-muted/50 hover:border-border",
-                    )}
-                  >
-                    {selectedTemplate === template.id && (
-                      <div className="absolute -top-0.5 -left-0.5 w-2 h-2 border-t border-l border-amber-500/50" />
-                    )}
-
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="text-2xl">{template.icon}</div>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "text-xs",
-                          template.category === "trading" &&
-                            "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-700 dark:text-green-600",
-                          template.category === "monitoring" &&
-                            "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-700 dark:text-blue-400",
-                          template.category === "analytics" &&
-                            "border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-700 dark:text-purple-400",
-                          template.category === "maintenance" &&
-                            "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-700 dark:text-orange-400",
-                          template.category === "integration" &&
-                            "border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-400",
-                          template.category === "notification" &&
-                            "border-pink-500/30 bg-pink-500/10 text-pink-700 dark:text-pink-400",
-                        )}
-                      >
-                        {template.category}
-                      </Badge>
-                    </div>
-
-                    <h4 className="font-bold text-sm text-foreground mb-1">
-                      {template.name}
-                    </h4>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {template.description}
-                    </p>
-
-                    <div className="flex items-center gap-2 mt-3">
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "text-xs",
-                          getExecutionModeColor(template.config.executionMode),
-                        )}
-                      >
-                        {getExecutionModeIcon(template.config.executionMode)}
-                        <span className="ml-1">
-                          {template.config.executionMode}
-                        </span>
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "text-xs",
-                          getPriorityColor(template.config.priority),
-                        )}
-                      >
-                        {getPriorityIcon(template.config.priority)}
-                        <span className="ml-1">{template.config.priority}</span>
-                      </Badge>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )
-          : (
-            // Step 2: Configuration
-            <div className="space-y-4 py-4">
+        <div className="space-y-4 py-4">
               {/* Row 1: Scope */}
               <div className="space-y-2">
                 <Label>Scope *</Label>
@@ -353,7 +175,7 @@ export function CreateWorkerDialog({
                   <SelectContent>
                     <SelectItem value="local">
                       <div className="flex items-center gap-2">
-                        <Server className="w-4 h-4 text-blue-700 dark:text-blue-700 dark:text-blue-400" />
+                        <Server className="w-4 h-4 text-blue-700 dark:text-blue-400" />
                         <span>Local</span>
                         <span className="text-xs text-muted-foreground">
                           (This node only)
@@ -401,7 +223,7 @@ export function CreateWorkerDialog({
                         disabled={formData.scope === "local"}
                       >
                         <div className="flex items-center gap-2">
-                          <Boxes className="w-4 h-4 text-blue-700 dark:text-blue-700 dark:text-blue-400" />
+                          <Boxes className="w-4 h-4 text-blue-700 dark:text-blue-400" />
                           <span>Parallel</span>
                           <span className="text-xs text-muted-foreground">
                             {formData.scope === "local"
@@ -412,7 +234,7 @@ export function CreateWorkerDialog({
                       </SelectItem>
                       <SelectItem value="leader">
                         <div className="flex items-center gap-2">
-                          <Zap className="w-4 h-4 text-amber-700 dark:text-amber-700 dark:text-amber-400" />
+                          <Zap className="w-4 h-4 text-amber-700 dark:text-amber-400" />
                           <span>Leader</span>
                           <span className="text-xs text-muted-foreground">
                             (Single node)
@@ -424,7 +246,7 @@ export function CreateWorkerDialog({
                         disabled={formData.scope === "local"}
                       >
                         <div className="flex items-center gap-2">
-                          <Server className="w-4 h-4 text-purple-700 dark:text-purple-700 dark:text-purple-400" />
+                          <Server className="w-4 h-4 text-purple-700 dark:text-purple-400" />
                           <span>Exclusive</span>
                           <span className="text-xs text-muted-foreground">
                             {formData.scope === "local"
@@ -452,7 +274,7 @@ export function CreateWorkerDialog({
                     <SelectContent>
                       <SelectItem value="critical">
                         <div className="flex items-center gap-2">
-                          <Rocket className="w-4 h-4 text-red-700 dark:text-red-700 dark:text-red-400" />
+                          <Rocket className="w-4 h-4 text-red-700 dark:text-red-400" />
                           <span>Critical</span>
                           <span className="text-xs text-muted-foreground">
                             (50 errors, 1ms)
@@ -461,7 +283,7 @@ export function CreateWorkerDialog({
                       </SelectItem>
                       <SelectItem value="high">
                         <div className="flex items-center gap-2">
-                          <Zap className="w-4 h-4 text-orange-700 dark:text-orange-700 dark:text-orange-400" />
+                          <Zap className="w-4 h-4 text-orange-700 dark:text-orange-400" />
                           <span>High</span>
                           <span className="text-xs text-muted-foreground">
                             (20 errors, 10ms)
@@ -479,7 +301,7 @@ export function CreateWorkerDialog({
                       </SelectItem>
                       <SelectItem value="low">
                         <div className="flex items-center gap-2">
-                          <Server className="w-4 h-4 text-blue-700 dark:text-blue-700 dark:text-blue-400" />
+                          <Server className="w-4 h-4 text-blue-700 dark:text-blue-400" />
                           <span>Low</span>
                           <span className="text-xs text-muted-foreground">
                             (5 errors, 1s)
@@ -602,17 +424,20 @@ export function CreateWorkerDialog({
                 />
               </div>
 
-              {/* Script Preview */}
+              {/* Script Content */}
               <div className="space-y-2">
-                <Label>Script Preview</Label>
-                <div className="relative p-3 bg-muted border border-border rounded">
-                  <pre className="text-xs text-card-foreground font-mono whitespace-pre-wrap line-clamp-6">
-										{formData.scriptContent}
-                  </pre>
-                  {formData.scriptContent.split("\n").length > 6 && (
-                    <div className="absolute bottom-0 left-0 right-0 h-12 bg-muted/50" />
-                  )}
-                </div>
+                <Label>Script Content *</Label>
+                <Textarea
+                  value={formData.scriptContent}
+                  onChange={(e) =>
+                    setFormData({ ...formData, scriptContent: e.target.value })}
+                  placeholder="Enter your worker script code here..."
+                  rows={12}
+                  className="font-mono text-sm resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Write your worker script code
+                </p>
               </div>
 
               {/* Configuration Summary */}
@@ -629,7 +454,7 @@ export function CreateWorkerDialog({
                       <span
                         className={formData.scope === "network"
                           ? "text-green-700 dark:text-green-700 dark:text-green-600"
-                          : "text-blue-700 dark:text-blue-700 dark:text-blue-400"}
+                          : "text-blue-700 dark:text-blue-400"}
                       >
                         {formData.scope}
                       </span>{" "}
@@ -659,51 +484,31 @@ export function CreateWorkerDialog({
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+        </div>
 
         <DialogFooter className="flex justify-between">
-          {step === 1
-            ? (
-              <>
-                <Button variant="outline" onClick={handleClose}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => setStep(2)}
-                  className="bg-amber-500 hover:bg-amber-600 text-black font-bold"
-                >
-                  Next
-                  <Sparkles className="w-4 h-4 ml-2" />
-                </Button>
-              </>
-            )
-            : (
-              <>
-                <Button variant="outline" onClick={() => setStep(1)}>
-                  Back to Templates
-                </Button>
-                <Button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting || !formData.scriptContent.trim()}
-                  className="bg-amber-500 hover:bg-amber-600 text-black font-bold"
-                >
-                  {isSubmitting
-                    ? (
-                      <>
-                        <div className="animate-spin w-4 h-4 border-2 border-black border-t-transparent rounded-full mr-2" />
-                        Creating...
-                      </>
-                    )
-                    : (
-                      <>
-                        <Rocket className="w-4 h-4 mr-2" />
-                        Create Worker
-                      </>
-                    )}
-                </Button>
-              </>
-            )}
+          <Button variant="outline" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting || !formData.scriptContent.trim()}
+            className="bg-amber-500 hover:bg-amber-600 text-black font-bold"
+          >
+            {isSubmitting
+              ? (
+                <>
+                  <div className="animate-spin w-4 h-4 border-2 border-black border-t-transparent rounded-full mr-2" />
+                  Creating...
+                </>
+              )
+              : (
+                <>
+                  <Rocket className="w-4 h-4 mr-2" />
+                  Create Worker
+                </>
+              )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
