@@ -137,9 +137,6 @@ export const useEditorStore = create<EditorStore>()(
 				const client = new WebfixApiClient(connectionSession.api);
 				client.setSession(connectionSession.session);
 
-				// Remove paymentTransaction if present
-				const { paymentTransaction, ...requestBody } = request as unknown as { paymentTransaction?: unknown; [key: string]: unknown };
-
 				const data = await retryOnNetworkError(() =>
 					client.request<{
 						value?: {
@@ -151,7 +148,7 @@ export const useEditorStore = create<EditorStore>()(
 						channel?: string;
 						sid?: string;
 						raw?: { sid?: string; [key: string]: unknown };
-					}>("setWorker", requestBody, [networkId])
+					}>("setWorker", request, [networkId])
 				);
 
 				const workerData = convertToWorker(data);
@@ -299,9 +296,6 @@ export const useEditorStore = create<EditorStore>()(
 				const client = new WebfixApiClient(connectionSession.api);
 				client.setSession(connectionSession.session);
 
-				// Remove paymentTransaction if present
-				const { paymentTransaction, ...requestBody } = createRequest as unknown as { paymentTransaction?: unknown; [key: string]: unknown };
-
 				const data = await retryOnNetworkError(() =>
 					client.request<{
 						value?: {
@@ -313,7 +307,7 @@ export const useEditorStore = create<EditorStore>()(
 						channel?: string;
 						sid?: string;
 						raw?: { sid?: string; [key: string]: unknown };
-					}>("setWorker", requestBody, [networkId])
+					}>("setWorker", createRequest, [networkId])
 				);
 
 				const result = convertToWorker(data);

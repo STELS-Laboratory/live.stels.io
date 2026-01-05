@@ -129,8 +129,8 @@ export const useAuthStore = create<AuthStore>()(
 						
 						// Session ID is the most important - it's used in stels-session header
 						if (raw.session && raw.token) {
-							let apiUrl = selectedNetwork.api;
-							let socketUrl = selectedNetwork.socket;
+							const apiUrl = selectedNetwork.api;
+							const socketUrl = selectedNetwork.socket;
 
 							console.log('apiUrl', apiUrl);
 							console.log('selectedNetwork.socket', selectedNetwork.socket);
@@ -260,9 +260,9 @@ export const useAuthStore = create<AuthStore>()(
 
 							return false;
 						}
-						let apiUrl = sessionData.raw.info.api;
+						const apiUrl = sessionData.raw.info.api;
 
-						let socketUrl = sessionData.raw.info.connector.socket;
+						const socketUrl = sessionData.raw.info.connector.socket;
 		
 						const session: ConnectionSession = {
 							session: sessionData.raw.session,

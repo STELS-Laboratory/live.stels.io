@@ -33,10 +33,7 @@ function createWebSocket(
 		return null;
 	}
 	
-	// Normalize socket URL - ensure it has a protocol
-	let socketUrl = info.connector.socket;
-	
-	const wsUrl = `${socketUrl}?session=${session}`;
+	const wsUrl = `${info.connector.socket}?session=${session}`;
 	const protocols = info.connector.protocols || [];
 	const ws = new WebSocket(wsUrl, protocols);
 	

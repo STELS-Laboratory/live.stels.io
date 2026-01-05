@@ -30,12 +30,11 @@ export class StelsApiService {
     session?: string,
     token?: string,
   ) {
-    let normalizedUrl = baseUrl;
 
-    this.baseUrl = normalizedUrl.replace(/\/$/, ""); // Remove trailing slash
+    this.baseUrl = baseUrl; // Remove trailing slash
     this.session = session;
     this.token = token;
-    this.webfixClient = new WebfixApiClient(normalizedUrl);
+    this.webfixClient = new WebfixApiClient(baseUrl);
     if (session) {
       this.webfixClient.setSession(session);
     }

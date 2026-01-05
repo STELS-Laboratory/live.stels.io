@@ -54,10 +54,7 @@ export function DeveloperAccessRequestDialog({
     setErrorMessage(null);
 
     try {
-      let apiUrl = connectionSession.api;
- 
-      // Send request to node (without wallet-based transaction)
-      const response = await fetch(apiUrl, {
+      const response = await fetch(connectionSession.api, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

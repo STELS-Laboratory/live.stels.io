@@ -142,13 +142,8 @@ export function usePublicWebSocket(
 		}
 
 		try {
-			// Connect to public WebSocket without session parameter
-			// Normalize socket URL - ensure it has a protocol
-			let wsUrl = currentConfig.socket;
-			
-			
 			const protocols = currentConfig.protocols || ["webfix"];
-			const ws = new WebSocket(wsUrl, protocols);
+			const ws = new WebSocket(currentConfig.socket, protocols);
 
 			ws.onopen = (): void => {
 				// Clear any previous errors
