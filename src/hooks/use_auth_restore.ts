@@ -6,7 +6,6 @@ import { useAuthStore } from '@/stores/modules/auth.store';
  */
 export const useAuthRestore = (): void => {
 	const { 
-		wallet, 
 		selectedNetwork, 
 		isConnected, 
 		isAuthenticated,
@@ -22,21 +21,21 @@ export const useAuthRestore = (): void => {
 			return;
 		}
 
-		// Don't attempt restoration if explicitly logged out (no wallet and no network)
+		// Don't attempt restoration if explicitly logged out (no network)
 		// This prevents restoration attempts after logout
-		if (!wallet && !selectedNetwork) {
+		if (!selectedNetwork) {
 
 			return;
 		}
 
 		// Check if we already have a valid connection
-		if (wallet && selectedNetwork && isConnected && isAuthenticated && connectionSession) {
+		if (selectedNetwork && isConnected && isAuthenticated && connectionSession) {
 
 			return;
 		}
 		
-		// Case 1: We have Wallet and network but missing connection/authentication
-		if (wallet && selectedNetwork && (!isConnected || !isAuthenticated || !connectionSession)) {
+		// Case 1: We have network but missing connection/authentication
+		if (selectedNetwork && (!isConnected || !isAuthenticated || !connectionSession)) {
 
 			// Small delay to ensure all state is stable
 			const timer = setTimeout(() => {
@@ -54,8 +53,8 @@ export const useAuthRestore = (): void => {
 			return () => clearTimeout(timer);
 		}
 		
-		// Case 2: No Wallet/network in store but data exists in localStorage
-		if (!wallet || !selectedNetwork) {
+		// Case 2: No network in store but data exists in localStorage
+		if (!selectedNetwork) {
 			const authStoreData = localStorage.getItem('auth-store');
 			const privateStoreData = localStorage.getItem('private-store');
 			const hasValidSession = privateStoreData && JSON.parse(privateStoreData)?.raw?.session;
@@ -78,5 +77,5 @@ export const useAuthRestore = (): void => {
 				return () => clearTimeout(timer);
 			}
 		}
-	}, [wallet, selectedNetwork, isConnected, isAuthenticated, connectionSession, _hasHydrated, restoreConnection]);
+	}, [selectedNetwork, isConnected, isAuthenticated, connectionSession, _hasHydrated, restoreConnection]);
 };

@@ -33,26 +33,16 @@ function createWebSocket(
 		return null;
 	}
 	
-	const wsUrl = `${info.connector.socket}?session=${session}`;
+	// Normalize socket URL - ensure it has a protocol
+	let socketUrl = info.connector.socket;
+	
+	const wsUrl = `${socketUrl}?session=${session}`;
 	const protocols = info.connector.protocols || [];
 	const ws = new WebSocket(wsUrl, protocols);
 	
 	ws.onopen = () => {
-
-		// Clear any previous sync errors when connection is restored
 		const appStore = useAppStore.getState();
 		appStore.setSyncError(null);
-		
-		ws.send(JSON.stringify({
-			webfix: "testnet",
-			method: "subscribe",
-			channel: "sonar"
-		}));
-		ws.send(JSON.stringify({
-			webfix: "testnet",
-			method: "subscribe",
-			channel: "runtime"
-		}));
 	};
 	
 	ws.onmessage = onMessage;

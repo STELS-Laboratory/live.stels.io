@@ -3,7 +3,6 @@
  */
 
 import type { AccountRequest, SignedAccountRequest, ProtocolData } from "@/lib/api-types";
-import type { Wallet } from "@/lib/gliesereum";
 
 /**
  * Server response format for account list
@@ -146,14 +145,13 @@ export interface SetAccountPayload {
  * Accounts actions interface
  */
 export interface AccountsActions {
-	addAccount: (account: AccountRequest, wallet: Wallet) => StoredAccount;
-	updateAccount: (id: string, account: Partial<AccountRequest>, wallet: Wallet) => boolean;
+	addAccount: (account: AccountRequest) => StoredAccount;
+	updateAccount: (id: string, account: Partial<AccountRequest>) => boolean;
 	removeAccount: (id: string) => void;
 	setActiveAccount: (id: string) => void;
 	getAccount: (id: string) => StoredAccount | undefined;
 	getActiveAccount: () => StoredAccount | undefined;
-	signTransaction: (request: TransactionRequest, wallet: Wallet) => SignedTransaction;
-	sendAccountToServer: (account: AccountRequest, wallet: Wallet, session: string, apiUrl: string) => Promise<boolean>;
+	sendAccountToServer: (account: AccountRequest, session: string, apiUrl: string) => Promise<boolean>;
 	fetchAccountsFromServer: (address: string, session: string, apiUrl: string) => Promise<void>;
 	clearAllAccounts: () => void;
 }

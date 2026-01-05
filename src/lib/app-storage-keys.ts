@@ -37,9 +37,6 @@ export const APP_STORAGE_KEYS = [
 
 	// Theme
 	"theme-store",
-
-	// Token Builder
-	"token-builder-store",
 ] as const;
 
 /**
@@ -116,9 +113,6 @@ export function getStorageKeyCategory(key: string): string {
 	}
 	if (key.includes("theme")) {
 		return "Theme";
-	}
-	if (key.includes("token") || key.includes("builder")) {
-		return "Token Builder";
 	}
 	return "Other";
 }

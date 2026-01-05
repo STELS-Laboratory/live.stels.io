@@ -250,7 +250,6 @@ export interface StelsChatActions {
 
   // API
   sendMessage: (tabId: string, message: string) => Promise<void>;
-  testConnection: () => Promise<boolean>;
   setApiUrl: (url: string) => void;
 
   // State

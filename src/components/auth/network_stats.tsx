@@ -4,7 +4,6 @@ import {
 	Server,
 	AlertCircle,
 	CheckCircle2,
-	Network,
 	Zap,
 	Hash,
 	MapPin,
@@ -200,14 +199,7 @@ export function NetworkStats(): React.ReactElement {
 	}
 
 	if (!sonarData || !networkStats) {
-		return (
-			<div className="w-full max-w-7xl mx-auto prose-professional">
-				<div className="text-center text-muted-foreground py-12">
-					<Network className="h-8 w-8 mx-auto mb-3 opacity-50" />
-					<p className="text-sm">Network data will appear here once connected</p>
-				</div>
-			</div>
-		);
+		return null;
 	}
 
 	const { network, nodesNormalized, nodesToUse, totalNodes, totalMined, totalMinedSLI } = networkStats;

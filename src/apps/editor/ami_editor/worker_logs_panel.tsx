@@ -56,9 +56,9 @@ export function WorkerLogsPanel({
     disconnect();
 
     try {
-      const url = new URL(connectionSession.api);
+      const url = connectionSession.api;
       const streamUrl =
-        `${url.protocol}//${url.host}/api/worker/logs/stream?sid=${workerId}&follow=${follow}`;
+        `${url}/api/worker/logs/stream?sid=${workerId}&follow=${follow}`;
 
       const response = await fetch(streamUrl, {
         method: "GET",

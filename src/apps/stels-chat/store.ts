@@ -83,7 +83,6 @@ export const useStelsChatStore = create<StelsChatStore>()(
     persist(
       (set, get) => {
         let apiService: StelsApiService | null = null;
-        let isTestingConnection = false;
         let isFetchingModels = false;
 
         const getApiService = (): StelsApiService => {
@@ -584,37 +583,6 @@ export const useStelsChatStore = create<StelsChatStore>()(
             }
           },
 
-          testConnection: async (): Promise<boolean> => {
-            // Skip if already testing
-            if (isTestingConnection) {
-              return get().isConnected;
-            }
-            
-            const state = get();
-            // Skip if already connected and models are loaded
-            if (state.isConnected && state.models.length > 0) {
-              return true;
-            }
-            
-            isTestingConnection = true;
-            try {
-              const service = getApiService();
-              const connected = await service.testConnection();
-              set({ isConnected: connected });
-              
-              // If connected and no models loaded, fetch them
-              if (connected && state.models.length === 0) {
-                await get().fetchModels();
-              }
-              
-              isTestingConnection = false;
-              return connected;
-            } catch {
-              set({ isConnected: false });
-              isTestingConnection = false;
-              return false;
-            }
-          },
 
           setApiUrl: (url: string): void => {
             set({ stelsApiUrl: url });

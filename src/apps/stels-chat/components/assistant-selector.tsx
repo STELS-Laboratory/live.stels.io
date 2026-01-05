@@ -48,7 +48,7 @@ export function AssistantSelector({
     selectAssistant,
     deleteAssistant,
     isLoading,
-    testConnection,
+    fetchModels,
   } = useStelsChatStore();
   const { connectionSession } = useAuthStore();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -63,17 +63,15 @@ export function AssistantSelector({
     const init = async (): Promise<void> => {
       // Only fetch assistants if we have a session and assistants are not loaded
       if (connectionSession?.session && assistants.length === 0) {
-
-        const connected = await testConnection();
-        if (connected) {
-          await fetchAssistants();
-        }
+        // Fetch models first to ensure connection works
+        await fetchModels();
+        await fetchAssistants();
       } else if (!connectionSession?.session) {
         // No session available
       }
     };
     init();
-  }, [fetchAssistants, testConnection, connectionSession?.session, connectionSession?.api, assistants.length]);
+  }, [fetchAssistants, fetchModels, connectionSession?.session, connectionSession?.api, assistants.length]);
 
   const handleRefresh = async (): Promise<void> => {
     setIsRefreshing(true);

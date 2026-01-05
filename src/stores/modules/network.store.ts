@@ -11,25 +11,9 @@ import type { NetworkConfig } from "@/types/auth/types";
  * Available network configurations
  */
 export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
-	testnet: {
-		id: "testnet",
-		name: "Testnet",
-		api: "https://beta.stels.dev",
-		socket: "wss://beta.stels.dev",
-		developer: false,
-		description: "Testnet network for testing and development",
-	},
-	mainnet: {
-		id: "mainnet",
-		name: "Mainnet",
-		api: "http://10.0.0.206:8088",
-		socket: "ws://10.0.0.206:8088",
-		developer: false,
-		description: "Mainnet Beta Network",
-	},
 	localnet: {
-		id: "localnet",
-		name: "Localnet",
+		id: "snaga",
+		name: "Snaga",
 		api: "http://10.0.0.206:8088",
 		socket: "ws://10.0.0.206:8088",
 		developer: true,
@@ -155,16 +139,9 @@ export const useNetworkStore = create<NetworkStore>()(
 						return NETWORK_CONFIGS[networkId];
 					},
 
-					isMainnet: (): boolean => {
-						return get().currentNetworkId === "mainnet";
-					},
-
-					isTestnet: (): boolean => {
-						return get().currentNetworkId === "testnet";
-					},
 
 					isLocalnet: (): boolean => {
-						return get().currentNetworkId === "localnet";
+						return get().currentNetworkId === "snaga";
 					},
 				};
 			},

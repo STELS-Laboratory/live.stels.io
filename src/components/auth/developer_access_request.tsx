@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuthStore } from "@/stores/modules/auth.store.ts";
-import { createSignedTransaction } from "@/lib/gliesereum";
 import type { RequestStatus, DeveloperAccessRequestProps } from "@/types/components/auth/types";
 
 export type { DeveloperAccessRequestProps };
@@ -36,16 +35,17 @@ export function DeveloperAccessRequestDialog({
   open,
   onOpenChange,
 }: DeveloperAccessRequestProps): ReactElement {
-  const { connectionSession, wallet } = useAuthStore();
+  const { connectionSession } = useAuthStore();
   const [requestStatus, setRequestStatus] = useState<RequestStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   /**
-   * Request developer access from node using signed transaction
+   * Request developer access from node
+   * Note: Wallet-based requests are no longer supported. Developer access is managed via GitHub authentication.
    */
   const handleRequestAccess = async (): Promise<void> => {
-    if (!connectionSession || !wallet) {
-      setErrorMessage("No active connection or wallet");
+    if (!connectionSession) {
+      setErrorMessage("No active connection");
       setRequestStatus("error");
       return;
     }
@@ -54,25 +54,10 @@ export function DeveloperAccessRequestDialog({
     setErrorMessage(null);
 
     try {
-      // Create developer request transaction data
-      const requestData = {
-        action: "DEVELOPER_REQUEST",
-        timestamp: Date.now(),
-        network: connectionSession.network,
-        walletAddress: wallet.address,
-      };
-
-      // Create and sign transaction
-      const signedTransaction = createSignedTransaction(
-        wallet,
-        wallet.address, // to self
-        0, // amount
-        1, // fee
-        JSON.stringify(requestData), // data
-      );
-
-      // Send request to node
-      const response = await fetch(connectionSession.api, {
+      let apiUrl = connectionSession.api;
+ 
+      // Send request to node (without wallet-based transaction)
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,9 +69,6 @@ export function DeveloperAccessRequestDialog({
           params: [connectionSession.network],
           body: {
             reason: "Development access request",
-            transaction: signedTransaction,
-            walletAddress: wallet.address,
-            publicKey: wallet.publicKey,
           },
         }),
       });

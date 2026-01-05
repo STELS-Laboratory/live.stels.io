@@ -23,11 +23,44 @@ import { motion } from "framer-motion";
 export function ConnectionStatusSimple(): React.ReactElement {
 	const {
 		connectionSession,
-		wallet,
 		isConnected,
 		disconnectFromNode,
 		resetAuth,
 	} = useAuthStore();
+	
+	// Try to get wallet from auth store (if it exists) or from sessionStorage
+	const wallet = React.useMemo(() => {
+		try {
+			// Try to get wallet from auth store first
+			const authStore = useAuthStore.getState();
+			if ((authStore as { wallet?: { address?: string; number?: string } }).wallet) {
+				return (authStore as { wallet: { address: string; number: string } }).wallet;
+			}
+			
+			// Try to get wallet from sessionStorage
+			// Wallet data might be stored in sessionStorage with different keys
+			const walletKeys = ['Wallet-store', 'gliesereum-Wallet', 'Wallet-data'];
+			for (const key of walletKeys) {
+				const walletData = sessionStorage.getItem(key);
+				if (walletData) {
+					try {
+						const parsed = JSON.parse(walletData);
+						if (parsed?.raw?.address || parsed?.address) {
+							return {
+								address: parsed.raw?.address || parsed.address,
+								number: parsed.raw?.number || parsed.number || 'N/A'
+							};
+						}
+					} catch {
+						// Continue to next key
+					}
+				}
+			}
+		} catch {
+			// Return null if wallet not found
+		}
+		return null;
+	}, []);
 
 	const handleDisconnect = async (): Promise<void> => {
 		await disconnectFromNode();
@@ -43,11 +76,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
 		}
 
 		switch (connectionSession.network) {
-			case "testnet":
-				return <Shield className="h-4 w-4 text-primary" />;
-			case "mainnet":
-				return <Network className="h-4 w-4 text-accent-foreground" />;
-			case "localnet":
+			case "snaga":
 				return <Network className="h-4 w-4 text-secondary-foreground" />;
 			default:
 				return <Network className="h-4 w-4 text-muted-foreground" />;
@@ -60,18 +89,15 @@ export function ConnectionStatusSimple(): React.ReactElement {
 		}
 
 		switch (connectionSession.network) {
-			case "testnet":
-				return "bg-primary/20 text-primary border-primary/30";
-			case "mainnet":
-				return "bg-accent text-accent-foreground border-accent-foreground/30";
-			case "localnet":
+			case "snaga":
 				return "bg-secondary text-secondary-foreground border-secondary-foreground/30";
 			default:
 				return "bg-muted/20 text-muted-foreground border-border";
 		}
 	};
 
-	if (!isConnected || !connectionSession || !wallet) {
+	// Show "Not Connected" only if we don't have connection info
+	if (!isConnected || !connectionSession) {
 		return (
 			<div className="flex items-center gap-2">
 				<AlertCircle className="h-4 w-4 text-destructive" />
@@ -147,31 +173,54 @@ export function ConnectionStatusSimple(): React.ReactElement {
 						{getNetworkIcon()}
 						<span className="font-medium">Network</span>
 					</div>
-					<div className="text-sm text-muted-foreground">
-						{connectionSession.title} ({connectionSession.network})
+					<div className="text-sm font-medium text-foreground">
+						{connectionSession.title}
 					</div>
-					<div className="text-xs font-mono text-muted-foreground">
-						{connectionSession.api}
+					<div className="flex items-center gap-2">
+						<Badge
+							variant="outline"
+							className="text-xs rounded"
+						>
+							{connectionSession.network}
+						</Badge>
 					</div>
+					<div className="pt-1 border-t border-border/50">
+						<div className="text-xs text-muted-foreground mb-1">API Endpoint:</div>
+						<div className="text-xs font-mono text-foreground break-all bg-background/50 px-2 py-1 rounded">
+							{connectionSession.api}
+						</div>
+					</div>
+					{connectionSession.socket && (
+						<div className="pt-1 border-t border-border/50">
+							<div className="text-xs text-muted-foreground mb-1">WebSocket:</div>
+							<div className="text-xs font-mono text-foreground break-all bg-background/50 px-2 py-1 rounded">
+								{connectionSession.socket}
+							</div>
+						</div>
+					)}
 				</motion.div>
 
-				<motion.div
-					className="space-y-2 p-3 bg-muted/50 border border-border rounded"
-					initial={{ y: -5, opacity: 0 }}
-					animate={{ y: 0, opacity: 1 }}
-					transition={{ duration: 0.3, delay: 0.2 }}
-				>
-					<div className="flex items-center gap-2">
-						<Shield className="h-4 w-4 text-amber-500" />
-						<span className="font-medium">Wallet</span>
-					</div>
-					<div className="text-xs font-mono text-muted-foreground break-all">
-						{wallet.address}
-					</div>
-					<div className="text-xs text-muted-foreground">
-						Card: {wallet.number}
-					</div>
-				</motion.div>
+				{wallet && (
+					<motion.div
+						className="space-y-2 p-3 bg-muted/50 border border-border rounded"
+						initial={{ y: -5, opacity: 0 }}
+						animate={{ y: 0, opacity: 1 }}
+						transition={{ duration: 0.3, delay: 0.2 }}
+					>
+						<div className="flex items-center gap-2">
+							<Shield className="h-4 w-4 text-amber-500" />
+							<span className="font-medium">Wallet</span>
+						</div>
+						<div className="text-xs font-mono text-muted-foreground break-all">
+							{wallet.address}
+						</div>
+						{wallet.number && (
+							<div className="text-xs text-muted-foreground">
+								Card: {wallet.number}
+							</div>
+						)}
+					</motion.div>
+				)}
 
 				{connectionSession.developer && (
 					<motion.div

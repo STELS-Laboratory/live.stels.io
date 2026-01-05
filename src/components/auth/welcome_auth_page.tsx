@@ -22,17 +22,13 @@ import {
 	Activity,
 	ArrowRight,
 	BarChart3,
-	Coins,
 	Container,
-	DollarSign,
 	Github,
 	Lock,
 	Network,
 	Newspaper,
-	Search,
 	Send,
 	TrendingUp,
-	Wallet,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfessionalConnectionFlow } from "./professional_connection_flow";
@@ -53,21 +49,9 @@ import { IndexDetail } from "@/apps/indexes/components/index-detail";
 import type { IndexCode } from "@/apps/indexes/types";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useTheme } from "@/hooks/use_theme";
-import { TokenListItem } from "./token-list-item";
-import { TokenDetailModal } from "./token-detail-modal";
-import { usePublicAssetList } from "@/hooks/use_public_asset_list";
-import { useAllTokenPrices } from "@/hooks/use_token_price";
-import {
-	createNativeTokenFromGenesis,
-	normalizeTokens,
-} from "@/lib/token-normalizer";
-import type { Token } from "@/types/token";
-import type { RawAssetData } from "@/types/token";
+import { navigateTo } from "@/lib/router";
 
 // Lazy load heavy components for better performance
-const NetworkStats = lazy(() =>
-	import("./network_stats").then((m) => ({ default: m.NetworkStats }))
-);
 const NewsFeed = lazy(() =>
 	import("@/apps/trading/components/news-feed").then((m) => ({
 		default: m.NewsFeed,
@@ -78,12 +62,6 @@ const MarketTable = lazy(() =>
 );
 const TopMarkets = lazy(() =>
 	import("./top_markets").then((m) => ({ default: m.TopMarkets }))
-);
-const Explorer = lazy(() => import("@/apps/explorer"));
-const RealtimeTransactionFeed = lazy(() =>
-	import("./realtime-transaction-feed").then((m) => ({
-		default: m.RealtimeTransactionFeed,
-	}))
 );
 
 /**
@@ -100,19 +78,98 @@ const RealtimeTransactionFeed = lazy(() =>
 
 export function WelcomeAuthPage(): React.ReactElement {
 	const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
-	const [activeTab, setActiveTab] = useState<string>("tokens");
+	const [activeTab, setActiveTab] = useState<string>("markets");
 	const {
-		isConnected: isAuthenticated,
+		isAuthenticated,
 		connectionSession,
 		_hasHydrated,
 		isConnecting,
+		selectedNetwork,
 	} = useAuthStore();
-	const { currentNetwork, currentNetworkId } = useNetworkStore();
+	const { currentNetwork } = useNetworkStore();
 	const publicWsCloseRef = useRef<(() => void) | null>(null);
 	const { resolvedTheme } = useTheme();
 
 	// Check if we're still loading initial data
 	const isLoading = !_hasHydrated || isConnecting;
+
+	// Global GitHub OAuth callback handler
+	// This ensures callback is processed even if dialog is closed
+	useEffect(() => {
+		const urlParams = new URLSearchParams(window.location.search);
+		const code = urlParams.get('code');
+		const state = urlParams.get('state');
+		const router = urlParams.get('router');
+
+		// If we have GitHub OAuth callback parameters, open dialog and process
+		if (code && state) {
+			// Verify state
+			const storedState = sessionStorage.getItem('github_oauth_state');
+			if (storedState && storedState === state) {
+				// Store as pending if selectedNetwork is not ready
+				// GitHubAuth component will process it when selectedNetwork becomes available
+				if (!selectedNetwork) {
+					sessionStorage.setItem('github_oauth_pending_code', code);
+					sessionStorage.setItem('github_oauth_pending_state', state);
+				} else {
+					// If selectedNetwork is ready, store as pending so GitHubAuth can process it
+					// This ensures the code is processed when dialog opens
+					sessionStorage.setItem('github_oauth_pending_code', code);
+					sessionStorage.setItem('github_oauth_pending_state', state);
+				}
+				
+				// Open auth dialog to process callback
+				setIsAuthDialogOpen(true);
+				
+				// Clean URL parameters (keep router if present)
+				const url = new URL(window.location.href);
+				url.searchParams.delete('code');
+				url.searchParams.delete('state');
+				if (router) {
+					url.searchParams.set('router', router);
+				}
+				window.history.replaceState({}, '', url.toString());
+			} else {
+				// Invalid state - clean URL
+				const url = new URL(window.location.href);
+				url.searchParams.delete('code');
+				url.searchParams.delete('state');
+				if (router) {
+					url.searchParams.set('router', router);
+				}
+				window.history.replaceState({}, '', url.toString());
+			}
+		}
+	}, [selectedNetwork]);
+
+	// Clean URL and set default route to trading after successful authentication
+	useEffect(() => {
+		if (isAuthenticated) {
+			// Check if we're on the callback path
+			const isOnCallbackPath = window.location.pathname.includes('/auth/github/callback');
+			
+			if (isOnCallbackPath || window.location.search.includes('code') || window.location.search.includes('state')) {
+				// Redirect to base URL with router=trading for authenticated users
+				const url = new URL(window.location.origin);
+				url.searchParams.set('router', 'trading');
+				window.history.replaceState({}, '', url.toString());
+				
+				// Also update the route in the store
+				navigateTo('trading');
+			} else {
+				// If no router parameter and authenticated, set default to trading
+				const urlParams = new URLSearchParams(window.location.search);
+				const router = urlParams.get('router');
+				if (!router) {
+					const url = new URL(window.location.href);
+					url.searchParams.set('router', 'trading');
+					window.history.replaceState({}, '', url.toString());
+					
+					navigateTo('trading');
+				}
+			}
+		}
+	}, [isAuthenticated]);
 
 	// Get current network name
 	const currentNetworkName = useMemo(() => {
@@ -123,8 +180,8 @@ export function WelcomeAuthPage(): React.ReactElement {
 				connectionSession.network.slice(1);
 		}
 		// For public connection, use network store
-		return currentNetwork.name;
-	}, [isAuthenticated, connectionSession?.network, currentNetwork.name]);
+		return currentNetwork?.name || 'Network';
+	}, [isAuthenticated, connectionSession?.network, currentNetwork?.name]);
 
 	// Apply resolved theme to document (will update automatically when system theme changes)
 	useEffect(() => {
@@ -137,10 +194,10 @@ export function WelcomeAuthPage(): React.ReactElement {
 	// Public WebSocket connection configuration - memoized to prevent re-creation
 	const publicWebSocketConfig = useMemo(
 		() => ({
-			socket: currentNetwork.socket,
+			socket: currentNetwork?.socket || '',
 			protocols: ["webfix"] as string[],
 		}),
-		[currentNetwork.socket],
+		[currentNetwork?.socket],
 	);
 
 	/**
@@ -152,7 +209,7 @@ export function WelcomeAuthPage(): React.ReactElement {
 	 */
 	const { close: closePublicWs } = usePublicWebSocket(
 		publicWebSocketConfig,
-		!isAuthenticated, // Only connect if not authenticated, auto-closes when authenticated
+		!isAuthenticated && !!publicWebSocketConfig.socket, // Only connect if not authenticated and socket is available
 	);
 
 	// Store close function for manual cleanup if needed
@@ -248,287 +305,7 @@ export function WelcomeAuthPage(): React.ReactElement {
 	}, []);
 
 	// Token data and state
-	// Determine network ID for API call (lowercase)
-	const networkId = useMemo(() => {
-		if (isAuthenticated && connectionSession?.network) {
-			return connectionSession.network;
-		}
-		// For public connection, use network store
-		return currentNetworkId;
-	}, [isAuthenticated, connectionSession?.network, currentNetworkId]);
 
-	const { assets: rawAssets, loading: tokensLoading, error: tokensError } =
-		usePublicAssetList({
-			network: networkId,
-		});
-
-	// Normalize tokens to unified format
-	const normalizedTokens = useMemo(() => {
-		return normalizeTokens(rawAssets as RawAssetData[]);
-	}, [rawAssets]);
-
-	// Get token prices from session - base prices
-	const baseTokenPrices = useAllTokenPrices(networkId);
-
-	// Get prices for all tokens dynamically
-	// Optimized: use ref to cache token symbols and prevent unnecessary recalculations
-	const tokenSymbolsRef = useRef<Set<string>>(new Set());
-	const tokenPrices = useMemo(() => {
-		const pricesMap = new Map<string, number>(baseTokenPrices);
-
-		// Build set of current token symbols
-		const currentSymbols = new Set<string>();
-		normalizedTokens.forEach((token) => {
-			const symbol = token.metadata.symbol.toUpperCase();
-			if (symbol) {
-				currentSymbols.add(symbol);
-			}
-		});
-
-		// Only recalculate if token symbols changed
-		const symbolsChanged =
-			tokenSymbolsRef.current.size !== currentSymbols.size ||
-			Array.from(currentSymbols).some((s) => !tokenSymbolsRef.current.has(s));
-
-		if (!symbolsChanged && tokenSymbolsRef.current.size > 0) {
-			// Symbols haven't changed, just update prices for existing symbols
-			Array.from(currentSymbols).forEach((symbol) => {
-				if (pricesMap.has(symbol)) return;
-
-				// For USDT, use fixed price of 1
-				if (symbol === "USDT") {
-					pricesMap.set(symbol, 1);
-					return;
-				}
-
-				// Try to get price from sessionStorage (only if not in baseTokenPrices)
-				const channelKey =
-					`${networkId}.runtime.ticker.${symbol}/USDT.bybit.spot`;
-				try {
-					const stored = sessionStorage.getItem(channelKey) ||
-						sessionStorage.getItem(channelKey.toLowerCase());
-
-					if (stored) {
-						const tickerData = JSON.parse(stored) as {
-							raw?: {
-								last?: number;
-							};
-						};
-
-						if (tickerData?.raw?.last !== undefined) {
-							pricesMap.set(symbol, tickerData.raw.last);
-						}
-					}
-				} catch {
-					// Error handled silently
-				}
-			});
-		} else {
-			// Symbols changed, recalculate all
-			tokenSymbolsRef.current = currentSymbols;
-
-			// Get prices for all token symbols from the tokens list
-			normalizedTokens.forEach((token) => {
-				const symbol = token.metadata.symbol.toUpperCase();
-				if (!symbol || pricesMap.has(symbol)) return;
-
-				// For USDT, use fixed price of 1
-				if (symbol === "USDT") {
-					pricesMap.set(symbol, 1);
-					return;
-				}
-
-				// Try to get price from sessionStorage
-				const channelKey =
-					`${networkId}.runtime.ticker.${symbol}/USDT.bybit.spot`;
-				try {
-					const stored = sessionStorage.getItem(channelKey) ||
-						sessionStorage.getItem(channelKey.toLowerCase());
-
-					if (stored) {
-						const tickerData = JSON.parse(stored) as {
-							raw?: {
-								last?: number;
-							};
-						};
-
-						if (tickerData?.raw?.last !== undefined) {
-							pricesMap.set(symbol, tickerData.raw.last);
-						}
-					}
-				} catch {
-					// Error handled silently
-				}
-			});
-		}
-
-		return pricesMap;
-	}, [normalizedTokens, baseTokenPrices, networkId]);
-
-	const [selectedToken, setSelectedToken] = useState<Token | null>(
-		null,
-	);
-	const [selectedTokenIndex, setSelectedTokenIndex] = useState<number | null>(
-		null,
-	);
-
-	const handleTokenClick = useCallback(
-		(token: Token, index: number): void => {
-			// Use startTransition for non-critical UI updates
-			startTransition(() => {
-				setSelectedToken(token);
-				setSelectedTokenIndex(index);
-			});
-		},
-		[],
-	);
-
-	const handleCloseTokenModal = useCallback((): void => {
-		setSelectedToken(null);
-		setSelectedTokenIndex(null);
-	}, []);
-
-	// Calculate network statistics - optimized with early returns and caching
-	const networkStats = useMemo(() => {
-		// Early return if no tokens
-		if (normalizedTokens.length === 0) {
-			return {
-				totalMarketCap: 0,
-				totalTokens: 0,
-				tokensWithPrice: 0,
-				totalSupply: 0,
-				totalMaxSupply: 0,
-				hasUnlimitedSupply: false,
-				averagePrice: null,
-			};
-		}
-
-		let totalMarketCap = 0;
-		let tokensWithPrice = 0;
-		let totalSupply = 0;
-		let totalMaxSupply = 0;
-		let totalSupplyWithPrice = 0; // For average price calculation
-
-		// Optimized loop with cached values
-		let hasUnlimitedSupply = false;
-		for (let i = 0; i < normalizedTokens.length; i++) {
-			const token = normalizedTokens[i];
-			const symbol = token.metadata.symbol.toUpperCase();
-			const price = symbol === "USDT" ? 1 : (tokenPrices.get(symbol) || null);
-			const initialSupply = parseFloat(
-				token.economics?.supply?.initial || "0",
-			);
-			// Check if max supply is unlimited (undefined means unlimited)
-			const maxSupply = token.economics?.supply?.max
-				? parseFloat(token.economics.supply.max)
-				: null;
-
-			if (price !== null && price > 0 && initialSupply > 0) {
-				const marketCap = initialSupply * price;
-				totalMarketCap += marketCap;
-				tokensWithPrice++;
-				totalSupplyWithPrice += initialSupply;
-			}
-
-			totalSupply += initialSupply;
-			// Only add to totalMaxSupply if it's a finite number
-			if (maxSupply !== null && !isNaN(maxSupply)) {
-				totalMaxSupply += maxSupply;
-			} else {
-				// If any token has unlimited supply, mark it
-				hasUnlimitedSupply = true;
-			}
-		}
-
-		const averagePrice = tokensWithPrice > 0 && totalSupplyWithPrice > 0
-			? totalMarketCap / totalSupplyWithPrice
-			: null;
-
-		return {
-			totalMarketCap,
-			totalTokens: normalizedTokens.length,
-			tokensWithPrice,
-			totalSupply,
-			totalMaxSupply,
-			hasUnlimitedSupply,
-			averagePrice,
-		};
-	}, [normalizedTokens, tokenPrices]);
-
-	// Memoize token list items with sorting by price (descending)
-	// Optimized: separate sorting from rendering, cache price lookups
-	const tokenListItems = useMemo(() => {
-		// If no tokens found, try to extract native token from genesis document
-		if (normalizedTokens.length === 0) {
-			// Find genesis document and extract native token info
-			const genesisDoc = rawAssets.find((asset) => {
-				const isGenesisDoc = asset.channel?.includes(".genesis:") ||
-					(asset.raw?.genesis && !asset.raw.genesis.token &&
-						asset.raw.genesis.genesis);
-				return isGenesisDoc && asset.raw?.genesis?.parameters?.currency;
-			}) as RawAssetData | undefined;
-
-			if (genesisDoc) {
-				const nativeToken = createNativeTokenFromGenesis(genesisDoc, networkId);
-				if (nativeToken) {
-					const symbol = nativeToken.metadata.symbol.toUpperCase();
-					const price = symbol === "USDT" ? 1 : (tokenPrices.get(symbol) || 0);
-
-					return [
-						<TokenListItem
-							key={nativeToken.id}
-							token={nativeToken}
-							price={symbol === "USDT" ? 1 : (price > 0 ? price : null)}
-							isSelected={false}
-							onClick={() => handleTokenClick(nativeToken as never, 0)}
-						/>,
-					];
-				}
-			}
-
-			return [];
-		}
-
-		// Pre-compute prices for all tokens to avoid repeated map lookups
-		const tokensWithPrices = normalizedTokens.map((token, index) => {
-			const symbol = token.metadata.symbol.toUpperCase();
-			const price = symbol === "USDT" ? 1 : (tokenPrices.get(symbol) || 0);
-			return {
-				token,
-				originalIndex: index,
-				symbol,
-				price,
-			};
-		});
-
-		// Sort tokens by price (descending), then by symbol
-		tokensWithPrices.sort((a, b) => {
-			if (a.price !== b.price) {
-				return b.price - a.price;
-			}
-			return a.symbol.localeCompare(b.symbol);
-		});
-
-		return tokensWithPrices.map(({ token, originalIndex, symbol, price }) => {
-			const displayPrice = symbol === "USDT" ? 1 : (price > 0 ? price : null);
-			return (
-				<TokenListItem
-					key={token.id}
-					token={token}
-					price={displayPrice}
-					isSelected={selectedTokenIndex === originalIndex}
-					onClick={() => handleTokenClick(token as never, originalIndex)}
-				/>
-			);
-		});
-	}, [
-		normalizedTokens,
-		rawAssets,
-		networkId,
-		tokenPrices,
-		selectedTokenIndex,
-		handleTokenClick,
-	]);
 
 	// Sync indexes data from sessionStorage
 	useIndexesSync();
@@ -629,13 +406,6 @@ export function WelcomeAuthPage(): React.ReactElement {
 								>
 									<TabsList className="w-full justify-start bg-muted/30 h-9 sm:h-10 overflow-x-auto">
 										<TabsTrigger
-											value="tokens"
-											className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 flex-shrink-0"
-										>
-											<Coins className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-											<span className="hidden sm:inline">Tokens</span>
-										</TabsTrigger>
-										<TabsTrigger
 											value="indexes"
 											className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 flex-shrink-0"
 										>
@@ -649,20 +419,7 @@ export function WelcomeAuthPage(): React.ReactElement {
 											<TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
 											<span className="hidden sm:inline">Markets</span>
 										</TabsTrigger>
-										<TabsTrigger
-											value="analytics"
-											className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 flex-shrink-0"
-										>
-											<Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-											<span className="hidden sm:inline">Analytics</span>
-										</TabsTrigger>
-										<TabsTrigger
-											value="explorer"
-											className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 flex-shrink-0"
-										>
-											<Search className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-											<span className="hidden sm:inline">Explorer</span>
-										</TabsTrigger>
+							
 										<TabsTrigger
 											value="news"
 											className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 flex-shrink-0"
@@ -932,430 +689,7 @@ export function WelcomeAuthPage(): React.ReactElement {
 							</TabsContent>
 						)}
 
-						{/* Analytics Tab - Only render when active */}
-						{activeTab === "analytics" && (
-							<TabsContent
-								value="analytics"
-								className="mt-0 space-y-6"
-							>
-								<motion.section
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ duration: 0.5 }}
-									className="space-y-6"
-								>
-									{/* Header with description */}
-									<div className="space-y-2">
-										<div className="flex items-center gap-3">
-											{isLoading
-												? <Skeleton className="h-6 w-6 rounded" />
-												: <Activity className="h-6 w-6 text-primary" />}
-											{isLoading
-												? <Skeleton className="h-8 w-48" />
-												: (
-													<h2 className="text-2xl font-bold text-foreground">
-														Network Analytics
-													</h2>
-												)}
-										</div>
-										{isLoading
-											? (
-												<div className="space-y-2">
-													<Skeleton className="h-4 w-full max-w-3xl" />
-													<Skeleton className="h-4 w-full max-w-2xl" />
-												</div>
-											)
-											: (
-												<p className="text-sm text-muted-foreground max-w-3xl leading-relaxed">
-													Real-time network performance metrics from STELS
-													distributed monitoring infrastructure. Live statistics
-													on node operations, worker activity, and system
-													health, continuously updated as the network processes
-													and aggregates global market data.
-												</p>
-											)}
-									</div>
-
-									{/* Analytics Grid: Network Stats and Live Transactions */}
-									<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-										{/* Network Statistics */}
-										<Card className="h-full">
-											<CardContent className="p-6">
-												{isLoading
-													? (
-														<div className="space-y-6">
-															<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-																{Array.from({ length: 3 }).map((_, i) => (
-																	<div key={i} className="space-y-2">
-																		<Skeleton className="h-4 w-24" />
-																		<Skeleton className="h-8 w-32" />
-																	</div>
-																))}
-															</div>
-															<div className="space-y-4">
-																{Array.from({ length: 4 }).map((_, i) => (
-																	<Skeleton key={i} className="h-16 w-full" />
-																))}
-															</div>
-														</div>
-													)
-													: (
-														<Suspense
-															fallback={
-																<div className="p-8 text-center text-muted-foreground">
-																	<Activity className="h-8 w-8 mx-auto mb-2 animate-pulse" />
-																	<p>Loading network statistics...</p>
-																</div>
-															}
-														>
-															<NetworkStats />
-														</Suspense>
-													)}
-											</CardContent>
-										</Card>
-
-										{/* Live Transactions Feed */}
-										<Suspense
-											fallback={
-												<Card>
-													<CardContent className="p-8 text-center text-muted-foreground">
-														<Activity className="h-8 w-8 mx-auto mb-2 animate-pulse" />
-														<p>Loading transactions...</p>
-													</CardContent>
-												</Card>
-											}
-										>
-											<RealtimeTransactionFeed />
-										</Suspense>
-									</div>
-								</motion.section>
-							</TabsContent>
-						)}
-
-						{/* Explorer Tab - Only render when active */}
-						{activeTab === "explorer" && (
-							<TabsContent
-								value="explorer"
-								className="mt-0 space-y-6"
-							>
-								<motion.section
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ duration: 0.5 }}
-									className="space-y-6"
-								>
-									{/* Header with description */}
-									<div className="space-y-2">
-										<div className="flex items-center gap-3">
-											{isLoading
-												? <Skeleton className="h-6 w-6 rounded" />
-												: <Search className="h-6 w-6 text-primary" />}
-											{isLoading
-												? <Skeleton className="h-8 w-40" />
-												: (
-													<h2 className="text-2xl font-bold text-foreground">
-														Data Explorer
-													</h2>
-												)}
-										</div>
-										{isLoading
-											? (
-												<div className="space-y-2">
-													<Skeleton className="h-4 w-full max-w-3xl" />
-													<Skeleton className="h-4 w-full max-w-2xl" />
-												</div>
-											)
-											: (
-												<p className="text-sm text-muted-foreground max-w-3xl leading-relaxed">
-													Explore real-time market data streams aggregated by
-													STELS monitoring network. Search and analyze live
-													trading information collected from public sources
-													worldwide, with data continuously updated as new
-													information becomes available.
-												</p>
-											)}
-									</div>
-
-									{isLoading
-										? (
-											<Card>
-												<CardContent className="p-6 space-y-4">
-													<Skeleton className="h-10 w-full" />
-													<div className="space-y-3">
-														{Array.from({ length: 6 }).map((_, i) => (
-															<Skeleton key={i} className="h-16 w-full" />
-														))}
-													</div>
-												</CardContent>
-											</Card>
-										)
-										: (
-											<Suspense
-												fallback={
-													<Card>
-														<CardContent className="p-8 text-center text-muted-foreground">
-															<Search className="h-8 w-8 mx-auto mb-2 animate-pulse" />
-															<p>Loading explorer...</p>
-														</CardContent>
-													</Card>
-												}
-											>
-												<Explorer
-													onMarketClick={handleMarketClick}
-													onIndexClick={handleIndexClick}
-												/>
-											</Suspense>
-										)}
-								</motion.section>
-							</TabsContent>
-						)}
-
-						{/* Tokens Tab - Only render when active */}
-						{activeTab === "tokens" && (
-							<TabsContent
-								value="tokens"
-								className="mt-0 space-y-6"
-							>
-								<motion.section
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ duration: 0.5 }}
-									className="space-y-6"
-								>
-									{/* Header with description */}
-									<div className="space-y-2">
-										<div className="flex items-center justify-between">
-											<div className="flex items-center gap-3">
-												{isLoading || tokensLoading
-													? <Skeleton className="h-6 w-6 rounded" />
-													: <Coins className="h-6 w-6 text-primary" />}
-												{isLoading || tokensLoading
-													? <Skeleton className="h-8 w-40" />
-													: (
-														<h2 className="text-2xl font-bold text-foreground">
-															Tokens
-														</h2>
-													)}
-											</div>
-											{isLoading || tokensLoading
-												? <Skeleton className="h-5 w-20 rounded-full" />
-												: (
-													tokenListItems.length > 0 && (
-														<Badge variant="outline" className="text-xs">
-															{tokenListItems.length} active
-														</Badge>
-													)
-												)}
-										</div>
-										{isLoading || tokensLoading
-											? (
-												<div className="space-y-2">
-													<Skeleton className="h-4 w-full max-w-3xl" />
-													<Skeleton className="h-4 w-full max-w-2xl" />
-												</div>
-											)
-											: (
-												<p className="text-sm text-muted-foreground max-w-3xl leading-relaxed">
-													Real-time token information from STELS network. Browse
-													all available tokens with detailed economics,
-													distribution, and technical parameters. All data is
-													continuously updated as new tokens are registered on
-													the network.
-												</p>
-											)}
-									</div>
-
-									{/* Network Assets Overview */}
-									{!isLoading && !tokensLoading && !tokensError &&
-										networkStats.totalTokens > 0 && (
-										<motion.div
-											initial={{ opacity: 0, y: 20 }}
-											animate={{ opacity: 1, y: 0 }}
-											transition={{ duration: 0.5, delay: 0.1 }}
-											className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-										>
-											<Card className="bg-card/80 border-border">
-												<CardContent className="p-4">
-													<div className="flex items-center gap-3 mb-2">
-														<div className="p-2 bg-primary/10 rounded">
-															<DollarSign className="h-5 w-5 text-primary" />
-														</div>
-														<div className="flex-1 min-w-0">
-															<p className="text-xs text-muted-foreground uppercase tracking-wide">
-																Total Market Cap
-															</p>
-															<p className="text-xl sm:text-2xl font-bold text-foreground mt-1">
-																{networkStats.totalMarketCap > 0
-																	? new Intl.NumberFormat("en-US", {
-																		style: "currency",
-																		currency: "USD",
-																		minimumFractionDigits: 0,
-																		maximumFractionDigits: 0,
-																	}).format(networkStats.totalMarketCap)
-																	: "N/A"}
-															</p>
-														</div>
-													</div>
-													<p className="text-xs text-muted-foreground mt-2">
-														{networkStats.tokensWithPrice}{" "}
-														token{networkStats.tokensWithPrice === 1 ? "" : "s"}
-														{" "}
-														with price data
-													</p>
-												</CardContent>
-											</Card>
-
-											<Card className="bg-card/80 border-border">
-												<CardContent className="p-4">
-													<div className="flex items-center gap-3 mb-2">
-														<div className="p-2 bg-amber-500/10 rounded">
-															<Coins className="h-5 w-5 text-amber-500" />
-														</div>
-														<div className="flex-1 min-w-0">
-															<p className="text-xs text-muted-foreground uppercase tracking-wide">
-																Total Tokens
-															</p>
-															<p className="text-xl sm:text-2xl font-bold text-foreground mt-1">
-																{networkStats.totalTokens}
-															</p>
-														</div>
-													</div>
-													<p className="text-xs text-muted-foreground mt-2">
-														Active tokens on network
-													</p>
-												</CardContent>
-											</Card>
-
-											<Card className="bg-card/80 border-border">
-												<CardContent className="p-4">
-													<div className="flex items-center gap-3 mb-2">
-														<div className="p-2 bg-blue-500/10 rounded">
-															<Wallet className="h-5 w-5 text-blue-500" />
-														</div>
-														<div className="flex-1 min-w-0">
-															<p className="text-xs text-muted-foreground uppercase tracking-wide">
-																Total Supply
-															</p>
-															<p className="text-xl sm:text-2xl font-bold text-foreground mt-1">
-																{networkStats.totalSupply >= 1_000_000_000
-																	? `${
-																		(networkStats.totalSupply / 1_000_000_000)
-																			.toFixed(2)
-																	}B`
-																	: networkStats.totalSupply >= 1_000_000
-																	? `${
-																		(networkStats.totalSupply / 1_000_000)
-																			.toFixed(2)
-																	}M`
-																	: networkStats.totalSupply >= 1_000
-																	? `${
-																		(networkStats.totalSupply / 1_000).toFixed(
-																			2,
-																		)
-																	}K`
-																	: networkStats.totalSupply.toLocaleString()}
-															</p>
-														</div>
-													</div>
-													<p className="text-xs text-muted-foreground mt-2">
-														Initial supply across all tokens
-													</p>
-												</CardContent>
-											</Card>
-
-											<Card className="bg-card/80 border-border">
-												<CardContent className="p-4">
-													<div className="flex items-center gap-3 mb-2">
-														<div className="p-2 bg-green-500/10 rounded">
-															<TrendingUp className="h-5 w-5 text-green-500" />
-														</div>
-														<div className="flex-1 min-w-0">
-															<p className="text-xs text-muted-foreground uppercase tracking-wide">
-																Max Supply
-															</p>
-															<p className="text-xl sm:text-2xl font-bold text-foreground mt-1">
-																{networkStats.hasUnlimitedSupply
-																	? "Unlimited"
-																	: networkStats.totalMaxSupply >= 1_000_000_000
-																	? `${
-																		(networkStats.totalMaxSupply /
-																			1_000_000_000).toFixed(2)
-																	}B`
-																	: networkStats.totalMaxSupply >= 1_000_000
-																	? `${
-																		(networkStats.totalMaxSupply / 1_000_000)
-																			.toFixed(2)
-																	}M`
-																	: networkStats.totalMaxSupply >= 1_000
-																	? `${
-																		(networkStats.totalMaxSupply / 1_000)
-																			.toFixed(2)
-																	}K`
-																	: networkStats.totalMaxSupply
-																		.toLocaleString()}
-															</p>
-														</div>
-													</div>
-													<p className="text-xs text-muted-foreground mt-2">
-														Maximum supply capacity
-													</p>
-												</CardContent>
-											</Card>
-										</motion.div>
-									)}
-
-									{isLoading || tokensLoading
-										? (
-											<Card>
-												<CardContent className="p-6 space-y-3">
-													{Array.from({ length: 6 }).map((_, i) => (
-														<Skeleton
-															key={i}
-															className="h-20 w-full rounded border border-border"
-														/>
-													))}
-												</CardContent>
-											</Card>
-										)
-										: tokensError
-										? (
-											<Card>
-												<CardContent className="p-8 text-center text-muted-foreground">
-													<Coins className="h-12 w-12 mx-auto mb-4 opacity-50" />
-													<p className="text-base font-medium mb-2">
-														Error loading tokens
-													</p>
-													<p className="text-sm">{tokensError}</p>
-												</CardContent>
-											</Card>
-										)
-										: tokenListItems.length > 0
-										? (
-											<Card>
-												<CardContent className="p-0">
-													<div className="space-y-2 p-4">
-														{tokenListItems}
-													</div>
-												</CardContent>
-											</Card>
-										)
-										: (
-											<Card>
-												<CardContent className="p-8 text-center text-muted-foreground">
-													<Coins className="h-12 w-12 mx-auto mb-4 opacity-50" />
-													<p className="text-base font-medium mb-2">
-														No tokens available
-													</p>
-													<p className="text-sm">
-														Token data will appear here once tokens are
-														registered on the network.
-													</p>
-												</CardContent>
-											</Card>
-										)}
-								</motion.section>
-							</TabsContent>
-						)}
+				
 
 						{/* News Tab - Only render when active */}
 						{activeTab === "news" && (
@@ -1537,23 +871,6 @@ export function WelcomeAuthPage(): React.ReactElement {
 						</div>
 					</DialogContent>
 				</Dialog>
-			)}
-
-			{/* Token Detail Modal */}
-			{selectedToken && (
-				<TokenDetailModal
-					token={selectedToken}
-					price={(() => {
-						const symbol = selectedToken.metadata.symbol.toUpperCase();
-						return symbol === "USDT" ? 1 : (tokenPrices.get(symbol) || null);
-					})()}
-					open={!!selectedToken}
-					onOpenChange={(open) => {
-						if (!open) {
-							handleCloseTokenModal();
-						}
-					}}
-				/>
 			)}
 
 			{/* Authentication Dialog */}

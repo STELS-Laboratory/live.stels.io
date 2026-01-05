@@ -220,9 +220,6 @@ export const clearAppSpecificStorage = (): void => {
 			
 			// Theme
 			'theme-store',
-			
-			// Token Builder
-			'token-builder-store',
 		];
 
 		// Clear from localStorage

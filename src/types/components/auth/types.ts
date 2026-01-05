@@ -12,32 +12,6 @@ export interface DeveloperAccessRequestProps {
 	onOpenChange: (open: boolean) => void;
 }
 
-/**
- * Wallet confirmation props
- */
-export interface WalletConfirmationProps {
-	wallet: {
-		address: string;
-		publicKey: string;
-	};
-	onConfirm: () => void;
-	onCancel: () => void;
-}
-
-/**
- * Wallet creator props
- */
-export interface WalletCreatorProps {
-	onWalletCreated: (wallet: { address: string; publicKey: string; privateKey: string }) => void;
-	onCancel: () => void;
-}
-
-/**
- * Wallet type selector props
- */
-export interface WalletTypeSelectorProps {
-	onSelectType: (type: "create" | "import") => void;
-}
 
 /**
  * Network setup props

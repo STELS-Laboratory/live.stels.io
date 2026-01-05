@@ -18,18 +18,15 @@ import {
 	Boxes,
 	CircleX,
 	Code,
-	Coins,
 	FileText,
 	Home,
 	Layout as LayoutIcon,
 	MessageSquare,
 	MoreHorizontal,
 	Play,
-	Search,
 	Server,
 	Square,
 	TrendingUp,
-	Wallet,
 } from "lucide-react";
 import Graphite from "@/components/ui/vectors/logos/graphite";
 import { navigateTo } from "@/lib/router.ts";
@@ -92,13 +89,13 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 	 * Navigate back to STELS Application Hub
 	 */
 	const handleBackToWelcome = (): void => {
-		navigateTo("welcome");
+		navigateTo("trading");
 	};
 
 	/**
 	 * Check if we should show the back button
 	 */
-	const showBackButton = currentRoute !== "welcome";
+	const showBackButton = currentRoute !== "trading";
 
 	/**
 	 * Get friendly app name for current route
@@ -106,15 +103,12 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 	const getAppName = (route: string): string => {
 		const names: Record<string, string> = {
 			trading: "Trading Terminal",
-			welcome: "Welcome",
+
 			editor: "Editor",
 			canvas: "Canvas",
 			schemas: "Schemas",
 			docs: "Documentation",
 			template: "App Template",
-			"token-builder": "Token Builder",
-			wallet: "Wallet",
-			explorer: "Blockchain Explorer",
 			"stels-chat": "Stels Chat",
 			indexes: "Market Indexes",
 		};
@@ -122,7 +116,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 	};
 
 	const generalNav: NavItem[] = [
-		{ key: "welcome", label: "Welcome", icon: Home },
+		{ key: "trading", label: "Trading", icon: Home },
 	].filter((i) => allowedRoutes.includes(i.key));
 
 	const systemNav: NavItem[] = [
@@ -131,9 +125,6 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 		{ key: "editor", label: "Editor", icon: Code },
 		{ key: "schemas", label: "Schemas", icon: LayoutIcon },
 		{ key: "docs", label: "Docs", icon: FileText },
-		{ key: "token-builder", label: "Token Builder", icon: Coins },
-		{ key: "wallet", label: "Wallet", icon: Wallet },
-		{ key: "explorer", label: "Explorer", icon: Search },
 		{ key: "stels-chat", label: "Stels Chat", icon: MessageSquare },
 		{ key: "indexes", label: "Indexes", icon: BarChart3 },
 	].filter((i) => allowedRoutes.includes(i.key));

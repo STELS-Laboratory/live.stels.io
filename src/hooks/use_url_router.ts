@@ -1,5 +1,6 @@
 import {useEffect, useRef} from 'react';
 import {useAppStore} from '@/stores';
+import {useAuthStore} from '@/stores/modules/auth.store';
 
 /**
  * Hook for synchronizing application routing with URL query parameters
@@ -8,6 +9,7 @@ import {useAppStore} from '@/stores';
  */
 export const useUrlRouter = (): void => {
 	const {currentRoute, setRoute, allowedRoutes} = useAppStore();
+	const {isAuthenticated} = useAuthStore();
 	const isInitialized = useRef(false);
 	
 	useEffect(() => {
@@ -39,14 +41,19 @@ export const useUrlRouter = (): void => {
 
 				setRoute(urlRouter);
 			} else if (urlRouter && !allowedRoutes.includes(urlRouter)) {
-				// Invalid route in URL - redirect to welcome
-
-				updateUrl('welcome');
-				setRoute('welcome');
+				// Invalid route in URL - redirect to welcome (or trading if authenticated)
+				const defaultRoute = isAuthenticated ? 'trading' : 'welcome';
+				updateUrl(defaultRoute);
+				setRoute(defaultRoute);
 			} else if (!urlRouter) {
-				// No router parameter - add current route to URL
-
-				updateUrl(currentRoute);
+				// No router parameter - use current route or default based on auth
+				if (currentRoute) {
+					updateUrl(currentRoute);
+				} else {
+					const defaultRoute = isAuthenticated ? 'trading' : 'welcome';
+					updateUrl(defaultRoute);
+					setRoute(defaultRoute);
+				}
 			}
 			
 			isInitialized.current = true;
@@ -59,8 +66,9 @@ export const useUrlRouter = (): void => {
 			if (urlRouter && allowedRoutes.includes(urlRouter)) {
 				setRoute(urlRouter);
 			} else if (urlRouter && !allowedRoutes.includes(urlRouter)) {
-				updateUrl('welcome');
-				setRoute('welcome');
+				const defaultRoute = isAuthenticated ? 'trading' : 'welcome';
+				updateUrl(defaultRoute);
+				setRoute(defaultRoute);
 			}
 		};
 		
@@ -69,7 +77,7 @@ export const useUrlRouter = (): void => {
 		return () => {
 			window.removeEventListener('popstate', handlePopState);
 		};
-	}, [allowedRoutes, setRoute, currentRoute]);
+	}, [allowedRoutes, setRoute, currentRoute, isAuthenticated]);
 	
 	// Update URL when route changes in store (but not during initialization)
 	useEffect(() => {

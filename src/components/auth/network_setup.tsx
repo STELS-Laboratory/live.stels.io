@@ -9,7 +9,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Network,
-  Server,
   Shield,
   Wifi,
 } from "lucide-react";
@@ -37,11 +36,7 @@ export function NetworkSetup(
 
   const getNetworkIcon = (network: NetworkConfig) => {
     switch (network.id) {
-      case "testnet":
-        return <Shield className="h-5 w-5 text-primary" />;
-      case "mainnet":
-        return <Server className="h-5 w-5 text-accent-foreground" />;
-      case "localnet":
+      case "snaga":
         return <Network className="h-5 w-5 text-secondary-foreground" />;
       default:
         return <Network className="h-5 w-5 text-muted-foreground" />;
@@ -50,11 +45,7 @@ export function NetworkSetup(
 
   const getNetworkStatusColor = (network: NetworkConfig) => {
     switch (network.id) {
-      case "testnet":
-        return "bg-primary/20 text-primary border-primary/30";
-      case "mainnet":
-        return "bg-accent text-accent-foreground border-accent-foreground/30";
-      case "localnet":
+      case "snaga":
         return "bg-secondary text-secondary-foreground border-secondary-foreground/30";
       default:
         return "bg-muted/20 text-muted-foreground border-border";

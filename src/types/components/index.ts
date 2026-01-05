@@ -19,9 +19,6 @@ export type {
 export type {
 	RequestStatus,
 	DeveloperAccessRequestProps,
-	WalletConfirmationProps,
-	WalletCreatorProps,
-	WalletTypeSelectorProps,
 	NetworkSetupProps,
 	ConnectionProcessProps,
 	NetworkSelectorCompactProps,

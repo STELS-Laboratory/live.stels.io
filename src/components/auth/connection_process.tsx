@@ -35,7 +35,6 @@ export function ConnectionProcess(
     isConnecting,
     isConnected,
     connectionError,
-    connectToNode,
   } = useAuthStore();
 
   const [progress, setProgress] = useState(0);
@@ -46,33 +45,18 @@ export function ConnectionProcess(
       // Enhanced connection progress with faster realistic timing
       const steps = [
         { step: "Initializing secure connection...", progress: 10, icon: "🔐" },
-        { step: "Validating Wallet credentials...", progress: 20, icon: "✅" },
+        { step: "Redirecting to GitHub...", progress: 30, icon: "🔗" },
         {
-          step: "Creating authentication transaction...",
-          progress: 35,
-          icon: "📝",
-        },
-        {
-          step: "Signing transaction with private key...",
+          step: "Authenticating with GitHub...",
           progress: 50,
-          icon: "✍️",
+          icon: "🔑",
         },
         {
-          step: "Encrypting and sending to network...",
-          progress: 65,
-          icon: "🔒",
-        },
-        {
-          step: "Verifying transaction signature...",
+          step: "Creating secure session...",
           progress: 80,
-          icon: "🔍",
+          icon: "🎯",
         },
-        {
-          step: "Establishing WebSocket connection...",
-          progress: 90,
-          icon: "🌐",
-        },
-        { step: "Creating secure session...", progress: 100, icon: "🎯" },
+        { step: "Connection established...", progress: 100, icon: "✅" },
       ];
 
       let currentStepIndex = 0;
@@ -108,10 +92,10 @@ export function ConnectionProcess(
     }
   }, [connectionError, onError]);
 
-  const handleRetry = async (): Promise<void> => {
+  const handleRetry = (): void => {
+    // Retry is handled by GitHubAuth component
     setProgress(0);
     setCurrentStep("");
-    await connectToNode();
   };
 
   const getStatusColor = () => {
@@ -233,17 +217,10 @@ export function ConnectionProcess(
             <div className="space-y-2 sm:space-y-3">
               {[
                 { step: "Initialize connection", progress: 10, icon: "🔐" },
-                { step: "Validate credentials", progress: 20, icon: "✅" },
-                {
-                  step: "Create authentication transaction",
-                  progress: 35,
-                  icon: "📝",
-                },
-                { step: "Sign transaction", progress: 50, icon: "✍️" },
-                { step: "Send to network node", progress: 65, icon: "🔒" },
-                { step: "Verify signature", progress: 80, icon: "🔍" },
-                { step: "Establish WebSocket", progress: 90, icon: "🌐" },
-                { step: "Create session", progress: 100, icon: "🎯" },
+                { step: "Redirect to GitHub", progress: 30, icon: "🔗" },
+                { step: "GitHub authentication", progress: 50, icon: "🔑" },
+                { step: "Create session", progress: 80, icon: "🎯" },
+                { step: "Connected", progress: 100, icon: "✅" },
               ].map((item, index) => {
                 const isCompleted = progress >= item.progress;
                 const isCurrent = Math.abs(progress - item.progress) < 10;
@@ -317,13 +294,11 @@ export function ConnectionProcess(
                 </div>
                 <div>
                   <div className="font-bold text-foreground mb-0.5 sm:mb-1 text-[11px] sm:text-xs">
-                    End-to-End Encrypted Connection
+                    Secure Connection
                   </div>
                   <div className="text-muted-foreground text-[10px] sm:text-xs leading-relaxed">
-                    Your connection is cryptographically authenticated using
-                    ECDSA secp256k1 signatures with your wallet's private key.
-                    All data transmissions are encrypted using TLS/SSL
-                    protocols, and your private key never leaves your device.
+                    Your connection is authenticated via GitHub OAuth.
+                    All data transmissions are encrypted using TLS/SSL protocols.
                   </div>
                 </div>
               </div>

@@ -2,8 +2,6 @@
  * Authentication-related type definitions
  */
 
-import type { Wallet } from "@/lib/gliesereum";
-
 /**
  * Network configuration interface
  */
@@ -34,10 +32,6 @@ export interface ConnectionSession {
  * Authentication state interface
  */
 export interface AuthState {
-	// Wallet state
-	wallet: Wallet | null;
-	isWalletCreated: boolean;
-	
 	// Network state
 	selectedNetwork: NetworkConfig | null;
 	availableNetworks: NetworkConfig[];
@@ -60,17 +54,12 @@ export interface AuthState {
  * Authentication actions interface
  */
 export interface AuthActions {
-	// Wallet operations
-	createNewWallet: () => void;
-	importExistingWallet: (privateKey: string) => boolean;
-	resetWallet: () => void;
-	
 	// Network operations
 	setAvailableNetworks: (networks: NetworkConfig[]) => void;
 	selectNetwork: (network: NetworkConfig) => void;
 	
 	// Connection operations
-	connectToNode: () => Promise<boolean>;
+	connectWithGitHub: (code: string) => Promise<boolean>;
 	disconnectFromNode: () => Promise<void>;
 	restoreConnection: () => Promise<boolean>;
 	
@@ -92,7 +81,7 @@ export type AuthStore = AuthState & AuthActions;
 /**
  * Step type for professional connection flow
  */
-export type StepType = "type" | "create" | "confirm" | "network" | "connecting" | "success";
+export type StepType = "network" | "connecting" | "success";
 
 /**
  * Professional connection flow component props

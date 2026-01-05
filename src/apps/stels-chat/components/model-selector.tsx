@@ -40,7 +40,6 @@ export function ModelSelector({
     fetchModels,
     selectModel,
     isLoading,
-    testConnection,
   } = useStelsChatStore();
   const { connectionSession } = useAuthStore();
   const isDeveloper = connectionSession?.developer || false;
@@ -51,13 +50,11 @@ export function ModelSelector({
 
   useEffect(() => {
     const init = async (): Promise<void> => {
-      // Only test connection if we have a session and models are not loaded
+      // Only fetch models if we have a session and models are not loaded
       if (connectionSession?.session && models.length === 0) {
-
-        const connected = await testConnection();
-        // testConnection will automatically fetch models if connected
+        await fetchModels();
         // Also load registered models to show status (only for developers)
-        if (connected && isDeveloper) {
+        if (isDeveloper) {
           const { listRegisteredModels } = useStelsChatStore.getState();
           await listRegisteredModels();
         }
@@ -67,7 +64,7 @@ export function ModelSelector({
     };
     init();
   }, [
-    testConnection,
+    fetchModels,
     connectionSession?.session,
     connectionSession?.api,
     isDeveloper,

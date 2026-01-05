@@ -39,7 +39,7 @@ function StelsChat(): React.ReactElement {
     createTab,
     stelsApiUrl,
     setApiUrl,
-    testConnection,
+    fetchModels,
     isConnected,
     error,
     setError,
@@ -63,12 +63,12 @@ function StelsChat(): React.ReactElement {
   }, [connectionSession?.api, stelsApiUrl, setApiUrl]);
 
   useEffect(() => {
-    // Test connection on mount and when API URL or connectionSession changes
-    // Only test if we have a connectionSession (for authenticated requests)
+    // Fetch models on mount and when API URL or connectionSession changes
+    // Only fetch if we have a connectionSession (for authenticated requests)
     // Skip if already connected and models are loaded
     const state = useStelsChatStore.getState();
     if (connectionSession?.session && (!state.isConnected || state.models.length === 0)) {
-      testConnection();
+      fetchModels();
     } else if (!connectionSession?.session) {
 
       // Set as disconnected if no session
@@ -76,18 +76,27 @@ function StelsChat(): React.ReactElement {
         "No active session. Please connect to the network first.",
       );
     }
-  }, [testConnection, stelsApiUrl, connectionSession?.session]);
+  }, [fetchModels, stelsApiUrl, connectionSession?.session]);
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId) || tabs[0];
 
   const handleTestConnection = async (): Promise<void> => {
-    const connected = await testConnection();
-    if (!connected) {
+    try {
+      await fetchModels();
+      const state = useStelsChatStore.getState();
+      if (!state.isConnected || state.models.length === 0) {
+        setError(
+          "Cannot connect to Stels API. Make sure the API is running and the API URL is correct.",
+        );
+      } else {
+        setError(null);
+      }
+    } catch (err) {
       setError(
-        "Cannot connect to Stels API. Make sure the API is running and the API URL is correct.",
+        err instanceof Error
+          ? err.message
+          : "Failed to connect to Stels API. Please check your connection.",
       );
-    } else {
-      setError(null);
     }
   };
 

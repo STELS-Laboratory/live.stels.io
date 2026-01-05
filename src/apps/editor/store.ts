@@ -7,14 +7,9 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { useAuthStore } from "@/stores/modules/auth.store.ts";
 import { useNetworkStore } from "@/stores/modules/network.store";
-import {
-	importWallet,
-	deterministicStringify,
-	signWithDomain,
-	getAddressFromPublicKey,
-} from "@/lib/gliesereum";
 import { toast } from "@/stores";
 import { retryOnNetworkError } from "./utils/retry.ts";
+import { WebfixApiClient } from "@/lib/webfix-api-client";
 import type {
 	Worker,
 	LeaderInfo,
@@ -22,7 +17,6 @@ import type {
 	WorkerCreateRequest,
 	EditorStore,
 } from "@/types/apps/editor/types";
-import type { SmartTransaction, SmartOp } from "@/lib/gliesereum/types";
 
 export type {
 	Worker,
@@ -33,258 +27,35 @@ export type {
 };
 
 /**
- * Helper function to sign payment transaction with domain separation
- * This matches the API documentation requirements for signing transactions
+ * Helper function to convert API response to Worker format
  */
-function signPaymentTransaction(
-	paymentTx: SmartTransaction,
-	networkId: string,
-): SmartTransaction {
-	const wallet = useAuthStore.getState().wallet;
-	if (!wallet) {
-		throw new Error("Wallet not available. Please connect your wallet.");
+function convertToWorker(data: {
+	value?: {
+		channel: string;
+		raw: { sid?: string; [key: string]: unknown };
+		[key: string]: unknown;
+	};
+	key?: string[];
+	channel?: string;
+	sid?: string;
+	raw?: { sid?: string; [key: string]: unknown };
+}): Worker {
+	if (data.value) {
+		return {
+			key: ["ami", "worker", data.value.raw?.sid || ""],
+			value: data.value as Worker["value"],
+		};
 	}
-
-	if (!paymentTx || !paymentTx.args?.ops) {
-		throw new Error("Invalid payment transaction structure");
+	if (data.key && "value" in data && data.value) {
+		return data as Worker;
 	}
-
-	// Normalize operations - ensure amount format is correct (X.XXXXXX)
-	const normalizedOps: SmartOp[] = paymentTx.args.ops.map((op: unknown) => {
-		const operation = op as Record<string, unknown>;
-		if (operation.op === "transfer") {
-			// Normalize amount to format X.XXXXXX (required by validation)
-			// Handle both string and number formats
-			let amount: string;
-			if (typeof operation.amount === "number") {
-				amount = operation.amount.toString();
-			} else {
-				amount = String(operation.amount || "0");
-			}
-			
-			// If amount doesn't have decimal part, add .000000
-			if (!amount.includes(".")) {
-				amount = `${amount}.000000`;
-			} else {
-				// Ensure exactly 6 decimal places
-				const [intPart, decPart = ""] = amount.split(".");
-				amount = `${intPart}.${decPart.padEnd(6, "0").slice(0, 6)}`;
-			}
-			
-			const normalizedOp: SmartOp = {
-				op: "transfer",
-				to: String(operation.to || ""),
-				amount,
-				...(operation.memo && { memo: String(operation.memo) }),
-			};
-			
-			return normalizedOp;
-		}
-		// For other operation types, return as-is
-		return operation as SmartOp;
-	});
-
-	// Validate normalized operations before signing
-	for (const op of normalizedOps) {
-		if (op.op === "transfer") {
-			if (!op.to || op.to.length !== 34) {
-				throw new Error(`Invalid 'to' address in transfer operation: ${op.to}`);
-			}
-			if (!op.amount || !/^\d+\.\d{6}$/.test(op.amount)) {
-				throw new Error(`Invalid amount format in transfer operation: ${op.amount}`);
-			}
-		}
-	}
-
-	// Import wallet from private key
-	const walletInstance = importWallet(wallet.privateKey);
-
-	// Determine chain ID based on network
-	// mainnet = 1, testnet = 2, localnet = 2 (uses testnet chain)
-	const chainId = networkId === "mainnet" ? 1 : 2;
-
-	// Create signing view (EXCLUDE: hash, signatures, cosigs, verified, status, validators)
-	const signingView: Omit<SmartTransaction, "signatures" | "cosigs" | "hash"> = {
-		type: paymentTx.type,
-		method: paymentTx.method,
-		args: {
-			ops: normalizedOps,
-			memo: paymentTx.args.memo,
+	return {
+		key: ["ami", "worker", data.sid || data.raw?.sid || ""],
+		value: {
+			channel: data.channel || `ami.worker.${data.sid || data.raw?.sid || ""}`,
+			raw: (data.raw || data) as Worker["value"]["raw"],
 		},
-		from: walletInstance.address, // Use wallet address
-		fee: paymentTx.fee,
-		currency: paymentTx.currency,
-		prev_hash: paymentTx.prev_hash, // Keep null, system will fill automatically
-		timestamp: paymentTx.timestamp,
 	};
-
-	// Canonicalize signing view
-	const canonicalData = deterministicStringify(signingView);
-
-	// Define domain for signing: ["STELS-TX", chainId, "smart-1.0", "chain:{chainId}"]
-	const domain: (string | number)[] = [
-		"STELS-TX",
-		chainId,
-		"smart-1.0",
-		`chain:${chainId}`,
-	];
-
-	// Sign with domain separation
-	const signature = signWithDomain(canonicalData, walletInstance.privateKey, domain);
-
-	// Verify address matches public key
-	const addressFromKey = getAddressFromPublicKey(walletInstance.publicKey);
-	if (addressFromKey !== walletInstance.address) {
-		throw new Error(
-			`Address mismatch: ${addressFromKey} !== ${walletInstance.address}`,
-		);
-	}
-
-	// Create signed transaction
-	const signedTx: SmartTransaction = {
-		...signingView,
-		signatures: [
-			{
-				kid: walletInstance.publicKey,
-				alg: "ecdsa-secp256k1",
-				sig: signature,
-			},
-		],
-	};
-
-	// DO NOT add hash - system will compute it automatically during validation
-	return signedTx;
-}
-
-/**
- * Helper function to handle payment for worker operations
- */
-async function handleWorkerPayment(
-	apiUrl: string,
-	session: string,
-	method: "setWorker" | "updateWorker",
-	body: Record<string, unknown>,
-	networkId: string,
-): Promise<Worker> {
-	// First request - get payment transaction structure
-	const feeResponse = await retryOnNetworkError(() =>
-		fetch(apiUrl, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"stels-session": session,
-			},
-			body: JSON.stringify({
-				webfix: "1.0",
-				method,
-				params: [networkId],
-				body,
-			}),
-		}),
-	);
-
-	const feeData = await feeResponse.json();
-
-	if (feeResponse.status === 402) {
-		// Payment required - sign and submit transaction
-		const paymentTx = feeData.paymentTransaction as SmartTransaction;
-		const signedTx = signPaymentTransaction(paymentTx, networkId);
-
-		// Submit with signed transaction
-		const createResponse = await retryOnNetworkError(() =>
-			fetch(apiUrl, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					"stels-session": session,
-				},
-				body: JSON.stringify({
-					webfix: "1.0",
-					method,
-					params: [networkId],
-					body: {
-						...body,
-						paymentTransaction: signedTx,
-					},
-				}),
-			}),
-		);
-
-		if (!createResponse.ok) {
-			const errorData = await createResponse.json();
-			if (errorData.error === "Payment transaction validation failed") {
-				const errors = errorData.errors || [];
-				if (errors.some((e: string) => e.includes("Insufficient balance"))) {
-					throw new Error("Insufficient balance. Please add funds to your wallet.");
-				}
-				if (errors.some((e: string) => e.includes("Invalid signature"))) {
-					throw new Error("Transaction signature validation failed.");
-				}
-				throw new Error(`Payment failed: ${errors.join(", ")}`);
-			}
-			throw new Error(`HTTP error! status: ${createResponse.status}`);
-		}
-
-		const result = await createResponse.json();
-		// Server returns: { value: { channel, raw, ... }, fee: {...} }
-		// Need to convert to Worker format: { key: [...], value: { channel, raw, ... } }
-		if (result.value) {
-			const workerValue = result.value;
-			// Construct Worker format
-			const worker: Worker = {
-				key: ["ami", "worker", workerValue.raw?.sid || ""],
-				value: workerValue,
-			};
-			return worker;
-		}
-		// If no 'value', check if result itself is a worker
-		if (result.raw || result.sid) {
-			// Already in Worker format or needs conversion
-			if (result.key && result.value) {
-				return result as Worker;
-			}
-			// Convert to Worker format
-			return {
-				key: ["ami", "worker", result.sid || result.raw?.sid || ""],
-				value: {
-					channel: result.channel || `ami.worker.${result.sid || result.raw?.sid || ""}`,
-					raw: result.raw || result,
-				},
-			} as Worker;
-		}
-		throw new Error("Invalid response format from server");
-	} else if (feeResponse.ok) {
-		// Payment not required or already provided
-		// Server returns: { value: { channel, raw, ... }, fee: {...} }
-		// Need to convert to Worker format: { key: [...], value: { channel, raw, ... } }
-		if (feeData.value) {
-			const workerValue = feeData.value;
-			// Construct Worker format
-			const worker: Worker = {
-				key: ["ami", "worker", workerValue.raw?.sid || ""],
-				value: workerValue,
-			};
-			return worker;
-		}
-		// If no 'value', check if feeData itself is a worker
-		if (feeData.raw || feeData.sid) {
-			// Already in Worker format or needs conversion
-			if (feeData.key && feeData.value) {
-				return feeData as Worker;
-			}
-			// Convert to Worker format
-			return {
-				key: ["ami", "worker", feeData.sid || feeData.raw?.sid || ""],
-				value: {
-					channel: feeData.channel || `ami.worker.${feeData.sid || feeData.raw?.sid || ""}`,
-					raw: feeData.raw || feeData,
-				},
-			} as Worker;
-		}
-		throw new Error("Invalid response format from server");
-	} else {
-		throw new Error(`Failed to process worker: ${feeData.error || "Unknown error"}`);
-	}
 }
 
 /**
@@ -318,46 +89,31 @@ export const useEditorStore = create<EditorStore>()(
 			set({ workersLoading: true, workersError: null });
 
 			try {
-				const response = await retryOnNetworkError(() =>
-					fetch(connectionSession.api, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						"stels-session": connectionSession.session,
-					},
-					body: JSON.stringify({
-						webfix: "1.0",
-						method: "listWorkers",
-						params: [networkId],
-						body: {},
-					}),
-					}),
+				const client = new WebfixApiClient(connectionSession.api);
+				client.setSession(connectionSession.session);
+
+				const data = await retryOnNetworkError(() =>
+					client.request<Worker[]>("listWorkers", {}, [networkId])
 				);
 
-				if (!response.ok) {
-					throw new Error(`HTTP error! status: ${response.status}`);
+				if (data && Array.isArray(data)) {
+					set({
+						workers: data,
+						workersLoading: false,
+						workersError: null,
+					});
+				} else {
+					throw new Error("Invalid response format");
 				}
-
-			const data = await response.json();
-
-			if (data && Array.isArray(data)) {
+			} catch (error) {
+				console.error("Failed to list workers:", error);
+				const errorMessage = error instanceof Error ? error.message : "Failed to fetch workers";
 				set({
-					workers: data,
+					workersError: errorMessage,
 					workersLoading: false,
-					workersError: null,
 				});
-			} else {
-				throw new Error("Invalid response format");
+				toast.error("Failed to load workers", errorMessage);
 			}
-		} catch (error) {
-			console.error("Failed to list workers:", error);
-			const errorMessage = error instanceof Error ? error.message : "Failed to fetch workers";
-			set({
-				workersError: errorMessage,
-				workersLoading: false,
-			});
-			toast.error("Failed to load workers", errorMessage);
-		}
 		},
 
 		createWorker: async (
@@ -378,85 +134,38 @@ export const useEditorStore = create<EditorStore>()(
 			});
 
 			try {
-				// If paymentTransaction is already provided, use direct API call
-				// Otherwise, use payment handler to get and sign transaction
-				if (request.paymentTransaction) {
-					const response = await retryOnNetworkError(() =>
-						fetch(connectionSession.api, {
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-								"stels-session": connectionSession.session,
-							},
-							body: JSON.stringify({
-								webfix: "1.0",
-								method: "setWorker",
-								params: [networkId],
-								body: request,
-							}),
-						}),
-					);
+				const client = new WebfixApiClient(connectionSession.api);
+				client.setSession(connectionSession.session);
 
-					if (!response.ok) {
-						throw new Error(`HTTP error! status: ${response.status}`);
-					}
+				// Remove paymentTransaction if present
+				const { paymentTransaction, ...requestBody } = request as unknown as { paymentTransaction?: unknown; [key: string]: unknown };
 
-					const data = await response.json();
-				// Server returns: { value: { channel, raw, ... }, fee: {...} }
-				// Convert to Worker format
-				let workerData: Worker;
-				if (data.value) {
-					workerData = {
-						key: ["ami", "worker", data.value.raw?.sid || ""],
-						value: data.value,
-					};
-				} else if (data.key) {
-					workerData = data as Worker;
-				} else {
-						// Fallback: try to construct from data
-						workerData = {
-							key: ["ami", "worker", data.sid || data.raw?.sid || ""],
-							value: {
-								channel: data.channel || `ami.worker.${data.sid || data.raw?.sid || ""}`,
-								raw: data.raw || data,
-							},
+				const data = await retryOnNetworkError(() =>
+					client.request<{
+						value?: {
+							channel: string;
+							raw: { sid?: string; [key: string]: unknown };
+							[key: string]: unknown;
 						};
-					}
-
-					// Add to workers list
-					set((state) => ({
-						workers: [workerData, ...state.workers],
-						worker: {
-							isLoading: false,
-							isEditor: true,
-						},
-					}));
-
-					return workerData;
-				}
-
-				// Use payment handler to get and sign transaction
-				const body = { ...request };
-				delete (body as { paymentTransaction?: SmartTransaction }).paymentTransaction;
-
-				const data = await handleWorkerPayment(
-					connectionSession.api,
-					connectionSession.session,
-					"setWorker",
-					body,
-					networkId,
+						key?: string[];
+						channel?: string;
+						sid?: string;
+						raw?: { sid?: string; [key: string]: unknown };
+					}>("setWorker", requestBody, [networkId])
 				);
+
+				const workerData = convertToWorker(data);
 
 				// Add to workers list
 				set((state) => ({
-					workers: [data, ...state.workers],
+					workers: [workerData, ...state.workers],
 					worker: {
 						isLoading: false,
 						isEditor: true,
 					},
 				}));
 
-				return data;
+				return workerData;
 			} catch (error) {
 				console.error("Failed to create worker:", error);
 				const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
@@ -501,20 +210,36 @@ export const useEditorStore = create<EditorStore>()(
 			});
 
 			try {
+				const client = new WebfixApiClient(connectionSession.api);
+				client.setSession(connectionSession.session);
+
+				// API expects FULL raw object with ALL fields (not partial update)
+				// Format: { channel, raw } where raw contains all worker fields including sid
 				const body = {
 					channel: workerData.value.channel,
 					raw: workerData.value.raw,
 				};
 
-				const result = await handleWorkerPayment(
-					connectionSession.api,
-					connectionSession.session,
-					"updateWorker",
-					body,
-					networkId,
+				console.log("updateWorker request body:", JSON.stringify(body, null, 2));
+
+				const data = await retryOnNetworkError(() =>
+					client.request<{
+						value?: {
+							channel: string;
+							raw: { sid?: string; [key: string]: unknown };
+							[key: string]: unknown;
+						};
+						key?: string[];
+						channel?: string;
+						sid?: string;
+						raw?: { sid?: string; [key: string]: unknown };
+					}>("updateWorker", body, [networkId])
 				);
 
-				// result is already in Worker format from handleWorkerPayment
+				console.log("updateWorker response data:", JSON.stringify(data, null, 2));
+
+				const result = convertToWorker(data);
+
 				// Update workers list
 				set((state) => ({
 					workers: state.workers.map((w) =>
@@ -543,9 +268,9 @@ export const useEditorStore = create<EditorStore>()(
 
 		migrateWorkerWithNewSid: async (worker: Worker): Promise<Worker | null> => {
 			const connectionSession = useAuthStore.getState().connectionSession;
+			const networkId = useNetworkStore.getState().currentNetworkId;
 
 			if (!connectionSession) {
-
 				return null;
 			}
 
@@ -571,19 +296,28 @@ export const useEditorStore = create<EditorStore>()(
 					note: `[Migrated] ${worker.value.raw.note}`,
 				};
 
-				const networkId = useNetworkStore.getState().currentNetworkId;
-				const body = { ...createRequest };
-				delete (body as { paymentTransaction?: SmartTransaction }).paymentTransaction;
+				const client = new WebfixApiClient(connectionSession.api);
+				client.setSession(connectionSession.session);
 
-				const result = await handleWorkerPayment(
-					connectionSession.api,
-					connectionSession.session,
-					"setWorker",
-					body,
-					networkId,
+				// Remove paymentTransaction if present
+				const { paymentTransaction, ...requestBody } = createRequest as unknown as { paymentTransaction?: unknown; [key: string]: unknown };
+
+				const data = await retryOnNetworkError(() =>
+					client.request<{
+						value?: {
+							channel: string;
+							raw: { sid?: string; [key: string]: unknown };
+							[key: string]: unknown;
+						};
+						key?: string[];
+						channel?: string;
+						sid?: string;
+						raw?: { sid?: string; [key: string]: unknown };
+					}>("setWorker", requestBody, [networkId])
 				);
 
-				// result is already in Worker format from handleWorkerPayment
+				const result = convertToWorker(data);
+
 				// Add to workers list
 				set((state) => ({
 					workers: [result, ...state.workers],
@@ -610,7 +344,7 @@ export const useEditorStore = create<EditorStore>()(
 			}
 		},
 
-	getLeaderInfo: async (workerId: string): Promise<LeaderInfo | null> => {
+		getLeaderInfo: async (workerId: string): Promise<LeaderInfo | null> => {
 			const connectionSession = useAuthStore.getState().connectionSession;
 			const networkId = useNetworkStore.getState().currentNetworkId;
 
@@ -619,27 +353,14 @@ export const useEditorStore = create<EditorStore>()(
 			}
 
 			try {
-				const response = await retryOnNetworkError(() =>
-					fetch(connectionSession.api, {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							"stels-session": connectionSession.session,
-						},
-						body: JSON.stringify({
-							webfix: "1.0",
-							method: "getLeaderInfo",
-							params: [networkId],
-							body: { workerId },
-						}),
-					}),
+				const client = new WebfixApiClient(connectionSession.api);
+				client.setSession(connectionSession.session);
+
+				const result = await retryOnNetworkError(() =>
+					client.request<LeaderInfo>("getLeaderInfo", { workerId }, [networkId])
 				);
 
-				if (!response.ok) {
-					throw new Error(`HTTP error! status: ${response.status}`);
-				}
-
-				return await response.json();
+				return result;
 			} catch (error) {
 				console.error("Failed to get leader info:", error);
 				toast.error(
@@ -659,27 +380,12 @@ export const useEditorStore = create<EditorStore>()(
 		}
 
 		try {
-			const response = await retryOnNetworkError(() =>
-				fetch(connectionSession.api, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						"stels-session": connectionSession.session,
-					},
-					body: JSON.stringify({
-						webfix: "1.0",
-						method: "getWorkerStats",
-						params: [networkId],
-						body: {},
-					}),
-				}),
+			const client = new WebfixApiClient(connectionSession.api);
+			client.setSession(connectionSession.session);
+
+			const data = await retryOnNetworkError(() =>
+				client.request<{ workers?: WorkerStats[] }>("getWorkerStats", {}, [networkId])
 			);
-
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
-			}
-
-			const data = await response.json();
 
 			// API returns object with workers array
 			if (data && data.workers && Array.isArray(data.workers)) {
@@ -709,7 +415,7 @@ export const useEditorStore = create<EditorStore>()(
 						networkErrors: worker.networkErrors || 0,
 						criticalErrors: worker.criticalErrors || 0,
 						isRunning: worker.isRunning || false,
-						lastExecution: worker.lastRun || null,
+						lastExecution: worker.lastRun || undefined,
 					};
 				});
 			}
@@ -734,89 +440,25 @@ export const useEditorStore = create<EditorStore>()(
 			}
 
 			try {
-				// First request - get payment transaction structure
-				const feeResponse = await retryOnNetworkError(() =>
-					fetch(connectionSession.api, {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							"stels-session": connectionSession.session,
-						},
-						body: JSON.stringify({
-							webfix: "1.0",
-							method: "stopAllWorkers",
-							params: [networkId],
-							body: {},
-						}),
-					}),
+				const client = new WebfixApiClient(connectionSession.api);
+				client.setSession(connectionSession.session);
+
+				const result = await retryOnNetworkError(() =>
+					client.request<{ stopped?: number; failed?: number; total?: number }>(
+						"stopAllWorkers",
+						{},
+						[networkId]
+					)
 				);
 
-				const feeData = await feeResponse.json();
+				// Refresh workers list
+				await get().listWorkers();
 
-				if (feeResponse.status === 402) {
-					// Payment required - sign and submit transaction
-					const paymentTx = feeData.paymentTransaction as SmartTransaction;
-					const signedTx = signPaymentTransaction(paymentTx, networkId);
-
-					// Submit with signed transaction
-					const response = await retryOnNetworkError(() =>
-						fetch(connectionSession.api, {
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-								"stels-session": connectionSession.session,
-							},
-							body: JSON.stringify({
-								webfix: "1.0",
-								method: "stopAllWorkers",
-								params: [networkId],
-								body: {
-									paymentTransaction: signedTx,
-								},
-							}),
-						}),
-					);
-
-					if (!response.ok) {
-						const errorData = await response.json();
-						if (errorData.error === "Payment transaction validation failed") {
-							const errors = errorData.errors || [];
-							if (errors.some((e: string) => e.includes("Insufficient balance"))) {
-								throw new Error("Insufficient balance. Please add funds to your wallet.");
-							}
-							if (errors.some((e: string) => e.includes("Invalid signature"))) {
-								throw new Error("Transaction signature validation failed.");
-							}
-							throw new Error(`Payment failed: ${errors.join(", ")}`);
-						}
-						throw new Error(`HTTP error! status: ${response.status}`);
-					}
-
-					const result = await response.json();
-
-					// Refresh workers list
-					await get().listWorkers();
-
-					return {
-						stopped: result.stopped || 0,
-						failed: result.failed || 0,
-						total: result.total || 0,
-					};
-				} else if (feeResponse.ok) {
-					// Payment not required (e.g., treasury address)
-					const result = feeData;
-
-					// Refresh workers list
-					await get().listWorkers();
-
-					return {
-						stopped: result.stopped || 0,
-						failed: result.failed || 0,
-						total: result.total || 0,
-					};
-				} else {
-					throw new Error(`Failed to stop workers: ${feeData.error || "Unknown error"}`);
-				}
+				return {
+					stopped: result.stopped || 0,
+					failed: result.failed || 0,
+					total: result.total || 0,
+				};
 			} catch (error) {
 				console.error("Failed to stop all workers:", error);
 				toast.error(

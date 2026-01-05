@@ -143,7 +143,7 @@ export const useAppStore = create<AppState>()(
 					}
 				}
 				
-				const allowedRoutes = ['trading', 'welcome', 'canvas', 'editor', 'schemas', 'docs', 'token-builder', 'wallet', 'explorer', 'stels-chat', 'indexes'];
+				const allowedRoutes = ['trading', 'welcome', 'canvas', 'editor', 'schemas', 'docs', 'stels-chat', 'indexes'];
 
 			return {
 				version: '1.0.7',
@@ -191,9 +191,9 @@ export const useAppStore = create<AppState>()(
 							}
 							
 							return false
-						} catch {
+						} catch (error) {
 							set({
-								syncError: _error instanceof Error ? _error.message : 'Unknown error',
+								syncError: error instanceof Error ? error.message : 'Unknown error',
 							})
 							return false
 						}
@@ -219,9 +219,9 @@ export const useAppStore = create<AppState>()(
 								isSyncing: false,
 							})
 
-						} catch {
+						} catch (error) {
 							set({
-								syncError: _error instanceof Error ? _error.message : 'Sync failed',
+								syncError: error instanceof Error ? error.message : 'Sync failed',
 								isSyncing: false,
 							})
 						}

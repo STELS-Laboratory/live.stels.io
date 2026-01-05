@@ -15,7 +15,6 @@ import {
 	ArrowDown,
 	ArrowUp,
 	Code,
-	Coins,
 	Cpu,
 	Crown,
 	Database,
@@ -56,7 +55,6 @@ import {
 	type WorkerCreateRequest,
 } from "./store.ts";
 import { useAuthStore } from "@/stores/modules/auth.store.ts";
-import { useAppStore } from "@/stores/modules/app.store.ts";
 import { useMobile } from "@/hooks/use_mobile.ts";
 import type { JSX } from "react/jsx-runtime";
 import { Input } from "@/components/ui/input";
@@ -78,7 +76,6 @@ import { CreateWorkerDialog } from "./ami_editor/create_worker_dialog";
 import { LeaderInfoCard } from "./ami_editor/leader_info_card";
 import { WorkerStatsPanel } from "./ami_editor/worker_stats_panel";
 import { WorkerLogsPanel } from "./ami_editor/worker_logs_panel";
-import { WorkerEconomicsPanel } from "./ami_editor/worker_economics_panel";
 import { StopAllDialog } from "./ami_editor/stop_all_dialog";
 import { MigrateWorkerDialog } from "./ami_editor/migrate_worker_dialog";
 import { ConfirmToggleDialog } from "./ami_editor/confirm_toggle_dialog";
@@ -95,8 +92,7 @@ import {
 
 export function AMIEditor(): JSX.Element {
 	const mobile = useMobile();
-	const { wallet, connectionSession } = useAuthStore();
-	const { setRoute } = useAppStore();
+	const { connectionSession } = useAuthStore();
 	const listWorkers = useEditorStore((state) => state.listWorkers);
 	const createWorker = useEditorStore((state) => state.createWorker);
 	const updateWorker = useEditorStore((state) => state.updateWorker);
@@ -168,7 +164,7 @@ export function AMIEditor(): JSX.Element {
 
 	// Check developer access on mount
 	useEffect(() => {
-		if (wallet && connectionSession) {
+		if (connectionSession) {
 			// Check if user has developer permissions
 			const isDeveloper = connectionSession.developer || false;
 
@@ -178,7 +174,7 @@ export function AMIEditor(): JSX.Element {
 				setLoading(false);
 			}
 		}
-	}, [wallet, connectionSession]);
+	}, [connectionSession]);
 
 	// Load workers with debounce and abort controller
 	const loadWorkers = useCallback(async () => {
@@ -774,12 +770,27 @@ export function AMIEditor(): JSX.Element {
 	};
 
 	const handleSaveAll = async () => {
+		console.log("🔵 handleSaveAll called", {
+			selectedWorker: !!selectedWorker,
+			isEditing,
+			isEditingNote,
+			isEditingConfig,
+			saving,
+		});
+
 		if (!selectedWorker || (!isEditing && !isEditingNote && !isEditingConfig)) {
+			console.log("❌ handleSaveAll early return:", {
+				noSelectedWorker: !selectedWorker,
+				noEditing: !isEditing && !isEditingNote && !isEditingConfig,
+			});
 			return;
 		}
 
+		console.log("✅ handleSaveAll proceeding with save...");
+
 		// Clear previous validation errors
 		setValidationError(null);
+		console.log("🔍 Starting validations...", { currentConfig });
 
 		// Validation: local scope can only use leader mode
 		if (
@@ -787,45 +798,59 @@ export function AMIEditor(): JSX.Element {
 			(currentConfig.executionMode === "parallel" ||
 				currentConfig.executionMode === "exclusive")
 		) {
+			console.log("❌ Validation failed: local scope requires leader mode");
 			setValidationError(
 				"Invalid configuration: Local scope workers can only use leader execution mode (single node execution)",
 			);
 			return;
 		}
+		console.log("✅ Scope validation passed");
 
 		// Validate dependencies
 		const depsValidation = validateDependencies(currentConfig.dependencies);
 		if (!depsValidation.valid) {
+			console.log("❌ Dependencies validation failed:", depsValidation.error);
 			setValidationError(depsValidation.error || "Invalid dependencies");
 			return;
 		}
+		console.log("✅ Dependencies validation passed");
 
 		// Validate version
 		const versionValidation = validateVersion(currentConfig.version);
 		if (!versionValidation.valid) {
+			console.log("❌ Version validation failed:", versionValidation.error);
 			setValidationError(versionValidation.error || "Invalid version");
 			return;
 		}
+		console.log("✅ Version validation passed");
 
-		// Validate node ID if provided
+		// Validate node ID if provided (optional field - clear if invalid instead of blocking)
 		if (currentConfig.nid) {
 			const nidValidation = validateNodeId(currentConfig.nid);
 			if (!nidValidation.valid) {
-				setValidationError(nidValidation.error || "Invalid node ID");
-				return;
+				// Node ID is optional - if it's invalid, just clear it instead of blocking save
+				currentConfig.nid = "";
 			}
 		}
 
-		// Validate account ID if provided
+		// Validate account ID if provided (optional field - clear if invalid instead of blocking)
 		if (currentConfig.accountId) {
 			const accountValidation = validateAccountId(currentConfig.accountId);
 			if (!accountValidation.valid) {
-				setValidationError(accountValidation.error || "Invalid account ID");
-				return;
+				// Account ID is optional - if it's invalid, just clear it instead of blocking save
+				currentConfig.accountId = "";
 			}
 		}
 
+		console.log("✅ All validations passed, setting saving=true");
 		setSaving(true);
+		console.log("🔄 Starting save process...", {
+			selectedWorkerSid: selectedWorker.value.raw.sid,
+			currentScript: currentScript.substring(0, 50) + "...",
+			currentNote,
+			currentConfig,
+		});
+
 		try {
 			// API requires FULL raw object with ALL fields (not partial update)
 			const updatedRaw = {
@@ -851,7 +876,17 @@ export function AMIEditor(): JSX.Element {
 					raw: updatedRaw,
 				},
 			};
+			
+			console.log("📤 Calling updateWorker with body:", {
+				channel: workerBody.value.channel,
+				rawSid: workerBody.value.raw.sid,
+				rawKeys: Object.keys(workerBody.value.raw),
+			});
+
 			const result = await updateWorker(workerBody);
+			
+			console.log("📥 updateWorker result:", result ? "success" : "null", result);
+
 			if (result) {
 				// Update result with the saved script (formatted version from editor)
 				const updatedResult: Worker = {
@@ -902,7 +937,7 @@ export function AMIEditor(): JSX.Element {
 				toast.error("Failed to save worker", "No response from server");
 			}
 		} catch (error) {
-			console.error("Failed to save worker:", error);
+			console.error("❌ Failed to save worker:", error);
 			const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
 			toast.error(
 				"Failed to save worker",
@@ -1046,7 +1081,7 @@ export function AMIEditor(): JSX.Element {
 		);
 	}
 
-	return wallet
+	return connectionSession
 		? (
 			<div className="h-full">
 				<Split
@@ -1595,15 +1630,7 @@ export function AMIEditor(): JSX.Element {
 							? (
 								<div className="h-full flex flex-col">
 									{/* Editor Header - Compact */}
-									<div className="bg-card border-b border-border px-3 py-2 shadow-sm">
-										{(isEditing || isEditingNote || isEditingConfig) && (
-											<div className="absolute top-2 right-2 z-10">
-												<div className="flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 border border-amber-500/30 rounded text-[10px] text-amber-700 dark:text-amber-400 font-mono">
-													<div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
-													<span>Unsaved changes</span>
-												</div>
-											</div>
-										)}
+									<div className="bg-card border-b border-border px-3 py-2 shadow-sm relative">
 										<div className="flex items-center justify-between">
 											<div className="flex items-center gap-2 flex-1 min-w-0">
 												<div className="relative w-7 h-7 bg-muted rounded flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:bg-muted/80 hover:scale-105">
@@ -1679,6 +1706,12 @@ export function AMIEditor(): JSX.Element {
 														})()}
 													</div>
 												</div>
+												{(isEditing || isEditingNote || isEditingConfig) && (
+													<div className="flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 border border-amber-500/30 rounded text-[10px] text-amber-700 dark:text-amber-400 font-mono">
+														<div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+														<span>Unsaved changes</span>
+													</div>
+												)}
 											</div>
 
 											<TooltipProvider>
@@ -1795,14 +1828,6 @@ export function AMIEditor(): JSX.Element {
 														<Terminal className="w-3 h-3 mr-1 transition-transform duration-200 group-data-[state=active]:scale-110" />
 														Logs
 													</TabsTrigger>
-													<TabsTrigger
-														value="economics"
-														className="text-[11px] h-6 px-2 transition-all duration-200 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-700 dark:data-[state=active]:text-amber-400 hover:bg-muted/50"
-														title="Economics (⌘5)"
-													>
-														<Coins className="w-3 h-3 mr-1 transition-transform duration-200 group-data-[state=active]:scale-110" />
-														Economics
-													</TabsTrigger>
 													{selectedWorker.value.raw.executionMode ===
 															"leader" && (
 														<TabsTrigger
@@ -1899,7 +1924,17 @@ export function AMIEditor(): JSX.Element {
 																	<Tooltip delayDuration={100}>
 																		<TooltipTrigger asChild>
 																			<Button
-																				onClick={handleSaveAll}
+																				onClick={(e) => {
+																					console.log("🖱️ Save button clicked", {
+																						event: e,
+																						saving,
+																						selectedWorker: !!selectedWorker,
+																						isEditing,
+																						isEditingNote,
+																						isEditingConfig,
+																					});
+																					handleSaveAll();
+																				}}
 																				size="sm"
 																				className="h-6 px-2 bg-amber-500 hover:bg-amber-600 text-zinc-950 dark:text-black"
 																				disabled={saving}
@@ -2350,17 +2385,6 @@ export function AMIEditor(): JSX.Element {
 											/>
 										</TabsContent>
 
-										{/* Tab: Economics */}
-										<TabsContent
-											value="economics"
-											className="flex-1 m-0 p-0 min-h-0 gap-0"
-										>
-											<ScrollArea className="h-full">
-												<div className="p-4">
-													<WorkerEconomicsPanel worker={selectedWorker} />
-												</div>
-											</ScrollArea>
-										</TabsContent>
 
 										{/* Tab: Leader Info */}
 										{selectedWorker.value.raw.executionMode === "leader" && (
@@ -2473,11 +2497,11 @@ export function AMIEditor(): JSX.Element {
 					</div>
 
 					<h2 className="text-amber-700 dark:text-amber-400 font-mono text-2xl font-bold mb-3">
-						WALLET REQUIRED
+						AUTHENTICATION REQUIRED
 					</h2>
 
 					<p className="text-muted-foreground text-sm mb-8 leading-relaxed">
-						Connect your wallet to access the Protocol Editor and build
+						Authenticate with GitHub to access the Protocol Editor and build
 						autonomous web agents
 					</p>
 
@@ -2512,17 +2536,17 @@ export function AMIEditor(): JSX.Element {
 					</div>
 
 					<Button
-						onClick={() => setRoute("wallet")}
+						onClick={() => navigateTo("welcome")}
 						className="mt-8 bg-amber-500 hover:bg-amber-600 text-zinc-950 dark:text-black font-mono text-sm font-bold px-8 py-3 rounded shadow-lg shadow-amber-400/20 transition-all duration-200 hover:shadow-amber-400/30"
 					>
 						<Zap className="w-4 h-4 mr-2" />
-						CONNECT WALLET
+						AUTHENTICATE
 					</Button>
 
 					<div className="mt-6 px-4 py-2 bg-muted/50 rounded inline-block">
 						<div className="text-xs text-muted-foreground font-mono flex items-center gap-2">
 							<Server className="w-3 h-3" />
-							Secure cryptographic connection required
+							GitHub authentication required
 						</div>
 					</div>
 				</div>

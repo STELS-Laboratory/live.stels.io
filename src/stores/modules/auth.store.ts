@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { createWallet, importWallet, createSignedTransaction, getUncompressedPublicKey } from '@/lib/gliesereum';
 import { clearAllStorage, clearAppStorage } from '@/lib/storage-cleaner';
 import { useWebSocketStore } from '@/hooks/use_web_socket_store';
 import { NETWORK_CONFIGS, useNetworkStore } from './network.store';
+import { WebfixApiClient } from '@/lib/webfix-api-client';
 import type {
 	NetworkConfig,
 	ConnectionSession,
@@ -35,8 +35,6 @@ export const useAuthStore = create<AuthStore>()(
 		persist(
 		(set, get) => ({
 		// Initial state
-		wallet: null,
-		isWalletCreated: false,
 		selectedNetwork: null,
 		availableNetworks: Object.values(NETWORK_CONFIGS),
 		isConnected: false,
@@ -48,95 +46,6 @@ export const useAuthStore = create<AuthStore>()(
 		showSecurityWarning: false,
 		showSessionExpiredModal: false,
 		_hasHydrated: false,
-				
-				// Wallet operations
-				createNewWallet: () => {
-					try {
-						const wallet = createWallet();
-						set({
-							wallet,
-							isWalletCreated: true,
-							connectionError: null
-						});
-
-					} catch (error){
-
-						set({
-							connectionError: error instanceof Error ? error.message : 'Failed to create Wallet'
-						});
-					}
-				},
-				
-				importExistingWallet: (privateKey: string): boolean => {
-					console.group("[WALLET_IMPORT] Auth Store: importExistingWallet");
-					console.log("[WALLET_IMPORT] Step 1: Received private key from UI");
-					console.log("[WALLET_IMPORT] Private key length:", privateKey.length);
-					console.log("[WALLET_IMPORT] Private key preview:", privateKey.substring(0, 8) + "..." + privateKey.substring(privateKey.length - 8));
-					
-					try {
-						console.log("[WALLET_IMPORT] Step 2: Calling importWallet from gliesereum library");
-						const startTime = performance.now();
-						const wallet = importWallet(privateKey);
-						const endTime = performance.now();
-						console.log("[WALLET_IMPORT] importWallet completed in", (endTime - startTime).toFixed(2), "ms");
-						
-						console.log("[WALLET_IMPORT] Step 3: Wallet object created successfully");
-						console.log("[WALLET_IMPORT] Wallet details:", {
-							address: wallet.address,
-							publicKeyLength: wallet.publicKey.length,
-							publicKeyPreview: wallet.publicKey.substring(0, 10) + "..." + wallet.publicKey.substring(wallet.publicKey.length - 10),
-							privateKeyLength: wallet.privateKey.length,
-							hasBiometric: wallet.biometric !== null,
-							cardNumber: wallet.number,
-						});
-						
-						console.log("[WALLET_IMPORT] Step 4: Updating auth store state");
-						set({
-							wallet,
-							isWalletCreated: true,
-							connectionError: null
-						});
-						
-						console.log("[WALLET_IMPORT] ✅ Wallet imported and stored successfully");
-						console.groupEnd();
-						return true;
-					} catch(error) {
-						console.error("[WALLET_IMPORT] ❌ Error in importExistingWallet:", error);
-						console.error("[WALLET_IMPORT] Error details:", {
-							message: error instanceof Error ? error.message : "Unknown error",
-							stack: error instanceof Error ? error.stack : undefined,
-							errorType: error instanceof Error ? error.constructor.name : typeof error,
-						});
-
-						set({
-							connectionError: error instanceof Error ? error.message : 'Invalid private key'
-						});
-						console.groupEnd();
-						return false;
-					}
-				},
-				
-				resetWallet: () => {
-					set({
-						wallet: null,
-						isWalletCreated: false,
-						selectedNetwork: null,
-						isConnected: false,
-						isConnecting: false,
-						connectionSession: null,
-						connectionError: null,
-						isAuthenticated: false,
-						showNetworkSelector: false
-					});
-					
-					// Clear only Wallet-related data, keep other localStorage intact
-					try {
-						localStorage.removeItem('auth-store');
-
-					} catch {
-			// Error handled silently
-		}
-				},
 				
 				// Network operations
 				setAvailableNetworks: (networks: NetworkConfig[]) => {
@@ -157,18 +66,10 @@ export const useAuthStore = create<AuthStore>()(
 				},
 				
 				// Connection operations
-				connectToNode: async (): Promise<boolean> => {
-
-					const { wallet, selectedNetwork } = get();
-					
-					if (!wallet) {
-
-						set({ connectionError: 'Wallet not created' });
-						return false;
-					}
+				connectWithGitHub: async (code: string): Promise<boolean> => {
+					const { selectedNetwork } = get();
 					
 					if (!selectedNetwork) {
-
 						set({ connectionError: 'Network not selected' });
 						return false;
 					}
@@ -176,83 +77,76 @@ export const useAuthStore = create<AuthStore>()(
 					set({ isConnecting: true, connectionError: null });
 					
 					try {
-						// Create login transaction data
-						const loginData = {
-							action: 'LOGIN_REQUEST',
-							timestamp: Date.now(),
-							network: selectedNetwork.id,
-							walletAddress: wallet.address
-						};
+						const client = new WebfixApiClient(selectedNetwork.api);
 						
-						// Use createSignedTransaction to properly create and sign the transaction
-						const signedTransaction = createSignedTransaction(
-							wallet,
-							wallet.address, // to self
-							0, // amount
-							1, // fee
-							JSON.stringify(loginData) // data
+						// Call githubAuth method (no session needed for this request)
+						// Response format: { channel, module, widget, raw: { session, token, info }, timestamp }
+						const result = await client.request<{
+							channel?: string;
+							module?: string;
+							widget?: string;
+							raw?: {
+								session?: string;
+								token?: string;
+								info?: {
+									network?: string;
+									title?: string;
+									nid?: string;
+									api?: string;
+									connector?: { socket?: string };
+									developer?: boolean;
+									githubUsername?: string;
+								};
+							};
+							session?: string;
+							token?: string;
+							info?: {
+								network?: string;
+								title?: string;
+								nid?: string;
+								api?: string;
+								connector?: { socket?: string };
+								developer?: boolean;
+							};
+							timestamp?: number;
+						}>(
+							"githubAuth",
+							{
+								payload: {
+									body: {
+										code,
+									},
+								},
+							},
+							["network-id"]
 						);
 						
-					// CRITICAL: Use UNCOMPRESSED public key (130 chars) for WebFix protocol
-					// WebFix requires uncompressed format for signature verification
-					const uncompressedPublicKey = getUncompressedPublicKey(wallet.privateKey);
-
-					// Prepare connection payload
-					const connectionPayload = {
-						webfix: "1.0",
-						method: "connectionNode",
-						params: ["gliesereum"],
-						body: {
-							network: selectedNetwork.id,
-							title: "heterogen",
-							nid: generateNodeId(),
-							payload: {
-								webfix: "1.0",
-								method: "connectionNode",
-								params: ["gliesereum"],
-								body: {
-									transaction: signedTransaction,
-									walletAddress: wallet.address,
-									publicKey: uncompressedPublicKey
-								}
-							},
-								transport: "websocket",
-								connector: {
-									protocols: ["webfix"],
-									socket: selectedNetwork.socket
-								},
-								api: selectedNetwork.api,
-								developer: selectedNetwork.developer
-							}
-						};
+						// Extract session data - response can be in format:
+						// 1. { channel, module, widget, raw: { session, token, info }, timestamp }
+						// 2. { raw: { session, token, info } }
+						// 3. { session, token, info } (direct format)
+						const raw = result.raw || result;
 						
-						// Send connection request
+						// Session ID is the most important - it's used in stels-session header
+						if (raw.session && raw.token) {
+							let apiUrl = selectedNetwork.api;
+							let socketUrl = selectedNetwork.socket;
 
-						const response = await fetch(selectedNetwork.api, {
-							method: 'POST',
-							headers: {
-								'Content-Type': 'application/json'
-							},
-							body: JSON.stringify(connectionPayload)
-						});
-
-						if (!response.ok) {
-							throw new Error(`Connection failed: ${response.status}`);
-						}
+							console.log('apiUrl', apiUrl);
+							console.log('selectedNetwork.socket', selectedNetwork.socket);
 						
-						const result = await response.json();
-						
-						// Extract session data
-						if (result.raw && result.raw.session && result.raw.token) {
+					
+					
+							
 							const session: ConnectionSession = {
-								session: result.raw.session,
-								token: result.raw.token,
-								network: result.raw.info.network,
-								title: result.raw.info.title,
-								nid: result.raw.info.nid,
-								api: result.raw.info.api,
-								socket: result.raw.info.connector.socket,
-								developer: result.raw.info.developer
+								session: raw.session, // This is the Session ID used in stels-session header
+								token: raw.token,
+								network: raw.info?.network || selectedNetwork.id,
+								title: raw.info?.title || "heterogen",
+								nid: raw.info?.nid || generateNodeId(),
+								api: apiUrl,
+								socket: socketUrl,
+								developer: raw.info?.developer || false
 							};
 							
 							set({
@@ -263,27 +157,47 @@ export const useAuthStore = create<AuthStore>()(
 								connectionError: null
 							});
 							
-							// Store session in localStorage for WebSocket
+							// Store session in localStorage for WebSocket and persistence
+							// Store full response structure for compatibility
 							localStorage.setItem('private-store', JSON.stringify({
+								channel: result.channel || `session.store.${session.session}`,
+								module: result.module || "session",
+								widget: result.widget || "session",
 								raw: {
-									session: session.session
-								}
+									session: session.session,
+									token: session.token,
+									info: {
+										network: session.network,
+										title: session.title,
+										nid: session.nid,
+										api: session.api,
+										connector: {
+											socket: session.socket
+										},
+										developer: session.developer
+									}
+								},
+								timestamp: result.timestamp || Date.now()
 							}));
+
+							// Set session in client for subsequent requests
+							// Session ID will be used in stels-session header
+							client.setSession(session.session);
 
 							return true;
 						} else {
-							throw new Error('Invalid session response');
+							throw new Error('Invalid session response: missing session or token');
 						}
 						
 					} catch(error) {
-
 						set({
 							isConnecting: false,
-							connectionError: error instanceof Error ? error.message : 'Connection failed'
+							connectionError: error instanceof Error ? error.message : 'GitHub authentication failed'
 						});
 						return false;
 					}
 				},
+				
 				
 				disconnectFromNode: async () => {
 
@@ -316,11 +230,26 @@ export const useAuthStore = create<AuthStore>()(
 				},
 				
 				restoreConnection: async (): Promise<boolean> => {
-					const { wallet, selectedNetwork } = get();
+					const { selectedNetwork, connectionSession, isConnected, isAuthenticated } = get();
+					
+					// If we already have a connection session and states are consistent, we're already connected
+					if (connectionSession && isConnected && isAuthenticated) {
+						return true;
+					}
+					
+					// If we have connectionSession but states are inconsistent, fix them
+					if (connectionSession && (!isConnected || !isAuthenticated)) {
+						set({
+							isConnected: true,
+							isAuthenticated: true,
+							connectionError: null
+						});
+						return true;
+					}
 					
 					// Check if we have saved session data
 					const savedSession = localStorage.getItem('private-store');
-					if (!savedSession || !wallet || !selectedNetwork) {
+					if (!savedSession || !selectedNetwork) {
 
 						return false;
 					}
@@ -331,16 +260,18 @@ export const useAuthStore = create<AuthStore>()(
 
 							return false;
 						}
+						let apiUrl = sessionData.raw.info.api;
 
-						// Extract session data from saved session
+						let socketUrl = sessionData.raw.info.connector.socket;
+		
 						const session: ConnectionSession = {
 							session: sessionData.raw.session,
 							token: sessionData.raw.token,
 							network: sessionData.raw.info.network,
 							title: sessionData.raw.info.title,
 							nid: sessionData.raw.info.nid,
-							api: sessionData.raw.info.api,
-							socket: sessionData.raw.info.connector.socket,
+							api: apiUrl,
+							socket: socketUrl,
 							developer: sessionData.raw.info.developer
 						};
 						
@@ -400,8 +331,6 @@ export const useAuthStore = create<AuthStore>()(
 					// 2. Reset auth state FIRST (before clearing storage)
 
 					set({
-						wallet: null,
-						isWalletCreated: false,
 						selectedNetwork: null,
 						isConnected: false,
 						isConnecting: false,
@@ -440,8 +369,6 @@ export const useAuthStore = create<AuthStore>()(
 			{
 				name: 'auth-store',
 				partialize: (state) => ({
-					wallet: state.wallet,
-					isWalletCreated: state.isWalletCreated,
 					selectedNetwork: state.selectedNetwork,
 					availableNetworks: state.availableNetworks,
 					connectionSession: state.connectionSession,

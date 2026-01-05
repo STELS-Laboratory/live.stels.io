@@ -3,6 +3,7 @@
  * Handles all WebFIX API calls for trading operations
  */
 
+import { WebfixApiClient } from "@/lib/webfix-api-client";
 import type {
 	AccountBalance,
 	CreateOrderParams,
@@ -13,36 +14,20 @@ import type {
 } from "../types";
 
 export class TradingApiService {
-	private baseUrl: string;
-	private session: string | null = null;
+	private client: WebfixApiClient;
 
 	constructor(baseUrl: string = "http://10.0.0.206:8088") {
-		this.baseUrl = baseUrl;
+		this.client = new WebfixApiClient(baseUrl);
 	}
 
 	/**
 	 * Set session for authentication
-	 */
-	setSession(session: string | null): void {
-		this.session = session;
-	}
-
-	/**
-	 * Get headers for API requests
 	 * Note: Some public endpoints (getOrderBook, getTicker, getBalance) may not
 	 * require stels-session header. Warnings about missing session are expected
 	 * for these public requests and can be safely ignored.
 	 */
-	private getHeaders(): Record<string, string> {
-		const headers: Record<string, string> = {
-			"Content-Type": "application/json",
-		};
-
-		if (this.session) {
-			headers["stels-session"] = this.session;
-		}
-
-		return headers;
+	setSession(session: string | null): void {
+		this.client.setSession(session);
 	}
 
 	/**
@@ -53,36 +38,7 @@ export class TradingApiService {
 		body: unknown,
 		networkId: string = "network-id",
 	): Promise<T> {
-		const requestBody = {
-			webfix: "1.0",
-			method,
-			params: [networkId],
-			body,
-		};
-
-		const response = await fetch(`${this.baseUrl}/`, {
-			method: "POST",
-			headers: this.getHeaders(),
-			body: JSON.stringify(requestBody),
-		});
-
-		if (!response.ok) {
-			const errorData = await response.json().catch(() => ({}));
-			const errorMessage =
-				(errorData as { error?: string }).error ||
-				`HTTP error! status: ${response.status}`;
-			throw new Error(errorMessage);
-		}
-
-		const data = await response.json();
-
-		if ((data as { success?: boolean }).success === false) {
-			const errorMessage =
-				(data as { error?: string }).error || "Unknown error";
-			throw new Error(errorMessage);
-		}
-
-		return (data as { data: T }).data;
+		return this.client.request<T>(method, body, [networkId]);
 	}
 
 	/**

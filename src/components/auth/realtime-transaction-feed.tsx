@@ -116,41 +116,11 @@ export function RealtimeTransactionFeed(): React.ReactElement {
 	};
 
 	if (loading && transactions.length === 0) {
-		return (
-			<Card className="w-full">
-				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<Zap className="size-5 text-amber-500" />
-						Live Transactions
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="flex items-center justify-center py-12 text-muted-foreground">
-						<Clock className="size-6 animate-pulse mr-2" />
-						Loading transactions...
-					</div>
-				</CardContent>
-			</Card>
-		);
+		return null;
 	}
 
 	if (transactions.length === 0) {
-		return (
-			<Card className="w-full">
-				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<Zap className="size-5 text-amber-500" />
-						Live Transactions
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="flex items-center justify-center py-12 text-muted-foreground">
-						<Clock className="size-6 mr-2" />
-						No transactions yet
-					</div>
-				</CardContent>
-			</Card>
-		);
+		return null;
 	}
 
 	return (
@@ -158,7 +128,6 @@ export function RealtimeTransactionFeed(): React.ReactElement {
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
 					<Zap className="size-5 text-amber-500 animate-pulse" />
-					Live Transactions
 					{newTransactions.length > 0 && (
 						<motion.div
 							initial={{ scale: 0 }}

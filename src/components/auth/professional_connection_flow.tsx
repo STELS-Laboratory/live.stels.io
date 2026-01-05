@@ -4,11 +4,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "@/stores/modules/auth.store";
-import { WalletTypeSelector } from "./wallet_type_selector";
-import { WalletCreator } from "./wallet_creator";
-import { WalletConfirmation } from "./wallet_confirmation";
 import { NetworkSetup } from "./network_setup";
-import { ConnectionProcess } from "./connection_process";
+import { GitHubAuth } from "./github_auth";
 import { LOTTIE_ANIMATIONS, LOTTIE_SIZES } from "./lottie_config";
 import type { StepType, ProfessionalConnectionFlowProps } from "@/types/auth/types";
 
@@ -16,11 +13,8 @@ import type { StepType, ProfessionalConnectionFlowProps } from "@/types/auth/typ
  * Step configuration with progress and titles
  */
 const STEP_CONFIG: Record<StepType, { progress: number; title: string }> = {
-  type: { progress: 0, title: "Choose Setup Method" },
-  create: { progress: 20, title: "Wallet Setup" },
-  confirm: { progress: 40, title: "Confirm Wallet" },
-  network: { progress: 60, title: "Select Network" },
-  connecting: { progress: 80, title: "Connecting..." },
+  network: { progress: 20, title: "Select Network" },
+  connecting: { progress: 60, title: "GitHub Authentication" },
   success: { progress: 100, title: "Welcome!" },
 };
 
@@ -52,16 +46,27 @@ const stepVariants = {
 export function ProfessionalConnectionFlow({
 	onSuccess,
 }: ProfessionalConnectionFlowProps = {}): React.ReactElement {
-  const { isConnected, connectionSession, connectToNode } = useAuthStore();
+  const { isConnected, connectionSession } = useAuthStore();
 
-  // Flow steps
-  const [currentStep, setCurrentStep] = useState<StepType>("type");
-  const [walletType, setWalletType] = useState<"create" | "import">("create");
+  // Flow steps - start with network selection for GitHub auth
+  const [currentStep, setCurrentStep] = useState<StepType>("network");
+
+  // Auto-advance to connecting step if there's a pending GitHub OAuth callback
+  useEffect(() => {
+    const pendingCode = sessionStorage.getItem('github_oauth_pending_code');
+    const pendingState = sessionStorage.getItem('github_oauth_pending_state');
+    const storedState = sessionStorage.getItem('github_oauth_state');
+    
+    // If we have pending callback and valid state, go to connecting step
+    if (pendingCode && pendingState && storedState === pendingState && currentStep === "network") {
+      setCurrentStep("connecting");
+    }
+  }, [currentStep]);
 
   // Reset to initial step if not connected
   useEffect(() => {
     if (!isConnected && currentStep === "success") {
-      setCurrentStep("type");
+      setCurrentStep("network");
     }
   }, [isConnected, currentStep]);
 
@@ -84,27 +89,11 @@ export function ProfessionalConnectionFlow({
   }, [isConnected, connectionSession, currentStep, onSuccess]);
 
   // Memoized handlers to prevent unnecessary re-renders
-  const handleTypeSelect = useCallback((type: "create" | "import"): void => {
-    setWalletType(type);
-    setCurrentStep("create");
-  }, []);
-
-  const handleCreateSuccess = useCallback((): void => {
-    setCurrentStep("confirm");
-  }, []);
-
-  const handleConfirmSuccess = useCallback((): void => {
-    setCurrentStep("network");
-  }, []);
 
   const handleNetworkConnect = useCallback(async (): Promise<void> => {
+    // For GitHub auth, go directly to GitHub auth step
     setCurrentStep("connecting");
-    try {
-      await connectToNode();
-    } catch {
-      // Error handling is done in ConnectionProcess component
-    }
-  }, [connectToNode]);
+  }, []);
 
   const handleConnectionSuccess = useCallback((): void => {
     setCurrentStep("success");
@@ -114,61 +103,26 @@ export function ProfessionalConnectionFlow({
     // Stay on connecting step to show error and retry option
   }, []);
 
-  const handleBackToType = useCallback((): void => {
-    setCurrentStep("type");
-  }, []);
-
-  const handleBackToCreate = useCallback((): void => {
-    setCurrentStep("create");
-  }, []);
-
-  const handleBackToConfirm = useCallback((): void => {
-    setCurrentStep("confirm");
-  }, []);
-
-  const handleBackToNetwork = useCallback((): void => {
-    setCurrentStep("network");
-  }, []);
-
   // Memoized step rendering
   const renderStep = useCallback(() => {
     switch (currentStep) {
-      case "type":
-        return <WalletTypeSelector onSelectType={handleTypeSelect} />;
-
-      case "create":
-        return (
-          <WalletCreator
-            walletType={walletType}
-            onBack={handleBackToType}
-            onSuccess={handleCreateSuccess}
-          />
-        );
-
-      case "confirm":
-        return (
-          <WalletConfirmation
-            walletType={walletType}
-            onConfirm={handleConfirmSuccess}
-            onBack={handleBackToCreate}
-          />
-        );
-
       case "network":
         return (
           <NetworkSetup
-            onBack={handleBackToConfirm}
+            onBack={() => {}}
             onConnect={handleNetworkConnect}
           />
         );
 
       case "connecting":
+        // Show GitHub auth
         return (
-          <ConnectionProcess
-            onBack={handleBackToNetwork}
-            onSuccess={handleConnectionSuccess}
-            onError={handleConnectionError}
-          />
+          <div className="w-full flex justify-center">
+            <GitHubAuth
+              onSuccess={handleConnectionSuccess}
+              onError={handleConnectionError}
+            />
+          </div>
         );
 
       case "success":
@@ -193,7 +147,7 @@ export function ProfessionalConnectionFlow({
                 Welcome to STELS
               </h2>
               <p className="text-muted-foreground text-xs sm:text-sm md:text-base leading-relaxed px-2">
-                Your wallet is connected to the heterogeneous network
+                You are connected to the heterogeneous network
               </p>
             </motion.div>
 
@@ -218,28 +172,15 @@ export function ProfessionalConnectionFlow({
     }
   }, [
     currentStep,
-    walletType,
-    handleTypeSelect,
-    handleCreateSuccess,
-    handleConfirmSuccess,
     handleNetworkConnect,
     handleConnectionSuccess,
     handleConnectionError,
-    handleBackToType,
-    handleBackToCreate,
-    handleBackToConfirm,
-    handleBackToNetwork,
   ]);
 
   // Memoized step configuration
   const stepConfig = useMemo(() => STEP_CONFIG[currentStep], [currentStep]);
   const progress = stepConfig.progress;
-  const stepTitle = useMemo(() => {
-    if (currentStep === "create") {
-      return walletType === "create" ? "Create New Wallet" : "Import Wallet";
-    }
-    return stepConfig.title;
-  }, [currentStep, walletType, stepConfig.title]);
+  const stepTitle = stepConfig.title;
 
   return (
     <div className="bg-background flex h-fit justify-center items-start overflow-hidden">
@@ -284,11 +225,9 @@ export function ProfessionalConnectionFlow({
           {/* Step Indicators - Hidden on mobile for cleaner look */}
           <div className="hidden md:flex justify-between mt-4">
             {[
-              { step: "type" as StepType, label: "Setup", progress: 20 },
-              { step: "create" as StepType, label: "Wallet", progress: 40 },
-              { step: "confirm" as StepType, label: "Confirm", progress: 60 },
-              { step: "network" as StepType, label: "Network", progress: 80 },
-              { step: "connecting" as StepType, label: "Connect", progress: 100 },
+              { step: "network" as StepType, label: "Network", progress: 20 },
+              { step: "connecting" as StepType, label: "GitHub Auth", progress: 60 },
+              { step: "success" as StepType, label: "Complete", progress: 100 },
             ].map((item) => {
               const isActive = progress >= item.progress;
               const isCurrent = currentStep === item.step;

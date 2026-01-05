@@ -8,7 +8,6 @@ import {
   Activity,
   Boxes,
   Code,
-  Coins,
   Database,
   FileCode,
   FileText,
@@ -17,7 +16,6 @@ import {
   Layout as LayoutIcon,
   MessageSquare,
   TrendingUp,
-  Wallet,
   X,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -40,8 +38,6 @@ const DEV_TOOLS: DevTool[] = [
   { key: "schemas", name: "Schemas", icon: LayoutIcon, shortcut: "S" },
   { key: "docs", name: "Docs", icon: FileText, shortcut: "D" },
   { key: "template", name: "Template", icon: FileCode, shortcut: "M" },
-  { key: "token-builder", name: "Token Builder", icon: Coins, shortcut: "B" },
-  { key: "wallet", name: "Wallet", icon: Wallet, shortcut: "W" },
   { key: "stels-chat", name: "Stels Chat", icon: MessageSquare, shortcut: "O" },
   { key: "indexes", name: "Indexes", icon: Activity, shortcut: "I" },
 ];

@@ -22,9 +22,6 @@ export * from "./storage-cleaner";
 // General utilities
 export * from "./utils";
 
-// Gliesereum blockchain library
-export * from "./gliesereum";
-
 // Theme color management
 export * from "./theme-color";
 

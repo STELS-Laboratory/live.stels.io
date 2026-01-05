@@ -13,7 +13,6 @@ import SessionProvider from "@/components/main/provider";
 import { useUrlRouter } from "@/hooks/use_url_router";
 import { RouteLoader } from "@/components/main/route_loader";
 import { useAuthRestore } from "@/hooks/use_auth_restore";
-import { useAssetList } from "@/hooks/use_asset_list";
 import { useHydration } from "@/hooks/use_hydration";
 import { useTheme } from "@/hooks/use_theme";
 import { AnimatePresence, motion } from "framer-motion";
@@ -29,15 +28,11 @@ import ToastProvider from "@/components/main/toast_provider";
 
 // Lazy-loaded app modules
 const Trading = lazy(() => import("@/apps/trading"));
-const Welcome = lazy(() => import("@/apps/welcome"));
 const Flow = lazy(() => import("@/apps/canvas/flow"));
 const Schemas = lazy(() => import("@/apps/schemas"));
 const Docs = lazy(() =>
 	import("@/apps/docs").then((m) => ({ default: m.Docs }))
 );
-const TokenBuilder = lazy(() => import("@/apps/token-builder"));
-const WalletApp = lazy(() => import("@/apps/wallet"));
-const Explorer = lazy(() => import("@/apps/explorer"));
 const StelsChat = lazy(() => import("@/apps/stels-chat"));
 const Indexes = lazy(() => import("@/apps/indexes"));
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -210,9 +205,9 @@ export default function Dashboard(): React.ReactElement {
 	const [appState, setAppState] = useState<AppState>("initializing");
 
 	// Refs for cleanup and stable references
-	const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
-	const transitionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-	const forceRenderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+	const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+	const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const forceRenderTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const sessionCheckRef = useRef<
 		{
 			authStoreData: string | null;
@@ -325,8 +320,6 @@ export default function Dashboard(): React.ReactElement {
 	// Initialize automatic authentication restoration
 	useAuthRestore();
 
-	// Load asset list after authentication
-	useAssetList();
 
 	// Memoize session check to avoid repeated localStorage reads
 	// Update when authentication state changes to reflect logout
@@ -359,8 +352,7 @@ export default function Dashboard(): React.ReactElement {
 	useEffect(() => {
 		if (
 			appState === "ready" &&
-			(!isAuthenticated || !isConnected) &&
-			currentRoute !== "explorer"
+			(!isAuthenticated || !isConnected)
 		) {
 			// Prevent rapid state changes - use a small delay
 			const timeoutId = setTimeout(() => {
@@ -420,10 +412,7 @@ export default function Dashboard(): React.ReactElement {
 					// Always use fresh session check data
 					const check = sessionCheck;
 
-					if (currentRoute === "explorer") {
-						const delay = getTransitionDelay("checking_session", "loading_app");
-						await transitionToState("loading_app", delay);
-					} else if (upgrade) {
+					if (upgrade) {
 						const delay = getTransitionDelay("checking_session", "upgrading");
 						await transitionToState("upgrading", delay, false);
 					} else if (isAuthenticated && isConnected && check.hasValidSession) {
@@ -458,10 +447,7 @@ export default function Dashboard(): React.ReactElement {
 				}
 
 				case "authenticating": {
-					if (currentRoute === "explorer") {
-						const delay = getTransitionDelay("authenticating", "loading_app");
-						await transitionToState("loading_app", delay);
-					} else if (isAuthenticated && isConnected) {
+					if (isAuthenticated && isConnected) {
 						const delay = getTransitionDelay("authenticating", "connecting");
 						await transitionToState("connecting", delay);
 					}
@@ -731,6 +717,9 @@ export default function Dashboard(): React.ReactElement {
 	 */
 	const routeComponents = useMemo(() => {
 		const components: Record<string, React.ReactElement> = {
+			welcome: (
+				<WelcomeAuthPage />
+			),
 			trading: (
 				<Suspense
 					fallback={
@@ -740,13 +729,6 @@ export default function Dashboard(): React.ReactElement {
 					}
 				>
 					<Trading />
-				</Suspense>
-			),
-			welcome: (
-				<Suspense
-					fallback={<div className="p-4 text-muted-foreground">Loading...</div>}
-				>
-					<Welcome />
 				</Suspense>
 			),
 			editor: (
@@ -789,39 +771,6 @@ export default function Dashboard(): React.ReactElement {
 					}
 				>
 					<Docs />
-				</Suspense>
-			),
-			"token-builder": (
-				<Suspense
-					fallback={
-						<div className="p-4 text-muted-foreground">
-							Loading token builder...
-						</div>
-					}
-				>
-					<TokenBuilder />
-				</Suspense>
-			),
-			wallet: (
-				<Suspense
-					fallback={
-						<div className="p-4 text-muted-foreground">
-							Loading wallet...
-						</div>
-					}
-				>
-					<WalletApp />
-				</Suspense>
-			),
-			explorer: (
-				<Suspense
-					fallback={
-						<div className="p-4 text-muted-foreground">
-							Loading explorer...
-						</div>
-					}
-				>
-					<Explorer />
 				</Suspense>
 			),
 			"stels-chat": (
@@ -894,28 +843,6 @@ export default function Dashboard(): React.ReactElement {
 			return renderLoadingScreen(getStateMessage(appState));
 
 		case "authenticating":
-			if (currentRoute === "explorer") {
-				return (
-					<SessionProvider>
-						<TooltipProvider>
-							<div className="absolute w-full h-full top-0 bottom-0 overflow-hidden">
-								<RouteLoader>
-									<Suspense
-										fallback={
-											<div className="p-4 text-muted-foreground">
-												Loading explorer...
-											</div>
-										}
-									>
-										{commonLayout}
-									</Suspense>
-								</RouteLoader>
-							</div>
-							<ToastProvider />
-						</TooltipProvider>
-					</SessionProvider>
-				);
-			}
 			return (
 				<motion.div
 					initial={{ opacity: 0 }}

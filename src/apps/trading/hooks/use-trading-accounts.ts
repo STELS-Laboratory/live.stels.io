@@ -13,7 +13,7 @@ import type { ExchangeAccount } from "../types";
  */
 export function useTradingAccounts(): void {
 	const { setAccounts, setSelectedAccount } = useTradingStore();
-	const { wallet, _hasHydrated } = useAuthStore();
+	const { connectionSession, _hasHydrated } = useAuthStore();
 	const { accounts: storedAccounts } = useAccountsStore();
 	const sessionManager = getSessionStorageManager();
 
@@ -23,14 +23,14 @@ export function useTradingAccounts(): void {
 			return;
 		}
 		
-		if (!wallet?.address) {
+		// If no connection session, clear accounts
+		if (!connectionSession) {
 			setAccounts([]);
 			return;
 		}
 
 		const loadAccounts = (): void => {
 			const accounts: ExchangeAccount[] = [];
-			const address = wallet.address;
 
 			// First, check accounts from accounts store (from listAccounts API response)
 			// If server returns an account, user has access to it (server already filtered by access)
@@ -41,18 +41,11 @@ export function useTradingAccounts(): void {
 				const key = `${exchange}.${nid}`;
 				
 				if (nid && exchange) {
-					const isOwner = storedAccount.address.toLowerCase() === address.toLowerCase();
-					const isViewer = storedAccount.account.viewers?.some(
-						(viewer) => viewer.toLowerCase() === address.toLowerCase()
-					) || false;
-					
-					// If account is in store, server returned it, so user has access
 					// Server already filtered accounts by access, so we trust it
-					const accessLabel = isOwner ? "" : isViewer ? " [viewer]" : "";
 					accountsFromStore.set(key, {
 						nid,
 						exchange,
-						name: `${exchange} (${nid})${accessLabel}`,
+						name: `${exchange} (${nid})`,
 					});
 				}
 			}
@@ -79,7 +72,7 @@ export function useTradingAccounts(): void {
 				);
 				
 				if (match) {
-					const [, channelAddress, exchange, nid] = match;
+					const [, , exchange, nid] = match;
 					const accountKey = `${exchange}.${nid}`;
 
 					// Check if account already exists
@@ -99,49 +92,37 @@ export function useTradingAccounts(): void {
 
 						if (!raw) continue;
 
-						// Check if user has access to this account:
-						// 1. Account owner (address matches channel address)
-						// 2. Account viewer (address in viewers array)
-						// 3. Account is in accounts store (server returned it, so user has access)
-						// Note: workers array contains module names (e.g., "balance"), not user addresses
-						const isOwner = channelAddress.toLowerCase() === address.toLowerCase();
-						const isViewer = raw.viewers?.some(
-							(viewer) => viewer.toLowerCase() === address.toLowerCase()
-						) || false;
-						const isInStore = accountsFromStore.has(accountKey);
-						
-						// Show accounts where user has explicit access OR account is in store (server returned it)
-						const hasAccess = isOwner || isViewer || isInStore;
+					// Check if account is in accounts store (server returned it, so user has access)
+					const isInStore = accountsFromStore.has(accountKey);
+					
+					// Show accounts that are in store (server returned them, so user has access)
+					if (!isInStore) {
+						continue;
+					}
 
-						if (!hasAccess) {
+					// Use account from store if available
+					if (isInStore && accountsFromStore.has(accountKey)) {
+						const accountFromStore = accountsFromStore.get(accountKey);
+						if (accountFromStore) {
+							accounts.push(accountFromStore);
 							continue;
 						}
+					}
 
-						// Use account from store if available (has correct access label), otherwise use sessionStorage data
-						if (isInStore && accountsFromStore.has(accountKey)) {
-							const accountFromStore = accountsFromStore.get(accountKey);
-							if (accountFromStore) {
-								accounts.push(accountFromStore);
-								continue;
-							}
-						}
-
-						if (raw.nid && raw.exchange) {
-							const accessLabel = isOwner ? "" : isViewer ? " [viewer]" : "";
-							accounts.push({
-								nid: raw.nid,
-								exchange: raw.exchange,
-								name: `${raw.exchange} (${raw.nid})${accessLabel}`,
-							});
-						} else {
-							// Fallback to parsed values from key
-							const accessLabel = isOwner ? "" : isViewer ? " [viewer]" : "";
-							accounts.push({
-								nid,
-								exchange,
-								name: `${exchange} (${nid})${accessLabel}`,
-							});
-						}
+					if (raw.nid && raw.exchange) {
+						accounts.push({
+							nid: raw.nid,
+							exchange: raw.exchange,
+							name: `${raw.exchange} (${raw.nid})`,
+						});
+					} else {
+						// Fallback to parsed values from key
+						accounts.push({
+							nid,
+							exchange,
+							name: `${exchange} (${nid})`,
+						});
+					}
 					}
 				}
 			}
@@ -188,5 +169,5 @@ export function useTradingAccounts(): void {
 			window.removeEventListener("storage", handleStorageChange);
 			clearInterval(pollInterval);
 		};
-	}, [wallet?.address, _hasHydrated, sessionManager, setAccounts, setSelectedAccount, storedAccounts]);
+	}, [connectionSession, _hasHydrated, sessionManager, setAccounts, setSelectedAccount, storedAccounts]);
 }

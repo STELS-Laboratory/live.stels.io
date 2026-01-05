@@ -2,11 +2,11 @@
  * Stels API Service
  * Handles all communication with Stels API
  * 
- * Note: This service uses direct API endpoints
- * (e.g., /api/tags, /api/chat) which remain unchanged.
- * For WebFIX RPC methods, use stels*.
+ * Uses Webfix RPC protocol for all API methods.
+ * SSE endpoints (streamChat) remain as direct GET requests.
  */
 
+import { WebfixApiClient } from "@/lib/webfix-api-client";
 import type {
   StelsModel,
   StelsApiResponse,
@@ -23,19 +23,26 @@ export class StelsApiService {
   private baseUrl: string;
   private session?: string;
   private token?: string;
+  private webfixClient: WebfixApiClient;
 
   constructor(
     baseUrl: string,
     session?: string,
     token?: string,
   ) {
-    this.baseUrl = baseUrl.replace(/\/$/, ""); // Remove trailing slash
+    let normalizedUrl = baseUrl;
+
+    this.baseUrl = normalizedUrl.replace(/\/$/, ""); // Remove trailing slash
     this.session = session;
     this.token = token;
+    this.webfixClient = new WebfixApiClient(normalizedUrl);
+    if (session) {
+      this.webfixClient.setSession(session);
+    }
   }
 
   /**
-   * Get headers for API requests
+   * Get headers for API requests (for direct endpoints)
    */
   private getHeaders(): HeadersInit {
     const headers: HeadersInit = {
@@ -45,10 +52,7 @@ export class StelsApiService {
     // Add session header if available (using stels-session format as per project standard)
     if (this.session) {
       headers["stels-session"] = this.session;
-
-    } else {
-			// Empty block
-		}
+    }
     // Token is typically not needed if session is provided, but include it if available
     if (this.token && !this.session) {
       headers["Authorization"] = `Bearer ${this.token}`;
@@ -58,63 +62,24 @@ export class StelsApiService {
   }
 
   /**
-   * Test connection to Stels API
+   * Update session for both direct endpoints and Webfix client
    */
-  async testConnection(): Promise<boolean> {
-    try {
-      const headers = this.getHeaders();
-
-      const response = await fetch(`${this.baseUrl}/api/tags`, {
-        method: "GET",
-        headers,
-      });
-
-      if (!response.ok) {
-        // Response not ok
-      }
-
-      return response.ok;
-    } catch {
-
-      return false;
-    }
+  setSession(session?: string): void {
+    this.session = session;
+    this.webfixClient.setSession(session || null);
   }
 
   /**
-   * Get list of available models
-   * Returns models in OpenAI-compatible format: { data: Model[], object: "list" }
+   * Get list of available models using RPC method
+   * Replaces deprecated getModels() which used /api/tags
    */
   async getModels(): Promise<StelsModel[]> {
-    const response = await fetch(`${this.baseUrl}/api/tags`, {
-      method: "GET",
-      headers: this.getHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch models: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    // OpenAI-compatible format: { data: Model[], object: "list" }
-    // Convert to StelsModel format (id -> name)
-    const models = data.data || [];
-    return models.map((model: { id: string; object?: string; created?: number; owned_by?: string }) => ({
-      name: model.id,
-      model: model.id,
-      size: 0, // Size not available in OpenAI format
-      digest: "",
-      details: {
-        format: "",
-        family: "",
-        families: null,
-        parameter_size: "",
-        quantization_level: "",
-      },
-    }));
+    return this.stelsListModels();
   }
 
   /**
-   * Generate chat completion
+   * Chat with Stels model using RPC method
+   * Replaces deprecated chat() which used /api/chat
    */
   async chat(
     model: string,
@@ -124,29 +89,85 @@ export class StelsApiService {
       context?: number[];
       format?: string;
       keep_alive?: string;
+      temperature?: number;
+      top_p?: number;
+      top_k?: number;
+      max_tokens?: number;
+      stop?: string[];
+      seed?: number;
     },
   ): Promise<StelsApiResponse> {
-    const response = await fetch(`${this.baseUrl}/api/chat`, {
-      method: "POST",
-      headers: this.getHeaders(),
-      body: JSON.stringify({
-        model,
-        messages,
-        stream: options?.stream || false,
-        context: options?.context,
-        format: options?.format,
-        keep_alive: options?.keep_alive,
-      }),
-    });
+    const requestBody: {
+      model: string;
+      messages: Array<{ role: string; content: string }>;
+      stream?: boolean;
+      format?: string;
+      max_tokens?: number;
+      temperature?: number;
+      top_p?: number;
+      stop?: string[];
+      seed?: number;
+      options?: {
+        context?: number[];
+        keep_alive?: string;
+        top_k?: number;
+      };
+    } = {
+      model,
+      messages,
+    };
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(
-        error.error?.message || `Failed to chat: ${response.statusText}`,
-      );
+    if (options) {
+      if (options.stream !== undefined) {
+        requestBody.stream = options.stream;
+      }
+      if (options.format) {
+        requestBody.format = options.format;
+      }
+      if (options.max_tokens !== undefined) {
+        requestBody.max_tokens = options.max_tokens;
+      }
+      if (options.temperature !== undefined) {
+        requestBody.temperature = options.temperature;
+      }
+      if (options.top_p !== undefined) {
+        requestBody.top_p = options.top_p;
+      }
+      if (options.stop) {
+        requestBody.stop = options.stop;
+      }
+      if (options.seed !== undefined) {
+        requestBody.seed = options.seed;
+      }
+      if (options.context || options.keep_alive || options.top_k !== undefined) {
+        requestBody.options = {};
+        if (options.context) {
+          requestBody.options.context = options.context;
+        }
+        if (options.keep_alive) {
+          requestBody.options.keep_alive = options.keep_alive;
+        }
+        if (options.top_k !== undefined) {
+          requestBody.options.top_k = options.top_k;
+        }
+      }
     }
 
-    return await response.json();
+    const data = await this.makeWebfixRequest<{
+      success?: boolean;
+      response?: StelsApiResponse;
+    }>("stelsChat", requestBody);
+
+    if (data.success && data.response) {
+      return data.response;
+    }
+
+    // Fallback: check if response is directly in data
+    if ((data as unknown as StelsApiResponse).id) {
+      return data as unknown as StelsApiResponse;
+    }
+
+    throw new Error("Invalid response from stelsChat");
   }
 
   /**
@@ -260,57 +281,15 @@ export class StelsApiService {
   }
 
   /**
-   * Make webfix API request
+   * Make webfix API request using WebfixApiClient
    */
-  private async makeWebfixRequest(
+  private async makeWebfixRequest<T = unknown>(
     method: string,
     body: unknown,
     networkId?: string,
-  ): Promise<unknown> {
-    const requestBody: {
-      webfix: string;
-      method: string;
-      params?: string[];
-      body?: unknown;
-    } = {
-      webfix: "1.0",
-      method,
-    };
-
-    // Only add params if networkId is provided
-    if (networkId) {
-      requestBody.params = [networkId];
-    }
-
-    // Only add body if it's provided and not empty
-    if (body !== undefined && body !== null) {
-      requestBody.body = body;
-    }
-
-    const response = await fetch(`${this.baseUrl}/`, {
-      method: "POST",
-      headers: this.getHeaders(),
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(
-        (error as { error?: { message?: string } }).error?.message ||
-          `Failed to ${method}: ${response.statusText}`,
-      );
-    }
-
-    const data = await response.json();
-    if ((data as { error?: unknown }).error) {
-      const errorData = (data as { error: { code?: number; message?: string } })
-        .error;
-      throw new Error(
-        errorData.message || `API error: ${errorData.code || "unknown"}`,
-      );
-    }
-
-    return data;
+  ): Promise<T> {
+    const params = networkId ? [networkId] : ["network-id"];
+    return this.webfixClient.request<T>(method, body, params);
   }
 
   /**
@@ -320,19 +299,15 @@ export class StelsApiService {
     config: CreateAssistantRequest,
     networkId: string = "testnet",
   ): Promise<Assistant> {
-    const data = (await this.makeWebfixRequest(
-      "createAssistant",
-      config,
-      networkId,
-    )) as {
-      result?: { assistant?: Assistant };
-    };
+    const data = await this.makeWebfixRequest<{
+      assistant?: Assistant;
+    }>("createAssistant", config, networkId);
 
-    if (!data.result?.assistant) {
+    if (!data.assistant) {
       throw new Error("Failed to create assistant: invalid response");
     }
 
-    return data.result.assistant;
+    return data.assistant;
   }
 
   /**
@@ -342,15 +317,11 @@ export class StelsApiService {
     filters?: ListAssistantsFilters,
     networkId: string = "testnet",
   ): Promise<Assistant[]> {
-    const data = (await this.makeWebfixRequest(
-      "listAssistants",
-      filters || {},
-      networkId,
-    )) as {
-      result?: { assistants?: Assistant[] };
-    };
+    const data = await this.makeWebfixRequest<{
+      assistants?: Assistant[];
+    }>("listAssistants", filters || {}, networkId);
 
-    return data.result?.assistants || [];
+    return data.assistants || [];
   }
 
   /**
@@ -360,19 +331,15 @@ export class StelsApiService {
     assistantId: string,
     networkId: string = "testnet",
   ): Promise<Assistant> {
-    const data = (await this.makeWebfixRequest(
-      "getAssistant",
-      { id: assistantId },
-      networkId,
-    )) as {
-      result?: { assistant?: Assistant };
-    };
+    const data = await this.makeWebfixRequest<{
+      assistant?: Assistant;
+    }>("getAssistant", { id: assistantId }, networkId);
 
-    if (!data.result?.assistant) {
+    if (!data.assistant) {
       throw new Error("Assistant not found");
     }
 
-    return data.result.assistant;
+    return data.assistant;
   }
 
   /**
@@ -382,19 +349,15 @@ export class StelsApiService {
     config: UpdateAssistantRequest,
     networkId: string = "testnet",
   ): Promise<Assistant> {
-    const data = (await this.makeWebfixRequest(
-      "updateAssistant",
-      config,
-      networkId,
-    )) as {
-      result?: { assistant?: Assistant };
-    };
+    const data = await this.makeWebfixRequest<{
+      assistant?: Assistant;
+    }>("updateAssistant", config, networkId);
 
-    if (!data.result?.assistant) {
+    if (!data.assistant) {
       throw new Error("Failed to update assistant: invalid response");
     }
 
-    return data.result.assistant;
+    return data.assistant;
   }
 
   /**
@@ -415,14 +378,11 @@ export class StelsApiService {
    * List available models from Ollama (WebFIX RPC)
    */
   async stelsListModels(): Promise<StelsModel[]> {
-    const data = (await this.makeWebfixRequest(
-      "stelsListModels",
-      undefined,
-    )) as {
-      result?: { models?: StelsModel[] };
-    };
+    const data = await this.makeWebfixRequest<{
+      models?: StelsModel[];
+    }>("stelsListModels", undefined);
 
-    return data.result?.models || [];
+    return data.models || [];
   }
 
   /**
@@ -430,14 +390,12 @@ export class StelsApiService {
    * Automatically registers model in registry if user is developer/owner
    */
   async stelsPullModel(modelName: string): Promise<void> {
-    const data = (await this.makeWebfixRequest(
-      "stelsPullModel",
-      { name: modelName },
-    )) as {
-      result?: { success?: boolean; response?: { status?: string } };
-    };
+    const data = await this.makeWebfixRequest<{
+      success?: boolean;
+      response?: { status?: string };
+    }>("stelsPullModel", { name: modelName });
 
-    if (!data.result?.success) {
+    if (!data.success) {
       throw new Error("Failed to pull model");
     }
   }
@@ -449,18 +407,15 @@ export class StelsApiService {
   async registerModel(
     config: RegisterModelRequest,
   ): Promise<ModelRegistryEntry> {
-    const data = (await this.makeWebfixRequest(
-      "registerModel",
-      config,
-    )) as {
-      result?: { model?: ModelRegistryEntry };
-    };
+    const data = await this.makeWebfixRequest<{
+      model?: ModelRegistryEntry;
+    }>("registerModel", config);
 
-    if (!data.result?.model) {
+    if (!data.model) {
       throw new Error("Failed to register model: invalid response");
     }
 
-    return data.result.model;
+    return data.model;
   }
 
   /**
@@ -480,13 +435,10 @@ export class StelsApiService {
   async listRegisteredModels(
     filters?: ListRegisteredModelsRequest,
   ): Promise<ModelRegistryEntry[]> {
-    const data = (await this.makeWebfixRequest(
-      "listRegisteredModels",
-      filters || {},
-    )) as {
-      result?: { models?: ModelRegistryEntry[] };
-    };
+    const data = await this.makeWebfixRequest<{
+      models?: ModelRegistryEntry[];
+    }>("listRegisteredModels", filters || {});
 
-    return data.result?.models || [];
+    return data.models || [];
   }
 }
