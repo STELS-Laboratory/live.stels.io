@@ -226,8 +226,8 @@ export function Docs(): React.ReactElement {
           setSelectedDoc(sortedDocs[0]);
         }
       } catch {
-			// Error handled silently
-		} finally {
+        // Error handled silently
+      } finally {
         setLoading(false);
       }
     };

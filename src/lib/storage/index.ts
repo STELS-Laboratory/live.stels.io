@@ -4,7 +4,7 @@
  */
 
 // Core exports
-export { StorageManager, getStorageManager } from "./storage-manager";
+export { getStorageManager, StorageManager } from "./storage-manager";
 export type { StorageManagerConfig } from "./storage-manager";
 
 // Provider exports
@@ -15,23 +15,22 @@ export { HybridStorageProvider } from "./providers/hybrid.provider";
 
 // Type exports
 export type {
-	IStorageProvider,
-	StorageType,
-	StorageOptions,
-	StoredItem,
-	StorageMetadata,
+  IStorageProvider,
+  StorageMetadata,
+  StorageOptions,
+  StorageType,
+  StoredItem,
 } from "./providers/types";
 
 // Compatibility exports
 export {
-	CompatibilityStorageAdapter,
-	getCompatibilityStorageAdapter,
-	getSessionStorageManager,
+  CompatibilityStorageAdapter,
+  getCompatibilityStorageAdapter,
+  getSessionStorageManager,
 } from "./compatibility-adapter";
 
 // WebSocket integration
 export {
-	WebSocketStorageBatcher,
-	getWebSocketStorageBatcher,
+  getWebSocketStorageBatcher,
+  WebSocketStorageBatcher,
 } from "./web-socket-integration";
-

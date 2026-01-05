@@ -283,7 +283,12 @@ export interface MarketBreadthIndex extends BaseIndexData {
   index: "MBI";
   type: "market_breadth";
   value: number;
-  condition: "very_bearish" | "bearish" | "neutral" | "bullish" | "very_bullish";
+  condition:
+    | "very_bearish"
+    | "bearish"
+    | "neutral"
+    | "bullish"
+    | "very_bullish";
   breadthPercentage: number;
   bearishPercentage: number;
   neutralPercentage: number;
@@ -334,7 +339,12 @@ export interface MomentumIndex extends BaseIndexData {
   index: "MI";
   type: "momentum_average";
   value: number;
-  sentiment: "strong_bearish" | "bearish" | "neutral" | "bullish" | "strong_bullish";
+  sentiment:
+    | "strong_bearish"
+    | "bearish"
+    | "neutral"
+    | "bullish"
+    | "strong_bullish";
   components: Record<
     string,
     {
@@ -353,7 +363,12 @@ export interface MultiExchangeCompositeIndex extends BaseIndexData {
   type: "composite_weighted";
   value: number;
   momentum: number;
-  sentiment: "strong_bearish" | "bearish" | "neutral" | "bullish" | "strong_bullish";
+  sentiment:
+    | "strong_bearish"
+    | "bearish"
+    | "neutral"
+    | "bullish"
+    | "strong_bullish";
   components: Record<
     string,
     {
@@ -432,7 +447,12 @@ export interface TrendStrengthIndex extends BaseIndexData {
   index: "TSI";
   type: "trend_analysis";
   value: number;
-  direction: "strong_downtrend" | "downtrend" | "neutral" | "uptrend" | "strong_uptrend";
+  direction:
+    | "strong_downtrend"
+    | "downtrend"
+    | "neutral"
+    | "uptrend"
+    | "strong_uptrend";
   strength: "weak" | "moderate" | "strong" | "very_strong";
   assetStrengths: Record<
     string,

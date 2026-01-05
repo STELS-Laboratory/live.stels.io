@@ -5,251 +5,247 @@
 
 import type { Edge } from "reactflow";
 import type {
-	FlowNode,
-	GroupedEdgeData,
-	AutoConnectionConfig,
+  AutoConnectionConfig,
+  FlowNode,
+  GroupedEdgeData,
 } from "@/lib/canvas-types";
 import {
-	analyzeChannels,
-	getBlockColor,
-	getBlockValue,
-	groupNodesByBlocks,
-	type ChannelAnalysis,
-	type ChannelBlock,
+  analyzeChannels,
+  type ChannelAnalysis,
+  type ChannelBlock,
+  getBlockColor,
+  getBlockValue,
+  groupNodesByBlocks,
 } from "./channel-analyzer";
 
 /**
  * Dynamic auto connection configuration (extends AutoConnectionConfig for compatibility)
  */
 export interface DynamicAutoConnectionConfig extends AutoConnectionConfig {
-	/** Selected block positions for grouping (e.g., [0, 4] for positions 0 and 4) */
-	selectedBlocks: number[];
+  /** Selected block positions for grouping (e.g., [0, 4] for positions 0 and 4) */
+  selectedBlocks: number[];
 }
 
 /**
  * Edge group for dynamic connections
  */
 interface DynamicEdgeGroup {
-	/** Unique group key (combination of selected block values) */
-	key: string;
-	/** Selected block positions */
-	positions: number[];
-	/** Nodes in this group */
-	nodes: FlowNode[];
-	/** Color for edges */
-	color: string;
-	/** Label for edges */
-	label: string;
+  /** Unique group key (combination of selected block values) */
+  key: string;
+  /** Selected block positions */
+  positions: number[];
+  /** Nodes in this group */
+  nodes: FlowNode[];
+  /** Color for edges */
+  color: string;
+  /** Label for edges */
+  label: string;
 }
 
 /**
  * Analyze channels from nodes
  */
 export function analyzeNodeChannels(nodes: FlowNode[]): ChannelAnalysis {
-	return analyzeChannels(nodes);
+  return analyzeChannels(nodes);
 }
 
 /**
  * Group nodes by selected block positions
  */
 export function groupNodesBySelectedBlocks(
-	nodes: FlowNode[],
-	selectedBlocks: number[],
+  nodes: FlowNode[],
+  selectedBlocks: number[],
 ): DynamicEdgeGroup[] {
+  if (selectedBlocks.length === 0) {
+    return [];
+  }
 
-	if (selectedBlocks.length === 0) {
+  const groups = groupNodesByBlocks(nodes, selectedBlocks);
 
-		return [];
-	}
+  const edgeGroups: DynamicEdgeGroup[] = [];
 
-	const groups = groupNodesByBlocks(nodes, selectedBlocks);
+  groups.forEach((groupNodes, groupKey) => {
+    if (groupNodes.length < 2) {
+      return; // Need at least 2 nodes to connect
+    }
 
-	const edgeGroups: DynamicEdgeGroup[] = [];
+    // Use first selected block position for color
+    const primaryPosition = selectedBlocks[0];
+    const color = getBlockColor(primaryPosition);
 
-	groups.forEach((groupNodes, groupKey) => {
+    // Generate label from selected blocks
+    const firstNode = groupNodes[0];
+    if (!firstNode.data.channel) return;
 
-		if (groupNodes.length < 2) {
+    const labelParts = selectedBlocks
+      .map((pos) => {
+        const value = getBlockValue(firstNode.data.channel, pos);
+        return value;
+      })
+      .filter(Boolean);
 
-			return; // Need at least 2 nodes to connect
-		}
+    const edgeGroup = {
+      key: groupKey,
+      positions: selectedBlocks,
+      nodes: groupNodes,
+      color,
+      label: labelParts.join(" • "),
+    };
 
-		// Use first selected block position for color
-		const primaryPosition = selectedBlocks[0];
-		const color = getBlockColor(primaryPosition);
+    edgeGroups.push(edgeGroup);
+  });
 
-		// Generate label from selected blocks
-		const firstNode = groupNodes[0];
-		if (!firstNode.data.channel) return;
-
-		const labelParts = selectedBlocks
-			.map((pos) => {
-				const value = getBlockValue(firstNode.data.channel, pos);
-				return value;
-			})
-			.filter(Boolean);
-
-		const edgeGroup = {
-			key: groupKey,
-			positions: selectedBlocks,
-			nodes: groupNodes,
-			color,
-			label: labelParts.join(" • "),
-		};
-
-		edgeGroups.push(edgeGroup);
-	});
-
-	return edgeGroups;
+  return edgeGroups;
 }
 
 /**
  * Generate automatic edges based on dynamic grouping
  */
 export function generateDynamicAutoConnections(
-	nodes: FlowNode[],
-	config: DynamicAutoConnectionConfig,
+  nodes: FlowNode[],
+  config: DynamicAutoConnectionConfig,
 ): Edge<GroupedEdgeData>[] {
+  if (!config.enabled || config.selectedBlocks.length === 0) {
+    return [];
+  }
 
-	if (!config.enabled || config.selectedBlocks.length === 0) {
+  const edges: Edge<GroupedEdgeData>[] = [];
+  const edgeGroups = groupNodesBySelectedBlocks(nodes, config.selectedBlocks);
 
-		return [];
-	}
+  edgeGroups.forEach((group, groupIndex) => {
+    // Create connections between all nodes in the group (full mesh)
+    for (let i = 0; i < group.nodes.length; i++) {
+      for (let j = i + 1; j < group.nodes.length; j++) {
+        const sourceNode = group.nodes[i];
+        const targetNode = group.nodes[j];
 
-	const edges: Edge<GroupedEdgeData>[] = [];
-	const edgeGroups = groupNodesBySelectedBlocks(nodes, config.selectedBlocks);
+        const edge: Edge<GroupedEdgeData> = {
+          id: `auto-${groupIndex}-${sourceNode.id}-${targetNode.id}`,
+          source: sourceNode.id,
+          target: targetNode.id,
+          sourceHandle: "auto-source",
+          targetHandle: "auto-target",
+          type: "grouped",
+          data: {
+            groupKey: group.key,
+            groupType: `block-${config.selectedBlocks.join("-")}` as never,
+            connectionCount: group.nodes.length,
+            relatedNodes: group.nodes.map((n) => n.id),
+          },
+          style: {
+            stroke: group.color,
+            strokeWidth: 2,
+            strokeDasharray: getDashArrayForGroup(groupIndex),
+          },
+          label: config.showLabels ? group.label : undefined,
+          labelStyle: {
+            fill: group.color,
+            fontSize: 10,
+            fontWeight: "bold",
+          },
+          animated: false,
+        };
 
-	edgeGroups.forEach((group, groupIndex) => {
-		// Create connections between all nodes in the group (full mesh)
-		for (let i = 0; i < group.nodes.length; i++) {
-			for (let j = i + 1; j < group.nodes.length; j++) {
-				const sourceNode = group.nodes[i];
-				const targetNode = group.nodes[j];
+        edges.push(edge);
+      }
+    }
+  });
 
-				const edge: Edge<GroupedEdgeData> = {
-					id: `auto-${groupIndex}-${sourceNode.id}-${targetNode.id}`,
-					source: sourceNode.id,
-					target: targetNode.id,
-					sourceHandle: "auto-source",
-					targetHandle: "auto-target",
-					type: "grouped",
-					data: {
-						groupKey: group.key,
-						groupType: `block-${config.selectedBlocks.join("-")}` as never,
-						connectionCount: group.nodes.length,
-						relatedNodes: group.nodes.map((n) => n.id),
-					},
-					style: {
-						stroke: group.color,
-						strokeWidth: 2,
-						strokeDasharray: getDashArrayForGroup(groupIndex),
-					},
-					label: config.showLabels ? group.label : undefined,
-					labelStyle: {
-						fill: group.color,
-						fontSize: 10,
-						fontWeight: "bold",
-					},
-					animated: false,
-				};
-
-				edges.push(edge);
-			}
-		}
-	});
-
-	return edges;
+  return edges;
 }
 
 /**
  * Get dash array pattern based on group index
  */
 function getDashArrayForGroup(groupIndex: number): string {
-	const patterns = [
-		"5,5",    // Dashed
-		"10,5",   // Long dash
-		"15,5",   // Extra long
-		"5,10",   // Short dash, long gap
-		"3,3",    // Dotted
-		"10,10",  // Balanced
-		"20,5",   // Very long
-		"2,8",    // Morse-like
-	];
+  const patterns = [
+    "5,5", // Dashed
+    "10,5", // Long dash
+    "15,5", // Extra long
+    "5,10", // Short dash, long gap
+    "3,3", // Dotted
+    "10,10", // Balanced
+    "20,5", // Very long
+    "2,8", // Morse-like
+  ];
 
-	return patterns[groupIndex % patterns.length];
+  return patterns[groupIndex % patterns.length];
 }
 
 /**
  * Filter auto edges to avoid duplicates with manual edges
  */
 export function filterDynamicAutoConnections(
-	autoEdges: Edge<GroupedEdgeData>[],
-	manualEdges: Edge[],
+  autoEdges: Edge<GroupedEdgeData>[],
+  manualEdges: Edge[],
 ): Edge<GroupedEdgeData>[] {
-	return autoEdges.filter((autoEdge) => {
-		return !manualEdges.some((manualEdge) => {
-			return (
-				(manualEdge.source === autoEdge.source &&
-					manualEdge.target === autoEdge.target) ||
-				(manualEdge.source === autoEdge.target &&
-					manualEdge.target === autoEdge.source)
-			);
-		});
-	});
+  return autoEdges.filter((autoEdge) => {
+    return !manualEdges.some((manualEdge) => {
+      return (
+        (manualEdge.source === autoEdge.source &&
+          manualEdge.target === autoEdge.target) ||
+        (manualEdge.source === autoEdge.target &&
+          manualEdge.target === autoEdge.source)
+      );
+    });
+  });
 }
 
 /**
  * Get connection statistics
  */
 export function getDynamicConnectionStats(
-	nodes: FlowNode[],
-	edges: Edge[],
-	config: DynamicAutoConnectionConfig,
+  nodes: FlowNode[],
+  edges: Edge[],
+  config: DynamicAutoConnectionConfig,
 ): {
-	nodeCount: number;
-	edgeCount: number;
-	groupCount: number;
-	connectionsByBlock: Record<number, number>;
+  nodeCount: number;
+  edgeCount: number;
+  groupCount: number;
+  connectionsByBlock: Record<number, number>;
 } {
-	const edgeGroups = groupNodesBySelectedBlocks(nodes, config.selectedBlocks);
+  const edgeGroups = groupNodesBySelectedBlocks(nodes, config.selectedBlocks);
 
-	const connectionsByBlock: Record<number, number> = {};
+  const connectionsByBlock: Record<number, number> = {};
 
-	config.selectedBlocks.forEach((position) => {
-		connectionsByBlock[position] = 0;
-	});
+  config.selectedBlocks.forEach((position) => {
+    connectionsByBlock[position] = 0;
+  });
 
-	// Count connections per block
-	edgeGroups.forEach((group) => {
-		const edgeCountForGroup = (group.nodes.length * (group.nodes.length - 1)) / 2;
+  // Count connections per block
+  edgeGroups.forEach((group) => {
+    const edgeCountForGroup = (group.nodes.length * (group.nodes.length - 1)) /
+      2;
 
-		group.positions.forEach((pos) => {
-			connectionsByBlock[pos] = (connectionsByBlock[pos] || 0) + edgeCountForGroup;
-		});
-	});
+    group.positions.forEach((pos) => {
+      connectionsByBlock[pos] = (connectionsByBlock[pos] || 0) +
+        edgeCountForGroup;
+    });
+  });
 
-	return {
-		nodeCount: nodes.length,
-		edgeCount: edges.length,
-		groupCount: edgeGroups.length,
-		connectionsByBlock,
-	};
+  return {
+    nodeCount: nodes.length,
+    edgeCount: edges.length,
+    groupCount: edgeGroups.length,
+    connectionsByBlock,
+  };
 }
 
 /**
  * Get available blocks from nodes for UI display
  */
 export function getAvailableBlocksFromNodes(nodes: FlowNode[]): ChannelBlock[] {
-	const analysis = analyzeNodeChannels(nodes);
-	return analysis.blocks;
+  const analysis = analyzeNodeChannels(nodes);
+  return analysis.blocks;
 }
 
 /**
  * Default dynamic configuration
  */
 export const defaultDynamicAutoConnectionConfig: DynamicAutoConnectionConfig = {
-	enabled: false,
-	selectedBlocks: [],
-	showLabels: true,
-	groupByKeys: [], // Legacy compatibility
-	edgeStyles: {}, // Legacy compatibility
+  enabled: false,
+  selectedBlocks: [],
+  showLabels: true,
+  groupByKeys: [], // Legacy compatibility
+  edgeStyles: {}, // Legacy compatibility
 };

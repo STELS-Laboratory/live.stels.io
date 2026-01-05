@@ -28,12 +28,10 @@ export function useDefaultSchemas(): LoadState {
   });
 
   useEffect(() => {
-
     let mounted = true;
 
     const load = async (): Promise<void> => {
       try {
-
         const result = await loadDefaultSchemas();
 
         if (mounted) {
@@ -46,7 +44,6 @@ export function useDefaultSchemas(): LoadState {
           });
         }
       } catch {
-
         if (mounted) {
           setState({
             isLoading: false,
@@ -62,7 +59,6 @@ export function useDefaultSchemas(): LoadState {
     load();
 
     return () => {
-
       mounted = false;
     };
   }, []); // Run only once on mount

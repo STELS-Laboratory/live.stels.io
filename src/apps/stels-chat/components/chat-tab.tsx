@@ -173,7 +173,11 @@ export function ChatTab({
       )}
     >
       <ScrollArea className="flex-1 min-h-0" ref={scrollRef}>
-        <div className={`${isMobile ? "p-1.5" : "p-4"} ${isMobile ? "space-y-1.5" : "space-y-4"}`}>
+        <div
+          className={`${isMobile ? "p-1.5" : "p-4"} ${
+            isMobile ? "space-y-1.5" : "space-y-4"
+          }`}
+        >
           {tab.messages.length === 0
             ? (
               <div
@@ -275,7 +279,9 @@ export function ChatTab({
                                 isMobile ? "text-[9px]" : "text-xs"
                               }`}
                             >
-                              <FileText className={isMobile ? "w-2.5 h-2.5" : "icon-xs"} />
+                              <FileText
+                                className={isMobile ? "w-2.5 h-2.5" : "icon-xs"}
+                              />
                               {fileName}
                             </span>
                           ))}

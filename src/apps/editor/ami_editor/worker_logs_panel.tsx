@@ -435,8 +435,9 @@ export function WorkerLogsPanel({
                   {/* Show message when logs are truncated */}
                   {totalLogsCount > MAX_LOGS && (
                     <div className="text-yellow-600 dark:text-yellow-500 text-[10px] mb-2 pb-2 border-b border-yellow-500/20">
-                      <span className="font-semibold">⚠</span> Showing last {MAX_LOGS} of {totalLogsCount} logs. 
-                      Older logs have been removed to prevent UI overload.
+                      <span className="font-semibold">⚠</span> Showing last{" "}
+                      {MAX_LOGS} of {totalLogsCount}{" "}
+                      logs. Older logs have been removed to prevent UI overload.
                     </div>
                   )}
                   {logs.map((line, index) => {

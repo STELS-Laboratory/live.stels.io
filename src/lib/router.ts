@@ -1,19 +1,18 @@
-import {useAppStore} from '@/stores';
+import { useAppStore } from "@/stores";
 
 /**
  * Navigate to a specific route and update URL
  * @param route - The route to navigate to
  */
 export const navigateTo = (route: string): void => {
-	const {setRoute, allowedRoutes} = useAppStore.getState();
-	
-	if (allowedRoutes.includes(route)) {
+  const { setRoute, allowedRoutes } = useAppStore.getState();
 
-		setRoute(route);
-		// URL will be updated automatically by useUrlRouter hook
-	} else {
-			// Empty block
-		}
+  if (allowedRoutes.includes(route)) {
+    setRoute(route);
+    // URL will be updated automatically by useUrlRouter hook
+  } else {
+    // Empty block
+  }
 };
 
 /**
@@ -21,10 +20,10 @@ export const navigateTo = (route: string): void => {
  * @returns The current route from URL or null if not found
  */
 export const getCurrentRouteFromUrl = (): string | null => {
-	if (typeof window === 'undefined') return null;
-	
-	const urlParams = new URLSearchParams(window.location.search);
-	return urlParams.get('router');
+  if (typeof window === "undefined") return null;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get("router");
 };
 
 /**
@@ -33,8 +32,8 @@ export const getCurrentRouteFromUrl = (): string | null => {
  * @returns True if route is valid, false otherwise
  */
 export const isValidRoute = (route: string): boolean => {
-	const {allowedRoutes} = useAppStore.getState();
-	return allowedRoutes.includes(route);
+  const { allowedRoutes } = useAppStore.getState();
+  return allowedRoutes.includes(route);
 };
 
 /**
@@ -42,15 +41,14 @@ export const isValidRoute = (route: string): boolean => {
  * Useful for direct link navigation scenarios
  */
 export const syncUrlWithStore = (): void => {
-	const {currentRoute} = useAppStore.getState();
-	const urlRoute = getCurrentRouteFromUrl();
-	
-	if (urlRoute !== currentRoute) {
+  const { currentRoute } = useAppStore.getState();
+  const urlRoute = getCurrentRouteFromUrl();
 
-		const url = new URL(window.location.href);
-		url.searchParams.set('router', currentRoute);
-		window.history.replaceState({}, '', url.toString());
-	}
+  if (urlRoute !== currentRoute) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("router", currentRoute);
+    window.history.replaceState({}, "", url.toString());
+  }
 };
 
 /**
@@ -58,24 +56,21 @@ export const syncUrlWithStore = (): void => {
  * Should be called once when the app loads
  */
 export const initializeFromUrl = (): void => {
-	const urlRoute = getCurrentRouteFromUrl();
-	const {setRoute, allowedRoutes} = useAppStore.getState();
+  const urlRoute = getCurrentRouteFromUrl();
+  const { setRoute, allowedRoutes } = useAppStore.getState();
 
-	// Wait for store to be fully initialized
-	if (!allowedRoutes || allowedRoutes.length === 0) {
+  // Wait for store to be fully initialized
+  if (!allowedRoutes || allowedRoutes.length === 0) {
+    setTimeout(() => initializeFromUrl(), 100);
+    return;
+  }
 
-		setTimeout(() => initializeFromUrl(), 100);
-		return;
-	}
-	
-	if (urlRoute && allowedRoutes.includes(urlRoute)) {
-
-		setRoute(urlRoute);
-	} else if (urlRoute && !allowedRoutes.includes(urlRoute)) {
-
-		const url = new URL(window.location.href);
-		url.searchParams.set('router', 'welcome');
-		window.history.replaceState({}, '', url.toString());
-		setRoute('welcome');
-	}
+  if (urlRoute && allowedRoutes.includes(urlRoute)) {
+    setRoute(urlRoute);
+  } else if (urlRoute && !allowedRoutes.includes(urlRoute)) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("router", "welcome");
+    window.history.replaceState({}, "", url.toString());
+    setRoute("welcome");
+  }
 };

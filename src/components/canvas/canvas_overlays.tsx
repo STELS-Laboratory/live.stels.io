@@ -32,8 +32,7 @@ export const EnhancedDropZone: React.FC<EnhancedDropZoneProps> = ({
         <div
           className="absolute inset-0 opacity-20 dark:opacity-10"
           style={{
-            backgroundImage:
-              "1px, transparent 1px)",
+            backgroundImage: "1px, transparent 1px)",
             backgroundSize: "32px 32px",
           }}
         />

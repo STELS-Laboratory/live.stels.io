@@ -20,10 +20,8 @@ export default function VersionCheckPrompt(): React.ReactElement | null {
   const [newVersion, setNewVersion] = useState<string | null>(null);
 
   useEffect(() => {
-
     // Start version checking
     const stopChecking = startVersionCheck((version) => {
-
       setNewVersion(version);
       setShowPrompt(true);
     });
@@ -53,20 +51,17 @@ export default function VersionCheckPrompt(): React.ReactElement | null {
         const cacheNames = await caches.keys();
 
         await Promise.all(cacheNames.map(async (name) => {
-
           await caches.delete(name);
         }));
-
       }
 
       if ("serviceWorker" in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
         await Promise.all(registrations.map((reg) => reg.unregister()));
-
       }
     } catch {
-			// Error handled silently
-		}
+      // Error handled silently
+    }
 
     // Reload
     window.location.reload();

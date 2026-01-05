@@ -54,7 +54,6 @@ export function LottieAnimation({
 
   // Error handler
   const handleError = (): void => {
-
     setHasError(true);
   };
 

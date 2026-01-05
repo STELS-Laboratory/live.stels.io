@@ -43,24 +43,24 @@ function openDatabase(): Promise<IDBDatabase> {
 
       request.onsuccess = () => {
         const db = request.result;
-        
+
         // Ensure object store exists (in case database was recreated after deletion)
         if (!db.objectStoreNames.contains(STORE_NAME)) {
           // Close current connection
           db.close();
-          
+
           // Reopen with incremented version to trigger onupgradeneeded
           const upgradeVersion = version + 1;
           const upgradeRequest = indexedDB.open(DB_NAME, upgradeVersion);
-          
+
           upgradeRequest.onerror = () => {
             reject(new Error("Failed to upgrade database"));
           };
-          
+
           upgradeRequest.onsuccess = () => {
             resolve(upgradeRequest.result);
           };
-          
+
           upgradeRequest.onupgradeneeded = (event) => {
             const upgradeDb = (event.target as IDBOpenDBRequest).result;
             createObjectStore(upgradeDb);
@@ -129,7 +129,7 @@ export async function getSchema(id: string): Promise<SchemaProject | null> {
  * Get schema by widget key
  */
 export async function getSchemaByWidgetKey(
-  widgetKey: string
+  widgetKey: string,
 ): Promise<SchemaProject | null> {
   const db = await openDatabase();
 
@@ -153,7 +153,6 @@ export async function getSchemaByWidgetKey(
  * Save schema to database (create or update)
  */
 export async function saveSchema(schema: SchemaProject): Promise<void> {
-
   const db = await openDatabase();
 
   return new Promise((resolve, reject) => {
@@ -162,12 +161,10 @@ export async function saveSchema(schema: SchemaProject): Promise<void> {
     const request = store.put(schema);
 
     request.onsuccess = () => {
-
       resolve();
     };
 
     request.onerror = () => {
-
       reject(new Error("Failed to save schema"));
     };
   });
@@ -198,7 +195,7 @@ export async function deleteSchema(id: string): Promise<void> {
  * Find schema that contains a specific channel key
  */
 export async function findSchemaByChannelKey(
-  channelKey: string
+  channelKey: string,
 ): Promise<SchemaProject | null> {
   const allSchemas = await getAllSchemas();
   return allSchemas.find((s) => s.channelKeys.includes(channelKey)) || null;

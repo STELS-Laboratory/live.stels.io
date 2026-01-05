@@ -1,6 +1,6 @@
 /**
  * Worker SDK Autocomplete for Monaco Editor
- * 
+ *
  * Provides intelligent autocomplete for STELS Worker SDK APIs:
  * - Stels.* global APIs
  * - logger.* logging functions
@@ -13,7 +13,9 @@ import type * as monaco from "monaco-editor";
 /**
  * Setup Monaco Editor completions for Worker SDK
  */
-export function setupMonacoCompletions(monacoInstance: typeof import("monaco-editor")): void {
+export function setupMonacoCompletions(
+  monacoInstance: typeof import("monaco-editor"),
+): void {
   // Register completion item provider for JavaScript
   monacoInstance.languages.registerCompletionItemProvider("javascript", {
     provideCompletionItems: (model, position) => {
@@ -36,14 +38,19 @@ export function setupMonacoCompletions(monacoInstance: typeof import("monaco-edi
       const suggestions: monaco.languages.CompletionItem[] = [];
 
       // Stels.* API completions
-      if (textUntilPosition.endsWith("Stels.") || textUntilPosition.match(/Stels\.\w*$/)) {
+      if (
+        textUntilPosition.endsWith("Stels.") ||
+        textUntilPosition.match(/Stels\.\w*$/)
+      ) {
         suggestions.push(
           {
             label: "Stels.log",
             kind: monacoInstance.languages.CompletionItemKind.Function,
             documentation: "Log a message to the worker console",
             insertText: "Stels.log(${1:message})",
-            insertTextRules: monacoInstance.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            insertTextRules:
+              monacoInstance.languages.CompletionItemInsertTextRule
+                .InsertAsSnippet,
             range,
           },
           {
@@ -51,7 +58,9 @@ export function setupMonacoCompletions(monacoInstance: typeof import("monaco-edi
             kind: monacoInstance.languages.CompletionItemKind.Function,
             documentation: "Log an error message",
             insertText: "Stels.error(${1:message})",
-            insertTextRules: monacoInstance.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            insertTextRules:
+              monacoInstance.languages.CompletionItemInsertTextRule
+                .InsertAsSnippet,
             range,
           },
           {
@@ -59,7 +68,9 @@ export function setupMonacoCompletions(monacoInstance: typeof import("monaco-edi
             kind: monacoInstance.languages.CompletionItemKind.Function,
             documentation: "Log a warning message",
             insertText: "Stels.warn(${1:message})",
-            insertTextRules: monacoInstance.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            insertTextRules:
+              monacoInstance.languages.CompletionItemInsertTextRule
+                .InsertAsSnippet,
             range,
           },
           {
@@ -67,21 +78,28 @@ export function setupMonacoCompletions(monacoInstance: typeof import("monaco-edi
             kind: monacoInstance.languages.CompletionItemKind.Function,
             documentation: "Log an info message",
             insertText: "Stels.info(${1:message})",
-            insertTextRules: monacoInstance.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            insertTextRules:
+              monacoInstance.languages.CompletionItemInsertTextRule
+                .InsertAsSnippet,
             range,
           },
         );
       }
 
       // logger.* completions
-      if (textUntilPosition.endsWith("logger.") || textUntilPosition.match(/logger\.\w*$/)) {
+      if (
+        textUntilPosition.endsWith("logger.") ||
+        textUntilPosition.match(/logger\.\w*$/)
+      ) {
         suggestions.push(
           {
             label: "logger.log",
             kind: monacoInstance.languages.CompletionItemKind.Function,
             documentation: "Log a message",
             insertText: "logger.log(${1:message})",
-            insertTextRules: monacoInstance.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            insertTextRules:
+              monacoInstance.languages.CompletionItemInsertTextRule
+                .InsertAsSnippet,
             range,
           },
           {
@@ -89,7 +107,9 @@ export function setupMonacoCompletions(monacoInstance: typeof import("monaco-edi
             kind: monacoInstance.languages.CompletionItemKind.Function,
             documentation: "Log an error",
             insertText: "logger.error(${1:message})",
-            insertTextRules: monacoInstance.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            insertTextRules:
+              monacoInstance.languages.CompletionItemInsertTextRule
+                .InsertAsSnippet,
             range,
           },
           {
@@ -97,7 +117,9 @@ export function setupMonacoCompletions(monacoInstance: typeof import("monaco-edi
             kind: monacoInstance.languages.CompletionItemKind.Function,
             documentation: "Log a warning",
             insertText: "logger.warn(${1:message})",
-            insertTextRules: monacoInstance.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            insertTextRules:
+              monacoInstance.languages.CompletionItemInsertTextRule
+                .InsertAsSnippet,
             range,
           },
           {
@@ -105,21 +127,28 @@ export function setupMonacoCompletions(monacoInstance: typeof import("monaco-edi
             kind: monacoInstance.languages.CompletionItemKind.Function,
             documentation: "Log an info message",
             insertText: "logger.info(${1:message})",
-            insertTextRules: monacoInstance.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            insertTextRules:
+              monacoInstance.languages.CompletionItemInsertTextRule
+                .InsertAsSnippet,
             range,
           },
         );
       }
 
       // config.* completions
-      if (textUntilPosition.endsWith("config.") || textUntilPosition.match(/config\.\w*$/)) {
+      if (
+        textUntilPosition.endsWith("config.") ||
+        textUntilPosition.match(/config\.\w*$/)
+      ) {
         suggestions.push(
           {
             label: "config.get",
             kind: monacoInstance.languages.CompletionItemKind.Function,
             documentation: "Get a configuration value",
             insertText: "config.get(${1:key})",
-            insertTextRules: monacoInstance.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            insertTextRules:
+              monacoInstance.languages.CompletionItemInsertTextRule
+                .InsertAsSnippet,
             range,
           },
           {
@@ -127,14 +156,20 @@ export function setupMonacoCompletions(monacoInstance: typeof import("monaco-edi
             kind: monacoInstance.languages.CompletionItemKind.Function,
             documentation: "Set a configuration value",
             insertText: "config.set(${1:key}, ${2:value})",
-            insertTextRules: monacoInstance.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            insertTextRules:
+              monacoInstance.languages.CompletionItemInsertTextRule
+                .InsertAsSnippet,
             range,
           },
         );
       }
 
       // Common snippets
-      if (!textUntilPosition.includes("Stels.") && !textUntilPosition.includes("logger.") && !textUntilPosition.includes("config.")) {
+      if (
+        !textUntilPosition.includes("Stels.") &&
+        !textUntilPosition.includes("logger.") &&
+        !textUntilPosition.includes("config.")
+      ) {
         suggestions.push(
           {
             label: "Stels",

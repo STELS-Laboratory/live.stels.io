@@ -1,4 +1,3 @@
 /**
  * Editor components type definitions
  */
-

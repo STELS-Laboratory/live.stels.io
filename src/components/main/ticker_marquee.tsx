@@ -6,7 +6,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useNetworkStore } from "@/stores/modules/network.store";
-import type { TickerData, TickerMarqueeProps } from "@/types/components/main/types";
+import type {
+  TickerData,
+  TickerMarqueeProps,
+} from "@/types/components/main/types";
 import { TickerItem } from "./ticker_item";
 import { useTimerManager } from "@/lib/timer-manager";
 
@@ -56,15 +59,14 @@ export function TickerMarquee(
               }
             }
           } catch {
-			// Error handled silently
-		}
+            // Error handled silently
+          }
         }
       }
 
       // Sort by market name for consistent display
       return tickerList.sort((a, b) => a.market.localeCompare(b.market));
     } catch {
-
       return [];
     }
   }, [currentNetworkId]);
@@ -79,7 +81,9 @@ export function TickerMarquee(
     const updateTickers = (): void => {
       const newTickers = getTickers();
       // Simple hash comparison to avoid unnecessary updates
-      const newHash = JSON.stringify(newTickers.map(t => `${t.market}-${t.last}`));
+      const newHash = JSON.stringify(
+        newTickers.map((t) => `${t.market}-${t.last}`),
+      );
       if (newHash !== lastTickersHash) {
         lastTickersHash = newHash;
         setTickers(newTickers);
@@ -92,33 +96,51 @@ export function TickerMarquee(
       if (e.key && e.key.startsWith(tickerPrefix)) {
         // Debounce updates using TimerManager
         if (updateTimeoutId) clear(updateTimeoutId);
-        updateTimeoutId = setTimeout(() => {
-          updateTickers();
-        }, 100, "TickerMarquee storage update");
+        updateTimeoutId = setTimeout(
+          () => {
+            updateTickers();
+          },
+          100,
+          "TickerMarquee storage update",
+        );
       }
     };
 
     // Handle custom sessionStorageChange event (for same-tab updates)
     const handleSessionStorageChange = (): void => {
       if (updateTimeoutId) clear(updateTimeoutId);
-      updateTimeoutId = setTimeout(() => {
-        updateTickers();
-      }, 100, "TickerMarquee sessionStorage update");
+      updateTimeoutId = setTimeout(
+        () => {
+          updateTickers();
+        },
+        100,
+        "TickerMarquee sessionStorage update",
+      );
     };
 
     let updateTimeoutId: string | null = null;
 
     window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("sessionStorageChange", handleSessionStorageChange as EventListener);
+    window.addEventListener(
+      "sessionStorageChange",
+      handleSessionStorageChange as EventListener,
+    );
 
     // Fallback polling - only every 30 seconds as backup
-    const intervalId = setInterval(() => {
-      updateTickers();
-    }, 30000, "TickerMarquee fallback polling");
+    const intervalId = setInterval(
+      () => {
+        updateTickers();
+      },
+      30000,
+      "TickerMarquee fallback polling",
+    );
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("sessionStorageChange", handleSessionStorageChange as EventListener);
+      window.removeEventListener(
+        "sessionStorageChange",
+        handleSessionStorageChange as EventListener,
+      );
       if (updateTimeoutId) clear(updateTimeoutId);
       clear(intervalId);
     };

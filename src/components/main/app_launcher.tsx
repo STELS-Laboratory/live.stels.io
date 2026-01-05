@@ -6,7 +6,10 @@
 import { type ReactElement, useEffect, useState } from "react";
 import { Database, Layers } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import type { LaunchStep, AppLauncherProps } from "@/types/components/main/types";
+import type {
+  AppLauncherProps,
+  LaunchStep,
+} from "@/types/components/main/types";
 
 const LAUNCH_STEPS: LaunchStep[] = [
   { label: "Initializing", progress: 10 },

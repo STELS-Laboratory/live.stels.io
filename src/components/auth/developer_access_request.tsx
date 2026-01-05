@@ -24,7 +24,10 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuthStore } from "@/stores/modules/auth.store.ts";
-import type { RequestStatus, DeveloperAccessRequestProps } from "@/types/components/auth/types";
+import type {
+  DeveloperAccessRequestProps,
+  RequestStatus,
+} from "@/types/components/auth/types";
 
 export type { DeveloperAccessRequestProps };
 
@@ -130,7 +133,6 @@ export function DeveloperAccessRequestDialog({
       // If no session returned, request might be pending
       throw new Error("Developer access denied or request pending approval");
     } catch {
-
       setErrorMessage(
         error instanceof Error
           ? error.message

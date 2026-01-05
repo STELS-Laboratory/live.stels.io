@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
-import type { ChunkErrorBoundaryProps, ChunkErrorBoundaryState } from "@/types/components/main/types";
+import type {
+  ChunkErrorBoundaryProps,
+  ChunkErrorBoundaryState,
+} from "@/types/components/main/types";
 
 /**
  * Error boundary that specifically handles chunk loading failures
@@ -61,21 +64,18 @@ export default class ChunkErrorBoundary extends Component<
         const cacheNames = await caches.keys();
 
         await Promise.all(cacheNames.map(async (name) => {
-
           await caches.delete(name);
         }));
-
       }
 
       // Unregister service workers
       if ("serviceWorker" in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
         await Promise.all(registrations.map((reg) => reg.unregister()));
-
       }
     } catch {
-			// Error handled silently
-		}
+      // Error handled silently
+    }
 
     // Force reload (bypass cache)
     window.location.reload();

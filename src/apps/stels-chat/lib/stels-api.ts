@@ -1,22 +1,22 @@
 /**
  * Stels API Service
  * Handles all communication with Stels API
- * 
+ *
  * Uses Webfix RPC protocol for all API methods.
  * SSE endpoints (streamChat) remain as direct GET requests.
  */
 
 import { WebfixApiClient } from "@/lib/webfix-api-client";
 import type {
-  StelsModel,
-  StelsApiResponse,
   Assistant,
   CreateAssistantRequest,
-  UpdateAssistantRequest,
   ListAssistantsFilters,
+  ListRegisteredModelsRequest,
   ModelRegistryEntry,
   RegisterModelRequest,
-  ListRegisteredModelsRequest,
+  StelsApiResponse,
+  StelsModel,
+  UpdateAssistantRequest,
 } from "../types";
 
 export class StelsApiService {
@@ -30,7 +30,6 @@ export class StelsApiService {
     session?: string,
     token?: string,
   ) {
-
     this.baseUrl = baseUrl; // Remove trailing slash
     this.session = session;
     this.token = token;
@@ -138,7 +137,9 @@ export class StelsApiService {
       if (options.seed !== undefined) {
         requestBody.seed = options.seed;
       }
-      if (options.context || options.keep_alive || options.top_k !== undefined) {
+      if (
+        options.context || options.keep_alive || options.top_k !== undefined
+      ) {
         requestBody.options = {};
         if (options.context) {
           requestBody.options.context = options.context;
@@ -251,20 +252,20 @@ export class StelsApiService {
 
         for (const line of lines) {
           if (line.trim() === "") continue;
-          
+
           // SSE format: "data: {json}\n\n"
           if (line.startsWith("data: ")) {
             const jsonStr = line.substring(6);
-            
+
             // Check for end marker
             if (jsonStr === "[DONE]") {
               return;
             }
-            
+
             try {
               const data = JSON.parse(jsonStr) as StelsApiResponse;
               yield data;
-              
+
               if (data.done) {
                 return;
               }

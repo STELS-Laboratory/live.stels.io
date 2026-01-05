@@ -18,7 +18,9 @@ export interface ResolvedSchemaData {
  * Schema store interface for dependency injection
  */
 export interface SchemaStore {
-  getSchemaByWidgetKey: (widgetKey: string) => Promise<ResolvedSchemaData | null>;
+  getSchemaByWidgetKey: (
+    widgetKey: string,
+  ) => Promise<ResolvedSchemaData | null>;
 }
 
 /**
@@ -30,7 +32,7 @@ export async function collectRequiredChannels(
   store: SchemaStore,
   collected: Array<{ channelKey: string; alias: string }> = [],
   depth: number = 0,
-  maxDepth: number = 10
+  maxDepth: number = 10,
 ): Promise<Array<{ channelKey: string; alias: string }>> {
   if (depth >= maxDepth) return collected;
 
@@ -38,7 +40,7 @@ export async function collectRequiredChannels(
   if (node.schemaRef) {
     try {
       const schemaData = await store.getSchemaByWidgetKey(node.schemaRef);
-      
+
       if (schemaData) {
         // Add this schema's channels WITH their aliases
         if (schemaData.channelAliases && schemaData.channelAliases.length > 0) {
@@ -49,11 +51,17 @@ export async function collectRequiredChannels(
         }
 
         // Recursively collect from nested schema
-        await collectRequiredChannels(schemaData.schema, store, collected, depth + 1, maxDepth);
+        await collectRequiredChannels(
+          schemaData.schema,
+          store,
+          collected,
+          depth + 1,
+          maxDepth,
+        );
       }
     } catch {
-			// Error handled silently
-		}
+      // Error handled silently
+    }
   }
 
   // Recursively collect from children
@@ -61,7 +69,7 @@ export async function collectRequiredChannels(
     await Promise.all(
       node.children.map((child) =>
         collectRequiredChannels(child, store, collected, depth, maxDepth)
-      )
+      ),
     );
   }
 
@@ -77,11 +85,10 @@ export async function resolveSchemaRefs(
   store: SchemaStore,
   depth: number = 0,
   maxDepth: number = 10,
-  parentSelfChannel?: string
+  parentSelfChannel?: string,
 ): Promise<UINode> {
   // Prevent infinite recursion
   if (depth >= maxDepth) {
-
     return node;
   }
 
@@ -89,9 +96,8 @@ export async function resolveSchemaRefs(
   if (node.schemaRef) {
     try {
       const schemaData = await store.getSchemaByWidgetKey(node.schemaRef);
-      
-      if (!schemaData) {
 
+      if (!schemaData) {
         // Return placeholder
         return {
           type: "div",
@@ -109,7 +115,7 @@ export async function resolveSchemaRefs(
         store,
         depth + 1,
         maxDepth,
-        nestedSelfChannel
+        nestedSelfChannel,
       );
 
       // Merge parent node's className and style with resolved schema
@@ -119,7 +125,8 @@ export async function resolveSchemaRefs(
 
       // Apply parent's className (append to child's className)
       if (node.className) {
-        merged.className = node.className + (resolvedChild.className ? ` ${resolvedChild.className}` : "");
+        merged.className = node.className +
+          (resolvedChild.className ? ` ${resolvedChild.className}` : "");
       }
 
       // Apply parent's style (merge with child's style)
@@ -132,7 +139,6 @@ export async function resolveSchemaRefs(
 
       return merged;
     } catch {
-
       return {
         type: "div",
         className: "p-4 bg-red-500/10 border border-red-500/20 rounded",
@@ -146,7 +152,7 @@ export async function resolveSchemaRefs(
     const resolvedChildren = await Promise.all(
       node.children.map((child) =>
         resolveSchemaRefs(child, store, depth, maxDepth, parentSelfChannel)
-      )
+      ),
     );
 
     return {

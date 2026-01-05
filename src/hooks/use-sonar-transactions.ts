@@ -7,65 +7,67 @@ import type { SonarTransaction } from "@/types/auth/types";
  * Reads from sessionStorage and updates when new transactions arrive
  */
 export function useSonarTransactions(): {
-	transactions: SonarTransaction[];
-	loading: boolean;
-	error: string | null;
+  transactions: SonarTransaction[];
+  loading: boolean;
+  error: string | null;
 } {
-	const [transactions, setTransactions] = useState<SonarTransaction[]>([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
-	const { currentNetworkId } = useNetworkStore();
+  const [transactions, setTransactions] = useState<SonarTransaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { currentNetworkId } = useNetworkStore();
 
-	useEffect(() => {
-		const sonarChannel = `${currentNetworkId}.runtime.sonar`;
+  useEffect(() => {
+    const sonarChannel = `${currentNetworkId}.runtime.sonar`;
 
-		const readTransactions = (): void => {
-			try {
-				const data = sessionStorage.getItem(sonarChannel);
-				if (data) {
-					const parsed = JSON.parse(data);
-					const recentTransactions = parsed?.raw?.recentTransactions || [];
-					
-					// Sort by received_at (newest first)
-					const sorted = [...recentTransactions].sort(
-						(a: SonarTransaction, b: SonarTransaction) => 
-							b.received_at - a.received_at
-					);
-					
-					setTransactions(sorted);
-					setError(null);
-				} else {
-					setTransactions([]);
-				}
-				setLoading(false);
-			} catch (err) {
-				setError(err instanceof Error ? err.message : "Failed to read transactions");
-				setLoading(false);
-			}
-		};
+    const readTransactions = (): void => {
+      try {
+        const data = sessionStorage.getItem(sonarChannel);
+        if (data) {
+          const parsed = JSON.parse(data);
+          const recentTransactions = parsed?.raw?.recentTransactions || [];
 
-		// Initial load
-		readTransactions();
+          // Sort by received_at (newest first)
+          const sorted = [...recentTransactions].sort(
+            (a: SonarTransaction, b: SonarTransaction) =>
+              b.received_at - a.received_at,
+          );
 
-		// Poll for updates every second
-		const interval = setInterval(() => {
-			readTransactions();
-		}, 1000);
+          setTransactions(sorted);
+          setError(null);
+        } else {
+          setTransactions([]);
+        }
+        setLoading(false);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to read transactions",
+        );
+        setLoading(false);
+      }
+    };
 
-		// Listen to storage events (cross-tab updates)
-		const handleStorageChange = (e: StorageEvent): void => {
-			if (e.key === sonarChannel) {
-				readTransactions();
-			}
-		};
+    // Initial load
+    readTransactions();
 
-		window.addEventListener("storage", handleStorageChange);
+    // Poll for updates every second
+    const interval = setInterval(() => {
+      readTransactions();
+    }, 1000);
 
-		return () => {
-			clearInterval(interval);
-			window.removeEventListener("storage", handleStorageChange);
-		};
-	}, [currentNetworkId]);
+    // Listen to storage events (cross-tab updates)
+    const handleStorageChange = (e: StorageEvent): void => {
+      if (e.key === sonarChannel) {
+        readTransactions();
+      }
+    };
 
-	return { transactions, loading, error };
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [currentNetworkId]);
+
+  return { transactions, loading, error };
 }

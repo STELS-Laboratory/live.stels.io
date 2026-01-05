@@ -50,8 +50,8 @@ export const useOpenAppsStore = create<OpenAppsState>()(
         openApp: (schema: SchemaProject): string => {
           // For virtual schemas (tokens), check by channelKey instead of schemaId
           const isVirtualSchema = schema.id.startsWith("virtual-");
-          const channelKey = isVirtualSchema && schema.channelKeys?.[0] 
-            ? schema.channelKeys[0] 
+          const channelKey = isVirtualSchema && schema.channelKeys?.[0]
+            ? schema.channelKeys[0]
             : null;
 
           // Find existing app by schemaId or channelKey
@@ -132,7 +132,9 @@ export const useOpenAppsStore = create<OpenAppsState>()(
         updateAppState: (id: string, state: OpenApp["state"]): void => {
           set((prevState) => ({
             apps: prevState.apps.map((app) =>
-              app.id === id ? { ...app, state: { ...app.state, ...state } } : app
+              app.id === id
+                ? { ...app, state: { ...app.state, ...state } }
+                : app
             ),
           }));
         },

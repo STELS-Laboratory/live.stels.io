@@ -1,81 +1,89 @@
-import { useEffect } from 'react';
-import { useAuthStore } from '@/stores/modules/auth.store';
+import { useEffect } from "react";
+import { useAuthStore } from "@/stores/modules/auth.store";
 
 /**
  * Hook for automatic authentication restoration on app load
  */
 export const useAuthRestore = (): void => {
-	const { 
-		selectedNetwork, 
-		isConnected, 
-		isAuthenticated,
-		connectionSession,
-		_hasHydrated,
-		restoreConnection 
-	} = useAuthStore();
+  const {
+    selectedNetwork,
+    isConnected,
+    isAuthenticated,
+    connectionSession,
+    _hasHydrated,
+    restoreConnection,
+  } = useAuthStore();
 
-	useEffect(() => {
-		// Wait for store to be hydrated before attempting restoration
-		if (!_hasHydrated) {
+  useEffect(() => {
+    // Wait for store to be hydrated before attempting restoration
+    if (!_hasHydrated) {
+      return;
+    }
 
-			return;
-		}
+    // Don't attempt restoration if explicitly logged out (no network)
+    // This prevents restoration attempts after logout
+    if (!selectedNetwork) {
+      return;
+    }
 
-		// Don't attempt restoration if explicitly logged out (no network)
-		// This prevents restoration attempts after logout
-		if (!selectedNetwork) {
+    // Check if we already have a valid connection
+    if (
+      selectedNetwork && isConnected && isAuthenticated && connectionSession
+    ) {
+      return;
+    }
 
-			return;
-		}
+    // Case 1: We have network but missing connection/authentication
+    if (
+      selectedNetwork &&
+      (!isConnected || !isAuthenticated || !connectionSession)
+    ) {
+      // Small delay to ensure all state is stable
+      const timer = setTimeout(() => {
+        restoreConnection().then((success) => {
+          if (success) {
+            // Connection restored
+          } else {
+            // Connection restore failed
+          }
+        }).catch(() => {
+          // Error during restore
+        });
+      }, 50);
 
-		// Check if we already have a valid connection
-		if (selectedNetwork && isConnected && isAuthenticated && connectionSession) {
+      return () => clearTimeout(timer);
+    }
 
-			return;
-		}
-		
-		// Case 1: We have network but missing connection/authentication
-		if (selectedNetwork && (!isConnected || !isAuthenticated || !connectionSession)) {
+    // Case 2: No network in store but data exists in localStorage
+    if (!selectedNetwork) {
+      const authStoreData = localStorage.getItem("auth-store");
+      const privateStoreData = localStorage.getItem("private-store");
+      const hasValidSession = privateStoreData &&
+        JSON.parse(privateStoreData)?.raw?.session;
 
-			// Small delay to ensure all state is stable
-			const timer = setTimeout(() => {
-				restoreConnection().then((success) => {
-					if (success) {
-						// Connection restored
-					} else {
-						// Connection restore failed
-					}
-				}).catch(() => {
-					// Error during restore
-				});
-			}, 50);
+      // If we have a valid session but incomplete store data, try to restore
+      if (hasValidSession && authStoreData) {
+        const timer = setTimeout(() => {
+          restoreConnection().then((success) => {
+            if (success) {
+              // Connection restored
+            } else {
+              // Connection restore failed
+            }
+          }).catch(() => {
+            // Error during restore
+          });
+        }, 50);
 
-			return () => clearTimeout(timer);
-		}
-		
-		// Case 2: No network in store but data exists in localStorage
-		if (!selectedNetwork) {
-			const authStoreData = localStorage.getItem('auth-store');
-			const privateStoreData = localStorage.getItem('private-store');
-			const hasValidSession = privateStoreData && JSON.parse(privateStoreData)?.raw?.session;
-
-			// If we have a valid session but incomplete store data, try to restore
-			if (hasValidSession && authStoreData) {
-
-				const timer = setTimeout(() => {
-					restoreConnection().then((success) => {
-						if (success) {
-							// Connection restored
-						} else {
-							// Connection restore failed
-						}
-					}).catch(() => {
-						// Error during restore
-					});
-				}, 50);
-
-				return () => clearTimeout(timer);
-			}
-		}
-	}, [selectedNetwork, isConnected, isAuthenticated, connectionSession, _hasHydrated, restoreConnection]);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [
+    selectedNetwork,
+    isConnected,
+    isAuthenticated,
+    connectionSession,
+    _hasHydrated,
+    restoreConnection,
+  ]);
 };

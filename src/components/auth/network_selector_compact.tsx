@@ -8,11 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  CheckCircle,
-  ChevronDown,
-  Network,
-} from "lucide-react";
+import { CheckCircle, ChevronDown, Network } from "lucide-react";
 import { type NetworkConfig, useAuthStore } from "@/stores/modules/auth.store";
 
 interface NetworkSelectorCompactProps {

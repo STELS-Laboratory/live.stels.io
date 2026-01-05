@@ -63,7 +63,7 @@ export function SecurityWarningExtensions(): React.ReactElement {
   const handleInstall = (): void => {
     // Trigger browser install prompt if available
     // @ts-expect-error - WindowWithPWA extends Window with deferredPrompt property
-	  const installPrompt = (window as WindowWithPWA).deferredPrompt;
+    const installPrompt = (window as WindowWithPWA).deferredPrompt;
     if (installPrompt) {
       installPrompt.prompt();
       installPrompt.userChoice.then((choiceResult) => {
@@ -71,7 +71,7 @@ export function SecurityWarningExtensions(): React.ReactElement {
           // Install accepted
         }
         // @ts-expect-error - WindowWithPWA extends Window with deferredPrompt property
-	      (window as WindowWithPWA).deferredPrompt = null;
+        (window as WindowWithPWA).deferredPrompt = null;
       });
     } else {
       toast.info(

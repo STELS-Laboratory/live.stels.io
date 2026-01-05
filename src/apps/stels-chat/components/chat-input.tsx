@@ -51,7 +51,6 @@ export function ChatInput({
 
     // Check if model is selected
     if (!hasModel) {
-
       return;
     }
 
@@ -61,8 +60,8 @@ export function ChatInput({
     try {
       await sendMessage(tabId, messageToSend);
     } catch {
-			// Error handled silently
-		}
+      // Error handled silently
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>): void => {
@@ -82,8 +81,8 @@ export function ChatInput({
       const trainingFile = await uploadFile(file, "context");
       attachFileToTab(tabId, trainingFile.id);
     } catch {
-			// Error handled silently
-		}
+      // Error handled silently
+    }
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";

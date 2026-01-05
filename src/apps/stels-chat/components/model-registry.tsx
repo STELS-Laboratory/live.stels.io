@@ -5,15 +5,15 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  RefreshCw,
-  Plus,
-  Trash2,
-  Download,
+  AlertCircle,
   CheckCircle2,
   Clock,
-  AlertCircle,
-  XCircle,
+  Download,
   Loader2,
+  Plus,
+  RefreshCw,
+  Trash2,
+  XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,28 +50,32 @@ function getStatusConfig(status: ModelStatus): {
         label: "Ready",
         icon: CheckCircle2,
         variant: "default",
-        className: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
+        className:
+          "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
       };
     case "downloading":
       return {
         label: "Downloading...",
         icon: Loader2,
         variant: "secondary",
-        className: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+        className:
+          "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
       };
     case "pending":
       return {
         label: "Pending",
         icon: Clock,
         variant: "outline",
-        className: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+        className:
+          "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
       };
     case "error":
       return {
         label: "Error",
         icon: XCircle,
         variant: "destructive",
-        className: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
+        className:
+          "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
       };
   }
 }
@@ -133,8 +137,8 @@ export function ModelRegistry(): React.ReactElement {
       const models = await stelsListModels();
       setAvailableModels(models.map((m) => m.name));
     } catch {
-			// Error handled silently
-		} finally {
+      // Error handled silently
+    } finally {
       setIsLoadingAvailable(false);
     }
   };
@@ -165,8 +169,8 @@ export function ModelRegistry(): React.ReactElement {
       });
       setTagsInput("");
     } catch {
-			// Error handled silently
-		}
+      // Error handled silently
+    }
   };
 
   const handleUnregister = async (modelName: string): Promise<void> => {
@@ -181,8 +185,8 @@ export function ModelRegistry(): React.ReactElement {
     try {
       await unregisterModel(modelName);
     } catch {
-			// Error handled silently
-		}
+      // Error handled silently
+    }
   };
 
   const handlePullAndRegister = async (modelName: string): Promise<void> => {
@@ -193,7 +197,6 @@ export function ModelRegistry(): React.ReactElement {
       // Also refresh available models list
       await handleLoadAvailableModels();
     } catch {
-
       throw error;
     }
   };
@@ -223,7 +226,8 @@ export function ModelRegistry(): React.ReactElement {
         <Alert>
           <AlertCircle className="icon-sm" />
           <AlertDescription>
-            Model Registry is only available for developers. You can create and manage assistants instead.
+            Model Registry is only available for developers. You can create and
+            manage assistants instead.
           </AlertDescription>
         </Alert>
       </div>
@@ -236,8 +240,8 @@ export function ModelRegistry(): React.ReactElement {
         <div>
           <h2 className="text-lg font-semibold">Model Registry</h2>
           <p className="text-sm text-muted-foreground">
-            Manage models for automatic loading in production. Use "Pull Model" to
-            download your first model from Ollama registry.
+            Manage models for automatic loading in production. Use "Pull Model"
+            to download your first model from Ollama registry.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -263,10 +267,10 @@ export function ModelRegistry(): React.ReactElement {
               <DialogHeader>
                 <DialogTitle>Pull Model from Ollama</DialogTitle>
                 <DialogDescription>
-                  Download a model from Ollama registry. This is the primary method
-                  to load models when you don't have any. If you're a
-                  developer/owner, the model will be automatically registered after
-                  successful download.
+                  Download a model from Ollama registry. This is the primary
+                  method to load models when you don't have any. If you're a
+                  developer/owner, the model will be automatically registered
+                  after successful download.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
@@ -286,11 +290,9 @@ export function ModelRegistry(): React.ReactElement {
                       onClick={handleLoadAvailableModels}
                       disabled={isLoadingAvailable}
                     >
-                      {isLoadingAvailable ? (
-                        <Loader2 className="icon-sm animate-spin" />
-                      ) : (
-                        <Download className="icon-sm" />
-                      )}
+                      {isLoadingAvailable
+                        ? <Loader2 className="icon-sm animate-spin" />
+                        : <Download className="icon-sm" />}
                     </Button>
                   </div>
                   {availableModels.length > 0 && (
@@ -324,23 +326,28 @@ export function ModelRegistry(): React.ReactElement {
                     onClick={handlePullModel}
                     disabled={isPulling || isLoading || !pullModelName.trim()}
                   >
-                    {isPulling ? (
-                      <>
-                        <Loader2 className="icon-sm mr-2 animate-spin" />
-                        Downloading...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="icon-sm mr-2" />
-                        Pull Model
-                      </>
-                    )}
+                    {isPulling
+                      ? (
+                        <>
+                          <Loader2 className="icon-sm mr-2 animate-spin" />
+                          Downloading...
+                        </>
+                      )
+                      : (
+                        <>
+                          <Download className="icon-sm mr-2" />
+                          Pull Model
+                        </>
+                      )}
                   </Button>
                 </div>
               </div>
             </DialogContent>
           </Dialog>
-          <Dialog open={showRegisterDialog} onOpenChange={setShowRegisterDialog}>
+          <Dialog
+            open={showRegisterDialog}
+            onOpenChange={setShowRegisterDialog}
+          >
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
                 <Plus className="icon-sm mr-2" />
@@ -366,8 +373,7 @@ export function ModelRegistry(): React.ReactElement {
                         setRegisterConfig({
                           ...registerConfig,
                           name: e.target.value,
-                        })
-                      }
+                        })}
                       placeholder="llama2"
                       required
                     />
@@ -377,11 +383,9 @@ export function ModelRegistry(): React.ReactElement {
                       onClick={handleLoadAvailableModels}
                       disabled={isLoadingAvailable}
                     >
-                      {isLoadingAvailable ? (
-                        <Loader2 className="icon-sm animate-spin" />
-                      ) : (
-                        <Download className="icon-sm" />
-                      )}
+                      {isLoadingAvailable
+                        ? <Loader2 className="icon-sm animate-spin" />
+                        : <Download className="icon-sm" />}
                     </Button>
                   </div>
                   {availableModels.length > 0 && (
@@ -395,8 +399,7 @@ export function ModelRegistry(): React.ReactElement {
                             setRegisterConfig({
                               ...registerConfig,
                               name,
-                            })
-                          }
+                            })}
                         >
                           {name}
                         </Badge>
@@ -417,8 +420,7 @@ export function ModelRegistry(): React.ReactElement {
                           ...registerConfig.metadata,
                           description: e.target.value,
                         },
-                      })
-                    }
+                      })}
                     placeholder="Model description..."
                     rows={2}
                   />
@@ -463,148 +465,157 @@ export function ModelRegistry(): React.ReactElement {
         </Alert>
       )}
 
-      {registeredModels.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Download className="icon-2xl text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No models registered yet</h3>
-            <p className="text-sm text-muted-foreground mb-6 text-center max-w-md">
-              Start by pulling a model from Ollama registry. This will download the
-              model and automatically register it if you're a developer/owner.
-            </p>
-            <div className="flex gap-2">
-              <Button onClick={() => setShowPullDialog(true)}>
-                <Download className="icon-sm mr-2" />
-                Pull First Model
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowRegisterDialog(true)}
-              >
-                <Plus className="icon-sm mr-2" />
-                Register Existing Model
-              </Button>
-            </div>
-            <div className="mt-6 p-4 bg-muted/50 rounded max-w-md">
-              <p className="text-xs font-semibold mb-2">Popular models to start:</p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {["llama2", "mistral", "codellama", "phi"].map((name) => (
-                  <Badge
-                    key={name}
-                    variant="outline"
-                    className="cursor-pointer hover:bg-primary/10"
-                    onClick={() => {
-                      setPullModelName(name);
-                      setShowPullDialog(true);
-                    }}
-                  >
-                    {name}
-                  </Badge>
-                ))}
+      {registeredModels.length === 0
+        ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Download className="icon-2xl text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                No models registered yet
+              </h3>
+              <p className="text-sm text-muted-foreground mb-6 text-center max-w-md">
+                Start by pulling a model from Ollama registry. This will
+                download the model and automatically register it if you're a
+                developer/owner.
+              </p>
+              <div className="flex gap-2">
+                <Button onClick={() => setShowPullDialog(true)}>
+                  <Download className="icon-sm mr-2" />
+                  Pull First Model
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowRegisterDialog(true)}
+                >
+                  <Plus className="icon-sm mr-2" />
+                  Register Existing Model
+                </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {registeredModels.map((model) => {
-            const statusConfig = getStatusConfig(model.status);
-            const StatusIcon = statusConfig.icon;
-
-            return (
-              <Card key={model.name}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-base">{model.name}</CardTitle>
-                      {model.metadata?.description && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {model.metadata.description}
-                        </p>
-                      )}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => handleUnregister(model.name)}
-                      disabled={isLoading}
-                      title="Unregister model"
-                    >
-                      <Trash2 className="icon-xs text-destructive" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <StatusIcon
-                      className={cn(
-                        "icon-sm",
-                        model.status === "downloading" && "animate-spin",
-                      )}
-                    />
+              <div className="mt-6 p-4 bg-muted/50 rounded max-w-md">
+                <p className="text-xs font-semibold mb-2">
+                  Popular models to start:
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {["llama2", "mistral", "codellama", "phi"].map((name) => (
                     <Badge
-                      variant={statusConfig.variant}
-                      className={cn("text-xs", statusConfig.className)}
+                      key={name}
+                      variant="outline"
+                      className="cursor-pointer hover:bg-primary/10"
+                      onClick={() => {
+                        setPullModelName(name);
+                        setShowPullDialog(true);
+                      }}
                     >
-                      {statusConfig.label}
+                      {name}
                     </Badge>
-                  </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )
+        : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {registeredModels.map((model) => {
+              const statusConfig = getStatusConfig(model.status);
+              const StatusIcon = statusConfig.icon;
 
-                  {model.status === "error" && model.error && (
-                    <Alert variant="destructive" className="py-2">
-                      <AlertDescription className="text-xs">
-                        {model.error}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  {model.metadata?.tags && model.metadata.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {model.metadata.tags.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="outline"
-                          className="text-xs"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
+              return (
+                <Card key={model.name}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle className="text-base">
+                          {model.name}
+                        </CardTitle>
+                        {model.metadata?.description && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {model.metadata.description}
+                          </p>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => handleUnregister(model.name)}
+                        disabled={isLoading}
+                        title="Unregister model"
+                      >
+                        <Trash2 className="icon-xs text-destructive" />
+                      </Button>
                     </div>
-                  )}
-
-                  <div className="text-xs text-muted-foreground space-y-1">
-                    <div>
-                      Registered:{" "}
-                      {new Date(model.registeredAt).toLocaleDateString()}
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <StatusIcon
+                        className={cn(
+                          "icon-sm",
+                          model.status === "downloading" && "animate-spin",
+                        )}
+                      />
+                      <Badge
+                        variant={statusConfig.variant}
+                        className={cn("text-xs", statusConfig.className)}
+                      >
+                        {statusConfig.label}
+                      </Badge>
                     </div>
-                    {model.lastChecked && (
-                      <div>
-                        Last checked:{" "}
-                        {new Date(model.lastChecked).toLocaleDateString()}
+
+                    {model.status === "error" && model.error && (
+                      <Alert variant="destructive" className="py-2">
+                        <AlertDescription className="text-xs">
+                          {model.error}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    {model.metadata?.tags && model.metadata.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {model.metadata.tags.map((tag) => (
+                          <Badge
+                            key={tag}
+                            variant="outline"
+                            className="text-xs"
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
                       </div>
                     )}
-                    <div>By: {model.registeredBy.substring(0, 8)}...</div>
-                  </div>
 
-                  {model.status !== "ready" && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => handlePullAndRegister(model.name)}
-                      disabled={isLoading}
-                    >
-                      <Download className="icon-sm mr-2" />
-                      Pull & Register
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <div>
+                        Registered:{" "}
+                        {new Date(model.registeredAt).toLocaleDateString()}
+                      </div>
+                      {model.lastChecked && (
+                        <div>
+                          Last checked:{" "}
+                          {new Date(model.lastChecked).toLocaleDateString()}
+                        </div>
+                      )}
+                      <div>By: {model.registeredBy.substring(0, 8)}...</div>
+                    </div>
+
+                    {model.status !== "ready" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => handlePullAndRegister(model.name)}
+                        disabled={isLoading}
+                      >
+                        <Download className="icon-sm mr-2" />
+                        Pull & Register
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
     </div>
   );
 }

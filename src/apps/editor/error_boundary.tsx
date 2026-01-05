@@ -6,7 +6,7 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, RefreshCw, Code } from "lucide-react";
+import { AlertCircle, Code, RefreshCw } from "lucide-react";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -47,7 +47,7 @@ export default class EditorErrorBoundary extends Component<
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error("Editor Error Boundary caught an error:", error, errorInfo);
-    
+
     this.setState({
       errorInfo,
     });
@@ -91,7 +91,8 @@ export default class EditorErrorBoundary extends Component<
             <CardContent className="space-y-4">
               <div>
                 <p className="text-sm text-muted-foreground mb-2">
-                  An error occurred in the Protocol Editor. This might be due to:
+                  An error occurred in the Protocol Editor. This might be due
+                  to:
                 </p>
                 <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1 mb-4">
                   <li>Invalid worker script syntax</li>

@@ -39,7 +39,6 @@ export function useRestoreOpenApps(): {
         const invalidCount = apps.length - validApps.length;
 
         if (invalidCount > 0) {
-
           // Remove invalid apps
           const invalidIds = apps
             .filter((app) => !schemaIds.has(app.schemaId))
@@ -51,10 +50,9 @@ export function useRestoreOpenApps(): {
         }
 
         setRestoredCount(validApps.length);
-
       } catch {
-			// Error handled silently
-		} finally {
+        // Error handled silently
+      } finally {
         setIsRestoring(false);
       }
     };

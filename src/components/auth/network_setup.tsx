@@ -27,7 +27,6 @@ interface NetworkSetupProps {
 export function NetworkSetup(
   { onBack, onConnect }: NetworkSetupProps,
 ): React.ReactElement {
-
   const {
     selectedNetwork,
     connectionError,
@@ -184,7 +183,6 @@ export function NetworkSetup(
             </Button>
             <Button
               onClick={() => {
-
                 onConnect();
               }}
               disabled={!selectedNetwork || isConnecting}

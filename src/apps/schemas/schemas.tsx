@@ -84,19 +84,17 @@ export default function Schemas(): ReactElement {
 
   // Load schemas callback
   const loadSchemas = useCallback(async (): Promise<void> => {
-
     try {
       const loadedSchemas = await getAllSchemas();
       setSchemas(loadedSchemas);
 
       // Select first schema by default
       if (loadedSchemas.length > 0 && !activeSchemaId && loadedSchemas[0]) {
-
         setActiveSchemaId(loadedSchemas[0].id);
       }
     } catch {
-			// Error handled silently
-		}
+      // Error handled silently
+    }
   }, [activeSchemaId]);
 
   // Load schemas from IndexedDB on mount
@@ -159,7 +157,6 @@ export default function Schemas(): ReactElement {
     const currentSchema = schemas.find((s) => s.id === activeSchemaId);
 
     if (currentSchema) {
-
       setSchemaJson(JSON.stringify(currentSchema.schema, null, 2));
       setSelectedChannels(currentSchema.channelKeys);
       setSelectedNestedSchemas(currentSchema.nestedSchemas || []);
@@ -297,7 +294,6 @@ export default function Schemas(): ReactElement {
           `${schema.name} has been created successfully`,
         );
       } catch {
-
         showToast(
           "error",
           "Creation Failed",
@@ -320,7 +316,6 @@ export default function Schemas(): ReactElement {
           `${schema.name} information has been updated`,
         );
       } catch {
-
         showToast(
           "error",
           "Update Failed",
@@ -384,7 +379,6 @@ export default function Schemas(): ReactElement {
         );
       }
     } catch {
-
       showToast(
         "error",
         "Save Failed",
@@ -420,7 +414,6 @@ export default function Schemas(): ReactElement {
           `${schemaName} has been removed`,
         );
       } catch {
-
         showToast(
           "error",
           "Delete Failed",
@@ -437,7 +430,6 @@ export default function Schemas(): ReactElement {
       await navigator.clipboard.writeText(schemaJson);
       showToast("success", "Copied", "Schema JSON copied to clipboard");
     } catch {
-
       showToast("error", "Copy Failed", "Failed to copy JSON to clipboard");
     }
   }, [schemaJson, showToast]);
@@ -537,7 +529,6 @@ export default function Schemas(): ReactElement {
           );
         }
       } catch {
-
         showToast(
           "error",
           "Import Failed",
@@ -591,7 +582,6 @@ export default function Schemas(): ReactElement {
 
           await handleImport(schemasToImport);
         } catch {
-
           showToast(
             "error",
             "Import Failed",
@@ -806,7 +796,6 @@ export default function Schemas(): ReactElement {
                             URL.revokeObjectURL(url);
                             handleExport(allSchemas);
                           } catch {
-
                             showToast(
                               "error",
                               "Error",
@@ -947,7 +936,6 @@ export default function Schemas(): ReactElement {
                           onChange={setChannelAliases}
                           selfChannelKey={selfChannelKey}
                           onSelfChannelChange={(key) => {
-
                             setSelfChannelKey(key);
                           }}
                         />
@@ -997,7 +985,6 @@ export default function Schemas(): ReactElement {
                             onChange={setChannelAliases}
                             selfChannelKey={selfChannelKey}
                             onSelfChannelChange={(key) => {
-
                               setSelfChannelKey(key);
                             }}
                           />

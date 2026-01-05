@@ -95,7 +95,6 @@ export default function SchemaPreview({
           setNestedChannelAliases(requiredChannels);
         }
       } catch {
-
         if (!cancelled) {
           setResolvedSchema(schema);
           setNestedChannelAliases([]);

@@ -23,12 +23,11 @@ export function getSessionId(): string {
     // Try to get existing session
     const stored = localStorage.getItem(SESSION_KEY);
     if (stored) {
-
       return stored;
     }
   } catch {
-			// Error handled silently
-		}
+    // Error handled silently
+  }
 
   // Create new session
   const newSession = generateSessionId();
@@ -36,8 +35,8 @@ export function getSessionId(): string {
   try {
     localStorage.setItem(SESSION_KEY, newSession);
   } catch {
-			// Error handled silently
-		}
+    // Error handled silently
+  }
 
   return newSession;
 }
@@ -51,8 +50,8 @@ export function createNewSession(): string {
   try {
     localStorage.setItem(SESSION_KEY, newSession);
   } catch {
-			// Error handled silently
-		}
+    // Error handled silently
+  }
 
   return newSession;
 }

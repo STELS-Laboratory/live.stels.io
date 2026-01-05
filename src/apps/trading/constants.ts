@@ -13,18 +13,18 @@ export const TRADING_TERMINAL_VERSION = "2.0.0";
  * Component version metadata
  */
 export interface ComponentVersion {
-	version: string;
-	buildDate: string;
-	component: string;
+  version: string;
+  buildDate: string;
+  component: string;
 }
 
 /**
  * Get current component version info
  */
 export function getComponentVersion(): ComponentVersion {
-	return {
-		version: TRADING_TERMINAL_VERSION,
-		buildDate: new Date().toISOString(),
-		component: "TradingTerminal",
-	};
+  return {
+    version: TRADING_TERMINAL_VERSION,
+    buildDate: new Date().toISOString(),
+    component: "TradingTerminal",
+  };
 }

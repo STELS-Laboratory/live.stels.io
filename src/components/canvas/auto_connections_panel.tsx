@@ -84,9 +84,7 @@ const BlockItem: React.FC<{
                   "w-6 h-6 rounded",
                   "text-sm font-medium",
                   "transition-colors",
-                  isSelected
-                    ? ""
-                    : "",
+                  isSelected ? "" : "",
                 )}
               >
                 {icon}
@@ -98,9 +96,7 @@ const BlockItem: React.FC<{
                   <span
                     className={cn(
                       "text-sm font-medium",
-                      isSelected
-                        ? ""
-                        : "",
+                      isSelected ? "" : "",
                     )}
                   >
                     Position {block.position}
@@ -117,9 +113,7 @@ const BlockItem: React.FC<{
                 <div
                   className={cn(
                     "text-xs font-mono truncate",
-                    isSelected
-                      ? ""
-                      : "",
+                    isSelected ? "" : "",
                   )}
                 >
                   {valueArray.slice(0, 2).join(", ")}
@@ -128,9 +122,7 @@ const BlockItem: React.FC<{
               </div>
 
               {/* Check Icon */}
-              {isSelected && (
-                <Check className="h-4 w-4 flex-shrink-0" />
-              )}
+              {isSelected && <Check className="h-4 w-4 flex-shrink-0" />}
             </button>
           </TooltipTrigger>
           <TooltipContent
@@ -236,9 +228,7 @@ export const AutoConnectionsPanel: React.FC<AutoConnectionsPanelProps> = ({
         className={cn(
           "flex items-center justify-between px-4 py-3",
           "border-b",
-          isEnabled
-            ? ""
-            : "",
+          isEnabled ? "" : "",
         )}
       >
         <div className="flex items-center gap-3">

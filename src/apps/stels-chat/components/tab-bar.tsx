@@ -3,8 +3,8 @@
  * Browser-style tabs for chat sessions
  */
 
-import React, { useState, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useCallback, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Plus, X } from "lucide-react";
 import { useMobile } from "@/hooks/use_mobile";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,9 @@ export function TabBar(): React.ReactElement {
     useStelsChatStore();
   const [swipedTabId, setSwipedTabId] = useState<string | null>(null);
   const [longPressTabId, setLongPressTabId] = useState<string | null>(null);
-  const touchStartRef = useRef<{ x: number; y: number; time: number; tabId: string } | null>(null);
+  const touchStartRef = useRef<
+    { x: number; y: number; time: number; tabId: string } | null
+  >(null);
   const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleCreateTab = (): void => {
@@ -60,30 +62,35 @@ export function TabBar(): React.ReactElement {
     [],
   );
 
-  const handleTouchMove = useCallback((e: React.TouchEvent, tabId: string): void => {
-    if (!touchStartRef.current || touchStartRef.current.tabId !== tabId) return;
-
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - touchStartRef.current.x;
-    const deltaY = Math.abs(touch.clientY - touchStartRef.current.y);
-
-    // Cancel long press if user is swiping
-    if (Math.abs(deltaX) > 10 || deltaY > 10) {
-      if (longPressTimeoutRef.current) {
-        clearTimeout(longPressTimeoutRef.current);
-        longPressTimeoutRef.current = null;
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent, tabId: string): void => {
+      if (!touchStartRef.current || touchStartRef.current.tabId !== tabId) {
+        return;
       }
-      setLongPressTabId(null);
-    }
 
-    // Swipe left to reveal delete button
-    if (deltaX < -30 && deltaY < 50) {
-      setSwipedTabId(tabId);
-    } else if (deltaX > 10) {
-      // Swipe right to hide delete button
-      setSwipedTabId(null);
-    }
-  }, []);
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchStartRef.current.x;
+      const deltaY = Math.abs(touch.clientY - touchStartRef.current.y);
+
+      // Cancel long press if user is swiping
+      if (Math.abs(deltaX) > 10 || deltaY > 10) {
+        if (longPressTimeoutRef.current) {
+          clearTimeout(longPressTimeoutRef.current);
+          longPressTimeoutRef.current = null;
+        }
+        setLongPressTabId(null);
+      }
+
+      // Swipe left to reveal delete button
+      if (deltaX < -30 && deltaY < 50) {
+        setSwipedTabId(tabId);
+      } else if (deltaX > 10) {
+        // Swipe right to hide delete button
+        setSwipedTabId(null);
+      }
+    },
+    [],
+  );
 
   const handleTouchEnd = useCallback((tabId: string): void => {
     // Check if this tab was long pressed
@@ -280,9 +287,7 @@ export function TabBar(): React.ReactElement {
 
                   {/* Hover effect overlay */}
                   {!isActive && !isMobile && (
-                    <motion.div
-                      className="absolute inset-0 bg-primary/5 rounded-t-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                    />
+                    <motion.div className="absolute inset-0 bg-primary/5 rounded-t-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                   )}
                 </motion.button>
 

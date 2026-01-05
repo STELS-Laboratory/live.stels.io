@@ -11,9 +11,14 @@ import React, {
 } from "react";
 import { AlertCircle, Check, Info, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import type { ToastType, Toast, ToastProps, ToastContainerProps } from "@/types/components/ui/types";
+import type {
+  Toast,
+  ToastContainerProps,
+  ToastProps,
+  ToastType,
+} from "@/types/components/ui/types";
 
-export type { ToastType, Toast };
+export type { Toast, ToastType };
 
 const icons: Record<ToastType, React.ComponentType<{ className?: string }>> = {
   success: Check,
@@ -104,7 +109,6 @@ function ToastItem({ toast, onClose }: ToastProps): ReactElement {
     </motion.div>
   );
 }
-
 
 /**
  * Toast container with stacked notifications

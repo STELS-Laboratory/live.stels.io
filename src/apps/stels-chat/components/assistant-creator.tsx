@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useStelsChatStore } from "../store";
-import type { CreateAssistantRequest, AssistantOptions } from "../types";
+import type { AssistantOptions, CreateAssistantRequest } from "../types";
 
 interface AssistantCreatorProps {
   onClose: () => void;
@@ -76,8 +76,8 @@ export function AssistantCreator({
       });
       onClose();
     } catch {
-			// Error handled silently
-		}
+      // Error handled silently
+    }
   };
 
   const updateOption = (
@@ -113,8 +113,7 @@ export function AssistantCreator({
             id="description"
             value={config.description || ""}
             onChange={(e) =>
-              setConfig({ ...config, description: e.target.value })
-            }
+              setConfig({ ...config, description: e.target.value })}
             placeholder="A helpful assistant for coding tasks"
             rows={2}
           />
@@ -146,8 +145,7 @@ export function AssistantCreator({
             id="systemPrompt"
             value={config.systemPrompt || ""}
             onChange={(e) =>
-              setConfig({ ...config, systemPrompt: e.target.value })
-            }
+              setConfig({ ...config, systemPrompt: e.target.value })}
             placeholder="You are a helpful assistant..."
             rows={4}
           />
@@ -183,8 +181,7 @@ export function AssistantCreator({
                 step="0.1"
                 value={config.options?.temperature || 0.7}
                 onChange={(e) =>
-                  updateOption("temperature", parseFloat(e.target.value))
-                }
+                  updateOption("temperature", parseFloat(e.target.value))}
               />
             </div>
 
@@ -198,8 +195,7 @@ export function AssistantCreator({
                 step="0.1"
                 value={config.options?.top_p || 0.9}
                 onChange={(e) =>
-                  updateOption("top_p", parseFloat(e.target.value))
-                }
+                  updateOption("top_p", parseFloat(e.target.value))}
               />
             </div>
 
@@ -211,8 +207,7 @@ export function AssistantCreator({
                 min="0"
                 value={config.options?.top_k || 40}
                 onChange={(e) =>
-                  updateOption("top_k", parseInt(e.target.value, 10))
-                }
+                  updateOption("top_k", parseInt(e.target.value, 10))}
               />
             </div>
 
@@ -224,8 +219,7 @@ export function AssistantCreator({
                 min="1"
                 value={config.options?.num_predict || 2048}
                 onChange={(e) =>
-                  updateOption("num_predict", parseInt(e.target.value, 10))
-                }
+                  updateOption("num_predict", parseInt(e.target.value, 10))}
               />
             </div>
 
@@ -238,8 +232,7 @@ export function AssistantCreator({
                 step="0.1"
                 value={config.options?.repeat_penalty || 1.1}
                 onChange={(e) =>
-                  updateOption("repeat_penalty", parseFloat(e.target.value))
-                }
+                  updateOption("repeat_penalty", parseFloat(e.target.value))}
               />
             </div>
 

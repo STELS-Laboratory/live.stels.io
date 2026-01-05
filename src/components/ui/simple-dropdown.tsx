@@ -2,7 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import type { DropdownItemProps, DropdownSeparatorProps } from "@/types/components/ui/types";
+import type {
+  DropdownItemProps,
+  DropdownSeparatorProps,
+} from "@/types/components/ui/types";
 
 interface DropdownProps {
   children: React.ReactNode;

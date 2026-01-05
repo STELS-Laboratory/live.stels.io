@@ -6,17 +6,18 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import type {
-	StelsChatStore,
-	ChatTab,
-	ChatMessage,
-	TrainingFile,
-	Assistant,
-	CreateAssistantRequest,
-	UpdateAssistantRequest,
-	ListAssistantsFilters,
-	ModelRegistryEntry,
-	RegisterModelRequest,
-	ListRegisteredModelsRequest, StelsModel,
+  Assistant,
+  ChatMessage,
+  ChatTab,
+  CreateAssistantRequest,
+  ListAssistantsFilters,
+  ListRegisteredModelsRequest,
+  ModelRegistryEntry,
+  RegisterModelRequest,
+  StelsChatStore,
+  StelsModel,
+  TrainingFile,
+  UpdateAssistantRequest,
 } from "./types";
 import { StelsApiService } from "./lib/stels-api";
 import { useAuthStore } from "@/stores/modules/auth.store";
@@ -31,16 +32,15 @@ function getStelsApiUrl(): string {
   try {
     const authState = useAuthStore.getState();
     const apiUrl = authState.connectionSession?.api;
-    
+
     if (apiUrl) {
       // Use the API URL from connectionSession
       return apiUrl;
     }
-    
+
     // Fallback to default
     return DEFAULT_API_URL;
   } catch {
-
     return DEFAULT_API_URL;
   }
 }
@@ -53,17 +53,16 @@ function getSessionCredentials(): { session?: string; token?: string } {
   try {
     const authState = useAuthStore.getState();
     const connectionSession = authState.connectionSession;
-    
+
     if (connectionSession) {
       return {
         session: connectionSession.session,
         token: connectionSession.token,
       };
     }
-    
+
     return {};
   } catch {
-
     return {};
   }
 }
@@ -133,12 +132,9 @@ export const useStelsChatStore = create<StelsChatStore>()(
           closeTab: (tabId: string): void => {
             set((state) => {
               const newTabs = state.tabs.filter((tab) => tab.id !== tabId);
-              const newActiveTabId =
-                state.activeTabId === tabId
-                  ? newTabs.length > 0
-                    ? newTabs[newTabs.length - 1].id
-                    : null
-                  : state.activeTabId;
+              const newActiveTabId = state.activeTabId === tabId
+                ? newTabs.length > 0 ? newTabs[newTabs.length - 1].id : null
+                : state.activeTabId;
 
               return {
                 tabs: newTabs,
@@ -154,7 +150,9 @@ export const useStelsChatStore = create<StelsChatStore>()(
           updateTabTitle: (tabId: string, title: string): void => {
             set((state) => ({
               tabs: state.tabs.map((tab) =>
-                tab.id === tabId ? { ...tab, title, updatedAt: Date.now() } : tab,
+                tab.id === tabId
+                  ? { ...tab, title, updatedAt: Date.now() }
+                  : tab
               ),
             }));
           },
@@ -168,18 +166,18 @@ export const useStelsChatStore = create<StelsChatStore>()(
               tabs: state.tabs.map((tab) =>
                 tab.id === tabId
                   ? {
-                      ...tab,
-                      messages: [
-                        ...tab.messages,
-                        {
-                          ...message,
-                          id: generateId(),
-                          timestamp: Date.now(),
-                        },
-                      ],
-                      updatedAt: Date.now(),
-                    }
-                  : tab,
+                    ...tab,
+                    messages: [
+                      ...tab.messages,
+                      {
+                        ...message,
+                        id: generateId(),
+                        timestamp: Date.now(),
+                      },
+                    ],
+                    updatedAt: Date.now(),
+                  }
+                  : tab
               ),
             }));
           },
@@ -198,20 +196,20 @@ export const useStelsChatStore = create<StelsChatStore>()(
               tabs: state.tabs.map((tab) =>
                 tab.id === tabId
                   ? {
-                      ...tab,
-                      messages: tab.messages.map((msg) =>
-                        msg.id === messageId
-                          ? {
-                              ...msg,
-                              content: updates.content ?? msg.content,
-                              thinking: updates.thinking ?? msg.thinking,
-                              isStreaming: updates.isStreaming ?? msg.isStreaming,
-                            }
-                          : msg,
-                      ),
-                      updatedAt: Date.now(),
-                    }
-                  : tab,
+                    ...tab,
+                    messages: tab.messages.map((msg) =>
+                      msg.id === messageId
+                        ? {
+                          ...msg,
+                          content: updates.content ?? msg.content,
+                          thinking: updates.thinking ?? msg.thinking,
+                          isStreaming: updates.isStreaming ?? msg.isStreaming,
+                        }
+                        : msg
+                    ),
+                    updatedAt: Date.now(),
+                  }
+                  : tab
               ),
             }));
           },
@@ -221,7 +219,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
               tabs: state.tabs.map((tab) =>
                 tab.id === tabId
                   ? { ...tab, messages: [], updatedAt: Date.now() }
-                  : tab,
+                  : tab
               ),
             }));
           },
@@ -232,13 +230,13 @@ export const useStelsChatStore = create<StelsChatStore>()(
             if (isFetchingModels) {
               return;
             }
-            
+
             const state = get();
             // Skip if models already loaded (can be refreshed manually)
             if (state.models.length > 0 && !state.isLoading) {
               return;
             }
-            
+
             isFetchingModels = true;
             set({ isLoading: true, error: null });
             try {
@@ -259,16 +257,20 @@ export const useStelsChatStore = create<StelsChatStore>()(
                   set((currentState) => ({
                     tabs: currentState.tabs.map((tab) =>
                       !tab.model || tab.model.trim() === ""
-                        ? { ...tab, model: firstModel.name, updatedAt: Date.now() }
-                        : tab,
+                        ? {
+                          ...tab,
+                          model: firstModel.name,
+                          updatedAt: Date.now(),
+                        }
+                        : tab
                     ),
                   }));
-
                 }
               }
             } catch (error) {
-              const errorMessage =
-                error instanceof Error ? error.message : "Failed to fetch models";
+              const errorMessage = error instanceof Error
+                ? error.message
+                : "Failed to fetch models";
               set({
                 error: errorMessage,
                 isLoading: false,
@@ -283,7 +285,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
               tabs: state.tabs.map((tab) =>
                 tab.id === tabId
                   ? { ...tab, model: modelName, updatedAt: Date.now() }
-                  : tab,
+                  : tab
               ),
             }));
           },
@@ -340,13 +342,13 @@ export const useStelsChatStore = create<StelsChatStore>()(
               tabs: state.tabs.map((tab) =>
                 tab.id === tabId
                   ? {
-                      ...tab,
-                      contextFiles: tab.contextFiles.includes(file.name)
-                        ? tab.contextFiles
-                        : [...tab.contextFiles, file.name],
-                      updatedAt: Date.now(),
-                    }
-                  : tab,
+                    ...tab,
+                    contextFiles: tab.contextFiles.includes(file.name)
+                      ? tab.contextFiles
+                      : [...tab.contextFiles, file.name],
+                    updatedAt: Date.now(),
+                  }
+                  : tab
               ),
             }));
           },
@@ -360,19 +362,22 @@ export const useStelsChatStore = create<StelsChatStore>()(
               tabs: state.tabs.map((tab) =>
                 tab.id === tabId
                   ? {
-                      ...tab,
-                      contextFiles: tab.contextFiles.filter(
-                        (name) => name !== file.name,
-                      ),
-                      updatedAt: Date.now(),
-                    }
-                  : tab,
+                    ...tab,
+                    contextFiles: tab.contextFiles.filter(
+                      (name) => name !== file.name,
+                    ),
+                    updatedAt: Date.now(),
+                  }
+                  : tab
               ),
             }));
           },
 
           // API
-          sendMessage: async (tabId: string, message: string): Promise<void> => {
+          sendMessage: async (
+            tabId: string,
+            message: string,
+          ): Promise<void> => {
             const state = get();
             const tab = state.tabs.find((t) => t.id === tabId);
             if (!tab || !tab.model) {
@@ -421,7 +426,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
               if (tab.contextFiles.length > 0) {
                 const currentState = get();
                 const contextFiles = currentState.trainingFiles.filter((f) =>
-                  tab.contextFiles.includes(f.name),
+                  tab.contextFiles.includes(f.name)
                 );
                 contextContent = contextFiles
                   .map((f) => `[Context from ${f.name}]:\n${f.content || ""}`)
@@ -459,14 +464,14 @@ export const useStelsChatStore = create<StelsChatStore>()(
 
               const streamOptions = assistant?.options
                 ? {
-                    temperature: assistant.options.temperature,
-                    top_p: assistant.options.top_p,
-                    top_k: assistant.options.top_k,
-                    num_predict: assistant.options.num_predict,
-                    repeat_penalty: assistant.options.repeat_penalty,
-                    seed: assistant.options.seed,
-                    stop: assistant.options.stop,
-                  }
+                  temperature: assistant.options.temperature,
+                  top_p: assistant.options.top_p,
+                  top_k: assistant.options.top_k,
+                  num_predict: assistant.options.num_predict,
+                  repeat_penalty: assistant.options.repeat_penalty,
+                  seed: assistant.options.seed,
+                  stop: assistant.options.stop,
+                }
                 : undefined;
 
               // Throttle state updates to prevent UI blocking
@@ -481,7 +486,11 @@ export const useStelsChatStore = create<StelsChatStore>()(
 
               const flushPendingUpdate = (): void => {
                 if (pendingUpdate) {
-                  get().updateStreamingMessage(tabId, streamingMessageId, pendingUpdate);
+                  get().updateStreamingMessage(
+                    tabId,
+                    streamingMessageId,
+                    pendingUpdate,
+                  );
                   pendingUpdate = null;
                   lastUpdateTime = Date.now();
                 }
@@ -505,7 +514,8 @@ export const useStelsChatStore = create<StelsChatStore>()(
                 pendingUpdate = {
                   content: updates.content ?? pendingUpdate?.content,
                   thinking: updates.thinking ?? pendingUpdate?.thinking,
-                  isStreaming: updates.isStreaming ?? pendingUpdate?.isStreaming,
+                  isStreaming: updates.isStreaming ??
+                    pendingUpdate?.isStreaming,
                 };
 
                 // Update immediately if enough time has passed
@@ -520,11 +530,13 @@ export const useStelsChatStore = create<StelsChatStore>()(
                 }
               };
 
-              for await (const chunk of service.streamChat(
-                tab.model,
-                apiMessages,
-                streamOptions,
-              )) {
+              for await (
+                const chunk of service.streamChat(
+                  tab.model,
+                  apiMessages,
+                  streamOptions,
+                )
+              ) {
                 // Handle both response formats:
                 // - Old format: chunk.response
                 // - New format: chunk.message.content
@@ -568,10 +580,9 @@ export const useStelsChatStore = create<StelsChatStore>()(
 
               set({ isLoading: false });
             } catch (error) {
-              const errorMessage =
-                error instanceof Error
-                  ? error.message
-                  : "Failed to send message";
+              const errorMessage = error instanceof Error
+                ? error.message
+                : "Failed to send message";
               set({ error: errorMessage, isLoading: false });
 
               // Add error message to chat
@@ -582,7 +593,6 @@ export const useStelsChatStore = create<StelsChatStore>()(
               });
             }
           },
-
 
           setApiUrl: (url: string): void => {
             set({ stelsApiUrl: url });
@@ -606,14 +616,17 @@ export const useStelsChatStore = create<StelsChatStore>()(
             try {
               const service = getApiService();
               const authState = useAuthStore.getState();
-              const networkId = authState.connectionSession?.network || "testnet";
-              const assistants = await service.listAssistants(filters, networkId);
+              const networkId = authState.connectionSession?.network ||
+                "testnet";
+              const assistants = await service.listAssistants(
+                filters,
+                networkId,
+              );
               set({ assistants, isLoading: false });
             } catch (error) {
-              const errorMessage =
-                error instanceof Error
-                  ? error.message
-                  : "Failed to fetch assistants";
+              const errorMessage = error instanceof Error
+                ? error.message
+                : "Failed to fetch assistants";
               set({ error: errorMessage, isLoading: false });
             }
           },
@@ -625,17 +638,20 @@ export const useStelsChatStore = create<StelsChatStore>()(
             try {
               const service = getApiService();
               const authState = useAuthStore.getState();
-              const networkId = authState.connectionSession?.network || "testnet";
-              const assistant = await service.createAssistant(config, networkId);
+              const networkId = authState.connectionSession?.network ||
+                "testnet";
+              const assistant = await service.createAssistant(
+                config,
+                networkId,
+              );
               // Refresh assistants list
               await get().fetchAssistants();
               set({ isLoading: false });
               return assistant;
             } catch (error) {
-              const errorMessage =
-                error instanceof Error
-                  ? error.message
-                  : "Failed to create assistant";
+              const errorMessage = error instanceof Error
+                ? error.message
+                : "Failed to create assistant";
               set({ error: errorMessage, isLoading: false });
               throw error;
             }
@@ -648,17 +664,20 @@ export const useStelsChatStore = create<StelsChatStore>()(
             try {
               const service = getApiService();
               const authState = useAuthStore.getState();
-              const networkId = authState.connectionSession?.network || "testnet";
-              const assistant = await service.updateAssistant(config, networkId);
+              const networkId = authState.connectionSession?.network ||
+                "testnet";
+              const assistant = await service.updateAssistant(
+                config,
+                networkId,
+              );
               // Refresh assistants list
               await get().fetchAssistants();
               set({ isLoading: false });
               return assistant;
             } catch (error) {
-              const errorMessage =
-                error instanceof Error
-                  ? error.message
-                  : "Failed to update assistant";
+              const errorMessage = error instanceof Error
+                ? error.message
+                : "Failed to update assistant";
               set({ error: errorMessage, isLoading: false });
               throw error;
             }
@@ -669,16 +688,16 @@ export const useStelsChatStore = create<StelsChatStore>()(
             try {
               const service = getApiService();
               const authState = useAuthStore.getState();
-              const networkId = authState.connectionSession?.network || "testnet";
+              const networkId = authState.connectionSession?.network ||
+                "testnet";
               await service.deleteAssistant(assistantId, networkId);
               // Refresh assistants list
               await get().fetchAssistants();
               set({ isLoading: false });
             } catch (error) {
-              const errorMessage =
-                error instanceof Error
-                  ? error.message
-                  : "Failed to delete assistant";
+              const errorMessage = error instanceof Error
+                ? error.message
+                : "Failed to delete assistant";
               set({ error: errorMessage, isLoading: false });
               throw error;
             }
@@ -689,15 +708,18 @@ export const useStelsChatStore = create<StelsChatStore>()(
             try {
               const service = getApiService();
               const authState = useAuthStore.getState();
-              const networkId = authState.connectionSession?.network || "testnet";
-              const assistant = await service.getAssistant(assistantId, networkId);
+              const networkId = authState.connectionSession?.network ||
+                "testnet";
+              const assistant = await service.getAssistant(
+                assistantId,
+                networkId,
+              );
               set({ isLoading: false });
               return assistant;
             } catch (error) {
-              const errorMessage =
-                error instanceof Error
-                  ? error.message
-                  : "Failed to get assistant";
+              const errorMessage = error instanceof Error
+                ? error.message
+                : "Failed to get assistant";
               set({ error: errorMessage, isLoading: false });
               throw error;
             }
@@ -705,7 +727,9 @@ export const useStelsChatStore = create<StelsChatStore>()(
 
           selectAssistant: (tabId: string, assistantId: string): void => {
             const state = get();
-            const assistant = state.assistants.find((a) => a.id === assistantId);
+            const assistant = state.assistants.find((a) =>
+              a.id === assistantId
+            );
             if (!assistant) return;
 
             // Update tab with assistant configuration
@@ -713,12 +737,12 @@ export const useStelsChatStore = create<StelsChatStore>()(
               tabs: state.tabs.map((tab) =>
                 tab.id === tabId
                   ? {
-                      ...tab,
-                      assistantId: assistant.id,
-                      model: assistant.model,
-                      updatedAt: Date.now(),
-                    }
-                  : tab,
+                    ...tab,
+                    assistantId: assistant.id,
+                    model: assistant.model,
+                    updatedAt: Date.now(),
+                  }
+                  : tab
               ),
             }));
           },
@@ -732,10 +756,9 @@ export const useStelsChatStore = create<StelsChatStore>()(
               set({ isLoading: false });
               return models;
             } catch (error) {
-              const errorMessage =
-                error instanceof Error
-                  ? error.message
-                  : "Failed to list models from Ollama";
+              const errorMessage = error instanceof Error
+                ? error.message
+                : "Failed to list models from Ollama";
               set({ error: errorMessage, isLoading: false });
               throw error;
             }
@@ -750,10 +773,9 @@ export const useStelsChatStore = create<StelsChatStore>()(
               await get().listRegisteredModels();
               set({ isLoading: false });
             } catch (error) {
-              const errorMessage =
-                error instanceof Error
-                  ? error.message
-                  : "Failed to pull model";
+              const errorMessage = error instanceof Error
+                ? error.message
+                : "Failed to pull model";
               set({ error: errorMessage, isLoading: false });
               throw error;
             }
@@ -771,10 +793,9 @@ export const useStelsChatStore = create<StelsChatStore>()(
               set({ isLoading: false });
               return model;
             } catch (error) {
-              const errorMessage =
-                error instanceof Error
-                  ? error.message
-                  : "Failed to register model";
+              const errorMessage = error instanceof Error
+                ? error.message
+                : "Failed to register model";
               set({ error: errorMessage, isLoading: false });
               throw error;
             }
@@ -789,10 +810,9 @@ export const useStelsChatStore = create<StelsChatStore>()(
               await get().listRegisteredModels();
               set({ isLoading: false });
             } catch (error) {
-              const errorMessage =
-                error instanceof Error
-                  ? error.message
-                  : "Failed to unregister model";
+              const errorMessage = error instanceof Error
+                ? error.message
+                : "Failed to unregister model";
               set({ error: errorMessage, isLoading: false });
               throw error;
             }
@@ -804,7 +824,7 @@ export const useStelsChatStore = create<StelsChatStore>()(
             // Check if user is developer before attempting to list registered models
             const authState = useAuthStore.getState();
             const isDeveloper = authState.connectionSession?.developer || false;
-            
+
             if (!isDeveloper) {
               // Don't set error for non-developers, just silently skip
 
@@ -817,10 +837,9 @@ export const useStelsChatStore = create<StelsChatStore>()(
               const models = await service.listRegisteredModels(filters);
               set({ registeredModels: models, isLoading: false });
             } catch (error) {
-              const errorMessage =
-                error instanceof Error
-                  ? error.message
-                  : "Failed to list registered models";
+              const errorMessage = error instanceof Error
+                ? error.message
+                : "Failed to list registered models";
               // Only set error for developers
               if (isDeveloper) {
                 set({ error: errorMessage, isLoading: false });

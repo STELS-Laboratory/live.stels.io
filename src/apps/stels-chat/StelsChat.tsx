@@ -67,10 +67,12 @@ function StelsChat(): React.ReactElement {
     // Only fetch if we have a connectionSession (for authenticated requests)
     // Skip if already connected and models are loaded
     const state = useStelsChatStore.getState();
-    if (connectionSession?.session && (!state.isConnected || state.models.length === 0)) {
+    if (
+      connectionSession?.session &&
+      (!state.isConnected || state.models.length === 0)
+    ) {
       fetchModels();
     } else if (!connectionSession?.session) {
-
       // Set as disconnected if no session
       useStelsChatStore.getState().setError(
         "No active session. Please connect to the network first.",

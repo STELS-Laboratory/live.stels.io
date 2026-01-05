@@ -9,15 +9,15 @@
  * Uses public assets path for Vite
  */
 export function importCoinIcon(coin: string): string | null {
-	try {
-		const normalizedCoin = coin.toUpperCase();
-		if (!normalizedCoin) return null;
+  try {
+    const normalizedCoin = coin.toUpperCase();
+    if (!normalizedCoin) return null;
 
-		// Use public path - Vite serves files from public/ at root
-		return `/assets/icons/coins/${normalizedCoin}.png`;
-	} catch {
-		return null;
-	}
+    // Use public path - Vite serves files from public/ at root
+    return `/assets/icons/coins/${normalizedCoin}.png`;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -25,22 +25,21 @@ export function importCoinIcon(coin: string): string | null {
  * Uses public assets path for Vite
  */
 export function importExchangeIcon(exchange: string): string | null {
-	try {
-		const normalizedExchange = exchange.toUpperCase();
-		if (!normalizedExchange) return null;
+  try {
+    const normalizedExchange = exchange.toUpperCase();
+    if (!normalizedExchange) return null;
 
-		// Use public path - Vite serves files from public/ at root
-		return `/assets/icons/exchanges/${normalizedExchange}.png`;
-	} catch {
-		return null;
-	}
+    // Use public path - Vite serves files from public/ at root
+    return `/assets/icons/exchanges/${normalizedExchange}.png`;
+  } catch {
+    return null;
+  }
 }
 
 /**
  * Get first letter for fallback icon
  */
 export function getFirstLetter(text: string): string {
-	if (!text) return "?";
-	return text.charAt(0).toUpperCase();
+  if (!text) return "?";
+  return text.charAt(0).toUpperCase();
 }
-

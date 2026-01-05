@@ -12,7 +12,7 @@ export function isChunkLoadError(error: unknown): boolean {
   }
 
   const message = error.message.toLowerCase();
-  
+
   return (
     message.includes("failed to fetch dynamically imported module") ||
     message.includes("failed to load resource") ||
@@ -27,7 +27,6 @@ export function isChunkLoadError(error: unknown): boolean {
  * Handle chunk loading error by reloading the page
  */
 export async function handleChunkLoadError(): Promise<void> {
-
   try {
     // Clear service worker caches (including schemas)
     if ("caches" in window) {
@@ -35,21 +34,18 @@ export async function handleChunkLoadError(): Promise<void> {
 
       // Delete all caches
       await Promise.all(cacheNames.map(async (name) => {
-
         await caches.delete(name);
       }));
-
     }
 
     // Unregister service workers
     if ("serviceWorker" in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
       await Promise.all(registrations.map((reg) => reg.unregister()));
-
     }
   } catch {
-			// Error handled silently
-		}
+    // Error handled silently
+  }
 
   // Small delay to ensure cleanup completes
   await new Promise((resolve) => setTimeout(resolve, 100));
@@ -70,12 +66,11 @@ export function initChunkErrorHandlers(): void {
     if (errorShown) return;
 
     const error = event.reason;
-    
-    if (isChunkLoadError(error)) {
 
+    if (isChunkLoadError(error)) {
       errorShown = true;
       event.preventDefault(); // Prevent default error handling
-      
+
       // Show user-friendly message and reload
       handleChunkLoadError();
     }
@@ -86,15 +81,13 @@ export function initChunkErrorHandlers(): void {
     if (errorShown) return;
 
     const error = event.error;
-    
-    if (isChunkLoadError(error)) {
 
+    if (isChunkLoadError(error)) {
       errorShown = true;
       event.preventDefault(); // Prevent default error handling
-      
+
       // Show user-friendly message and reload
       handleChunkLoadError();
     }
   });
-
 }

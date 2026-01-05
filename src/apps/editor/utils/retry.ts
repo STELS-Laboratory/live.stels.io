@@ -11,36 +11,36 @@
  * @returns The result of the operation
  */
 export async function retryWithBackoff<T>(
-	operation: () => Promise<T>,
-	maxRetries = 3,
-	initialDelay = 1000,
+  operation: () => Promise<T>,
+  maxRetries = 3,
+  initialDelay = 1000,
 ): Promise<T> {
-	let lastError: Error | unknown;
-	
-	for (let attempt = 0; attempt <= maxRetries; attempt++) {
-		try {
-			return await operation();
-		} catch (error) {
-			lastError = error;
-			
-			// Don't retry on last attempt
-			if (attempt === maxRetries) {
-				throw error;
-			}
-			
-			// Calculate delay with exponential backoff: initialDelay * 2^attempt
-			const delay = initialDelay * Math.pow(2, attempt);
-			
-			// Wait before retrying
-			await new Promise((resolve) => setTimeout(resolve, delay));
-			
-			console.warn(
-				`Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms delay`,
-			);
-		}
-	}
-	
-	throw lastError;
+  let lastError: Error | unknown;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+
+      // Don't retry on last attempt
+      if (attempt === maxRetries) {
+        throw error;
+      }
+
+      // Calculate delay with exponential backoff: initialDelay * 2^attempt
+      const delay = initialDelay * Math.pow(2, attempt);
+
+      // Wait before retrying
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      console.warn(
+        `Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms delay`,
+      );
+    }
+  }
+
+  throw lastError;
 }
 
 /**
@@ -51,42 +51,44 @@ export async function retryWithBackoff<T>(
  * @returns The result of the operation
  */
 export async function retryOnNetworkError<T>(
-	operation: () => Promise<T>,
-	maxRetries = 3,
-	initialDelay = 1000,
+  operation: () => Promise<T>,
+  maxRetries = 3,
+  initialDelay = 1000,
 ): Promise<T> {
-	let lastError: Error | unknown;
-	
-	for (let attempt = 0; attempt <= maxRetries; attempt++) {
-		try {
-			return await operation();
-		} catch (error) {
-			lastError = error;
-			
-			// Only retry on network errors
-			const isNetworkError =
-				error instanceof TypeError && error.message.includes("fetch") ||
-				error instanceof Error && (
-					error.message.includes("network") ||
-					error.message.includes("NetworkError") ||
-					error.message.includes("Failed to fetch")
-				);
-			
-			if (!isNetworkError || attempt === maxRetries) {
-				throw error;
-			}
-			
-			// Calculate delay with exponential backoff
-			const delay = initialDelay * Math.pow(2, attempt);
-			
-			// Wait before retrying
-			await new Promise((resolve) => setTimeout(resolve, delay));
-			
-			console.warn(
-				`Network error, retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms delay`,
-			);
-		}
-	}
-	
-	throw lastError;
+  let lastError: Error | unknown;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+
+      // Only retry on network errors
+      const isNetworkError =
+        error instanceof TypeError && error.message.includes("fetch") ||
+        error instanceof Error && (
+            error.message.includes("network") ||
+            error.message.includes("NetworkError") ||
+            error.message.includes("Failed to fetch")
+          );
+
+      if (!isNetworkError || attempt === maxRetries) {
+        throw error;
+      }
+
+      // Calculate delay with exponential backoff
+      const delay = initialDelay * Math.pow(2, attempt);
+
+      // Wait before retrying
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      console.warn(
+        `Network error, retry attempt ${
+          attempt + 1
+        }/${maxRetries} after ${delay}ms delay`,
+      );
+    }
+  }
+
+  throw lastError;
 }

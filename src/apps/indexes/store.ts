@@ -7,17 +7,15 @@ import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { useNetworkStore } from "@/stores/modules/network.store";
 import type {
-	IndexCandleData,
-	IndexCode, IndexData,
-	IndexMetadata, Timeframe,
+  IndexCandleData,
+  IndexCode,
+  IndexData,
+  IndexMetadata,
+  Timeframe,
 } from "./types";
-import type {
-	IndexStore,
-} from "@/types/apps/indexes/types";
+import type { IndexStore } from "@/types/apps/indexes/types";
 
-export type {
-	IndexStore,
-};
+export type { IndexStore };
 
 /**
  * Index metadata configuration
@@ -26,7 +24,8 @@ export const INDEXES_METADATA: Record<IndexCode, IndexMetadata> = {
   AOI: {
     code: "AOI",
     name: "Arbitrage Opportunity",
-    description: "Identifies price differences between exchanges for arbitrage opportunities",
+    description:
+      "Identifies price differences between exchanges for arbitrage opportunities",
     category: "arbitrage",
     icon: "TrendingUp",
     color: "emerald",
@@ -34,7 +33,8 @@ export const INDEXES_METADATA: Record<IndexCode, IndexMetadata> = {
   BDI: {
     code: "BDI",
     name: "Bitcoin Dominance",
-    description: "Bitcoin's market share as percentage of total cryptocurrency market capitalization",
+    description:
+      "Bitcoin's market share as percentage of total cryptocurrency market capitalization",
     category: "market",
     icon: "Bitcoin",
     color: "amber",
@@ -58,7 +58,8 @@ export const INDEXES_METADATA: Record<IndexCode, IndexMetadata> = {
   EWI: {
     code: "EWI",
     name: "Equal Weighted",
-    description: "Geometric mean of prices with equal weight for all components",
+    description:
+      "Geometric mean of prices with equal weight for all components",
     category: "market",
     icon: "Equal",
     color: "purple",
@@ -74,7 +75,8 @@ export const INDEXES_METADATA: Record<IndexCode, IndexMetadata> = {
   FGI: {
     code: "FGI",
     name: "Fear & Greed",
-    description: "Measures market sentiment from 0 (Extreme Fear) to 100 (Extreme Greed)",
+    description:
+      "Measures market sentiment from 0 (Extreme Fear) to 100 (Extreme Greed)",
     category: "sentiment",
     icon: "Brain",
     color: "rose",
@@ -114,7 +116,8 @@ export const INDEXES_METADATA: Record<IndexCode, IndexMetadata> = {
   MECI: {
     code: "MECI",
     name: "Multi-Exchange Composite",
-    description: "Comprehensive market index aggregating multiple assets across exchanges",
+    description:
+      "Comprehensive market index aggregating multiple assets across exchanges",
     category: "market",
     icon: "Layers",
     color: "violet",
@@ -122,7 +125,8 @@ export const INDEXES_METADATA: Record<IndexCode, IndexMetadata> = {
   PSI: {
     code: "PSI",
     name: "Price Spread",
-    description: "Measures bid-ask spreads and price differences across exchanges",
+    description:
+      "Measures bid-ask spreads and price differences across exchanges",
     category: "liquidity",
     icon: "ArrowLeftRight",
     color: "slate",
@@ -177,8 +181,8 @@ function parseIndexData(entry: unknown): IndexData | null {
       return entry.raw as IndexData;
     }
   } catch {
-			// Error handled silently
-		}
+    // Error handled silently
+  }
   return null;
 }
 
@@ -225,8 +229,8 @@ function parseCandleData(entry: unknown): IndexCandleData | null {
       };
     }
   } catch {
-			// Error handled silently
-		}
+    // Error handled silently
+  }
   return null;
 }
 
@@ -272,12 +276,12 @@ function loadIndexesFromStorage(networkId: string): {
           }
         }
       } catch {
-			// Error handled silently
-		}
+        // Error handled silently
+      }
     }
   } catch {
-			// Error handled silently
-		}
+    // Error handled silently
+  }
 
   return { indexes, candles };
 }
@@ -311,20 +315,23 @@ export const useIndexStore = create<IndexStore>()(
         loadIndexes: (): void => {
           const currentState = get();
           const { currentNetworkId } = useNetworkStore.getState();
-          
+
           // Only set loading if not already loading
           if (!currentState.loading) {
             set({ loading: true, error: null });
           }
 
           try {
-            const { indexes, candles } = loadIndexesFromStorage(currentNetworkId);
-            
+            const { indexes, candles } = loadIndexesFromStorage(
+              currentNetworkId,
+            );
+
             // Quick check: compare keys and timestamps
-            const currentIndexKeys = Object.keys(currentState.indexes).sort().join(',');
-            const newIndexKeys = Object.keys(indexes).sort().join(',');
+            const currentIndexKeys = Object.keys(currentState.indexes).sort()
+              .join(",");
+            const newIndexKeys = Object.keys(indexes).sort().join(",");
             const indexesChanged = currentIndexKeys !== newIndexKeys;
-            
+
             // Check if any index data actually changed by comparing timestamps
             let dataChanged = indexesChanged;
             if (!dataChanged && currentIndexKeys === newIndexKeys) {
@@ -338,16 +345,17 @@ export const useIndexStore = create<IndexStore>()(
                 }
               }
             }
-            
+
             // Check candles - compare keys
-            const currentCandleKeys = Object.keys(currentState.candles).sort().join(',');
-            const newCandleKeys = Object.keys(candles).sort().join(',');
+            const currentCandleKeys = Object.keys(currentState.candles).sort()
+              .join(",");
+            const newCandleKeys = Object.keys(candles).sort().join(",");
             const candlesChanged = currentCandleKeys !== newCandleKeys;
-            
+
             // Only update if data changed
             if (dataChanged || candlesChanged) {
               // Update cache with new keys string
-              const newKeysString = Object.keys(indexes).sort().join(',');
+              const newKeysString = Object.keys(indexes).sort().join(",");
               set({
                 indexes,
                 candles,
@@ -362,13 +370,12 @@ export const useIndexStore = create<IndexStore>()(
                 set({ loading: false });
               }
             }
-          } catch (error){
+          } catch (error) {
             set({
               loading: false,
-              error:
-                error instanceof Error
-                  ? error.message
-                  : "Failed to load indexes",
+              error: error instanceof Error
+                ? error.message
+                : "Failed to load indexes",
             });
           }
         },

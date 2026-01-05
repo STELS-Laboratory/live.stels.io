@@ -409,8 +409,8 @@ export default function SchemaHelp(
       setCopiedSnippet(index);
       setTimeout(() => setCopiedSnippet(null), 2000);
     } catch {
-			// Error handled silently
-		}
+      // Error handled silently
+    }
   };
 
   const categories = Array.from(

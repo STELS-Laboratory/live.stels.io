@@ -1,7 +1,7 @@
 /**
  * Canvas Components - Professional UI Controls
  * Unified design system with zinc/amber palette
- * 
+ *
  * Export all canvas-related components for easy import
  */
 
@@ -13,8 +13,8 @@ export { AutoConnectionsPanel } from "./auto_connections_panel";
 
 // Canvas Overlays
 export {
-  EnhancedDropZone,
-  PanelTransitionOverlay,
-  LoadingSpinner,
   EmptyCanvasState,
+  EnhancedDropZone,
+  LoadingSpinner,
+  PanelTransitionOverlay,
 } from "./canvas_overlays";

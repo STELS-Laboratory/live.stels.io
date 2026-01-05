@@ -77,7 +77,7 @@ export default function MonacoEditor({
     if (!model) return;
 
     const currentCode = model.getValue();
-    
+
     // Try Monaco's built-in formatter first (for JSON)
     if (model.getLanguageId() === "json") {
       editor.getAction("editor.action.formatDocument")?.run();
@@ -108,7 +108,9 @@ export default function MonacoEditor({
 
       // Restore cursor position
       if (position) {
-        const newPosition = model.getPositionAt(Math.min(offset, formatted.length));
+        const newPosition = model.getPositionAt(
+          Math.min(offset, formatted.length),
+        );
         editor.setPosition(newPosition);
       }
 
@@ -233,7 +235,9 @@ export default function MonacoEditor({
       });
 
       // Set initial theme
-      const currentTheme = resolvedTheme === "light" ? "stels-light" : "stels-dark";
+      const currentTheme = resolvedTheme === "light"
+        ? "stels-light"
+        : "stels-dark";
       monacoInstance.editor.setTheme(currentTheme);
 
       // Setup Worker SDK completions
@@ -407,7 +411,10 @@ export default function MonacoEditor({
       // If user is actively editing, don't overwrite unless it's a significant change
       if (isUserEditingRef.current) {
         // Check if this is from our own save
-        if (newContent === lastSentValueRef.current || newContent === currentContent) {
+        if (
+          newContent === lastSentValueRef.current ||
+          newContent === currentContent
+        ) {
           lastScriptRef.current = script;
           return;
         }
@@ -415,12 +422,18 @@ export default function MonacoEditor({
         // Check if content is significantly different (likely worker switch)
         const contentDiff = Math.abs(currentContent.length - newContent.length);
         const prefixLength = 100;
-        const firstCurrent = currentContent.substring(0, Math.min(prefixLength, currentContent.length));
-        const firstNew = newContent.substring(0, Math.min(prefixLength, newContent.length));
-        const isSignificantChange = contentDiff > 200 || 
-          (firstCurrent !== firstNew && 
-           !firstCurrent.includes(firstNew) && 
-           !firstNew.includes(firstCurrent));
+        const firstCurrent = currentContent.substring(
+          0,
+          Math.min(prefixLength, currentContent.length),
+        );
+        const firstNew = newContent.substring(
+          0,
+          Math.min(prefixLength, newContent.length),
+        );
+        const isSignificantChange = contentDiff > 200 ||
+          (firstCurrent !== firstNew &&
+            !firstCurrent.includes(firstNew) &&
+            !firstNew.includes(firstCurrent));
 
         if (!isSignificantChange) {
           lastScriptRef.current = script;
@@ -444,7 +457,9 @@ export default function MonacoEditor({
 
         // Restore cursor position
         if (position) {
-          const newPosition = model.getPositionAt(Math.min(offset, newContent.length));
+          const newPosition = model.getPositionAt(
+            Math.min(offset, newContent.length),
+          );
           editor.setPosition(newPosition);
         }
 
@@ -484,7 +499,8 @@ export default function MonacoEditor({
       options={{
         minimap: { enabled: true },
         fontSize: 16,
-        fontFamily: "'Saira', 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace",
+        fontFamily:
+          "'Saira', 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace",
         lineNumbers: "on",
         wordWrap: "on",
         formatOnPaste: false, // We handle formatting manually

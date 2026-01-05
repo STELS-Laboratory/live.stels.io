@@ -8,12 +8,12 @@ import { AMIEditor } from "../ami_editor";
 
 // Wrap AMIEditor with Error Boundary
 const AMIEditorWithErrorBoundary = () => (
-	<EditorErrorBoundary>
-		<AMIEditor />
-	</EditorErrorBoundary>
+  <EditorErrorBoundary>
+    <AMIEditor />
+  </EditorErrorBoundary>
 );
 
-export { AMIEditorWithErrorBoundary as default, AMIEditor };
+export { AMIEditor, AMIEditorWithErrorBoundary as default };
 export * from "./types.ts";
 export * from "./utils.ts";
 export * from "./constants.ts";
@@ -25,6 +25,11 @@ export { WorkerEconomicsPanel } from "./worker_economics_panel";
 export { StopAllDialog } from "./stop_all_dialog";
 export { MigrateWorkerDialog } from "./migrate_worker_dialog";
 export { ConfirmToggleDialog } from "./confirm_toggle_dialog";
-export type { Worker, WorkerCreateRequest, LeaderInfo, WorkerStats } from "../store.ts";
+export type {
+  LeaderInfo,
+  Worker,
+  WorkerCreateRequest,
+  WorkerStats,
+} from "../store.ts";
 export { useEditorStore } from "../store.ts";
 export { getScopeColor } from "./utils.ts";

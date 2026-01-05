@@ -9,314 +9,323 @@ import type { FlowNode } from "@/lib/canvas-types";
  * Channel block represents a segment in the channel key
  */
 export interface ChannelBlock {
-	/** Position/index in the channel key */
-	position: number;
-	/** Name/label for this position */
-	label: string;
-	/** All unique values found at this position */
-	values: Set<string>;
-	/** Example channel using this block */
-	examples: string[];
+  /** Position/index in the channel key */
+  position: number;
+  /** Name/label for this position */
+  label: string;
+  /** All unique values found at this position */
+  values: Set<string>;
+  /** Example channel using this block */
+  examples: string[];
 }
 
 /**
  * Parsed channel structure
  */
 export interface ParsedChannel {
-	/** Original channel key */
-	original: string;
-	/** Blocks extracted from channel */
-	blocks: string[];
-	/** Node ID this channel belongs to */
-	nodeId?: string;
+  /** Original channel key */
+  original: string;
+  /** Blocks extracted from channel */
+  blocks: string[];
+  /** Node ID this channel belongs to */
+  nodeId?: string;
 }
 
 /**
  * Channel analysis result
  */
 export interface ChannelAnalysis {
-	/** All parsed channels */
-	channels: ParsedChannel[];
-	/** Discovered blocks at each position */
-	blocks: ChannelBlock[];
-	/** Total unique blocks */
-	totalBlocks: number;
-	/** Suggested grouping blocks */
-	suggestedBlocks: number[];
+  /** All parsed channels */
+  channels: ParsedChannel[];
+  /** Discovered blocks at each position */
+  blocks: ChannelBlock[];
+  /** Total unique blocks */
+  totalBlocks: number;
+  /** Suggested grouping blocks */
+  suggestedBlocks: number[];
 }
 
 /**
  * Parse channel key into blocks
  */
-export function parseChannel(channelKey: string, nodeId?: string): ParsedChannel {
-	const blocks = channelKey.split(".");
+export function parseChannel(
+  channelKey: string,
+  nodeId?: string,
+): ParsedChannel {
+  const blocks = channelKey.split(".");
 
-	return {
-		original: channelKey,
-		blocks,
-		nodeId,
-	};
+  return {
+    original: channelKey,
+    blocks,
+    nodeId,
+  };
 }
 
 /**
  * Analyze all channels and discover available blocks
  */
 export function analyzeChannels(nodes: FlowNode[]): ChannelAnalysis {
+  const parsedChannels: ParsedChannel[] = [];
+  const blockMap: Map<number, ChannelBlock> = new Map();
 
-	const parsedChannels: ParsedChannel[] = [];
-	const blockMap: Map<number, ChannelBlock> = new Map();
+  // Parse all channels
+  nodes.forEach((node) => {
+    if (!node.data.channel) {
+      return;
+    }
 
-	// Parse all channels
-	nodes.forEach((node) => {
-		if (!node.data.channel) {
+    const parsed = parseChannel(node.data.channel, node.id);
+    parsedChannels.push(parsed);
 
-			return;
-		}
+    // Analyze blocks at each position
+    parsed.blocks.forEach((blockValue, position) => {
+      if (!blockMap.has(position)) {
+        blockMap.set(position, {
+          position,
+          label: `Block ${position}`,
+          values: new Set(),
+          examples: [],
+        });
+      }
 
-		const parsed = parseChannel(node.data.channel, node.id);
-		parsedChannels.push(parsed);
+      const block = blockMap.get(position)!;
+      block.values.add(blockValue);
 
-		// Analyze blocks at each position
-		parsed.blocks.forEach((blockValue, position) => {
-			if (!blockMap.has(position)) {
-				blockMap.set(position, {
-					position,
-					label: `Block ${position}`,
-					values: new Set(),
-					examples: [],
-				});
-			}
+      // Add example if not too many
+      if (
+        block.examples.length < 3 && !block.examples.includes(parsed.original)
+      ) {
+        block.examples.push(parsed.original);
+      }
+    });
+  });
 
-			const block = blockMap.get(position)!;
-			block.values.add(blockValue);
+  // Simple labels - no hardcode, just position
+  const blocks = Array.from(blockMap.values()).map((block) => {
+    return {
+      ...block,
+      label: `Block ${block.position}`,
+    };
+  });
 
-			// Add example if not too many
-			if (block.examples.length < 3 && !block.examples.includes(parsed.original)) {
-				block.examples.push(parsed.original);
-			}
-		});
-	});
+  // Suggest blocks with most variety (no hardcode assumptions)
+  const suggestedBlocks = blocks
+    .filter((b) => b.values.size >= 2) // Only blocks with 2+ variants
+    .sort((a, b) => b.values.size - a.values.size) // Sort by variety
+    .slice(0, 3) // Top 3
+    .map((b) => b.position);
 
-	// Simple labels - no hardcode, just position
-	const blocks = Array.from(blockMap.values()).map((block) => {
-		return {
-			...block,
-			label: `Block ${block.position}`,
-		};
-	});
-
-	// Suggest blocks with most variety (no hardcode assumptions)
-	const suggestedBlocks = blocks
-		.filter((b) => b.values.size >= 2) // Only blocks with 2+ variants
-		.sort((a, b) => b.values.size - a.values.size) // Sort by variety
-		.slice(0, 3) // Top 3
-		.map((b) => b.position);
-
-	return {
-		channels: parsedChannels,
-		blocks,
-		totalBlocks: blocks.length,
-		suggestedBlocks,
-	};
+  return {
+    channels: parsedChannels,
+    blocks,
+    totalBlocks: blocks.length,
+    suggestedBlocks,
+  };
 }
 
 /**
  * Extract connection key from node using dynamic block positions
  */
 export function extractDynamicConnectionKey(
-	channelKey: string,
-	blockPositions: number[],
+  channelKey: string,
+  blockPositions: number[],
 ): string {
-	const blocks = channelKey.split(".");
+  const blocks = channelKey.split(".");
 
-	const selectedBlocks = blockPositions
-		.map((pos) => blocks[pos])
-		.filter(Boolean)
-		.join(".");
+  const selectedBlocks = blockPositions
+    .map((pos) => blocks[pos])
+    .filter(Boolean)
+    .join(".");
 
-	return selectedBlocks || channelKey;
+  return selectedBlocks || channelKey;
 }
 
 /**
  * Get block value at specific position
  */
-export function getBlockValue(channelKey: string, position: number): string | null {
-	const blocks = channelKey.split(".");
-	return blocks[position] || null;
+export function getBlockValue(
+  channelKey: string,
+  position: number,
+): string | null {
+  const blocks = channelKey.split(".");
+  return blocks[position] || null;
 }
 
 /**
  * Group nodes by selected block positions
  */
 export function groupNodesByBlocks(
-	nodes: FlowNode[],
-	blockPositions: number[],
+  nodes: FlowNode[],
+  blockPositions: number[],
 ): Map<string, FlowNode[]> {
+  const groups = new Map<string, FlowNode[]>();
 
-	const groups = new Map<string, FlowNode[]>();
+  nodes.forEach((node) => {
+    if (!node.data.channel) {
+      return;
+    }
 
-	nodes.forEach((node) => {
-		if (!node.data.channel) {
+    const groupKey = extractDynamicConnectionKey(
+      node.data.channel,
+      blockPositions,
+    );
 
-			return;
-		}
+    if (!groups.has(groupKey)) {
+      groups.set(groupKey, []);
+    }
 
-		const groupKey = extractDynamicConnectionKey(node.data.channel, blockPositions);
+    groups.get(groupKey)!.push(node);
+  });
 
-		if (!groups.has(groupKey)) {
-			groups.set(groupKey, []);
-		}
+  // Only return groups with 2+ nodes
+  const filtered = new Map<string, FlowNode[]>();
+  groups.forEach((nodes, key) => {
+    if (nodes.length >= 2) {
+      filtered.set(key, nodes);
+    } else {
+      // Empty block
+    }
+  });
 
-		groups.get(groupKey)!.push(node);
-	});
-
-	// Only return groups with 2+ nodes
-	const filtered = new Map<string, FlowNode[]>();
-	groups.forEach((nodes, key) => {
-		if (nodes.length >= 2) {
-			filtered.set(key, nodes);
-		} else {
-			// Empty block
-		}
-	});
-
-	return filtered;
+  return filtered;
 }
 
 /**
  * Get statistics about block usage across channels
  */
 export function getBlockStatistics(
-	channels: ParsedChannel[],
+  channels: ParsedChannel[],
 ): {
-	maxBlocks: number;
-	minBlocks: number;
-	avgBlocks: number;
-	blockDistribution: Map<number, number>;
+  maxBlocks: number;
+  minBlocks: number;
+  avgBlocks: number;
+  blockDistribution: Map<number, number>;
 } {
-	const blockCounts = channels.map((ch) => ch.blocks.length);
+  const blockCounts = channels.map((ch) => ch.blocks.length);
 
-	const maxBlocks = Math.max(...blockCounts, 0);
-	const minBlocks = Math.min(...blockCounts, 0);
-	const avgBlocks =
-		blockCounts.reduce((sum, count) => sum + count, 0) / blockCounts.length || 0;
+  const maxBlocks = Math.max(...blockCounts, 0);
+  const minBlocks = Math.min(...blockCounts, 0);
+  const avgBlocks =
+    blockCounts.reduce((sum, count) => sum + count, 0) / blockCounts.length ||
+    0;
 
-	const blockDistribution = new Map<number, number>();
-	channels.forEach((ch) => {
-		const count = ch.blocks.length;
-		blockDistribution.set(count, (blockDistribution.get(count) || 0) + 1);
-	});
+  const blockDistribution = new Map<number, number>();
+  channels.forEach((ch) => {
+    const count = ch.blocks.length;
+    blockDistribution.set(count, (blockDistribution.get(count) || 0) + 1);
+  });
 
-	return {
-		maxBlocks,
-		minBlocks,
-		avgBlocks,
-		blockDistribution,
-	};
+  return {
+    maxBlocks,
+    minBlocks,
+    avgBlocks,
+    blockDistribution,
+  };
 }
 
 /**
  * Get all unique values for a specific block position
  */
 export function getBlockValues(
-	channels: ParsedChannel[],
-	position: number,
+  channels: ParsedChannel[],
+  position: number,
 ): string[] {
-	const values = new Set<string>();
+  const values = new Set<string>();
 
-	channels.forEach((ch) => {
-		if (ch.blocks[position]) {
-			values.add(ch.blocks[position]);
-		}
-	});
+  channels.forEach((ch) => {
+    if (ch.blocks[position]) {
+      values.add(ch.blocks[position]);
+    }
+  });
 
-	return Array.from(values).sort();
+  return Array.from(values).sort();
 }
 
 /**
  * Validate if block positions are valid for grouping
  */
 export function validateBlockPositions(
-	channels: ParsedChannel[],
-	positions: number[],
+  channels: ParsedChannel[],
+  positions: number[],
 ): {
-	valid: boolean;
-	reason?: string;
-	coverage: number;
+  valid: boolean;
+  reason?: string;
+  coverage: number;
 } {
-	if (positions.length === 0) {
-		return {
-			valid: false,
-			reason: "No block positions selected",
-			coverage: 0,
-		};
-	}
+  if (positions.length === 0) {
+    return {
+      valid: false,
+      reason: "No block positions selected",
+      coverage: 0,
+    };
+  }
 
-	let validChannels = 0;
+  let validChannels = 0;
 
-	channels.forEach((ch) => {
-		const hasAllPositions = positions.every((pos) => ch.blocks[pos] !== undefined);
-		if (hasAllPositions) {
-			validChannels++;
-		}
-	});
+  channels.forEach((ch) => {
+    const hasAllPositions = positions.every((pos) =>
+      ch.blocks[pos] !== undefined
+    );
+    if (hasAllPositions) {
+      validChannels++;
+    }
+  });
 
-	const coverage = (validChannels / channels.length) * 100;
+  const coverage = (validChannels / channels.length) * 100;
 
-	return {
-		valid: coverage > 50,
-		reason:
-			coverage <= 50
-				? `Only ${coverage.toFixed(0)}% of channels have all selected blocks`
-				: undefined,
-		coverage,
-	};
+  return {
+    valid: coverage > 50,
+    reason: coverage <= 50
+      ? `Only ${coverage.toFixed(0)}% of channels have all selected blocks`
+      : undefined,
+    coverage,
+  };
 }
 
 /**
  * Generate human-readable label for block combination
  */
 export function generateGroupLabel(
-	blocks: ChannelBlock[],
-	positions: number[],
+  blocks: ChannelBlock[],
+  positions: number[],
 ): string {
-	const labels = positions
-		.map((pos) => blocks.find((b) => b.position === pos)?.label)
-		.filter(Boolean);
+  const labels = positions
+    .map((pos) => blocks.find((b) => b.position === pos)?.label)
+    .filter(Boolean);
 
-	return labels.join(" + ") || "Custom Group";
+  return labels.join(" + ") || "Custom Group";
 }
 
 /**
  * Get color for block position (for visual differentiation)
  */
 export function getBlockColor(position: number): string {
-	const colors = [
-		"#c9995a", // amber (custom palette)
-		"#10b981", // emerald
-		"#3b82f6", // blue
-		"#8b5cf6", // violet
-		"#06b6d4", // cyan
-		"#ef4444", // red
-		"#84cc16", // lime
-		"#f97316", // orange
-		"#ec4899", // pink
-		"#14b8a6", // teal
-	];
+  const colors = [
+    "#c9995a", // amber (custom palette)
+    "#10b981", // emerald
+    "#3b82f6", // blue
+    "#8b5cf6", // violet
+    "#06b6d4", // cyan
+    "#ef4444", // red
+    "#84cc16", // lime
+    "#f97316", // orange
+    "#ec4899", // pink
+    "#14b8a6", // teal
+  ];
 
-	return colors[position % colors.length];
+  return colors[position % colors.length];
 }
 
 /**
  * Get icon for block position - simple numeric indicators
  */
 export function getBlockIcon(_label: string, position?: number): string {
-	// Simple numbered emoji indicators, no hardcode
-	const icons = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"];
-	
-	if (position !== undefined && position < icons.length) {
-		return icons[position];
-	}
-	
-	return "🔗";
+  // Simple numbered emoji indicators, no hardcode
+  const icons = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"];
+
+  if (position !== undefined && position < icons.length) {
+    return icons[position];
+  }
+
+  return "🔗";
 }

@@ -3,9 +3,9 @@ import "@/index.css";
 import App from "@/App";
 import { initThemeColor } from "@/lib/theme-color";
 import {
-	freezeNativeAPIs,
-	performSecurityCheck,
-	validateCryptoOperations,
+  freezeNativeAPIs,
+  performSecurityCheck,
+  validateCryptoOperations,
 } from "@/lib/pwa-security";
 import { initChunkErrorHandlers } from "@/lib/chunk_error_handler";
 import ChunkErrorBoundary from "@/components/main/chunk_error_boundary";
@@ -31,39 +31,37 @@ const currentVersion = getCurrentVersion();
 const storedVersion = localStorage.getItem("app-last-version");
 
 if (currentVersion && currentVersion !== storedVersion) {
+  // Force new session on version change
+  const newSessionId = createNewSession();
+  document.body.setAttribute("session", newSessionId);
 
-	// Force new session on version change
-	const newSessionId = createNewSession();
-	document.body.setAttribute("session", newSessionId);
+  // Store new version
+  localStorage.setItem("app-last-version", currentVersion);
 
-	// Store new version
-	localStorage.setItem("app-last-version", currentVersion);
-
-		// Clear all caches
-		if ("caches" in window) {
-			caches.keys().then((cacheNames) => {
-				Promise.all(cacheNames.map((name) => caches.delete(name))).then(() => {
-					// Caches cleared
-				});
-			});
-		}
+  // Clear all caches
+  if ("caches" in window) {
+    caches.keys().then((cacheNames) => {
+      Promise.all(cacheNames.map((name) => caches.delete(name))).then(() => {
+        // Caches cleared
+      });
+    });
+  }
 }
 
 // Initialize security measures
 try {
-	// Freeze native APIs to prevent extension tampering
-	freezeNativeAPIs();
+  // Freeze native APIs to prevent extension tampering
+  freezeNativeAPIs();
 
-	// Validate crypto operations
-	if (!validateCryptoOperations()) {
-		// Crypto validation failed
-	}
+  // Validate crypto operations
+  if (!validateCryptoOperations()) {
+    // Crypto validation failed
+  }
 
-	// Perform security check
-	performSecurityCheck();
-
+  // Perform security check
+  performSecurityCheck();
 } catch {
-	// Security initialization failed
+  // Security initialization failed
 }
 
 // Initialize theme on startup with system detection
@@ -72,20 +70,20 @@ let themeMode: "light" | "dark" | "system" = "system";
 let resolvedTheme: "light" | "dark" = "dark";
 
 if (savedTheme) {
-	try {
-		const parsed = JSON.parse(savedTheme);
-		themeMode = parsed.state?.theme || "system";
-	} catch {
-			// Error handled silently
-		}
+  try {
+    const parsed = JSON.parse(savedTheme);
+    themeMode = parsed.state?.theme || "system";
+  } catch {
+    // Error handled silently
+  }
 }
 
 // Resolve system theme if needed
 if (themeMode === "system") {
-	const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-	resolvedTheme = prefersDark ? "dark" : "light";
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  resolvedTheme = prefersDark ? "dark" : "light";
 } else {
-	resolvedTheme = themeMode;
+  resolvedTheme = themeMode;
 }
 
 document.documentElement.classList.add(resolvedTheme);
@@ -103,7 +101,7 @@ rootElement.className = "sonar";
 document.body.appendChild(rootElement);
 
 createRoot(rootElement).render(
-	<ChunkErrorBoundary>
-		<App />
-	</ChunkErrorBoundary>,
+  <ChunkErrorBoundary>
+    <App />
+  </ChunkErrorBoundary>,
 );

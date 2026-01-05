@@ -2,12 +2,15 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAuthStore } from "@/stores/modules/auth.store";
 import { NetworkSetup } from "./network_setup";
 import { GitHubAuth } from "./github_auth";
 import { LOTTIE_ANIMATIONS, LOTTIE_SIZES } from "./lottie_config";
-import type { StepType, ProfessionalConnectionFlowProps } from "@/types/auth/types";
+import type {
+  ProfessionalConnectionFlowProps,
+  StepType,
+} from "@/types/auth/types";
 
 /**
  * Step configuration with progress and titles
@@ -44,7 +47,7 @@ const stepVariants = {
  * Optimized with memoization and smooth animations
  */
 export function ProfessionalConnectionFlow({
-	onSuccess,
+  onSuccess,
 }: ProfessionalConnectionFlowProps = {}): React.ReactElement {
   const { isConnected, connectionSession } = useAuthStore();
 
@@ -53,12 +56,15 @@ export function ProfessionalConnectionFlow({
 
   // Auto-advance to connecting step if there's a pending GitHub OAuth callback
   useEffect(() => {
-    const pendingCode = sessionStorage.getItem('github_oauth_pending_code');
-    const pendingState = sessionStorage.getItem('github_oauth_pending_state');
-    const storedState = sessionStorage.getItem('github_oauth_state');
-    
+    const pendingCode = sessionStorage.getItem("github_oauth_pending_code");
+    const pendingState = sessionStorage.getItem("github_oauth_pending_state");
+    const storedState = sessionStorage.getItem("github_oauth_state");
+
     // If we have pending callback and valid state, go to connecting step
-    if (pendingCode && pendingState && storedState === pendingState && currentStep === "network") {
+    if (
+      pendingCode && pendingState && storedState === pendingState &&
+      currentStep === "network"
+    ) {
       setCurrentStep("connecting");
     }
   }, [currentStep]);
@@ -79,7 +85,9 @@ export function ProfessionalConnectionFlow({
 
   // Call onSuccess callback when authentication is complete
   useEffect(() => {
-    if (isConnected && connectionSession && currentStep === "success" && onSuccess) {
+    if (
+      isConnected && connectionSession && currentStep === "success" && onSuccess
+    ) {
       // Small delay to show success screen before closing
       const timer = setTimeout(() => {
         onSuccess();
@@ -185,9 +193,8 @@ export function ProfessionalConnectionFlow({
   return (
     <div className="bg-background flex h-fit justify-center items-start overflow-hidden">
       <div className="w-full h-full max-w-4xl flex flex-col px-3 sm:px-4 md:px-6">
-	      <div className="h-0 sm:h-0 md:h-0 flex justify-center items-center text-4xl font-bold text-primary">
-		     
-	      </div>
+        <div className="h-0 sm:h-0 md:h-0 flex justify-center items-center text-4xl font-bold text-primary">
+        </div>
         {/* Progress Indicator - Fixed at top with padding */}
         <div className="flex-shrink-0 max-w-3xl mx-auto w-full pt-4 sm:pt-6 md:pt-12 lg:pt-16 pb-8 sm:pb-5 md:pb-8">
           <div className="flex items-center justify-between mt-1.5 sm:mt-2 md:mt-3 mb-1.5 sm:mb-2 md:mb-3">
@@ -226,7 +233,11 @@ export function ProfessionalConnectionFlow({
           <div className="hidden md:flex justify-between mt-4">
             {[
               { step: "network" as StepType, label: "Network", progress: 20 },
-              { step: "connecting" as StepType, label: "GitHub Auth", progress: 60 },
+              {
+                step: "connecting" as StepType,
+                label: "GitHub Auth",
+                progress: 60,
+              },
               { step: "success" as StepType, label: "Complete", progress: 100 },
             ].map((item) => {
               const isActive = progress >= item.progress;
@@ -238,14 +249,15 @@ export function ProfessionalConnectionFlow({
                   className="flex flex-col items-center"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: item.progress / 100 * 0.2 }}
+                  transition={{
+                    duration: 0.3,
+                    delay: item.progress / 100 * 0.2,
+                  }}
                 >
                   <motion.div
                     className={`w-2 h-2 rounded-full ${
                       isActive
-                        ? isCurrent
-                          ? "bg-primary"
-                          : "bg-accent-foreground"
+                        ? isCurrent ? "bg-primary" : "bg-accent-foreground"
                         : "bg-border"
                     }`}
                     animate={{

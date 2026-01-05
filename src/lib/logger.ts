@@ -1,7 +1,7 @@
 /**
  * Production Logger Utility
  * Conditionally logs based on environment
- * 
+ *
  * In development: All logs enabled
  * In production: Only errors and warnings
  */

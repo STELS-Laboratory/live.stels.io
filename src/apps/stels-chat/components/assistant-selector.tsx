@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { RefreshCw, Plus, Trash2 } from "lucide-react";
+import { Plus, RefreshCw, Trash2 } from "lucide-react";
 import { useMobile } from "@/hooks/use_mobile";
 import { Button } from "@/components/ui/button";
 import {
@@ -71,7 +71,13 @@ export function AssistantSelector({
       }
     };
     init();
-  }, [fetchAssistants, fetchModels, connectionSession?.session, connectionSession?.api, assistants.length]);
+  }, [
+    fetchAssistants,
+    fetchModels,
+    connectionSession?.session,
+    connectionSession?.api,
+    assistants.length,
+  ]);
 
   const handleRefresh = async (): Promise<void> => {
     setIsRefreshing(true);
@@ -94,8 +100,8 @@ export function AssistantSelector({
     try {
       await deleteAssistant(assistantId);
     } catch {
-			// Error handled silently
-		}
+      // Error handled silently
+    }
   };
 
   const handleSelect = (assistantId: string): void => {
@@ -108,8 +114,8 @@ export function AssistantSelector({
         inSettings
           ? "gap-2 p-0"
           : `border-b border-border bg-card/30 ${
-              isMobile ? "gap-0.5 p-1 h-7" : "gap-2 p-2"
-            }`
+            isMobile ? "gap-0.5 p-1 h-7" : "gap-2 p-2"
+          }`
       }`}
     >
       <Select
@@ -118,40 +124,42 @@ export function AssistantSelector({
         disabled={isLoading || assistants.length === 0}
       >
         <SelectTrigger
-          className={
-            inSettings
-              ? "w-full"
-              : isMobile
-              ? "w-[100px] h-6 text-[10px] px-1.5"
-              : "w-[250px]"
-          }
+          className={inSettings
+            ? "w-full"
+            : isMobile
+            ? "w-[100px] h-6 text-[10px] px-1.5"
+            : "w-[250px]"}
         >
-          <SelectValue placeholder={isMobile ? "Assistant" : "Select assistant"} />
+          <SelectValue
+            placeholder={isMobile ? "Assistant" : "Select assistant"}
+          />
         </SelectTrigger>
         <SelectContent>
-          {assistants.length === 0 ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">
-              No assistants available
-            </div>
-          ) : (
-            assistants.map((assistant) => (
-              <SelectItem key={assistant.id} value={assistant.id}>
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex flex-col">
-                    <span>{assistant.name}</span>
-                    {assistant.description && (
-                      <span className="text-xs text-muted-foreground">
-                        {assistant.description}
-                      </span>
-                    )}
+          {assistants.length === 0
+            ? (
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                No assistants available
+              </div>
+            )
+            : (
+              assistants.map((assistant) => (
+                <SelectItem key={assistant.id} value={assistant.id}>
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex flex-col">
+                      <span>{assistant.name}</span>
+                      {assistant.description && (
+                        <span className="text-xs text-muted-foreground">
+                          {assistant.description}
+                        </span>
+                      )}
+                    </div>
+                    <Badge variant="outline" className="ml-2 text-xs">
+                      {assistant.model}
+                    </Badge>
                   </div>
-                  <Badge variant="outline" className="ml-2 text-xs">
-                    {assistant.model}
-                  </Badge>
-                </div>
-              </SelectItem>
-            ))
-          )}
+                </SelectItem>
+              ))
+            )}
         </SelectContent>
       </Select>
 
@@ -185,25 +193,28 @@ export function AssistantSelector({
               <Plus className={inSettings ? "icon-sm" : "icon-md"} />
             </Button>
           </DialogTrigger>
-        <DialogContent
-          className={`overflow-y-auto ${
-            isMobile
-              ? "max-w-full max-h-[95vh] rounded-t-2xl"
-              : "max-w-2xl max-h-[90vh]"
-          }`}
-        >
-          <DialogHeader>
-            <DialogTitle className={isMobile ? "text-base" : ""}>
-              Create New Assistant
-            </DialogTitle>
-            <DialogDescription className={isMobile ? "text-xs" : ""}>
-              Create a custom AI assistant with your own configuration, system
-              prompt, and model parameters.
-            </DialogDescription>
-          </DialogHeader>
-          <AssistantCreator onClose={() => setShowCreator(false)} />
-        </DialogContent>
-      </Dialog>
+          <DialogContent
+            className={`overflow-y-auto ${
+              isMobile
+                ? "max-w-full max-h-[95vh] rounded-t-2xl"
+                : "max-w-2xl max-h-[90vh]"
+            }`}
+          >
+            <DialogHeader>
+              <DialogTitle className={isMobile ? "text-base" : ""}>
+                Create New Assistant
+              </DialogTitle>
+              <DialogDescription className={isMobile ? "text-xs" : ""}>
+                Create a custom AI assistant with your own configuration, system
+                prompt, and model parameters.
+              </DialogDescription>
+            </DialogHeader>
+            <AssistantCreator
+              onClose={() =>
+                setShowCreator(false)}
+            />
+          </DialogContent>
+        </Dialog>
       )}
 
       {selectedAssistant && (!isMobile || inSettings) && (
@@ -216,9 +227,7 @@ export function AssistantSelector({
           className={inSettings ? "h-8 w-8" : ""}
         >
           <Trash2
-            className={`text-destructive ${
-              inSettings ? "icon-sm" : "icon-md"
-            }`}
+            className={`text-destructive ${inSettings ? "icon-sm" : "icon-md"}`}
           />
         </Button>
       )}

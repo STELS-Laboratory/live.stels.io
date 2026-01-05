@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 // ============================================================================
 // Type Definitions
@@ -98,7 +105,10 @@ export const useUIEngine = (): UIEngineContext => {
 class SessionStorageManager {
   private static instance: SessionStorageManager;
   private cache: Map<string, Record<string, unknown>> = new Map();
-  private subscribers: Map<string, Set<(data: Record<string, unknown>) => void>> = new Map();
+  private subscribers: Map<
+    string,
+    Set<(data: Record<string, unknown>) => void>
+  > = new Map();
 
   private constructor() {
     // Singleton pattern
@@ -111,7 +121,10 @@ class SessionStorageManager {
     return SessionStorageManager.instance;
   }
 
-  public getData(channel: string, skipCache = false): Record<string, unknown> | null {
+  public getData(
+    channel: string,
+    skipCache = false,
+  ): Record<string, unknown> | null {
     try {
       // Check cache first (unless skipCache is true)
       if (!skipCache && this.cache.has(channel)) {
@@ -123,28 +136,30 @@ class SessionStorageManager {
       if (!stored) {
         stored = sessionStorage.getItem(channel.toLowerCase());
       }
-      
+
       if (stored) {
         const parsed = JSON.parse(stored) as Record<string, unknown>;
-        
+
         // Always update cache with fresh data
         this.cache.set(channel, parsed);
-        
+
         return parsed;
       }
 
       return null;
     } catch {
-
       return null;
     }
   }
 
-  public subscribe(channel: string, callback: (data: Record<string, unknown>) => void): () => void {
+  public subscribe(
+    channel: string,
+    callback: (data: Record<string, unknown>) => void,
+  ): () => void {
     if (!this.subscribers.has(channel)) {
       this.subscribers.set(channel, new Set());
     }
-    
+
     this.subscribers.get(channel)!.add(callback);
 
     // Return unsubscribe function
@@ -161,7 +176,7 @@ class SessionStorageManager {
 
   public invalidateCache(channel: string): void {
     this.cache.delete(channel);
-    
+
     // Notify subscribers
     const data = this.getData(channel);
     if (data) {
@@ -186,24 +201,32 @@ export const getSessionStorageManager = (): SessionStorageManager => {
 // UI Engine Provider
 // ============================================================================
 
-export const UIEngineProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const UIEngineProvider: React.FC<{ children: React.ReactNode }> = (
+  { children },
+) => {
   const [modals, setModals] = useState<Map<string, ModalState>>(new Map());
   const sessionManager = useMemo(() => SessionStorageManager.getInstance(), []);
 
-  const getModalData = useCallback((channel: string): Record<string, unknown> | null => {
-    return sessionManager.getData(channel);
-  }, [sessionManager]);
+  const getModalData = useCallback(
+    (channel: string): Record<string, unknown> | null => {
+      return sessionManager.getData(channel);
+    },
+    [sessionManager],
+  );
 
-  const updateModalData = useCallback((id: string, data: Record<string, unknown>): void => {
-    setModals((prev) => {
-      const updated = new Map(prev);
-      const modal = updated.get(id);
-      if (modal) {
-        updated.set(id, { ...modal, data });
-      }
-      return updated;
-    });
-  }, []);
+  const updateModalData = useCallback(
+    (id: string, data: Record<string, unknown>): void => {
+      setModals((prev) => {
+        const updated = new Map(prev);
+        const modal = updated.get(id);
+        if (modal) {
+          updated.set(id, { ...modal, data });
+        }
+        return updated;
+      });
+    },
+    [],
+  );
 
   const openModal = useCallback((id: string, action: Action): void => {
     const payload = action.payload;
@@ -277,7 +300,7 @@ const ModalRenderer: React.FC<{ modals: ModalState[] }> = ({ modals }) => {
     React.Fragment,
     null,
     modals.map((modal) =>
-      React.createElement(ModalPortal, { key: modal.id, modal }),
+      React.createElement(ModalPortal, { key: modal.id, modal })
     ),
   );
 };
@@ -285,7 +308,9 @@ const ModalRenderer: React.FC<{ modals: ModalState[] }> = ({ modals }) => {
 const ModalPortal: React.FC<{ modal: ModalState }> = ({ modal }) => {
   const { closeModal } = useUIEngine();
   const sessionManager = useMemo(() => SessionStorageManager.getInstance(), []);
-  const [modalData, setModalData] = useState<Record<string, unknown> | undefined>(modal.data);
+  const [modalData, setModalData] = useState<
+    Record<string, unknown> | undefined
+  >(modal.data);
   const [updateCounter, setUpdateCounter] = useState(0);
 
   // Subscribe to session storage updates with aggressive polling
@@ -326,17 +351,17 @@ const ModalPortal: React.FC<{ modal: ModalState }> = ({ modal }) => {
     e.stopPropagation();
   };
 
-  const backdropClass =
-    modal.config?.backdrop === "blur"
-      ? "backdrop-blur-sm"
-      : modal.config?.backdrop === "light"
-        ? "bg-white/20"
-        : "bg-black/60";
+  const backdropClass = modal.config?.backdrop === "blur"
+    ? "backdrop-blur-sm"
+    : modal.config?.backdrop === "light"
+    ? "bg-white/20"
+    : "bg-black/60";
 
   return React.createElement(
     "div",
     {
-      className: `fixed inset-0 z-50 flex items-center justify-center ${backdropClass} animate-in fade-in duration-200`,
+      className:
+        `fixed inset-0 z-50 flex items-center justify-center ${backdropClass} animate-in fade-in duration-200`,
       onClick: handleBackdropClick,
     },
     React.createElement(
@@ -355,21 +380,23 @@ const ModalPortal: React.FC<{ modal: ModalState }> = ({ modal }) => {
       },
       modalData && modalData.ui && modalData.raw
         ? React.createElement(UIRenderer, {
-            key: `modal-ui-${updateCounter}`, // Force re-render on updates
-            schema: modalData.ui as UINode,
-            data: modalData.raw as Record<string, unknown>,
-          })
+          key: `modal-ui-${updateCounter}`, // Force re-render on updates
+          schema: modalData.ui as UINode,
+          data: modalData.raw as Record<string, unknown>,
+        })
         : React.createElement(
+          "div",
+          { className: "flex items-center justify-center p-8" },
+          React.createElement(
             "div",
-            { className: "flex items-center justify-center p-8" },
-            React.createElement(
-              "div",
-              { className: "text-zinc-500" },
-              modalData
-                ? `No UI data available. Keys: ${Object.keys(modalData).join(", ")}`
-                : "Loading data from session storage...",
-            ),
+            { className: "text-zinc-500" },
+            modalData
+              ? `No UI data available. Keys: ${
+                Object.keys(modalData).join(", ")
+              }`
+              : "Loading data from session storage...",
           ),
+        ),
     ),
   );
 };
@@ -399,7 +426,6 @@ class ActionDispatcher {
 
   public dispatch(action: Action): void {
     if (!this.engineContext) {
-
       return;
     }
 
@@ -427,7 +453,6 @@ class ActionDispatcher {
         break;
 
       default:
-
     }
   }
 }
@@ -469,16 +494,18 @@ const formatValue = (value: unknown, format: FormatConfig): string => {
     case "volume": {
       const num = parseFloat(String(value));
       if (num >= 1e9) formatted = `${(num / 1e9).toFixed(format.decimals)}B`;
-      else if (num >= 1e6) formatted = `${(num / 1e6).toFixed(format.decimals)}M`;
-      else if (num >= 1e3) formatted = `${(num / 1e3).toFixed(format.decimals)}K`;
-      else formatted = num.toFixed(format.decimals);
+      else if (num >= 1e6) {
+        formatted = `${(num / 1e6).toFixed(format.decimals)}M`;
+      } else if (num >= 1e3) {
+        formatted = `${(num / 1e3).toFixed(format.decimals)}K`;
+      } else formatted = num.toFixed(format.decimals);
       break;
     }
     case "datetime": {
       // Handle both ISO 8601 strings and Unix timestamps (in milliseconds)
       const stringValue = String(value);
       let date: Date;
-      
+
       if (/^\d+$/.test(stringValue)) {
         // Pure number - treat as Unix timestamp in milliseconds
         date = new Date(parseFloat(stringValue));
@@ -486,7 +513,7 @@ const formatValue = (value: unknown, format: FormatConfig): string => {
         // ISO 8601 string or other date format
         date = new Date(stringValue);
       }
-      
+
       formatted = date.toLocaleString();
       break;
     }
@@ -494,7 +521,7 @@ const formatValue = (value: unknown, format: FormatConfig): string => {
       // Handle both ISO 8601 strings and Unix timestamps (in milliseconds)
       const stringValue = String(value);
       let date: Date;
-      
+
       if (/^\d+$/.test(stringValue)) {
         // Pure number - treat as Unix timestamp in milliseconds
         date = new Date(parseFloat(stringValue));
@@ -502,7 +529,7 @@ const formatValue = (value: unknown, format: FormatConfig): string => {
         // ISO 8601 string or other date format
         date = new Date(stringValue);
       }
-      
+
       formatted = date.toLocaleTimeString();
       break;
     }
@@ -555,14 +582,16 @@ const interpolate = (
         if (!evaluated.trim() || evaluated.includes("undefined")) {
           return "NaN";
         }
-        
+
         const result = new Function(`return ${evaluated}`)();
-        
+
         // Check for valid result
-        if (result === undefined || result === null || !isFinite(Number(result))) {
+        if (
+          result === undefined || result === null || !isFinite(Number(result))
+        ) {
           return "NaN";
         }
-        
+
         return String(result);
       } catch {
         // Silently handle errors during live editing
@@ -685,7 +714,9 @@ const resolveConditionalProps = (
   item?: unknown,
 ): { className?: string; style?: React.CSSProperties } => {
   let resolvedClassName = node.className;
-  const resolvedStyle = node.style ? resolveStyle(node.style, data, item) : undefined;
+  const resolvedStyle = node.style
+    ? resolveStyle(node.style, data, item)
+    : undefined;
 
   // Handle conditional className from style.className
   if (node.style && "className" in node.style) {
@@ -702,12 +733,13 @@ const resolveConditionalProps = (
         true: string;
         false: string;
       };
-      const conditionalClasses = evaluateCondition(condValue.condition, data, item)
-        ? condValue.true
-        : condValue.false;
-      
+      const conditionalClasses =
+        evaluateCondition(condValue.condition, data, item)
+          ? condValue.true
+          : condValue.false;
+
       // Combine base className with conditional classes
-      resolvedClassName = resolvedClassName 
+      resolvedClassName = resolvedClassName
         ? `${resolvedClassName} ${conditionalClasses}`
         : conditionalClasses;
     }
@@ -750,32 +782,33 @@ export const UIRenderer: React.FC<{
       }
 
       const { type, children, text, src, alt, iterate, events } = node;
-      
+
       // Resolve dynamic styles and conditional className
-      const { className: resolvedClassName, style: resolvedStyle } = resolveConditionalProps(
-        node,
-        data,
-        iterationItem,
-      );
-      
+      const { className: resolvedClassName, style: resolvedStyle } =
+        resolveConditionalProps(
+          node,
+          data,
+          iterationItem,
+        );
+
       // Map abstract types to HTML elements
       // text elements with block-like classes should be div, not span
       let elementType: string;
-      if (type === 'container') {
-        elementType = 'div';
-      } else if (type === 'text') {
+      if (type === "container") {
+        elementType = "div";
+      } else if (type === "text") {
         // Check if className has block-level properties
         const hasBlockClass = resolvedClassName && (
-          resolvedClassName.includes('block') ||
-          resolvedClassName.includes('flex') ||
-          resolvedClassName.includes('grid') ||
+          resolvedClassName.includes("block") ||
+          resolvedClassName.includes("flex") ||
+          resolvedClassName.includes("grid") ||
           /\b(m[tblrxy]?|p[tblrxy]?)-/.test(resolvedClassName) // margin/padding classes
         );
-        elementType = hasBlockClass ? 'div' : 'span';
+        elementType = hasBlockClass ? "div" : "span";
       } else {
         elementType = type;
       }
-      
+
       const Element = elementType as keyof React.JSX.IntrinsicElements;
 
       // Process text content with interpolation and formatting
@@ -816,13 +849,13 @@ export const UIRenderer: React.FC<{
         const ordered = iterate.reverse ? [...limited].reverse() : limited;
 
         return ordered.map((item: unknown, idx: number) =>
-          renderNode({ ...node, iterate: undefined }, idx, item),
+          renderNode({ ...node, iterate: undefined }, idx, item)
         );
       }
 
       // Render child nodes
       const childNodes = children?.map((child: UINode, idx: number) =>
-        renderNode(child, idx, iterationItem),
+        renderNode(child, idx, iterationItem)
       );
 
       // Build event handlers with dispatcher integration
@@ -855,7 +888,22 @@ export const UIRenderer: React.FC<{
       }
 
       // Void elements (img, input, br, hr, etc.) cannot have children
-      const voidElements = ['img', 'input', 'br', 'hr', 'meta', 'link', 'area', 'base', 'col', 'embed', 'param', 'source', 'track', 'wbr'];
+      const voidElements = [
+        "img",
+        "input",
+        "br",
+        "hr",
+        "meta",
+        "link",
+        "area",
+        "base",
+        "col",
+        "embed",
+        "param",
+        "source",
+        "track",
+        "wbr",
+      ];
       const isVoidElement = voidElements.includes(elementType);
 
       // Create React element with all props
@@ -863,13 +911,25 @@ export const UIRenderer: React.FC<{
         // Void elements: no content, no children
         return React.createElement(
           Element,
-          { key: index, className: resolvedClassName, style: resolvedStyle, ...imgProps, ...eventHandlers },
+          {
+            key: index,
+            className: resolvedClassName,
+            style: resolvedStyle,
+            ...imgProps,
+            ...eventHandlers,
+          },
         );
       } else {
         // Regular elements: can have content and children
         return React.createElement(
           Element,
-          { key: index, className: resolvedClassName, style: resolvedStyle, ...imgProps, ...eventHandlers },
+          {
+            key: index,
+            className: resolvedClassName,
+            style: resolvedStyle,
+            ...imgProps,
+            ...eventHandlers,
+          },
           content,
           childNodes,
         );

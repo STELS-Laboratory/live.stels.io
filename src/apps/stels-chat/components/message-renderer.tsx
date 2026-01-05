@@ -3,7 +3,7 @@
  * Beautiful markdown renderer for chat messages with syntax highlighting and JSON parsing
  */
 
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
@@ -15,7 +15,7 @@ import rehypeRaw from "rehype-raw";
 import { useTheme } from "@/hooks/use_theme";
 import { useMobile } from "@/hooks/use_mobile";
 import { cn } from "@/lib/utils";
-import { Copy, Check } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface MessageRendererProps {
@@ -140,10 +140,10 @@ function parseJsonFromText(text: string): {
     try {
       // Pre-process: remove trailing commas (JSON5-like support)
       let cleaned = jsonCandidate;
-      
+
       // Remove trailing commas before closing brackets/braces
       cleaned = cleaned.replace(/,(\s*[}\]])/g, "$1");
-      
+
       // Try standard JSON parse first
       let json: unknown;
       try {
@@ -154,7 +154,7 @@ function parseJsonFromText(text: string): {
         cleaned = cleaned
           .replace(/\/\/.*$/gm, "") // Single-line comments
           .replace(/\/\*[\s\S]*?\*\//g, ""); // Multi-line comments
-        
+
         json = JSON.parse(cleaned);
       }
 
@@ -239,7 +239,7 @@ function JsonRenderer({
       return String(json);
     }
   }, [json]);
-  
+
   const [copied, setCopied] = React.useState(false);
   const typeInfo = useMemo(() => getJsonTypeInfo(json), [json]);
 
@@ -271,9 +271,7 @@ function JsonRenderer({
         <div className="flex items-center gap-2">
           <span
             className={`font-semibold uppercase tracking-wide ${
-              isDark
-                ? "text-amber-400"
-                : "text-amber-700 dark:text-amber-400"
+              isDark ? "text-amber-400" : "text-amber-700 dark:text-amber-400"
             } ${isMobile ? "text-[10px]" : "text-xs"}`}
           >
             JSON {typeInfo.label}
@@ -298,20 +296,30 @@ function JsonRenderer({
               : "hover:bg-amber-200/50 dark:hover:bg-amber-500/20 text-amber-700 dark:text-amber-300"
           } ${isMobile ? "h-6 px-1.5 text-[10px]" : "h-6 px-2 text-xs"}`}
         >
-          {copied ? (
-            <>
-              <Check className={`${isMobile ? "icon-[10px]" : "icon-xs"} mr-1`} />
-              {!isMobile && "Copied"}
-            </>
-          ) : (
-            <>
-              <Copy className={`${isMobile ? "icon-[10px]" : "icon-xs"} mr-1`} />
-              {!isMobile && "Copy"}
-            </>
-          )}
+          {copied
+            ? (
+              <>
+                <Check
+                  className={`${isMobile ? "icon-[10px]" : "icon-xs"} mr-1`}
+                />
+                {!isMobile && "Copied"}
+              </>
+            )
+            : (
+              <>
+                <Copy
+                  className={`${isMobile ? "icon-[10px]" : "icon-xs"} mr-1`}
+                />
+                {!isMobile && "Copy"}
+              </>
+            )}
         </Button>
       </div>
-      <div className={`relative ${isDark ? "bg-[#1e1e1e]" : "bg-white dark:bg-[#1e1e1e]"}`}>
+      <div
+        className={`relative ${
+          isDark ? "bg-[#1e1e1e]" : "bg-white dark:bg-[#1e1e1e]"
+        }`}
+      >
         <SyntaxHighlighter
           language="json"
           style={isDark ? oneDark : oneLight}
@@ -332,7 +340,11 @@ function JsonRenderer({
               isDark
                 ? "bg-amber-400/50"
                 : "bg-amber-600/50 dark:bg-amber-400/50"
-            } ${isMobile ? "bottom-1 right-1 w-1.5 h-3" : "bottom-2 right-2 w-2 h-4"}`}
+            } ${
+              isMobile
+                ? "bottom-1 right-1 w-1.5 h-3"
+                : "bottom-2 right-2 w-2 h-4"
+            }`}
           />
         )}
       </div>
@@ -369,16 +381,12 @@ function ThinkingRenderer({
         <div className="flex items-center gap-1.5">
           <div
             className={`rounded-full animate-pulse ${
-              isDark
-                ? "bg-amber-400"
-                : "bg-amber-600 dark:bg-amber-400"
+              isDark ? "bg-amber-400" : "bg-amber-600 dark:bg-amber-400"
             } ${isMobile ? "w-1.5 h-1.5" : "w-2 h-2"}`}
           />
           <span
             className={`font-semibold uppercase tracking-wide ${
-              isDark
-                ? "text-amber-400"
-                : "text-amber-700 dark:text-amber-400"
+              isDark ? "text-amber-400" : "text-amber-700 dark:text-amber-400"
             } ${isMobile ? "text-[10px]" : "text-xs"}`}
           >
             Thinking Process
@@ -386,48 +394,50 @@ function ThinkingRenderer({
         </div>
       </div>
 
-      {parsedJson ? (
-        <div className={isMobile ? "space-y-2" : "space-y-3"}>
-          {/* Text before JSON */}
-          {parsedJson.remainingText && (
-            <div
-              className={`italic whitespace-pre-wrap break-words font-mono leading-relaxed ${
-                isDark
-                  ? "text-amber-300/80"
-                  : "text-amber-800/80 dark:text-amber-300/80"
-              } ${isMobile ? "text-xs" : "text-sm"}`}
-            >
-              {parsedJson.remainingText}
-            </div>
-          )}
-          {/* JSON block */}
-          <JsonRenderer
-            json={parsedJson.json}
-            isDark={isDark}
-            isStreaming={isStreaming}
-            isMobile={isMobile}
-          />
-        </div>
-      ) : (
-        <div
-          className={`italic whitespace-pre-wrap break-words font-mono leading-relaxed ${
-            isDark
-              ? "text-amber-300/80"
-              : "text-amber-800/80 dark:text-amber-300/80"
-          } ${isMobile ? "text-xs" : "text-sm"}`}
-        >
-          {thinking}
-          {isStreaming && (
-            <span
-              className={`inline-block ml-1 animate-pulse ${
-                isDark
-                  ? "bg-amber-400/50"
-                  : "bg-amber-600/50 dark:bg-amber-400/50"
-              } ${isMobile ? "w-1.5 h-3" : "w-2 h-4"}`}
+      {parsedJson
+        ? (
+          <div className={isMobile ? "space-y-2" : "space-y-3"}>
+            {/* Text before JSON */}
+            {parsedJson.remainingText && (
+              <div
+                className={`italic whitespace-pre-wrap break-words font-mono leading-relaxed ${
+                  isDark
+                    ? "text-amber-300/80"
+                    : "text-amber-800/80 dark:text-amber-300/80"
+                } ${isMobile ? "text-xs" : "text-sm"}`}
+              >
+                {parsedJson.remainingText}
+              </div>
+            )}
+            {/* JSON block */}
+            <JsonRenderer
+              json={parsedJson.json}
+              isDark={isDark}
+              isStreaming={isStreaming}
+              isMobile={isMobile}
             />
-          )}
-        </div>
-      )}
+          </div>
+        )
+        : (
+          <div
+            className={`italic whitespace-pre-wrap break-words font-mono leading-relaxed ${
+              isDark
+                ? "text-amber-300/80"
+                : "text-amber-800/80 dark:text-amber-300/80"
+            } ${isMobile ? "text-xs" : "text-sm"}`}
+          >
+            {thinking}
+            {isStreaming && (
+              <span
+                className={`inline-block ml-1 animate-pulse ${
+                  isDark
+                    ? "bg-amber-400/50"
+                    : "bg-amber-600/50 dark:bg-amber-400/50"
+                } ${isMobile ? "w-1.5 h-3" : "w-2 h-4"}`}
+              />
+            )}
+          </div>
+        )}
     </div>
   );
 }
@@ -494,17 +504,23 @@ function CodeBlock({
               : "hover:bg-muted/50 dark:hover:bg-muted text-foreground/70 dark:text-foreground"
           } ${isMobile ? "h-6 px-1.5 text-[10px]" : "h-6 px-2 text-xs"}`}
         >
-          {copied ? (
-            <>
-              <Check className={`${isMobile ? "icon-[10px]" : "icon-xs"} mr-1`} />
-              {!isMobile && "Copied"}
-            </>
-          ) : (
-            <>
-              <Copy className={`${isMobile ? "icon-[10px]" : "icon-xs"} mr-1`} />
-              {!isMobile && "Copy"}
-            </>
-          )}
+          {copied
+            ? (
+              <>
+                <Check
+                  className={`${isMobile ? "icon-[10px]" : "icon-xs"} mr-1`}
+                />
+                {!isMobile && "Copied"}
+              </>
+            )
+            : (
+              <>
+                <Copy
+                  className={`${isMobile ? "icon-[10px]" : "icon-xs"} mr-1`}
+                />
+                {!isMobile && "Copy"}
+              </>
+            )}
         </Button>
       </div>
       <div className={isDark ? "bg-[#1e1e1e]" : "bg-white dark:bg-[#1e1e1e]"}>
@@ -572,9 +588,7 @@ function createMarkdownComponents(isDark: boolean, isMobile: boolean) {
     h1: ({ children }: { children?: React.ReactNode }) => (
       <h1
         className={`font-bold text-foreground ${
-          isMobile
-            ? "text-lg mt-3 mb-2"
-            : "text-2xl mt-6 mb-4"
+          isMobile ? "text-lg mt-3 mb-2" : "text-2xl mt-6 mb-4"
         }`}
       >
         {children}
@@ -583,9 +597,7 @@ function createMarkdownComponents(isDark: boolean, isMobile: boolean) {
     h2: ({ children }: { children?: React.ReactNode }) => (
       <h2
         className={`font-semibold text-foreground ${
-          isMobile
-            ? "text-base mt-2.5 mb-1.5"
-            : "text-xl mt-5 mb-3"
+          isMobile ? "text-base mt-2.5 mb-1.5" : "text-xl mt-5 mb-3"
         }`}
       >
         {children}
@@ -594,9 +606,7 @@ function createMarkdownComponents(isDark: boolean, isMobile: boolean) {
     h3: ({ children }: { children?: React.ReactNode }) => (
       <h3
         className={`font-semibold text-foreground ${
-          isMobile
-            ? "text-sm mt-2 mb-1"
-            : "text-lg mt-4 mb-2"
+          isMobile ? "text-sm mt-2 mb-1" : "text-lg mt-4 mb-2"
         }`}
       >
         {children}
@@ -605,9 +615,7 @@ function createMarkdownComponents(isDark: boolean, isMobile: boolean) {
     h4: ({ children }: { children?: React.ReactNode }) => (
       <h4
         className={`font-semibold text-foreground ${
-          isMobile
-            ? "text-xs mt-1.5 mb-1"
-            : "text-base mt-3 mb-2"
+          isMobile ? "text-xs mt-1.5 mb-1" : "text-base mt-3 mb-2"
         }`}
       >
         {children}
@@ -646,7 +654,9 @@ function createMarkdownComponents(isDark: boolean, isMobile: boolean) {
     ),
     li: ({ children }: { children?: React.ReactNode }) => (
       <li
-        className={`leading-relaxed ${isMobile ? "ml-2 mb-0.5 text-xs" : "ml-4 mb-1"}`}
+        className={`leading-relaxed ${
+          isMobile ? "ml-2 mb-0.5 text-xs" : "ml-4 mb-1"
+        }`}
       >
         {children}
       </li>
@@ -654,12 +664,12 @@ function createMarkdownComponents(isDark: boolean, isMobile: boolean) {
 
     // Tables - theme-aware
     table: ({ children }: { children?: React.ReactNode }) => (
-      <div className={isMobile ? "my-2 overflow-x-auto" : "my-4 overflow-x-auto"}>
+      <div
+        className={isMobile ? "my-2 overflow-x-auto" : "my-4 overflow-x-auto"}
+      >
         <table
           className={`min-w-full border-collapse border rounded ${
-            isDark
-              ? "border-border"
-              : "border-border/50 dark:border-border"
+            isDark ? "border-border" : "border-border/50 dark:border-border"
           } ${isMobile ? "text-xs" : ""}`}
         >
           {children}
@@ -668,11 +678,7 @@ function createMarkdownComponents(isDark: boolean, isMobile: boolean) {
     ),
     thead: ({ children }: { children?: React.ReactNode }) => (
       <thead
-        className={
-          isDark
-            ? "bg-muted/50"
-            : "bg-muted/30 dark:bg-muted/50"
-        }
+        className={isDark ? "bg-muted/50" : "bg-muted/30 dark:bg-muted/50"}
       >
         {children}
       </thead>
@@ -721,9 +727,7 @@ function createMarkdownComponents(isDark: boolean, isMobile: boolean) {
           isDark
             ? "border-amber-500/50 text-amber-200/80 bg-amber-500/5"
             : "border-amber-600/50 dark:border-amber-500/50 text-amber-800/80 dark:text-amber-200/80 bg-amber-50/50 dark:bg-amber-500/5"
-        } ${isMobile
-          ? "pl-2 py-1 my-2 text-xs"
-          : "pl-4 py-2 my-4"}`}
+        } ${isMobile ? "pl-2 py-1 my-2 text-xs" : "pl-4 py-2 my-4"}`}
       >
         {children}
       </blockquote>
@@ -788,11 +792,11 @@ export const MessageRenderer = React.memo(function MessageRenderer({
   // During streaming, be more lenient with incomplete JSON
   const parsedContent = useMemo(() => {
     if (!content) return null;
-    
+
     // Try standard parsing first
     const result = parseJsonFromText(content);
     if (result) return result;
-    
+
     // During streaming, try to find incomplete JSON and wait for completion
     if (isStreaming) {
       // Check if we have a potential incomplete JSON (starts with { or [)
@@ -802,41 +806,41 @@ export const MessageRenderer = React.memo(function MessageRenderer({
         let depth = 0;
         let inString = false;
         let escapeNext = false;
-        
+
         for (let i = 0; i < trimmed.length; i++) {
           const char = trimmed[i];
-          
+
           if (escapeNext) {
             escapeNext = false;
             continue;
           }
-          
+
           if (char === "\\") {
             escapeNext = true;
             continue;
           }
-          
+
           if (char === '"' && !escapeNext) {
             inString = !inString;
             continue;
           }
-          
+
           if (inString) continue;
-          
+
           if (char === "{" || char === "[") {
             depth++;
           } else if (char === "}" || char === "]") {
             depth--;
           }
         }
-        
+
         // If depth > 0, JSON is incomplete - don't try to parse yet
         if (depth > 0) {
           return null;
         }
       }
     }
-    
+
     return null;
   }, [content, isStreaming]);
 
@@ -877,8 +881,8 @@ export const MessageRenderer = React.memo(function MessageRenderer({
 
   // Use throttled content for rendering during streaming
   const renderContent = isStreaming ? throttledContent : content;
-	
-	return (
+
+  return (
     <div className={cn(isMobile ? "space-y-2" : "space-y-4", className)}>
       {/* Thinking section */}
       {thinking && thinking.length > 0 && (
@@ -890,81 +894,83 @@ export const MessageRenderer = React.memo(function MessageRenderer({
       )}
 
       {/* Content section */}
-      {parsedContent ? (
-        <div className={isMobile ? "space-y-2" : "space-y-4"}>
-          {/* JSON block */}
-          <JsonRenderer
-            json={parsedContent.json}
-            isDark={isDark}
-            isStreaming={isStreaming}
-            isMobile={isMobile}
-          />
-          {/* Remaining text after JSON */}
-          {parsedContent.remainingText && (
-            <div
-              className={`prose dark:prose-invert max-w-none ${
-                isMobile ? "prose-xs" : "prose-sm"
-              }`}
-            >
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeRaw]}
-                components={markdownComponents}
-              >
-                {parsedContent.remainingText}
-              </ReactMarkdown>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div
-          className={`prose dark:prose-invert max-w-none ${
-            isMobile ? "prose-xs" : "prose-sm"
-          }`}
-        >
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw]}
-            components={markdownComponents}
-          >
-            {renderContent || (isStreaming && " ")}
-          </ReactMarkdown>
-
-          {/* Streaming indicator */}
-          {isStreaming && renderContent && (
-            <span
-              className={`inline-block ml-1 bg-foreground/50 animate-pulse ${
-                isMobile ? "w-1.5 h-3" : "w-2 h-4"
-              }`}
+      {parsedContent
+        ? (
+          <div className={isMobile ? "space-y-2" : "space-y-4"}>
+            {/* JSON block */}
+            <JsonRenderer
+              json={parsedContent.json}
+              isDark={isDark}
+              isStreaming={isStreaming}
+              isMobile={isMobile}
             />
-          )}
-
-          {/* Loading indicator when no content */}
-          {!renderContent && isStreaming && (
-            <div
-              className={`flex items-center gap-2 text-muted-foreground ${
-                isMobile ? "gap-1" : "gap-2"
-              }`}
+            {/* Remaining text after JSON */}
+            {parsedContent.remainingText && (
+              <div
+                className={`prose dark:prose-invert max-w-none ${
+                  isMobile ? "prose-xs" : "prose-sm"
+                }`}
+              >
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeRaw]}
+                  components={markdownComponents}
+                >
+                  {parsedContent.remainingText}
+                </ReactMarkdown>
+              </div>
+            )}
+          </div>
+        )
+        : (
+          <div
+            className={`prose dark:prose-invert max-w-none ${
+              isMobile ? "prose-xs" : "prose-sm"
+            }`}
+          >
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw]}
+              components={markdownComponents}
             >
+              {renderContent || (isStreaming && " ")}
+            </ReactMarkdown>
+
+            {/* Streaming indicator */}
+            {isStreaming && renderContent && (
               <span
-                className={`rounded-full bg-current animate-pulse ${
-                  isMobile ? "w-1 h-1" : "w-1.5 h-1.5"
+                className={`inline-block ml-1 bg-foreground/50 animate-pulse ${
+                  isMobile ? "w-1.5 h-3" : "w-2 h-4"
                 }`}
               />
-              <span
-                className={`rounded-full bg-current animate-pulse delay-75 ${
-                  isMobile ? "w-1 h-1" : "w-1.5 h-1.5"
+            )}
+
+            {/* Loading indicator when no content */}
+            {!renderContent && isStreaming && (
+              <div
+                className={`flex items-center gap-2 text-muted-foreground ${
+                  isMobile ? "gap-1" : "gap-2"
                 }`}
-              />
-              <span
-                className={`rounded-full bg-current animate-pulse delay-150 ${
-                  isMobile ? "w-1 h-1" : "w-1.5 h-1.5"
-                }`}
-              />
-            </div>
-          )}
-        </div>
-      )}
+              >
+                <span
+                  className={`rounded-full bg-current animate-pulse ${
+                    isMobile ? "w-1 h-1" : "w-1.5 h-1.5"
+                  }`}
+                />
+                <span
+                  className={`rounded-full bg-current animate-pulse delay-75 ${
+                    isMobile ? "w-1 h-1" : "w-1.5 h-1.5"
+                  }`}
+                />
+                <span
+                  className={`rounded-full bg-current animate-pulse delay-150 ${
+                    isMobile ? "w-1 h-1" : "w-1.5 h-1.5"
+                  }`}
+                />
+              </div>
+            )}
+          </div>
+        )}
     </div>
   );
 }, (prevProps, nextProps) => {
@@ -973,20 +979,20 @@ export const MessageRenderer = React.memo(function MessageRenderer({
   if (prevProps.isStreaming !== nextProps.isStreaming) {
     return false; // Re-render if streaming state changed
   }
-  
+
   // During streaming, only re-render if content changed by more than 50 characters
   // This prevents excessive re-renders on every small chunk
   if (nextProps.isStreaming) {
     const prevLength = prevProps.content?.length || 0;
     const nextLength = nextProps.content?.length || 0;
     const diff = Math.abs(nextLength - prevLength);
-    
+
     // Re-render if content changed significantly (50+ chars) or if it's the first update
     if (diff < 50 && prevLength > 0) {
       return true; // Skip re-render for small updates during streaming
     }
   }
-  
+
   // Normal comparison for non-streaming
   return (
     prevProps.content === nextProps.content &&

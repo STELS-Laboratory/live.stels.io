@@ -70,7 +70,6 @@ export default function SchemaActions({
 
       onExport(allSchemas);
     } catch {
-
       onError("Failed to export schemas. Please try again.");
     }
   };
@@ -118,7 +117,6 @@ export default function SchemaActions({
         onImport(schemasToImport);
       } catch {
         onError("Failed to import schema. Please check the file format.");
-
       }
     };
     reader.readAsText(file);

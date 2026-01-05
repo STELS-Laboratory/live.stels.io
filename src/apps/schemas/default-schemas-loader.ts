@@ -54,7 +54,8 @@ const DEFAULT_SCHEMA_METADATA: Record<
   },
   "widget.tickers.live": {
     name: "Live Price Ticker",
-    description: "Real-time cryptocurrency price display with bid/ask and volume",
+    description:
+      "Real-time cryptocurrency price display with bid/ask and volume",
     type: "static",
   },
   "widget.app.sonar": {
@@ -75,14 +76,13 @@ async function loadSchemaFromPublic(
     // Get session ID for cache busting
     const sessionId = getBodySessionId();
 
-    const url = sessionId 
+    const url = sessionId
       ? `/schemas/${filename}?session=${sessionId}`
       : `/schemas/${filename}`;
 
     const response = await fetch(url);
 
     if (!response.ok) {
-
       return null;
     }
 
@@ -94,30 +94,32 @@ async function loadSchemaFromPublic(
     // Get metadata
     const metadata = DEFAULT_SCHEMA_METADATA[widgetKey];
     if (!metadata) {
-
       return null;
     }
 
     // Get current network ID and update channelKeys dynamically
     const networkStore = useNetworkStore.getState();
     const currentNetworkId = networkStore.currentNetworkId;
-    
+
     // Update channelKeys and channelAliases with current network
     let channelKeys = metadata.channelKeys || [];
     let channelAliases = metadata.channelAliases || [];
-    
+
     // Replace testnet/mainnet in channelKeys
     if (channelKeys.length > 0) {
-      channelKeys = channelKeys.map((key) => 
+      channelKeys = channelKeys.map((key) =>
         key.replace(/^(testnet|mainnet)\./, `${currentNetworkId}.`)
       );
     }
-    
+
     // Replace testnet/mainnet in channelAliases
     if (channelAliases.length > 0) {
       channelAliases = channelAliases.map((alias) => ({
         ...alias,
-        channelKey: alias.channelKey.replace(/^(testnet|mainnet)\./, `${currentNetworkId}.`),
+        channelKey: alias.channelKey.replace(
+          /^(testnet|mainnet)\./,
+          `${currentNetworkId}.`,
+        ),
       }));
     }
 
@@ -140,7 +142,6 @@ async function loadSchemaFromPublic(
 
     return schema;
   } catch {
-
     return null;
   }
 }
@@ -158,7 +159,6 @@ async function areDefaultSchemasLoaded(): Promise<boolean> {
 
     return result;
   } catch {
-
     return false;
   }
 }
@@ -172,12 +172,10 @@ export async function loadDefaultSchemas(): Promise<{
   skipped: number;
   failed: number;
 }> {
-
   // Check if already loaded
   const alreadyLoaded = await areDefaultSchemasLoaded();
 
   if (alreadyLoaded) {
-
     return { loaded: 0, skipped: DEFAULT_SCHEMA_FILES.length, failed: 0 };
   }
 
@@ -193,7 +191,6 @@ export async function loadDefaultSchemas(): Promise<{
       // Check if schema already exists
       const existing = await getSchemaByWidgetKey(widgetKey);
       if (existing) {
-
         skipped++;
         continue;
       }
@@ -210,7 +207,6 @@ export async function loadDefaultSchemas(): Promise<{
 
       loaded++;
     } catch {
-
       failed++;
     }
   }
@@ -225,7 +221,6 @@ export async function reloadDefaultSchemas(): Promise<{
   loaded: number;
   failed: number;
 }> {
-
   let loaded = 0;
   let failed = 0;
 
@@ -252,7 +247,6 @@ export async function reloadDefaultSchemas(): Promise<{
 
       loaded++;
     } catch {
-
       failed++;
     }
   }

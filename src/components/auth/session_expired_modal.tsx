@@ -25,10 +25,9 @@ export const SessionExpiredModal: React.FC = (): React.ReactElement => {
     try {
       setShowSessionExpiredModal(false);
       await resetAuth();
-
     } catch {
-			// Error handled silently
-		}
+      // Error handled silently
+    }
   };
 
   // Don't render if not visible

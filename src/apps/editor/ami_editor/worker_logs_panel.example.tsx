@@ -234,7 +234,6 @@ export function CustomSSEExample(): React.ReactElement {
       }
     } catch {
       setConnected(false);
-
     }
   };
 

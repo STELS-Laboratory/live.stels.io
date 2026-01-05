@@ -76,7 +76,6 @@ export function ModelSelector({
     if (tab && !tab.model && models.length > 0) {
       const firstModel = models[0];
       if (firstModel) {
-
         selectModel(tabId, firstModel.name);
       }
     }
@@ -97,8 +96,8 @@ export function ModelSelector({
         inSettings
           ? "gap-2 p-0"
           : `border-b border-border bg-card/30 ${
-              isMobile ? "gap-0.5 p-1 h-7" : "gap-2 p-2"
-            }`
+            isMobile ? "gap-0.5 p-1 h-7" : "gap-2 p-2"
+          }`
       }`}
     >
       <Select
@@ -107,13 +106,11 @@ export function ModelSelector({
         disabled={isLoading || models.length === 0}
       >
         <SelectTrigger
-          className={
-            inSettings
-              ? "w-full"
-              : isMobile
-              ? "w-[100px] h-6 text-[10px] px-1.5"
-              : "w-[200px]"
-          }
+          className={inSettings
+            ? "w-full"
+            : isMobile
+            ? "w-[100px] h-6 text-[10px] px-1.5"
+            : "w-[200px]"}
         >
           <SelectValue placeholder={isMobile ? "Model" : "Select model"} />
         </SelectTrigger>
@@ -149,7 +146,10 @@ export function ModelSelector({
                           />
                         )}
                       </div>
-                      <Badge variant="outline" className="ml-2 text-xs shrink-0">
+                      <Badge
+                        variant="outline"
+                        className="ml-2 text-xs shrink-0"
+                      >
                         {formatSize(model.size)}
                       </Badge>
                     </div>

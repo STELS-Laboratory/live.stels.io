@@ -1,6 +1,6 @@
 /**
  * Professional JavaScript Code Formatter
- * 
+ *
  * Simple and reliable formatter with 2-space indentation.
  * Focuses on proper indentation without breaking code structure.
  */
@@ -10,7 +10,7 @@ const INDENT = " ".repeat(INDENT_SIZE);
 
 /**
  * Format JavaScript code with professional 2-space indentation
- * 
+ *
  * @param code - JavaScript code to format
  * @returns Formatted JavaScript code
  */
@@ -22,7 +22,7 @@ export function formatJavaScript(code: string): string {
   try {
     // Normalize line endings
     const normalized = code.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-    
+
     // Split into lines
     const lines = normalized.split("\n");
     const formattedLines: string[] = [];
@@ -90,7 +90,10 @@ export function formatJavaScript(code: string): string {
               lineInComment = true;
             }
           }
-          if (char === "*" && j < line.length - 1 && line[j + 1] === "/" && inMultiLineComment) {
+          if (
+            char === "*" && j < line.length - 1 && line[j + 1] === "/" &&
+            inMultiLineComment
+          ) {
             inMultiLineComment = false;
             lineInComment = false;
           }
@@ -101,7 +104,10 @@ export function formatJavaScript(code: string): string {
       let lineIndent = indentLevel;
 
       // Decrease indent for closing braces/brackets/parens
-      if (trimmed.startsWith("}") || trimmed.startsWith("]") || trimmed.startsWith(")")) {
+      if (
+        trimmed.startsWith("}") || trimmed.startsWith("]") ||
+        trimmed.startsWith(")")
+      ) {
         lineIndent = Math.max(0, indentLevel - 1);
       }
 
@@ -137,7 +143,9 @@ export function formatJavaScript(code: string): string {
       indentLevel += netBraces + netBrackets + netParens;
 
       // Special handling for lines ending with opening braces/brackets/parens
-      if (trimmed.endsWith("{") || trimmed.endsWith("[") || trimmed.endsWith("(")) {
+      if (
+        trimmed.endsWith("{") || trimmed.endsWith("[") || trimmed.endsWith("(")
+      ) {
         indentLevel++;
       }
 

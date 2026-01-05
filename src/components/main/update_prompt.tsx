@@ -57,14 +57,11 @@ export default function UpdatePrompt(): React.ReactElement | null {
     setIsUpdating(true);
 
     try {
-
       // Update service worker
       await updateServiceWorker(true);
 
       // App will reload automatically
-
     } catch {
-
       setIsUpdating(false);
     }
   };
@@ -74,7 +71,6 @@ export default function UpdatePrompt(): React.ReactElement | null {
    * User can continue using current version
    */
   const handleDismiss = (): void => {
-
     setNeedRefresh(false);
   };
 

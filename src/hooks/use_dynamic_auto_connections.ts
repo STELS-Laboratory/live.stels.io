@@ -7,153 +7,149 @@ import { useCallback, useMemo, useState } from "react";
 import type { Edge } from "reactflow";
 import type { FlowNode, GroupedEdgeData } from "@/lib/canvas-types";
 import {
-	type DynamicAutoConnectionConfig,
-	defaultDynamicAutoConnectionConfig,
-	filterDynamicAutoConnections,
-	generateDynamicAutoConnections,
-	getDynamicConnectionStats,
+  defaultDynamicAutoConnectionConfig,
+  type DynamicAutoConnectionConfig,
+  filterDynamicAutoConnections,
+  generateDynamicAutoConnections,
+  getDynamicConnectionStats,
 } from "@/lib/auto-connections-dynamic";
 
 /**
  * Hook for managing dynamic automatic node connections
  */
 export function useDynamicAutoConnections(
-	nodes: FlowNode[],
-	manualEdges: Edge[],
-	initialConfig?: Partial<DynamicAutoConnectionConfig>,
+  nodes: FlowNode[],
+  manualEdges: Edge[],
+  initialConfig?: Partial<DynamicAutoConnectionConfig>,
 ) {
-	const [config, setConfig] = useState<DynamicAutoConnectionConfig>({
-		...defaultDynamicAutoConnectionConfig,
-		...initialConfig,
-	});
+  const [config, setConfig] = useState<DynamicAutoConnectionConfig>({
+    ...defaultDynamicAutoConnectionConfig,
+    ...initialConfig,
+  });
 
-	const [isEnabled, setIsEnabled] = useState<boolean>(config.enabled);
+  const [isEnabled, setIsEnabled] = useState<boolean>(config.enabled);
 
-	// Generate automatic connections
-	const autoConnections = useMemo(() => {
+  // Generate automatic connections
+  const autoConnections = useMemo(() => {
+    if (!isEnabled) {
+      return [];
+    }
 
-		if (!isEnabled) {
+    if (nodes.length === 0) {
+      return [];
+    }
 
-			return [];
-		}
+    if (config.selectedBlocks.length === 0) {
+      return [];
+    }
 
-		if (nodes.length === 0) {
+    const autoEdges = generateDynamicAutoConnections(nodes, {
+      ...config,
+      enabled: isEnabled,
+    });
 
-			return [];
-		}
+    const filtered = filterDynamicAutoConnections(autoEdges, manualEdges);
 
-		if (config.selectedBlocks.length === 0) {
+    return filtered;
+  }, [nodes, manualEdges, config, isEnabled]);
 
-			return [];
-		}
+  // Combine manual and automatic edges
+  const allEdges = useMemo(() => {
+    const autoEdges = autoConnections as Edge<GroupedEdgeData>[];
+    return [...manualEdges, ...autoEdges];
+  }, [manualEdges, autoConnections]);
 
-		const autoEdges = generateDynamicAutoConnections(nodes, {
-			...config,
-			enabled: isEnabled,
-		});
+  // Connection statistics
+  const stats = useMemo(() => {
+    const dynamicStats = getDynamicConnectionStats(nodes, allEdges, {
+      ...config,
+      enabled: isEnabled,
+    });
 
-		const filtered = filterDynamicAutoConnections(autoEdges, manualEdges);
+    // Convert to expected format
+    return {
+      nodeCount: dynamicStats.nodeCount,
+      edgeCount: dynamicStats.edgeCount,
+      groupCount: dynamicStats.groupCount,
+      connectionsByType: dynamicStats.connectionsByBlock,
+    };
+  }, [nodes, allEdges, config, isEnabled]);
 
-		return filtered;
-	}, [nodes, manualEdges, config, isEnabled]);
+  // Toggle auto connections
+  const toggleAutoConnections = useCallback(() => {
+    setIsEnabled((prev) => !prev);
+  }, []);
 
-	// Combine manual and automatic edges
-	const allEdges = useMemo(() => {
-		const autoEdges = autoConnections as Edge<GroupedEdgeData>[];
-		return [...manualEdges, ...autoEdges];
-	}, [manualEdges, autoConnections]);
+  // Update configuration
+  const updateConfig = useCallback(
+    (newConfig: Partial<DynamicAutoConnectionConfig>) => {
+      setConfig((prev) => ({ ...prev, ...newConfig }));
+    },
+    [],
+  );
 
-	// Connection statistics
-	const stats = useMemo(() => {
-		const dynamicStats = getDynamicConnectionStats(nodes, allEdges, {
-			...config,
-			enabled: isEnabled,
-		});
+  // Add block position for grouping
+  const addBlock = useCallback(
+    (position: number) => {
+      if (!config.selectedBlocks.includes(position)) {
+        updateConfig({
+          selectedBlocks: [...config.selectedBlocks, position],
+        });
+      }
+    },
+    [config.selectedBlocks, updateConfig],
+  );
 
-		// Convert to expected format
-		return {
-			nodeCount: dynamicStats.nodeCount,
-			edgeCount: dynamicStats.edgeCount,
-			groupCount: dynamicStats.groupCount,
-			connectionsByType: dynamicStats.connectionsByBlock,
-		};
-	}, [nodes, allEdges, config, isEnabled]);
+  // Remove block position from grouping
+  const removeBlock = useCallback(
+    (position: number) => {
+      updateConfig({
+        selectedBlocks: config.selectedBlocks.filter((p) => p !== position),
+      });
+    },
+    [config.selectedBlocks, updateConfig],
+  );
 
-	// Toggle auto connections
-	const toggleAutoConnections = useCallback(() => {
-		setIsEnabled((prev) => !prev);
-	}, []);
+  // Toggle block position
+  const toggleBlock = useCallback(
+    (position: number) => {
+      if (config.selectedBlocks.includes(position)) {
+        removeBlock(position);
+      } else {
+        addBlock(position);
+      }
+    },
+    [config.selectedBlocks, addBlock, removeBlock],
+  );
 
-	// Update configuration
-	const updateConfig = useCallback(
-		(newConfig: Partial<DynamicAutoConnectionConfig>) => {
-			setConfig((prev) => ({ ...prev, ...newConfig }));
-		},
-		[],
-	);
+  // Clear all selected blocks
+  const clearBlocks = useCallback(() => {
+    updateConfig({ selectedBlocks: [] });
+  }, [updateConfig]);
 
-	// Add block position for grouping
-	const addBlock = useCallback(
-		(position: number) => {
-			if (!config.selectedBlocks.includes(position)) {
-				updateConfig({
-					selectedBlocks: [...config.selectedBlocks, position],
-				});
-			}
-		},
-		[config.selectedBlocks, updateConfig],
-	);
+  // Select suggested blocks
+  const selectSuggestedBlocks = useCallback(
+    (suggestedPositions: number[]) => {
+      updateConfig({ selectedBlocks: suggestedPositions });
+    },
+    [updateConfig],
+  );
 
-	// Remove block position from grouping
-	const removeBlock = useCallback(
-		(position: number) => {
-			updateConfig({
-				selectedBlocks: config.selectedBlocks.filter((p) => p !== position),
-			});
-		},
-		[config.selectedBlocks, updateConfig],
-	);
+  return {
+    // State
+    config,
+    isEnabled,
+    autoConnections,
+    allEdges,
+    stats,
 
-	// Toggle block position
-	const toggleBlock = useCallback(
-		(position: number) => {
-			if (config.selectedBlocks.includes(position)) {
-				removeBlock(position);
-			} else {
-				addBlock(position);
-			}
-		},
-		[config.selectedBlocks, addBlock, removeBlock],
-	);
-
-	// Clear all selected blocks
-	const clearBlocks = useCallback(() => {
-		updateConfig({ selectedBlocks: [] });
-	}, [updateConfig]);
-
-	// Select suggested blocks
-	const selectSuggestedBlocks = useCallback(
-		(suggestedPositions: number[]) => {
-			updateConfig({ selectedBlocks: suggestedPositions });
-		},
-		[updateConfig],
-	);
-
-	return {
-		// State
-		config,
-		isEnabled,
-		autoConnections,
-		allEdges,
-		stats,
-
-		// Actions
-		toggleAutoConnections,
-		updateConfig,
-		addBlock,
-		removeBlock,
-		toggleBlock,
-		clearBlocks,
-		selectSuggestedBlocks,
-	};
+    // Actions
+    toggleAutoConnections,
+    updateConfig,
+    addBlock,
+    removeBlock,
+    toggleBlock,
+    clearBlocks,
+    selectSuggestedBlocks,
+  };
 }

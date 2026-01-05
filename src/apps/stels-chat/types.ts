@@ -211,7 +211,10 @@ export interface StelsChatActions {
   updateTabTitle: (tabId: string, title: string) => void;
 
   // Messages
-  addMessage: (tabId: string, message: Omit<ChatMessage, "id" | "timestamp">) => void;
+  addMessage: (
+    tabId: string,
+    message: Omit<ChatMessage, "id" | "timestamp">,
+  ) => void;
   updateStreamingMessage: (
     tabId: string,
     messageId: string,
@@ -232,7 +235,9 @@ export interface StelsChatActions {
   stelsPullModel: (modelName: string) => Promise<void>;
   registerModel: (config: RegisterModelRequest) => Promise<ModelRegistryEntry>;
   unregisterModel: (modelName: string) => Promise<void>;
-  listRegisteredModels: (filters?: ListRegisteredModelsRequest) => Promise<void>;
+  listRegisteredModels: (
+    filters?: ListRegisteredModelsRequest,
+  ) => Promise<void>;
 
   // Assistants
   fetchAssistants: (filters?: ListAssistantsFilters) => Promise<void>;

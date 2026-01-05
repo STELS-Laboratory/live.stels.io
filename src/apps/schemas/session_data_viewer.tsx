@@ -68,8 +68,8 @@ export default function SessionDataViewer({
       setCopiedPath(path);
       setTimeout(() => setCopiedPath(null), 2000);
     } catch {
-			// Error handled silently
-		}
+      // Error handled silently
+    }
   };
 
   // Render JSON with clickable keys

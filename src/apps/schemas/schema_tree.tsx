@@ -70,7 +70,9 @@ function TreeNodeView({
 }): ReactElement {
   const indent = level * 20;
   const Icon = node.type === "static" ? Box : Database;
-  const color = node.type === "static" ? "text-purple-700 dark:text-purple-400" : "text-blue-700 dark:text-blue-400";
+  const color = node.type === "static"
+    ? "text-purple-700 dark:text-purple-400"
+    : "text-blue-700 dark:text-blue-400";
 
   return (
     <div>

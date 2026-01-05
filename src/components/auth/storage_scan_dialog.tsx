@@ -120,7 +120,6 @@ export function StorageScanDialog({
         setScanResult(result);
         setIsScanning(false);
       } catch {
-
         setIsScanning(false);
       }
     };
@@ -191,8 +190,8 @@ export function StorageScanDialog({
         }, 1000);
       }
     } catch {
-			// Error handled silently
-		} finally {
+      // Error handled silently
+    } finally {
       setIsDeleting(false);
     }
   };

@@ -7,67 +7,81 @@ import type { ResolvedTheme, ThemeMode } from "@/stores";
  * Automatically handles system theme changes with aggressive listening
  */
 export function useTheme(): {
-	theme: ThemeMode;
-	resolvedTheme: ResolvedTheme;
-	setTheme: (theme: ThemeMode) => void;
-	toggleTheme: () => void;
+  theme: ThemeMode;
+  resolvedTheme: ResolvedTheme;
+  setTheme: (theme: ThemeMode) => void;
+  toggleTheme: () => void;
 } {
-	const { theme, resolvedTheme, setTheme, toggleTheme, setResolvedTheme } =
-		useThemeStore();
+  const { theme, resolvedTheme, setTheme, toggleTheme, setResolvedTheme } =
+    useThemeStore();
 
-	// Aggressively listen for system theme changes when theme is set to "system"
-	useEffect(() => {
-		if (theme !== "system") return;
+  // Aggressively listen for system theme changes when theme is set to "system"
+  useEffect(() => {
+    if (theme !== "system") return;
 
-		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-		// Function to check and update system theme
-		const checkSystemTheme = (): void => {
-			const currentSystemTheme = mediaQuery.matches ? "dark" : "light";
-			if (currentSystemTheme !== resolvedTheme) {
-				setResolvedTheme(currentSystemTheme);
+    // Function to check and update system theme
+    const checkSystemTheme = (): void => {
+      const currentSystemTheme = mediaQuery.matches ? "dark" : "light";
+      if (currentSystemTheme !== resolvedTheme) {
+        setResolvedTheme(currentSystemTheme);
+      }
+    };
 
-			}
-		};
+    // Check immediately
+    checkSystemTheme();
 
-		// Check immediately
-		checkSystemTheme();
+    const handleChange = (e: MediaQueryListEvent | MediaQueryList): void => {
+      const matches = "matches" in e
+        ? e.matches
+        : (e as MediaQueryListEvent).matches;
+      const newResolvedTheme = matches ? "dark" : "light";
 
-		const handleChange = (e: MediaQueryListEvent | MediaQueryList): void => {
-			const matches = "matches" in e ? e.matches : (e as MediaQueryListEvent).matches;
-			const newResolvedTheme = matches ? "dark" : "light";
+      setResolvedTheme(newResolvedTheme);
+    };
 
-			setResolvedTheme(newResolvedTheme);
-		};
+    // Modern addEventListener
+    mediaQuery.addEventListener(
+      "change",
+      handleChange as (this: MediaQueryList, ev: MediaQueryListEvent) => void,
+    );
 
-		// Modern addEventListener
-		mediaQuery.addEventListener("change", handleChange as (this: MediaQueryList, ev: MediaQueryListEvent) => void);
+    // Legacy addListener for older browsers
+    if (mediaQuery.addListener) {
+      mediaQuery.addListener(
+        handleChange as (this: MediaQueryList, ev: MediaQueryListEvent) => void,
+      );
+    }
 
-		// Legacy addListener for older browsers
-		if (mediaQuery.addListener) {
-			mediaQuery.addListener(handleChange as (this: MediaQueryList, ev: MediaQueryListEvent) => void);
-		}
+    // Polling fallback - check every 500ms for system theme changes
+    // This ensures we catch changes even if event listeners fail
+    const pollInterval = setInterval(() => {
+      checkSystemTheme();
+    }, 500);
 
-		// Polling fallback - check every 500ms for system theme changes
-		// This ensures we catch changes even if event listeners fail
-		const pollInterval = setInterval(() => {
-			checkSystemTheme();
-		}, 500);
+    // Cleanup
+    return () => {
+      mediaQuery.removeEventListener(
+        "change",
+        handleChange as (this: MediaQueryList, ev: MediaQueryListEvent) => void,
+      );
+      if (mediaQuery.removeListener) {
+        mediaQuery.removeListener(
+          handleChange as (
+            this: MediaQueryList,
+            ev: MediaQueryListEvent,
+          ) => void,
+        );
+      }
+      clearInterval(pollInterval);
+    };
+  }, [theme, resolvedTheme, setResolvedTheme]);
 
-		// Cleanup
-		return () => {
-			mediaQuery.removeEventListener("change", handleChange as (this: MediaQueryList, ev: MediaQueryListEvent) => void);
-			if (mediaQuery.removeListener) {
-				mediaQuery.removeListener(handleChange as (this: MediaQueryList, ev: MediaQueryListEvent) => void);
-			}
-			clearInterval(pollInterval);
-		};
-	}, [theme, resolvedTheme, setResolvedTheme]);
-
-	return {
-		theme,
-		resolvedTheme,
-		setTheme,
-		toggleTheme,
-	};
+  return {
+    theme,
+    resolvedTheme,
+    setTheme,
+    toggleTheme,
+  };
 }

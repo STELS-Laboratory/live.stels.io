@@ -32,8 +32,8 @@ export function storeCurrentVersion(version: string): void {
   try {
     localStorage.setItem(VERSION_KEY, version);
   } catch {
-			// Error handled silently
-		}
+    // Error handled silently
+  }
 }
 
 /**
@@ -68,7 +68,6 @@ export async function fetchLatestVersion(): Promise<string | null> {
     });
 
     if (!response.ok) {
-
       return null;
     }
 
@@ -79,7 +78,6 @@ export async function fetchLatestVersion(): Promise<string | null> {
     // Use ETag as version identifier (most reliable)
     return etag || lastModified;
   } catch {
-
     return null;
   }
 }
@@ -90,9 +88,8 @@ export async function fetchLatestVersion(): Promise<string | null> {
  */
 export function initVersionTracking(): void {
   const currentVersion = getCurrentVersion();
-  
-  if (currentVersion && !getStoredVersion()) {
 
+  if (currentVersion && !getStoredVersion()) {
     storeCurrentVersion(currentVersion);
   }
 }
@@ -104,20 +101,18 @@ export function initVersionTracking(): void {
 export function startVersionCheck(
   onNewVersion: (newVersion: string) => void,
 ): () => void {
-
   const storedVersion = getStoredVersion();
 
   const checkVersion = async (): Promise<void> => {
     try {
       const latestVersion = await fetchLatestVersion();
-      
-      if (latestVersion && storedVersion && latestVersion !== storedVersion) {
 
+      if (latestVersion && storedVersion && latestVersion !== storedVersion) {
         onNewVersion(latestVersion);
       }
     } catch {
-			// Error handled silently
-		}
+      // Error handled silently
+    }
   };
 
   // Check immediately
@@ -128,7 +123,6 @@ export function startVersionCheck(
 
   // Return cleanup function
   return () => {
-
     clearInterval(intervalId);
   };
 }

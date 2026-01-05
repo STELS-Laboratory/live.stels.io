@@ -297,8 +297,8 @@ export function ConnectionProcess(
                     Secure Connection
                   </div>
                   <div className="text-muted-foreground text-[10px] sm:text-xs leading-relaxed">
-                    Your connection is authenticated via GitHub OAuth.
-                    All data transmissions are encrypted using TLS/SSL protocols.
+                    Your connection is authenticated via GitHub OAuth. All data
+                    transmissions are encrypted using TLS/SSL protocols.
                   </div>
                 </div>
               </div>

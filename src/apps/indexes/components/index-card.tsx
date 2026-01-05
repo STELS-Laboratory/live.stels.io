@@ -9,29 +9,26 @@ import { motion } from "framer-motion";
 import ReactECharts from "echarts-for-react";
 import * as echarts from "echarts/core";
 import { LineChart } from "echarts/charts";
-import {
-	GridComponent,
-	TooltipComponent,
-} from "echarts/components";
+import { GridComponent, TooltipComponent } from "echarts/components";
 import { CanvasRenderer } from "echarts/renderers";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { IndexMetadata, IndexData, IndexCode, IndexCandleData } from "../types";
-import {
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Activity,
-} from "lucide-react";
+import type {
+  IndexCandleData,
+  IndexCode,
+  IndexData,
+  IndexMetadata,
+} from "../types";
+import { Activity, Minus, TrendingDown, TrendingUp } from "lucide-react";
 import { useIndexStore } from "../store";
 
 // Register ECharts components
 echarts.use([
-	LineChart,
-	GridComponent,
-	TooltipComponent,
-	CanvasRenderer,
+  LineChart,
+  GridComponent,
+  TooltipComponent,
+  CanvasRenderer,
 ]);
 
 interface IndexCardProps {
@@ -65,9 +62,14 @@ function getIndexValue(data: IndexData | null): number | null {
 
   // AOI: Use avgProfitPercent or totalOpportunities
   if ("avgProfitPercent" in data) {
-    const aoiData = data as { avgProfitPercent: number; totalOpportunities: number };
+    const aoiData = data as {
+      avgProfitPercent: number;
+      totalOpportunities: number;
+    };
     // Prefer avgProfitPercent if available, otherwise use totalOpportunities
-    return aoiData.avgProfitPercent > 0 ? aoiData.avgProfitPercent : aoiData.totalOpportunities;
+    return aoiData.avgProfitPercent > 0
+      ? aoiData.avgProfitPercent
+      : aoiData.totalOpportunities;
   }
 
   // ELI: Use totalMarketVolume
@@ -134,12 +136,19 @@ function getTrendIndicator(data: IndexData | null): {
 /**
  * Format value based on index type
  */
-function formatValue(value: number | null, code: string, data: IndexData | null): string {
+function formatValue(
+  value: number | null,
+  code: string,
+  data: IndexData | null,
+): string {
   if (value === null) return "N/A";
 
   // AOI: Show avgProfitPercent as percentage or totalOpportunities as count
   if (code === "AOI" && data && "avgProfitPercent" in data) {
-    const aoiData = data as { avgProfitPercent: number; totalOpportunities: number };
+    const aoiData = data as {
+      avgProfitPercent: number;
+      totalOpportunities: number;
+    };
     if (aoiData.avgProfitPercent > 0) {
       return `${aoiData.avgProfitPercent.toFixed(2)}%`;
     }
@@ -283,7 +292,10 @@ function MiniChart({
       <ReactECharts
         option={chartOption}
         style={{ width: "100%", height: "64px", minHeight: "64px" }}
-        opts={{ renderer: "canvas", devicePixelRatio: window.devicePixelRatio || 2 }}
+        opts={{
+          renderer: "canvas",
+          devicePixelRatio: window.devicePixelRatio || 2,
+        }}
         notMerge={false}
         lazyUpdate={false}
       />
@@ -303,7 +315,7 @@ export function IndexCard({
   const value = getIndexValue(data);
   const trend = getTrendIndicator(data);
   const formattedValue = formatValue(value, metadata.code, data);
-  
+
   // Get 5-minute candle data for preview
   const getCandleData = useIndexStore((state) => state.getCandleData);
   const candleData = useMemo(() => {
@@ -350,12 +362,14 @@ export function IndexCard({
                 {trend.icon}
               </div>
               <div>
-                <div className={cn(
-                  "text-2xl font-bold",
-                  metadata.code === "ELI" 
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-foreground"
-                )}>
+                <div
+                  className={cn(
+                    "text-2xl font-bold",
+                    metadata.code === "ELI"
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-foreground",
+                  )}
+                >
                   {formattedValue}
                 </div>
                 {data && (
@@ -374,7 +388,7 @@ export function IndexCard({
               </Badge>
             </div>
           </div>
-          
+
           {/* 5-minute chart preview */}
           <div className="mt-2">
             <MiniChart candleData={candleData} />

@@ -3,5 +3,10 @@
  */
 
 export { default } from "./Indexes";
-export { useIndexStore, useIndexes, useSelectedIndex, useIndexActions } from "./store";
+export {
+  useIndexActions,
+  useIndexes,
+  useIndexStore,
+  useSelectedIndex,
+} from "./store";
 export * from "./types";

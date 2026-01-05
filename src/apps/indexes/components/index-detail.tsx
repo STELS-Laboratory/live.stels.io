@@ -12,17 +12,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  X,
-  Info,
   Activity,
-  Clock,
-  ArrowUpRight,
   ArrowDownRight,
-  Building2,
-  TrendingUp,
+  ArrowUpRight,
   BarChart3,
+  Building2,
+  Clock,
+  Info,
+  TrendingUp,
+  X,
 } from "lucide-react";
-import type { IndexData, IndexCode, Timeframe } from "../types";
+import type { IndexCode, IndexData, Timeframe } from "../types";
 import { IndexChart } from "./index-chart";
 import { useIndexStore } from "../store";
 
@@ -252,11 +252,9 @@ export function IndexDetail({
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold">
-                          {(
-                            (data as {
-                              components: { volatility: number };
-                            }).components.volatility
-                          ).toFixed(2)}
+                          {(data as {
+                            components: { volatility: number };
+                          }).components.volatility.toFixed(2)}
                         </div>
                       </CardContent>
                     </Card>
@@ -268,11 +266,9 @@ export function IndexDetail({
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold">
-                          {(
-                            (data as {
-                              components: { momentum: number };
-                            }).components.momentum
-                          ).toFixed(2)}
+                          {(data as {
+                            components: { momentum: number };
+                          }).components.momentum.toFixed(2)}
                         </div>
                       </CardContent>
                     </Card>
@@ -284,11 +280,9 @@ export function IndexDetail({
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold">
-                          {(
-                            (data as {
-                              components: { volume: number };
-                            }).components.volume
-                          ).toFixed(2)}
+                          {(data as {
+                            components: { volume: number };
+                          }).components.volume.toFixed(2)}
                         </div>
                       </CardContent>
                     </Card>
@@ -377,7 +371,7 @@ export function IndexDetail({
                             .totalOpportunities}
                         </div>
                         {(data as { highOpportunities: number })
-                          .highOpportunities > 0 && (
+                              .highOpportunities > 0 && (
                           <div className="text-xs text-amber-500 mt-1">
                             {(data as { highOpportunities: number })
                               .highOpportunities} high
@@ -457,7 +451,8 @@ export function IndexDetail({
                           variant="outline"
                           className="text-xs mt-1 capitalize"
                         >
-                          {(data as { concentration: string }).concentration}{" "}
+                          {(data as { concentration: string }).concentration}
+                          {" "}
                           concentration
                         </Badge>
                       </CardContent>
@@ -1112,31 +1107,50 @@ export function IndexDetail({
                 )}
 
                 {/* Default metrics */}
-                {!["BDI", "FGI", "CI", "AOI", "ELI", "CEPI", "EWI", "LIQ", "MBI", "MCWI", "MI", "MECI", "PSI", "PI", "TSI", "VI", "VWPI"].includes(
+                {![
+                  "BDI",
+                  "FGI",
+                  "CI",
+                  "AOI",
+                  "ELI",
+                  "CEPI",
+                  "EWI",
+                  "LIQ",
+                  "MBI",
+                  "MCWI",
+                  "MI",
+                  "MECI",
+                  "PSI",
+                  "PI",
+                  "TSI",
+                  "VI",
+                  "VWPI",
+                ].includes(
                   data.index,
                 ) &&
                   "value" in data && (
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-xs text-muted-foreground">
-                          Value
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold">
-                          {(data as { value: number }).value.toLocaleString()}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-xs text-muted-foreground">
+                        Value
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {(data as { value: number }).value.toLocaleString()}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
 
               {/* BDI Assets List */}
               {data.index === "BDI" &&
                 "assets" in data &&
                 Object.keys(
-                  (data as { assets: Record<string, unknown> }).assets,
-                ).length > 0 && (
+                    (data as { assets: Record<string, unknown> }).assets,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -1166,9 +1180,8 @@ export function IndexDetail({
                             const bdiData = data as {
                               totalMarketValue: number;
                             };
-                            const marketShare =
-                              (assetData.marketValue /
-                                bdiData.totalMarketValue) *
+                            const marketShare = (assetData.marketValue /
+                              bdiData.totalMarketValue) *
                               100;
 
                             return (
@@ -1194,15 +1207,18 @@ export function IndexDetail({
                                 </div>
                                 <div className="grid grid-cols-3 gap-2 text-xs">
                                   <div className="text-muted-foreground">
-                                    <span>Price: </span>
+                                    <span>Price:</span>
                                     <span className="font-mono font-semibold text-green-600 dark:text-green-400">
-                                      ${assetData.price.toLocaleString(undefined, {
-                                        maximumFractionDigits: 2,
-                                      })}
+                                      ${assetData.price.toLocaleString(
+                                        undefined,
+                                        {
+                                          maximumFractionDigits: 2,
+                                        },
+                                      )}
                                     </span>
                                   </div>
                                   <div className="text-muted-foreground">
-                                    <span>Volume: </span>
+                                    <span>Volume:</span>
                                     <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                       $
                                       {(assetData.volume / 1_000_000).toFixed(
@@ -1212,12 +1228,13 @@ export function IndexDetail({
                                     </span>
                                   </div>
                                   <div className="text-muted-foreground">
-                                    <span>Market Value: </span>
+                                    <span>Market Value:</span>
                                     <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                       $
-                                      {(assetData.marketValue / 1_000_000).toFixed(
-                                        2,
-                                      )}
+                                      {(assetData.marketValue / 1_000_000)
+                                        .toFixed(
+                                          2,
+                                        )}
                                       M
                                     </span>
                                   </div>
@@ -1234,9 +1251,10 @@ export function IndexDetail({
               {data.index === "CI" &&
                 "correlationMatrix" in data &&
                 Object.keys(
-                  (data as { correlationMatrix: Record<string, unknown> })
-                    .correlationMatrix,
-                ).length > 0 && (
+                    (data as { correlationMatrix: Record<string, unknown> })
+                      .correlationMatrix,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -1293,8 +1311,7 @@ export function IndexDetail({
                                   const value = correlations[otherAsset] || 0;
                                   const isPositive = value >= 0;
                                   const isHigh = Math.abs(value) >= 0.7;
-                                  const isMedium =
-                                    Math.abs(value) >= 0.4 &&
+                                  const isMedium = Math.abs(value) >= 0.4 &&
                                     Math.abs(value) < 0.7;
 
                                   return (
@@ -1307,10 +1324,10 @@ export function IndexDetail({
                                             ? "bg-green-500/10 text-green-600 dark:text-green-400"
                                             : "bg-red-500/10 text-red-600 dark:text-red-400"
                                           : isMedium
-                                            ? isPositive
-                                              ? "bg-green-500/5 text-green-500"
-                                              : "bg-red-500/5 text-red-500"
-                                            : "text-muted-foreground",
+                                          ? isPositive
+                                            ? "bg-green-500/5 text-green-500"
+                                            : "bg-red-500/5 text-red-500"
+                                          : "text-muted-foreground",
                                       )}
                                     >
                                       {value.toFixed(2)}
@@ -1330,8 +1347,9 @@ export function IndexDetail({
               {data.index === "CI" &&
                 "assetData" in data &&
                 Object.keys(
-                  (data as { assetData: Record<string, unknown> }).assetData,
-                ).length > 0 && (
+                    (data as { assetData: Record<string, unknown> }).assetData,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -1385,7 +1403,7 @@ export function IndexDetail({
                                 </div>
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                <span>Price: </span>
+                                <span>Price:</span>
                                 <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                   ${assetData.price.toLocaleString(undefined, {
                                     maximumFractionDigits: 2,
@@ -1404,9 +1422,10 @@ export function IndexDetail({
               {data.index === "CEPI" &&
                 "componentWeights" in data &&
                 Object.keys(
-                  (data as { componentWeights: Record<string, unknown> })
-                    .componentWeights,
-                ).length > 0 && (
+                    (data as { componentWeights: Record<string, unknown> })
+                      .componentWeights,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -1455,8 +1474,9 @@ export function IndexDetail({
               {data.index === "CEPI" &&
                 "assets" in data &&
                 Object.keys(
-                  (data as { assets: Record<string, unknown> }).assets,
-                ).length > 0 && (
+                    (data as { assets: Record<string, unknown> }).assets,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -1566,7 +1586,7 @@ export function IndexDetail({
 
                             {/* Price Range */}
                             <div className="text-xs text-muted-foreground">
-                              <span>Range: </span>
+                              <span>Range:</span>
                               <span className="font-mono text-green-600 dark:text-green-400">
                                 ${assetData.minPrice.toFixed(2)} - $
                                 {assetData.maxPrice.toFixed(2)}
@@ -1583,8 +1603,10 @@ export function IndexDetail({
               {data.index === "LIQ" &&
                 "components" in data &&
                 Object.keys(
-                  (data as { components: Record<string, unknown> }).components,
-                ).length > 0 && (
+                    (data as { components: Record<string, unknown> })
+                      .components,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -1627,8 +1649,10 @@ export function IndexDetail({
               {data.index === "MCWI" &&
                 "components" in data &&
                 Object.keys(
-                  (data as { components: Record<string, unknown> }).components,
-                ).length > 0 && (
+                    (data as { components: Record<string, unknown> })
+                      .components,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -1702,9 +1726,10 @@ export function IndexDetail({
                                     </span>
                                     <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                       $
-                                      {(componentData.volume / 1_000_000).toFixed(
-                                        2,
-                                      )}
+                                      {(componentData.volume / 1_000_000)
+                                        .toFixed(
+                                          2,
+                                        )}
                                       M
                                     </span>
                                   </div>
@@ -1719,17 +1744,18 @@ export function IndexDetail({
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                                   <div>
-                                    <span>Weight: </span>
+                                    <span>Weight:</span>
                                     <span className="font-mono font-semibold text-foreground">
                                       {(componentData.weight * 100).toFixed(2)}%
                                     </span>
                                   </div>
                                   <div>
-                                    <span>Static: </span>
+                                    <span>Static:</span>
                                     <span className="font-mono font-semibold text-foreground">
-                                      {(componentData.staticWeight * 100).toFixed(
-                                        2,
-                                      )}
+                                      {(componentData.staticWeight * 100)
+                                        .toFixed(
+                                          2,
+                                        )}
                                       %
                                     </span>
                                   </div>
@@ -1746,8 +1772,10 @@ export function IndexDetail({
               {data.index === "MECI" &&
                 "components" in data &&
                 Object.keys(
-                  (data as { components: Record<string, unknown> }).components,
-                ).length > 0 && (
+                    (data as { components: Record<string, unknown> })
+                      .components,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -1884,17 +1912,18 @@ export function IndexDetail({
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                                   <div>
-                                    <span>Weight: </span>
+                                    <span>Weight:</span>
                                     <span className="font-mono font-semibold text-foreground">
                                       {(componentData.weight * 100).toFixed(2)}%
                                     </span>
                                   </div>
                                   <div>
-                                    <span>Adjusted: </span>
+                                    <span>Adjusted:</span>
                                     <span className="font-mono font-semibold text-foreground">
-                                      {(componentData.adjustedWeight * 100).toFixed(
-                                        2,
-                                      )}
+                                      {(componentData.adjustedWeight * 100)
+                                        .toFixed(
+                                          2,
+                                        )}
                                       %
                                     </span>
                                   </div>
@@ -1959,8 +1988,10 @@ export function IndexDetail({
               {data.index === "MI" &&
                 "components" in data &&
                 Object.keys(
-                  (data as { components: Record<string, unknown> }).components,
-                ).length > 0 && (
+                    (data as { components: Record<string, unknown> })
+                      .components,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -2010,7 +2041,7 @@ export function IndexDetail({
                                   </div>
                                 </div>
                                 <div className="text-xs text-muted-foreground">
-                                  <span>Price: </span>
+                                  <span>Price:</span>
                                   <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                     ${componentData.price.toLocaleString(
                                       undefined,
@@ -2032,8 +2063,10 @@ export function IndexDetail({
               {data.index === "PI" &&
                 "components" in data &&
                 Object.keys(
-                  (data as { components: Record<string, unknown> }).components,
-                ).length > 0 && (
+                    (data as { components: Record<string, unknown> })
+                      .components,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -2076,8 +2109,10 @@ export function IndexDetail({
               {data.index === "EWI" &&
                 "components" in data &&
                 Object.keys(
-                  (data as { components: Record<string, unknown> }).components,
-                ).length > 0 && (
+                    (data as { components: Record<string, unknown> })
+                      .components,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -2120,9 +2155,10 @@ export function IndexDetail({
               {data.index === "FGI" &&
                 "componentData" in data &&
                 Object.keys(
-                  (data as { componentData: Record<string, unknown> })
-                    .componentData,
-                ).length > 0 && (
+                    (data as { componentData: Record<string, unknown> })
+                      .componentData,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -2183,9 +2219,12 @@ export function IndexDetail({
                                     Price:{" "}
                                   </span>
                                   <span className="font-mono font-semibold text-green-600 dark:text-green-400">
-                                    ${assetData.price.toLocaleString(undefined, {
-                                      maximumFractionDigits: 2,
-                                    })}
+                                    ${assetData.price.toLocaleString(
+                                      undefined,
+                                      {
+                                        maximumFractionDigits: 2,
+                                      },
+                                    )}
                                   </span>
                                 </div>
                                 <div>
@@ -2268,9 +2307,10 @@ export function IndexDetail({
               {data.index === "MBI" &&
                 "assetTrends" in data &&
                 Object.keys(
-                  (data as { assetTrends: Record<string, unknown> })
-                    .assetTrends,
-                ).length > 0 && (
+                    (data as { assetTrends: Record<string, unknown> })
+                      .assetTrends,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -2308,8 +2348,8 @@ export function IndexDetail({
                                 isStrongUptrend || isUptrend
                                   ? "border-green-500/50 bg-green-500/5"
                                   : isStrongDowntrend || isDowntrend
-                                    ? "border-red-500/50 bg-red-500/5"
-                                    : "border-border",
+                                  ? "border-red-500/50 bg-red-500/5"
+                                  : "border-border",
                               )}
                             >
                               <div className="flex items-center justify-between">
@@ -2327,8 +2367,8 @@ export function IndexDetail({
                                       isStrongUptrend || isUptrend
                                         ? "border-green-500/50 text-green-600 dark:text-green-400"
                                         : isStrongDowntrend || isDowntrend
-                                          ? "border-red-500/50 text-red-600 dark:text-red-400"
-                                          : "",
+                                        ? "border-red-500/50 text-red-600 dark:text-red-400"
+                                        : "",
                                     )}
                                   >
                                     {assetData.trend.replace(/_/g, " ")}
@@ -2347,7 +2387,7 @@ export function IndexDetail({
                                 </div>
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                <span>Price: </span>
+                                <span>Price:</span>
                                 <span className="font-mono font-semibold text-foreground">
                                   ${assetData.price.toLocaleString(undefined, {
                                     maximumFractionDigits: 2,
@@ -2366,8 +2406,9 @@ export function IndexDetail({
               {data.index === "PSI" &&
                 "spreads" in data &&
                 Object.keys(
-                  (data as { spreads: Record<string, unknown> }).spreads,
-                ).length > 0 && (
+                    (data as { spreads: Record<string, unknown> }).spreads,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -2440,9 +2481,10 @@ export function IndexDetail({
                                   Cross Exchange:{" "}
                                 </span>
                                 <span className="font-mono font-semibold text-foreground">
-                                  {(spreadData.crossExchangeSpread * 100).toFixed(
-                                    4,
-                                  )}
+                                  {(spreadData.crossExchangeSpread * 100)
+                                    .toFixed(
+                                      4,
+                                    )}
                                   %
                                 </span>
                               </div>
@@ -2456,9 +2498,10 @@ export function IndexDetail({
                                 </div>
                                 <div className="font-mono font-semibold text-green-600 dark:text-green-400">
                                   {spreadData.tightestSpread.exchange}:{" "}
-                                  {(spreadData.tightestSpread.spread * 100).toFixed(
-                                    6,
-                                  )}
+                                  {(spreadData.tightestSpread.spread * 100)
+                                    .toFixed(
+                                      6,
+                                    )}
                                   %
                                 </div>
                               </div>
@@ -2468,9 +2511,10 @@ export function IndexDetail({
                                 </div>
                                 <div className="font-mono font-semibold text-red-600 dark:text-red-400">
                                   {spreadData.widestSpread.exchange}:{" "}
-                                  {(spreadData.widestSpread.spread * 100).toFixed(
-                                    6,
-                                  )}
+                                  {(spreadData.widestSpread.spread * 100)
+                                    .toFixed(
+                                      6,
+                                    )}
                                   %
                                 </div>
                               </div>
@@ -2494,33 +2538,34 @@ export function IndexDetail({
                                         {exchange}
                                       </span>
                                       <span className="font-mono text-amber-500">
-                                        {(exchangeData.spreadPercent * 100).toFixed(
-                                          6,
-                                        )}
+                                        {(exchangeData.spreadPercent * 100)
+                                          .toFixed(
+                                            6,
+                                          )}
                                         %
                                       </span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2 text-muted-foreground">
                                       <div>
-                                        <span>Bid: </span>
+                                        <span>Bid:</span>
                                         <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                           ${exchangeData.bid.toFixed(2)}
                                         </span>
                                       </div>
                                       <div>
-                                        <span>Ask: </span>
+                                        <span>Ask:</span>
                                         <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                           ${exchangeData.ask.toFixed(2)}
                                         </span>
                                       </div>
                                       <div>
-                                        <span>Mid: </span>
+                                        <span>Mid:</span>
                                         <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                           ${exchangeData.midPrice.toFixed(2)}
                                         </span>
                                       </div>
                                       <div>
-                                        <span>Last: </span>
+                                        <span>Last:</span>
                                         <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                           ${exchangeData.last.toFixed(2)}
                                         </span>
@@ -2541,9 +2586,10 @@ export function IndexDetail({
               {data.index === "TSI" &&
                 "assetStrengths" in data &&
                 Object.keys(
-                  (data as { assetStrengths: Record<string, unknown> })
-                    .assetStrengths,
-                ).length > 0 && (
+                    (data as { assetStrengths: Record<string, unknown> })
+                      .assetStrengths,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -2571,8 +2617,7 @@ export function IndexDetail({
                           }).assetStrengths,
                         )
                           .sort(
-                            (a, b) =>
-                              b[1].trendStrength - a[1].trendStrength,
+                            (a, b) => b[1].trendStrength - a[1].trendStrength,
                           )
                           .map(([asset, assetData]) => {
                             const isUp = assetData.direction === "up";
@@ -2710,8 +2755,10 @@ export function IndexDetail({
               {data.index === "VI" &&
                 "components" in data &&
                 Object.keys(
-                  (data as { components: Record<string, unknown> }).components,
-                ).length > 0 && (
+                    (data as { components: Record<string, unknown> })
+                      .components,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -2737,7 +2784,8 @@ export function IndexDetail({
                           .sort((a, b) => b[1].volatility - a[1].volatility)
                           .map(([asset, componentData]) => {
                             const isPositive = componentData.percentage >= 0;
-                            const isHighVolatility = componentData.volatility >= 5;
+                            const isHighVolatility =
+                              componentData.volatility >= 5;
                             const isMediumVolatility =
                               componentData.volatility >= 2 &&
                               componentData.volatility < 5;
@@ -2750,8 +2798,8 @@ export function IndexDetail({
                                   isHighVolatility
                                     ? "border-red-500/50 bg-red-500/5"
                                     : isMediumVolatility
-                                      ? "border-amber-500/50 bg-amber-500/5"
-                                      : "border-border",
+                                    ? "border-amber-500/50 bg-amber-500/5"
+                                    : "border-border",
                                 )}
                               >
                                 <div className="flex items-center justify-between">
@@ -2842,8 +2890,10 @@ export function IndexDetail({
               {data.index === "VWPI" &&
                 "components" in data &&
                 Object.keys(
-                  (data as { components: Record<string, unknown> }).components,
-                ).length > 0 && (
+                    (data as { components: Record<string, unknown> })
+                      .components,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -2915,9 +2965,10 @@ export function IndexDetail({
                                     </span>
                                     <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                       $
-                                      {(componentData.volume / 1_000_000).toFixed(
-                                        2,
-                                      )}
+                                      {(componentData.volume / 1_000_000)
+                                        .toFixed(
+                                          2,
+                                        )}
                                       M
                                     </span>
                                   </div>
@@ -2931,7 +2982,7 @@ export function IndexDetail({
                                   </div>
                                 </div>
                                 <div className="text-xs text-muted-foreground">
-                                  <span>Weight: </span>
+                                  <span>Weight:</span>
                                   <span className="font-mono font-semibold text-green-600 dark:text-green-400">
                                     $
                                     {(componentData.weight / 1_000_000).toFixed(
@@ -2951,8 +3002,11 @@ export function IndexDetail({
               {/* AOI Opportunities List */}
               {data.index === "AOI" &&
                 "opportunities" in data &&
-                Object.keys((data as { opportunities: Record<string, unknown> })
-                  .opportunities).length > 0 && (
+                Object.keys(
+                    (data as { opportunities: Record<string, unknown> })
+                      .opportunities,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -2978,12 +3032,12 @@ export function IndexDetail({
                             >;
                           }).opportunities,
                         ).map((opp) => {
-                          const profitPercent =
-                            opp.minPrice != null &&
-                            opp.maxPrice != null &&
-                            opp.minPrice > 0
-                              ? ((opp.maxPrice - opp.minPrice) / opp.minPrice) * 100
-                              : 0;
+                          const profitPercent = opp.minPrice != null &&
+                              opp.maxPrice != null &&
+                              opp.minPrice > 0
+                            ? ((opp.maxPrice - opp.minPrice) / opp.minPrice) *
+                              100
+                            : 0;
                           const isHigh = opp.opportunity === "high";
                           const isMedium = opp.opportunity === "medium";
                           const isLow = opp.opportunity === "low";
@@ -2996,8 +3050,8 @@ export function IndexDetail({
                                 isHigh
                                   ? "border-amber-500/50 bg-amber-500/5"
                                   : isMedium
-                                    ? "border-amber-500/30 bg-amber-500/3"
-                                    : "border-border",
+                                  ? "border-amber-500/30 bg-amber-500/3"
+                                  : "border-border",
                               )}
                             >
                               <div className="flex items-center justify-between">
@@ -3046,9 +3100,11 @@ export function IndexDetail({
                                   </span>
                                   <span className="font-mono text-green-600 dark:text-green-400">
                                     {opp.minPrice != null
-                                      ? `$${opp.minPrice.toLocaleString(undefined, {
+                                      ? `$${
+                                        opp.minPrice.toLocaleString(undefined, {
                                           maximumFractionDigits: 2,
-                                        })}`
+                                        })
+                                      }`
                                       : "N/A"}
                                   </span>
                                 </div>
@@ -3060,9 +3116,11 @@ export function IndexDetail({
                                   </span>
                                   <span className="font-mono text-green-600 dark:text-green-400">
                                     {opp.maxPrice != null
-                                      ? `$${opp.maxPrice.toLocaleString(undefined, {
+                                      ? `$${
+                                        opp.maxPrice.toLocaleString(undefined, {
                                           maximumFractionDigits: 2,
-                                        })}`
+                                        })
+                                      }`
                                       : "N/A"}
                                   </span>
                                 </div>
@@ -3082,9 +3140,10 @@ export function IndexDetail({
               {data.index === "ELI" &&
                 "exchangeLiquidity" in data &&
                 Object.keys(
-                  (data as { exchangeLiquidity: Record<string, unknown> })
-                    .exchangeLiquidity,
-                ).length > 0 && (
+                    (data as { exchangeLiquidity: Record<string, unknown> })
+                      .exchangeLiquidity,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -3150,7 +3209,7 @@ export function IndexDetail({
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 text-xs">
                                   <div className="text-muted-foreground">
-                                    <span>Volume: </span>
+                                    <span>Volume:</span>
                                     <span className="font-mono font-semibold text-foreground">
                                       $
                                       {(
@@ -3161,7 +3220,7 @@ export function IndexDetail({
                                     </span>
                                   </div>
                                   <div className="text-muted-foreground">
-                                    <span>Assets: </span>
+                                    <span>Assets:</span>
                                     <span className="font-mono font-semibold text-foreground">
                                       {exchangeData.assetCount}
                                     </span>
@@ -3179,9 +3238,10 @@ export function IndexDetail({
               {data.index === "ELI" &&
                 "assetLiquidity" in data &&
                 Object.keys(
-                  (data as { assetLiquidity: Record<string, unknown> })
-                    .assetLiquidity,
-                ).length > 0 && (
+                    (data as { assetLiquidity: Record<string, unknown> })
+                      .assetLiquidity,
+                  ).length > 0 &&
+                (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -3217,14 +3277,15 @@ export function IndexDetail({
                                 </Badge>
                                 <div className="text-sm font-semibold text-green-600 dark:text-green-400">
                                   $
-                                  {(assetData.totalVolume / 1_000_000_000).toFixed(
-                                    2,
-                                  )}
+                                  {(assetData.totalVolume / 1_000_000_000)
+                                    .toFixed(
+                                      2,
+                                    )}
                                   B
                                 </div>
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                <span>Exchanges: </span>
+                                <span>Exchanges:</span>
                                 <span className="font-semibold text-foreground">
                                   {assetData.exchangeCount}
                                 </span>
@@ -3247,7 +3308,9 @@ export function IndexDetail({
                 <CardContent className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Index Code:</span>
-                    <span className="font-mono font-semibold">{data.index}</span>
+                    <span className="font-mono font-semibold">
+                      {data.index}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Type:</span>
