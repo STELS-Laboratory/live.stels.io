@@ -89,6 +89,11 @@ export function useWorkerFilters({
         return true;
       })
       .sort((a, b) => {
+        // Additional safety checks for sorting
+        if (!a?.value?.raw || !b?.value?.raw) {
+          return 0; // Keep order if invalid
+        }
+
         const rawA = a.value.raw;
         const rawB = b.value.raw;
 

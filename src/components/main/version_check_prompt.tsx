@@ -8,7 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { RefreshCw, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { startVersionCheck, storeCurrentVersion } from "@/lib/version_check";
+import {
+  startVersionCheck,
+  storeCurrentVersion,
+  storeLastNotifiedVersion,
+} from "@/lib/version_check";
 import { createNewSession } from "@/lib/session_manager";
 
 /**
@@ -39,6 +43,7 @@ export default function VersionCheckPrompt(): React.ReactElement | null {
     // Store new version and create new session
     if (newVersion) {
       storeCurrentVersion(newVersion);
+      storeLastNotifiedVersion(newVersion);
       localStorage.setItem("app-last-version", newVersion);
     }
 
@@ -71,6 +76,10 @@ export default function VersionCheckPrompt(): React.ReactElement | null {
    * Handle dismiss
    */
   const handleDismiss = (): void => {
+    // Store the version we're dismissing to prevent showing it again
+    if (newVersion) {
+      storeLastNotifiedVersion(newVersion);
+    }
     setShowPrompt(false);
   };
 

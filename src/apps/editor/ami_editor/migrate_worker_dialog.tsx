@@ -54,7 +54,7 @@ export function MigrateWorkerDialog({
     try {
       const migratedWorker = await onMigrate(worker);
       setResult(migratedWorker);
-    } catch {
+    } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to migrate worker",
       );
@@ -69,7 +69,11 @@ export function MigrateWorkerDialog({
     onOpenChange(false);
   };
 
-  const currentScope = worker?.value.raw.scope || "local";
+  if (!worker || !worker.value || !worker.value.raw) {
+    return <></>;
+  }
+
+  const currentScope = worker.value.raw.scope || "local";
   const showConfirmation = !result && !error;
   const showResult = result !== null;
 

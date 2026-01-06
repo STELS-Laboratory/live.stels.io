@@ -129,6 +129,9 @@ export default defineConfig({
             },
           },
           {
+            // Cache Monaco Editor workers from CDN
+            // Note: "Canceled" errors may appear in console when editor is disposed
+            // while workers are loading - this is expected behavior and handled in monaco_editor.tsx
             urlPattern: /.*\.worker.*\.js$/i,
             handler: "CacheFirst",
             options: {

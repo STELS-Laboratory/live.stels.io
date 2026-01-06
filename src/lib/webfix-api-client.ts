@@ -146,12 +146,9 @@ export class WebfixApiClient {
       params,
     };
 
-    // Only add body if it's provided and not null/undefined
     if (body !== undefined && body !== null) {
       requestBody.body = body;
     }
-
-    console.log("costil", this);
 
     const response = await fetch(this.baseUrl, {
       method: "POST",

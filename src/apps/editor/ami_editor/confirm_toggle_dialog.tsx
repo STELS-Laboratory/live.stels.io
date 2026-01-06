@@ -34,7 +34,7 @@ export function ConfirmToggleDialog({
   onConfirm,
   isToggling,
 }: ConfirmToggleDialogProps): React.ReactElement {
-  if (!worker) return <></>;
+  if (!worker || !worker.value || !worker.value.raw) return <></>;
 
   const isActive = worker.value.raw.active;
 
@@ -78,7 +78,7 @@ export function ConfirmToggleDialog({
                 ? "text-orange-700 dark:text-orange-400"
                 : "text-blue-700 dark:text-blue-400"}
             >
-              <strong>Worker ID:</strong> {worker.value.raw.sid}
+              <strong>Worker ID:</strong> {worker?.value?.raw?.sid || "Unknown"}
               <br />
               {isActive
                 ? "The worker will stop executing immediately. You can restart it later."

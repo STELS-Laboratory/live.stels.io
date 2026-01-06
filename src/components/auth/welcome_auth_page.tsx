@@ -49,8 +49,12 @@ export function WelcomeAuthPage(): React.ReactElement {
         // Open auth dialog to process callback
         setIsAuthDialogOpen(true);
 
-        // Clean URL parameters (keep router if present)
+        // Clean URL parameters and pathname (keep router if present)
         const url = new URL(window.location.href);
+        // Remove callback path from pathname
+        if (url.pathname.includes("/auth/github/callback")) {
+          url.pathname = "/";
+        }
         url.searchParams.delete("code");
         url.searchParams.delete("state");
         if (router) {
@@ -58,8 +62,12 @@ export function WelcomeAuthPage(): React.ReactElement {
         }
         window.history.replaceState({}, "", url.toString());
       } else {
-        // Invalid state - clean URL
+        // Invalid state - clean URL and pathname
         const url = new URL(window.location.href);
+        // Remove callback path from pathname
+        if (url.pathname.includes("/auth/github/callback")) {
+          url.pathname = "/";
+        }
         url.searchParams.delete("code");
         url.searchParams.delete("state");
         if (router) {
@@ -82,8 +90,12 @@ export function WelcomeAuthPage(): React.ReactElement {
         isOnCallbackPath || window.location.search.includes("code") ||
         window.location.search.includes("state")
       ) {
-        // Clean URL parameters after OAuth callback
+        // Clean URL parameters and pathname after OAuth callback
         const url = new URL(window.location.href);
+        // Remove callback path from pathname
+        if (url.pathname.includes("/auth/github/callback")) {
+          url.pathname = "/";
+        }
         url.searchParams.delete("code");
         url.searchParams.delete("state");
         url.searchParams.set("router", "welcome");

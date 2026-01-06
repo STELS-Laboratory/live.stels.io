@@ -46,8 +46,8 @@ export default function MonacoEditor({
   const isFormattingRef = useRef<boolean>(false);
   const isUserEditingRef = useRef<boolean>(false);
   const lastScriptRef = useRef<string | undefined>(script);
-  const changeDebounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const formattingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const changeDebounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const formattingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSentValueRef = useRef<string | null>(null);
   const handleEditorChangeRef = useRef(handleEditorChange);
   const onEditorReadyRef = useRef(onEditorReady);
@@ -508,6 +508,63 @@ export default function MonacoEditor({
     }
   }, [script, formatCode]);
 
+  /**
+   * Cleanup on unmount - properly dispose editor
+   * Note: "Canceled" errors are handled globally in main.tsx
+   */
+  useEffect(() => {
+    return () => {
+      // Cleanup editor on unmount
+      if (editorRef.current) {
+        const editor = editorRef.current;
+        editorRef.current = null; // Clear ref first to prevent re-use
+        
+        try {
+          const model = editor.getModel();
+          if (model) {
+            // Wrap dispose in try-catch to handle Canceled errors
+            try {
+              model.dispose();
+            } catch (error) {
+              // Ignore Canceled errors during model disposal
+              const errorMessage = error instanceof Error ? error.message : String(error);
+              if (!errorMessage.includes("Canceled") && import.meta.env.DEV) {
+                console.debug("Monaco Editor model disposal error:", error);
+              }
+            }
+          }
+          
+          // Wrap editor dispose in try-catch
+          try {
+            editor.dispose();
+          } catch (error) {
+            // Ignore Canceled errors during editor disposal
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (!errorMessage.includes("Canceled") && import.meta.env.DEV) {
+              console.debug("Monaco Editor disposal error:", error);
+            }
+          }
+        } catch (error) {
+          // Ignore all errors during disposal - they're expected
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          if (!errorMessage.includes("Canceled") && import.meta.env.DEV) {
+            console.debug("Monaco Editor cleanup error (expected):", error);
+          }
+        }
+      }
+
+      // Clear all timeouts
+      if (changeDebounceTimeoutRef.current) {
+        clearTimeout(changeDebounceTimeoutRef.current);
+        changeDebounceTimeoutRef.current = null;
+      }
+      if (formattingTimeoutRef.current) {
+        clearTimeout(formattingTimeoutRef.current);
+        formattingTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
   const language = detectLanguage(script || "");
 
   return (
@@ -603,7 +660,6 @@ export default function MonacoEditor({
         
         // Additional performance optimizations
         disableLayerHinting: true, // Better performance
-        renderIndentGuides: true,
         renderFinalNewline: "off",
         trimAutoWhitespace: true,
       }}
