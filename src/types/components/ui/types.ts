@@ -28,13 +28,6 @@ export interface ToastContainerProps {
 /**
  * Simple dropdown types
  */
-export interface DropdownProps {
-  children: React.ReactNode;
-  trigger: React.ReactNode;
-  align?: "start" | "center" | "end";
-  className?: string;
-}
-
 export interface DropdownItemProps {
   children: React.ReactNode;
   onClick?: () => void;
@@ -42,21 +35,5 @@ export interface DropdownItemProps {
 }
 
 export interface DropdownSeparatorProps {
-  className?: string;
-}
-
-/**
- * App icon props
- */
-export interface AppIconProps {
-  appKey: string;
-  className?: string;
-  size?: "sm" | "md" | "lg";
-}
-
-/**
- * Graphite logo props
- */
-export interface GraphiteProps {
   className?: string;
 }

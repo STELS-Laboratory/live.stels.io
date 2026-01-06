@@ -695,7 +695,8 @@ export function WidgetStore({
                     />
 
                     {isAssetOpen && (
-                      <div
+                      <ul
+                        role="list"
                         className={cn(
                           "p-2",
                           viewMode === "grid"
@@ -713,19 +714,20 @@ export function WidgetStore({
                           if (!widget) return null;
 
                           return (
-                            <WidgetItem
-                              key={keyStore}
-                              keyStore={keyStore}
-                              widget={widget}
-                              onDragStart={onDragStart}
-                              onTouchStart={handleTouchStart}
-                              isMobile={isMobile}
-                              isCompact={viewMode === "list"}
-                              isInCanvas={existingWidgets.includes(keyStore)}
-                            />
+                            <li key={keyStore} role="listitem" className="min-w-0">
+                              <WidgetItem
+                                keyStore={keyStore}
+                                widget={widget}
+                                onDragStart={onDragStart}
+                                onTouchStart={handleTouchStart}
+                                isMobile={isMobile}
+                                isCompact={viewMode === "list"}
+                                isInCanvas={existingWidgets.includes(keyStore)}
+                              />
+                            </li>
                           );
                         })}
-                      </div>
+                      </ul>
                     )}
                   </div>
                 );
@@ -782,7 +784,8 @@ export function WidgetStore({
                     />
 
                     {isExchangeOpen && (
-                      <div
+                      <ul
+                        role="list"
                         className={cn(
                           "p-2",
                           viewMode === "grid"
@@ -799,19 +802,20 @@ export function WidgetStore({
                           if (!widget) return null;
 
                           return (
-                            <WidgetItem
-                              key={keyStore}
-                              keyStore={keyStore}
-                              widget={widget}
-                              onDragStart={onDragStart}
-                              onTouchStart={handleTouchStart}
-                              isMobile={isMobile}
-                              isCompact={viewMode === "list"}
-                              isInCanvas={existingWidgets.includes(keyStore)}
-                            />
+                            <li key={keyStore} role="listitem" className="min-w-0">
+                              <WidgetItem
+                                keyStore={keyStore}
+                                widget={widget}
+                                onDragStart={onDragStart}
+                                onTouchStart={handleTouchStart}
+                                isMobile={isMobile}
+                                isCompact={viewMode === "list"}
+                                isInCanvas={existingWidgets.includes(keyStore)}
+                              />
+                            </li>
                           );
                         })}
-                      </div>
+                      </ul>
                     )}
                   </div>
                 );
@@ -825,7 +829,8 @@ export function WidgetStore({
   if (!isOpen || !session) return null;
 
   return (
-    <div
+    <section
+      aria-label="Available widgets"
       className={cn(
         "bg-card absolute top-0 bottom-0 right-0 z-50 overflow-hidden transition-all duration-300 transform",
         "border-l border-border",
@@ -911,6 +916,6 @@ export function WidgetStore({
           : undefined}
         mousePosition={dragState.mousePosition || undefined}
       />
-    </div>
+    </section>
   );
 }

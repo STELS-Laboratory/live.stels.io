@@ -6,6 +6,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { useFocusTrap } from "@/hooks/use_focus_trap";
 
 // ============================================================================
 // Type Definitions
@@ -232,6 +233,17 @@ export const UIEngineProvider: React.FC<{ children: React.ReactNode }> = (
     const payload = action.payload;
     if (!payload) return;
 
+    // Save current focus before opening modal
+    const previousActiveElement = document.activeElement as HTMLElement;
+    if (previousActiveElement) {
+      // Store in sessionStorage to restore later
+      sessionStorage.setItem(`modal-${id}-previous-focus`, JSON.stringify({
+        tagName: previousActiveElement.tagName,
+        id: previousActiveElement.id,
+        className: previousActiveElement.className,
+      }));
+    }
+
     // Get data from session storage if channel is provided
     let modalData: Record<string, unknown> | null = null;
     if (payload.channel) {
@@ -262,6 +274,34 @@ export const UIEngineProvider: React.FC<{ children: React.ReactNode }> = (
           setModals((current) => {
             const cleanup = new Map(current);
             cleanup.delete(id);
+            
+            // Restore focus to previous element
+            try {
+              const focusData = sessionStorage.getItem(`modal-${id}-previous-focus`);
+              if (focusData) {
+                const { id: elementId, className } = JSON.parse(focusData);
+                let elementToFocus: HTMLElement | null = null;
+                
+                if (elementId) {
+                  elementToFocus = document.getElementById(elementId);
+                } else if (className) {
+                  const elements = document.getElementsByClassName(className);
+                  if (elements.length > 0) {
+                    elementToFocus = elements[0] as HTMLElement;
+                  }
+                }
+                
+                if (elementToFocus && typeof elementToFocus.focus === 'function') {
+                  elementToFocus.focus();
+                }
+              }
+            } catch {
+              // Silently handle errors
+            }
+            
+            // Clean up stored focus data
+            sessionStorage.removeItem(`modal-${id}-previous-focus`);
+            
             return cleanup;
           });
         }, 300); // Animation duration
@@ -312,8 +352,11 @@ const ModalPortal: React.FC<{ modal: ModalState }> = ({ modal }) => {
     Record<string, unknown> | undefined
   >(modal.data);
   const [updateCounter, setUpdateCounter] = useState(0);
+  
+  // Use focus trap when modal is open
+  const containerRef = useFocusTrap(modal.isOpen);
 
-  // Subscribe to session storage updates with aggressive polling
+  // Subscribe to session storage updates with optimized polling
   useEffect(() => {
     if (!modal.channel) return;
 
@@ -323,7 +366,13 @@ const ModalPortal: React.FC<{ modal: ModalState }> = ({ modal }) => {
       setModalData(initialData);
     }
 
-    // Aggressive polling every 100ms - always skip cache for fresh data
+    // Subscribe to updates (preferred method)
+    const unsubscribe = sessionManager.subscribe(modal.channel, (data) => {
+      setModalData(data);
+      setUpdateCounter((prev) => prev + 1);
+    });
+
+    // Fallback polling with longer interval (1000ms instead of 100ms)
     const intervalId = setInterval(() => {
       if (modal.channel) {
         const freshData = sessionManager.getData(modal.channel, true); // Skip cache
@@ -332,12 +381,29 @@ const ModalPortal: React.FC<{ modal: ModalState }> = ({ modal }) => {
           setUpdateCounter((prev) => prev + 1);
         }
       }
-    }, 100);
+    }, 1000); // Increased from 100ms to 1000ms for better performance
 
     return () => {
+      unsubscribe();
       clearInterval(intervalId);
     };
   }, [modal.channel, sessionManager]);
+
+  // Handle Escape key to close modal
+  useEffect(() => {
+    if (!modal.isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent): void => {
+      if (e.key === "Escape") {
+        closeModal(modal.id);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [modal.isOpen, modal.id, closeModal]);
 
   if (!modal.isOpen) return null;
 
@@ -357,9 +423,22 @@ const ModalPortal: React.FC<{ modal: ModalState }> = ({ modal }) => {
     ? "bg-white/20"
     : "bg-black/60";
 
+  // Generate unique IDs for ARIA attributes
+  const modalId = `modal-${modal.id}`;
+  const titleId = `${modalId}-title`;
+  const descriptionId = `${modalId}-description`;
+
+  // Try to find title and description in modalData
+  const hasTitle = modalData && (modalData.title || modalData.name);
+  const hasDescription = modalData && modalData.description;
+
   return React.createElement(
     "div",
     {
+      role: "dialog",
+      "aria-modal": "true",
+      "aria-labelledby": hasTitle ? titleId : undefined,
+      "aria-describedby": hasDescription ? descriptionId : undefined,
       className:
         `fixed inset-0 z-50 flex items-center justify-center ${backdropClass} animate-in fade-in duration-200`,
       onClick: handleBackdropClick,
@@ -367,6 +446,7 @@ const ModalPortal: React.FC<{ modal: ModalState }> = ({ modal }) => {
     React.createElement(
       "div",
       {
+        ref: containerRef,
         className:
           "bg-zinc-900 rounded shadow-2xl border border-zinc-700 animate-in zoom-in-95 duration-200",
         style: {
@@ -377,7 +457,25 @@ const ModalPortal: React.FC<{ modal: ModalState }> = ({ modal }) => {
           overflow: "auto",
         },
         onClick: handleContentClick,
+        onKeyDown: (e: React.KeyboardEvent) => {
+          // Close on Escape (also handled at document level)
+          if (e.key === "Escape") {
+            e.stopPropagation();
+            closeModal(modal.id);
+          }
+        },
       },
+      // Add hidden title and description if they exist in modalData
+      hasTitle && React.createElement(
+        "div",
+        { id: titleId, className: "sr-only" },
+        typeof modalData.title === "string" ? modalData.title : modalData.name
+      ),
+      hasDescription && React.createElement(
+        "div",
+        { id: descriptionId, className: "sr-only" },
+        typeof modalData.description === "string" ? modalData.description : ""
+      ),
       modalData && modalData.ui && modalData.raw
         ? React.createElement(UIRenderer, {
           key: `modal-ui-${updateCounter}`, // Force re-render on updates

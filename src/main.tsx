@@ -5,40 +5,27 @@ import { initThemeColor } from "@/lib/theme-color";
 import {
   freezeNativeAPIs,
   performSecurityCheck,
-  validateCryptoOperations,
 } from "@/lib/pwa-security";
 import { initChunkErrorHandlers } from "@/lib/chunk_error_handler";
 import ChunkErrorBoundary from "@/components/main/chunk_error_boundary";
 import { createNewSession, initSession } from "@/lib/session_manager";
 import { getCurrentVersion } from "@/lib/version_check";
-// Monaco Editor is configured in monaco_editor.tsx component
 
-// Service Worker registration is handled by UpdatePrompt component
-// Using registerType: 'prompt' in vite.config.ts
-
-// Initialize dynamic theme color management
 initThemeColor();
 
-// Initialize chunk error handlers
 initChunkErrorHandlers();
 
-// Initialize session management
-// This creates/retrieves a persistent session ID used for cache busting
 initSession();
 
-// Check if this is a new version deployment
 const currentVersion = getCurrentVersion();
 const storedVersion = localStorage.getItem("app-last-version");
 
 if (currentVersion && currentVersion !== storedVersion) {
-  // Force new session on version change
   const newSessionId = createNewSession();
   document.body.setAttribute("session", newSessionId);
 
-  // Store new version
   localStorage.setItem("app-last-version", currentVersion);
 
-  // Clear all caches
   if ("caches" in window) {
     caches.keys().then((cacheNames) => {
       Promise.all(cacheNames.map((name) => caches.delete(name))).then(() => {
@@ -48,23 +35,14 @@ if (currentVersion && currentVersion !== storedVersion) {
   }
 }
 
-// Initialize security measures
 try {
-  // Freeze native APIs to prevent extension tampering
   freezeNativeAPIs();
 
-  // Validate crypto operations
-  if (!validateCryptoOperations()) {
-    // Crypto validation failed
-  }
-
-  // Perform security check
   performSecurityCheck();
 } catch {
-  // Security initialization failed
+  // Security check failed silently
 }
 
-// Initialize theme on startup with system detection
 const savedTheme = localStorage.getItem("theme-store");
 let themeMode: "light" | "dark" | "system" = "system";
 let resolvedTheme: "light" | "dark" = "dark";
@@ -74,11 +52,10 @@ if (savedTheme) {
     const parsed = JSON.parse(savedTheme);
     themeMode = parsed.state?.theme || "system";
   } catch {
-    // Error handled silently
+    // Invalid theme data, use default
   }
 }
 
-// Resolve system theme if needed
 if (themeMode === "system") {
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   resolvedTheme = prefersDark ? "dark" : "light";
@@ -89,14 +66,12 @@ if (themeMode === "system") {
 document.documentElement.classList.add(resolvedTheme);
 document.documentElement.setAttribute("data-theme", resolvedTheme);
 
-// Initialize network store
 import { initializeNetwork } from "@/stores/modules/network.store";
 initializeNetwork();
 
 const rootElement = document.createElement("main");
 document.body.setAttribute("stels", "1.12.00");
 document.body.setAttribute("module", "web");
-// Network attribute is set by initializeNetwork()
 rootElement.className = "sonar";
 document.body.appendChild(rootElement);
 

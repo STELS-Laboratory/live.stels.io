@@ -40,15 +40,6 @@ export interface NetworkSelectorCompactProps {
 }
 
 /**
- * Storage scan dialog props
- */
-export interface StorageScanDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onComplete: () => void;
-}
-
-/**
  * Lottie animation props
  */
 export interface LottieAnimationProps {

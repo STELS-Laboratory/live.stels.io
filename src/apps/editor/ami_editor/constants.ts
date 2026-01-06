@@ -86,3 +86,16 @@ export const WORKER_TYPE_COLORS: Record<string, string> = {
   triggered: "text-yellow-700 dark:text-yellow-400",
   scheduled: "text-purple-700 dark:text-purple-400",
 };
+
+/**
+ * Editor configuration constants
+ */
+export const EDITOR_CONSTANTS = {
+  DEBOUNCE_DELAY_MS: 300,
+  NEW_WORKER_HIGHLIGHT_MS: 3000,
+  SPLIT_SIZES: [20, 80] as const,
+  SPLIT_MIN_SIZES: [450, 400] as const,
+  MAX_CACHE_SIZE: 50,
+  MAX_NOTE_LENGTH: 1000,
+  CONTENT_DIFF_THRESHOLD: 200,
+} as const;

@@ -475,12 +475,12 @@ function FlowWithPanels(): React.ReactElement | null {
   }
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <section className="w-full h-full flex flex-col" aria-label="Canvas workspace">
       {/* Panel tabs - Professional */}
       <PanelTabsPro className="flex-shrink-0" />
 
       {/* Main Canvas area - Document Style Background */}
-      <div className="flex-1 relative">
+      <section className="flex-1 relative min-w-0" aria-label="Flow canvas">
         {/* Panel transition overlay - Professional design */}
         <ReactFlow
           nodes={nodes}
@@ -585,7 +585,7 @@ function FlowWithPanels(): React.ReactElement | null {
           connectionStats={connectionStats}
           nodeCount={nodes.length}
         />
-      </div>
+      </section>
 
       {/* Panel Manager */}
       <PanelManager
@@ -616,7 +616,7 @@ function FlowWithPanels(): React.ReactElement | null {
           />
         </div>
       )}
-    </div>
+    </section>
   );
 }
 

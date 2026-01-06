@@ -112,16 +112,6 @@ export interface AccountsState {
 }
 
 /**
- * WebFix payload for setAccount
- */
-export interface SetAccountPayload {
-  webfix: string;
-  method: string;
-  params: string[];
-  body: SignedAccountRequest;
-}
-
-/**
  * Accounts actions interface
  */
 export interface AccountsActions {

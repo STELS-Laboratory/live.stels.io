@@ -32,7 +32,6 @@ export const APP_STORAGE_KEYS = [
   // Session & Version
   "app-session-id",
   "app-last-version",
-  "schemas-cache-version",
   "app-build-version",
 
   // Theme
@@ -49,15 +48,12 @@ export const APP_INDEXEDDB_DATABASES = [
   "gliesereum-Wallet",
   "web3-app",
   "zustand-store",
-  "schemas-db",
-  "schemasDB",
   "accounts-store",
   "app-store",
   "panel-store",
   "Canvas-ui-store",
   "worker-store",
   "open-apps-store",
-  "market-store",
   "wallet-store",
   "network-store",
 ] as const;

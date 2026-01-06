@@ -142,14 +142,9 @@ export const useAppStore = create<AppState>()(
         };
 
         const allowedRoutes = [
-          "trading",
           "welcome",
           "canvas",
           "editor",
-          "schemas",
-          "docs",
-          "stels-chat",
-          "indexes",
         ];
 
         return {

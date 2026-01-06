@@ -5,7 +5,6 @@
 
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import type { SchemaProject } from "@/apps/schemas/types.ts";
 
 export interface OpenApp {
   id: string; // Unique instance ID
@@ -24,13 +23,22 @@ export interface OpenApp {
   };
 }
 
+interface SimpleSchema {
+  id: string;
+  widgetKey: string;
+  name: string;
+  displayName?: string;
+  type: "static" | "dynamic";
+  channelKeys?: string[];
+}
+
 interface OpenAppsState {
   // State
   apps: OpenApp[];
   activeAppId: string | null;
 
   // Actions
-  openApp: (schema: SchemaProject) => string;
+  openApp: (schema: SimpleSchema) => string;
   closeApp: (id: string) => void;
   setActiveApp: (id: string) => void;
   updateAppState: (id: string, state: OpenApp["state"]) => void;
@@ -47,7 +55,7 @@ export const useOpenAppsStore = create<OpenAppsState>()(
         activeAppId: null,
 
         // Open new app or switch to existing
-        openApp: (schema: SchemaProject): string => {
+        openApp: (schema: SimpleSchema): string => {
           // For virtual schemas (tokens), check by channelKey instead of schemaId
           const isVirtualSchema = schema.id.startsWith("virtual-");
           const channelKey = isVirtualSchema && schema.channelKeys?.[0]

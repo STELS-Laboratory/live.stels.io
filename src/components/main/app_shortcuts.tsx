@@ -63,21 +63,7 @@ export default function AppShortcuts(): null {
           navigateTo("canvas");
           return;
         }
-        if (e.key === "S" || e.key === "s") {
-          e.preventDefault();
-          navigateTo("schemas");
-          return;
-        }
-        if (e.key === "D" || e.key === "d") {
-          e.preventDefault();
-          navigateTo("docs");
-          return;
-        }
-        if (e.key === "T" || e.key === "t") {
-          e.preventDefault();
-          navigateTo("template");
-          return;
-        }
+        // Removed apps: schemas, docs, template, trading, indexes, stels-chat
       }
 
       // Cmd/Ctrl + 1-9: Switch to user agent by index

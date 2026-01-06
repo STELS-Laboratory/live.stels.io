@@ -427,27 +427,29 @@ export const PanelManager: React.FC<PanelManagerProps> = (
               </div>
             )
             : (
-              <div
+              <ul
+                role="list"
                 className={cn(
-                  "space-y-4",
-                  viewMode === "grid" &&
-                    "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4",
+                  viewMode === "grid"
+                    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                    : "space-y-4",
                 )}
               >
                 {panels.map((panel: Panel, index: number) => (
-                  <PanelCard
-                    key={panel.id}
-                    panel={panel}
-                    onEdit={() => handleEditPanel(panel)}
-                    onDuplicate={() => handleDuplicatePanel(panel.id)}
-                    onDelete={() => handleDeletePanel(panel.id)}
-                    onMoveUp={() => handleMovePanel(panel.id, "up")}
-                    onMoveDown={() => handleMovePanel(panel.id, "down")}
-                    canMoveUp={index > 0}
-                    canMoveDown={index < panels.length - 1}
-                  />
+                  <li key={panel.id} role="listitem" className="min-w-0">
+                    <PanelCard
+                      panel={panel}
+                      onEdit={() => handleEditPanel(panel)}
+                      onDuplicate={() => handleDuplicatePanel(panel.id)}
+                      onDelete={() => handleDeletePanel(panel.id)}
+                      onMoveUp={() => handleMovePanel(panel.id, "up")}
+                      onMoveDown={() => handleMovePanel(panel.id, "down")}
+                      canMoveUp={index > 0}
+                      canMoveDown={index < panels.length - 1}
+                    />
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
         </CardContent>
       </Card>

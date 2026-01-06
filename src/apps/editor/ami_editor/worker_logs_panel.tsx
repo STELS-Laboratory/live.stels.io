@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 import { useAuthStore } from "@/stores/modules/auth.store.ts";
+import { logError, logWarn } from "../utils/logger.ts";
 
 // Maximum number of logs to keep in memory to prevent UI overload
 const MAX_LOGS = 100;
@@ -146,7 +147,7 @@ export function WorkerLogsPanel({
                         return;
                     }
                   } catch (parseError) {
-                    console.warn("Failed to parse SSE message:", parseError);
+                    logWarn("Failed to parse SSE message:", parseError);
                     // Continue processing other messages
                   }
                 }
@@ -155,7 +156,7 @@ export function WorkerLogsPanel({
           }
         } catch (err) {
           if (err instanceof Error && err.name !== "AbortError") {
-            console.error("Log stream read error:", err);
+            logError("Log stream read error:", err);
             setError(err.message);
             setConnected(false);
           }
@@ -172,7 +173,7 @@ export function WorkerLogsPanel({
 
       readStream();
     } catch (err) {
-      console.error("Failed to connect to log stream:", err);
+      logError("Failed to connect to log stream:", err);
       setError(
         err instanceof Error ? err.message : "Failed to connect to log stream",
       );
@@ -187,7 +188,7 @@ export function WorkerLogsPanel({
       readerRef.current.cancel().catch((error) => {
         // Log but don't throw - cleanup errors are expected
         if (error.name !== "AbortError") {
-          console.warn("Error canceling log stream reader:", error);
+          logWarn("Error canceling log stream reader:", error);
         }
       });
       readerRef.current = null;

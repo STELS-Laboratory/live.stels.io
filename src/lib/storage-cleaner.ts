@@ -52,15 +52,12 @@ export const clearIndexedDB = async (): Promise<void> => {
         "web3-app",
         "zustand-store",
         "vite-plugin-pwa-cache",
-        "schemas-db", // Schemas application database
-        "schemasDB", // Alternative schemas database name
         "accounts-store",
         "app-store",
         "panel-store",
         "Canvas-ui-store",
         "worker-store",
         "open-apps-store",
-        "market-store",
         "wallet-store",
         "network-store",
       ];
@@ -206,7 +203,6 @@ export const clearAppSpecificStorage = (): void => {
       // Session & Version
       "app-session-id",
       "app-last-version",
-      "schemas-cache-version",
 
       // Theme
       "theme-store",

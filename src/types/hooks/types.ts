@@ -65,19 +65,3 @@ export interface WebSocketState {
   resetReconnectAttempts: () => void;
   resetWebSocketState: () => void;
 }
-
-/**
- * Drag state for drag and drop operations
- */
-export interface DragState {
-  isDragging: boolean;
-  dragItem: unknown | null;
-  startPosition: { x: number; y: number } | null;
-}
-
-/**
- * Session value structure
- */
-export interface SessionValue {
-  [key: string]: unknown;
-}

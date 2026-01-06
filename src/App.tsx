@@ -26,27 +26,17 @@ import UpdatePrompt from "@/components/main/update_prompt";
 import VersionCheckPrompt from "@/components/main/version_check_prompt";
 import ToastProvider from "@/components/main/toast_provider";
 
-// Lazy-loaded app modules
-const Trading = lazy(() => import("@/apps/trading"));
 const Flow = lazy(() => import("@/apps/canvas/flow"));
-const Schemas = lazy(() => import("@/apps/schemas"));
-const Docs = lazy(() =>
-  import("@/apps/docs").then((m) => ({ default: m.Docs }))
-);
-const StelsChat = lazy(() => import("@/apps/stels-chat"));
-const Indexes = lazy(() => import("@/apps/indexes"));
 import { TooltipProvider } from "@/components/ui/tooltip";
-const Layout = lazy(() => import("@/apps/layout"));
 const AMIEditor = lazy(() =>
   import("@/apps/editor/ami_editor").then((m) => ({ default: m.AMIEditor }))
+);
+const SimpleLayout = lazy(() =>
+  import("@/apps/simple_layout").then((m) => ({ default: m.SimpleLayout }))
 );
 
 import type { AppState, UIState } from "@/types/app/types";
 
-/**
- * Animation variants for route transitions
- * Extracted outside component to prevent recreation
- */
 const pageVariants = {
   initial: {
     opacity: 0,
@@ -65,9 +55,6 @@ const pageVariants = {
   },
 };
 
-/**
- * State messages map - extracted to prevent recreation
- */
 const STATE_MESSAGES: Record<AppState, string> = {
   initializing: "Starting up...",
   scanning_storage: "Checking storage...",
@@ -80,9 +67,6 @@ const STATE_MESSAGES: Record<AppState, string> = {
   upgrading: "System upgrade in progress...",
 };
 
-/**
- * Transition delays map - extracted to prevent recreation
- */
 const TRANSITION_DELAYS: Record<string, number> = {
   "initializing->scanning_storage": 200,
   "scanning_storage->hydrating": 200,
@@ -97,9 +81,6 @@ const TRANSITION_DELAYS: Record<string, number> = {
   "upgrading->ready": 200,
 };
 
-/**
- * Initialize global styles once
- */
 if (
   typeof document !== "undefined" &&
   !document.head.querySelector("style[data-app-animations]")
@@ -129,16 +110,12 @@ if (
   document.head.appendChild(style);
 }
 
-/**
- * Professional Dashboard component with enhanced state management and artificial delays
- */
 export default function Dashboard(): React.ReactElement {
   const { currentRoute, setRouteLoading, upgrade, setUpgrade } = useAppStore();
   const { isAuthenticated, isConnected, _hasHydrated } = useAuthStore();
   const { resolvedTheme } = useTheme();
   const hasHydrated = useHydration();
 
-  // Apply resolved theme to document (will update automatically when system theme changes)
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove("light", "dark");
@@ -146,8 +123,6 @@ export default function Dashboard(): React.ReactElement {
     root.setAttribute("data-theme", resolvedTheme);
   }, [resolvedTheme]);
 
-  // Prevent zoom and touch behaviors
-  // Optimized to avoid blocking main thread - use CSS touch-action for most cases
   useEffect(() => {
     const preventZoom = (e: TouchEvent): void => {
       if (e.touches.length > 1) {
@@ -193,7 +168,6 @@ export default function Dashboard(): React.ReactElement {
     };
   }, []);
 
-  // Combined UI state - reduces number of state updates
   const [uiState, setUIState] = useState<UIState>({
     showSplash: true,
     forceRender: false,
@@ -201,10 +175,8 @@ export default function Dashboard(): React.ReactElement {
     storageScanComplete: false,
   });
 
-  // App state management
   const [appState, setAppState] = useState<AppState>("initializing");
 
-  // Refs for cleanup and stable references
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null,
   );
@@ -222,7 +194,6 @@ export default function Dashboard(): React.ReactElement {
     } | null
   >(null);
 
-  // Set upgrade end date - memoized
   const upgradeEndDate = useMemo(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -233,10 +204,6 @@ export default function Dashboard(): React.ReactElement {
     return new Date(nyDateTime);
   }, []);
 
-  /**
-   * Get delay duration based on state transition
-   * Memoized callback
-   */
   const getTransitionDelay = useCallback(
     (fromState: AppState, toState: AppState): number => {
       const key = `${fromState}->${toState}`;
@@ -245,16 +212,11 @@ export default function Dashboard(): React.ReactElement {
     [],
   );
 
-  /**
-   * Smooth state transition with artificial delay and progress animation
-   * Optimized with proper cleanup
-   */
   const transitionToState = useCallback(async (
     newState: AppState,
     delay: number = 800,
     showProgress: boolean = true,
   ): Promise<void> => {
-    // Clear any existing intervals/timeouts
     if (progressIntervalRef.current) {
       clearInterval(progressIntervalRef.current);
       progressIntervalRef.current = null;
@@ -267,7 +229,6 @@ export default function Dashboard(): React.ReactElement {
     if (showProgress) {
       setUIState((prev) => ({ ...prev, transitionProgress: 0 }));
 
-      // Animate progress bar
       progressIntervalRef.current = setInterval(() => {
         setUIState((prev) => {
           const newProgress = prev.transitionProgress + (100 / (delay / 50));
@@ -278,7 +239,6 @@ export default function Dashboard(): React.ReactElement {
         });
       }, 50);
 
-      // Wait for the delay
       await new Promise((resolve) => {
         transitionTimeoutRef.current = setTimeout(resolve, delay);
       });
@@ -290,7 +250,6 @@ export default function Dashboard(): React.ReactElement {
 
       setUIState((prev) => ({ ...prev, transitionProgress: 100 }));
 
-      // Small additional delay to show completed progress
       await new Promise((resolve) => {
         transitionTimeoutRef.current = setTimeout(resolve, 50);
       });
@@ -305,7 +264,6 @@ export default function Dashboard(): React.ReactElement {
     setAppState(newState);
   }, []);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (progressIntervalRef.current) {
@@ -320,14 +278,10 @@ export default function Dashboard(): React.ReactElement {
     };
   }, []);
 
-  // Initialize URL-based routing
   useUrlRouter();
 
-  // Initialize automatic authentication restoration
   useAuthRestore();
 
-  // Memoize session check to avoid repeated localStorage reads
-  // Update when authentication state changes to reflect logout
   const sessionCheck = useMemo(() => {
     if (typeof window === "undefined") {
       return {
@@ -343,23 +297,17 @@ export default function Dashboard(): React.ReactElement {
         JSON.parse(privateStoreData)?.raw?.session || false;
 
     return { authStoreData, privateStoreData, hasValidSession };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, isConnected]); // Update when auth state changes (deps used indirectly via localStorage)
+  }, []);
 
-  // Update ref when session check changes
-  // This ensures we always have the latest session data
   useEffect(() => {
     sessionCheckRef.current = sessionCheck;
   }, [sessionCheck, isAuthenticated, isConnected]);
 
-  // Authentication state monitoring effect
-  // Only transition if we're not already in a transition state
   useEffect(() => {
     if (
       appState === "ready" &&
       (!isAuthenticated || !isConnected)
     ) {
-      // Prevent rapid state changes - use a small delay
       const timeoutId = setTimeout(() => {
         setAppState("checking_session");
       }, 100);
@@ -367,7 +315,6 @@ export default function Dashboard(): React.ReactElement {
     }
   }, [isAuthenticated, isConnected, appState, currentRoute]);
 
-  // Main state management effect - optimized with refs
   useEffect(() => {
     let isMounted = true;
 
@@ -383,14 +330,12 @@ export default function Dashboard(): React.ReactElement {
               });
             });
           }
-          // Skip storage scanning - go directly to hydrating
           const delay = getTransitionDelay("initializing", "hydrating");
           await transitionToState("hydrating", delay);
           break;
         }
 
         case "scanning_storage": {
-          // Skip storage scanning - go directly to hydrating
           const delay = getTransitionDelay("scanning_storage", "hydrating");
           await transitionToState("hydrating", delay);
           break;
@@ -414,7 +359,6 @@ export default function Dashboard(): React.ReactElement {
         }
 
         case "checking_session": {
-          // Always use fresh session check data
           const check = sessionCheck;
 
           if (upgrade) {
@@ -429,7 +373,6 @@ export default function Dashboard(): React.ReactElement {
             const delay = getTransitionDelay("checking_session", "loading_app");
             await transitionToState("loading_app", delay);
           } else if (!isAuthenticated || !isConnected) {
-            // User is logged out - go to authenticating state
             const delay = getTransitionDelay(
               "checking_session",
               "authenticating",
@@ -519,7 +462,6 @@ export default function Dashboard(): React.ReactElement {
     sessionCheck,
   ]);
 
-  // Mark heavy routes as loading during mount and when route changes
   const isHeavyRoute = useMemo(() => currentRoute === "canvas", [currentRoute]);
 
   useEffect(() => {
@@ -540,17 +482,10 @@ export default function Dashboard(): React.ReactElement {
     setUpgrade(false);
   }, [setUpgrade]);
 
-  /**
-   * Get loading message based on current state
-   * Memoized
-   */
   const getStateMessage = useCallback((state: AppState): string => {
     return STATE_MESSAGES[state] || "Loading...";
   }, []);
 
-  /**
-   * Loading screen component - memoized
-   */
   const renderLoadingScreen = useCallback(
     (message: string): React.ReactElement => {
       return (
@@ -571,7 +506,6 @@ export default function Dashboard(): React.ReactElement {
               ease: [0.16, 1, 0.3, 1],
             }}
           >
-            {/* Loading Animation */}
             <motion.div
               className="relative mx-auto w-20 h-20"
               initial={{ scale: 0, rotate: -180 }}
@@ -614,7 +548,6 @@ export default function Dashboard(): React.ReactElement {
               />
             </motion.div>
 
-            {/* State Message */}
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
@@ -648,7 +581,6 @@ export default function Dashboard(): React.ReactElement {
               </motion.p>
             </motion.div>
 
-            {/* Progress Bar */}
             <motion.div
               className="space-y-2"
               initial={{ opacity: 0, scale: 0.93 }}
@@ -678,7 +610,6 @@ export default function Dashboard(): React.ReactElement {
               </motion.p>
             </motion.div>
 
-            {/* State Indicator */}
             <motion.div
               className="flex items-center justify-center gap-2 text-sm text-muted-foreground"
               initial={{ opacity: 0 }}
@@ -717,23 +648,9 @@ export default function Dashboard(): React.ReactElement {
     [uiState.transitionProgress, appState],
   );
 
-  /**
-   * Route component mapping - memoized
-   */
   const routeComponents = useMemo(() => {
     const components: Record<string, React.ReactElement> = {
       welcome: <WelcomeAuthPage />,
-      trading: (
-        <Suspense
-          fallback={
-            <div className="p-4 text-muted-foreground">
-              Loading trading terminal...
-            </div>
-          }
-        >
-          <Trading />
-        </Suspense>
-      ),
       editor: (
         <Suspense
           fallback={
@@ -754,65 +671,17 @@ export default function Dashboard(): React.ReactElement {
           </ReactFlowProvider>
         </Suspense>
       ),
-      schemas: (
-        <Suspense
-          fallback={
-            <div className="p-4 text-muted-foreground">
-              Loading schemas...
-            </div>
-          }
-        >
-          <Schemas />
-        </Suspense>
-      ),
-      docs: (
-        <Suspense
-          fallback={
-            <div className="p-4 text-muted-foreground">
-              Loading documentation...
-            </div>
-          }
-        >
-          <Docs />
-        </Suspense>
-      ),
-      "stels-chat": (
-        <Suspense
-          fallback={
-            <div className="p-4 text-muted-foreground">
-              Loading Stels Chat...
-            </div>
-          }
-        >
-          <StelsChat />
-        </Suspense>
-      ),
-      indexes: (
-        <Suspense
-          fallback={
-            <div className="p-4 text-muted-foreground">
-              Loading indexes...
-            </div>
-          }
-        >
-          <Indexes />
-        </Suspense>
-      ),
     };
 
     return components;
   }, []);
 
-  /**
-   * Render main content - memoized
-   */
   const renderMainContent = useCallback((): React.ReactElement => {
-    return routeComponents[currentRoute] || routeComponents.trading;
+    return routeComponents[currentRoute] || routeComponents.canvas;
   }, [currentRoute, routeComponents]);
 
-  // Memoize common layout structure
-  const commonLayout = useMemo(() => (
-    <Layout>
+  const commonLayout = useMemo(() => {
+    const content = (
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={currentRoute}
@@ -829,16 +698,29 @@ export default function Dashboard(): React.ReactElement {
           {renderMainContent()}
         </motion.div>
       </AnimatePresence>
-    </Layout>
-  ), [currentRoute, renderMainContent]);
+    );
 
-  // Render based on app state
+    // Only wrap in layout if not welcome page
+    if (currentRoute === "welcome") {
+      return <div className="w-full h-full">{content}</div>;
+    }
+
+    return (
+      <Suspense
+        fallback={
+          <div className="p-4 text-muted-foreground">Loading layout...</div>
+        }
+      >
+        <SimpleLayout>{content}</SimpleLayout>
+      </Suspense>
+    );
+  }, [currentRoute, renderMainContent]);
+
   switch (appState) {
     case "initializing":
       return renderLoadingScreen(getStateMessage(appState));
 
     case "scanning_storage":
-      // Skip storage scan dialog - show loading screen instead
       return renderLoadingScreen(getStateMessage("hydrating"));
 
     case "hydrating":
@@ -878,6 +760,13 @@ export default function Dashboard(): React.ReactElement {
       return (
         <SessionProvider>
           <TooltipProvider>
+            {/* Skip to main content link for accessibility */}
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:shadow-lg"
+            >
+              Skip to main content
+            </a>
             {uiState.showSplash
               ? (
                 <SplashScreen

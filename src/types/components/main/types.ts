@@ -18,33 +18,11 @@ export interface ChunkErrorBoundaryState {
 }
 
 /**
- * Ticker marquee types
- */
-export interface TickerData {
-  market: string;
-  exchange: string;
-  last: number;
-  change: number;
-  percentage: number;
-  timestamp: number;
-}
-
-export interface TickerMarqueeProps {
-  className?: string;
-}
-
-/**
  * App launcher types
  */
 export interface LaunchStep {
   label: string;
   progress: number;
-}
-
-export interface AppLauncherProps {
-  appName: string;
-  appType: "static" | "dynamic";
-  currentStep: number;
 }
 
 /**

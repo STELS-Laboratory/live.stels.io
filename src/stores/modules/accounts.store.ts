@@ -7,10 +7,7 @@ import type {
   AccountsState,
   AccountsStore,
   AccountValue,
-  SetAccountPayload,
-  SignedTransaction,
   StoredAccount,
-  TransactionRequest,
 } from "@/types/stores/types";
 
 export type {
@@ -18,10 +15,7 @@ export type {
   AccountsActions,
   AccountsState,
   AccountsStore,
-  SetAccountPayload,
-  SignedTransaction,
   StoredAccount,
-  TransactionRequest,
 };
 
 /**

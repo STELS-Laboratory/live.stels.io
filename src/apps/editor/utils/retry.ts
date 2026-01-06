@@ -3,6 +3,8 @@
  * Used for network requests that may fail temporarily
  */
 
+import { logWarn } from "./logger.ts";
+
 /**
  * Retry an async operation with exponential backoff
  * @param operation - The async operation to retry
@@ -34,7 +36,7 @@ export async function retryWithBackoff<T>(
       // Wait before retrying
       await new Promise((resolve) => setTimeout(resolve, delay));
 
-      console.warn(
+      logWarn(
         `Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms delay`,
       );
     }
@@ -82,7 +84,7 @@ export async function retryOnNetworkError<T>(
       // Wait before retrying
       await new Promise((resolve) => setTimeout(resolve, delay));
 
-      console.warn(
+      logWarn(
         `Network error, retry attempt ${
           attempt + 1
         }/${maxRetries} after ${delay}ms delay`,

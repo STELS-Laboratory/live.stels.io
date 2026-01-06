@@ -19,6 +19,8 @@ export function Skeleton(
 ): React.ReactElement {
   return (
     <div
+      role="status"
+      aria-label="Loading"
       className={cn("animate-pulse rounded-md bg-muted", className)}
       {...props}
     />

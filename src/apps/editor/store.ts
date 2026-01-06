@@ -10,6 +10,7 @@ import { useNetworkStore } from "@/stores/modules/network.store";
 import { toast } from "@/stores";
 import { retryOnNetworkError } from "./utils/retry.ts";
 import { WebfixApiClient } from "@/lib/webfix-api-client";
+import { logError } from "./utils/logger.ts";
 import type {
   EditorStore,
   LeaderInfo,
@@ -106,7 +107,7 @@ export const useEditorStore = create<EditorStore>()(
             throw new Error("Invalid response format");
           }
         } catch (error) {
-          console.error("Failed to list workers:", error);
+          logError("Failed to list workers:", error);
           const errorMessage = error instanceof Error
             ? error.message
             : "Failed to fetch workers";
@@ -166,7 +167,7 @@ export const useEditorStore = create<EditorStore>()(
 
           return workerData;
         } catch (error) {
-          console.error("Failed to create worker:", error);
+          logError("Failed to create worker:", error);
           const errorMessage = error instanceof Error
             ? error.message
             : "Unknown error occurred";
@@ -184,8 +185,7 @@ export const useEditorStore = create<EditorStore>()(
       setWorker: async (): Promise<Worker | null> => {
         // Legacy method - use createWorker instead
         return await get().createWorker({
-          scriptContent:
-            "// Worker script\n// Available context: { Stels, logger }\n\nlogger.info('Worker started on node:', Stels.config.nid);\n\n// Your logic here\n",
+          scriptContent: "",
           dependencies: ["gliesereum"],
           version: "1.19.2",
           scope: "local",
@@ -214,17 +214,10 @@ export const useEditorStore = create<EditorStore>()(
           const client = new WebfixApiClient(connectionSession.api);
           client.setSession(connectionSession.session);
 
-          // API expects FULL raw object with ALL fields (not partial update)
-          // Format: { channel, raw } where raw contains all worker fields including sid
           const body = {
             channel: workerData.value.channel,
             raw: workerData.value.raw,
           };
-
-          console.log(
-            "updateWorker request body:",
-            JSON.stringify(body, null, 2),
-          );
 
           const data = await retryOnNetworkError(() =>
             client.request<{
@@ -238,11 +231,6 @@ export const useEditorStore = create<EditorStore>()(
               sid?: string;
               raw?: { sid?: string; [key: string]: unknown };
             }>("updateWorker", body, [networkId])
-          );
-
-          console.log(
-            "updateWorker response data:",
-            JSON.stringify(data, null, 2),
           );
 
           const result = convertToWorker(data);
@@ -260,7 +248,7 @@ export const useEditorStore = create<EditorStore>()(
 
           return result;
         } catch (error) {
-          console.error("Failed to update worker:", error);
+          logError("Failed to update worker:", error);
           const errorMessage = error instanceof Error
             ? error.message
             : "Unknown error occurred";
@@ -337,7 +325,7 @@ export const useEditorStore = create<EditorStore>()(
 
           return result;
         } catch (error) {
-          console.error("Failed to migrate worker:", error);
+          logError("Failed to migrate worker:", error);
           toast.error(
             "Failed to migrate worker",
             error instanceof Error ? error.message : "Unknown error occurred",
@@ -372,7 +360,7 @@ export const useEditorStore = create<EditorStore>()(
 
           return result;
         } catch (error) {
-          console.error("Failed to get leader info:", error);
+          logError("Failed to get leader info:", error);
           toast.error(
             "Failed to load leader info",
             error instanceof Error ? error.message : "Unknown error occurred",
@@ -434,7 +422,7 @@ export const useEditorStore = create<EditorStore>()(
 
           return [];
         } catch (error) {
-          console.error("Failed to get worker stats:", error);
+          logError("Failed to get worker stats:", error);
           toast.error(
             "Failed to load worker statistics",
             error instanceof Error ? error.message : "Unknown error occurred",
@@ -476,7 +464,7 @@ export const useEditorStore = create<EditorStore>()(
             total: result.total || 0,
           };
         } catch (error) {
-          console.error("Failed to stop all workers:", error);
+          logError("Failed to stop all workers:", error);
           toast.error(
             "Failed to stop all workers",
             error instanceof Error ? error.message : "Unknown error occurred",

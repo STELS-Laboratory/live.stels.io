@@ -20,8 +20,8 @@ export function formatJavaScript(code: string): string {
   }
 
   try {
-    // Normalize line endings
-    const normalized = code.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    // Normalize line endings (optimized single pass)
+    const normalized = code.replace(/\r\n?/g, "\n");
 
     // Split into lines
     const lines = normalized.split("\n");
@@ -46,9 +46,10 @@ export function formatJavaScript(code: string): string {
       let lineInComment = false;
       let escapeNext = false;
 
-      // Simple string detection (for single line)
+      // Parse string and comment states (optimized single pass)
       for (let j = 0; j < line.length; j++) {
         const char = line[j];
+        const nextChar = j < line.length - 1 ? line[j + 1] : null;
 
         if (escapeNext) {
           escapeNext = false;
@@ -60,42 +61,39 @@ export function formatJavaScript(code: string): string {
           continue;
         }
 
-        // Handle strings
-        if ((char === '"' || char === "'" || char === "`")) {
-          if (!lineInString && !inMultiLineComment) {
-            lineInString = true;
-            lineStringChar = char;
-            if (char === "`") {
-              inMultiLineString = true;
-            }
-          } else if (lineInString && char === lineStringChar) {
-            lineInString = false;
-            lineStringChar = "";
-            if (char === "`") {
-              inMultiLineString = false;
+        // Handle strings (only if not in comment)
+        if (!inMultiLineComment && !lineInComment) {
+          if (char === '"' || char === "'" || char === "`") {
+            if (!lineInString) {
+              lineInString = true;
+              lineStringChar = char;
+              if (char === "`") {
+                inMultiLineString = true;
+              }
+            } else if (char === lineStringChar) {
+              lineInString = false;
+              lineStringChar = "";
+              if (char === "`") {
+                inMultiLineString = false;
+              }
             }
           }
         }
 
         // Handle comments (only if not in string)
         if (!lineInString && !inMultiLineString) {
-          if (char === "/" && j < line.length - 1) {
-            const nextChar = line[j + 1];
-            if (nextChar === "/" && !inMultiLineComment) {
-              lineInComment = true;
-              break; // Rest of line is comment
-            }
-            if (nextChar === "*" && !inMultiLineComment) {
-              inMultiLineComment = true;
-              lineInComment = true;
-            }
+          if (char === "/" && nextChar === "/" && !inMultiLineComment) {
+            lineInComment = true;
+            break; // Rest of line is comment
           }
-          if (
-            char === "*" && j < line.length - 1 && line[j + 1] === "/" &&
-            inMultiLineComment
-          ) {
+          if (char === "/" && nextChar === "*" && !inMultiLineComment) {
+            inMultiLineComment = true;
+            lineInComment = true;
+            j++; // Skip next char
+          } else if (char === "*" && nextChar === "/" && inMultiLineComment) {
             inMultiLineComment = false;
             lineInComment = false;
+            j++; // Skip next char
           }
         }
       }
@@ -111,8 +109,13 @@ export function formatJavaScript(code: string): string {
         lineIndent = Math.max(0, indentLevel - 1);
       }
 
-      // Handle else, catch, finally - align with opening brace
-      if (/^\s*(else|catch|finally)\b/.test(trimmed)) {
+      // Handle else, catch, finally, case, default - align with opening brace
+      if (/^\s*(else|catch|finally|case|default)\b/.test(trimmed)) {
+        lineIndent = Math.max(0, indentLevel - 1);
+      }
+      
+      // Handle else if - same indent as else
+      if (/^\s*else\s+if\b/.test(trimmed)) {
         lineIndent = Math.max(0, indentLevel - 1);
       }
 
@@ -121,41 +124,38 @@ export function formatJavaScript(code: string): string {
       formattedLines.push(indent + trimmed);
 
       // Update indent level for next line
-      // Count braces, brackets, parens in the trimmed line
+      // Count braces, brackets, parens in the trimmed line (ignoring strings/comments)
       let netBraces = 0;
       let netBrackets = 0;
       let netParens = 0;
 
-      // Simple counting (ignoring strings and comments for simplicity)
-      if (!lineInString && !lineInComment) {
+      // Count brackets/braces/parens (only outside strings and comments)
+      if (!lineInString && !lineInComment && !inMultiLineString && !inMultiLineComment) {
         for (let j = 0; j < trimmed.length; j++) {
           const char = trimmed[j];
           if (char === "{") netBraces++;
-          if (char === "}") netBraces--;
-          if (char === "[") netBrackets++;
-          if (char === "]") netBrackets--;
-          if (char === "(") netParens++;
-          if (char === ")") netParens--;
+          else if (char === "}") netBraces--;
+          else if (char === "[") netBrackets++;
+          else if (char === "]") netBrackets--;
+          else if (char === "(") netParens++;
+          else if (char === ")") netParens--;
         }
       }
 
-      // Update indent level
+      // Update indent level based on bracket changes
       indentLevel += netBraces + netBrackets + netParens;
-
-      // Special handling for lines ending with opening braces/brackets/parens
-      if (
-        trimmed.endsWith("{") || trimmed.endsWith("[") || trimmed.endsWith("(")
-      ) {
-        indentLevel++;
-      }
 
       // Ensure indent level doesn't go negative
       indentLevel = Math.max(0, indentLevel);
     }
 
     return formattedLines.join("\n");
-  } catch {
+  } catch (error) {
     // If formatting fails, return original code
+    // Log error in development for debugging
+    if (import.meta.env.DEV) {
+      console.warn("Formatter error:", error);
+    }
     return code;
   }
 }

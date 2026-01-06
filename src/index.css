@@ -764,6 +764,136 @@
     width: var(--icon-container-xl);
     height: var(--icon-container-xl);
   }
+
+  /* Screen reader only utility - for accessibility */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .sr-only:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: inherit;
+    margin: inherit;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+
+  /* Focus visible variant for skip links */
+  .focus\:not-sr-only:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: inherit;
+    margin: inherit;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+
+  /* Overflow handling utilities */
+  .min-w-0 {
+    min-width: 0;
+  }
+
+  .overflow-wrap-break {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Layout utilities */
+  .layout-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-width: 0;
+  }
+
+  .layout-header {
+    flex-shrink: 0;
+  }
+
+  .layout-main {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .layout-footer {
+    flex-shrink: 0;
+  }
+
+  /* Flex utilities */
+  .flex-container {
+    display: flex;
+    min-width: 0;
+  }
+
+  .flex-item {
+    min-width: 0;
+  }
+
+  .flex-item-shrink {
+    flex-shrink: 0;
+  }
+
+  .flex-item-grow {
+    flex-grow: 1;
+    min-width: 0;
+  }
+
+  /* Grid utilities */
+  .grid-container {
+    display: grid;
+    min-width: 0;
+  }
+
+  .grid-item {
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Touch target utilities for mobile */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Backdrop filter fallback */
+  .glass {
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  @supports (backdrop-filter: blur(10px)) {
+    .glass {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+  }
+
+  .dark .glass {
+    background: rgba(20, 20, 20, 0.9);
+  }
+
+  @supports (backdrop-filter: blur(10px)) {
+    .dark .glass {
+      background: rgba(20, 20, 20, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+  }
 }
 
 /* Mobile optimizations */

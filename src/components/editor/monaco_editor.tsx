@@ -16,12 +16,11 @@ import type * as monaco from "monaco-editor";
 import { useThemeStore } from "@/stores";
 import { isMinified } from "@/lib/code-formatter";
 import { formatJavaScript } from "./monaco/formatter";
-import { setupMonacoCompletions } from "./monaco/completions";
 
 // Editor configuration constants
 const EDITOR_CONFIG = {
-  SAVE_DEBOUNCE_MS: 1500,
-  FORMAT_DELAY_MS: 200,
+  SAVE_DEBOUNCE_MS: 1000, // Reduced from 1500ms for faster feedback
+  FORMAT_DELAY_MS: 300,
   TAB_SIZE: 2,
 } as const;
 
@@ -48,6 +47,7 @@ export default function MonacoEditor({
   const isUserEditingRef = useRef<boolean>(false);
   const lastScriptRef = useRef<string | undefined>(script);
   const changeDebounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const formattingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSentValueRef = useRef<string | null>(null);
   const handleEditorChangeRef = useRef(handleEditorChange);
   const onEditorReadyRef = useRef(onEditorReady);
@@ -114,9 +114,15 @@ export default function MonacoEditor({
         editor.setPosition(newPosition);
       }
 
+      // Clear any existing formatting timeout
+      if (formattingTimeoutRef.current) {
+        clearTimeout(formattingTimeoutRef.current);
+      }
+
       // Reset formatting flag after a delay
-      setTimeout(() => {
+      formattingTimeoutRef.current = setTimeout(() => {
         isFormattingRef.current = false;
+        formattingTimeoutRef.current = null;
       }, 200);
     }
   }, []);
@@ -240,8 +246,8 @@ export default function MonacoEditor({
         : "stels-dark";
       monacoInstance.editor.setTheme(currentTheme);
 
-      // Setup Worker SDK completions
-      setupMonacoCompletions(monacoInstance);
+      // Worker SDK completions disabled
+      // setupMonacoCompletions(monacoInstance);
 
       // Prevent default browser shortcuts
       editor.onKeyDown((e) => {
@@ -287,12 +293,20 @@ export default function MonacoEditor({
 
         isUserEditingRef.current = true;
 
-        // Clear existing debounce timeout
+        const currentValue = model.getValue();
+
+        // Update UI immediately to show editing state (no delay)
+        if (currentValue !== lastSentValueRef.current) {
+          handleEditorChangeRef.current(currentValue);
+        }
+
+        // Clear existing debounce timeout for save operation
         if (changeDebounceTimeoutRef.current) {
           clearTimeout(changeDebounceTimeoutRef.current);
         }
 
-        // Save with debounce (1.5 seconds after user stops typing)
+        // Save with debounce (300ms after user stops typing)
+        // This prevents excessive API calls while still providing immediate UI feedback
         changeDebounceTimeoutRef.current = setTimeout(() => {
           const currentEditor = editorRef.current;
           if (!currentEditor) {
@@ -306,13 +320,14 @@ export default function MonacoEditor({
             return;
           }
 
-          const currentValue = currentModel.getValue();
-          if (currentValue !== lastSentValueRef.current) {
-            lastSentValueRef.current = currentValue;
-            handleEditorChangeRef.current(currentValue);
+          const finalValue = currentModel.getValue();
+          if (finalValue !== lastSentValueRef.current) {
+            lastSentValueRef.current = finalValue;
+            // Update again to ensure latest value is saved
+            handleEditorChangeRef.current(finalValue);
           }
           changeDebounceTimeoutRef.current = null;
-        }, EDITOR_CONFIG.SAVE_DEBOUNCE_MS);
+        }, 300); // Reduced to 300ms for faster save
       });
 
       // Handle blur - save immediately and format
@@ -360,14 +375,14 @@ export default function MonacoEditor({
 
       // Auto-format minified code on initial load
       const code = script || "";
-      if (isMinified(code)) {
-        setTimeout(() => {
+      const formatTimeout = isMinified(code)
+        ? setTimeout(() => {
           formatCode();
-        }, 100);
-      }
+        }, 100)
+        : null;
 
       // Focus editor to show cursor
-      setTimeout(() => {
+      const focusTimeout = setTimeout(() => {
         editor.focus();
       }, 0);
 
@@ -377,7 +392,16 @@ export default function MonacoEditor({
         blurListener.dispose();
         if (changeDebounceTimeoutRef.current) {
           clearTimeout(changeDebounceTimeoutRef.current);
+          changeDebounceTimeoutRef.current = null;
         }
+        if (formattingTimeoutRef.current) {
+          clearTimeout(formattingTimeoutRef.current);
+          formattingTimeoutRef.current = null;
+        }
+        if (formatTimeout) {
+          clearTimeout(formatTimeout);
+        }
+        clearTimeout(focusTimeout);
       };
     },
     [resolvedTheme, formatCode, script],
@@ -408,8 +432,24 @@ export default function MonacoEditor({
 
     // Only update if script prop changed AND user is not currently editing
     if (script !== lastScriptRef.current) {
-      // If user is actively editing, don't overwrite unless it's a significant change
-      if (isUserEditingRef.current) {
+      // Check if content is significantly different (likely worker switch)
+      const contentDiff = Math.abs(currentContent.length - newContent.length);
+      const prefixLength = 100;
+      const firstCurrent = currentContent.substring(
+        0,
+        Math.min(prefixLength, currentContent.length),
+      );
+      const firstNew = newContent.substring(
+        0,
+        Math.min(prefixLength, newContent.length),
+      );
+      const isSignificantChange = contentDiff > 200 ||
+        (firstCurrent !== firstNew &&
+          !firstCurrent.includes(firstNew) &&
+          !firstNew.includes(firstCurrent));
+
+      // If user is actively editing, don't overwrite unless it's a significant change (worker switch)
+      if (isUserEditingRef.current && !isSignificantChange) {
         // Check if this is from our own save
         if (
           newContent === lastSentValueRef.current ||
@@ -418,33 +458,19 @@ export default function MonacoEditor({
           lastScriptRef.current = script;
           return;
         }
-
-        // Check if content is significantly different (likely worker switch)
-        const contentDiff = Math.abs(currentContent.length - newContent.length);
-        const prefixLength = 100;
-        const firstCurrent = currentContent.substring(
-          0,
-          Math.min(prefixLength, currentContent.length),
-        );
-        const firstNew = newContent.substring(
-          0,
-          Math.min(prefixLength, newContent.length),
-        );
-        const isSignificantChange = contentDiff > 200 ||
-          (firstCurrent !== firstNew &&
-            !firstCurrent.includes(firstNew) &&
-            !firstNew.includes(firstCurrent));
-
-        if (!isSignificantChange) {
-          lastScriptRef.current = script;
-          return;
-        }
+        // Not a significant change and user is editing - don't overwrite
+        lastScriptRef.current = script;
+        return;
       }
 
-      // Reset editing flag when switching workers or receiving server update
+      // Reset editing flag and refs when switching workers or receiving server update
       isUserEditingRef.current = false;
       isFormattingRef.current = true;
       lastScriptRef.current = script;
+      // Reset lastSentValueRef when switching workers to ensure proper change detection
+      if (isSignificantChange) {
+        lastSentValueRef.current = null;
+      }
 
       // Only update if content is different
       if (currentContent !== newContent) {
@@ -497,61 +523,89 @@ export default function MonacoEditor({
       }}
       onMount={handleEditorDidMount}
       options={{
-        minimap: { enabled: true },
-        fontSize: 16,
-        fontFamily:
-          "'Saira', 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace",
+        // Performance optimizations
+        minimap: { enabled: false }, // Disable minimap for better performance
+        fontSize: 14,
+        fontFamily: "'SF Mono', 'Monaco', 'Cascadia Code', monospace", // Optimized font stack
+        fontLigatures: false, // Disable ligatures for better performance
         lineNumbers: "on",
         wordWrap: "on",
-        formatOnPaste: false, // We handle formatting manually
+        
+        // Formatting
+        formatOnPaste: false,
         formatOnType: false,
         autoIndent: "full",
         tabSize: EDITOR_CONFIG.TAB_SIZE,
         insertSpaces: true,
+        
+        // Scrolling
         scrollBeyondLastLine: false,
-        smoothScrolling: true,
-        cursorBlinking: "smooth",
-        cursorSmoothCaretAnimation: "on",
+        smoothScrolling: false, // Disable for better performance
+        cursorBlinking: "solid", // Simpler blinking for better performance
+        cursorSmoothCaretAnimation: "off", // Disable animation for better performance
+        
+        // Code features
         matchBrackets: "always",
         bracketPairColorization: { enabled: true },
         autoClosingBrackets: "always",
         autoClosingQuotes: "always",
+        
+        // Autocomplete - disabled
         suggest: {
-          showWords: true,
-          showProperties: true,
-          showFunctions: true,
-          showVariables: true,
-          showClasses: true,
-          showKeywords: true,
-          showSnippets: true,
+          showWords: false,
+          showProperties: false,
+          showFunctions: false,
+          showVariables: false,
+          showClasses: false,
+          showKeywords: false,
+          showSnippets: false,
           insertMode: "replace",
         },
         quickSuggestions: {
-          other: true,
+          other: false,
           comments: false,
           strings: false,
         },
-        acceptSuggestionOnCommitCharacter: true,
-        acceptSuggestionOnEnter: "on",
-        snippetSuggestions: "top",
+        acceptSuggestionOnCommitCharacter: false,
+        acceptSuggestionOnEnter: "off",
+        snippetSuggestions: "none",
+        
+        // Hover and links
         hover: {
           enabled: true,
+          delay: 300, // Add delay to reduce CPU usage
         },
-        links: true,
-        colorDecorators: true,
+        links: false, // Disable links for better performance
+        
+        // Decorations
+        colorDecorators: false, // Disable for better performance
+        
+        // Folding
         folding: true,
         foldingStrategy: "auto",
-        showFoldingControls: "always",
+        showFoldingControls: "mouseover", // Show only on hover
         unfoldOnClickAfterEndOfLine: false,
+        
+        // Rendering
         renderWhitespace: "selection",
-        renderLineHighlight: "all",
+        renderLineHighlight: "line", // Simpler highlight
         selectOnLineNumbers: true,
-        glyphMargin: true,
+        glyphMargin: false, // Disable for better performance
         contextmenu: true,
         mouseWheelZoom: false,
         multiCursorModifier: "ctrlCmd",
-        accessibilitySupport: "auto",
+        
+        // Accessibility
+        accessibilitySupport: "off", // Disable if not needed for better performance
+        
+        // Layout
         automaticLayout: true,
+        
+        // Additional performance optimizations
+        disableLayerHinting: true, // Better performance
+        renderIndentGuides: true,
+        renderFinalNewline: "off",
+        trimAutoWhitespace: true,
       }}
     />
   );

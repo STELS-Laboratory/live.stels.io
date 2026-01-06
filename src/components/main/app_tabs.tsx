@@ -5,17 +5,11 @@
 
 import type { ReactElement } from "react";
 import {
-  Activity,
   Boxes,
   Code,
   Database,
-  FileCode,
-  FileText,
   Home,
   Layers,
-  Layout as LayoutIcon,
-  MessageSquare,
-  TrendingUp,
   X,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -32,14 +26,8 @@ import { useMobile } from "@/hooks/use_mobile";
 import type { DevTool } from "@/types/components/main/types";
 
 const DEV_TOOLS: DevTool[] = [
-  { key: "trading", name: "Trading", icon: TrendingUp, shortcut: "T" },
   { key: "editor", name: "Editor", icon: Code, shortcut: "E" },
   { key: "canvas", name: "Canvas", icon: Boxes, shortcut: "C" },
-  { key: "schemas", name: "Schemas", icon: LayoutIcon, shortcut: "S" },
-  { key: "docs", name: "Docs", icon: FileText, shortcut: "D" },
-  { key: "template", name: "Template", icon: FileCode, shortcut: "M" },
-  { key: "stels-chat", name: "Stels Chat", icon: MessageSquare, shortcut: "O" },
-  { key: "indexes", name: "Indexes", icon: Activity, shortcut: "I" },
 ];
 
 /**
@@ -75,7 +63,11 @@ export default function AppTabs(): ReactElement {
 
   return (
     <TooltipProvider>
-      <div className="flex items-center gap-1 px-2 h-12 border-b border-border bg-card/30 overflow-x-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+      <nav
+        role="navigation"
+        aria-label="Application tabs"
+        className="flex items-center gap-1 px-2 h-12 border-b border-border bg-card/30 overflow-x-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent min-w-0"
+      >
         {/* Home button - Widget Store */}
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
@@ -84,6 +76,8 @@ export default function AppTabs(): ReactElement {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
+              aria-label="Go to widget store"
+              aria-current={isOnWelcome ? "page" : undefined}
               className={`
                 flex items-center justify-center w-8 h-8 rounded transition-colors duration-200 flex-shrink-0
                 ${
@@ -93,7 +87,7 @@ export default function AppTabs(): ReactElement {
               }
               `}
             >
-              <Home className="w-4 h-4" />
+              <Home className="w-4 h-4" aria-hidden="true" />
             </motion.button>
           </TooltipTrigger>
           {!mobile && (
@@ -125,6 +119,8 @@ export default function AppTabs(): ReactElement {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       transition={{ duration: 0.15, ease: "easeOut" }}
+                      aria-label={`Open ${tool.name}`}
+                      aria-current={isActive ? "page" : undefined}
                       className={`
                         relative flex items-center justify-center w-8 h-8 rounded transition-colors duration-200 flex-shrink-0
                         ${
@@ -134,7 +130,7 @@ export default function AppTabs(): ReactElement {
                       }
                       `}
                     >
-                      <Icon className="w-4 h-4" />
+                      <Icon className="w-4 h-4" aria-hidden="true" />
                       {/* Active indicator */}
                       {isActive && (
                         <motion.div
@@ -279,7 +275,7 @@ export default function AppTabs(): ReactElement {
             </Tooltip>
           </>
         )}
-      </div>
+      </nav>
     </TooltipProvider>
   );
 }

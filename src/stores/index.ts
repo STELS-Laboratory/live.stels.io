@@ -19,12 +19,6 @@ export type {
   ConnectionSession,
   NetworkConfig,
 } from "./modules/auth.store.ts";
-export type {
-  AccountsStore,
-  SetAccountPayload,
-  SignedTransaction,
-  StoredAccount,
-  TransactionRequest,
-} from "./modules/accounts.store.ts";
+export type { AccountsStore, StoredAccount } from "./modules/accounts.store.ts";
 export type { OpenApp, OpenAppsState } from "./modules/open_apps.ts";
 export type { Toast, ToastStore, ToastType } from "./modules/toast.store.ts";

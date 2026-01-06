@@ -3,7 +3,6 @@ import {
   Suspense,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -87,6 +86,12 @@ import {
   validateNodeId,
   validateVersion,
 } from "./utils/validation.ts";
+import { logError } from "./utils/logger.ts";
+import { setCacheValue } from "./utils/cache.ts";
+import { EDITOR_CONSTANTS } from "./ami_editor/constants.ts";
+import { useKeyboardShortcuts } from "./ami_editor/hooks/use_keyboard_shortcuts.ts";
+import { useWorkerFilters } from "./ami_editor/hooks/use_worker_filters.ts";
+import { validateWorkerConfig } from "./ami_editor/utils/worker_validation.ts";
 
 export function AMIEditor(): JSX.Element {
   const mobile = useMobile();
@@ -107,12 +112,15 @@ export function AMIEditor(): JSX.Element {
   const [toggling, setToggling] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
   const [currentScript, setCurrentScriptInternal] = useState<string>("");
+  // Store original script value for comparison (before any edits)
+  const originalScriptRef = useRef<string>("");
 
   // Wrapper for setCurrentScript
   const setCurrentScript = useCallback((value: string) => {
     setCurrentScriptInternal(value);
   }, []);
   const [currentNote, setCurrentNote] = useState<string>("");
+  const currentNoteRef = useRef<string>(""); // Ref to always have current value
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [isEditingConfig, setIsEditingConfig] = useState(false);
@@ -159,6 +167,7 @@ export function AMIEditor(): JSX.Element {
   // AbortController for canceling in-flight requests
   const abortControllerRef = useRef<AbortController | null>(null);
   const loadWorkersTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Check developer access on mount
   useEffect(() => {
@@ -208,7 +217,7 @@ export function AMIEditor(): JSX.Element {
         return;
       }
 
-      console.error("Failed to load workers:", error);
+      logError("Failed to load workers:", error);
       toast.error(
         "Failed to load workers",
         error instanceof Error ? error.message : "Unknown error occurred",
@@ -233,7 +242,7 @@ export function AMIEditor(): JSX.Element {
     // Set new timeout
     loadWorkersTimeoutRef.current = setTimeout(() => {
       loadWorkers();
-    }, 300); // 300ms debounce
+    }, EDITOR_CONSTANTS.DEBOUNCE_DELAY_MS);
   }, [loadWorkers]);
 
   useEffect(() => {
@@ -255,82 +264,13 @@ export function AMIEditor(): JSX.Element {
     if (newlyCreatedWorker) {
       const timer = setTimeout(() => {
         setNewlyCreatedWorker(null);
-      }, 3000);
+      }, EDITOR_CONSTANTS.NEW_WORKER_HIGHLIGHT_MS);
       return () => clearTimeout(timer);
     }
   }, [newlyCreatedWorker]);
 
-  // Compute filtered workers (moved before useEffect to avoid dependency issues)
-  const filteredWorkers = useMemo(() => {
-    return workers
-      .filter((protocol) => {
-        // Safety check - ensure protocol has required structure
-        if (!protocol?.value?.raw) {
-          return false;
-        }
-
-        // Search filter
-        const matchesSearch = !searchTerm ||
-          protocol.value.raw.note?.toLowerCase().includes(
-            searchTerm.toLowerCase(),
-          ) ||
-          protocol.value.raw.sid?.toLowerCase().includes(
-            searchTerm.toLowerCase(),
-          ) ||
-          protocol.value.raw.nid?.toLowerCase().includes(
-            searchTerm.toLowerCase(),
-          ) ||
-          protocol.value.raw.version?.toLowerCase().includes(
-            searchTerm.toLowerCase(),
-          );
-
-        // Active status filter
-        const matchesActive = filterActive === null ||
-          protocol.value.raw.active === filterActive;
-
-        // Execution mode filter
-        const workerExecMode = protocol.value.raw.executionMode ||
-          "parallel";
-        const matchesExecMode = !filterExecutionMode ||
-          workerExecMode === filterExecutionMode;
-
-        // Priority filter
-        const workerPriority = protocol.value.raw.priority || "normal";
-        const matchesPriority = !filterPriority ||
-          workerPriority === filterPriority;
-
-        // Scope filter
-        const workerScope = protocol.value.raw.scope || "local";
-        const matchesScope = !filterScope || workerScope === filterScope;
-
-        return matchesSearch && matchesActive && matchesExecMode &&
-          matchesPriority && matchesScope;
-      })
-      .sort((a, b) => {
-        // Smart Sort: Local > Active > Date
-        if (sortOrder === "desc") {
-          // 1. Sort by scope (local first)
-          const scopeA = a.value.raw.scope || "local";
-          const scopeB = b.value.raw.scope || "local";
-          if (scopeA !== scopeB) {
-            return scopeA === "local" ? -1 : 1;
-          }
-
-          // 2. Sort by active status (active first)
-          const activeA = a.value.raw.active ? 1 : 0;
-          const activeB = b.value.raw.active ? 1 : 0;
-          if (activeA !== activeB) {
-            return activeB - activeA;
-          }
-
-          // 3. Sort by timestamp (newest first)
-          return b.value.raw.timestamp - a.value.raw.timestamp;
-        }
-
-        // Ascending: oldest first
-        return a.value.raw.timestamp - b.value.raw.timestamp;
-      });
-  }, [
+  // Compute filtered workers using optimized hook
+  const filteredWorkers = useWorkerFilters({
     workers,
     searchTerm,
     filterActive,
@@ -338,137 +278,16 @@ export function AMIEditor(): JSX.Element {
     filterPriority,
     filterScope,
     sortOrder,
-  ]);
+  });
+
+  // Placeholder handlers - will be defined later but referenced here
+  // The hook uses refs internally so handlers can be defined after this call
+  const handleSaveAllRef = useRef<() => void>(() => {});
+  const handleToggleWorkerStatusClickRef = useRef<(worker?: Worker) => void>(() => {});
+  const handleSelectWorkerRef = useRef<(worker: Worker) => void>(() => {});
 
   // Keyboard shortcuts for better usability
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent): void => {
-      // Ignore shortcuts when typing in inputs/textarea
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        (e.target instanceof HTMLElement && e.target.isContentEditable)
-      ) {
-        // Allow Cmd+S even in editor
-        if ((e.metaKey || e.ctrlKey) && e.key === "s") {
-          e.preventDefault();
-          if (
-            selectedWorker && (isEditing || isEditingNote || isEditingConfig)
-          ) {
-            handleSaveAll();
-          }
-        }
-        return;
-      }
-
-      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
-      const modKey = isMac ? e.metaKey : e.ctrlKey;
-
-      if (modKey) {
-        // Cmd/Ctrl + S: Save changes
-        if (e.key === "s" || e.key === "S") {
-          e.preventDefault();
-          if (
-            selectedWorker && (isEditing || isEditingNote || isEditingConfig)
-          ) {
-            handleSaveAll();
-          }
-          return;
-        }
-
-        // Cmd/Ctrl + N: Create new worker
-        if (e.key === "n" || e.key === "N") {
-          e.preventDefault();
-          setShowCreateDialog(true);
-          return;
-        }
-
-        // Cmd/Ctrl + F: Focus search
-        if (e.key === "f" || e.key === "F") {
-          e.preventDefault();
-          const searchInput = document.querySelector<HTMLInputElement>(
-            'input[aria-label*="Search workers"]',
-          );
-          searchInput?.focus();
-          return;
-        }
-
-        // Cmd/Ctrl + K: Quick actions (toggle worker)
-        if (e.key === "k" || e.key === "K") {
-          e.preventDefault();
-          if (selectedWorker) {
-            handleToggleWorkerStatusClick(selectedWorker);
-          }
-          return;
-        }
-
-        // Cmd/Ctrl + 1-4: Switch tabs
-        if (e.key >= "1" && e.key <= "4") {
-          e.preventDefault();
-          const tabMap: Record<string, string> = {
-            "1": "code",
-            "2": "config",
-            "3": "prompts",
-            "4": "logs",
-          };
-          const tab = tabMap[e.key];
-          if (tab && selectedWorker) {
-            setActiveTab(tab);
-          }
-          return;
-        }
-      }
-
-      // Escape: Close dialogs
-      if (e.key === "Escape") {
-        if (showCreateDialog) {
-          setShowCreateDialog(false);
-          return;
-        }
-        if (showMigrateDialog) {
-          setShowMigrateDialog(false);
-          return;
-        }
-        if (showStopAllDialog) {
-          setShowStopAllDialog(false);
-          return;
-        }
-        if (showToggleConfirmDialog) {
-          setShowToggleConfirmDialog(false);
-          return;
-        }
-        if (showStatsPanel) {
-          setShowStatsPanel(false);
-          return;
-        }
-      }
-
-      // Arrow keys: Navigate worker list
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        if (filteredWorkers.length === 0) return;
-        e.preventDefault();
-        const currentIndex = selectedWorker
-          ? filteredWorkers.findIndex(
-            (w) => w.value.raw.sid === selectedWorker.value.raw.sid,
-          )
-          : -1;
-        const nextIndex = e.key === "ArrowDown"
-          ? (currentIndex + 1) % filteredWorkers.length
-          : currentIndex <= 0
-          ? filteredWorkers.length - 1
-          : currentIndex - 1;
-        handleSelectWorker(filteredWorkers[nextIndex]);
-        return;
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
+  useKeyboardShortcuts({
     selectedWorker,
     isEditing,
     isEditingNote,
@@ -480,7 +299,18 @@ export function AMIEditor(): JSX.Element {
     showToggleConfirmDialog,
     showStatsPanel,
     activeTab,
-  ]);
+    searchInputRef,
+    onSave: () => handleSaveAllRef.current(),
+    onCreateWorker: () => setShowCreateDialog(true),
+    onToggleWorker: (worker: Worker) => handleToggleWorkerStatusClickRef.current(worker),
+    onSelectWorker: (worker: Worker) => handleSelectWorkerRef.current(worker),
+    onSetActiveTab: (tab: string) => setActiveTab(tab),
+    onCloseCreateDialog: () => setShowCreateDialog(false),
+    onCloseMigrateDialog: () => setShowMigrateDialog(false),
+    onCloseStopAllDialog: () => setShowStopAllDialog(false),
+    onCloseToggleConfirmDialog: () => setShowToggleConfirmDialog(false),
+    onCloseStatsPanel: () => setShowStatsPanel(false),
+  });
 
   const handleCreateWorker = async (
     request: WorkerCreateRequest,
@@ -511,8 +341,12 @@ export function AMIEditor(): JSX.Element {
       setSelectedWorker(newWorker);
 
       // Set current script (use request script, not server response which might be minified)
-      setCurrentScript(request.scriptContent || newWorker.value.raw.script);
+      const scriptToLoad = request.scriptContent || newWorker.value.raw.script;
+      setCurrentScript(scriptToLoad);
+      // Store original script for comparison
+      originalScriptRef.current = scriptToLoad;
       setCurrentNote(note);
+      currentNoteRef.current = note; // Update ref
 
       // Set current config with user's values (don't auto-correct on creation)
       setCurrentConfig({
@@ -538,7 +372,7 @@ export function AMIEditor(): JSX.Element {
     }
   };
 
-  const handleSelectWorker = (protocol: Worker) => {
+  const handleSelectWorker = useCallback((protocol: Worker) => {
     setSelectedWorker(protocol);
 
     // Check if we have a formatted version in cache
@@ -546,8 +380,13 @@ export function AMIEditor(): JSX.Element {
       protocol.value.raw.sid,
     );
 
-    setCurrentScript(cachedFormatted || protocol.value.raw.script);
-    setCurrentNote(protocol.value.raw.note);
+    const scriptToLoad = cachedFormatted || protocol.value.raw.script;
+    setCurrentScript(scriptToLoad);
+    // Store original script for comparison (use the actual script from worker, not cached)
+    originalScriptRef.current = protocol.value.raw.script;
+    const noteValue = protocol.value.raw.note || "";
+    setCurrentNote(noteValue);
+    currentNoteRef.current = noteValue; // Update ref
 
     // Use values from protocol, don't apply defaults that might override user choices
     const scope = protocol.value.raw.scope ?? "local";
@@ -578,7 +417,12 @@ export function AMIEditor(): JSX.Element {
     setIsEditingNote(false);
     setIsEditingConfig(false);
     setValidationError(null);
-  };
+  }, [setCurrentScript]);
+  
+  // Update ref for keyboard shortcuts
+  useEffect(() => {
+    handleSelectWorkerRef.current = handleSelectWorker;
+  }, [handleSelectWorker]);
 
   const handleEditorChange = (value: string | undefined) => {
     if (value !== undefined) {
@@ -586,32 +430,45 @@ export function AMIEditor(): JSX.Element {
 
       // Save formatted version to cache for current worker
       if (selectedWorker) {
-        formattedScriptsCache.current.set(selectedWorker.value.raw.sid, value);
+        setCacheValue(
+          formattedScriptsCache.current,
+          selectedWorker.value.raw.sid,
+          value,
+        );
       }
 
+      // Compare against original script (from when worker was selected)
+      // This ensures we detect changes even if the script was formatted
       setIsEditing(
-        selectedWorker ? value !== selectedWorker.value.raw.script : false,
+        selectedWorker ? value !== originalScriptRef.current : false,
       );
     }
   };
 
   const handleNoteChange = (value: string) => {
-    setCurrentNote(value);
+    // Ensure we capture the full value
+    const fullValue = value || "";
+    setCurrentNote(fullValue);
+    currentNoteRef.current = fullValue; // Update ref immediately
     setIsEditingNote(
-      selectedWorker ? value !== selectedWorker.value.raw.note : false,
+      selectedWorker ? fullValue !== (selectedWorker.value.raw.note || "") : false,
     );
   };
 
   const resetScript = () => {
     if (selectedWorker) {
-      setCurrentScript(selectedWorker.value.raw.script);
+      const originalScript = selectedWorker.value.raw.script;
+      setCurrentScript(originalScript);
+      originalScriptRef.current = originalScript;
       setIsEditing(false);
     }
   };
 
   const resetNote = () => {
     if (selectedWorker) {
-      setCurrentNote(selectedWorker.value.raw.note);
+      const noteValue = selectedWorker.value.raw.note || "";
+      setCurrentNote(noteValue);
+      currentNoteRef.current = noteValue; // Update ref
       setIsEditingNote(false);
     }
   };
@@ -694,12 +551,17 @@ export function AMIEditor(): JSX.Element {
     }
   };
 
-  const handleToggleWorkerStatusClick = (worker?: Worker) => {
+  const handleToggleWorkerStatusClick = useCallback((worker?: Worker) => {
     const targetWorker = worker || selectedWorker;
     if (!targetWorker) return;
     setSelectedWorker(targetWorker);
     setShowToggleConfirmDialog(true);
-  };
+  }, [selectedWorker]);
+  
+  // Update ref for keyboard shortcuts
+  useEffect(() => {
+    handleToggleWorkerStatusClickRef.current = handleToggleWorkerStatusClick;
+  }, [handleToggleWorkerStatusClick]);
 
   const handleToggleWorkerStatus = async () => {
     if (!selectedWorker) return;
@@ -770,7 +632,7 @@ export function AMIEditor(): JSX.Element {
         )
       );
 
-      console.error("Failed to toggle worker status:", error);
+      logError("Failed to toggle worker status:", error);
       toast.error(
         "Failed to toggle worker status",
         error instanceof Error ? error.message : "Unknown error occurred",
@@ -780,60 +642,13 @@ export function AMIEditor(): JSX.Element {
     }
   };
 
-  const handleSaveAll = async () => {
-    console.log("🔵 handleSaveAll called", {
-      selectedWorker: !!selectedWorker,
-      isEditing,
-      isEditingNote,
-      isEditingConfig,
-      saving,
-    });
-
+  const handleSaveAll = useCallback(async () => {
     if (!selectedWorker || (!isEditing && !isEditingNote && !isEditingConfig)) {
-      console.log("❌ handleSaveAll early return:", {
-        noSelectedWorker: !selectedWorker,
-        noEditing: !isEditing && !isEditingNote && !isEditingConfig,
-      });
       return;
     }
-
-    console.log("✅ handleSaveAll proceeding with save...");
 
     // Clear previous validation errors
     setValidationError(null);
-    console.log("🔍 Starting validations...", { currentConfig });
-
-    // Validation: local scope can only use leader mode
-    if (
-      currentConfig.scope === "local" &&
-      (currentConfig.executionMode === "parallel" ||
-        currentConfig.executionMode === "exclusive")
-    ) {
-      console.log("❌ Validation failed: local scope requires leader mode");
-      setValidationError(
-        "Invalid configuration: Local scope workers can only use leader execution mode (single node execution)",
-      );
-      return;
-    }
-    console.log("✅ Scope validation passed");
-
-    // Validate dependencies
-    const depsValidation = validateDependencies(currentConfig.dependencies);
-    if (!depsValidation.valid) {
-      console.log("❌ Dependencies validation failed:", depsValidation.error);
-      setValidationError(depsValidation.error || "Invalid dependencies");
-      return;
-    }
-    console.log("✅ Dependencies validation passed");
-
-    // Validate version
-    const versionValidation = validateVersion(currentConfig.version);
-    if (!versionValidation.valid) {
-      console.log("❌ Version validation failed:", versionValidation.error);
-      setValidationError(versionValidation.error || "Invalid version");
-      return;
-    }
-    console.log("✅ Version validation passed");
 
     // Validate node ID if provided (optional field - clear if invalid instead of blocking)
     if (currentConfig.nid) {
@@ -853,16 +668,21 @@ export function AMIEditor(): JSX.Element {
       }
     }
 
-    console.log("✅ All validations passed, setting saving=true");
+    // Validate worker configuration (required fields)
+    const validation = validateWorkerConfig(currentConfig);
+    if (!validation.valid) {
+      setValidationError(validation.error || "Invalid configuration");
+      return;
+    }
+
     setSaving(true);
-    console.log("🔄 Starting save process...", {
-      selectedWorkerSid: selectedWorker.value.raw.sid,
-      currentScript: currentScript.substring(0, 50) + "...",
-      currentNote,
-      currentConfig,
-    });
 
     try {
+      // Capture current values to avoid closure issues
+      // Use ref for note to ensure we have the latest value even if state hasn't updated
+      const noteToSave = currentNoteRef.current || currentNote;
+      const scriptToSave = currentScript;
+
       // API requires FULL raw object with ALL fields (not partial update)
       const updatedRaw = {
         sid: selectedWorker.value.raw.sid,
@@ -874,8 +694,8 @@ export function AMIEditor(): JSX.Element {
         priority: currentConfig.priority,
         accountId: currentConfig.accountId || undefined,
         assignedNode: currentConfig.assignedNode || undefined,
-        note: currentNote,
-        script: currentScript,
+        note: noteToSave, // Use captured value
+        script: scriptToSave, // Use captured value
         dependencies: currentConfig.dependencies,
         version: currentConfig.version,
         timestamp: Date.now(),
@@ -888,29 +708,18 @@ export function AMIEditor(): JSX.Element {
         },
       };
 
-      console.log("📤 Calling updateWorker with body:", {
-        channel: workerBody.value.channel,
-        rawSid: workerBody.value.raw.sid,
-        rawKeys: Object.keys(workerBody.value.raw),
-      });
-
       const result = await updateWorker(workerBody);
 
-      console.log(
-        "📥 updateWorker result:",
-        result ? "success" : "null",
-        result,
-      );
-
       if (result) {
-        // Update result with the saved script (formatted version from editor)
+        // Update result with the saved script and note (use values from editor)
         const updatedResult: Worker = {
           ...result,
           value: {
             ...result.value,
             raw: {
               ...result.value.raw,
-              script: currentScript, // Use the formatted script from editor
+              script: scriptToSave, // Use the formatted script from editor
+              note: noteToSave, // Use the note from editor
             },
           },
         };
@@ -923,15 +732,16 @@ export function AMIEditor(): JSX.Element {
         setSelectedWorker(updatedResult);
 
         // Update cache with saved script
-        formattedScriptsCache.current.set(
+        setCacheValue(
+          formattedScriptsCache.current,
           updatedResult.value.raw.sid,
           currentScript,
         );
 
-        // DON'T update currentScript - keep the formatted version in editor!
-        // Server returns minified code, but user is still editing formatted version
+        // DON'T update currentScript or currentNote - keep the values from editor!
+        // Server may return different values, but user is still editing current values
         // setCurrentScript(result.value.raw.script); // ❌ This would replace formatted code
-        setCurrentNote(result.value.raw.note);
+        // setCurrentNote(result.value.raw.note); // ❌ This would replace user's note
         setCurrentConfig({
           scope: result.value.raw.scope || "local",
           executionMode: result.value.raw.executionMode || "parallel",
@@ -943,6 +753,8 @@ export function AMIEditor(): JSX.Element {
           assignedNode: result.value.raw.assignedNode || "",
           nid: result.value.raw.nid || "",
         });
+        // Update original script ref after successful save
+        originalScriptRef.current = scriptToSave;
         setIsEditing(false);
         setIsEditingNote(false);
         setIsEditingConfig(false);
@@ -952,7 +764,7 @@ export function AMIEditor(): JSX.Element {
         toast.error("Failed to save worker", "No response from server");
       }
     } catch (error) {
-      console.error("❌ Failed to save worker:", error);
+      logError("Failed to save worker:", error);
       const errorMessage = error instanceof Error
         ? error.message
         : "Unknown error occurred";
@@ -963,7 +775,10 @@ export function AMIEditor(): JSX.Element {
     } finally {
       setSaving(false);
     }
-  };
+  }, [selectedWorker, isEditing, isEditingNote, isEditingConfig, currentScript, currentNote, currentConfig, updateWorker, setWorkers, setSelectedWorker]);
+  
+  // Update ref for keyboard shortcuts
+  handleSaveAllRef.current = handleSaveAll;
 
   const handleStopAll = async (): Promise<{
     stopped: number;
@@ -978,7 +793,7 @@ export function AMIEditor(): JSX.Element {
 
       return result;
     } catch (error) {
-      console.error("Failed to stop all workers:", error);
+      logError("Failed to stop all workers:", error);
       toast.error(
         "Failed to stop all workers",
         error instanceof Error ? error.message : "Unknown error occurred",
@@ -1005,7 +820,7 @@ export function AMIEditor(): JSX.Element {
       }
       return migratedWorker;
     } catch (error) {
-      console.error("Failed to migrate worker:", error);
+      logError("Failed to migrate worker:", error);
       const errorMessage = error instanceof Error
         ? error.message
         : "Unknown error occurred";
@@ -1205,6 +1020,7 @@ export function AMIEditor(): JSX.Element {
                 <div className="relative">
                   <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-muted-foreground transition-colors duration-200" />
                   <Input
+                    ref={searchInputRef}
                     placeholder="Search workers... (⌘F)"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -1980,18 +1796,7 @@ export function AMIEditor(): JSX.Element {
                                   <Tooltip delayDuration={100}>
                                     <TooltipTrigger asChild>
                                       <Button
-                                        onClick={(e) => {
-                                          console.log(
-                                            "🖱️ Save button clicked",
-                                            {
-                                              event: e,
-                                              saving,
-                                              selectedWorker: !!selectedWorker,
-                                              isEditing,
-                                              isEditingNote,
-                                              isEditingConfig,
-                                            },
-                                          );
+                                        onClick={() => {
                                           handleSaveAll();
                                         }}
                                         size="sm"
@@ -2037,6 +1842,7 @@ export function AMIEditor(): JSX.Element {
                         }
                       >
                         <MonacoEditor
+                          key={selectedWorker?.value.raw.sid || "no-worker"}
                           script={currentScript}
                           handleEditorChange={handleEditorChange}
                           onEditorReady={(formatFn) =>
