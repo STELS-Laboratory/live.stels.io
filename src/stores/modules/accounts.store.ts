@@ -26,10 +26,37 @@ export type {
 };
 
 /**
+ * Generate a cryptographically secure random string
+ */
+function generateSecureRandomString(length: number): string {
+	const alphabet = '0123456789abcdefghijklmnopqrstuvwxyz';
+
+	// Prefer Web Crypto / standard crypto if available
+	if (typeof globalThis !== 'undefined' && 'crypto' in globalThis && typeof globalThis.crypto?.getRandomValues === 'function') {
+		const bytes = new Uint8Array(length);
+		globalThis.crypto.getRandomValues(bytes);
+
+		let result = '';
+		for (let i = 0; i < length; i++) {
+			result += alphabet[bytes[i] % alphabet.length];
+		}
+		return result;
+	}
+
+	// Fallback: use Math.random if crypto is not available (non-cryptographic)
+	let fallback = '';
+	while (fallback.length < length) {
+		fallback += Math.random().toString(36).slice(2);
+	}
+	return fallback.slice(0, length);
+}
+
+/**
  * Generate unique account ID
  */
 function generateAccountId(): string {
-	return `acc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+	const randomPart = generateSecureRandomString(9);
+	return `acc_${Date.now()}_${randomPart}`;
 }
 
 /**
