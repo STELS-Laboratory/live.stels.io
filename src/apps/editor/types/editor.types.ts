@@ -49,6 +49,8 @@ export interface WorkerBadgesProps {
   executionMode: "parallel" | "leader" | "exclusive";
   priority: "critical" | "high" | "normal" | "low";
   version: string;
+  /** Sandbox mode for isolated execution */
+  sandbox?: boolean;
   size?: "sm" | "md";
   className?: string;
 }

@@ -23,6 +23,8 @@ export interface Worker {
       mode?: "loop" | "single";
       accountId?: string;
       assignedNode?: string;
+      /** Sandbox mode for isolated execution in subprocess */
+      sandbox?: boolean;
     };
     channel: string;
   };
@@ -64,12 +66,19 @@ export interface LeaderInfo {
  */
 export interface WorkerStats {
   sid: string;
+  started: number;
   executions: number;
   errors: number;
   errorRate: number;
   networkErrors: number;
   criticalErrors: number;
+  lastError?: string;
+  lastErrorType?: "network" | "critical";
+  lastRun?: number;
+  consecutiveErrors: number;
   isRunning: boolean;
+  scriptHash?: string;
+  /** @deprecated Use lastRun instead */
   lastExecution?: number;
 }
 
@@ -87,6 +96,8 @@ export interface WorkerCreateRequest {
   accountId?: string;
   assignedNode?: string;
   note?: string;
+  /** Sandbox mode for isolated execution in subprocess */
+  sandbox?: boolean;
 }
 
 /**

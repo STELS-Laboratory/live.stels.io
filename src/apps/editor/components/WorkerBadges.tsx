@@ -1,8 +1,9 @@
 /**
  * WorkerBadges component
- * Displays badges for worker scope, execution mode, priority, and version
+ * Displays badges for worker scope, execution mode, priority, version, and sandbox status
  */
 
+import { Shield } from "lucide-react";
 import type { WorkerBadgesProps } from "../types/editor.types.ts";
 
 /**
@@ -13,6 +14,7 @@ export function WorkerBadges({
   executionMode,
   priority,
   version,
+  sandbox,
   size = "md",
   className = "",
 }: WorkerBadgesProps) {
@@ -90,11 +92,30 @@ export function WorkerBadges({
     );
   };
 
+  const getSandboxBadge = () => {
+    if (sandbox === undefined) return null;
+    
+    return (
+      <span
+        className={`${textSize} ${padding} rounded flex items-center gap-0.5 ${
+          sandbox
+            ? "bg-green-500/20 text-green-700 dark:text-green-500"
+            : "bg-amber-500/20 text-amber-700 dark:text-amber-500"
+        } ${className}`}
+        title={sandbox ? "Sandbox: Secure isolated execution" : "Sandbox: Disabled (full access)"}
+      >
+        <Shield className={isSmall ? "w-2 h-2" : "w-2.5 h-2.5"} />
+        {!isSmall && (sandbox ? "SEC" : "FULL")}
+      </span>
+    );
+  };
+
   return (
     <div className="flex items-center gap-0.5">
       {getScopeBadge()}
       {getExecutionModeBadge()}
       {!isSmall && getPriorityBadge()}
+      {getSandboxBadge()}
       {!isSmall && (
         <span className={`${textSize} text-muted-foreground`}>
           v{version}

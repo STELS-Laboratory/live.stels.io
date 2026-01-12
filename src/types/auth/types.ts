@@ -26,6 +26,8 @@ export interface ConnectionSession {
   api: string;
   socket: string;
   developer: boolean;
+  /** Session creation timestamp for max lifetime validation (7 days) */
+  createdAt?: number;
 }
 
 /**

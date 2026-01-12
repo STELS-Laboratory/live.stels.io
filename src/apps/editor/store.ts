@@ -293,6 +293,7 @@ export const useEditorStore = create<EditorStore>()(
             accountId: worker.value.raw.accountId,
             assignedNode: worker.value.raw.assignedNode,
             note: `[Migrated] ${worker.value.raw.note}`,
+            sandbox: worker.value.raw.sandbox, // Preserve sandbox setting
           };
 
           const client = new WebfixApiClient(connectionSession.api);
@@ -391,13 +392,18 @@ export const useEditorStore = create<EditorStore>()(
           if (data && data.workers && Array.isArray(data.workers)) {
             return data.workers.map((worker: {
               sid: string;
+              started?: number;
               executions?: number;
               errors?: number;
               errorRate?: string | number;
               networkErrors?: number;
               criticalErrors?: number;
-              isRunning?: boolean;
+              lastError?: string;
+              lastErrorType?: "network" | "critical";
               lastRun?: number;
+              consecutiveErrors?: number;
+              isRunning?: boolean;
+              scriptHash?: string;
             }) => {
               // Parse errorRate from "0.00%" format to number
               let errorRate = 0;
@@ -409,12 +415,19 @@ export const useEditorStore = create<EditorStore>()(
 
               return {
                 sid: worker.sid,
+                started: worker.started || 0,
                 executions: worker.executions || 0,
                 errors: worker.errors || 0,
                 errorRate: errorRate,
                 networkErrors: worker.networkErrors || 0,
                 criticalErrors: worker.criticalErrors || 0,
+                lastError: worker.lastError,
+                lastErrorType: worker.lastErrorType,
+                lastRun: worker.lastRun,
+                consecutiveErrors: worker.consecutiveErrors || 0,
                 isRunning: worker.isRunning || false,
+                scriptHash: worker.scriptHash,
+                // Backward compatibility
                 lastExecution: worker.lastRun || undefined,
               };
             });

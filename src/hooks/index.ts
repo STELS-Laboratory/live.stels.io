@@ -6,6 +6,7 @@
 export { useAllTokenPrices, useTokenPrice } from "./use_token_price";
 export { useAuthRestore } from "./use_auth_restore";
 export { useAutoConnections } from "./use_auto_connections";
+export { useSessionSecurity } from "./use_session_security";
 export { useChartColors } from "./use_chart_colors";
 export { useDefaultSchemas } from "./use_default_schemas";
 export { useDragAndDrop } from "./use_drag_and_drop";

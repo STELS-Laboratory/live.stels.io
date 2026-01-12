@@ -23,31 +23,46 @@ interface GitHubAuthProps {
 
 /**
  * Normalize backend URL for GitHub OAuth callback
- * GitHub requires exact match, so we normalize localhost/127.0.0.1/10.0.0.206 to localhost
+ * GitHub requires exact match, so we normalize localhost/127.0.0.1/10.0.0.206 to 10.0.0.241
  * Or use explicit callback URL from environment if provided
  */
 function normalizeCallbackUrl(backendUrl: string): string {
   // Check if explicit callback URL is configured
   const explicitCallbackUrl = import.meta.env.VITE_GITHUB_CALLBACK_URL;
   if (explicitCallbackUrl) {
+    console.log("[GitHub Auth] Using explicit callback URL:", explicitCallbackUrl);
     return explicitCallbackUrl;
   }
 
   // Parse backend URL
   const url = new URL(backendUrl);
 
-  // For local development, normalize to localhost
-  // GitHub OAuth App typically uses localhost in callback URL
-  if (
-    url.hostname === "10.0.0.206" || url.hostname === "127.0.0.1" ||
-    url.hostname === "0.0.0.0"
-  ) {
-    // Use localhost instead of IP address
-    return `http://localhost:${url.port || "8088"}/auth/github/callback`;
+  // If backend URL already uses 10.0.0.241, use it as-is
+  if (url.hostname === "10.0.0.241") {
+    const callbackUrl = `${backendUrl}/auth/github/callback`;
+    console.log("[GitHub Auth] Backend already uses 10.0.0.241, callback URL:", callbackUrl);
+    return callbackUrl;
+  }
+
+  // For other local development IPs, normalize to 10.0.0.241
+  // GitHub OAuth App must have this exact callback URL registered
+  const localhostIPs = [
+    "127.0.0.1",
+    "0.0.0.0",
+    "localhost",
+  ];
+
+  if (localhostIPs.includes(url.hostname)) {
+    // Normalize to 10.0.0.241 for GitHub OAuth callback
+    const callbackUrl = `http://10.0.0.241:${url.port || "8088"}/auth/github/callback`;
+    console.log("[GitHub Auth] Normalized localhost to 10.0.0.241, callback URL:", callbackUrl);
+    return callbackUrl;
   }
 
   // For other URLs, use as-is
-  return `${backendUrl}/auth/github/callback`;
+  const callbackUrl = `${backendUrl}/auth/github/callback`;
+  console.log("[GitHub Auth] Using backend URL as-is, callback URL:", callbackUrl);
+  return callbackUrl;
 }
 
 /**
@@ -87,7 +102,15 @@ function getGitHubOAuthUrl(backendUrl: string): string {
     state: state,
   });
 
-  return `https://github.com/login/oauth/authorize?${params.toString()}`;
+  const oauthUrl = `https://github.com/login/oauth/authorize?${params.toString()}`;
+  console.log("[GitHub Auth] OAuth URL generated:", {
+    backendUrl,
+    redirectUri,
+    clientId: clientId.substring(0, 8) + "...", // Log only first 8 chars for security
+    oauthUrl: oauthUrl.substring(0, 100) + "...", // Log partial URL
+  });
+
+  return oauthUrl;
 }
 
 /**
@@ -397,7 +420,7 @@ export function GitHubAuth({
                   <br />
                   <code className="bg-muted px-1 py-0.5 rounded">
                     Authorization callback URL:
-                    http://localhost:8088/auth/github/callback
+                    http://10.0.0.241:8088/auth/github/callback
                   </code>
                   <br />
                   <small className="text-muted-foreground">

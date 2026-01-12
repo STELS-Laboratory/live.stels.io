@@ -4,6 +4,10 @@ import { clearAllStorage, clearAppStorage } from "@/lib/storage-cleaner";
 import { useWebSocketStore } from "@/hooks/use_web_socket_store";
 import { NETWORK_CONFIGS, useNetworkStore } from "./network.store";
 import { WebfixApiClient } from "@/lib/webfix-api-client";
+import {
+  SESSION_MAX_LIFETIME_MS,
+  SESSION_EXPIRY_WARNING_MS,
+} from "@/lib/api-types";
 import type {
   AuthActions,
   AuthState,
@@ -25,6 +29,22 @@ export type {
  */
 function generateNodeId(): string {
   return `gliese_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+/**
+ * Check if session has exceeded maximum lifetime (7 days)
+ */
+function isSessionExpired(createdAt: number | undefined): boolean {
+  if (!createdAt) return false;
+  return Date.now() - createdAt > SESSION_MAX_LIFETIME_MS;
+}
+
+/**
+ * Check if session is approaching expiry (older than 6 days)
+ */
+function isSessionNearExpiry(createdAt: number | undefined): boolean {
+  if (!createdAt) return false;
+  return Date.now() - createdAt > SESSION_EXPIRY_WARNING_MS;
 }
 
 /**
@@ -143,6 +163,7 @@ export const useAuthStore = create<AuthStore>()(
                 api: apiUrl,
                 socket: socketUrl,
                 developer: raw.info?.developer || false,
+                createdAt: Date.now(), // Track session creation for max lifetime validation
               };
 
               set({
@@ -155,6 +176,7 @@ export const useAuthStore = create<AuthStore>()(
 
               // Store session in localStorage for WebSocket and persistence
               // Store full response structure for compatibility
+              // Note: accessToken is NOT stored for security (v2.0.0)
               localStorage.setItem(
                 "private-store",
                 JSON.stringify({
@@ -174,6 +196,7 @@ export const useAuthStore = create<AuthStore>()(
                       },
                       developer: session.developer,
                     },
+                    createdAt: session.createdAt, // Track session creation for max lifetime validation
                   },
                   timestamp: result.timestamp || Date.now(),
                 }),
@@ -234,16 +257,36 @@ export const useAuthStore = create<AuthStore>()(
 
           // If we already have a connection session and states are consistent, we're already connected
           if (connectionSession && isConnected && isAuthenticated) {
+            // Check if existing session has exceeded max lifetime (7 days)
+            if (isSessionExpired(connectionSession.createdAt)) {
+              console.warn("[Auth] Session expired (max 7 days). Logging out.");
+              await get().resetAuth();
+              return false;
+            }
+            // Check if session is approaching expiry
+            if (isSessionNearExpiry(connectionSession.createdAt)) {
+              set({ showSessionExpiredModal: true });
+            }
             return true;
           }
 
           // If we have connectionSession but states are inconsistent, fix them
           if (connectionSession && (!isConnected || !isAuthenticated)) {
+            // Check session lifetime before restoring
+            if (isSessionExpired(connectionSession.createdAt)) {
+              console.warn("[Auth] Session expired (max 7 days). Logging out.");
+              await get().resetAuth();
+              return false;
+            }
             set({
               isConnected: true,
               isAuthenticated: true,
               connectionError: null,
             });
+            // Check if session is approaching expiry
+            if (isSessionNearExpiry(connectionSession.createdAt)) {
+              set({ showSessionExpiredModal: true });
+            }
             return true;
           }
 
@@ -258,8 +301,16 @@ export const useAuthStore = create<AuthStore>()(
             if (!sessionData?.raw?.session) {
               return false;
             }
-            const apiUrl = sessionData.raw.info.api;
 
+            // Check if saved session has exceeded max lifetime (7 days)
+            const createdAt = sessionData.raw.createdAt;
+            if (isSessionExpired(createdAt)) {
+              console.warn("[Auth] Saved session expired (max 7 days). Clearing.");
+              localStorage.removeItem("private-store");
+              return false;
+            }
+
+            const apiUrl = sessionData.raw.info.api;
             const socketUrl = sessionData.raw.info.connector.socket;
 
             const session: ConnectionSession = {
@@ -271,6 +322,7 @@ export const useAuthStore = create<AuthStore>()(
               api: apiUrl,
               socket: socketUrl,
               developer: sessionData.raw.info.developer,
+              createdAt: createdAt || Date.now(), // Fallback for old sessions
             };
 
             // Restore the connection state without reconnecting
@@ -281,6 +333,11 @@ export const useAuthStore = create<AuthStore>()(
               isAuthenticated: true,
               connectionError: null,
             });
+
+            // Check if session is approaching expiry (older than 6 days)
+            if (isSessionNearExpiry(session.createdAt)) {
+              set({ showSessionExpiredModal: true });
+            }
 
             return true;
           } catch {

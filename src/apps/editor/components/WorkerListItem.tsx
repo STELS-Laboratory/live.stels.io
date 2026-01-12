@@ -36,6 +36,7 @@ export const WorkerListItem = memo(function WorkerListItem({
   const execMode = worker.value.raw.executionMode || "parallel";
   const priority = worker.value.raw.priority || "normal";
   const version = worker.value.raw.version || "1.19.2";
+  const sandbox = worker.value.raw.sandbox;
 
   const handleClick = () => {
     onSelect(worker);
@@ -125,6 +126,7 @@ export const WorkerListItem = memo(function WorkerListItem({
             executionMode={execMode}
             priority={priority}
             version={version}
+            sandbox={sandbox}
             size="sm"
           />
         </div>

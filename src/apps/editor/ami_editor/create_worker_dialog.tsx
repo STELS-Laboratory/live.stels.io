@@ -32,9 +32,16 @@ import {
   Layers,
   Rocket,
   Server,
+  Shield,
   Sparkles,
   Zap,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { WorkerCreateRequest } from "../store.ts";
 
 interface CreateWorkerDialogProps {
@@ -60,6 +67,7 @@ export function CreateWorkerDialog({
     priority: "normal",
     mode: "loop",
     note: "",
+    sandbox: true, // Default to sandbox mode for security
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -116,6 +124,7 @@ export function CreateWorkerDialog({
       priority: "normal",
       mode: "loop",
       note: "",
+      sandbox: true,
     });
     setError(null);
     onOpenChange(false);
@@ -359,6 +368,47 @@ export function CreateWorkerDialog({
             </div>
           </div>
 
+          {/* Sandbox Mode */}
+          <div className="relative p-3 bg-green-500/5 border border-green-500/30">
+            <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t border-l border-green-500/50" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Shield className="h-5 w-5 text-green-600 dark:text-green-500" />
+                <div>
+                  <Label className="text-sm font-medium cursor-pointer">
+                    Sandbox Mode
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Execute in isolated subprocess with limited permissions
+                  </p>
+                </div>
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Switch
+                    checked={formData.sandbox ?? true}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, sandbox: checked })}
+                  />
+                </TooltipTrigger>
+                <TooltipContent side="left" className="max-w-xs">
+                  <div className="space-y-2 text-xs">
+                    <p className="font-semibold">Sandbox Mode Restrictions:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>No file system access</li>
+                      <li>Network limited to exchange API only</li>
+                      <li>No subprocess or FFI access</li>
+                      <li>Environment limited to STELS_CONTEXT</li>
+                    </ul>
+                    <p className="text-green-600 dark:text-green-500 font-medium">
+                      Recommended for untrusted code
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+
           {/* Conditional fields for exclusive mode */}
           {formData.executionMode === "exclusive" && (
             <div className="space-y-2">
@@ -479,6 +529,16 @@ export function CreateWorkerDialog({
                 <p className="text-muted-foreground">
                   <span className="font-medium">Worker Mode:</span>{" "}
                   {formData.mode || "loop"}
+                </p>
+                <p className="text-muted-foreground">
+                  <span className="font-medium">Sandbox:</span>{" "}
+                  <span
+                    className={formData.sandbox
+                      ? "text-green-600 dark:text-green-500"
+                      : "text-amber-600 dark:text-amber-500"}
+                  >
+                    {formData.sandbox ? "Enabled (Secure)" : "Disabled (Full Access)"}
+                  </span>
                 </p>
               </div>
             </div>

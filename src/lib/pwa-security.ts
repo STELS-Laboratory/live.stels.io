@@ -113,7 +113,7 @@ export function isTrustedContext(): boolean {
   const trustedOrigins = [
     "https://stels.io",
     "https://app.stels.io",
-    "http://localhost",
+    "http://10.0.0.241",
     "http://127.0.0.1",
   ];
 

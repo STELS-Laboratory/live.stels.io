@@ -13,6 +13,7 @@ import SessionProvider from "@/components/main/provider";
 import { useUrlRouter } from "@/hooks/use_url_router";
 import { RouteLoader } from "@/components/main/route_loader";
 import { useAuthRestore } from "@/hooks/use_auth_restore";
+import { useSessionSecurity } from "@/hooks/use_session_security";
 import { useHydration } from "@/hooks/use_hydration";
 import { useTheme } from "@/hooks/use_theme";
 import { AnimatePresence, motion } from "framer-motion";
@@ -281,6 +282,9 @@ export default function Dashboard(): React.ReactElement {
   useUrlRouter();
 
   useAuthRestore();
+
+  // Session security: inactivity timeout and expiry warnings
+  useSessionSecurity();
 
   const sessionCheck = useMemo(() => {
     if (typeof window === "undefined") {
