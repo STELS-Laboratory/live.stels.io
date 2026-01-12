@@ -37,14 +37,9 @@ export function WelcomeAuthPage(): React.ReactElement {
       // Verify state
       const storedState = sessionStorage.getItem("github_oauth_state");
       if (storedState && storedState === state) {
-        // Store as pending if selectedNetwork is not ready
-        if (!selectedNetwork) {
-          sessionStorage.setItem("github_oauth_pending_code", code);
-          sessionStorage.setItem("github_oauth_pending_state", state);
-        } else {
-          sessionStorage.setItem("github_oauth_pending_code", code);
-          sessionStorage.setItem("github_oauth_pending_state", state);
-        }
+        // Store pending OAuth data for processing
+        sessionStorage.setItem("github_oauth_pending_code", code);
+        sessionStorage.setItem("github_oauth_pending_state", state);
 
         // Open auth dialog to process callback
         setIsAuthDialogOpen(true);

@@ -1,27 +1,9 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { generateDataHash } from "@/lib/utils";
-
-/**
- * Network connection interface extending Navigator
- */
-interface NetworkConnection {
-  effectiveType?: string;
-  downlink?: number;
-  rtt?: number;
-  saveData?: boolean;
-  type?: string;
-  addEventListener?: (type: string, listener: () => void) => void;
-}
-
-/**
- * Extended Navigator interface with network connection properties
- */
-interface ExtendedNavigator extends Navigator {
-  connection?: NetworkConnection;
-  mozConnection?: NetworkConnection;
-  webkitConnection?: NetworkConnection;
-}
+import { ALLOWED_ROUTES, ROUTES, STORAGE_KEYS } from "@/lib/constants";
+import { getNetworkConnection } from "@/types/common";
+import type { ExtendedNavigator } from "@/types/common";
 
 /**
  * Network status interface with connection information
@@ -90,10 +72,7 @@ export const useAppStore = create<AppState>()(
     persist(
       (set, get) => {
         const getNetworkInfo = () => {
-          const extendedNavigator = navigator as ExtendedNavigator;
-          const connection = extendedNavigator.connection ||
-            extendedNavigator.mozConnection ||
-            extendedNavigator.webkitConnection;
+          const connection = getNetworkConnection(navigator);
 
           return {
             online: navigator.onLine,
@@ -111,7 +90,7 @@ export const useAppStore = create<AppState>()(
           window.addEventListener("online", () => set(getNetworkInfo()));
           window.addEventListener("offline", () => set(getNetworkInfo()));
 
-          const connection = (navigator as ExtendedNavigator).connection;
+          const connection = getNetworkConnection(navigator);
           if (connection && connection.addEventListener) {
             connection.addEventListener("change", () => set(getNetworkInfo()));
           }
@@ -141,12 +120,6 @@ export const useAppStore = create<AppState>()(
           }
         };
 
-        const allowedRoutes = [
-          "welcome",
-          "canvas",
-          "editor",
-        ];
-
         return {
           version: "1.0.7",
           upgrade: false,
@@ -155,8 +128,8 @@ export const useAppStore = create<AppState>()(
           ...initialNetwork,
           updateStatus: () => set(getNetworkInfo()),
 
-          allowedRoutes,
-          currentRoute: "welcome",
+          allowedRoutes: ALLOWED_ROUTES as string[],
+          currentRoute: ROUTES.WELCOME,
           setRoute: (route: string) => {
             const { allowedRoutes } = get();
 
@@ -213,7 +186,23 @@ export const useAppStore = create<AppState>()(
               const newDataHash = getCurrentDataHash();
               const { remoteDataVersion } = get();
 
-              localStorage.clear();
+              // Selectively clear sync-related data, preserving critical keys
+              const preserveKeys = [
+                STORAGE_KEYS.AUTH_STORE,
+                STORAGE_KEYS.PRIVATE_STORE,
+                STORAGE_KEYS.THEME_STORE,
+                STORAGE_KEYS.NETWORK_STORE,
+                STORAGE_KEYS.APP_LAST_VERSION,
+              ];
+              
+              const keysToRemove: string[] = [];
+              for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && !preserveKeys.includes(key)) {
+                  keysToRemove.push(key);
+                }
+              }
+              keysToRemove.forEach(key => localStorage.removeItem(key));
 
               set({
                 localDataVersion: newDataHash,

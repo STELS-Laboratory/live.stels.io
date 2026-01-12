@@ -40,8 +40,8 @@ function getDefaultNetwork(): string {
     }
   }
 
-  // Default to mainnet
-  return "mainnet";
+  // Default to localnet (the only available network currently)
+  return "localnet";
 }
 
 /**
@@ -108,7 +108,7 @@ export const useNetworkStore = create<NetworkStore>()(
       (set, get) => {
         const defaultNetworkId = getDefaultNetwork();
         const defaultNetwork = NETWORK_CONFIGS[defaultNetworkId] ||
-          NETWORK_CONFIGS.mainnet;
+          NETWORK_CONFIGS.localnet;
 
         return {
           // Initial state
@@ -140,8 +140,17 @@ export const useNetworkStore = create<NetworkStore>()(
             return NETWORK_CONFIGS[networkId];
           },
 
+          isMainnet: (): boolean => {
+            return get().currentNetworkId === "mainnet";
+          },
+
+          isTestnet: (): boolean => {
+            return get().currentNetworkId === "testnet";
+          },
+
           isLocalnet: (): boolean => {
-            return get().currentNetworkId === "snaga";
+            const networkId = get().currentNetworkId;
+            return networkId === "snaga" || networkId === "localnet";
           },
         };
       },

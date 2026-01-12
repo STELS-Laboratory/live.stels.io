@@ -10,8 +10,8 @@ export const navigateTo = (route: string): void => {
   if (allowedRoutes.includes(route)) {
     setRoute(route);
     // URL will be updated automatically by useUrlRouter hook
-  } else {
-    // Empty block
+  } else if (import.meta.env.DEV) {
+    console.warn(`[Router] Invalid route: "${route}". Allowed routes: ${allowedRoutes.join(', ')}`);
   }
 };
 

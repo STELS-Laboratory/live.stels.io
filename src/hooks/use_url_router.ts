@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useAppStore } from "@/stores";
 import { useAuthStore } from "@/stores/modules/auth.store";
+import { ROUTES, getDefaultRoute } from "@/lib/constants";
 
 /**
  * Hook for synchronizing application routing with URL query parameters
@@ -37,11 +38,10 @@ export const useUrlRouter = (): void => {
 
       if (urlRouter && allowedRoutes.includes(urlRouter)) {
         // Valid route in URL - sync store with URL
-
         setRoute(urlRouter);
       } else if (urlRouter && !allowedRoutes.includes(urlRouter)) {
-        // Invalid route in URL - redirect to welcome (or trading if authenticated)
-        const defaultRoute = isAuthenticated ? "trading" : "welcome";
+        // Invalid route in URL - redirect to default based on auth
+        const defaultRoute = getDefaultRoute(isAuthenticated);
         updateUrl(defaultRoute);
         setRoute(defaultRoute);
       } else if (!urlRouter) {
@@ -49,7 +49,7 @@ export const useUrlRouter = (): void => {
         if (currentRoute) {
           updateUrl(currentRoute);
         } else {
-          const defaultRoute = isAuthenticated ? "trading" : "welcome";
+          const defaultRoute = getDefaultRoute(isAuthenticated);
           updateUrl(defaultRoute);
           setRoute(defaultRoute);
         }
@@ -65,7 +65,7 @@ export const useUrlRouter = (): void => {
       if (urlRouter && allowedRoutes.includes(urlRouter)) {
         setRoute(urlRouter);
       } else if (urlRouter && !allowedRoutes.includes(urlRouter)) {
-        const defaultRoute = isAuthenticated ? "trading" : "welcome";
+        const defaultRoute = getDefaultRoute(isAuthenticated);
         updateUrl(defaultRoute);
         setRoute(defaultRoute);
       }

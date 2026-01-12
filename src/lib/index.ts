@@ -10,6 +10,9 @@ export * from "./api-types";
 export * from "./canvas-types";
 export * from "./auto-connections";
 
+// Constants
+export * from "./constants";
+
 // Panel types and utilities
 export * from "./panel-types";
 

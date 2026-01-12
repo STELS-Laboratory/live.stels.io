@@ -41,13 +41,13 @@ export const useAuthRestore = (): void => {
       // Small delay to ensure all state is stable
       const timer = setTimeout(() => {
         restoreConnection().then((success) => {
-          if (success) {
-            // Connection restored
-          } else {
-            // Connection restore failed
+          if (import.meta.env.DEV) {
+            console.debug(`[AuthRestore] Connection restore ${success ? 'succeeded' : 'failed'}`);
           }
-        }).catch(() => {
-          // Error during restore
+        }).catch((error) => {
+          if (import.meta.env.DEV) {
+            console.warn('[AuthRestore] Error during restore:', error);
+          }
         });
       }, 50);
 
@@ -65,13 +65,13 @@ export const useAuthRestore = (): void => {
       if (hasValidSession && authStoreData) {
         const timer = setTimeout(() => {
           restoreConnection().then((success) => {
-            if (success) {
-              // Connection restored
-            } else {
-              // Connection restore failed
+            if (import.meta.env.DEV) {
+              console.debug(`[AuthRestore] Session restore ${success ? 'succeeded' : 'failed'}`);
             }
-          }).catch(() => {
-            // Error during restore
+          }).catch((error) => {
+            if (import.meta.env.DEV) {
+              console.warn('[AuthRestore] Error during session restore:', error);
+            }
           });
         }, 50);
 

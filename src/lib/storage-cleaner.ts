@@ -98,7 +98,7 @@ export const clearCookies = (): void => {
     // Clear each cookie
     cookies.forEach((cookie) => {
       const eqPos = cookie.indexOf("=");
-      const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+      const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
 
       // Clear cookie for current domain
       document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
@@ -267,12 +267,17 @@ export const clearAllStorage = async (): Promise<void> => {
     const remainingLocalStorage = Object.keys(localStorage).length;
     const remainingSessionStorage = Object.keys(sessionStorage).length;
 
-    if (remainingLocalStorage === 0 && remainingSessionStorage === 0) {
-      // All storage cleared
-    } else {
-      // Empty block
+    if (import.meta.env.DEV) {
+      if (remainingLocalStorage === 0 && remainingSessionStorage === 0) {
+        console.debug('[StorageCleaner] All storage cleared successfully');
+      } else {
+        console.debug(`[StorageCleaner] Remaining items - localStorage: ${remainingLocalStorage}, sessionStorage: ${remainingSessionStorage}`);
+      }
     }
-  } catch {
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.warn('[StorageCleaner] clearAllStorage failed:', error);
+    }
     throw error;
   }
 };
@@ -285,7 +290,10 @@ export const clearAppStorage = (): void => {
     clearAppSpecificStorage();
     clearLocalStorage();
     clearSessionStorage();
-  } catch {
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.warn('[StorageCleaner] clearAppStorage failed:', error);
+    }
     throw error;
   }
 };

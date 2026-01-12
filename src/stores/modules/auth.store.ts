@@ -28,7 +28,7 @@ export type {
  * Generate unique node ID
  */
 function generateNodeId(): string {
-  return `gliese_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `gliese_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 }
 
 /**
@@ -150,9 +150,6 @@ export const useAuthStore = create<AuthStore>()(
             if (raw.session && raw.token) {
               const apiUrl = selectedNetwork.api;
               const socketUrl = selectedNetwork.socket;
-
-              console.log("apiUrl", apiUrl);
-              console.log("selectedNetwork.socket", selectedNetwork.socket);
 
               const session: ConnectionSession = {
                 session: raw.session, // This is the Session ID used in stels-session header

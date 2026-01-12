@@ -107,6 +107,14 @@
   --spacing-20: 5rem; /* 80px */
   --spacing-24: 6rem; /* 96px */
 
+  /* Semantic spacing aliases */
+  --spacing-xs: var(--spacing-1); /* 4px - extra small */
+  --spacing-sm: var(--spacing-2); /* 8px - small */
+  --spacing-md: var(--spacing-4); /* 16px - medium */
+  --spacing-lg: var(--spacing-6); /* 24px - large */
+  --spacing-xl: var(--spacing-8); /* 32px - extra large */
+  --spacing-2xl: var(--spacing-12); /* 48px - 2x large */
+
   /* Component height scale - normalized */
   --height-input: 2.5rem; /* 40px - standard input height */
   --height-button: 2.5rem; /* 40px - standard button height */
@@ -674,25 +682,53 @@
     margin-bottom: var(--document-paragraph-spacing);
   }
 
-  /* Glass morphism effects */
+  /* Glass morphism effects with fallback */
   .glass {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  @supports (backdrop-filter: blur(10px)) {
+    .glass {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
   }
 
   .dark .glass {
-    background: rgba(20, 20, 20, 0.7);
+    background: rgba(20, 20, 20, 0.9);
+  }
+
+  @supports (backdrop-filter: blur(10px)) {
+    .dark .glass {
+      background: rgba(20, 20, 20, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
   }
 
   .glass-strong {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  @supports (backdrop-filter: blur(16px)) {
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
   }
 
   .dark .glass-strong {
-    background: rgba(20, 20, 20, 0.85);
+    background: rgba(20, 20, 20, 0.9);
+  }
+
+  @supports (backdrop-filter: blur(16px)) {
+    .dark .glass-strong {
+      background: rgba(20, 20, 20, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
   }
 
   /* Professional borders */
@@ -870,30 +906,6 @@
     min-height: 44px;
   }
 
-  /* Backdrop filter fallback */
-  .glass {
-    background: rgba(255, 255, 255, 0.9);
-  }
-
-  @supports (backdrop-filter: blur(10px)) {
-    .glass {
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
-  }
-
-  .dark .glass {
-    background: rgba(20, 20, 20, 0.9);
-  }
-
-  @supports (backdrop-filter: blur(10px)) {
-    .dark .glass {
-      background: rgba(20, 20, 20, 0.7);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
-  }
 }
 
 /* Mobile optimizations */

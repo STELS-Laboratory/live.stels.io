@@ -1,11 +1,19 @@
 import { motion } from "framer-motion";
 
 interface GraphiteProps {
+  /** Primary accent color - defaults to amber/primary */
   primary?: string;
+  /** Size in em units */
   size: number;
+  /** Whether to use theme-aware colors for secondary paths */
+  themeAware?: boolean;
 }
 
-const Graphite = ({ primary = "orange", size = 3 }: GraphiteProps) => (
+const Graphite = ({ 
+  primary = "var(--primary)", 
+  size = 3,
+  themeAware = true,
+}: GraphiteProps) => (
   <motion.svg
     initial={{ scale: 0.9 }}
     animate={{ scale: 1 }}
@@ -15,6 +23,7 @@ const Graphite = ({ primary = "orange", size = 3 }: GraphiteProps) => (
     viewBox="0 0 79 154"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
+    className="graphite-logo"
   >
     <path
       fillRule="evenodd"
@@ -24,15 +33,18 @@ const Graphite = ({ primary = "orange", size = 3 }: GraphiteProps) => (
     />
     <path
       d="M39.027 152.639L39.6813 153.858L59.259 117.377L65.8181 129.598L78.0223 82.4131L78.054 82.3543L39.6812 10.8507L39.027 12.0698L39.027 152.639Z"
-      fill="black"
+      className={themeAware ? "fill-foreground" : undefined}
+      fill={themeAware ? undefined : "black"}
     />
     <path
       d="M39.027 152.781L38.3728 154L18.795 117.519L12.2359 129.741L0.0317116 82.5555L0 82.4966L38.3728 10.993L39.027 12.2121L39.027 152.781Z"
-      fill="#4c4c4c"
+      className={themeAware ? "fill-muted-foreground" : undefined}
+      fill={themeAware ? undefined : "#4c4c4c"}
     />
     <path
       d="M39.0894 46.9937L63.6116 92.6727L39.0722 138.384L14.55 92.7048L39.0894 46.9937Z"
-      fill="black"
+      className={themeAware ? "fill-foreground" : undefined}
+      fill={themeAware ? undefined : "black"}
     />
     <path
       d="M39.0515 58.9466L57.1372 92.636L39.0388 126.349L20.9531 92.6597L39.0515 58.9466Z"

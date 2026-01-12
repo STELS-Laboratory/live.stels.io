@@ -4,6 +4,7 @@
  */
 
 export { useAllTokenPrices, useTokenPrice } from "./use_token_price";
+export { useAppStateMachine } from "./use_app_state_machine";
 export { useAuthRestore } from "./use_auth_restore";
 export { useAutoConnections } from "./use_auto_connections";
 export { useSessionSecurity } from "./use_session_security";

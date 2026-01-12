@@ -30,7 +30,9 @@ function normalizeCallbackUrl(backendUrl: string): string {
   // Check if explicit callback URL is configured
   const explicitCallbackUrl = import.meta.env.VITE_GITHUB_CALLBACK_URL;
   if (explicitCallbackUrl) {
-    console.log("[GitHub Auth] Using explicit callback URL:", explicitCallbackUrl);
+    if (import.meta.env.DEV) {
+      console.log("[GitHub Auth] Using explicit callback URL:", explicitCallbackUrl);
+    }
     return explicitCallbackUrl;
   }
 
@@ -40,7 +42,9 @@ function normalizeCallbackUrl(backendUrl: string): string {
   // If backend URL already uses 10.0.0.241, use it as-is
   if (url.hostname === "10.0.0.241") {
     const callbackUrl = `${backendUrl}/auth/github/callback`;
-    console.log("[GitHub Auth] Backend already uses 10.0.0.241, callback URL:", callbackUrl);
+    if (import.meta.env.DEV) {
+      console.log("[GitHub Auth] Backend already uses 10.0.0.241, callback URL:", callbackUrl);
+    }
     return callbackUrl;
   }
 
@@ -55,13 +59,17 @@ function normalizeCallbackUrl(backendUrl: string): string {
   if (localhostIPs.includes(url.hostname)) {
     // Normalize to 10.0.0.241 for GitHub OAuth callback
     const callbackUrl = `http://10.0.0.241:${url.port || "8088"}/auth/github/callback`;
-    console.log("[GitHub Auth] Normalized localhost to 10.0.0.241, callback URL:", callbackUrl);
+    if (import.meta.env.DEV) {
+      console.log("[GitHub Auth] Normalized localhost to 10.0.0.241, callback URL:", callbackUrl);
+    }
     return callbackUrl;
   }
 
   // For other URLs, use as-is
   const callbackUrl = `${backendUrl}/auth/github/callback`;
-  console.log("[GitHub Auth] Using backend URL as-is, callback URL:", callbackUrl);
+  if (import.meta.env.DEV) {
+    console.log("[GitHub Auth] Using backend URL as-is, callback URL:", callbackUrl);
+  }
   return callbackUrl;
 }
 
@@ -103,12 +111,14 @@ function getGitHubOAuthUrl(backendUrl: string): string {
   });
 
   const oauthUrl = `https://github.com/login/oauth/authorize?${params.toString()}`;
-  console.log("[GitHub Auth] OAuth URL generated:", {
-    backendUrl,
-    redirectUri,
-    clientId: clientId.substring(0, 8) + "...", // Log only first 8 chars for security
-    oauthUrl: oauthUrl.substring(0, 100) + "...", // Log partial URL
-  });
+  if (import.meta.env.DEV) {
+    console.log("[GitHub Auth] OAuth URL generated:", {
+      backendUrl,
+      redirectUri,
+      clientId: clientId.substring(0, 8) + "...", // Log only first 8 chars for security
+      oauthUrl: oauthUrl.substring(0, 100) + "...", // Log partial URL
+    });
+  }
 
   return oauthUrl;
 }

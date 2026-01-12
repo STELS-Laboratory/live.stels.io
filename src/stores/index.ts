@@ -11,6 +11,9 @@ export { useAccountsStore } from "./modules/accounts.store.ts";
 export { useOpenAppsStore } from "./modules/open_apps.ts";
 export { toast, useToastStore } from "./modules/toast.store.ts";
 
+// Selectors for optimized re-renders
+export * from "./selectors";
+
 // Types
 export type { ResolvedTheme, ThemeMode } from "./modules/theme.store.ts";
 export type { AppState } from "./modules/app.store.ts";

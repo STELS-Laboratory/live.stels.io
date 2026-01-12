@@ -182,8 +182,6 @@ export function groupNodesByBlocks(
   groups.forEach((nodes, key) => {
     if (nodes.length >= 2) {
       filtered.set(key, nodes);
-    } else {
-      // Empty block
     }
   });
 
