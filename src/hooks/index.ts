@@ -13,6 +13,7 @@ export { useDragAndDrop } from "./use-drag-and-drop";
 export { useHydration } from "./use-hydration";
 export {
   useDeviceType,
+  useIsMobile,
   useMobile,
   useOrientation,
   useScreenWidth,

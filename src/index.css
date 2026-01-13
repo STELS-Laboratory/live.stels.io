@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @plugin "tailwindcss-animate";
 @plugin "@tailwindcss/typography";
 
@@ -51,6 +53,9 @@
 }
 
 :root {
+  /* Base spacing unit for shadcn components (4px = 0.25rem) */
+  --spacing: 0.25rem;
+
   /* Professional Document-Oriented Typography with Saira */
   --font-size: 14px;
   --font-family:
@@ -165,11 +170,11 @@
   --chart-4: #fcd34d;
   --chart-5: #fde68a;
   --radius: 6px;
-  --sidebar: #fafaf8;
+  --sidebar: #f5f3f0;
   --sidebar-foreground: #1a1817;
   --sidebar-primary: #f59e0b;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f5f3f0;
+  --sidebar-accent: #ebe9e5;
   --sidebar-accent-foreground: #3a3937;
   --sidebar-border: #e5e3df;
   --sidebar-ring: #f59e0b;
@@ -204,11 +209,11 @@
   --chart-4: #fcd34d;
   --chart-5: #fde68a;
   --radius: 6px;
-  --sidebar: #fafaf8;
+  --sidebar: #f5f3f0;
   --sidebar-foreground: #1a1817;
   --sidebar-primary: #f59e0b;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f5f3f0;
+  --sidebar-accent: #ebe9e5;
   --sidebar-accent-foreground: #3a3937;
   --sidebar-border: #e5e3df;
   --sidebar-ring: #f59e0b;
@@ -243,7 +248,7 @@
   --chart-4: #fcd34d;
   --chart-5: #fde68a;
   --radius: 6px;
-  --sidebar: #18161a;
+  --sidebar: #1f1d21;
   --sidebar-foreground: #f0eeec;
   --sidebar-primary: #f59e0b;
   --sidebar-primary-foreground: #18161a;
@@ -471,11 +476,10 @@
   .sonar {
     display: flex;
     flex-direction: column;
-    position: absolute;
-    flex: 1;
     width: 100%;
-    height: 100%;
-    overflow-y: scroll;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+    overflow: hidden;
   }
 
   /* Responsive typography scaling */
@@ -1111,4 +1115,24 @@
 .dark ::-moz-selection {
   background-color: rgba(10, 132, 255, 0.45);
   color: #f0eeec;
+}
+
+@theme inline {
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

@@ -24,4 +24,4 @@ export type {
 } from "./modules/auth.store.ts";
 export type { AccountsStore, StoredAccount } from "./modules/accounts.store.ts";
 export type { OpenApp, OpenAppsState } from "./modules/open-apps.store";
-export type { Toast, ToastStore, ToastType } from "./modules/toast.store.ts";
+export type { ToastStore, ToastType } from "./modules/toast.store.ts";

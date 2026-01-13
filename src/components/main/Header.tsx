@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 /**
  * Professional Header component for consistent page headers across the application
  */
-function Header(
+export function Header(
   { title, description }: { title?: string; description?: string },
 ): React.ReactElement {
   return (
@@ -39,4 +39,5 @@ function Header(
   );
 }
 
+// Also export as default for backward compatibility
 export default Header;

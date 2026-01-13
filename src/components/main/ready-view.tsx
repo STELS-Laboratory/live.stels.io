@@ -10,7 +10,7 @@ import { useAppStore } from "@/stores";
 import SessionProvider from "@/components/main/provider";
 import { RouteLoader } from "@/components/main/route-loader";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { WelcomeAuthPage } from "@/components/auth/welcome-auth-page";
+import { WelcomeDashboard } from "@/components/main/welcome-dashboard";
 import { SecurityWarningDialog } from "@/components/auth/security-warning-dialog";
 import { SecurityWarningExtensions } from "@/components/auth/security-warning-extensions";
 import { SessionExpiredModal } from "@/components/auth/session-expired-modal";
@@ -74,7 +74,7 @@ export function ReadyView({
 
   const routeComponents = useMemo(() => {
     const components: Record<string, React.ReactElement> = {
-      welcome: <WelcomeAuthPage />,
+      welcome: <WelcomeDashboard />,
       editor: (
         <Suspense
           fallback={
@@ -124,11 +124,7 @@ export function ReadyView({
       </AnimatePresence>
     );
 
-    // Only wrap in layout if not welcome page
-    if (currentRoute === "welcome") {
-      return <div className="w-full h-full">{content}</div>;
-    }
-
+    // All routes now use the sidebar layout
     return (
       <Suspense
         fallback={
@@ -156,19 +152,17 @@ export function ReadyView({
             duration={TIMING.SPLASH_DURATION_MS}
           />
         ) : (
-          <div className="absolute w-full h-full top-0 bottom-0 overflow-hidden">
-            <RouteLoader>
-              <Suspense
-                fallback={
-                  <div className="p-4 text-muted-foreground">
-                    Loading layout...
-                  </div>
-                }
-              >
-                {commonLayout}
-              </Suspense>
-            </RouteLoader>
-          </div>
+          <RouteLoader>
+            <Suspense
+              fallback={
+                <div className="p-4 text-muted-foreground">
+                  Loading layout...
+                </div>
+              }
+            >
+              {commonLayout}
+            </Suspense>
+          </RouteLoader>
         )}
         <SecurityWarningDialog />
         <SecurityWarningExtensions />

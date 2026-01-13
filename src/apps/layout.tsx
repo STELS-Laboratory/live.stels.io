@@ -1,30 +1,45 @@
+/**
+ * Layout Component
+ * Main application layout with sidebar - shadcn blocks pattern
+ * https://ui.shadcn.com/blocks
+ */
+
 import React from "react";
-import { UnifiedHeader } from "@/components/main/unified-header";
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/main/app-sidebar";
+import { SiteHeader } from "@/components/main/site-header";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 /**
- * Simple Layout Component
- * Provides navigation and logout functionality for Editor and Canvas apps
+ * Sidebar Layout Component
+ * Provides collapsible sidebar navigation and content area
  */
-export function Layout(
-  { children }: LayoutProps,
-): React.ReactElement {
+export function Layout({ children }: LayoutProps): React.ReactElement {
   return (
-    <div className="h-screen w-full flex flex-col bg-background">
-      <UnifiedHeader />
-
-      {/* Main Content */}
-      <main 
-        role="main" 
-        id="main-content"
-        className="flex-1 overflow-hidden"
-        tabIndex={-1}
+    <div className="flex h-full w-full">
+      <SidebarProvider
+        style={
+          {
+            "--sidebar-width": "16rem",
+            "--sidebar-width-icon": "3rem",
+          } as React.CSSProperties
+        }
+        className="flex h-full w-full"
       >
-        {children}
-      </main>
+        <AppSidebar />
+        <SidebarInset className="flex flex-col h-full">
+          <SiteHeader />
+          <div className="flex flex-1 flex-col overflow-auto" id="main-content">
+            {children}
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
     </div>
   );
 }

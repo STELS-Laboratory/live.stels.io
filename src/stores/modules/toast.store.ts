@@ -1,9 +1,9 @@
 /**
  * Global Toast Store
- * Manages toast notifications across the application
+ * Wraps Sonner for toast notifications across the application
  */
 
-import { create } from "zustand";
+import { toast as sonnerToast } from "sonner";
 
 export type ToastType = "success" | "error" | "warning" | "info";
 
@@ -13,10 +13,6 @@ export interface Toast {
   title: string;
   message?: string;
   duration?: number;
-}
-
-interface ToastState {
-  toasts: Toast[];
 }
 
 interface ToastActions {
@@ -51,9 +47,9 @@ interface ToastActions {
   info: (title: string, message?: string) => void;
 
   /**
-   * Close a toast by ID
+   * Dismiss a toast by ID
    */
-  closeToast: (id: string) => void;
+  dismiss: (id?: string | number) => void;
 
   /**
    * Clear all toasts
@@ -61,62 +57,53 @@ interface ToastActions {
   clearAll: () => void;
 }
 
-export type ToastStore = ToastState & ToastActions;
+export type ToastStore = ToastActions;
 
 /**
- * Global toast store
+ * Show a toast using Sonner
  */
-export const useToastStore = create<ToastStore>((set) => ({
-  toasts: [],
+const showToast = (
+  type: ToastType,
+  title: string,
+  message?: string,
+  duration?: number,
+): void => {
+  const options = {
+    description: message,
+    duration: duration,
+  };
 
-  showToast: (type, title, message, duration = 3000) => {
-    const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-    const toast: Toast = {
-      id,
-      type,
-      title,
-      message,
-      duration,
-    };
+  switch (type) {
+    case "success":
+      sonnerToast.success(title, options);
+      break;
+    case "error":
+      sonnerToast.error(title, { ...options, duration: duration ?? 5000 });
+      break;
+    case "warning":
+      sonnerToast.warning(title, { ...options, duration: duration ?? 4000 });
+      break;
+    case "info":
+      sonnerToast.info(title, options);
+      break;
+    default:
+      sonnerToast(title, options);
+  }
+};
 
-    set((state) => ({
-      toasts: [...state.toasts, toast],
-    }));
-
-    // Auto-remove after duration
-    setTimeout(() => {
-      set((state) => ({
-        toasts: state.toasts.filter((t) => t.id !== id),
-      }));
-    }, duration);
-  },
-
-  success: (title, message) => {
-    useToastStore.getState().showToast("success", title, message);
-  },
-
-  error: (title, message) => {
-    useToastStore.getState().showToast("error", title, message, 5000); // Errors stay longer
-  },
-
-  warning: (title, message) => {
-    useToastStore.getState().showToast("warning", title, message, 4000);
-  },
-
-  info: (title, message) => {
-    useToastStore.getState().showToast("info", title, message);
-  },
-
-  closeToast: (id) => {
-    set((state) => ({
-      toasts: state.toasts.filter((t) => t.id !== id),
-    }));
-  },
-
-  clearAll: () => {
-    set({ toasts: [] });
-  },
-}));
+/**
+ * Toast store compatible API (for backward compatibility)
+ * Now wraps Sonner instead of using zustand
+ */
+export const useToastStore = (): ToastStore => ({
+  showToast,
+  success: (title: string, message?: string) => showToast("success", title, message),
+  error: (title: string, message?: string) => showToast("error", title, message),
+  warning: (title: string, message?: string) => showToast("warning", title, message),
+  info: (title: string, message?: string) => showToast("info", title, message),
+  dismiss: (id?: string | number) => sonnerToast.dismiss(id),
+  clearAll: () => sonnerToast.dismiss(),
+});
 
 /**
  * Convenience functions for toast notifications
@@ -124,15 +111,18 @@ export const useToastStore = create<ToastStore>((set) => ({
  */
 export const toast = {
   success: (title: string, message?: string): void => {
-    useToastStore.getState().success(title, message);
+    showToast("success", title, message);
   },
   error: (title: string, message?: string): void => {
-    useToastStore.getState().error(title, message);
+    showToast("error", title, message);
   },
   warning: (title: string, message?: string): void => {
-    useToastStore.getState().warning(title, message);
+    showToast("warning", title, message);
   },
   info: (title: string, message?: string): void => {
-    useToastStore.getState().info(title, message);
+    showToast("info", title, message);
+  },
+  dismiss: (id?: string | number): void => {
+    sonnerToast.dismiss(id);
   },
 };

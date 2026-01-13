@@ -16,7 +16,6 @@ import { ArrowRight, Lock, Code, Boxes } from "lucide-react";
 import { ProfessionalConnectionFlow } from "./professional-connection-flow";
 import { useAuthStore } from "@/stores/modules/auth.store";
 import { navigateTo } from "@/lib/router";
-import { UnifiedHeader } from "@/components/main/unified-header";
 import { AppCard } from "@/components/main/app-card";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -79,6 +78,7 @@ const itemVariants = {
 
 /**
  * Authenticated Dashboard Component
+ * Content only - Layout provides header/sidebar
  */
 function AuthenticatedDashboard(): React.ReactElement {
   const handleAppClick = useCallback((route: string) => {
@@ -86,17 +86,13 @@ function AuthenticatedDashboard(): React.ReactElement {
   }, []);
 
   return (
-    <div className="h-screen w-full bg-background flex flex-col">
-      <UnifiedHeader />
-
-      {/* Dashboard Content */}
-      <main className="flex-1 overflow-y-auto">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12"
-        >
+    <div className="h-full w-full overflow-y-auto">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12"
+      >
           {/* Welcome Section */}
           <motion.div variants={itemVariants} className="mb-10">
             <div className="flex flex-col gap-2">
@@ -176,13 +172,13 @@ function AuthenticatedDashboard(): React.ReactElement {
           {/* Footer spacing */}
           <div className="h-8" />
         </motion.div>
-      </main>
     </div>
   );
 }
 
 /**
  * Guest Login Page Component
+ * Content only - Layout provides header/sidebar
  */
 function GuestLoginPage({
   onOpenAuth,
@@ -190,7 +186,7 @@ function GuestLoginPage({
   onOpenAuth: () => void;
 }): React.ReactElement {
   return (
-    <div className="h-screen w-full bg-background flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="h-full w-full flex flex-col items-center justify-center relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 -left-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />

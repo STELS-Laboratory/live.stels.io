@@ -6,10 +6,6 @@
 export type {
   DropdownItemProps,
   DropdownSeparatorProps,
-  Toast,
-  ToastContainerProps,
-  ToastProps,
-  ToastType,
 } from "./ui/types";
 
 // Auth component types

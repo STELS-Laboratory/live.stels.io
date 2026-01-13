@@ -1,18 +1,15 @@
 /**
  * Global Toast Provider
- * Renders toast notifications from global store
+ * Renders toast notifications using Sonner
  */
 
 import type { ReactElement } from "react";
-import { useToastStore } from "@/stores/modules/toast.store";
-import { ToastContainer } from "@/components/ui/toast";
+import { Toaster } from "@/components/ui/sonner";
 
 /**
  * Toast provider component
  * Add this to App.tsx root to enable global toasts
  */
 export default function ToastProvider(): ReactElement {
-  const { toasts, closeToast } = useToastStore();
-
-  return <ToastContainer toasts={toasts} onClose={closeToast} />;
+  return <Toaster />;
 }

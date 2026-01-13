@@ -1,28 +1,13 @@
-/**
- * Skeleton Component
- * Loading placeholder component
- */
+import { cn } from "@/lib/utils"
 
-import React from "react";
-import { cn } from "@/lib/utils";
-
-interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string;
-}
-
-/**
- * Skeleton Component
- * Displays a loading placeholder with pulse animation
- */
-export function Skeleton(
-  { className, ...props }: SkeletonProps,
-): React.ReactElement {
+function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      role="status"
-      aria-label="Loading"
-      className={cn("animate-pulse rounded bg-muted", className)}
+      data-slot="skeleton"
+      className={cn("bg-accent animate-pulse rounded-md", className)}
       {...props}
     />
-  );
+  )
 }
+
+export { Skeleton }

@@ -2,10 +2,12 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  SimpleDropdown,
-  SimpleDropdownItem,
-  SimpleDropdownSeparator,
-} from "@/components/ui/simple-dropdown";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertCircle,
   CheckCircle,
@@ -18,7 +20,7 @@ import { useAuthStore } from "@/stores/modules/auth.store";
 import { motion } from "framer-motion";
 
 /**
- * Simple connection status component using custom dropdown
+ * Connection status component using shadcn dropdown
  */
 export function ConnectionStatusSimple(): React.ReactElement {
   const {
@@ -102,7 +104,7 @@ export function ConnectionStatusSimple(): React.ReactElement {
   // Show "Not Connected" only if we don't have connection info
   if (!isConnected || !connectionSession) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 px-2 py-1.5">
         <AlertCircle className="h-4 w-4 text-destructive" />
         <span className="text-sm text-destructive">Not Connected</span>
       </div>
@@ -110,165 +112,140 @@ export function ConnectionStatusSimple(): React.ReactElement {
   }
 
   return (
-    <SimpleDropdown
-      trigger={
-        <motion.div whileTap={{ scale: 0.96 }}>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-2"
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 gap-2 w-full justify-start"
+        >
+          <motion.div
+            animate={{
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
           >
-            <motion.div
-              animate={{
-                scale: [1, 1.1, 1],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
+            {getNetworkIcon()}
+          </motion.div>
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="text-sm font-medium truncate">
+              {connectionSession.network}
+            </span>
+            <Badge
+              variant="outline"
+              className={`text-xs rounded ${getNetworkColor()}`}
             >
-              {getNetworkIcon()}
-            </motion.div>
+              {isConnected ? (
+                <>
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Connected
+                </>
+              ) : (
+                <>
+                  <AlertCircle className="h-3 w-3 mr-1" />
+                  Disconnected
+                </>
+              )}
+            </Badge>
+          </div>
+          <ChevronDown className="h-3 w-3 shrink-0" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        side="top"
+        align="start"
+        className="w-72"
+        sideOffset={8}
+      >
+        {/* Network Info */}
+        <div className="p-3 space-y-3">
+          <div className="space-y-2 p-3 bg-muted/50 border border-border rounded">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">
+              {getNetworkIcon()}
+              <span className="font-medium text-sm">Network</span>
+            </div>
+            <div className="text-sm font-medium text-foreground">
+              {connectionSession.title}
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs rounded">
                 {connectionSession.network}
-              </span>
-              <Badge
-                variant="outline"
-                className={`text-xs rounded ${getNetworkColor()}`}
-              >
-                {isConnected
-                  ? (
-                    <>
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Connected
-                    </>
-                  )
-                  : (
-                    <>
-                      <AlertCircle className="h-3 w-3 mr-1" />
-                      Disconnected
-                    </>
-                  )}
               </Badge>
             </div>
-            <ChevronDown className="h-3 w-3" />
-          </Button>
-        </motion.div>
-      }
-      align="end"
-      className="w-80 bg-card border-border"
-    >
-      <motion.div
-        className="p-3 space-y-3"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
-      >
-        <motion.div
-          className="space-y-2 p-3 bg-muted/50 border border-border rounded"
-          initial={{ y: -5, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.15 }}
-        >
-          <div className="flex items-center gap-2">
-            {getNetworkIcon()}
-            <span className="font-medium">Network</span>
-          </div>
-          <div className="text-sm font-medium text-foreground">
-            {connectionSession.title}
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge
-              variant="outline"
-              className="text-xs rounded"
-            >
-              {connectionSession.network}
-            </Badge>
-          </div>
-          <div className="pt-1 border-t border-border/50">
-            <div className="text-xs text-muted-foreground mb-1">
-              API Endpoint:
-            </div>
-            <div className="text-xs font-mono text-foreground break-all bg-background/50 px-2 py-1 rounded">
-              {connectionSession.api}
-            </div>
-          </div>
-          {connectionSession.socket && (
             <div className="pt-1 border-t border-border/50">
               <div className="text-xs text-muted-foreground mb-1">
-                WebSocket:
+                API Endpoint:
               </div>
               <div className="text-xs font-mono text-foreground break-all bg-background/50 px-2 py-1 rounded">
-                {connectionSession.socket}
+                {connectionSession.api}
               </div>
             </div>
-          )}
-        </motion.div>
-
-        {wallet && (
-          <motion.div
-            className="space-y-2 p-3 bg-muted/50 border border-border rounded"
-            initial={{ y: -5, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-          >
-            <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4 text-amber-500" />
-              <span className="font-medium">Wallet</span>
-            </div>
-            <div className="text-xs font-mono text-muted-foreground break-all">
-              {wallet.address}
-            </div>
-            {wallet.number && (
-              <div className="text-xs text-muted-foreground">
-                Card: {wallet.number}
+            {connectionSession.socket && (
+              <div className="pt-1 border-t border-border/50">
+                <div className="text-xs text-muted-foreground mb-1">
+                  WebSocket:
+                </div>
+                <div className="text-xs font-mono text-foreground break-all bg-background/50 px-2 py-1 rounded">
+                  {connectionSession.socket}
+                </div>
               </div>
             )}
-          </motion.div>
-        )}
+          </div>
 
-        {connectionSession.developer && (
-          <motion.div
-            className="flex items-center gap-2"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.25 }}
-          >
-            <Badge
-              variant="outline"
-              className="text-xs rounded bg-purple-500/10 border-purple-500/30 text-purple-700 dark:text-purple-400"
-            >
-              Developer
-            </Badge>
-          </motion.div>
-        )}
-      </motion.div>
+          {/* Wallet Info */}
+          {wallet && (
+            <div className="space-y-2 p-3 bg-muted/50 border border-border rounded">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-amber-500" />
+                <span className="font-medium text-sm">Wallet</span>
+              </div>
+              <div className="text-xs font-mono text-muted-foreground break-all">
+                {wallet.address}
+              </div>
+              {wallet.number && (
+                <div className="text-xs text-muted-foreground">
+                  Card: {wallet.number}
+                </div>
+              )}
+            </div>
+          )}
 
-      <SimpleDropdownSeparator className="bg-border" />
+          {/* Developer Badge */}
+          {connectionSession.developer && (
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className="text-xs rounded bg-purple-500/10 border-purple-500/30 text-purple-700 dark:text-purple-400"
+              >
+                Developer
+              </Badge>
+            </div>
+          )}
+        </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.3 }}
-      >
-        <SimpleDropdownItem
+        <DropdownMenuSeparator />
+
+        {/* Actions */}
+        <DropdownMenuItem
           onClick={handleDisconnect}
-          className="text-orange-700 dark:text-orange-400 hover:text-orange-300"
+          className="text-orange-600 dark:text-orange-400 focus:text-orange-600 dark:focus:text-orange-400"
         >
           <Network className="h-4 w-4 mr-2" />
           Disconnect
-        </SimpleDropdownItem>
+        </DropdownMenuItem>
 
-        <SimpleDropdownItem
+        <DropdownMenuItem
           onClick={handleLogout}
-          className="text-red-700 dark:text-red-400 hover:text-red-800 dark:text-red-300"
+          className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
         >
           <LogOut className="h-4 w-4 mr-2" />
           Logout
-        </SimpleDropdownItem>
-      </motion.div>
-    </SimpleDropdown>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

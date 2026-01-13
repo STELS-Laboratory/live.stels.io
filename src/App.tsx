@@ -16,7 +16,7 @@ import {
   getStateMessage,
 } from "@/components/main/loading-screens";
 import { ReadyView } from "@/components/main/ready-view";
-import { WelcomeAuthPage } from "@/components/auth/welcome-auth-page";
+import { LoginPage } from "@/components/auth/login-page";
 import SessionProvider from "@/components/main/provider";
 import UpgradeScreen from "@/components/main/upgrade-screen";
 
@@ -166,7 +166,7 @@ export default function Dashboard(): React.ReactElement {
     case APP_STATES.AUTHENTICATING:
       return (
         <AuthViewWrapper>
-          <WelcomeAuthPage />
+          <LoginPage />
         </AuthViewWrapper>
       );
 
