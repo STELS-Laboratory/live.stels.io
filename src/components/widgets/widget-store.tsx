@@ -18,8 +18,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDeviceType } from "@/hooks/use-mobile";
 import { useDragAndDrop } from "@/hooks/use-drag-and-drop";
-import { DragPreview } from "./drag_preview";
-import { WidgetStatusBadge } from "./widget_status_badge";
+import { DragPreview } from "./drag-preview";
+import { WidgetStatusBadge } from "./widget-status-badge";
 import {
   type GroupedWidgets,
   type GroupingMode,

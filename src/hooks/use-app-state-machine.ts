@@ -5,7 +5,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore, useAuthStore } from "@/stores";
-import { useHydration } from "@/hooks/use_hydration";
+import { useHydration } from "@/hooks/use-hydration";
 import {
   APP_STATES,
   STATE_TRANSITION_DELAYS,

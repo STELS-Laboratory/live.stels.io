@@ -21,7 +21,7 @@ export function Skeleton(
     <div
       role="status"
       aria-label="Loading"
-      className={cn("animate-pulse rounded-md bg-muted", className)}
+      className={cn("animate-pulse rounded bg-muted", className)}
       {...props}
     />
   );

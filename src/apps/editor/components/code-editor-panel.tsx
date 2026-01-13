@@ -24,11 +24,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EditorHeader } from "./EditorHeader.tsx";
-import { ConfigForm } from "./ConfigForm.tsx";
-import { PromptsEditor } from "./PromptsEditor.tsx";
-import { WorkerLogsPanel } from "../ami_editor/worker_logs_panel.tsx";
-import { LeaderInfoCard } from "../ami_editor/leader_info_card.tsx";
+import { EditorHeader } from "./editor-header";
+import { ConfigForm } from "./config-form";
+import { PromptsEditor } from "./prompts-editor";
+import { WorkerLogsPanel } from "../ami-editor/worker-logs-panel";
+import { LeaderInfoCard } from "../ami-editor/leader-info-card";
 import type { CodeEditorPanelProps } from "../types/editor.types.ts";
 import type { LeaderInfo } from "@/types/apps/editor/types";
 

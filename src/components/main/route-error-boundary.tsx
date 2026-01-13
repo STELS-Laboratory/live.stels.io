@@ -111,7 +111,7 @@ export class RouteErrorBoundary extends Component<
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="mb-6 p-4 bg-destructive/5 border border-destructive/20 rounded-lg text-left max-w-lg overflow-auto"
+              className="mb-6 p-4 bg-destructive/5 border border-destructive/20 rounded text-left max-w-lg overflow-auto"
             >
               <p className="text-sm font-mono text-destructive">
                 {this.state.error.message}

@@ -13,8 +13,8 @@ import {
   Wifi,
 } from "lucide-react";
 import { type NetworkConfig, useAuthStore } from "@/stores/modules/auth.store";
-import { NetworkSelectorCompact } from "./network_selector_compact";
-import { LOTTIE_ANIMATIONS, LOTTIE_SIZES } from "./lottie_config";
+import { NetworkSelectorCompact } from "./network-selector-compact";
+import { LOTTIE_ANIMATIONS, LOTTIE_SIZES } from "./lottie-config";
 
 interface NetworkSetupProps {
   onBack: () => void;

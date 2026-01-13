@@ -6,7 +6,7 @@
 import { memo } from "react";
 import { FileCode, Crown, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { WorkerBadges } from "./WorkerBadges.tsx";
+import { WorkerBadges } from "./worker-badges";
 import type { WorkerListItemProps } from "../types/editor.types.ts";
 
 /**

@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { validateField } from "../services/worker_validator.ts";
+import { validateField } from "../services/worker-validator";
 import {
   validateAccountId,
   validateDependencies,

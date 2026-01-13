@@ -8,24 +8,24 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ReactFlowProvider } from "reactflow";
 import { useAppStore } from "@/stores";
 import SessionProvider from "@/components/main/provider";
-import { RouteLoader } from "@/components/main/route_loader";
+import { RouteLoader } from "@/components/main/route-loader";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { WelcomeAuthPage } from "@/components/auth/welcome_auth_page";
-import { SecurityWarningDialog } from "@/components/auth/security_warning_dialog";
-import { SecurityWarningExtensions } from "@/components/auth/security_warning_extensions";
-import { SessionExpiredModal } from "@/components/auth/session_expired_modal";
-import UpdatePrompt from "@/components/main/update_prompt";
-import VersionCheckPrompt from "@/components/main/version_check_prompt";
-import ToastProvider from "@/components/main/toast_provider";
-import SplashScreen from "@/components/main/splash_screen";
+import { WelcomeAuthPage } from "@/components/auth/welcome-auth-page";
+import { SecurityWarningDialog } from "@/components/auth/security-warning-dialog";
+import { SecurityWarningExtensions } from "@/components/auth/security-warning-extensions";
+import { SessionExpiredModal } from "@/components/auth/session-expired-modal";
+import UpdatePrompt from "@/components/main/update-prompt";
+import VersionCheckPrompt from "@/components/main/version-check-prompt";
+import ToastProvider from "@/components/main/toast-provider";
+import SplashScreen from "@/components/main/splash-screen";
 import { TIMING } from "@/lib/constants";
 
 const Flow = lazy(() => import("@/apps/canvas/flow"));
 const AMIEditor = lazy(() =>
-  import("@/apps/editor/ami_editor").then((m) => ({ default: m.AMIEditor }))
+  import("@/apps/editor/ami-editor").then((m) => ({ default: m.AMIEditor }))
 );
 const SimpleLayout = lazy(() =>
-  import("@/apps/simple_layout").then((m) => ({ default: m.SimpleLayout }))
+  import("@/apps/Layout").then((m) => ({ default: m.Layout }))
 );
 
 const pageVariants = {
@@ -146,7 +146,7 @@ export function ReadyView({
         {/* Skip to main content link for accessibility */}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:shadow-lg"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded focus:shadow-lg"
         >
           Skip to main content
         </a>

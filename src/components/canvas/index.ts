@@ -6,10 +6,10 @@
  */
 
 // Canvas Controls
-export { CanvasControls } from "./canvas_controls";
+export { CanvasControls } from "./canvas-controls";
 
 // Auto Connections Panel
-export { AutoConnectionsPanel } from "./auto_connections_panel";
+export { AutoConnectionsPanel } from "./auto-connections-panel";
 
 // Canvas Overlays
 export {
@@ -17,4 +17,4 @@ export {
   EnhancedDropZone,
   LoadingSpinner,
   PanelTransitionOverlay,
-} from "./canvas_overlays";
+} from "./canvas-overlays";

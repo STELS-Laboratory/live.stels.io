@@ -4,9 +4,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuthStore } from "@/stores/modules/auth.store";
-import { NetworkSetup } from "./network_setup";
-import { GitHubAuth } from "./github_auth";
-import { LOTTIE_ANIMATIONS, LOTTIE_SIZES } from "./lottie_config";
+import { NetworkSetup } from "./network-setup";
+import { GitHubAuth } from "./github-auth";
+import { LOTTIE_ANIMATIONS, LOTTIE_SIZES } from "./lottie-config";
 import type {
   ProfessionalConnectionFlowProps,
   StepType,

@@ -1,5 +1,5 @@
 import React from "react";
-import FlowWithPanels from "./flow_with_panels";
+import FlowWithPanels from "./flow-with-panels";
 
 /**
  * Main Flow Component - now uses panel system

@@ -1,9 +1,9 @@
 import { type ReactNode, useEffect } from "react";
-import useWebSocketStore from "@/hooks/use_web_socket_store";
+import useWebSocketStore from "@/hooks/use-web-socket-store";
 import { useAppStore, useAuthStore } from "@/stores";
 import Loader from "@/components/ui/loader";
 
-function SessionProvider(
+export function SessionProvider(
   { children }: { children: ReactNode },
 ) {
   const { connectNode, connection } = useWebSocketStore();
@@ -36,4 +36,5 @@ function SessionProvider(
     : <Loader>Connecting to network...</Loader>;
 }
 
+// Also export as default for backward compatibility
 export default SessionProvider;

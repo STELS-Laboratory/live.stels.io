@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { useFocusTrap } from "@/hooks/use_focus_trap";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 
 // ============================================================================
 // Type Definitions

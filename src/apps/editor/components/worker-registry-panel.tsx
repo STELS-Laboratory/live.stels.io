@@ -30,8 +30,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { WorkerListItem } from "./WorkerListItem.tsx";
-import { useWorkerFilters } from "../ami_editor/hooks/use_worker_filters.ts";
+import { WorkerListItem } from "./worker-list-item";
+import { useWorkerFilters } from "../ami-editor/hooks/use-worker-filters";
 import type { WorkerRegistryPanelProps } from "../types/editor.types.ts";
 
 /**
@@ -183,7 +183,7 @@ export function WorkerRegistryPanel({
           {/* Filters */}
           <div className="flex items-center gap-1.5 flex-wrap">
             {/* Status Filter */}
-            <div className="flex items-center gap-0.5 bg-muted/30 rounded-lg px-1 py-0.5 border border-border/50">
+            <div className="flex items-center gap-0.5 bg-muted/30 rounded px-1 py-0.5 border border-border/50">
               <span className="text-[9px] text-muted-foreground uppercase font-semibold mr-0.5">
                 Status
               </span>
@@ -228,7 +228,7 @@ export function WorkerRegistryPanel({
             </div>
 
             {/* Scope Filter */}
-            <div className="flex items-center gap-0.5 bg-muted/30 rounded-lg px-1 py-0.5 border border-border/50">
+            <div className="flex items-center gap-0.5 bg-muted/30 rounded px-1 py-0.5 border border-border/50">
               <span className="text-[9px] text-muted-foreground uppercase font-semibold mr-0.5">
                 Scope
               </span>
@@ -273,7 +273,7 @@ export function WorkerRegistryPanel({
             </div>
 
             {/* Execution Mode Filter */}
-            <div className="flex items-center gap-0.5 bg-muted/30 rounded-lg px-1 py-0.5 border border-border/50">
+            <div className="flex items-center gap-0.5 bg-muted/30 rounded px-1 py-0.5 border border-border/50">
               <span className="text-[9px] text-muted-foreground uppercase font-semibold mr-0.5">
                 Mode
               </span>

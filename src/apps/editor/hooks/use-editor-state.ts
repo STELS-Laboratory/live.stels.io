@@ -10,7 +10,7 @@ import type {
   UseEditorStateReturn,
   WorkerConfig,
 } from "../types/editor.types.ts";
-import { autoCorrectConfig } from "../services/worker_validator.ts";
+import { autoCorrectConfig } from "../services/worker-validator";
 
 /**
  * Safe JSON.stringify that handles circular references

@@ -6,10 +6,10 @@ import {
   freezeNativeAPIs,
   performSecurityCheck,
 } from "@/lib/pwa-security";
-import { initChunkErrorHandlers } from "@/lib/chunk_error_handler";
-import ChunkErrorBoundary from "@/components/main/chunk_error_boundary";
-import { createNewSession, initSession } from "@/lib/session_manager";
-import { getCurrentVersion } from "@/lib/version_check";
+import { initChunkErrorHandlers } from "@/lib/chunk-error-handler";
+import ChunkErrorBoundary from "@/components/main/chunk-error-boundary";
+import { createNewSession, initSession } from "@/lib/session-manager";
+import { getCurrentVersion } from "@/lib/version-check";
 
 initThemeColor();
 

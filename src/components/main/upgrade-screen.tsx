@@ -208,4 +208,6 @@ const UpgradeScreen = ({ onComplete, endDate }: UpgradeScreenProps) => {
   );
 };
 
+export { UpgradeScreen };
+// Also export as default for backward compatibility
 export default UpgradeScreen;

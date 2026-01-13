@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ArrowRight, Lock, Code, Boxes } from "lucide-react";
-import { ProfessionalConnectionFlow } from "./professional_connection_flow";
+import { ProfessionalConnectionFlow } from "./professional-connection-flow";
 import { useAuthStore } from "@/stores/modules/auth.store";
 import { navigateTo } from "@/lib/router";
 import { UnifiedHeader } from "@/components/main/unified-header";

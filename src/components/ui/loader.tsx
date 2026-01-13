@@ -65,4 +65,6 @@ function Loader({ children }: { children: ReactNode }) {
   );
 }
 
+export { Loader };
+// Also export as default for backward compatibility
 export default Loader;

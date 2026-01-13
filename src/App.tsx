@@ -4,21 +4,21 @@
  */
 
 import React, { useEffect } from "react";
-import { useUrlRouter } from "@/hooks/use_url_router";
-import { useAuthRestore } from "@/hooks/use_auth_restore";
-import { useSessionSecurity } from "@/hooks/use_session_security";
-import { useTheme } from "@/hooks/use_theme";
-import { useAppStateMachine } from "@/hooks/use_app_state_machine";
+import { useUrlRouter } from "@/hooks/use-url-router";
+import { useAuthRestore } from "@/hooks/use-auth-restore";
+import { useSessionSecurity } from "@/hooks/use-session-security";
+import { useTheme } from "@/hooks/use-theme";
+import { useAppStateMachine } from "@/hooks/use-app-state-machine";
 import { APP_STATES } from "@/lib/constants";
 import {
   LoadingScreen,
   AuthViewWrapper,
   getStateMessage,
-} from "@/components/main/loading_screens";
-import { ReadyView } from "@/components/main/ready_view";
-import { WelcomeAuthPage } from "@/components/auth/welcome_auth_page";
+} from "@/components/main/loading-screens";
+import { ReadyView } from "@/components/main/ready-view";
+import { WelcomeAuthPage } from "@/components/auth/welcome-auth-page";
 import SessionProvider from "@/components/main/provider";
-import UpgradeScreen from "@/components/main/upgrade_screen";
+import UpgradeScreen from "@/components/main/upgrade-screen";
 
 // Inject app animations CSS
 if (

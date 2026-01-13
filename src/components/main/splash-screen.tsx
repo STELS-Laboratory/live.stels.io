@@ -156,4 +156,6 @@ const SplashScreen = (
   );
 };
 
+export { SplashScreen };
+// Also export as default for backward compatibility
 export default SplashScreen;

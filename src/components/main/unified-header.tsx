@@ -6,12 +6,12 @@
 import React from "react";
 import { useAppStore } from "@/stores";
 import { navigateTo } from "@/lib/router";
-import { ConnectionStatusSimple } from "@/components/auth/connection_status_simple";
+import { ConnectionStatusSimple } from "@/components/auth/connection-status-simple";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Boxes, Code } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MobileMenu } from "@/components/main/mobile_menu";
+import { MobileMenu } from "@/components/main/mobile-menu";
 import { useMobile } from "@/hooks/use-mobile";
 import { motion } from "framer-motion";
 

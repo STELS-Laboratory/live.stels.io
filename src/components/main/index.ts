@@ -3,8 +3,10 @@
  * Centralized export for core application components
  */
 
-export { default as Header } from "./Header";
-export { default as Provider } from "./provider";
-export { RouteLoader } from "./route_loader";
-export { default as SplashScreen } from "./splash_screen";
-export { default as UpgradeScreen } from "./upgrade_screen";
+export { Header } from "./header";
+export { SessionProvider } from "./provider";
+export { RouteLoader } from "./route-loader";
+export { SplashScreen } from "./splash-screen";
+export { UpgradeScreen } from "./upgrade-screen";
+export { AppCard, AppCardSkeleton } from "./app-card";
+export { UnifiedHeader } from "./unified-header";

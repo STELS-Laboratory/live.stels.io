@@ -19,7 +19,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import useSessionStoreSync from "@/hooks/use-session-store-sync";
-import MacOSNode from "@/apps/canvas/macos_node";
+import MacOSNode from "@/apps/canvas/macos-node";
 import { Boxes } from "lucide-react";
 import { cleanBrands } from "@/lib/utils.ts";
 import Graphite from "@/components/ui/vectors/logos/graphite";

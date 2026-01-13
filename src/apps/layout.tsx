@@ -1,7 +1,7 @@
 import React from "react";
-import { UnifiedHeader } from "@/components/main/unified_header";
+import { UnifiedHeader } from "@/components/main/unified-header";
 
-interface SimpleLayoutProps {
+interface LayoutProps {
   children: React.ReactNode;
 }
 
@@ -9,8 +9,8 @@ interface SimpleLayoutProps {
  * Simple Layout Component
  * Provides navigation and logout functionality for Editor and Canvas apps
  */
-export function SimpleLayout(
-  { children }: SimpleLayoutProps,
+export function Layout(
+  { children }: LayoutProps,
 ): React.ReactElement {
   return (
     <div className="h-screen w-full flex flex-col bg-background">

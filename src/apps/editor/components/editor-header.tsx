@@ -17,7 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { WorkerBadges } from "./WorkerBadges.tsx";
+import { WorkerBadges } from "./worker-badges";
 import type { EditorHeaderProps } from "../types/editor.types.ts";
 
 /**

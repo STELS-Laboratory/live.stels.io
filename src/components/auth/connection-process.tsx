@@ -15,7 +15,7 @@ import {
   //Zap,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/modules/auth.store";
-import { LOTTIE_ANIMATIONS, LOTTIE_SIZES } from "./lottie_config";
+import { LOTTIE_ANIMATIONS, LOTTIE_SIZES } from "./lottie-config";
 //import { WalletPreview } from "./WalletPreview";
 
 interface ConnectionProcessProps {

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { clearAllStorage, clearAppStorage } from "@/lib/storage-cleaner";
-import { useWebSocketStore } from "@/hooks/use_web_socket_store";
+import { useWebSocketStore } from "@/hooks/use-web-socket-store";
 import { NETWORK_CONFIGS, useNetworkStore } from "./network.store";
 import { WebfixApiClient } from "@/lib/webfix-api-client";
 import {

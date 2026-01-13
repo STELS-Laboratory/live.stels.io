@@ -8,7 +8,7 @@ import { useEditorStore } from "../store.ts";
 import { toast } from "@/stores";
 import { logError } from "../utils/logger.ts";
 import { setCacheValue } from "../utils/cache.ts";
-import { validateAndCleanConfig } from "../services/worker_validator.ts";
+import { validateAndCleanConfig } from "../services/worker-validator";
 import type { Worker, WorkerCreateRequest } from "@/types/apps/editor/types";
 import type {
   UseWorkerOperationsReturn,

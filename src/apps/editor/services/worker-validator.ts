@@ -9,7 +9,7 @@ import {
   validateNodeId,
   validateVersion,
 } from "../utils/validation.ts";
-import { validateWorkerConfig } from "../ami_editor/utils/worker_validation.ts";
+import { validateWorkerConfig } from "../ami-editor/utils/worker-validation";
 import type { WorkerConfig, ValidationResult } from "../types/editor.types.ts";
 
 /**
