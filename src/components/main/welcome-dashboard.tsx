@@ -19,7 +19,7 @@ const APPS = [
     id: "editor",
     title: "Code Editor",
     description:
-      "Professional AMI editor with syntax highlighting and code validation",
+      "Professional AMI editor and code validation",
     icon: Code,
     accentColor: "#3b82f6",
     gradientFrom: "#3b82f6",
