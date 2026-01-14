@@ -25,7 +25,7 @@ const AMIEditor = lazy(() =>
   import("@/apps/editor/ami-editor").then((m) => ({ default: m.AMIEditor }))
 );
 const SimpleLayout = lazy(() =>
-  import("@/apps/Layout").then((m) => ({ default: m.Layout }))
+  import("@/apps/layout").then((m) => ({ default: m.Layout }))
 );
 
 const pageVariants = {
