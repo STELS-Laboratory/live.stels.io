@@ -21,11 +21,13 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
+    "start": "serve dist -s -l 8080",
     "lint": "eslint .",
     "preview": "vite preview",
     "find-unused": "tsx scripts/find-unused.ts"
   },
   "dependencies": {
+    "serve": "^14.2.4",
     "@codemirror/autocomplete": "^6.19.1",
     "@codemirror/commands": "^6.10.0",
     "@codemirror/highlight": "^0.19.8",
