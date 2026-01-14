@@ -147,7 +147,7 @@ export const useAppStore = create<AppState>()(
 
 			return {
 				version: '1.0.7',
-				upgrade: false,
+				upgrade: true, // Application closed for maintenance/update - shows upgrade screen
 					setVersion: (v: string) => set({version: v}),
 					setUpgrade: (value: boolean) => set({upgrade: value}),
 					...initialNetwork,

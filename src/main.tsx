@@ -11,6 +11,7 @@ import { initChunkErrorHandlers } from "@/lib/chunk_error_handler";
 import ChunkErrorBoundary from "@/components/main/chunk_error_boundary";
 import { createNewSession, initSession } from "@/lib/session_manager";
 import { getCurrentVersion } from "@/lib/version_check";
+import { initGlobalCloseApp } from "@/lib/app_closer";
 // CodeMirror doesn't need pre-configuration
 
 // Service Worker registration is handled by UpdatePrompt component
@@ -25,6 +26,9 @@ initChunkErrorHandlers();
 // Initialize session management
 // This creates/retrieves a persistent session ID used for cache busting
 initSession();
+
+// Initialize global closeApp function
+initGlobalCloseApp();
 
 // Check if this is a new version deployment
 const currentVersion = getCurrentVersion();
@@ -94,7 +98,7 @@ document.documentElement.setAttribute("data-theme", resolvedTheme);
 const rootElement = document.createElement("main");
 document.body.setAttribute("stels", "1.12.00");
 document.body.setAttribute("module", "web");
-document.body.setAttribute("network", "testnet");
+document.body.setAttribute("network", "snaga");
 // Session is already set by initSession() above
 rootElement.className = "sonar";
 document.body.appendChild(rootElement);

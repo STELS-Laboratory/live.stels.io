@@ -110,7 +110,7 @@ const UpgradeScreen = ({ onComplete, endDate }: UpgradeScreenProps) => {
 						transition={{ delay: 0.3, duration: 0.3 }}
 						className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full"
 					>
-						TESTNET
+						SNAGA
 					</motion.div>
 				</motion.div>
 
@@ -122,7 +122,7 @@ const UpgradeScreen = ({ onComplete, endDate }: UpgradeScreenProps) => {
 					className="text-center space-y-3"
 				>
 					<h1 className="text-5xl font-bold text-primary">
-						UPGRADE
+						CLOSED FOR UPDATE
 					</h1>
 					<motion.div
 						initial={{ opacity: 0, scale: 0.9 }}
@@ -171,7 +171,10 @@ const UpgradeScreen = ({ onComplete, endDate }: UpgradeScreenProps) => {
 					transition={{ delay: 0.5, duration: 0.3 }}
 					className="text-center text-xs text-muted-foreground space-y-2 max-w-sm"
 				>
-					<p>Please wait while we upgrade!</p>
+					<p>Application is closed for maintenance and updates.</p>
+					<p className="text-[10px] opacity-70 mt-2">
+						Please wait while we upgrade the system...
+					</p>
 				</motion.div>
 			</div>
 

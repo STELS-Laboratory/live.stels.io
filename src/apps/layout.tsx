@@ -38,6 +38,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import AppTabs from "@/components/main/app_tabs";
 import AppShortcuts from "@/components/main/app_shortcuts";
 import { TickerMarquee } from "@/components/main/ticker_marquee";
+import AppCloser from "@/components/main/app_closer";
 import type { LayoutProps, NavItem } from "@/types/apps/layout/types";
 
 /**
@@ -369,6 +370,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 									<div className="flex items-center gap-2">
 										<ThemeToggleCompact />
 										<ConnectionStatusSimple />
+										<AppCloser />
 									</div>
 								</div>
 
@@ -536,6 +538,7 @@ function Layout({ children }: LayoutProps): React.ReactElement {
 									>
 										<ThemeToggle />
 										<ConnectionStatusSimple />
+										<AppCloser />
 									</motion.div>
 								</div>
 							</motion.div>
