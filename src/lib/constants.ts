@@ -32,6 +32,7 @@ export const TIMING = {
  */
 export const ROUTES = {
   WELCOME: 'welcome',
+  AGENTS: 'agents',
   CANVAS: 'canvas',
   EDITOR: 'editor',
 } as const;
@@ -43,6 +44,7 @@ export type Route = typeof ROUTES[keyof typeof ROUTES];
  */
 export const ALLOWED_ROUTES: Route[] = [
   ROUTES.WELCOME,
+  ROUTES.AGENTS,
   ROUTES.CANVAS,
   ROUTES.EDITOR,
 ];

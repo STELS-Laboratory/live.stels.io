@@ -4,7 +4,7 @@
  */
 
 import * as React from "react";
-import { Boxes, Code, Home, Settings, Zap } from "lucide-react";
+import { Boxes, Bot, Code, Home, Settings, Zap } from "lucide-react";
 import { useAppStore } from "@/stores";
 import { navigateTo } from "@/lib/router";
 
@@ -32,6 +32,12 @@ const NAV_ITEMS = [
     label: "Home",
     icon: Home,
     route: "welcome",
+  },
+  {
+    id: "agents",
+    label: "Agents",
+    icon: Bot,
+    route: "agents",
   },
   {
     id: "editor",

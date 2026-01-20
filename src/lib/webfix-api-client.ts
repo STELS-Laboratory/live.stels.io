@@ -92,7 +92,15 @@ export class WebfixApiClient {
   private extractData<T>(response: ApiResponse<T>): T {
     // SuccessResponse format: {success: true, data: T}
     if ("success" in response && response.success === true) {
-      return (response as SuccessResponse<T>).data;
+      const successResponse = response as SuccessResponse<T>;
+      // If there's a data field, return it
+      if ("data" in successResponse && successResponse.data !== undefined) {
+        return successResponse.data;
+      }
+      // Otherwise return the response without 'success' field
+      // This handles {success: true, workspaces: [...]} format
+      const { success, ...rest } = response as Record<string, unknown>;
+      return rest as T;
     }
 
     // WebfixResponse format: {webfix: "1.0", result: T}

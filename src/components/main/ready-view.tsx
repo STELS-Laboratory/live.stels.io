@@ -24,6 +24,9 @@ const Flow = lazy(() => import("@/apps/canvas/flow"));
 const AMIEditor = lazy(() =>
   import("@/apps/editor/ami-editor").then((m) => ({ default: m.AMIEditor }))
 );
+const AgentControl = lazy(() =>
+  import("@/apps/agents").then((m) => ({ default: m.AgentControl }))
+);
 const SimpleLayout = lazy(() =>
   import("@/apps/layout").then((m) => ({ default: m.Layout }))
 );
@@ -82,6 +85,15 @@ export function ReadyView({
           }
         >
           <AMIEditor />
+        </Suspense>
+      ),
+      agents: (
+        <Suspense
+          fallback={
+            <div className="p-4 text-muted-foreground">Loading agents...</div>
+          }
+        >
+          <AgentControl />
         </Suspense>
       ),
       canvas: (
