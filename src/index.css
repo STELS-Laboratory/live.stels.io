@@ -178,6 +178,27 @@
   --sidebar-accent-foreground: #3a3937;
   --sidebar-border: #e5e3df;
   --sidebar-ring: #f59e0b;
+
+  /* Trading Colors - Default Theme (Green/Red) */
+  --trading-buy: #22c55e;
+  --trading-buy-bg: rgba(34, 197, 94, 0.1);
+  --trading-buy-hover: rgba(34, 197, 94, 0.2);
+  --trading-sell: #ef4444;
+  --trading-sell-bg: rgba(239, 68, 68, 0.1);
+  --trading-sell-hover: rgba(239, 68, 68, 0.2);
+  --trading-neutral: #6b7280;
+  --trading-highlight: #fbbf24;
+
+  /* Order Book */
+  --orderbook-bid-depth: rgba(34, 197, 94, 0.15);
+  --orderbook-ask-depth: rgba(239, 68, 68, 0.15);
+  --orderbook-spread-bg: var(--muted);
+
+  /* Chart Colors */
+  --chart-up: #22c55e;
+  --chart-down: #ef4444;
+  --chart-volume-up: rgba(34, 197, 94, 0.5);
+  --chart-volume-down: rgba(239, 68, 68, 0.5);
 }
 
 .light {
@@ -256,6 +277,27 @@
   --sidebar-accent-foreground: #e5e3e0;
   --sidebar-border: #33312f;
   --sidebar-ring: #f59e0b;
+
+  /* Trading Colors - Dark Theme (brighter for contrast) */
+  --trading-buy: #4ade80;
+  --trading-buy-bg: rgba(74, 222, 128, 0.12);
+  --trading-buy-hover: rgba(74, 222, 128, 0.2);
+  --trading-sell: #f87171;
+  --trading-sell-bg: rgba(248, 113, 113, 0.12);
+  --trading-sell-hover: rgba(248, 113, 113, 0.2);
+  --trading-neutral: #9ca3af;
+  --trading-highlight: #fcd34d;
+
+  /* Order Book */
+  --orderbook-bid-depth: rgba(74, 222, 128, 0.12);
+  --orderbook-ask-depth: rgba(248, 113, 113, 0.12);
+  --orderbook-spread-bg: var(--muted);
+
+  /* Chart Colors */
+  --chart-up: #4ade80;
+  --chart-down: #f87171;
+  --chart-volume-up: rgba(74, 222, 128, 0.5);
+  --chart-volume-down: rgba(248, 113, 113, 0.5);
 }
 
 /* Reduced motion - complete override */
@@ -951,19 +993,22 @@
   backface-visibility: hidden;
 }
 
-/* iOS-style bottom modal animations - optimized for speed */
+/* iOS-style bottom modal animations - GPU optimized */
 @layer utilities {
   .slide-in-from-bottom-100 {
-    animation: slide-in-from-bottom 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: slide-in-from-bottom 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform, opacity;
   }
 
   .slide-out-to-bottom-100 {
-    animation: slide-out-to-bottom 0.15s cubic-bezier(0.55, 0.055, 0.675, 0.19);
+    animation: slide-out-to-bottom 0.12s cubic-bezier(0.55, 0.055, 0.675, 0.19);
+    will-change: transform, opacity;
   }
 
   /* Professional fade and slide animations for auth flow */
   .slide-in-from-bottom-2 {
-    animation: slide-in-bottom-small 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: slide-in-bottom-small 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
   }
 
   .fill-mode-both {
@@ -973,44 +1018,45 @@
 
 @keyframes slide-in-bottom-small {
   from {
-    transform: translateY(8px);
+    transform: translate3d(0, 8px, 0);
     opacity: 0;
   }
   to {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
     opacity: 1;
   }
 }
 
 @keyframes slide-in-from-bottom {
   from {
-    transform: translateY(100%);
-    opacity: 0.85;
+    transform: translate3d(0, 100%, 0);
+    opacity: 0.9;
   }
   to {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
     opacity: 1;
   }
 }
 
 @keyframes slide-out-to-bottom {
   from {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
     opacity: 1;
   }
   to {
-    transform: translateY(100%);
-    opacity: 0.85;
+    transform: translate3d(0, 100%, 0);
+    opacity: 0.9;
   }
 }
 
-/* React-Split Gutter Styles - Professional Design */
+/* React-Split Gutter Styles - GPU optimized */
 .gutter {
   background-color: var(--border);
   background-repeat: no-repeat;
   background-position: 50%;
-  transition: background-color var(--motion-duration-fast) var(--motion-ease);
+  transition: background-color 0.1s ease-out;
   position: relative;
+  will-change: background-color;
 }
 
 .gutter.gutter-horizontal {
@@ -1126,6 +1172,395 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Trading Theme Colors */
+  --color-trading-buy: var(--trading-buy);
+  --color-trading-buy-bg: var(--trading-buy-bg);
+  --color-trading-buy-hover: var(--trading-buy-hover);
+  --color-trading-sell: var(--trading-sell);
+  --color-trading-sell-bg: var(--trading-sell-bg);
+  --color-trading-sell-hover: var(--trading-sell-hover);
+  --color-trading-neutral: var(--trading-neutral);
+  --color-trading-highlight: var(--trading-highlight);
+  --color-orderbook-spread-bg: var(--orderbook-spread-bg);
+}
+
+/* ============================================
+   Trading Terminal Styles
+   ============================================ */
+
+/* Order Book Row Styles - GPU optimized */
+.orderbook-row {
+  contain: layout style;
+  content-visibility: auto;
+}
+
+/* Flash animations for order book updates - GPU optimized */
+.flash-bid,
+.flash-ask,
+.flash-bid-update,
+.flash-ask-update {
+  will-change: opacity;
+}
+
+.flash-bid {
+  animation: flash-green 0.2s ease-out;
+}
+
+.flash-ask {
+  animation: flash-red 0.2s ease-out;
+}
+
+.flash-bid-update {
+  animation: flash-green-subtle 0.15s ease-out;
+}
+
+.flash-ask-update {
+  animation: flash-red-subtle 0.15s ease-out;
+}
+
+@keyframes flash-green {
+  0% {
+    background-color: var(--trading-buy-hover);
+    opacity: 1;
+  }
+  100% {
+    background-color: transparent;
+    opacity: 1;
+  }
+}
+
+@keyframes flash-red {
+  0% {
+    background-color: var(--trading-sell-hover);
+    opacity: 1;
+  }
+  100% {
+    background-color: transparent;
+    opacity: 1;
+  }
+}
+
+@keyframes flash-green-subtle {
+  0% { background-color: var(--trading-buy-bg); }
+  100% { background-color: transparent; }
+}
+
+@keyframes flash-red-subtle {
+  0% { background-color: var(--trading-sell-bg); }
+  100% { background-color: transparent; }
+}
+
+/* Trading Slider */
+.trading-slider [data-orientation="horizontal"] {
+  height: 6px;
+}
+
+.trading-slider [role="slider"] {
+  height: 14px;
+  width: 14px;
+}
+
+/* Form shake animation for validation errors - GPU optimized */
+.shake-error {
+  animation: shake 0.3s ease-in-out;
+  will-change: transform;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  20%, 60% { transform: translate3d(-3px, 0, 0); }
+  40%, 80% { transform: translate3d(3px, 0, 0); }
+}
+
+/* Order form validation states */
+.order-input-error {
+  border-color: var(--trading-sell) !important;
+  box-shadow: 0 0 0 1px var(--trading-sell-bg);
+}
+
+.order-input-success {
+  border-color: var(--trading-buy) !important;
+}
+
+/* Balance warning highlight - GPU optimized */
+.balance-warning {
+  color: var(--trading-sell);
+  animation: pulse-warning 2s ease-in-out infinite;
+  will-change: opacity;
+}
+
+@keyframes pulse-warning {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Trading button variants */
+.btn-trading-buy {
+  background-color: var(--trading-buy);
+  color: white;
+}
+
+.btn-trading-buy:hover {
+  background-color: var(--trading-buy);
+  opacity: 0.9;
+}
+
+.btn-trading-sell {
+  background-color: var(--trading-sell);
+  color: white;
+}
+
+.btn-trading-sell:hover {
+  background-color: var(--trading-sell);
+  opacity: 0.9;
+}
+
+/* ============================================
+   Glass-morphism Effects
+   ============================================ */
+
+.glass-card {
+  background: rgba(var(--card-rgb, 255, 255, 255), 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(var(--border-rgb, 0, 0, 0), 0.1);
+}
+
+.dark .glass-card {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-panel {
+  background: rgba(var(--background-rgb, 255, 255, 255), 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.dark .glass-panel {
+  background: rgba(10, 10, 10, 0.95);
+}
+
+/* ============================================
+   Enhanced Slider Styles
+   ============================================ */
+
+.slider-buy [data-orientation="horizontal"] > span:first-child {
+  background: linear-gradient(to right, 
+    rgba(34, 197, 94, 0.3) 0%, 
+    rgba(34, 197, 94, 0.6) 50%, 
+    var(--trading-buy) 100%
+  );
+}
+
+.slider-sell [data-orientation="horizontal"] > span:first-child {
+  background: linear-gradient(to right, 
+    rgba(239, 68, 68, 0.3) 0%, 
+    rgba(239, 68, 68, 0.6) 50%, 
+    var(--trading-sell) 100%
+  );
+}
+
+.slider-buy [role="slider"] {
+  border-color: var(--trading-buy);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+.slider-sell [role="slider"] {
+  border-color: var(--trading-sell);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+/* ============================================
+   Glow Effects
+   ============================================ */
+
+.glow-primary {
+  box-shadow: 0 0 20px rgba(var(--primary-rgb, 59, 130, 246), 0.3);
+}
+
+.glow-buy {
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.25);
+}
+
+.glow-sell {
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.25);
+}
+
+/* ============================================
+   Micro Animations - GPU Optimized
+   ============================================ */
+
+/* Subtle pulse for active elements */
+@keyframes subtle-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.animate-subtle-pulse {
+  animation: subtle-pulse 2.5s ease-in-out infinite;
+  will-change: opacity;
+}
+
+/* Price update flash */
+@keyframes price-flash {
+  0% { background-color: rgba(var(--primary-rgb, 59, 130, 246), 0.25); }
+  100% { background-color: transparent; }
+}
+
+.price-flash {
+  animation: price-flash 0.25s ease-out;
+  will-change: background-color;
+}
+
+/* Smooth fade in - GPU optimized with translate3d */
+@keyframes fade-in {
+  from { 
+    opacity: 0;
+    transform: translate3d(0, 4px, 0);
+  }
+  to { 
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.15s ease-out;
+  will-change: opacity, transform;
+}
+
+/* Slide in from side - GPU optimized */
+@keyframes slide-in-right {
+  from { 
+    opacity: 0;
+    transform: translate3d(8px, 0, 0);
+  }
+  to { 
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.15s ease-out;
+  will-change: opacity, transform;
+}
+
+/* ============================================
+   Scrollbar Styles
+   ============================================ */
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--muted-foreground-rgb, 128, 128, 128), 0.3) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(var(--muted-foreground-rgb, 128, 128, 128), 0.3);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(var(--muted-foreground-rgb, 128, 128, 128), 0.5);
+}
+
+/* ============================================
+   Focus & Accessibility
+   ============================================ */
+
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   Gradient Backgrounds
+   ============================================ */
+
+.gradient-subtle {
+  background: linear-gradient(
+    135deg,
+    rgba(var(--background-rgb, 255, 255, 255), 1) 0%,
+    rgba(var(--muted-rgb, 240, 240, 240), 0.5) 100%
+  );
+}
+
+.dark .gradient-subtle {
+  background: linear-gradient(
+    135deg,
+    rgba(10, 10, 10, 1) 0%,
+    rgba(20, 20, 20, 0.5) 100%
+  );
+}
+
+/* ============================================
+   Resizable Handle Enhancement
+   ============================================ */
+
+[data-panel-group-direction="horizontal"] > [data-slot="resizable-handle"] {
+  width: 4px;
+  margin: 0 -2px;
+  z-index: 10;
+  transition: background-color 0.2s ease;
+}
+
+[data-panel-group-direction="horizontal"] > [data-slot="resizable-handle"]:hover {
+  background-color: var(--primary);
+}
+
+[data-panel-group-direction="vertical"] > [data-slot="resizable-handle"] {
+  height: 4px;
+  margin: -2px 0;
+  z-index: 10;
+  transition: background-color 0.2s ease;
+}
+
+[data-panel-group-direction="vertical"] > [data-slot="resizable-handle"]:hover {
+  background-color: var(--primary);
+}
+
+/* ============================================
+   Table Enhancements
+   ============================================ */
+
+/* Row indicator styles */
+.row-indicator-buy {
+  position: relative;
+}
+
+.row-indicator-buy::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--trading-buy);
+}
+
+.row-indicator-sell::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--trading-sell);
 }
 
 @layer base {
