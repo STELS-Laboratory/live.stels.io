@@ -63,23 +63,23 @@ This guide explains the key concepts and workflows for frontend developers integ
 
 ```javascript
 // List all user accounts
-const accounts = await rpc('listAccounts', {});
+const accounts = await rpc("listAccounts", {});
 
 // Get agent with connected accounts
-const agent = await rpc('getAgent', { agentId });
+const agent = await rpc("getAgent", { agentId });
 // Returns: { ...agent, connectedAccounts: [...] }
 
 // Connect account to agent
-await rpc('connectAccountToAgent', {
-  agentId: 'agent-uuid',
-  accountId: 'account-nid',
-  grantedScopes: ['read', 'trade', 'balance']
+await rpc("connectAccountToAgent", {
+  agentId: "agent-uuid",
+  accountId: "account-nid",
+  grantedScopes: ["read", "trade", "balance"],
 });
 
 // Disconnect account from agent
-await rpc('disconnectAccountFromAgent', {
-  agentId: 'agent-uuid',
-  accountId: 'account-nid'
+await rpc("disconnectAccountFromAgent", {
+  agentId: "agent-uuid",
+  accountId: "account-nid",
 });
 ```
 
@@ -100,22 +100,23 @@ await rpc('disconnectAccountFromAgent', {
 <Dialog title="Connect Account to Agent">
   <Select
     label="Select Account"
-    options={availableAccounts.map(acc => ({
+    options={availableAccounts.map((acc) => ({
       value: acc.nid,
-      label: `${acc.name} (${acc.exchange})`
+      label: `${acc.name} (${acc.exchange})`,
     }))}
   />
-  
+
   <CheckboxGroup label="Permissions">
     <Checkbox value="read" label="View balances and orders" defaultChecked />
     <Checkbox value="trade" label="Create and cancel orders" />
     <Checkbox value="balance" label="View balance" defaultChecked />
   </CheckboxGroup>
-  
-  <Alert type="warning" show={scopes.includes('trade')}>
-    Warning: Trade permission allows the agent to execute trades on this account.
+
+  <Alert type="warning" show={scopes.includes("trade")}>
+    Warning: Trade permission allows the agent to execute trades on this
+    account.
   </Alert>
-</Dialog>
+</Dialog>;
 ```
 
 ---
@@ -150,53 +151,53 @@ A strategy is a pre-configured set of automated tasks. Each strategy is bound to
 
 ### Available Strategy Templates
 
-| Template | Description | Difficulty | Risk |
-|----------|-------------|------------|------|
-| `dca-strategy` | Dollar Cost Averaging - buy fixed amounts on schedule | Beginner | Low |
-| `market-making` | Market Making - provide liquidity, earn spread | Advanced | High |
-| `grid-trading` | Grid Trading - profit from price oscillations | Intermediate | Medium |
+| Template        | Description                                           | Difficulty   | Risk   |
+| --------------- | ----------------------------------------------------- | ------------ | ------ |
+| `dca-strategy`  | Dollar Cost Averaging - buy fixed amounts on schedule | Beginner     | Low    |
+| `market-making` | Market Making - provide liquidity, earn spread        | Advanced     | High   |
+| `grid-trading`  | Grid Trading - profit from price oscillations         | Intermediate | Medium |
 
 ### Strategy API Methods
 
 ```javascript
 // List available templates
-const templates = await rpc('listStrategyTemplates', {
-  domain: 'trading',
-  includeFull: false  // Summary only
+const templates = await rpc("listStrategyTemplates", {
+  domain: "trading",
+  includeFull: false, // Summary only
 });
 
 // Get full template with config schema
-const template = await rpc('getStrategyTemplate', {
-  templateId: 'dca-strategy'
+const template = await rpc("getStrategyTemplate", {
+  templateId: "dca-strategy",
 });
 
 // Create strategy instance (bound to agent)
-const strategy = await rpc('createStrategy', {
-  templateId: 'dca-strategy',
-  name: 'My BTC DCA',
-  agentId: 'agent-uuid',  // REQUIRED - strategy runs through this agent
-  ownerId: 'user-id',
+const strategy = await rpc("createStrategy", {
+  templateId: "dca-strategy",
+  name: "My BTC DCA",
+  agentId: "agent-uuid", // REQUIRED - strategy runs through this agent
+  ownerId: "user-id",
   config: {
-    accountId: 'binance-main',  // MUST be in agent's connectedAccounts
-    symbol: 'BTC/USDT',
+    accountId: "binance-main", // MUST be in agent's connectedAccounts
+    symbol: "BTC/USDT",
     amountPerBuy: 100,
-    frequency: 'daily'
+    frequency: "daily",
   },
-  autoStart: false
+  autoStart: false,
 });
 
 // List user's strategies
-const strategies = await rpc('listStrategies', {
-  ownerId: 'user-id',
-  status: 'running'
+const strategies = await rpc("listStrategies", {
+  ownerId: "user-id",
+  status: "running",
 });
 
 // Start/Stop strategy
-await rpc('startStrategy', { strategyId: 'strategy-uuid' });
-await rpc('stopStrategy', { strategyId: 'strategy-uuid' });
+await rpc("startStrategy", { strategyId: "strategy-uuid" });
+await rpc("stopStrategy", { strategyId: "strategy-uuid" });
 
 // Delete strategy
-await rpc('deleteStrategy', { strategyId: 'strategy-uuid' });
+await rpc("deleteStrategy", { strategyId: "strategy-uuid" });
 ```
 
 ### Dynamic Configuration Form
@@ -204,7 +205,9 @@ await rpc('deleteStrategy', { strategyId: 'strategy-uuid' });
 Strategy templates include a `configSchema` that defines the configuration form:
 
 ```javascript
-const template = await rpc('getStrategyTemplate', { templateId: 'dca-strategy' });
+const template = await rpc("getStrategyTemplate", {
+  templateId: "dca-strategy",
+});
 
 // configSchema contains:
 // - fields: Array of field definitions
@@ -238,9 +241,9 @@ const template = await rpc('getStrategyTemplate', { templateId: 'dca-strategy' }
     <AgentSelector
       agents={agents}
       onSelect={setSelectedAgent}
-      requiredPermissions={['trade']}  // Filter agents with trade-enabled accounts
+      requiredPermissions={["trade"]} // Filter agents with trade-enabled accounts
     />
-    
+
     {selectedAgent && (
       <ConnectedAccountsList accounts={selectedAgent.connectedAccounts} />
     )}
@@ -264,7 +267,7 @@ const template = await rpc('getStrategyTemplate', { templateId: 'dca-strategy' }
     />
     <Button onClick={createStrategy}>Create Strategy</Button>
   </Step>
-</Wizard>
+</Wizard>;
 ```
 
 ### Account Selector Component
@@ -274,20 +277,20 @@ When rendering `type: "account"` fields, show only the agent's connected account
 ```tsx
 function AccountSelector({ agent, field, value, onChange }) {
   // Filter agent's accounts by field requirements
-  const availableAccounts = agent.connectedAccounts.filter(acc => {
+  const availableAccounts = agent.connectedAccounts.filter((acc) => {
     // Check exchange filter
     if (field.accountFilter?.exchanges) {
       if (!field.accountFilter.exchanges.includes(acc.exchange)) return false;
     }
-    
+
     // Check required permissions
     if (field.accountFilter?.permissions) {
       const hasPermissions = field.accountFilter.permissions.every(
-        perm => acc.grantedScopes.includes(perm)
+        (perm) => acc.grantedScopes.includes(perm),
       );
       if (!hasPermissions) return false;
     }
-    
+
     return true;
   });
 
@@ -306,10 +309,10 @@ function AccountSelector({ agent, field, value, onChange }) {
       description={field.description}
       value={value}
       onChange={onChange}
-      options={availableAccounts.map(acc => ({
+      options={availableAccounts.map((acc) => ({
         value: acc.nid,
         label: `${acc.name} (${acc.exchange})`,
-        description: `Permissions: ${acc.grantedScopes.join(', ')}`
+        description: `Permissions: ${acc.grantedScopes.join(", ")}`,
       }))}
     />
   );
@@ -325,26 +328,24 @@ function AccountSelector({ agent, field, value, onChange }) {
 ```tsx
 function AgentStatusBadge({ agent }) {
   const { connectedAccounts } = agent;
-  
+
   const hasTradeAccess = connectedAccounts.some(
-    acc => acc.grantedScopes.includes('trade')
+    (acc) => acc.grantedScopes.includes("trade"),
   );
 
   return (
     <div>
-      <Badge color={agent.status === 'active' ? 'green' : 'gray'}>
+      <Badge color={agent.status === "active" ? "green" : "gray"}>
         {agent.status}
       </Badge>
-      
+
       <Tooltip content={`${connectedAccounts.length} connected accounts`}>
-        <Badge color={connectedAccounts.length > 0 ? 'blue' : 'gray'}>
+        <Badge color={connectedAccounts.length > 0 ? "blue" : "gray"}>
           {connectedAccounts.length} accounts
         </Badge>
       </Tooltip>
-      
-      {hasTradeAccess && (
-        <Badge color="orange">Trading enabled</Badge>
-      )}
+
+      {hasTradeAccess && <Badge color="orange">Trading enabled</Badge>}
     </div>
   );
 }
@@ -361,27 +362,33 @@ function StrategyCard({ strategy, template }) {
         <Title>{strategy.name}</Title>
         <StatusBadge status={strategy.status} />
       </CardHeader>
-      
+
       <CardBody>
         <Stat label="Template" value={template.name} />
         <Stat label="Account" value={strategy.config.accountId} />
         <Stat label="Symbol" value={strategy.config.symbol} />
-        
+
         {strategy.stats && (
           <>
             <Stat label="Executions" value={strategy.stats.totalExecutions} />
-            <Stat label="Success Rate" value={`${strategy.stats.successfulExecutions / strategy.stats.totalExecutions * 100}%`} />
+            <Stat
+              label="Success Rate"
+              value={`${
+                strategy.stats.successfulExecutions /
+                strategy.stats.totalExecutions * 100
+              }%`}
+            />
           </>
         )}
       </CardBody>
-      
+
       <CardFooter>
-        {strategy.status === 'running' ? (
-          <Button onClick={() => stopStrategy(strategy.id)}>Stop</Button>
-        ) : (
-          <Button onClick={() => startStrategy(strategy.id)}>Start</Button>
-        )}
-        <Button variant="danger" onClick={() => deleteStrategy(strategy.id)}>Delete</Button>
+        {strategy.status === "running"
+          ? <Button onClick={() => stopStrategy(strategy.id)}>Stop</Button>
+          : <Button onClick={() => startStrategy(strategy.id)}>Start</Button>}
+        <Button variant="danger" onClick={() => deleteStrategy(strategy.id)}>
+          Delete
+        </Button>
       </CardFooter>
     </Card>
   );
@@ -396,53 +403,53 @@ function StrategyCard({ strategy, template }) {
 
 ```javascript
 // 1. Get user's agents
-const { agents } = await rpc('listAgents', {});
+const { agents } = await rpc("listAgents", {});
 
 // 2. Get agent with connected accounts
-const { agent } = await rpc('getAgent', { agentId: agents[0].id });
-console.log('Connected accounts:', agent.connectedAccounts);
+const { agent } = await rpc("getAgent", { agentId: agents[0].id });
+console.log("Connected accounts:", agent.connectedAccounts);
 
 // 3. Get strategy template
-const { template } = await rpc('getStrategyTemplate', { 
-  templateId: 'dca-strategy' 
+const { template } = await rpc("getStrategyTemplate", {
+  templateId: "dca-strategy",
 });
 
 // 4. Validate account is connected to agent
-const accountId = 'binance-main';
+const accountId = "binance-main";
 const isAccountConnected = agent.connectedAccounts.some(
-  acc => acc.nid === accountId || acc.accountId === accountId
+  (acc) => acc.nid === accountId || acc.accountId === accountId,
 );
 
 if (!isAccountConnected) {
   // Connect account first
-  await rpc('connectAccountToAgent', {
+  await rpc("connectAccountToAgent", {
     agentId: agent.id,
     accountId: accountId,
-    grantedScopes: ['read', 'trade', 'balance']
+    grantedScopes: ["read", "trade", "balance"],
   });
 }
 
 // 5. Create strategy
-const { strategy } = await rpc('createStrategy', {
-  templateId: 'dca-strategy',
-  name: 'Daily BTC DCA',
+const { strategy } = await rpc("createStrategy", {
+  templateId: "dca-strategy",
+  name: "Daily BTC DCA",
   agentId: agent.id,
-  ownerId: 'user-id',
+  ownerId: "user-id",
   config: {
-    accountId: 'binance-main',
-    symbol: 'BTC/USDT',
+    accountId: "binance-main",
+    symbol: "BTC/USDT",
     amountPerBuy: 50,
-    frequency: 'daily',
-    executionTime: '09:00',
+    frequency: "daily",
+    executionTime: "09:00",
     smartDcaEnabled: false,
     notificationsEnabled: true,
-    notificationChannel: 'telegram'
+    notificationChannel: "telegram",
   },
-  autoStart: true
+  autoStart: true,
 });
 
-console.log('Strategy created:', strategy.id);
-console.log('Tasks created:', strategy.taskIds.length);
+console.log("Strategy created:", strategy.id);
+console.log("Tasks created:", strategy.taskIds.length);
 ```
 
 ### Error Handling
@@ -539,10 +546,10 @@ Without `conversationId`, each message starts a NEW conversation and the agent l
 
 ```javascript
 // First message (no conversationId)
-const response = await rpc('chatWithAgent', {
-  agentId: 'agent-uuid',
-  message: 'Sell 1 SOL at price 131',
-  stream: true  // or false for non-streaming
+const response = await rpc("chatWithAgent", {
+  agentId: "agent-uuid",
+  message: "Sell 1 SOL at price 131",
+  stream: true, // or false for non-streaming
 });
 
 // Response includes conversationId
@@ -552,11 +559,11 @@ const response = await rpc('chatWithAgent', {
 // }
 
 // Subsequent messages MUST include conversationId
-const response2 = await rpc('chatWithAgent', {
-  agentId: 'agent-uuid',
-  message: 'Yes, I confirm',
-  conversationId: 'abc-123-def-456',  // ◄── CRITICAL!
-  stream: true
+const response2 = await rpc("chatWithAgent", {
+  agentId: "agent-uuid",
+  message: "Yes, I confirm",
+  conversationId: "abc-123-def-456", // ◄── CRITICAL!
+  stream: true,
 });
 ```
 
@@ -567,44 +574,44 @@ When using `stream: true`, the response comes as Server-Sent Events (SSE). The `
 ```javascript
 // SSE Stream handling
 async function handleStreamingChat(agentId, message, conversationId) {
-  const response = await fetch('/api', {
-    method: 'POST',
+  const response = await fetch("/api", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'stels-session': sessionId
+      "Content-Type": "application/json",
+      "stels-session": sessionId,
     },
     body: JSON.stringify({
-      webfix: '1.0',
-      method: 'chatWithAgent',
+      webfix: "1.0",
+      method: "chatWithAgent",
       body: {
         agentId,
         message,
-        conversationId,  // Pass if continuing conversation
-        stream: true
-      }
-    })
+        conversationId, // Pass if continuing conversation
+        stream: true,
+      },
+    }),
   });
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let currentConversationId = conversationId;
-  let fullContent = '';
+  let fullContent = "";
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
 
     const text = decoder.decode(value);
-    const lines = text.split('\n');
+    const lines = text.split("\n");
 
     for (const line of lines) {
-      if (line.startsWith('data: ')) {
+      if (line.startsWith("data: ")) {
         const data = line.slice(6);
-        if (data === '[DONE]') continue;
+        if (data === "[DONE]") continue;
 
         try {
           const chunk = JSON.parse(data);
-          
+
           // Extract conversationId from first chunk
           if (chunk.conversationId && !currentConversationId) {
             currentConversationId = chunk.conversationId;
@@ -634,11 +641,11 @@ async function handleStreamingChat(agentId, message, conversationId) {
 
 ```javascript
 async function handleNonStreamingChat(agentId, message, conversationId) {
-  const response = await rpc('chatWithAgent', {
+  const response = await rpc("chatWithAgent", {
     agentId,
     message,
-    conversationId,  // Pass if continuing conversation
-    stream: false
+    conversationId, // Pass if continuing conversation
+    stream: false,
   });
 
   // Response format:
@@ -660,10 +667,10 @@ async function handleNonStreamingChat(agentId, message, conversationId) {
 ### React Hook Example
 
 ```tsx
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from "react";
 
 interface Message {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: number;
 }
@@ -676,19 +683,19 @@ function useChatWithAgent(agentId: string) {
   const sendMessage = useCallback(async (content: string) => {
     // Add user message to UI
     const userMessage: Message = {
-      role: 'user',
+      role: "user",
       content,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
-      const response = await rpc('chatWithAgent', {
+      const response = await rpc("chatWithAgent", {
         agentId,
         message: content,
-        conversationId,  // Pass existing conversationId (or null for first message)
-        stream: false
+        conversationId, // Pass existing conversationId (or null for first message)
+        stream: false,
       });
 
       // Save conversationId for next message
@@ -698,14 +705,13 @@ function useChatWithAgent(agentId: string) {
 
       // Add assistant message to UI
       const assistantMessage: Message = {
-        role: 'assistant',
+        role: "assistant",
         content: response.response,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-      setMessages(prev => [...prev, assistantMessage]);
-
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Chat error:', error);
+      console.error("Chat error:", error);
       // Handle error - maybe show retry button
     } finally {
       setIsLoading(false);
@@ -714,7 +720,7 @@ function useChatWithAgent(agentId: string) {
 
   const clearConversation = useCallback(() => {
     setMessages([]);
-    setConversationId(null);  // New conversation on next message
+    setConversationId(null); // New conversation on next message
   }, []);
 
   return {
@@ -722,20 +728,21 @@ function useChatWithAgent(agentId: string) {
     sendMessage,
     clearConversation,
     isLoading,
-    conversationId
+    conversationId,
   };
 }
 
 // Usage in component
 function ChatComponent({ agentId }: { agentId: string }) {
-  const { messages, sendMessage, clearConversation, isLoading } = useChatWithAgent(agentId);
-  const [input, setInput] = useState('');
+  const { messages, sendMessage, clearConversation, isLoading } =
+    useChatWithAgent(agentId);
+  const [input, setInput] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
       sendMessage(input);
-      setInput('');
+      setInput("");
     }
   };
 
@@ -745,7 +752,7 @@ function ChatComponent({ agentId }: { agentId: string }) {
         <h3>Chat with Agent</h3>
         <button onClick={clearConversation}>New Conversation</button>
       </div>
-      
+
       <div className="messages">
         {messages.map((msg, idx) => (
           <div key={idx} className={`message ${msg.role}`}>
@@ -754,7 +761,7 @@ function ChatComponent({ agentId }: { agentId: string }) {
         ))}
         {isLoading && <div className="loading">Agent is thinking...</div>}
       </div>
-      
+
       <form onSubmit={handleSubmit}>
         <input
           value={input}
@@ -772,6 +779,7 @@ function ChatComponent({ agentId }: { agentId: string }) {
 ### Conversation Persistence Strategies
 
 #### Option 1: In-Memory (Per Session)
+
 ```javascript
 // Simple: conversationId lost on page refresh
 const conversationIds = new Map(); // agentId -> conversationId
@@ -782,6 +790,7 @@ function saveConversationId(agentId, conversationId) {
 ```
 
 #### Option 2: LocalStorage (Persistent)
+
 ```javascript
 // Better: conversation persists across page refreshes
 function saveConversationId(agentId, conversationId) {
@@ -796,17 +805,18 @@ function loadConversationId(agentId) {
 ```
 
 #### Option 3: URL Parameter (Shareable)
+
 ```javascript
 // Best for shareable chat links
 function updateURL(conversationId) {
   const url = new URL(window.location);
-  url.searchParams.set('conversation', conversationId);
-  window.history.replaceState({}, '', url);
+  url.searchParams.set("conversation", conversationId);
+  window.history.replaceState({}, "", url);
 }
 
 function loadFromURL() {
   const params = new URLSearchParams(window.location.search);
-  return params.get('conversation');
+  return params.get("conversation");
 }
 ```
 
@@ -835,35 +845,34 @@ This multi-step flow happens automatically on the backend. The frontend receives
 
 ```javascript
 try {
-  const response = await rpc('chatWithAgent', {
+  const response = await rpc("chatWithAgent", {
     agentId,
     message,
-    conversationId
+    conversationId,
   });
 
   if (!response.success) {
     // Handle specific errors
     switch (response.code) {
-      case 'AGENT_NOT_FOUND':
-        showError('Agent not found');
+      case "AGENT_NOT_FOUND":
+        showError("Agent not found");
         break;
-      case 'AGENT_INACTIVE':
-        showError('Agent is not active');
+      case "AGENT_INACTIVE":
+        showError("Agent is not active");
         break;
-      case 'RATE_LIMITED':
-        showError('Too many requests. Please wait.');
+      case "RATE_LIMITED":
+        showError("Too many requests. Please wait.");
         break;
       default:
-        showError(response.message || 'Chat failed');
+        showError(response.message || "Chat failed");
     }
     return;
   }
 
   // Success - update UI
   addMessage(response.response);
-  
 } catch (error) {
-  showError('Network error. Please try again.');
+  showError("Network error. Please try again.");
 }
 ```
 
@@ -891,7 +900,7 @@ try {
   </MessageList>
 
   <InputArea>
-    <TextInput 
+    <TextInput
       value={input}
       onChange={setInput}
       onKeyDown={handleKeyDown}
@@ -899,9 +908,8 @@ try {
     />
     <SendButton onClick={sendMessage} disabled={isLoading} />
   </InputArea>
-</ChatContainer>
+</ChatContainer>;
 ```
-
 
 ---
 
@@ -916,8 +924,8 @@ When the client app loads or refreshes, it can retrieve the full conversation hi
 const conversationId = localStorage.getItem(`chat_conversation_${agentId}`);
 
 if (conversationId) {
-  const response = await rpc('getConversation', { conversationId });
-  
+  const response = await rpc("getConversation", { conversationId });
+
   if (response.success) {
     // Restore messages to UI
     const { conversation } = response;
@@ -936,10 +944,10 @@ Get a list of all user's conversations (useful for conversation sidebar/history)
 
 ```javascript
 // List all conversations for the user
-const response = await rpc('listConversations', {
-  agentId: 'optional-agent-uuid',  // Filter by specific agent
+const response = await rpc("listConversations", {
+  agentId: "optional-agent-uuid", // Filter by specific agent
   limit: 20,
-  offset: 0
+  offset: 0,
 });
 
 // Response:
@@ -971,7 +979,7 @@ const response = await rpc('listConversations', {
 ### Complete Implementation Example
 
 ```tsx
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from "react";
 
 interface Conversation {
   id: string;
@@ -999,14 +1007,16 @@ function useChatWithHistory(agentId: string) {
 
   // Load specific conversation from localStorage
   useEffect(() => {
-    const savedConversationId = localStorage.getItem(`chat_conversation_${agentId}`);
+    const savedConversationId = localStorage.getItem(
+      `chat_conversation_${agentId}`,
+    );
     if (savedConversationId) {
       loadConversation(savedConversationId);
     }
   }, [agentId]);
 
   const loadConversations = async () => {
-    const response = await rpc('listConversations', { agentId });
+    const response = await rpc("listConversations", { agentId });
     if (response.success) {
       setConversations(response.conversations);
     }
@@ -1015,7 +1025,7 @@ function useChatWithHistory(agentId: string) {
   const loadConversation = async (convId: string) => {
     setIsLoading(true);
     try {
-      const response = await rpc('getConversation', { conversationId: convId });
+      const response = await rpc("getConversation", { conversationId: convId });
       if (response.success) {
         setConversationId(convId);
         setMessages(response.conversation.messages);
@@ -1027,32 +1037,35 @@ function useChatWithHistory(agentId: string) {
   };
 
   const sendMessage = async (content: string) => {
-    const userMessage = { role: 'user', content, timestamp: Date.now() };
-    setMessages(prev => [...prev, userMessage]);
+    const userMessage = { role: "user", content, timestamp: Date.now() };
+    setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
-      const response = await rpc('chatWithAgent', {
+      const response = await rpc("chatWithAgent", {
         agentId,
         message: content,
-        conversationId,  // Pass existing conversationId or null
-        stream: false
+        conversationId, // Pass existing conversationId or null
+        stream: false,
       });
 
       if (response.success) {
         // Save conversationId for future messages
         if (response.conversationId) {
           setConversationId(response.conversationId);
-          localStorage.setItem(`chat_conversation_${agentId}`, response.conversationId);
+          localStorage.setItem(
+            `chat_conversation_${agentId}`,
+            response.conversationId,
+          );
         }
 
         const assistantMessage = {
-          role: 'assistant',
+          role: "assistant",
           content: response.response,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
-        setMessages(prev => [...prev, assistantMessage]);
-        
+        setMessages((prev) => [...prev, assistantMessage]);
+
         // Refresh conversation list to update lastMessage
         loadConversations();
       }
@@ -1079,7 +1092,7 @@ function useChatWithHistory(agentId: string) {
     conversations,
     startNewConversation,
     switchConversation,
-    loadConversations
+    loadConversations,
   };
 }
 ```
@@ -1095,7 +1108,7 @@ function ChatWithSidebar({ agentId }: { agentId: string }) {
     conversationId,
     conversations,
     startNewConversation,
-    switchConversation
+    switchConversation,
   } = useChatWithHistory(agentId);
 
   return (
@@ -1105,16 +1118,18 @@ function ChatWithSidebar({ agentId }: { agentId: string }) {
         <button onClick={startNewConversation} className="new-chat-btn">
           + New Conversation
         </button>
-        
+
         <div className="conversation-list">
-          {conversations.map(conv => (
+          {conversations.map((conv) => (
             <div
               key={conv.id}
-              className={`conversation-item ${conv.id === conversationId ? 'active' : ''}`}
+              className={`conversation-item ${
+                conv.id === conversationId ? "active" : ""
+              }`}
               onClick={() => switchConversation(conv.id)}
             >
               <div className="conv-preview">
-                {conv.lastMessage?.content || 'Empty conversation'}
+                {conv.lastMessage?.content || "Empty conversation"}
               </div>
               <div className="conv-meta">
                 {conv.messageCount} messages • {formatDate(conv.updatedAt)}
@@ -1137,23 +1152,484 @@ function ChatWithSidebar({ agentId }: { agentId: string }) {
 
 ### API Reference
 
-| Method | Description | Auth Required |
-|--------|-------------|---------------|
-| `chatWithAgent` | Send message, receive response | Yes |
-| `getConversation` | Get full conversation by ID | Yes |
-| `listConversations` | List user's conversations | Yes |
+| Method              | Description                    | Auth Required |
+| ------------------- | ------------------------------ | ------------- |
+| `chatWithAgent`     | Send message, receive response | Yes           |
+| `getConversation`   | Get full conversation by ID    | Yes           |
+| `listConversations` | List user's conversations      | Yes           |
 
 #### `getConversation` Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `conversationId` | string | Yes | UUID of the conversation |
+| Parameter        | Type   | Required | Description              |
+| ---------------- | ------ | -------- | ------------------------ |
+| `conversationId` | string | Yes      | UUID of the conversation |
 
 #### `listConversations` Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `agentId` | string | No | Filter by specific agent |
-| `limit` | number | No | Max results (default: 50) |
-| `offset` | number | No | Pagination offset (default: 0) |
+| Parameter | Type   | Required | Description                    |
+| --------- | ------ | -------- | ------------------------------ |
+| `agentId` | string | No       | Filter by specific agent       |
+| `limit`   | number | No       | Max results (default: 50)      |
+| `offset`  | number | No       | Pagination offset (default: 0) |
+
+---
+
+## ⚠️ v2.12.0 Breaking Change: Unified Response Format
+
+**All API responses now use the `raw` field for data payload.**
+
+See `/docs/WEBFIX-MIGRATION-GUIDE.md` for complete migration instructions.
+
+### Quick Migration
+
+```typescript
+// Before (v2.11.x)
+const response = await rpc("listOrders", { nid: "g-vld" });
+const orders = response.data.orders;
+const balance = response.data;
+const agent = response.agent;
+
+// After (v2.12.0)
+const response = await rpc("listOrders", { nid: "g-vld" });
+const orders = response.raw.orders;
+const balance = response.raw;
+const agent = response.raw.agent;
+```
+
+---
+
+## New Trading Methods (v2.12.0)
+
+### accountId vs nid
+
+New trading methods accept `accountId` (UUID) instead of `nid`:
+- **accountId**: UUID from `listAccounts` response (`account.aid`) or `connectAccount`
+- **nid**: Legacy network identifier (e.g., "g-vld", "binance-main")
+
+Both old and new methods continue to work. Use new methods for better type safety.
+
+### fetchPositions - Get Open Positions
+
+```typescript
+const result = await rpc<Position[]>("fetchPositions", {
+  accountId: "uuid-string",
+  symbol: "BTC/USDT" // optional
+});
+
+if (result.success && result.raw) {
+  result.raw.forEach(position => {
+    console.log(`${position.symbol}: ${position.side} ${position.amount}`);
+    console.log(`  Entry: ${position.entryPrice}, Mark: ${position.markPrice}`);
+    console.log(`  PnL: ${position.unrealizedPnl} (${position.percentage}%)`);
+  });
+}
+
+interface Position {
+  symbol: string;
+  side: "long" | "short";
+  amount: number;
+  entryPrice: number;
+  markPrice: number;
+  liquidationPrice: number;
+  leverage: number;
+  margin: number;
+  unrealizedPnl: number;
+  percentage: number;
+}
+```
+
+### fetchBalance - Get Balance by accountId
+
+```typescript
+const result = await rpc<BalanceResponse>("fetchBalance", {
+  accountId: "uuid-string"
+});
+
+// Same response format as getBalance
+```
+
+### fetchOpenOrders - Get Open Orders
+
+```typescript
+const result = await rpc<Order[]>("fetchOpenOrders", {
+  accountId: "uuid-string",
+  symbol: "BTC/USDT" // optional
+});
+```
+
+### fetchOrderHistory - Get Order History
+
+```typescript
+const result = await rpc<Order[]>("fetchOrderHistory", {
+  accountId: "uuid-string",
+  symbol: "BTC/USDT",    // optional
+  since: 1705000000000,  // optional: timestamp
+  limit: 50              // optional: 1-1000, default 50
+});
+```
+
+### fetchTrades - Get Trade History
+
+```typescript
+const result = await rpc<Trade[]>("fetchTrades", {
+  accountId: "uuid-string",
+  symbol: "BTC/USDT",    // optional
+  since: 1705000000000,  // optional
+  limit: 50              // optional: 1-1000
+});
+```
+
+### setLeverage - Set Futures Leverage
+
+```typescript
+const result = await rpc<{ leverage: number; symbol?: string }>("setLeverage", {
+  accountId: "uuid-string",
+  leverage: 10,           // 1-125
+  symbol: "BTC/USDT"      // optional: specific symbol or all
+});
+
+if (result.success) {
+  console.log(`Leverage set to ${result.raw.leverage}x`);
+}
+```
+
+### transferFunds - Internal Transfer
+
+```typescript
+const result = await rpc<TransferResult>("transferFunds", {
+  accountId: "uuid-string",
+  currency: "USDT",
+  amount: 1000.00,
+  fromAccount: "spot",     // spot | margin | futures | funding
+  toAccount: "futures"
+});
+
+if (result.success) {
+  console.log(`Transfer ${result.raw.transferId}: ${result.raw.amount} ${result.raw.currency}`);
+}
+```
+
+### createBatchOrders - Batch Orders
+
+```typescript
+const result = await rpc<BatchOrdersResult>("createBatchOrders", {
+  accountId: "uuid-string",
+  orders: [
+    {
+      symbol: "BTC/USDT",
+      side: "buy",
+      type: "limit",
+      amount: 0.01,
+      price: 42000.00,
+      timeInForce: "GTC"
+    },
+    {
+      symbol: "BTC/USDT",
+      side: "sell",
+      type: "limit",
+      amount: 0.01,
+      price: 45000.00
+    }
+  ]
+});
+
+if (result.success && result.raw) {
+  console.log(`Total: ${result.raw.total}, Success: ${result.raw.successful}, Failed: ${result.raw.failed}`);
+  result.raw.results.forEach(r => {
+    if (r.success) {
+      console.log(`Order ${r.data.id} created`);
+    } else {
+      console.log(`Order failed: ${r.error}`);
+    }
+  });
+}
+
+interface BatchOrdersResult {
+  total: number;
+  successful: number;
+  failed: number;
+  results: Array<{
+    order: BatchOrderParams;
+    success: boolean;
+    data: Order | null;
+    error: string | null;
+  }>;
+  timestamp: number;
+}
+```
+
+### createConditionalOrder - Conditional Orders
+
+```typescript
+const result = await rpc<ConditionalOrderResult>("createConditionalOrder", {
+  accountId: "uuid-string",
+  condition: {
+    type: "price",           // price | time | indicator
+    operator: "gte",         // gt | lt | eq | gte | lte
+    value: 45000.00,
+    symbol: "BTC/USDT"       // required for price type
+  },
+  order: {
+    symbol: "BTC/USDT",
+    side: "buy",
+    type: "market",
+    amount: 0.01
+  },
+  expiresAt: 1705100000000   // optional
+});
+
+if (result.success && result.raw) {
+  console.log(`Conditional order ${result.raw.conditionalOrderId}: ${result.raw.status}`);
+}
+```
+
+---
+
+## TypeScript Types Reference
+
+```typescript
+// Base API Response (v2.12.0)
+interface ApiResponse<T = unknown> {
+  success: boolean;
+  raw?: T;
+  error?: {
+    code: string;
+    message: string;
+    details?: unknown;
+    httpStatus?: number;
+  };
+  channel?: string;
+  module?: string;
+  requestId?: string;
+  timestamp?: number;
+}
+
+// Trading Types
+type OrderSide = "buy" | "sell";
+type PositionSide = "long" | "short";
+type OrderType = "market" | "limit" | "stop" | "stop_limit" | "trailing_stop" | "take_profit" | "take_profit_limit";
+type OrderStatus = "pending" | "open" | "partial" | "filled" | "cancelled" | "rejected" | "expired";
+type AccountType = "spot" | "margin" | "futures" | "funding";
+type TimeInForce = "GTC" | "IOC" | "FOK" | "GTD" | "PO";
+
+interface Order {
+  id: string;
+  symbol: string;
+  side: OrderSide;
+  type: OrderType;
+  status: OrderStatus;
+  price?: number;
+  amount: number;
+  filled: number;
+  remaining: number;
+  cost?: number;
+  average?: number;
+  timestamp: number;
+}
+
+interface Position {
+  symbol: string;
+  side: PositionSide;
+  amount: number;
+  entryPrice: number;
+  markPrice: number;
+  liquidationPrice: number;
+  leverage: number;
+  margin: number;
+  unrealizedPnl: number;
+  percentage: number;
+}
+
+interface Trade {
+  id: string;
+  symbol: string;
+  side: OrderSide;
+  price: number;
+  amount: number;
+  cost: number;
+  fee?: { cost: number; currency: string };
+  timestamp: number;
+}
+```
+
+---
+
+## Multi-Market Trading Support (v2.13.0)
+
+### Overview
+
+The platform now supports multiple market types within a single account, allowing users to switch between different trading instruments:
+
+- **spot** - Spot trading (buy/sell actual assets)
+- **linear** - USDT-margined perpetual futures
+- **inverse** - Coin-margined perpetual futures
+- **option** - Options trading
+
+### Getting Available Market Types
+
+Use `getAccountMarketTypes` to get the list of available market types for an account:
+
+```javascript
+const marketTypes = await rpc("getAccountMarketTypes", {
+  accountId: "account-uuid"  // or nid: "g-my-account"
+});
+
+// Response:
+{
+  "success": true,
+  "raw": {
+    "accountId": "g-my-bybit",
+    "exchange": "bybit",
+    "exchangeSupportedTypes": ["spot", "linear", "inverse", "option"],
+    "availableMarketTypes": ["spot", "linear", "inverse", "option"],
+    "defaultMarketType": "spot",
+    "marketTypes": [
+      {
+        "type": "spot",
+        "name": "Spot Trading",
+        "description": "Buy and sell actual assets at current market prices",
+        "isDefault": true,
+        "isAvailable": true,
+        "availableMethods": [
+          "getBalance", "fetchBalanceById", "getTicker", "getOrderBook",
+          "createOrder", "cancelOrder", "getOrder",
+          "listOrders", "fetchOpenOrders", "fetchOrderHistory",
+          "listTrades", "fetchTradesById", "createBatchOrders"
+        ]
+      },
+      {
+        "type": "linear",
+        "name": "USDT Perpetual Futures",
+        "description": "USDT-margined perpetual contracts with leverage",
+        "isDefault": false,
+        "isAvailable": true,
+        "availableMethods": [
+          "getBalance", "fetchBalanceById", "getTicker", "getOrderBook",
+          "createOrder", "cancelOrder", "getOrder",
+          "listOrders", "fetchOpenOrders", "fetchOrderHistory",
+          "listTrades", "fetchTradesById", "createBatchOrders",
+          "fetchPositions", "setLeverage", "createConditionalOrder", "transferFunds"
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Exchange Support Matrix
+
+| Exchange | spot | linear | inverse | option |
+|----------|------|--------|---------|--------|
+| Bybit | ✅ | ✅ | ✅ | ✅ |
+| Binance | ✅ | ✅ | ✅ | ❌ |
+| OKX | ✅ | ✅ | ❌ | ✅ |
+| Gate | ✅ | ✅ | ❌ | ❌ |
+| KuCoin | ✅ | ✅ | ❌ | ❌ |
+| Bitget | ✅ | ✅ | ❌ | ❌ |
+| MEXC | ✅ | ✅ | ❌ | ❌ |
+| Coinbase | ✅ | ❌ | ❌ | ❌ |
+
+### UI Implementation
+
+#### Market Type Selector Component
+
+```tsx
+// Example: Market Type Selector
+function MarketTypeSelector({ accountId, onChange }) {
+  const [marketTypes, setMarketTypes] = useState([]);
+  const [selected, setSelected] = useState(null);
+
+  useEffect(() => {
+    async function loadMarketTypes() {
+      const response = await rpc("getAccountMarketTypes", { accountId });
+      if (response.success) {
+        setMarketTypes(response.raw.marketTypes.filter(t => t.isAvailable));
+        setSelected(response.raw.defaultMarketType);
+      }
+    }
+    loadMarketTypes();
+  }, [accountId]);
+
+  return (
+    <div className="market-type-selector">
+      {marketTypes.map(mt => (
+        <button
+          key={mt.type}
+          className={selected === mt.type ? "active" : ""}
+          onClick={() => {
+            setSelected(mt.type);
+            onChange(mt.type, mt.availableMethods);
+          }}
+        >
+          {mt.name}
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+#### Conditional UI Based on Available Methods
+
+```tsx
+// Show/hide UI elements based on available methods
+function TradingTerminal({ marketType, availableMethods }) {
+  const hasPositions = availableMethods.includes("fetchPositions");
+  const hasLeverage = availableMethods.includes("setLeverage");
+  const hasTransfer = availableMethods.includes("transferFunds");
+
+  return (
+    <div className="trading-terminal">
+      {/* Always show */}
+      <OrderForm />
+      <OrderBook />
+      <TradeHistory />
+
+      {/* Only show for derivatives */}
+      {hasPositions && <PositionsPanel />}
+      
+      {/* Only show for futures */}
+      {hasLeverage && <LeverageSlider />}
+      {hasTransfer && <TransferButton />}
+    </div>
+  );
+}
+```
+
+### Trading Methods with Market Type Override
+
+When calling trading methods, you can override the market type per-request:
+
+```javascript
+// Fetch positions for linear futures (even if account default is spot)
+const positions = await rpc("fetchPositions", {
+  accountId: "account-uuid",
+  marketType: "linear"  // Override market type
+});
+
+// Fetch balance for inverse futures
+const balance = await rpc("fetchBalanceById", {
+  accountId: "account-uuid",
+  marketType: "inverse"
+});
+```
+
+### RPC Methods per Market Type
+
+| Method | spot | linear | inverse | option |
+|--------|------|--------|---------|--------|
+| getBalance | ✅ | ✅ | ✅ | ✅ |
+| getTicker | ✅ | ✅ | ✅ | ✅ |
+| getOrderBook | ✅ | ✅ | ✅ | ✅ |
+| createOrder | ✅ | ✅ | ✅ | ✅ |
+| cancelOrder | ✅ | ✅ | ✅ | ✅ |
+| listOrders | ✅ | ✅ | ✅ | ✅ |
+| listTrades | ✅ | ✅ | ✅ | ✅ |
+| createBatchOrders | ✅ | ✅ | ✅ | ✅ |
+| fetchPositions | ❌ | ✅ | ✅ | ✅ |
+| setLeverage | ❌ | ✅ | ✅ | ❌ |
+| createConditionalOrder | ❌ | ✅ | ✅ | ✅ |
+| transferFunds | ❌ | ✅ | ✅ | ❌ |
+
+---
 

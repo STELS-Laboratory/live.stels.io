@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useRef, useState, memo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import {
   Bot,
   Send,
@@ -24,6 +25,12 @@ import {
   Rocket,
   CloudOff,
   RefreshCw,
+  ChevronDown,
+  ChevronRight,
+  Brain,
+  Wrench,
+  FileJson,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,6 +53,20 @@ import { cn } from "@/lib/utils";
 import { useAccountsStore } from "@/stores/modules/accounts.store";
 import { getExchangeIconPath } from "@/apps/accounts/types";
 import type { Agent, ChatMessage } from "../types";
+import {
+  parseAgentMessage,
+  formatJsonForDisplay,
+  getToolCallSummary,
+  getJsonPreview,
+  convertHtmlLinksToMarkdown,
+  processLatex,
+  type MessageBlock,
+} from "@/lib/agent-message-parser";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface AgentChatPanelProps {
   agent: Agent | null;
@@ -71,9 +92,13 @@ function formatTimestamp(timestamp: number): string {
 
 /** Markdown content renderer with custom styling */
 const MarkdownContent = memo(function MarkdownContent({ content }: { content: string }) {
+  // Pre-process content: convert HTML links and process LaTeX
+  const processedContent = processLatex(convertHtmlLinksToMarkdown(content));
+  
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
+      rehypePlugins={[rehypeRaw]}
       components={{
         // Headings
         h1: ({ children }) => (
@@ -141,9 +166,10 @@ const MarkdownContent = memo(function MarkdownContent({ content }: { content: st
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary underline underline-offset-2 hover:text-primary/80"
+            className="text-primary underline underline-offset-2 hover:text-primary/80 inline-flex items-center gap-1"
           >
             {children}
+            <ExternalLink className="w-3 h-3 inline-block" />
           </a>
         ),
         // Blockquote
@@ -171,8 +197,235 @@ const MarkdownContent = memo(function MarkdownContent({ content }: { content: st
         ),
       }}
     >
-      {content}
+      {processedContent}
     </ReactMarkdown>
+  );
+});
+
+/** Collapsible JSON block with syntax highlighting */
+const JsonBlock = memo(function JsonBlock({ 
+  content, 
+  label = "JSON Data",
+  defaultCollapsed = false,
+}: { 
+  content: string; 
+  label?: string;
+  defaultCollapsed?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(!defaultCollapsed);
+  const [copied, setCopied] = useState(false);
+  
+  const formatted = formatJsonForDisplay(content);
+  const preview = getJsonPreview(content);
+  
+  const handleCopy = useCallback(async () => {
+    await navigator.clipboard.writeText(formatted);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [formatted]);
+  
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="my-2">
+      <div className="bg-background/60 border border-border rounded-lg overflow-hidden">
+        <CollapsibleTrigger asChild>
+          <button className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted/50 transition-colors">
+            {isOpen ? (
+              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+            )}
+            <FileJson className="w-3.5 h-3.5 text-blue-500" />
+            <span className="font-medium text-foreground">{label}</span>
+            {!isOpen && (
+              <span className="text-muted-foreground ml-2 truncate">{preview}</span>
+            )}
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="relative border-t border-border">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2 w-6 h-6 z-10"
+              onClick={handleCopy}
+            >
+              {copied ? (
+                <Check className="w-3 h-3 text-green-500" />
+              ) : (
+                <Copy className="w-3 h-3" />
+              )}
+            </Button>
+            <pre className="p-3 text-xs font-mono overflow-x-auto max-h-[300px] overflow-y-auto">
+              <code className="text-foreground">{formatted}</code>
+            </pre>
+          </div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
+  );
+});
+
+/** Collapsible thinking/reasoning block (hidden by default) */
+const ThinkingBlock = memo(function ThinkingBlock({ content }: { content: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="my-2">
+      <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg overflow-hidden">
+        <CollapsibleTrigger asChild>
+          <button className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-amber-500/10 transition-colors">
+            {isOpen ? (
+              <ChevronDown className="w-3.5 h-3.5 text-amber-600" />
+            ) : (
+              <ChevronRight className="w-3.5 h-3.5 text-amber-600" />
+            )}
+            <Brain className="w-3.5 h-3.5 text-amber-600" />
+            <span className="font-medium text-amber-700 dark:text-amber-500">Хід думок агента</span>
+            {!isOpen && (
+              <span className="text-amber-600/60 ml-2 truncate text-[10px]">
+                (натисніть, щоб розгорнути)
+              </span>
+            )}
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="border-t border-amber-500/20 px-3 py-2">
+            <p className="text-xs text-amber-700/80 dark:text-amber-400/80 whitespace-pre-wrap leading-relaxed">
+              {content}
+            </p>
+          </div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
+  );
+});
+
+/** Tool call block showing function name and arguments */
+const ToolCallBlock = memo(function ToolCallBlock({ 
+  content,
+  toolName,
+  toolArgs,
+}: { 
+  content: string;
+  toolName?: string;
+  toolArgs?: Record<string, unknown>;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  
+  const summary = toolName 
+    ? getToolCallSummary(toolName, toolArgs)
+    : "Tool Call";
+  
+  const handleCopy = useCallback(async () => {
+    await navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [content]);
+  
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="my-2">
+      <div className="bg-purple-500/5 border border-purple-500/20 rounded-lg overflow-hidden">
+        <CollapsibleTrigger asChild>
+          <button className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-purple-500/10 transition-colors">
+            {isOpen ? (
+              <ChevronDown className="w-3.5 h-3.5 text-purple-600" />
+            ) : (
+              <ChevronRight className="w-3.5 h-3.5 text-purple-600" />
+            )}
+            <Wrench className="w-3.5 h-3.5 text-purple-600" />
+            <span className="font-medium text-purple-700 dark:text-purple-400">
+              Виклик функції
+            </span>
+            <code className="text-purple-600 dark:text-purple-400 font-mono text-[10px] truncate">
+              {summary}
+            </code>
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="relative border-t border-purple-500/20">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2 w-6 h-6 z-10"
+              onClick={handleCopy}
+            >
+              {copied ? (
+                <Check className="w-3 h-3 text-green-500" />
+              ) : (
+                <Copy className="w-3 h-3" />
+              )}
+            </Button>
+            <pre className="p-3 text-xs font-mono overflow-x-auto max-h-[200px] overflow-y-auto">
+              <code className="text-purple-800 dark:text-purple-300">
+                {formatJsonForDisplay(content)}
+              </code>
+            </pre>
+          </div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
+  );
+});
+
+/** Renders parsed message blocks with appropriate components */
+const ParsedMessageContent = memo(function ParsedMessageContent({ 
+  content 
+}: { 
+  content: string 
+}) {
+  const parsed = parseAgentMessage(content);
+  
+  // If no special blocks found, render as regular markdown
+  if (!parsed.hasThinking && !parsed.hasToolCalls && !parsed.hasJson) {
+    return <MarkdownContent content={content} />;
+  }
+  
+  return (
+    <div className="space-y-1">
+      {parsed.blocks.map((block, index) => {
+        switch (block.type) {
+          case "thinking":
+            return <ThinkingBlock key={index} content={block.content} />;
+          
+          case "tool_call":
+            return (
+              <ToolCallBlock
+                key={index}
+                content={block.content}
+                toolName={block.metadata?.toolName}
+                toolArgs={block.metadata?.toolArgs}
+              />
+            );
+          
+          case "json":
+            return (
+              <JsonBlock
+                key={index}
+                content={block.content}
+                label="Дані"
+                defaultCollapsed={false}
+              />
+            );
+          
+          case "tool_result":
+            return (
+              <JsonBlock
+                key={index}
+                content={block.content}
+                label="Результат"
+                defaultCollapsed={false}
+              />
+            );
+          
+          case "text":
+          default:
+            // Skip empty text blocks
+            if (!block.content.trim()) return null;
+            return <MarkdownContent key={index} content={block.content} />;
+        }
+      })}
+    </div>
   );
 });
 
@@ -240,7 +493,7 @@ function MessageBubble({ message, isStreaming = false }: MessageBubbleProps) {
         >
           {isAssistant && !isStreaming ? (
             <div className="text-sm prose prose-sm dark:prose-invert max-w-none">
-              <MarkdownContent content={message.content} />
+              <ParsedMessageContent content={message.content} />
             </div>
           ) : (
             <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">

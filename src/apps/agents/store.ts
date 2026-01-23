@@ -1,6 +1,9 @@
 /**
  * Agent Control application store
  * Manages AI Agents state via RPC calls
+ * 
+ * WebFIX v2.12.0: All responses use `raw` field for data payload
+ * See: /docs/WEBFIX-MIGRATION-GUIDE.md
  */
 
 import { create } from "zustand";
@@ -8,6 +11,17 @@ import { devtools } from "zustand/middleware";
 import { useAuthStore } from "@/stores/modules/auth.store";
 import { toast } from "@/stores";
 import { WebfixApiClient } from "@/lib/webfix-api-client";
+
+// WebFIX v2.12.0 response wrapper type
+interface WebfixResponse<T> {
+  success: boolean;
+  raw?: T;
+  error?: {
+    code: string;
+    message: string;
+    httpStatus?: number;
+  };
+}
 import type {
   Agent,
   AgentCreateRequest,
@@ -54,6 +68,30 @@ import type {
   GetConversationResponse,
   ListConversationsParams,
   ListConversationsResponse,
+  // Orchestration types
+  RouteToAgentsParams,
+  RouteToAgentsResponse,
+  StartCollaborationParams,
+  StartCollaborationResponse,
+  SendAgentMessageParams,
+  SendAgentMessageResponse,
+  EndCollaborationParams,
+  EndCollaborationResponse,
+  OrchestratorStats,
+  GetOrchestratorStatsResponse,
+  // Realtime types
+  AgentState,
+  GetAgentStateParams,
+  GetAgentStateResponse,
+  GetDomainDataParams,
+  GetDomainDataResponse,
+  SetTriggerParams,
+  SetTriggerResponse,
+  // Knowledge Base types
+  CreateKnowledgeBaseParams,
+  CreateKnowledgeBaseResponse,
+  DeleteKnowledgeBaseParams,
+  DeleteKnowledgeBaseResponse,
 } from "./types";
 
 /**
@@ -198,21 +236,17 @@ export const useAgentStore = create<AgentStore>()(
         try {
           // Note: Don't send network channel as params - backend interprets it as workspace name
           // Filter by workspace using workspaceId in body if needed
-          const data = await client.request<{ agents: Agent[] }>(
+          const response = await client.request<WebfixResponse<{ agents: Agent[] }>>(
             "listAgents",
             {},
             NO_CHANNEL
           );
 
-          if (data && Array.isArray(data.agents)) {
+          // WebFIX v2.12.0: Parse response.raw.agents
+          const agents = response.raw?.agents;
+          if (agents && Array.isArray(agents)) {
             set({
-              agents: data.agents.map(transformAgent),
-              agentsLoading: false,
-              agentsError: null,
-            });
-          } else if (data && Array.isArray(data)) {
-            set({
-              agents: (data as unknown as Agent[]).map(transformAgent),
+              agents: agents.map(transformAgent),
               agentsLoading: false,
               agentsError: null,
             });
@@ -244,15 +278,19 @@ export const useAgentStore = create<AgentStore>()(
         set({ agentLoading: true });
 
         try {
-          const data = await client.request<{ agent: Agent }>(
+          const response = await client.request<WebfixResponse<{ agent: Agent }>>(
             "getAgent",
             { agentId },
             NO_CHANNEL
           );
 
           set({ agentLoading: false });
-          const agent = data?.agent || data as unknown as Agent;
-          return transformAgent(agent);
+          // WebFIX v2.12.0: Parse response.raw.agent
+          const agent = response.raw?.agent;
+          if (agent) {
+            return transformAgent(agent);
+          }
+          return null;
         } catch (error) {
           console.error("Failed to get agent:", error);
           toast.error(
@@ -272,23 +310,29 @@ export const useAgentStore = create<AgentStore>()(
         set({ agentLoading: true });
 
         try {
-          const data = await client.request<{ agent: Agent }>(
+          const response = await client.request<WebfixResponse<{ agent: Agent }>>(
             "createAgent",
             request,
             NO_CHANNEL
           );
 
-          const agent = transformAgent(data?.agent || data as unknown as Agent);
+          // WebFIX v2.12.0: Parse response.raw.agent
+          const agent = response.raw?.agent;
+          if (!agent) {
+            throw new Error(response.error?.message || "Failed to create agent");
+          }
+
+          const transformedAgent = transformAgent(agent);
 
           // Add to agents list
           set((state) => ({
-            agents: [agent, ...state.agents],
-            selectedAgent: agent,
+            agents: [transformedAgent, ...state.agents],
+            selectedAgent: transformedAgent,
             agentLoading: false,
           }));
 
-          toast.success("Agent created", `${agent.name} is ready`);
-          return agent;
+          toast.success("Agent created", `${transformedAgent.name} is ready`);
+          return transformedAgent;
         } catch (error) {
           console.error("Failed to create agent:", error);
           const errorMessage = error instanceof Error
@@ -308,27 +352,33 @@ export const useAgentStore = create<AgentStore>()(
         set({ agentLoading: true });
 
         try {
-          const data = await client.request<{ agent: Agent }>(
+          const response = await client.request<WebfixResponse<{ agent: Agent }>>(
             "updateAgent",
             request,
             NO_CHANNEL
           );
 
-          const agent = transformAgent(data?.agent || data as unknown as Agent);
+          // WebFIX v2.12.0: Parse response.raw.agent
+          const agent = response.raw?.agent;
+          if (!agent) {
+            throw new Error(response.error?.message || "Failed to update agent");
+          }
+
+          const transformedAgent = transformAgent(agent);
 
           // Update agents list
           set((state) => ({
             agents: state.agents.map((a) =>
-              a.id === agent.id ? agent : a
+              a.id === transformedAgent.id ? transformedAgent : a
             ),
-            selectedAgent: state.selectedAgent?.id === agent.id
-              ? agent
+            selectedAgent: state.selectedAgent?.id === transformedAgent.id
+              ? transformedAgent
               : state.selectedAgent,
             agentLoading: false,
           }));
 
-          toast.success("Agent updated", `${agent.name} has been updated`);
-          return agent;
+          toast.success("Agent updated", `${transformedAgent.name} has been updated`);
+          return transformedAgent;
         } catch (error) {
           console.error("Failed to update agent:", error);
           toast.error(
@@ -348,11 +398,16 @@ export const useAgentStore = create<AgentStore>()(
         set({ agentLoading: true });
 
         try {
-          await client.request(
+          const response = await client.request<WebfixResponse<{ deleted: boolean }>>(
             "deleteAgent",
             { agentId },
             NO_CHANNEL
           );
+
+          // WebFIX v2.12.0: Check response.success
+          if (!response.success) {
+            throw new Error(response.error?.message || "Failed to delete agent");
+          }
 
           // Remove from agents list
           set((state) => ({
@@ -391,32 +446,33 @@ export const useAgentStore = create<AgentStore>()(
         set({ agentLoading: true });
 
         try {
-          const data = await client.request<MoveAgentToWorkspaceResponse>(
+          const response = await client.request<WebfixResponse<{ agent: Agent }>>(
             "moveAgentToWorkspace",
             params,
             NO_CHANNEL
           );
 
-          const agent = transformAgent(data?.agent || (data as unknown as Agent));
-
+          // WebFIX v2.12.0: Parse response.raw.agent
+          const agent = response.raw?.agent;
           if (agent?.id) {
+            const transformedAgent = transformAgent(agent);
             // Update agents list with new workspaceId
             set((state) => ({
               agents: state.agents.map((a) =>
-                a.id === agent.id ? { ...agent, workspaceId: params.workspaceId } : a
+                a.id === transformedAgent.id ? { ...transformedAgent, workspaceId: params.workspaceId } : a
               ),
               selectedAgent:
-                state.selectedAgent?.id === agent.id
-                  ? { ...agent, workspaceId: params.workspaceId }
+                state.selectedAgent?.id === transformedAgent.id
+                  ? { ...transformedAgent, workspaceId: params.workspaceId }
                   : state.selectedAgent,
               agentLoading: false,
             }));
 
             toast.success(
               "Agent moved",
-              `Agent "${agent.name}" moved to new workspace`
+              `Agent "${transformedAgent.name}" moved to new workspace`
             );
-            return agent;
+            return transformedAgent;
           }
 
           set({ agentLoading: false });
@@ -445,13 +501,14 @@ export const useAgentStore = create<AgentStore>()(
         set({ accountLinking: true });
 
         try {
-          const data = await client.request<ConnectAccountToAgentResponse>(
+          const response = await client.request<WebfixResponse<{ success: boolean }>>(
             "connectAccountToAgent",
             params,
             NO_CHANNEL
           );
 
-          if (data?.success) {
+          // WebFIX v2.12.0: Check response.success
+          if (response.success) {
             // Refresh the agent to get updated connectedAccounts
             const updatedAgent = await get().getAgent(params.agentId);
             if (updatedAgent) {
@@ -474,7 +531,7 @@ export const useAgentStore = create<AgentStore>()(
             return true;
           }
 
-          throw new Error(data?.error || "Failed to connect account");
+          throw new Error(response.error?.message || "Failed to connect account");
         } catch (error) {
           console.error("[AgentStore] Failed to connect account:", error);
           toast.error(
@@ -499,13 +556,14 @@ export const useAgentStore = create<AgentStore>()(
         set({ accountLinking: true });
 
         try {
-          const data = await client.request<DisconnectAccountFromAgentResponse>(
+          const response = await client.request<WebfixResponse<{ success: boolean }>>(
             "disconnectAccountFromAgent",
             params,
             NO_CHANNEL
           );
 
-          if (data?.success) {
+          // WebFIX v2.12.0: Check response.success
+          if (response.success) {
             // Update local state immediately
             set((state) => {
               const updateConnectedAccounts = (agent: Agent): Agent => ({
@@ -534,7 +592,7 @@ export const useAgentStore = create<AgentStore>()(
             return true;
           }
 
-          throw new Error(data?.error || "Failed to disconnect account");
+          throw new Error(response.error?.message || "Failed to disconnect account");
         } catch (error) {
           console.error("[AgentStore] Failed to disconnect account:", error);
           toast.error(
@@ -731,7 +789,7 @@ export const useAgentStore = create<AgentStore>()(
             return null;
           }
 
-          const data = await client.request<ChatResponse>(
+          const response = await client.request<WebfixResponse<ChatResponse>>(
             "chatWithAgent",
             {
               agentId: request.agentId,
@@ -744,8 +802,14 @@ export const useAgentStore = create<AgentStore>()(
 
           const latencyMs = Date.now() - startTime;
           
+          // WebFIX v2.12.0: Parse response.raw
+          const data = response.raw;
+          if (!data) {
+            throw new Error(response.error?.message || "Failed to get response");
+          }
+          
           // Handle both 'message' and 'response' fields from API
-          const responseContent = data.message || data.response || "";
+          const responseContent = data.response || data.message || "";
           const tokensUsed = data.tokensUsed || data.usage?.totalTokens;
 
           // Log agent status for debugging
@@ -820,23 +884,16 @@ export const useAgentStore = create<AgentStore>()(
         if (!client) return;
 
         try {
-          const data = await client.request<{ workspaces?: Workspace[] } | Workspace[]>(
+          const response = await client.request<WebfixResponse<{ workspaces: Workspace[] }>>(
             "listWorkspaces",
             {},
             NO_CHANNEL
           );
 
-          console.log("[AgentStore] listWorkspaces response:", data);
+          console.log("[AgentStore] listWorkspaces response:", response);
 
-          let workspaces: Workspace[] = [];
-          
-          if (data && Array.isArray(data)) {
-            workspaces = data as Workspace[];
-          } else if (data && typeof data === "object") {
-            if (Array.isArray((data as { workspaces?: Workspace[] }).workspaces)) {
-              workspaces = (data as { workspaces: Workspace[] }).workspaces;
-            }
-          }
+          // WebFIX v2.12.0: Parse response.raw.workspaces
+          let workspaces: Workspace[] = response.raw?.workspaces || [];
 
           // Filter out invalid workspaces (must have id and name)
           workspaces = workspaces.filter((ws) => ws && ws.id && ws.name);
@@ -860,33 +917,18 @@ export const useAgentStore = create<AgentStore>()(
         const ownerId = connectionSession?.title || connectionSession?.nid || "default";
 
         try {
-          const data = await client.request<{ workspace?: Workspace } | Workspace>(
+          const response = await client.request<WebfixResponse<{ workspace: Workspace }>>(
             "createWorkspace",
             { name, description, ownerId },
             NO_CHANNEL
           );
 
-          console.log("[AgentStore] createWorkspace response:", data);
+          console.log("[AgentStore] createWorkspace response:", response);
 
-          // Handle different response formats
-          let workspace: Workspace;
-          if (data && typeof data === "object") {
-            if ("workspace" in data && data.workspace) {
-              workspace = data.workspace;
-            } else if ("id" in data && "name" in data) {
-              workspace = data as Workspace;
-            } else {
-              // Create workspace object from response with defaults
-              workspace = {
-                id: (data as Record<string, unknown>).id as string || `ws_${Date.now()}`,
-                name: name, // Use the input name as fallback
-                description: description,
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-              };
-            }
-          } else {
-            throw new Error("Invalid response from server");
+          // WebFIX v2.12.0: Parse response.raw.workspace
+          const workspace = response.raw?.workspace;
+          if (!workspace) {
+            throw new Error(response.error?.message || "Invalid response from server");
           }
 
           set((state) => ({
@@ -913,23 +955,16 @@ export const useAgentStore = create<AgentStore>()(
         set({ workspaceLoading: true });
 
         try {
-          const data = await client.request<{ workspace?: Workspace } | Workspace>(
+          const response = await client.request<WebfixResponse<{ workspace: Workspace }>>(
             "updateWorkspace",
             request,
             NO_CHANNEL
           );
 
-          let workspace: Workspace;
-          if (data && typeof data === "object") {
-            if ("workspace" in data && data.workspace) {
-              workspace = data.workspace;
-            } else if ("id" in data) {
-              workspace = data as Workspace;
-            } else {
-              throw new Error("Invalid response from server");
-            }
-          } else {
-            throw new Error("Invalid response from server");
+          // WebFIX v2.12.0: Parse response.raw.workspace
+          const workspace = response.raw?.workspace;
+          if (!workspace) {
+            throw new Error(response.error?.message || "Invalid response from server");
           }
 
           set((state) => ({
@@ -970,11 +1005,16 @@ export const useAgentStore = create<AgentStore>()(
         set({ workspaceLoading: true });
 
         try {
-          await client.request(
+          const response = await client.request<WebfixResponse<{ deleted: boolean }>>(
             "deleteWorkspace",
             { workspaceId },
             NO_CHANNEL
           );
+
+          // WebFIX v2.12.0: Check response.success
+          if (!response.success) {
+            throw new Error(response.error?.message || "Failed to delete workspace");
+          }
 
           set((state) => ({
             workspaces: state.workspaces.filter((w) => w.id !== workspaceId),
@@ -1008,19 +1048,96 @@ export const useAgentStore = create<AgentStore>()(
         if (!client) return;
 
         try {
-          const data = await client.request<{ knowledgeBases: KnowledgeBase[] }>(
+          const response = await client.request<WebfixResponse<{ knowledgeBases: KnowledgeBase[] }>>(
             "listKnowledgeBases",
             workspaceId ? { workspaceId } : {},
             NO_CHANNEL
           );
 
-          if (data && Array.isArray(data.knowledgeBases)) {
-            set({ knowledgeBases: data.knowledgeBases });
-          } else if (data && Array.isArray(data)) {
-            set({ knowledgeBases: data as unknown as KnowledgeBase[] });
-          }
+          // WebFIX v2.12.0: Parse response.raw.knowledgeBases
+          const knowledgeBases = response.raw?.knowledgeBases || [];
+          set({ knowledgeBases });
         } catch (error) {
           console.error("Failed to list knowledge bases:", error);
+        }
+      },
+
+      // Create knowledge base
+      createKnowledgeBase: async (params: CreateKnowledgeBaseParams): Promise<KnowledgeBase | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        try {
+          const response = await client.request<WebfixResponse<{ knowledgeBase: KnowledgeBase }>>(
+            "createKnowledgeBase",
+            params,
+            NO_CHANNEL
+          );
+
+          console.log("[AgentStore] createKnowledgeBase response:", response);
+
+          // WebFIX v2.12.0: Parse response.raw.knowledgeBase
+          const knowledgeBase = response.raw?.knowledgeBase;
+          if (response.success && knowledgeBase) {
+            // Add to knowledge bases list
+            set((state) => ({
+              knowledgeBases: [knowledgeBase, ...state.knowledgeBases],
+            }));
+            toast.success("Knowledge base created", params.name);
+            return knowledgeBase;
+          }
+
+          throw new Error(response.error?.message || "Failed to create knowledge base");
+        } catch (error) {
+          console.error("[AgentStore] Failed to create knowledge base:", error);
+          toast.error(
+            "Failed to create knowledge base",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          return null;
+        }
+      },
+
+      // Delete knowledge base
+      deleteKnowledgeBase: async (params: DeleteKnowledgeBaseParams): Promise<boolean> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return false;
+        }
+
+        try {
+          const response = await client.request<WebfixResponse<{ deleted: boolean }>>(
+            "deleteKnowledgeBase",
+            params,
+            NO_CHANNEL
+          );
+
+          console.log("[AgentStore] deleteKnowledgeBase response:", response);
+
+          // WebFIX v2.12.0: Check response.success
+          if (response.success) {
+            // Remove from knowledge bases list
+            set((state) => ({
+              knowledgeBases: state.knowledgeBases.filter(
+                (kb) => kb.id !== params.knowledgeBaseId
+              ),
+            }));
+            toast.success("Knowledge base deleted", "Knowledge base has been removed");
+            return true;
+          }
+
+          throw new Error(response.error?.message || "Failed to delete knowledge base");
+        } catch (error) {
+          console.error("[AgentStore] Failed to delete knowledge base:", error);
+          toast.error(
+            "Failed to delete knowledge base",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          return false;
         }
       },
 
@@ -1035,7 +1152,7 @@ export const useAgentStore = create<AgentStore>()(
         set({ syncLoading: true });
 
         try {
-          const data = await client.request<SyncFromGradientResponse>(
+          const response = await client.request<WebfixResponse<SyncFromGradientResponse>>(
             "syncFromGradient",
             {
               syncWorkspaces: params?.syncWorkspaces ?? true,
@@ -1044,7 +1161,9 @@ export const useAgentStore = create<AgentStore>()(
             NO_CHANNEL
           );
 
-          const result = data?.result || data;
+          // WebFIX v2.12.0: Parse response.raw
+          const data = response.raw;
+          const result = data?.result;
           
           // Update local state with synced data
           set({ lastSyncTime: Date.now(), syncLoading: false });
@@ -1094,31 +1213,19 @@ export const useAgentStore = create<AgentStore>()(
         set({ tasksLoading: true, tasksError: null });
 
         try {
-          const data = await client.request<ListTasksResponse>(
+          const response = await client.request<WebfixResponse<{ tasks: Task[] }>>(
             "listTasks",
             params || {},
             NO_CHANNEL
           );
 
-          if (data && Array.isArray(data.tasks)) {
-            set({
-              tasks: data.tasks,
-              tasksLoading: false,
-              tasksError: null,
-            });
-          } else if (data && Array.isArray(data)) {
-            set({
-              tasks: data as unknown as Task[],
-              tasksLoading: false,
-              tasksError: null,
-            });
-          } else {
-            set({
-              tasks: [],
-              tasksLoading: false,
-              tasksError: null,
-            });
-          }
+          // WebFIX v2.12.0: Parse response.raw.tasks
+          const tasks = response.raw?.tasks || [];
+          set({
+            tasks,
+            tasksLoading: false,
+            tasksError: null,
+          });
         } catch (error) {
           console.error("[AgentStore] Failed to list tasks:", error);
           const errorMessage = error instanceof Error
@@ -1138,14 +1245,14 @@ export const useAgentStore = create<AgentStore>()(
         if (!client) return null;
 
         try {
-          const data = await client.request<TaskResponse>(
+          const response = await client.request<WebfixResponse<{ task: Task }>>(
             "getTask",
             { taskId },
             NO_CHANNEL
           );
 
-          const task = data?.task || data as unknown as Task;
-          return task;
+          // WebFIX v2.12.0: Parse response.raw.task
+          return response.raw?.task || null;
         } catch (error) {
           console.error("[AgentStore] Failed to get task:", error);
           toast.error(
@@ -1164,13 +1271,17 @@ export const useAgentStore = create<AgentStore>()(
         set({ tasksLoading: true });
 
         try {
-          const data = await client.request<TaskResponse>(
+          const response = await client.request<WebfixResponse<{ task: Task }>>(
             "createTask",
             request,
             NO_CHANNEL
           );
 
-          const task = data?.task || data as unknown as Task;
+          // WebFIX v2.12.0: Parse response.raw.task
+          const task = response.raw?.task;
+          if (!task) {
+            throw new Error(response.error?.message || "Failed to create task");
+          }
 
           // Add to tasks list
           set((state) => ({
@@ -1200,13 +1311,17 @@ export const useAgentStore = create<AgentStore>()(
         set({ tasksLoading: true });
 
         try {
-          const data = await client.request<TaskResponse>(
+          const response = await client.request<WebfixResponse<{ task: Task }>>(
             "updateTask",
             request,
             NO_CHANNEL
           );
 
-          const task = data?.task || data as unknown as Task;
+          // WebFIX v2.12.0: Parse response.raw.task
+          const task = response.raw?.task;
+          if (!task) {
+            throw new Error(response.error?.message || "Failed to update task");
+          }
 
           // Update tasks list
           set((state) => ({
@@ -1240,11 +1355,16 @@ export const useAgentStore = create<AgentStore>()(
         set({ tasksLoading: true });
 
         try {
-          await client.request<DeleteTaskResponse>(
+          const response = await client.request<WebfixResponse<{ deleted: boolean }>>(
             "deleteTask",
             { taskId },
             NO_CHANNEL
           );
+
+          // WebFIX v2.12.0: Check response.success
+          if (!response.success) {
+            throw new Error(response.error?.message || "Failed to delete task");
+          }
 
           // Remove from tasks list
           set((state) => ({
@@ -1276,7 +1396,7 @@ export const useAgentStore = create<AgentStore>()(
         set({ taskExecuting: true });
 
         try {
-          const data = await client.request<ExecuteTaskResponse>(
+          const response = await client.request<WebfixResponse<ExecuteTaskResponse>>(
             "executeTask",
             request,
             NO_CHANNEL
@@ -1284,16 +1404,18 @@ export const useAgentStore = create<AgentStore>()(
 
           set({ taskExecuting: false });
 
-          if (data.status === "completed") {
+          // WebFIX v2.12.0: Parse response.raw
+          const data = response.raw;
+          if (data?.status === "completed") {
             toast.success("Task executed", `Completed in ${data.duration}ms`);
           } else {
-            toast.error("Task failed", data.error || "Execution failed");
+            toast.error("Task failed", data?.error || response.error?.message || "Execution failed");
           }
 
           // Refresh task to get updated status
           await get().listTasks({ agentId: get().selectedAgent?.id });
 
-          return data;
+          return data || null;
         } catch (error) {
           console.error("[AgentStore] Failed to execute task:", error);
           toast.error(
@@ -1311,11 +1433,17 @@ export const useAgentStore = create<AgentStore>()(
         if (!client) return null;
 
         try {
-          const data = await client.request<ApproveTaskResponse>(
+          const response = await client.request<WebfixResponse<ApproveTaskResponse>>(
             "approveTask",
             request,
             NO_CHANNEL
           );
+
+          // WebFIX v2.12.0: Parse response.raw
+          const data = response.raw;
+          if (!data) {
+            throw new Error(response.error?.message || "Failed to approve task");
+          }
 
           // Update task status in list
           set((state) => ({
@@ -1348,11 +1476,14 @@ export const useAgentStore = create<AgentStore>()(
         if (!client) return null;
 
         try {
-          const data = await client.request<PauseTaskResponse>(
+          const response = await client.request<WebfixResponse<PauseTaskResponse>>(
             "pauseTask",
             { taskId },
             NO_CHANNEL
           );
+
+          // WebFIX v2.12.0: Parse response.raw
+          const data = response.raw;
 
           // Update task status in list
           set((state) => ({
@@ -1362,7 +1493,7 @@ export const useAgentStore = create<AgentStore>()(
           }));
 
           toast.success("Task paused", "Task has been paused");
-          return data;
+          return data || null;
         } catch (error) {
           console.error("[AgentStore] Failed to pause task:", error);
           toast.error(
@@ -1379,21 +1510,26 @@ export const useAgentStore = create<AgentStore>()(
         if (!client) return null;
 
         try {
-          const data = await client.request<ResumeTaskResponse>(
+          const response = await client.request<WebfixResponse<ResumeTaskResponse>>(
             "resumeTask",
             { taskId },
             NO_CHANNEL
           );
 
+          // WebFIX v2.12.0: Parse response.raw
+          const data = response.raw;
+
           // Update task status in list
-          set((state) => ({
-            tasks: state.tasks.map((t) =>
-              t.id === taskId ? { ...t, status: data.status as Task["status"] } : t
-            ),
-          }));
+          if (data?.status) {
+            set((state) => ({
+              tasks: state.tasks.map((t) =>
+                t.id === taskId ? { ...t, status: data.status as Task["status"] } : t
+              ),
+            }));
+          }
 
           toast.success("Task resumed", "Task has been resumed");
-          return data;
+          return data || null;
         } catch (error) {
           console.error("[AgentStore] Failed to resume task:", error);
           toast.error(
@@ -1410,13 +1546,14 @@ export const useAgentStore = create<AgentStore>()(
         if (!client) return;
 
         try {
-          const data = await client.request<TaskHistoryResponse>(
+          const response = await client.request<WebfixResponse<{ history: TaskExecutionLog[] }>>(
             "getTaskHistory",
             request,
             NO_CHANNEL
           );
 
-          set({ taskHistory: data.history || [] });
+          // WebFIX v2.12.0: Parse response.raw.history
+          set({ taskHistory: response.raw?.history || [] });
         } catch (error) {
           console.error("[AgentStore] Failed to get task history:", error);
           toast.error(
@@ -1448,27 +1585,29 @@ export const useAgentStore = create<AgentStore>()(
         set({ conversationLoading: true });
 
         try {
-          const data = await client.request<GetConversationResponse>(
+          const response = await client.request<WebfixResponse<{ conversation: Conversation }>>(
             "getConversation",
             params,
             NO_CHANNEL
           );
 
-          if (data?.success && data.conversation) {
+          // WebFIX v2.12.0: Parse response.raw.conversation
+          const conversation = response.raw?.conversation;
+          if (response.success && conversation) {
             // Restore messages to conversation map
             const conversations = new Map(get().conversations);
-            conversations.set(data.conversation.agentId, data.conversation.messages);
+            conversations.set(conversation.agentId, conversation.messages);
             
             set({
               conversations,
-              currentConversationId: data.conversation.id,
+              currentConversationId: conversation.id,
               conversationLoading: false,
             });
 
             // Save conversationId to localStorage
-            saveConversationId(data.conversation.agentId, data.conversation.id);
+            saveConversationId(conversation.agentId, conversation.id);
 
-            return data.conversation;
+            return conversation;
           }
 
           set({ conversationLoading: false });
@@ -1492,15 +1631,17 @@ export const useAgentStore = create<AgentStore>()(
         set({ conversationLoading: true });
 
         try {
-          const data = await client.request<ListConversationsResponse>(
+          const response = await client.request<WebfixResponse<{ conversations: ConversationListItem[] }>>(
             "listConversations",
             params || {},
             NO_CHANNEL
           );
 
-          if (data?.success && Array.isArray(data.conversations)) {
+          // WebFIX v2.12.0: Parse response.raw.conversations
+          const conversations = response.raw?.conversations;
+          if (response.success && Array.isArray(conversations)) {
             set({
-              conversationList: data.conversations,
+              conversationList: conversations,
               conversationLoading: false,
             });
           } else {
@@ -1564,6 +1705,291 @@ export const useAgentStore = create<AgentStore>()(
 
       clearError: (): void => {
         set({ agentsError: null, chatError: null, tasksError: null });
+      },
+
+      // ========================================================================
+      // Orchestration Actions
+      // ========================================================================
+
+      // Route message to multiple agents
+      routeToAgents: async (params: RouteToAgentsParams): Promise<RouteToAgentsResponse | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        try {
+          const response = await client.request<WebfixResponse<RouteToAgentsResponse>>(
+            "routeToAgents",
+            params,
+            NO_CHANNEL
+          );
+
+          console.log("[AgentStore] routeToAgents response:", response);
+
+          // WebFIX v2.12.0: Parse response.raw
+          const data = response.raw;
+          if (response.success && data) {
+            const successCount = data.responses?.filter((r) => r.success).length || 0;
+            const totalCount = data.responses?.length || 0;
+            toast.success(
+              "Message routed",
+              `${successCount}/${totalCount} agents responded`
+            );
+          }
+
+          return data || null;
+        } catch (error) {
+          console.error("[AgentStore] Failed to route message:", error);
+          toast.error(
+            "Failed to route message",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          return null;
+        }
+      },
+
+      // Start collaboration between agents
+      startCollaboration: async (params: StartCollaborationParams): Promise<string | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        try {
+          const response = await client.request<WebfixResponse<{ collaborationId: string }>>(
+            "startCollaboration",
+            params,
+            NO_CHANNEL
+          );
+
+          console.log("[AgentStore] startCollaboration response:", response);
+
+          // WebFIX v2.12.0: Parse response.raw.collaborationId
+          if (response.success && response.raw?.collaborationId) {
+            toast.success(
+              "Collaboration started",
+              `${params.name} with ${params.agentIds.length} agents`
+            );
+            return response.raw.collaborationId;
+          }
+
+          throw new Error(response.error?.message || "Failed to start collaboration");
+        } catch (error) {
+          console.error("[AgentStore] Failed to start collaboration:", error);
+          toast.error(
+            "Failed to start collaboration",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          return null;
+        }
+      },
+
+      // Send message between agents
+      sendAgentMessage: async (params: SendAgentMessageParams): Promise<boolean> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return false;
+        }
+
+        try {
+          const response = await client.request<WebfixResponse<{ success: boolean }>>(
+            "sendAgentMessage",
+            params,
+            NO_CHANNEL
+          );
+
+          console.log("[AgentStore] sendAgentMessage response:", response);
+
+          // WebFIX v2.12.0: Check response.success
+          if (response.success) {
+            return true;
+          }
+
+          throw new Error(response.error?.message || "Failed to send message");
+        } catch (error) {
+          console.error("[AgentStore] Failed to send agent message:", error);
+          toast.error(
+            "Failed to send message",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          return false;
+        }
+      },
+
+      // End collaboration
+      endCollaboration: async (params: EndCollaborationParams): Promise<boolean> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return false;
+        }
+
+        try {
+          const response = await client.request<WebfixResponse<{ success: boolean }>>(
+            "endCollaboration",
+            params,
+            NO_CHANNEL
+          );
+
+          console.log("[AgentStore] endCollaboration response:", response);
+
+          // WebFIX v2.12.0: Check response.success
+          if (response.success) {
+            toast.success("Collaboration ended", params.reason || "Collaboration has been ended");
+            return true;
+          }
+
+          throw new Error(response.error?.message || "Failed to end collaboration");
+        } catch (error) {
+          console.error("[AgentStore] Failed to end collaboration:", error);
+          toast.error(
+            "Failed to end collaboration",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          return false;
+        }
+      },
+
+      // Get orchestrator stats
+      getOrchestratorStats: async (): Promise<OrchestratorStats | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        try {
+          const response = await client.request<WebfixResponse<{ stats: OrchestratorStats }>>(
+            "getOrchestratorStats",
+            {},
+            NO_CHANNEL
+          );
+
+          console.log("[AgentStore] getOrchestratorStats response:", response);
+
+          // WebFIX v2.12.0: Parse response.raw.stats
+          if (response.success && response.raw?.stats) {
+            return response.raw.stats;
+          }
+
+          return null;
+        } catch (error) {
+          console.error("[AgentStore] Failed to get orchestrator stats:", error);
+          toast.error(
+            "Failed to get orchestrator stats",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          return null;
+        }
+      },
+
+      // ========================================================================
+      // Realtime Actions
+      // ========================================================================
+
+      // Get agent state
+      getAgentState: async (params: GetAgentStateParams): Promise<AgentState | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        try {
+          const response = await client.request<WebfixResponse<{ state: AgentState }>>(
+            "getAgentState",
+            params,
+            NO_CHANNEL
+          );
+
+          console.log("[AgentStore] getAgentState response:", response);
+
+          // WebFIX v2.12.0: Parse response.raw.state
+          if (response.success && response.raw?.state) {
+            return response.raw.state;
+          }
+
+          return null;
+        } catch (error) {
+          console.error("[AgentStore] Failed to get agent state:", error);
+          toast.error(
+            "Failed to get agent state",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          return null;
+        }
+      },
+
+      // Get domain data
+      getDomainData: async (params: GetDomainDataParams): Promise<Record<string, unknown> | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        try {
+          const response = await client.request<WebfixResponse<{ data: Record<string, unknown> }>>(
+            "getDomainData",
+            params,
+            NO_CHANNEL
+          );
+
+          console.log("[AgentStore] getDomainData response:", response);
+
+          // WebFIX v2.12.0: Parse response.raw.data
+          if (response.success && response.raw?.data) {
+            return response.raw.data;
+          }
+
+          return null;
+        } catch (error) {
+          console.error("[AgentStore] Failed to get domain data:", error);
+          toast.error(
+            "Failed to get domain data",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          return null;
+        }
+      },
+
+      // Set trigger for realtime events
+      setTrigger: async (params: SetTriggerParams): Promise<string | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        try {
+          const response = await client.request<WebfixResponse<{ triggerId?: string; trigger?: { id: string } }>>(
+            "setTrigger",
+            params,
+            NO_CHANNEL
+          );
+
+          console.log("[AgentStore] setTrigger response:", response);
+
+          // WebFIX v2.12.0: Parse response.raw
+          if (response.success && (response.raw?.triggerId || response.raw?.trigger?.id)) {
+            const triggerId = response.raw.triggerId || response.raw.trigger?.id;
+            toast.success("Trigger created", `Trigger ${triggerId} has been set`);
+            return triggerId!;
+          }
+
+          throw new Error(response.error?.message || "Failed to set trigger");
+        } catch (error) {
+          console.error("[AgentStore] Failed to set trigger:", error);
+          toast.error(
+            "Failed to set trigger",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          return null;
+        }
       },
     }),
     {

@@ -100,6 +100,17 @@ export interface WorkerCreateRequest {
   sandbox?: boolean;
 }
 
+/** Response from checkLeaderHealth */
+export interface CheckLeaderHealthResponse {
+  success: boolean;
+  workerId?: string;
+  healthy?: boolean;
+  leader?: string;
+  lastHeartbeat?: number;
+  timestamp?: number;
+  error?: string;
+}
+
 /**
  * Editor Store Actions
  */
@@ -116,6 +127,8 @@ export interface EditorStoreActions {
   migrateWorkerWithNewSid: (worker: Worker) => Promise<Worker | null>;
   /** Get leader info for a worker */
   getLeaderInfo: (workerId: string) => Promise<LeaderInfo | null>;
+  /** Check leader health for a worker */
+  checkLeaderHealth: (workerId: string) => Promise<CheckLeaderHealthResponse | null>;
   /** Get stats for all workers */
   getWorkerStats: () => Promise<WorkerStats[]>;
   /** Stop all active workers */

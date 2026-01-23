@@ -130,7 +130,6 @@ ConnectAccountParams:
   type: object
   description: |
 
-    
   required:
     - userId
     - name
@@ -345,3 +344,130 @@ SyncAccountBalanceResponse:
       description: Whether the balance was returned from cache
     error:
       type: string
+
+# Market Type Support (v2.13.0)
+
+MarketType:
+  type: string
+  enum: [spot, linear, inverse, option]
+  description: |
+    Market type for trading:
+    - spot: Spot trading (buy/sell actual assets)
+    - linear: USDT-margined perpetual futures
+    - inverse: Coin-margined perpetual futures
+    - option: Options trading
+
+MarketTypeInfo:
+  type: object
+  properties:
+    type:
+      $ref: "#/MarketType"
+    name:
+      type: string
+      description: Human-readable name
+      example: "USDT Perpetual Futures"
+    description:
+      type: string
+      description: Detailed description of the market type
+    isDefault:
+      type: boolean
+      description: Whether this is the default market type for the account
+    isAvailable:
+      type: boolean
+      description: Whether this market type is available for the account
+    availableMethods:
+      type: array
+      items:
+        type: string
+      description: RPC methods available for this market type
+      example: ["getBalance", "createOrder", "fetchPositions", "setLeverage"]
+
+GetAccountMarketTypesParams:
+  type: object
+  description: Get available market types for an account
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+      description: Account UUID (preferred)
+    nid:
+      type: string
+      description: Legacy NID identifier
+  oneOf:
+    - required: [accountId]
+    - required: [nid]
+
+GetAccountMarketTypesResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        accountId:
+          type: string
+          description: Account identifier
+        exchange:
+          type: string
+          description: Exchange name
+        exchangeSupportedTypes:
+          type: array
+          items:
+            $ref: "#/MarketType"
+          description: All market types supported by this exchange
+        availableMarketTypes:
+          type: array
+          items:
+            $ref: "#/MarketType"
+          description: Market types enabled for this account
+        defaultMarketType:
+          $ref: "#/MarketType"
+          description: Default market type for this account
+        marketTypes:
+          type: array
+          items:
+            $ref: "#/MarketTypeInfo"
+          description: Detailed info about each market type with available methods
+    error:
+      type: string
+
+# Exchange Market Type Support
+ExchangeMarketTypes:
+  type: object
+  description: |
+    Supported market types per exchange:
+    - bybit: spot, linear, inverse, option
+    - binance: spot, linear, inverse
+    - binanceus: spot
+    - binanceusdm: linear
+    - binancecoinm: inverse
+    - okx: spot, linear, option
+    - gate/gateio: spot, linear
+    - kucoin: spot, linear
+    - bitget: spot, linear
+    - mexc: spot, linear
+    - htx/huobi: spot, linear
+    - kraken: spot, linear
+    - coinbase/coinbasepro: spot
+
+# RPC Methods per Market Type
+MarketTypeRpcMethods:
+  type: object
+  description: |
+    Available RPC methods per market type:
+    
+    **All market types (base methods):**
+    - getBalance, fetchBalanceById
+    - getTicker, getOrderBook
+    - createOrder, cancelOrder, getOrder
+    - listOrders, fetchOpenOrders, fetchOrderHistory
+    - listTrades, fetchTradesById
+    - createBatchOrders
+    
+    **Derivatives only (linear/inverse/option):**
+    - fetchPositions
+    - createConditionalOrder
+    
+    **Futures only (linear/inverse):**
+    - setLeverage
+    - transferFunds

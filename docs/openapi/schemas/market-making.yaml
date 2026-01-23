@@ -1,5 +1,5 @@
 # Market Making Schemas
-# 
+#
 # NOTE: Market making operations are executed through Strategy Templates.
 # These schemas define the configuration for market making strategies,
 # not standalone RPC endpoints. Use createStrategy with templateId="market-making"

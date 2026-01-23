@@ -33,11 +33,11 @@ export function Layout({ children }: LayoutProps): React.ReactElement {
         className="flex h-full w-full"
       >
         <AppSidebar />
-        <SidebarInset className="flex flex-col h-full">
+        <SidebarInset className="flex flex-col h-full overflow-hidden">
           <SiteHeader />
-          <div className="flex flex-1 flex-col overflow-auto" id="main-content">
+          <main className="flex flex-1 flex-col min-h-0 overflow-hidden" id="main-content">
             {children}
-          </div>
+          </main>
         </SidebarInset>
       </SidebarProvider>
     </div>

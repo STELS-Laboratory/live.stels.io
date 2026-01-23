@@ -37,6 +37,10 @@ export const ROUTES = {
   EDITOR: 'editor',
   ACCOUNTS: 'accounts',
   STRATEGIES: 'strategies',
+  TRADING: 'trading',
+  CHAINS: 'chains',
+  DOMAINS: 'domains',
+  METRICS: 'metrics',
 } as const;
 
 export type Route = typeof ROUTES[keyof typeof ROUTES];
@@ -51,6 +55,10 @@ export const ALLOWED_ROUTES: Route[] = [
   ROUTES.EDITOR,
   ROUTES.ACCOUNTS,
   ROUTES.STRATEGIES,
+  ROUTES.TRADING,
+  ROUTES.CHAINS,
+  ROUTES.DOMAINS,
+  ROUTES.METRICS,
 ];
 
 /**

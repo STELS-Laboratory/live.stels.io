@@ -33,6 +33,18 @@ const AccountsApp = lazy(() =>
 const StrategiesApp = lazy(() =>
   import("@/apps/strategies").then((m) => ({ default: m.StrategiesApp }))
 );
+const TradingApp = lazy(() =>
+  import("@/apps/trading").then((m) => ({ default: m.TradingApp }))
+);
+const ChainsApp = lazy(() =>
+  import("@/apps/chains").then((m) => ({ default: m.ChainsApp }))
+);
+const DomainsApp = lazy(() =>
+  import("@/apps/domains").then((m) => ({ default: m.DomainsApp }))
+);
+const MetricsApp = lazy(() =>
+  import("@/apps/metrics").then((m) => ({ default: m.MetricsApp }))
+);
 const SimpleLayout = lazy(() =>
   import("@/apps/layout").then((m) => ({ default: m.Layout }))
 );
@@ -133,6 +145,50 @@ export function ReadyView({
           }
         >
           <StrategiesApp />
+        </Suspense>
+      ),
+      trading: (
+        <Suspense
+          fallback={
+            <div className="p-4 text-muted-foreground">
+              Loading trading...
+            </div>
+          }
+        >
+          <TradingApp />
+        </Suspense>
+      ),
+      chains: (
+        <Suspense
+          fallback={
+            <div className="p-4 text-muted-foreground">
+              Loading chains...
+            </div>
+          }
+        >
+          <ChainsApp />
+        </Suspense>
+      ),
+      domains: (
+        <Suspense
+          fallback={
+            <div className="p-4 text-muted-foreground">
+              Loading domains...
+            </div>
+          }
+        >
+          <DomainsApp />
+        </Suspense>
+      ),
+      metrics: (
+        <Suspense
+          fallback={
+            <div className="p-4 text-muted-foreground">
+              Loading metrics...
+            </div>
+          }
+        >
+          <MetricsApp />
         </Suspense>
       ),
     };

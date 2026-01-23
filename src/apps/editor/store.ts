@@ -17,6 +17,7 @@ import type {
   Worker,
   WorkerCreateRequest,
   WorkerStats,
+  CheckLeaderHealthResponse,
 } from "@/types/apps/editor/types";
 
 export type {
@@ -25,6 +26,7 @@ export type {
   Worker,
   WorkerCreateRequest,
   WorkerStats,
+  CheckLeaderHealthResponse,
 };
 
 /**
@@ -364,6 +366,45 @@ export const useEditorStore = create<EditorStore>()(
           logError("Failed to get leader info:", error);
           toast.error(
             "Failed to load leader info",
+            error instanceof Error ? error.message : "Unknown error occurred",
+          );
+          return null;
+        }
+      },
+
+      checkLeaderHealth: async (workerId: string): Promise<CheckLeaderHealthResponse | null> => {
+        const connectionSession = useAuthStore.getState().connectionSession;
+        const networkId = useNetworkStore.getState().currentNetworkId;
+
+        if (!connectionSession) {
+          return null;
+        }
+
+        try {
+          const client = new WebfixApiClient(connectionSession.api);
+          client.setSession(connectionSession.session);
+
+          const result = await retryOnNetworkError(() =>
+            client.request<CheckLeaderHealthResponse>("checkLeaderHealth", { workerId }, [
+              networkId,
+            ])
+          );
+
+          console.log("[EditorStore] checkLeaderHealth response:", result);
+
+          if (result.success && result.healthy !== undefined) {
+            const status = result.healthy ? "healthy" : "unhealthy";
+            toast.success(
+              "Leader health check",
+              `Worker ${workerId} leader is ${status}`
+            );
+          }
+
+          return result;
+        } catch (error) {
+          logError("Failed to check leader health:", error);
+          toast.error(
+            "Failed to check leader health",
             error instanceof Error ? error.message : "Unknown error occurred",
           );
           return null;

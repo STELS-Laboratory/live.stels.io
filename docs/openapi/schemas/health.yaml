@@ -1,4 +1,4 @@
-# Health Schemas - Health checks
+# Health Schemas - Health checks and metrics
 # Part of STELS Agentic AI Platform OpenAPI Specification
 
 HealthStatus:
@@ -48,7 +48,10 @@ HTTPHealthResponse:
           type: boolean
         localKV:
           type: boolean
-# Additional Health Methods (v2.9.1)
+
+# ═══════════════════════════════════════════════════════════════════════════
+# METRICS (v2.11.0) - Unified WebFIX Response Format
+# ═══════════════════════════════════════════════════════════════════════════
 
 GetMetricsParams:
   type: object
@@ -58,92 +61,285 @@ GetMetricsParams:
       enum: [json, prometheus]
       default: json
       description: Output format for metrics
+    includeSystem:
+      type: boolean
+      default: true
+      description: Include system metrics (memory, uptime)
+    includeRpc:
+      type: boolean
+      default: true
+      description: Include RPC and routing metrics
+    includeTracing:
+      type: boolean
+      default: true
+      description: Include tracing metrics
+    includeApplication:
+      type: boolean
+      default: true
+      description: Include application metrics (agents, tasks, etc.)
 
-GetMetricsResponse:
+# Unified API Response (WebFIX format)
+ApiResponse:
+  type: object
+  required:
+    - channel
+    - module
+    - timestamp
+  properties:
+    channel:
+      type: string
+      description: Channel identifier (e.g., "metrics.system")
+      example: "metrics.system"
+    module:
+      type: string
+      description: Module name (e.g., "metrics", "channel", "agent")
+      example: "metrics"
+    widget:
+      type: string
+      description: Widget identifier for UI routing
+      example: "widget.metrics"
+    raw:
+      description: Response data (on success)
+    error:
+      $ref: "#/ApiError"
+    timestamp:
+      type: integer
+      description: Unix timestamp in milliseconds
+      example: 1737561234567
+    requestId:
+      type: string
+      format: uuid
+      description: Unique request ID for tracing
+      example: "550e8400-e29b-41d4-a716-446655440000"
+
+ApiError:
+  type: object
+  required:
+    - code
+    - message
+  properties:
+    code:
+      type: string
+      description: Error code
+      example: "VALIDATION_ERROR"
+    message:
+      type: string
+      description: Human-readable error message
+      example: "Channel name is required"
+    details:
+      description: Additional error details
+    httpStatus:
+      type: integer
+      description: HTTP status code hint
+      example: 400
+
+# System Metrics
+SystemMetrics:
   type: object
   properties:
-    success:
-      type: boolean
-    metrics:
+    uptime:
+      type: number
+      description: Server uptime in seconds
+      example: 12345.67
+    memory:
       type: object
       properties:
-        timestamp:
+        rss:
           type: integer
-          description: Collection timestamp
-        metrics:
-          type: array
-          items:
-            type: object
-            properties:
-              name:
-                type: string
-              type:
-                type: string
-                enum: [counter, gauge, histogram, timer]
-              value:
-                oneOf:
-                  - type: number
-                  - type: object
-                    additionalProperties:
-                      type: number
-              labels:
-                type: object
-                additionalProperties:
-                  type: string
-              help:
-                type: string
-        system:
+          description: Resident Set Size in bytes
+        heapUsed:
+          type: integer
+          description: Heap memory used in bytes
+        heapTotal:
+          type: integer
+          description: Total heap memory in bytes
+        external:
+          type: integer
+          description: External memory in bytes
+    deno:
+      type: object
+      properties:
+        version:
+          type: string
+          example: "1.40.0"
+        buildType:
+          type: string
+          example: "x86_64-apple-darwin"
+
+# RPC Metrics
+RpcMetrics:
+  type: object
+  properties:
+    totalMethods:
+      type: integer
+      description: Total registered RPC methods
+      example: 88
+    totalCalls:
+      type: integer
+      description: Total RPC calls
+      example: 1234
+    totalErrors:
+      type: integer
+      description: Total RPC errors
+      example: 5
+    avgDuration:
+      type: number
+      description: Average RPC duration in milliseconds
+      example: 23.5
+    topMethods:
+      type: array
+      items:
+        type: object
+        properties:
+          method:
+            type: string
+            example: "listAgents"
+          calls:
+            type: integer
+            example: 150
+          avgDuration:
+            type: number
+            example: 12.3
+
+# Routing Metrics
+RoutingMetrics:
+  type: object
+  properties:
+    totalRoutes:
+      type: integer
+      example: 88
+    byAccess:
+      type: object
+      additionalProperties:
+        type: integer
+      example:
+        public: 5
+        session: 60
+        developer: 18
+        owner: 5
+    byRateLimit:
+      type: object
+      additionalProperties:
+        type: integer
+    byTag:
+      type: object
+      additionalProperties:
+        type: integer
+
+# Tracing Metrics
+TracingMetrics:
+  type: object
+  properties:
+    activeSpans:
+      type: integer
+      example: 0
+    completedSpans:
+      type: integer
+      example: 500
+    recentTraces:
+      type: array
+      items:
+        type: object
+        properties:
+          traceId:
+            type: string
+          operationName:
+            type: string
+          duration:
+            type: number
+          status:
+            type: string
+
+# Application Metrics
+ApplicationMetrics:
+  type: object
+  properties:
+    http:
+      type: object
+      properties:
+        requestsTotal:
+          type: integer
+          description: Total HTTP requests
+        errorsTotal:
+          type: integer
+          description: Total HTTP errors
+        avgRequestDuration:
+          type: number
+          description: Average request duration in milliseconds
+    agents:
+      type: object
+      properties:
+        activeCount:
+          type: integer
+          description: Number of active agents
+        messagesTotal:
+          type: integer
+          description: Total agent messages
+        avgResponseTime:
+          type: number
+          description: Average agent response time in milliseconds
+    tasks:
+      type: object
+      properties:
+        executionsTotal:
+          type: integer
+          description: Total task executions
+        errorsTotal:
+          type: integer
+          description: Total task errors
+        pendingCount:
+          type: integer
+          description: Number of pending tasks
+        avgExecutionDuration:
+          type: number
+          description: Average task execution duration in milliseconds
+    chains:
+      type: object
+      properties:
+        executionsTotal:
+          type: integer
+          description: Total chain executions
+        avgExecutionDuration:
+          type: number
+          description: Average chain execution duration in milliseconds
+    domains:
+      type: object
+      properties:
+        operationsTotal:
+          type: integer
+          description: Total domain operations
+        avgOperationDuration:
+          type: number
+          description: Average domain operation duration in milliseconds
+    connections:
+      type: object
+      properties:
+        activeCount:
+          type: integer
+          description: Number of active WebSocket connections
+        errorsTotal:
+          type: integer
+          description: Total connection errors
+
+# Full Metrics Response
+GetMetricsResponse:
+  allOf:
+    - $ref: "#/ApiResponse"
+    - type: object
+      properties:
+        raw:
           type: object
           properties:
-            uptime:
+            timestamp:
               type: integer
-              description: Uptime in milliseconds
-            memory:
-              type: object
-              properties:
-                heapUsedMB:
-                  type: number
-                heapTotalMB:
-                  type: number
-                rssMB:
-                  type: number
-            pid:
-              type: integer
-        components:
-          type: object
-          properties:
-            agents:
-              type: object
-              properties:
-                total:
-                  type: integer
-                active:
-                  type: integer
-                error:
-                  type: integer
-            tasks:
-              type: object
-              properties:
-                total:
-                  type: integer
-                running:
-                  type: integer
-                failed:
-                  type: integer
-            chains:
-              type: object
-              properties:
-                total:
-                  type: integer
-                running:
-                  type: integer
-                failed:
-                  type: integer
-            circuitBreakers:
-              type: object
-              additionalProperties:
-                type: object
-            rateLimiters:
-              type: array
-              items:
-                type: string
+              description: Collection timestamp
+            system:
+              $ref: "#/SystemMetrics"
+            rpc:
+              $ref: "#/RpcMetrics"
+            routing:
+              $ref: "#/RoutingMetrics"
+            tracing:
+              $ref: "#/TracingMetrics"
+            application:
+              $ref: "#/ApplicationMetrics"

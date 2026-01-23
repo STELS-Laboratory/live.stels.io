@@ -1,5 +1,5 @@
 # Trading Schemas - Trading operations
-# 
+#
 # Implemented RPC methods (8):
 #   createOrder, cancelOrder, getOrder, listOrders, listTrades,
 #   getOrderBook, getTicker, getBalance
@@ -663,3 +663,386 @@ CreateConditionalOrderResponse:
       example: "Conditional order registered and monitoring started"
     timestamp:
       $ref: "common.yaml#/Timestamp"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# NEW TRADING METHODS (v2.12.0) - accountId-based
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# These methods use `accountId` (UUID) instead of `nid` for account identification.
+# This allows using both old-style accounts (setAccount) and new-style (connectAccount).
+
+AccountType:
+  type: string
+  enum: [spot, margin, futures, funding]
+  description: Account type for fund transfers
+
+PositionSide:
+  type: string
+  enum: [long, short]
+
+Position:
+  type: object
+  description: Open futures/derivatives position
+  properties:
+    symbol:
+      $ref: "#/Symbol"
+    side:
+      $ref: "#/PositionSide"
+    amount:
+      type: number
+      description: Position size
+    entryPrice:
+      type: number
+      description: Average entry price
+    markPrice:
+      type: number
+      description: Current mark price
+    liquidationPrice:
+      type: number
+      description: Liquidation price
+    leverage:
+      type: number
+      description: Position leverage
+    margin:
+      type: number
+      description: Position margin/collateral
+    unrealizedPnl:
+      type: number
+      description: Unrealized profit/loss
+    percentage:
+      type: number
+      description: PnL percentage
+
+# Request Schemas for new methods
+FetchPositionsParams:
+  type: object
+  description: Fetch open positions for futures/derivatives trading
+  required:
+    - accountId
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+      description: Account UUID (from listAccounts or connectAccount)
+    symbol:
+      $ref: "#/Symbol"
+      description: Optional filter by symbol
+
+FetchBalanceParams:
+  type: object
+  description: Fetch account balance by UUID
+  required:
+    - accountId
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+
+FetchOpenOrdersParams:
+  type: object
+  description: Fetch open orders by account UUID
+  required:
+    - accountId
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    symbol:
+      $ref: "#/Symbol"
+
+FetchOrderHistoryParams:
+  type: object
+  description: Fetch closed/canceled orders history
+  required:
+    - accountId
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    symbol:
+      $ref: "#/Symbol"
+    since:
+      $ref: "common.yaml#/Timestamp"
+      description: Start timestamp
+    limit:
+      type: integer
+      minimum: 1
+      maximum: 1000
+      default: 50
+
+FetchTradesParams:
+  type: object
+  description: Fetch trade history by account UUID
+  required:
+    - accountId
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    symbol:
+      $ref: "#/Symbol"
+    since:
+      $ref: "common.yaml#/Timestamp"
+    limit:
+      type: integer
+      minimum: 1
+      maximum: 1000
+      default: 50
+
+SetLeverageParams:
+  type: object
+  description: Set leverage for futures trading
+  required:
+    - accountId
+    - leverage
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    leverage:
+      type: integer
+      minimum: 1
+      maximum: 125
+      description: Leverage multiplier (1-125x)
+    symbol:
+      $ref: "#/Symbol"
+      description: Apply to specific symbol or all
+
+TransferFundsParams:
+  type: object
+  description: Transfer funds between account types
+  required:
+    - accountId
+    - currency
+    - amount
+    - fromAccount
+    - toAccount
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    currency:
+      type: string
+      example: "USDT"
+    amount:
+      type: number
+      minimum: 0
+      exclusiveMinimum: true
+    fromAccount:
+      $ref: "#/AccountType"
+    toAccount:
+      $ref: "#/AccountType"
+
+BatchOrderParams:
+  type: object
+  description: Single order in a batch
+  required:
+    - symbol
+    - side
+    - type
+    - amount
+  properties:
+    symbol:
+      $ref: "#/Symbol"
+    side:
+      $ref: "#/OrderSide"
+    type:
+      $ref: "#/OrderType"
+    amount:
+      type: number
+    price:
+      type: number
+    stopPrice:
+      type: number
+    timeInForce:
+      $ref: "#/TimeInForce"
+
+CreateBatchOrdersParams:
+  type: object
+  description: Create multiple orders in single request
+  required:
+    - accountId
+    - orders
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    orders:
+      type: array
+      minItems: 1
+      maxItems: 100
+      items:
+        $ref: "#/BatchOrderParams"
+
+ConditionType:
+  type: string
+  enum: [price, time, indicator]
+
+ConditionOperator:
+  type: string
+  enum: [gt, lt, eq, gte, lte]
+
+OrderCondition:
+  type: object
+  description: Condition for triggering order
+  required:
+    - type
+    - operator
+    - value
+  properties:
+    type:
+      $ref: "#/ConditionType"
+    operator:
+      $ref: "#/ConditionOperator"
+    value:
+      type: number
+    symbol:
+      $ref: "#/Symbol"
+      description: Required for price conditions
+    indicator:
+      type: string
+      description: Required for indicator conditions (e.g., "RSI")
+
+CreateConditionalOrderParams:
+  type: object
+  description: Create conditional order that triggers when conditions are met
+  required:
+    - accountId
+    - condition
+    - order
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    condition:
+      $ref: "#/OrderCondition"
+    order:
+      type: object
+      required:
+        - symbol
+        - side
+        - type
+        - amount
+      properties:
+        symbol:
+          $ref: "#/Symbol"
+        side:
+          $ref: "#/OrderSide"
+        type:
+          type: string
+          enum: [market, limit]
+        amount:
+          type: number
+        price:
+          type: number
+          description: Required for limit orders
+    expiresAt:
+      $ref: "common.yaml#/Timestamp"
+      description: Optional expiration timestamp
+
+# Response Schemas
+FetchPositionsResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: array
+      items:
+        $ref: "#/Position"
+
+FetchOpenOrdersResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: array
+      items:
+        $ref: "#/Order"
+
+FetchOrderHistoryResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: array
+      items:
+        $ref: "#/Order"
+
+SetLeverageResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        leverage:
+          type: integer
+        symbol:
+          $ref: "#/Symbol"
+
+TransferFundsResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        transferId:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        fromAccount:
+          $ref: "#/AccountType"
+        toAccount:
+          $ref: "#/AccountType"
+
+BatchOrderResult:
+  type: object
+  properties:
+    order:
+      $ref: "#/BatchOrderParams"
+    success:
+      type: boolean
+    data:
+      $ref: "#/Order"
+      nullable: true
+    error:
+      type: string
+      nullable: true
+
+CreateBatchOrdersResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        total:
+          type: integer
+        successful:
+          type: integer
+        failed:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: "#/BatchOrderResult"
+        timestamp:
+          $ref: "common.yaml#/Timestamp"
+
+CreateConditionalOrderResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        conditionalOrderId:
+          type: string
+        status:
+          type: string
+          enum: [pending, triggered, cancelled, expired]
+        message:
+          type: string
+        timestamp:
+          $ref: "common.yaml#/Timestamp"

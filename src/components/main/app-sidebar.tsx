@@ -4,7 +4,19 @@
  */
 
 import * as React from "react";
-import { Boxes, Bot, Code, Home, Wallet, Zap } from "lucide-react";
+import {
+  Boxes,
+  Bot,
+  Code,
+  Home,
+  Wallet,
+  Zap,
+  TrendingUp,
+  GitBranch,
+  Globe,
+  BarChart3,
+  type LucideIcon,
+} from "lucide-react";
 import { useAppStore } from "@/stores";
 import { navigateTo } from "@/lib/router";
 
@@ -24,46 +36,108 @@ import {
 import { ConnectionStatusSimple } from "@/components/auth/connection-status-simple";
 
 /**
- * Navigation items configuration
+ * Navigation item type
  */
-const NAV_ITEMS = [
+interface NavItem {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  route: string;
+}
+
+/**
+ * Navigation group type
+ */
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+/**
+ * Navigation groups configuration
+ */
+const NAV_GROUPS: NavGroup[] = [
   {
-    id: "welcome",
-    label: "Home",
-    icon: Home,
-    route: "welcome",
+    label: "Overview",
+    items: [
+      {
+        id: "welcome",
+        label: "Home",
+        icon: Home,
+        route: "welcome",
+      },
+      {
+        id: "canvas",
+        label: "Canvas",
+        icon: Boxes,
+        route: "canvas",
+      },
+    ],
   },
   {
-    id: "agents",
-    label: "Agents",
-    icon: Bot,
-    route: "agents",
+    label: "AI & Automation",
+    items: [
+      {
+        id: "agents",
+        label: "Agents",
+        icon: Bot,
+        route: "agents",
+      },
+      {
+        id: "chains",
+        label: "Chains",
+        icon: GitBranch,
+        route: "chains",
+      },
+      {
+        id: "strategies",
+        label: "Strategies",
+        icon: Zap,
+        route: "strategies",
+      },
+    ],
   },
   {
-    id: "editor",
-    label: "Editor",
-    icon: Code,
-    route: "editor",
+    label: "Trading",
+    items: [
+      {
+        id: "trading",
+        label: "Trading",
+        icon: TrendingUp,
+        route: "trading",
+      },
+      {
+        id: "accounts",
+        label: "Accounts",
+        icon: Wallet,
+        route: "accounts",
+      },
+    ],
   },
   {
-    id: "canvas",
-    label: "Canvas",
-    icon: Boxes,
-    route: "canvas",
+    label: "Development",
+    items: [
+      {
+        id: "editor",
+        label: "Editor",
+        icon: Code,
+        route: "editor",
+      },
+      {
+        id: "domains",
+        label: "Domains",
+        icon: Globe,
+        route: "domains",
+      },
+      {
+        id: "metrics",
+        label: "Metrics",
+        icon: BarChart3,
+        route: "metrics",
+      },
+    ],
   },
-  {
-    id: "accounts",
-    label: "Accounts",
-    icon: Wallet,
-    route: "accounts",
-  },
-  {
-    id: "strategies",
-    label: "Strategies",
-    icon: Zap,
-    route: "strategies",
-  },
-] as const;
+];
 
 /**
  * Logo component for sidebar header
@@ -123,30 +197,32 @@ export function AppSidebar({
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {NAV_ITEMS.map((item) => {
-                const isActive = currentRoute === item.route;
-                const Icon = item.icon;
+        {NAV_GROUPS.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => {
+                  const isActive = currentRoute === item.route;
+                  const Icon = item.icon;
 
-                return (
-                  <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton
-                      onClick={() => navigateTo(item.route)}
-                      isActive={isActive}
-                      tooltip={item.label}
-                    >
-                      <Icon className="size-4" />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                  return (
+                    <SidebarMenuItem key={item.id}>
+                      <SidebarMenuButton
+                        onClick={() => navigateTo(item.route)}
+                        isActive={isActive}
+                        tooltip={item.label}
+                      >
+                        <Icon className="size-4" />
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter>

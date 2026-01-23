@@ -394,6 +394,7 @@ export interface StrategyStore {
   
   createStrategy: (params: CreateStrategyRequest) => Promise<CreateStrategyResponse | null>;
   listStrategies: (params?: ListStrategiesRequest) => Promise<void>;
+  getStrategy: (strategyId: string) => Promise<Strategy | null>;
   updateStrategy: (params: UpdateStrategyRequest) => Promise<Strategy | null>;
   deleteStrategy: (strategyId: string) => Promise<boolean>;
   startStrategy: (strategyId: string) => Promise<boolean>;

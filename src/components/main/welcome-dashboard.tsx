@@ -96,7 +96,7 @@ export function WelcomeDashboard(): React.ReactElement {
               Welcome back
             </motion.p>
             <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
-              Command Center
+              STELS Command Center
             </h1>
             <p className="text-muted-foreground max-w-lg">
               Build, deploy and manage your AI agents and workflows with STELS

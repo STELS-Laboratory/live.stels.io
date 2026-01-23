@@ -1,8 +1,6 @@
 # Channel Schemas - User data channels
-# 
-# NOTE: Channel methods are implemented but not yet exposed via WebFIX RPC.
-# They are available for internal use and will be registered in a future version.
 # Part of STELS Agentic AI Platform OpenAPI Specification
+# Updated: v2.11.0 - Unified WebFIX Response Format
 
 ChannelVisibility:
   type: string
@@ -93,7 +91,9 @@ AvailableChannel:
     updatedAt:
       type: integer
 
-# Request/Response Schemas
+# ═══════════════════════════════════════════════════════════════════════════
+# REQUEST SCHEMAS
+# ═══════════════════════════════════════════════════════════════════════════
 
 CreateChannelParams:
   type: object
@@ -123,20 +123,6 @@ CreateChannelParams:
       type: object
       description: Optional custom metadata
 
-CreateChannelResponse:
-  type: object
-  properties:
-    success:
-      type: boolean
-    data:
-      type: object
-      properties:
-        channel:
-          $ref: "#/ChannelDefinition"
-        keyPrefix:
-          type: string
-          description: KV key prefix for channel data
-
 ListChannelsParams:
   type: object
   properties:
@@ -149,21 +135,6 @@ ListChannelsParams:
       type: boolean
       default: false
       description: Include only own channels
-
-ListChannelsResponse:
-  type: object
-  properties:
-    success:
-      type: boolean
-    data:
-      type: object
-      properties:
-        channels:
-          type: array
-          items:
-            $ref: "#/ChannelDefinition"
-        total:
-          type: integer
 
 ReadChannelDataParams:
   type: object
@@ -180,26 +151,6 @@ ReadChannelDataParams:
           - type: string
           - type: integer
       description: Optional sub-key path within the channel
-
-ReadChannelDataResponse:
-  type: object
-  properties:
-    success:
-      type: boolean
-    data:
-      type: object
-      properties:
-        value:
-          description: The stored value (any JSON type)
-        key:
-          type: string
-          description: Full key path
-        versionstamp:
-          type: string
-          description: Version stamp for optimistic locking
-        timestamp:
-          type: integer
-          description: Read timestamp
 
 WriteChannelDataParams:
   type: object
@@ -226,22 +177,6 @@ WriteChannelDataParams:
       type: integer
       description: Optional TTL in milliseconds
 
-WriteChannelDataResponse:
-  type: object
-  properties:
-    success:
-      type: boolean
-    data:
-      type: object
-      properties:
-        written:
-          type: boolean
-        key:
-          type: string
-          description: Full key path
-        timestamp:
-          type: integer
-
 GetAvailableChannelsParams:
   type: object
   properties:
@@ -258,26 +193,125 @@ GetAvailableChannelsParams:
       default: true
       description: Include private channels where user has access
 
-GetAvailableChannelsResponse:
-  type: object
-  properties:
-    success:
-      type: boolean
-    data:
-      type: object
+# ═══════════════════════════════════════════════════════════════════════════
+# RESPONSE SCHEMAS (Unified WebFIX Format v2.11.0)
+# ═══════════════════════════════════════════════════════════════════════════
+
+CreateChannelResponse:
+  allOf:
+    - $ref: "responses.yaml#/ApiResponse"
+    - type: object
       properties:
-        channels:
-          type: array
-          items:
-            $ref: "#/AvailableChannel"
-        total:
-          type: integer
-        summary:
+        channel:
+          type: string
+          example: "channel.response"
+        module:
+          type: string
+          example: "channel"
+        raw:
           type: object
           properties:
-            own:
+            channel:
+              $ref: "#/ChannelDefinition"
+            keyPrefix:
+              type: string
+              description: KV key prefix for channel data
+
+ListChannelsResponse:
+  allOf:
+    - $ref: "responses.yaml#/ApiResponse"
+    - type: object
+      properties:
+        channel:
+          type: string
+          example: "channel.response"
+        module:
+          type: string
+          example: "channel"
+        raw:
+          type: object
+          properties:
+            channels:
+              type: array
+              items:
+                $ref: "#/ChannelDefinition"
+            total:
               type: integer
-            public:
+
+ReadChannelDataResponse:
+  allOf:
+    - $ref: "responses.yaml#/ApiResponse"
+    - type: object
+      properties:
+        channel:
+          type: string
+          example: "channel.response"
+        module:
+          type: string
+          example: "channel"
+        raw:
+          type: object
+          properties:
+            value:
+              description: The stored value (any JSON type)
+            key:
+              type: string
+              description: Full key path
+            versionstamp:
+              type: string
+              description: Version stamp for optimistic locking
+            timestamp:
               type: integer
-            shared:
+              description: Read timestamp
+
+WriteChannelDataResponse:
+  allOf:
+    - $ref: "responses.yaml#/ApiResponse"
+    - type: object
+      properties:
+        channel:
+          type: string
+          example: "channel.response"
+        module:
+          type: string
+          example: "channel"
+        raw:
+          type: object
+          properties:
+            written:
+              type: boolean
+            key:
+              type: string
+              description: Full key path
+            timestamp:
               type: integer
+
+GetAvailableChannelsResponse:
+  allOf:
+    - $ref: "responses.yaml#/ApiResponse"
+    - type: object
+      properties:
+        channel:
+          type: string
+          example: "channel.response"
+        module:
+          type: string
+          example: "channel"
+        raw:
+          type: object
+          properties:
+            channels:
+              type: array
+              items:
+                $ref: "#/AvailableChannel"
+            total:
+              type: integer
+            summary:
+              type: object
+              properties:
+                own:
+                  type: integer
+                public:
+                  type: integer
+                shared:
+                  type: integer

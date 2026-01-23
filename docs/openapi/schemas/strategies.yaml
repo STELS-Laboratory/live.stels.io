@@ -429,7 +429,17 @@ StrategyTemplateSummary:
 
 StrategyStatus:
   type: string
-  enum: [draft, configuring, ready, starting, running, paused, stopping, stopped, error]
+  enum: [
+    draft,
+    configuring,
+    ready,
+    starting,
+    running,
+    paused,
+    stopping,
+    stopped,
+    error,
+  ]
   description: Strategy instance status
 
 StrategyStats:

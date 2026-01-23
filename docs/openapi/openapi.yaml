@@ -1,14 +1,66 @@
 openapi: 3.1.0
 info:
   title: STELS Agentic AI Platform API
-  version: 2.10.0
+  version: 2.12.0
   description: |
     # STELS Runtime API
 
     Complete API for the Agentic AI Platform supporting autonomous AI agents,
     task automation, cross-domain chains, trading operations, and more.
 
-    ## Recent Updates (v2.9.0)
+    ## Recent Updates (v2.12.0)
+
+    ### ⚠️ BREAKING CHANGE: Unified Response Format (v2.12.0)
+    
+    **All API responses now use the `raw` field for data payload.**
+    
+    See `/docs/WEBFIX-MIGRATION-GUIDE.md` for detailed migration instructions.
+
+    #### Before (v2.11.x)
+    \`\`\`json
+    {
+      "success": true,
+      "data": { "free": {...}, "used": {...} },
+      "orders": [...],
+      "agent": { "id": "..." }
+    }
+    \`\`\`
+
+    #### After (v2.12.0)
+    \`\`\`json
+    {
+      "success": true,
+      "raw": {
+        "free": {...},
+        "used": {...},
+        "orders": [...],
+        "agent": { "id": "..." }
+      }
+    }
+    \`\`\`
+
+    ### New Trading Methods (v2.12.0)
+    - ✅ **fetchPositions**: Get open futures/derivatives positions by `accountId`
+    - ✅ **fetchBalance**: Get balance by `accountId` (UUID) instead of `nid`
+    - ✅ **fetchOpenOrders**: Get open orders by `accountId`
+    - ✅ **fetchOrderHistory**: Get closed/canceled orders history
+    - ✅ **fetchTrades**: Get trade history by `accountId`
+    - ✅ **setLeverage**: Set leverage for futures trading (1-125x)
+    - ✅ **transferFunds**: Transfer between spot/margin/futures/funding
+    - ✅ **createBatchOrders**: Create up to 100 orders in single request
+    - ✅ **createConditionalOrder**: Create orders triggered by conditions
+
+    ### Previous Updates (v2.11.0)
+
+    #### Unified WebFIX Response Format (v2.11.0)
+    - ✅ **Standardized Response Structure**: All API responses now use unified WebFIX KV format
+    - ✅ **New Fields**: `channel`, `module`, `widget` for routing, `raw` for data, `requestId` for tracing
+    - ✅ **getMetrics RPC Method**: Full system metrics available via RPC (developer access)
+    - ✅ **Application Metrics**: HTTP, agents, tasks, chains, domains, connections metrics
+    - ✅ **Prometheus Export**: `format: "prometheus"` for Grafana integration
+    - ✅ **Consistent Error Codes**: Standardized ErrorCodes enum across all endpoints
+    - ✅ **Channel Handlers Refactored**: All 5 channel methods use standardized response builders
+    ## Previous Updates (v2.9.0)
 
     ## Agent-Account Security Model (v2.9.0)
 
@@ -155,7 +207,7 @@ info:
     | **Realtime** | setTrigger |
     | **Accounts** | listAccounts |
     | **Connection** | requestDeveloperAccess, listDeveloperRequests |
-    | **Health** | getHealth |
+    | **Health** | getHealth, getMetrics |
 
     ### Methods Requiring External Setup (43)
 
@@ -2798,7 +2850,17 @@ components:
 
     StrategyStatus:
       type: string
-      enum: [draft, configuring, ready, starting, running, paused, stopped, error, completed]
+      enum: [
+        draft,
+        configuring,
+        ready,
+        starting,
+        running,
+        paused,
+        stopped,
+        error,
+        completed,
+      ]
       description: Strategy instance status
 
     StrategyRequirements:
@@ -2835,7 +2897,16 @@ components:
           type: string
         type:
           type: string
-          enum: [string, number, boolean, select, multiselect, account, symbol, array]
+          enum: [
+            string,
+            number,
+            boolean,
+            select,
+            multiselect,
+            account,
+            symbol,
+            array,
+          ]
         description:
           type: string
         required:

@@ -692,6 +692,183 @@ export interface DisconnectAccountFromAgentResponse {
   error?: string;
 }
 
+// ============================================================================
+// Orchestration Types
+// ============================================================================
+
+export type CollaborationType = "sequential" | "parallel" | "hierarchical" | "peer";
+
+export interface RouteToAgentsParams {
+  message: string;
+  agentIds?: string[];
+  domain?: AgentDomain;
+  context?: Record<string, unknown>;
+  waitForAll?: boolean;
+  timeout?: number;
+}
+
+export interface RouteToAgentsResponse {
+  success: boolean;
+  responses?: Array<{
+    agentId: string;
+    success: boolean;
+    response?: string;
+    error?: string;
+    duration?: number;
+  }>;
+  error?: string;
+}
+
+export interface StartCollaborationParams {
+  name: string;
+  agentIds: string[];
+  type: CollaborationType;
+  context?: Record<string, unknown>;
+}
+
+export interface StartCollaborationResponse {
+  success: boolean;
+  collaborationId?: string;
+  error?: string;
+}
+
+export interface SendAgentMessageParams {
+  fromAgentId: string;
+  toAgentId: string;
+  type?: "request" | "response" | "notification" | "event";
+  content: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface SendAgentMessageResponse {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}
+
+export interface EndCollaborationParams {
+  collaborationId: string;
+  reason?: string;
+}
+
+export interface EndCollaborationResponse {
+  success: boolean;
+  error?: string;
+}
+
+export interface OrchestratorStats {
+  activeInstances?: number;
+  totalMessages?: number;
+  activeCollaborations?: number;
+}
+
+export interface GetOrchestratorStatsResponse {
+  success: boolean;
+  stats?: OrchestratorStats;
+  error?: string;
+}
+
+// ============================================================================
+// Realtime Types
+// ============================================================================
+
+export interface AgentState {
+  agentId: string;
+  status: AgentStatus;
+  currentTask?: string;
+  lastActivity?: number;
+  memory?: Record<string, unknown>;
+  context?: Record<string, unknown>;
+}
+
+export interface GetAgentStateParams {
+  agentId: string;
+}
+
+export interface GetAgentStateResponse {
+  success: boolean;
+  state?: AgentState;
+  error?: string;
+}
+
+export interface GetDomainDataParams {
+  domain: AgentDomain;
+  accountId?: string;
+  dataType?: string;
+  filters?: Record<string, unknown>;
+}
+
+export interface GetDomainDataResponse {
+  success: boolean;
+  data?: Record<string, unknown>;
+  error?: string;
+}
+
+// setTrigger types
+export type RealtimeTriggerType = "kv" | "schedule" | "event" | "condition";
+
+export interface SetTriggerParams {
+  id?: string;
+  type: RealtimeTriggerType;
+  enabled?: boolean;
+  // KV trigger config
+  keyPattern?: string[];
+  onChange?: boolean;
+  debounceMs?: number;
+  // Schedule trigger config
+  cron?: string;
+  intervalMs?: number;
+  timezone?: string;
+  // Event trigger config
+  eventType?: string;
+  eventSource?: string;
+  filter?: Record<string, unknown>;
+  // Condition trigger config
+  expression?: string;
+  checkIntervalMs?: number;
+  // Action config
+  taskId?: string;
+  chainId?: string;
+}
+
+export interface SetTriggerResponse {
+  success: boolean;
+  triggerId?: string;
+  trigger?: SetTriggerParams & { id: string };
+  error?: string;
+}
+
+// ============================================================================
+// Knowledge Base Types
+// ============================================================================
+
+export interface CreateKnowledgeBaseParams {
+  workspaceId: string;
+  name: string;
+  description?: string;
+  settings?: {
+    chunkSize?: number;
+    chunkOverlap?: number;
+    embeddingModel?: string;
+  };
+}
+
+export interface CreateKnowledgeBaseResponse {
+  success: boolean;
+  knowledgeBase?: KnowledgeBase;
+  error?: string;
+}
+
+export interface DeleteKnowledgeBaseParams {
+  knowledgeBaseId: string;
+}
+
+export interface DeleteKnowledgeBaseResponse {
+  success: boolean;
+  deleted?: boolean;
+  error?: string;
+}
+
 export interface AgentStore {
   // State
   agents: Agent[];
@@ -754,6 +931,8 @@ export interface AgentStore {
   
   // Knowledge base actions
   listKnowledgeBases: (workspaceId?: string) => Promise<void>;
+  createKnowledgeBase: (params: CreateKnowledgeBaseParams) => Promise<KnowledgeBase | null>;
+  deleteKnowledgeBase: (params: DeleteKnowledgeBaseParams) => Promise<boolean>;
   
   // Sync actions
   syncFromGradient: (params?: SyncFromGradientParams) => Promise<SyncFromGradientResponse | null>;
@@ -776,4 +955,16 @@ export interface AgentStore {
   setSelectedAgent: (agent: Agent | null) => void;
   clearConversation: (agentId: string) => void;
   clearError: () => void;
+  
+  // Orchestration actions
+  routeToAgents: (params: RouteToAgentsParams) => Promise<RouteToAgentsResponse | null>;
+  startCollaboration: (params: StartCollaborationParams) => Promise<string | null>;
+  sendAgentMessage: (params: SendAgentMessageParams) => Promise<boolean>;
+  endCollaboration: (params: EndCollaborationParams) => Promise<boolean>;
+  getOrchestratorStats: () => Promise<OrchestratorStats | null>;
+  
+  // Realtime actions
+  getAgentState: (params: GetAgentStateParams) => Promise<AgentState | null>;
+  getDomainData: (params: GetDomainDataParams) => Promise<Record<string, unknown> | null>;
+  setTrigger: (params: SetTriggerParams) => Promise<string | null>;
 }

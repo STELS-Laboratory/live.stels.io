@@ -1,6 +1,9 @@
 /**
  * Strategy Templates application store
  * Manages strategy templates and user strategies via RPC calls
+ * 
+ * WebFIX v2.12.0: All responses use `raw` field for data payload
+ * See: /docs/WEBFIX-MIGRATION-GUIDE.md
  */
 
 import { create } from "zustand";
@@ -8,6 +11,17 @@ import { devtools } from "zustand/middleware";
 import { useAuthStore } from "@/stores/modules/auth.store";
 import { toast } from "@/stores";
 import { WebfixApiClient } from "@/lib/webfix-api-client";
+
+// WebFIX v2.12.0 response wrapper type
+interface WebfixResponse<T> {
+  success: boolean;
+  raw?: T;
+  error?: {
+    code: string;
+    message: string;
+    httpStatus?: number;
+  };
+}
 import type {
   StrategyStore,
   StrategyTemplate,
@@ -87,7 +101,7 @@ export const useStrategyStore = create<StrategyStore>()(
         set({ templatesLoading: true, templatesError: null });
 
         try {
-          const response = await client.request<ListTemplatesResponse>(
+          const response = await client.request<WebfixResponse<{ templates: StrategyTemplateSummary[] }>>(
             "listStrategyTemplates",
             {
               domain: params?.domain,
@@ -100,8 +114,8 @@ export const useStrategyStore = create<StrategyStore>()(
 
           console.log("[StrategyStore] listTemplates response:", response);
 
-          // Handle both {success, templates} and direct {templates} formats
-          const templates = response.templates ?? [];
+          // WebFIX v2.12.0: Parse response.raw.templates
+          const templates = response.raw?.templates ?? [];
           console.log("[StrategyStore] Templates loaded:", templates.length);
           set({ templates });
         } catch (error) {
@@ -124,14 +138,15 @@ export const useStrategyStore = create<StrategyStore>()(
         set({ templateLoading: true, templateError: null });
 
         try {
-          const response = await client.request<GetTemplateResponse>(
+          const response = await client.request<WebfixResponse<{ template: StrategyTemplate }>>(
             "getStrategyTemplate",
             { templateId }
           );
 
           console.log("[StrategyStore] getTemplate response:", response);
 
-          const template = response.template;
+          // WebFIX v2.12.0: Parse response.raw.template
+          const template = response.raw?.template;
           if (template) {
             console.log("[StrategyStore] Template loaded:", template.name);
             console.log("[StrategyStore] ConfigSchema:", JSON.stringify(template.configSchema, null, 2));
@@ -142,7 +157,7 @@ export const useStrategyStore = create<StrategyStore>()(
             set({ selectedTemplate: template });
             return template;
           } else {
-            throw new Error("Template not found");
+            throw new Error(response.error?.message || "Template not found");
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : "Failed to load template";
@@ -173,36 +188,39 @@ export const useStrategyStore = create<StrategyStore>()(
         set({ strategyCreating: true });
 
         try {
-          const response = await client.request<CreateStrategyResponse>(
+          const response = await client.request<WebfixResponse<CreateStrategyResponse>>(
             "createStrategy",
             params
           );
 
           console.log("[StrategyStore] createStrategy response:", response);
 
+          // WebFIX v2.12.0: Parse response.raw
+          const data = response.raw;
+
           // Handle validation errors
-          if (response.validationErrors && response.validationErrors.length > 0) {
-            console.log("[StrategyStore] Validation errors:", response.validationErrors);
-            return response;
+          if (data?.validationErrors && data.validationErrors.length > 0) {
+            console.log("[StrategyStore] Validation errors:", data.validationErrors);
+            return data;
           }
 
-          if (response.success && response.strategy) {
-            console.log("[StrategyStore] Strategy created:", response.strategy.id);
+          if (response.success && data?.strategy) {
+            console.log("[StrategyStore] Strategy created:", data.strategy.id);
 
             // Add to strategies list if not a dry run
             if (!params.dryRun) {
               set((state) => ({
-                strategies: [response.strategy!, ...state.strategies],
+                strategies: [data.strategy!, ...state.strategies],
               }));
-              toast.success(`Strategy "${response.strategy.name}" created`);
+              toast.success(`Strategy "${data.strategy.name}" created`);
             }
 
-            return response;
+            return data;
           } else if (params.dryRun) {
             // Dry run returns validation result without strategy
-            return response;
+            return data || null;
           } else {
-            throw new Error("Failed to create strategy");
+            throw new Error(response.error?.message || "Failed to create strategy");
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : "Failed to create strategy";
@@ -224,7 +242,7 @@ export const useStrategyStore = create<StrategyStore>()(
         set({ strategiesLoading: true, strategiesError: null });
 
         try {
-          const response = await client.request<ListStrategiesResponse>(
+          const response = await client.request<WebfixResponse<{ strategies: Strategy[] }>>(
             "listStrategies",
             {
               templateId: params?.templateId,
@@ -236,8 +254,8 @@ export const useStrategyStore = create<StrategyStore>()(
 
           console.log("[StrategyStore] listStrategies response:", response);
 
-          // Handle both {success, strategies} and direct {strategies} formats
-          const strategies = response.strategies ?? [];
+          // WebFIX v2.12.0: Parse response.raw.strategies
+          const strategies = response.raw?.strategies ?? [];
           console.log("[StrategyStore] Strategies loaded:", strategies.length);
           set({ strategies });
         } catch (error) {
@@ -250,6 +268,46 @@ export const useStrategyStore = create<StrategyStore>()(
         }
       },
 
+      getStrategy: async (strategyId: string): Promise<Strategy | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        try {
+          const response = await client.request<WebfixResponse<{ strategy: Strategy }>>(
+            "getStrategy",
+            { strategyId }
+          );
+
+          console.log("[StrategyStore] getStrategy response:", response);
+
+          // WebFIX v2.12.0: Parse response.raw.strategy
+          const strategy = response.raw?.strategy;
+          if (response.success && strategy) {
+            // Update selected strategy
+            set({ selectedStrategy: strategy });
+            
+            // Update in list if exists
+            set((state) => ({
+              strategies: state.strategies.map((s) =>
+                s.id === strategy.id ? strategy : s
+              ),
+            }));
+            
+            return strategy;
+          }
+
+          return null;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to get strategy";
+          console.error("[StrategyStore] getStrategy error:", error);
+          toast.error(message);
+          return null;
+        }
+      },
+
       updateStrategy: async (params: UpdateStrategyRequest) => {
         const client = getApiClient();
         if (!client) {
@@ -258,29 +316,31 @@ export const useStrategyStore = create<StrategyStore>()(
         }
 
         try {
-          const response = await client.request<StrategyResponse>(
+          const response = await client.request<WebfixResponse<{ strategy: Strategy }>>(
             "updateStrategy",
             params
           );
 
-          if (response.success && response.strategy) {
-            console.log("[StrategyStore] Strategy updated:", response.strategy.id);
+          // WebFIX v2.12.0: Parse response.raw.strategy
+          const strategy = response.raw?.strategy;
+          if (response.success && strategy) {
+            console.log("[StrategyStore] Strategy updated:", strategy.id);
 
             // Update in list
             set((state) => ({
               strategies: state.strategies.map((s) =>
-                s.id === response.strategy.id ? response.strategy : s
+                s.id === strategy.id ? strategy : s
               ),
               selectedStrategy:
-                state.selectedStrategy?.id === response.strategy.id
-                  ? response.strategy
+                state.selectedStrategy?.id === strategy.id
+                  ? strategy
                   : state.selectedStrategy,
             }));
 
             toast.success("Strategy updated");
-            return response.strategy;
+            return strategy;
           } else {
-            throw new Error("Failed to update strategy");
+            throw new Error(response.error?.message || "Failed to update strategy");
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : "Failed to update strategy";
@@ -298,12 +358,13 @@ export const useStrategyStore = create<StrategyStore>()(
         }
 
         try {
-          const response = await client.request<{ success: boolean; deleted: boolean }>(
+          const response = await client.request<WebfixResponse<{ deleted: boolean }>>(
             "deleteStrategy",
             { strategyId }
           );
 
-          if (response.success && response.deleted) {
+          // WebFIX v2.12.0: Check response.success
+          if (response.success) {
             console.log("[StrategyStore] Strategy deleted:", strategyId);
 
             // Remove from list
@@ -316,7 +377,7 @@ export const useStrategyStore = create<StrategyStore>()(
             toast.success("Strategy deleted");
             return true;
           } else {
-            throw new Error("Failed to delete strategy");
+            throw new Error(response.error?.message || "Failed to delete strategy");
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : "Failed to delete strategy";
@@ -334,12 +395,13 @@ export const useStrategyStore = create<StrategyStore>()(
         }
 
         try {
-          const response = await client.request<StrategyResponse>(
+          const response = await client.request<WebfixResponse<{ strategy: Strategy }>>(
             "startStrategy",
             { strategyId }
           );
 
-          if (response.success && response.strategy) {
+          // WebFIX v2.12.0: Check response.success
+          if (response.success) {
             console.log("[StrategyStore] Strategy started:", strategyId);
 
             set((state) => ({
@@ -355,7 +417,7 @@ export const useStrategyStore = create<StrategyStore>()(
             toast.success("Strategy started");
             return true;
           } else {
-            throw new Error("Failed to start strategy");
+            throw new Error(response.error?.message || "Failed to start strategy");
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : "Failed to start strategy";
@@ -373,12 +435,13 @@ export const useStrategyStore = create<StrategyStore>()(
         }
 
         try {
-          const response = await client.request<StrategyResponse>(
+          const response = await client.request<WebfixResponse<{ strategy: Strategy }>>(
             "pauseStrategy",
             { strategyId }
           );
 
-          if (response.success && response.strategy) {
+          // WebFIX v2.12.0: Check response.success
+          if (response.success) {
             console.log("[StrategyStore] Strategy paused:", strategyId);
 
             set((state) => ({
@@ -394,7 +457,7 @@ export const useStrategyStore = create<StrategyStore>()(
             toast.success("Strategy paused");
             return true;
           } else {
-            throw new Error("Failed to pause strategy");
+            throw new Error(response.error?.message || "Failed to pause strategy");
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : "Failed to pause strategy";
@@ -412,12 +475,13 @@ export const useStrategyStore = create<StrategyStore>()(
         }
 
         try {
-          const response = await client.request<StrategyResponse>(
+          const response = await client.request<WebfixResponse<{ strategy: Strategy }>>(
             "stopStrategy",
             { strategyId }
           );
 
-          if (response.success && response.strategy) {
+          // WebFIX v2.12.0: Check response.success
+          if (response.success) {
             console.log("[StrategyStore] Strategy stopped:", strategyId);
 
             set((state) => ({
@@ -433,7 +497,7 @@ export const useStrategyStore = create<StrategyStore>()(
             toast.success("Strategy stopped");
             return true;
           } else {
-            throw new Error("Failed to stop strategy");
+            throw new Error(response.error?.message || "Failed to stop strategy");
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : "Failed to stop strategy";
