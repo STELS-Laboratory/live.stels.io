@@ -1,0 +1,300 @@
+# Market Making Schemas
+# 
+# NOTE: Market making operations are executed through Strategy Templates.
+# These schemas define the configuration for market making strategies,
+# not standalone RPC endpoints. Use createStrategy with templateId="market-making"
+# to create a market making strategy that will execute these operations as tasks.
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+StartMarketMakingParams:
+  type: object
+  description: |
+    Start automated market making for a symbol.
+
+    Market making involves simultaneously placing bid and ask orders to profit from the spread.
+    The system automatically adjusts quotes based on:
+    - Real-time order book updates
+    - Inventory levels
+    - Volatility
+    - Fill rates (adverse selection protection)
+
+    **⚠️ Prerequisites:**
+    - Exchange account must be configured via `setAccount` method
+    - Valid API credentials with trading permissions
+    - Sufficient balance for quotes
+    - WebSocket support (Bybit recommended for low-latency)
+  required:
+    - symbol
+    - spread
+    - quoteSize
+  properties:
+    symbol:
+      $ref: "trading.yaml#/Symbol"
+      description: Trading pair symbol (e.g., BTC/USDT)
+    spread:
+      type: number
+      minimum: 0
+      description: Base spread (absolute or percentage). System will adjust based on volatility and fill rates.
+    minSpread:
+      type: number
+      minimum: 0
+      description: Minimum spread to maintain
+    maxSpread:
+      type: number
+      minimum: 0
+      description: Maximum spread allowed
+    quoteSize:
+      type: number
+      minimum: 0
+      description: Quote size per side (bid and ask)
+    maxInventory:
+      type: number
+      description: Maximum inventory in base currency
+    maxInventoryPercentage:
+      type: number
+      minimum: 0
+      maximum: 100
+      description: Maximum inventory as percentage of balance
+    volatilityThreshold:
+      type: number
+      minimum: 0
+      description: Volatility threshold to stop quoting
+    updateInterval:
+      type: integer
+      minimum: 100
+      default: 1000
+      description: Quote update interval in milliseconds
+    enableRebalancing:
+      type: boolean
+      default: true
+      description: Enable automatic position rebalancing
+
+StartMarketMakingResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    instance:
+      $ref: "#/MarketMakingInstance"
+    error:
+      type: string
+
+MarketMakingInstance:
+  type: object
+  properties:
+    id:
+      type: string
+      description: Instance identifier
+    accountId:
+      $ref: "common.yaml#/UUID"
+    symbol:
+      $ref: "trading.yaml#/Symbol"
+    status:
+      type: string
+      enum: [active, paused, stopped]
+    quoteId:
+      type: string
+      description: Active quote identifier
+    orderBookSubscriptionId:
+      type: string
+    positionsSubscriptionId:
+      type: string
+    tickerSubscriptionId:
+      type: string
+    tradesSubscriptionId:
+      type: string
+    createdAt:
+      $ref: "common.yaml#/Timestamp"
+    updatedAt:
+      $ref: "common.yaml#/Timestamp"
+
+StopMarketMakingParams:
+  type: object
+  description: Stop market making for a symbol
+  required:
+    - symbol
+  properties:
+    symbol:
+      $ref: "trading.yaml#/Symbol"
+
+StopMarketMakingResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    error:
+      type: string
+
+UpdateQuotesParams:
+  type: object
+  description: Update quotes with new mid price
+  required:
+    - symbol
+    - midPrice
+  properties:
+    symbol:
+      $ref: "trading.yaml#/Symbol"
+    midPrice:
+      type: number
+      minimum: 0
+      description: New mid price for quotes
+
+UpdateQuotesResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    error:
+      type: string
+
+GetInventoryParams:
+  type: object
+  description: Get current inventory state for a symbol
+  required:
+    - symbol
+  properties:
+    symbol:
+      $ref: "trading.yaml#/Symbol"
+
+InventoryState:
+  type: object
+  properties:
+    symbol:
+      $ref: "trading.yaml#/Symbol"
+    accountId:
+      $ref: "common.yaml#/UUID"
+    netPosition:
+      type: number
+      description: Net position (positive = long, negative = short)
+    maxInventory:
+      type: number
+    skew:
+      type: number
+      minimum: -1
+      maximum: 1
+      description: Position skew (-1 to 1)
+    percentage:
+      type: number
+      description: Position as percentage of max inventory
+    unrealizedPnl:
+      type: number
+      description: Unrealized profit/loss
+    markPrice:
+      type: number
+      description: Current mark price
+    entryPrice:
+      type: number
+      description: Average entry price
+    timestamp:
+      $ref: "common.yaml#/Timestamp"
+
+GetInventoryResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    inventory:
+      $ref: "#/InventoryState"
+    error:
+      type: string
+
+RebalancePositionParams:
+  type: object
+  description: Rebalance position to target inventory
+  required:
+    - symbol
+  properties:
+    symbol:
+      $ref: "trading.yaml#/Symbol"
+    targetInventory:
+      type: number
+      default: 0
+      description: Target inventory (0 = flat)
+
+RebalancePositionResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    result:
+      type: object
+      properties:
+        symbol:
+          $ref: "trading.yaml#/Symbol"
+        accountId:
+          $ref: "common.yaml#/UUID"
+        targetInventory:
+          type: number
+        status:
+          type: string
+        timestamp:
+          $ref: "common.yaml#/Timestamp"
+    error:
+      type: string
+
+GetMarketMakingStatsParams:
+  type: object
+  description: Get market making performance statistics
+  properties:
+    period:
+      type: integer
+      minimum: 60000
+      default: 3600000
+      description: Period in milliseconds (default: 1 hour)
+
+PerformanceStats:
+  type: object
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    period:
+      type: integer
+      description: Period in milliseconds
+    startTime:
+      $ref: "common.yaml#/Timestamp"
+    endTime:
+      $ref: "common.yaml#/Timestamp"
+    totalSpreadCaptured:
+      type: number
+      description: Total spread captured
+    totalFills:
+      type: integer
+      description: Total number of fills
+    bidFills:
+      type: integer
+    askFills:
+      type: integer
+    avgSpreadCapture:
+      type: number
+      description: Average spread captured per fill
+    fillRate:
+      type: number
+      description: Fills per second
+    inventoryTurnover:
+      type: number
+      description: Inventory turnover rate
+    sharpeRatio:
+      type: number
+      description: Sharpe ratio (risk-adjusted return)
+
+GetMarketMakingStatsResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    stats:
+      $ref: "#/PerformanceStats"
+    error:
+      type: string

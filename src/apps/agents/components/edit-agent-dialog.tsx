@@ -1,25 +1,27 @@
 /**
  * Edit Agent Dialog Component
  * Modal for editing existing AI agents
+ * Uses real API calls for account linking/unlinking
  */
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  Bot,
-  Loader2,
-  Save,
-  Rocket,
-  Settings,
   AlertTriangle,
-  Folder,
   Clock,
+  Folder,
   Link2,
+  Loader2,
+  Plus,
+  Save,
+  Settings,
+  ShieldCheck,
+  Unlink,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -37,16 +39,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import {
-  Slider,
-} from "@/components/ui/slider";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Alert,
+  AlertDescription,
+} from "@/components/ui/alert";
+import { useAccountsStore } from "@/stores/modules/accounts.store";
+import { useAgentStore } from "../store";
+import { getExchangeIconPath } from "@/apps/accounts/types";
 import type {
   Agent,
-  AgentUpdateRequest,
-  AgentDomain,
-  AgentStatus,
   AgentConfig,
+  AgentStatus,
+  AgentUpdateRequest,
+  ConnectedAccountRef,
+  PermissionScope,
 } from "../types";
+import { PERMISSION_SCOPES } from "../types";
 
 interface EditAgentDialogProps {
   open: boolean;
@@ -55,15 +72,6 @@ interface EditAgentDialogProps {
   onSubmit: (request: AgentUpdateRequest) => Promise<void>;
   loading?: boolean;
 }
-
-const DOMAIN_OPTIONS: { value: AgentDomain; label: string }[] = [
-  { value: "general", label: "General" },
-  { value: "trading", label: "Trading" },
-  { value: "iot", label: "IoT" },
-  { value: "drone", label: "Drone" },
-  { value: "social", label: "Social" },
-  { value: "devops", label: "DevOps" },
-];
 
 const MODEL_OPTIONS = [
   { value: "anthropic/claude-3.5-sonnet", label: "Claude 3.5 Sonnet" },
@@ -101,6 +109,22 @@ export function EditAgentDialog({
   // Validation
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState("basic");
+  
+  // Account linking state - now uses API calls
+  const [selectedNewAccount, setSelectedNewAccount] = useState("");
+  const [newAccountScopes, setNewAccountScopes] = useState<PermissionScope[]>([]);
+  const [showScopeSelector, setShowScopeSelector] = useState(false);
+
+  const accounts = useAccountsStore((s) => s.accounts);
+  const { connectAccountToAgent, disconnectAccountFromAgent, accountLinking } = useAgentStore();
+
+  // Get connected accounts from the agent prop (real-time from server)
+  const connectedAccounts: ConnectedAccountRef[] = agent?.connectedAccounts?.length
+    ? agent.connectedAccounts
+    : (agent?.connectedAccountIds ?? []).map((id) => ({
+        accountId: id,
+        grantedScopes: [],
+      }));
 
   // Reset form when agent changes
   useEffect(() => {
@@ -112,6 +136,9 @@ export function EditAgentDialog({
       setModel(agent.model || agent.config?.model || "anthropic/claude-3.5-sonnet");
       setTemperature(agent.config?.temperature ?? 0.7);
       setMaxTokens(agent.config?.maxTokens ?? 4096);
+      setSelectedNewAccount("");
+      setNewAccountScopes([]);
+      setShowScopeSelector(false);
       setErrors({});
       setActiveTab("basic");
     }
@@ -143,6 +170,8 @@ export function EditAgentDialog({
       systemPrompt: systemPrompt.trim(),
     };
 
+    // Note: Account connections are now managed via real-time API calls
+    // They are not part of the updateAgent request anymore
     const request: AgentUpdateRequest = {
       agentId: agent.id,
       name: name.trim(),
@@ -166,6 +195,42 @@ export function EditAgentDialog({
     onOpenChange,
   ]);
 
+  // Handle connecting a new account
+  const handleConnectAccount = useCallback(async () => {
+    if (!agent || !selectedNewAccount || newAccountScopes.length === 0) return;
+
+    const success = await connectAccountToAgent({
+      agentId: agent.id,
+      accountId: selectedNewAccount,
+      grantedScopes: newAccountScopes,
+    });
+
+    if (success) {
+      setSelectedNewAccount("");
+      setNewAccountScopes([]);
+      setShowScopeSelector(false);
+    }
+  }, [agent, selectedNewAccount, newAccountScopes, connectAccountToAgent]);
+
+  // Handle disconnecting an account
+  const handleDisconnectAccount = useCallback(async (accountId: string) => {
+    if (!agent) return;
+
+    await disconnectAccountFromAgent({
+      agentId: agent.id,
+      accountId,
+    });
+  }, [agent, disconnectAccountFromAgent]);
+
+  // Toggle scope for new account
+  const toggleNewAccountScope = useCallback((scope: PermissionScope) => {
+    setNewAccountScopes((prev) =>
+      prev.includes(scope)
+        ? prev.filter((s) => s !== scope)
+        : [...prev, scope]
+    );
+  }, []);
+
   if (!agent) return null;
 
   return (
@@ -182,10 +247,11 @@ export function EditAgentDialog({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden flex flex-col">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
             <TabsTrigger value="prompt">Prompt</TabsTrigger>
             <TabsTrigger value="config">Configuration</TabsTrigger>
+            <TabsTrigger value="accounts">Accounts</TabsTrigger>
           </TabsList>
 
           <div className="flex-1 overflow-y-auto py-4">
@@ -406,6 +472,325 @@ export function EditAgentDialog({
                   </div>
                 </div>
               )}
+            </TabsContent>
+
+            {/* Accounts Tab */}
+            <TabsContent value="accounts" className="mt-0 space-y-4">
+              <div className="grid gap-2">
+                <Label className="flex items-center gap-2">
+                  <Wallet className="h-4 w-4" />
+                  Connected Accounts
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Link exchange accounts so this agent can access trading data and
+                  perform actions. Changes are saved immediately.
+                </p>
+
+                {/* Connected Accounts List */}
+                <div className="space-y-2 mt-2">
+                  {connectedAccounts.length === 0 ? (
+                    <div className="p-4 text-center border border-dashed rounded-lg">
+                      <Wallet className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                      <p className="text-sm text-muted-foreground">
+                        No accounts linked to this agent.
+                      </p>
+                    </div>
+                  ) : (
+                    <ul className="space-y-2">
+                      {connectedAccounts.map((ref) => {
+                        const acc = accounts.find(
+                          (a) =>
+                            a.account.nid === ref.accountId ||
+                            a.id === ref.accountId,
+                        );
+                        const scopes = ref.grantedScopes ?? [];
+                        const groups = Array.from(
+                          new Set(PERMISSION_SCOPES.map((s) => s.group)),
+                        );
+                        return (
+                          <li
+                            key={ref.accountId}
+                            className="flex items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2"
+                          >
+                            <div className="flex min-w-0 flex-1 items-center gap-2">
+                              <img
+                                src={getExchangeIconPath(
+                                  acc?.account.exchange ?? "gate",
+                                )}
+                                alt=""
+                                className="h-6 w-6 shrink-0 rounded object-contain"
+                              />
+                              <div className="min-w-0 flex-1">
+                                <span className="truncate font-mono text-sm block">
+                                  {acc?.account.nid ?? ref.accountId}
+                                </span>
+                                {scopes.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {scopes.slice(0, 3).map((scope) => (
+                                      <Badge key={scope} variant="secondary" className="text-[10px] px-1 py-0">
+                                        {scope}
+                                      </Badge>
+                                    ))}
+                                    {scopes.length > 3 && (
+                                      <Badge variant="outline" className="text-[10px] px-1 py-0">
+                                        +{scopes.length - 3} more
+                                      </Badge>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-1">
+                              <Popover>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <PopoverTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8"
+                                          aria-label="View permissions"
+                                        >
+                                          <ShieldCheck className="h-4 w-4" />
+                                        </Button>
+                                      </PopoverTrigger>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      Permissions ({scopes.length})
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                                <PopoverContent
+                                  className="w-80"
+                                  align="end"
+                                  side="left"
+                                >
+                                  <div className="mb-2 font-medium">
+                                    Permissions for{" "}
+                                    <span className="font-mono text-sm">
+                                      {acc?.account.nid ?? ref.accountId}
+                                    </span>
+                                  </div>
+                                  <div className="max-h-64 space-y-3 overflow-y-auto">
+                                    {groups.map((gr) => {
+                                      const groupScopes = PERMISSION_SCOPES.filter(
+                                        (s) => s.group === gr,
+                                      );
+                                      const hasAnyInGroup = groupScopes.some((s) =>
+                                        scopes.includes(s.value)
+                                      );
+                                      if (!hasAnyInGroup) return null;
+                                      return (
+                                        <div key={gr}>
+                                          <div className="mb-1 text-xs font-medium text-muted-foreground">
+                                            {gr}
+                                          </div>
+                                          <div className="flex flex-wrap gap-1">
+                                            {groupScopes
+                                              .filter((s) => scopes.includes(s.value))
+                                              .map((s) => (
+                                                <Badge
+                                                  key={s.value}
+                                                  variant="secondary"
+                                                  className="text-xs"
+                                                >
+                                                  {s.label}
+                                                </Badge>
+                                              ))}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-3 pt-2 border-t">
+                                    To change permissions, disconnect and reconnect the account.
+                                  </p>
+                                </PopoverContent>
+                              </Popover>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-destructive hover:text-destructive"
+                                      onClick={() => handleDisconnectAccount(ref.accountId)}
+                                      disabled={accountLinking}
+                                      aria-label="Disconnect"
+                                    >
+                                      {accountLinking ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Unlink className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Disconnect account</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+
+                  {/* Add Account Section */}
+                  {(() => {
+                    const linked = new Set(
+                      connectedAccounts.map((c) => c.accountId),
+                    );
+                    const available = accounts.filter(
+                      (a) =>
+                        !linked.has(a.account.nid) && !linked.has(a.id),
+                    );
+                    
+                    if (available.length === 0 && !showScopeSelector) {
+                      return (
+                        <p className="text-sm text-muted-foreground pt-2">
+                          No more accounts to add. Add accounts in the Accounts
+                          section first.
+                        </p>
+                      );
+                    }
+                    
+                    return (
+                      <div className="pt-3 border-t mt-3 space-y-3">
+                        <Label className="text-sm font-medium">Connect New Account</Label>
+                        
+                        {!showScopeSelector ? (
+                          <Select
+                            value={selectedNewAccount}
+                            onValueChange={(v) => {
+                              setSelectedNewAccount(v);
+                              setShowScopeSelector(true);
+                              // Pre-select scopes based on agent domain
+                              // For trading agents: "read" + "trade" (required for strategies)
+                              setNewAccountScopes(agent.domain === "trading" ? ["read", "trade"] : ["read"]);
+                            }}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select an account to connect..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {available.map((a) => (
+                                <SelectItem key={a.id} value={a.account.nid}>
+                                  <div className="flex items-center gap-2">
+                                    <img
+                                      src={getExchangeIconPath(a.account.exchange)}
+                                      alt=""
+                                      className="h-4 w-4 rounded object-contain"
+                                    />
+                                    {a.account.nid} ({a.account.exchange})
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="space-y-3 p-3 border rounded-lg bg-muted/30">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {(() => {
+                                  const acc = accounts.find(
+                                    (a) => a.account.nid === selectedNewAccount,
+                                  );
+                                  return acc ? (
+                                    <>
+                                      <img
+                                        src={getExchangeIconPath(acc.account.exchange)}
+                                        alt=""
+                                        className="h-5 w-5 rounded object-contain"
+                                      />
+                                      <span className="font-mono text-sm">
+                                        {acc.account.nid}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span className="font-mono text-sm">
+                                      {selectedNewAccount}
+                                    </span>
+                                  );
+                                })()}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setShowScopeSelector(false);
+                                  setSelectedNewAccount("");
+                                  setNewAccountScopes([]);
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                            
+                            <div className="space-y-3">
+                              <Label className="text-xs font-medium text-muted-foreground">
+                                Select Permissions
+                              </Label>
+                              {Array.from(
+                                new Set(PERMISSION_SCOPES.map((s) => s.group)),
+                              ).map((gr) => (
+                                <div key={gr}>
+                                  <div className="mb-1 text-xs font-medium text-muted-foreground">
+                                    {gr}
+                                  </div>
+                                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                                    {PERMISSION_SCOPES.filter(
+                                      (s) => s.group === gr,
+                                    ).map((s) => (
+                                      <label
+                                        key={s.value}
+                                        className="flex cursor-pointer items-center gap-2 text-sm"
+                                      >
+                                        <Checkbox
+                                          checked={newAccountScopes.includes(s.value)}
+                                          onCheckedChange={() => toggleNewAccountScope(s.value)}
+                                        />
+                                        {s.label}
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {(newAccountScopes.includes("trade") || newAccountScopes.includes("trading:write")) && (
+                              <Alert className="bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
+                                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                                <AlertDescription className="text-amber-700 dark:text-amber-400 text-xs">
+                                  <strong>Warning:</strong> Trade permission allows this agent to execute trades on this account.
+                                </AlertDescription>
+                              </Alert>
+                            )}
+
+                            <Button
+                              className="w-full"
+                              onClick={handleConnectAccount}
+                              disabled={accountLinking || newAccountScopes.length === 0}
+                            >
+                              {accountLinking ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Connecting...
+                                </>
+                              ) : (
+                                <>
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Connect with {newAccountScopes.length} permission{newAccountScopes.length !== 1 ? "s" : ""}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
             </TabsContent>
           </div>
         </Tabs>

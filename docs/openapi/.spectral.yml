@@ -1,0 +1,125 @@
+# STELS Runtime API - Spectral Configuration
+# Based on DigitalOcean OpenAPI standards with adaptations for WebFIX RPC protocol
+
+extends:
+  - [spectral:oas, all]
+
+formats: [oas3]
+
+# Custom functions directory (optional - for future custom rules)
+# functionsDir: ./spectral/functions
+
+rules:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # DISABLED RULES (Not applicable for WebFIX RPC protocol)
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # WebFIX uses single POST endpoint, not REST conventions
+  operation-singular-tag: off
+
+  # Contact properties are optional
+  contact-properties: off
+
+  # Tags alphabetical order is not required
+  openapi-tags-alphabetical: off
+
+  # Unused components are expected in RPC APIs (schemas define method params/responses)
+  oas3-unused-component: off
+
+  # Our API uses camelCase by design (JavaScript/TypeScript conventions)
+  # DO uses snake_case (Python/Go conventions)
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # ENABLED RULES (DO API Standards)
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # Require descriptions for operations
+  operation-description: error
+
+  # Require operationId for all operations
+  operation-operationId: error
+
+  # Require tags for operations
+  operation-tags: error
+
+  # Require description for parameters
+  oas3-parameter-description: warn
+
+  # Require valid examples
+  oas3-valid-media-example: error
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # SECURITY RULES
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # Security definitions should be present (we have sessionAuth)
+  oas3-api-servers: warn
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CUSTOM RULES FOR STELS API
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # Ensure all responses have rate limit headers documented
+  # (Custom rule - would require custom function)
+
+  # Ensure common error responses are present
+  common-responses-unauthorized:
+    description: Responses should contain 401 (unauthorized) for authenticated endpoints
+    message: "{{description}}. Missing {{property}}"
+    severity: warn
+    given: $.paths[?(@property != '/health' && @property != '/auth/github/callback')]..responses
+    then:
+      field: "401"
+      function: truthy
+
+  common-responses-rate-limited:
+    description: Responses should contain 429 (too many requests)
+    message: "{{description}}. Missing {{property}}"
+    severity: warn
+    given: $.paths..responses
+    then:
+      field: "429"
+      function: truthy
+
+  common-responses-server-error:
+    description: Responses should contain 500 (server error)
+    message: "{{description}}. Missing {{property}}"
+    severity: warn
+    given: $.paths..responses
+    then:
+      field: "500"
+      function: truthy
+
+  # Ensure WebFIX protocol version is documented
+  webfix-protocol-version:
+    description: WebFIX responses should include protocol version
+    message: "WebFIX response schema should include 'webfix' property"
+    severity: info
+    given: $.components.schemas.WebfixResponse.properties
+    then:
+      field: webfix
+      function: truthy
+
+  # Ensure UUID format is used consistently
+  uuid-format-consistency:
+    description: UUID fields should have format uuid
+    message: "UUID schema should have format: uuid"
+    severity: error
+    given: $.components.schemas.UUID
+    then:
+      field: format
+      function: pattern
+      functionOptions:
+        match: "^uuid$"
+
+  # Ensure Timestamp format is documented
+  timestamp-format:
+    description: Timestamp should have int64 format
+    message: "Timestamp schema should have format: int64"
+    severity: error
+    given: $.components.schemas.Timestamp
+    then:
+      field: format
+      function: pattern
+      functionOptions:
+        match: "^int64$"

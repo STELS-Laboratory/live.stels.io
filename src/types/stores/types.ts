@@ -4,12 +4,93 @@
 
 import type {
   AccountRequest,
+  ListAccountsOptions,
   ProtocolData,
+  SetAccountPayload,
   SignedAccountRequest,
 } from "@/lib/api-types";
 
+/** Encrypted credential from API (apiKey/secret when credentialsEncrypted) */
+export interface EncryptedCredential {
+  data: string;
+  iv: string;
+  salt: string;
+  version: number;
+}
+
+/** Coin row from wallet.info.result.list[].coin[] (Bybit-style) */
+export interface WalletCoinRow {
+  coin: string;
+  equity?: string | number;
+  walletBalance?: string | number;
+  usdValue?: string | number;
+  unrealisedPnl?: string | number;
+  cumRealisedPnl?: string | number;
+  locked?: string | number;
+  borrowAmount?: string | number;
+  marginCollateral?: boolean;
+  availableToWithdraw?: string;
+  [k: string]: unknown;
+}
+
+/** Account summary from wallet.info.result.list[] (Bybit UNIFIED etc.) */
+export interface WalletAccountSummary {
+  accountType?: string;
+  totalEquity?: string | number;
+  totalWalletBalance?: string | number;
+  totalAvailableBalance?: string | number;
+  totalMarginBalance?: string | number;
+  totalPerpUPL?: string | number;
+  totalInitialMargin?: string | number;
+  totalMaintenanceMargin?: string | number;
+  accountIMRate?: string | number;
+  accountMMRate?: string | number;
+  accountLTV?: string | number;
+  coin?: WalletCoinRow[];
+  [k: string]: unknown;
+}
+
+/** wallet.info.result */
+export interface WalletInfoResult {
+  list?: WalletAccountSummary[];
+  [k: string]: unknown;
+}
+
+/** wallet.info (retCode, retMsg, result, time) */
+export interface WalletInfo {
+  retCode?: string;
+  retMsg?: string;
+  result?: WalletInfoResult;
+  time?: string;
+  retExtInfo?: Record<string, unknown>;
+}
+
+/** Per-coin balance: wallet.BTC, wallet.SOL, ... */
+export interface WalletCoinBalance {
+  free?: number;
+  used?: number;
+  total?: number;
+  debt?: number;
+}
+
 /**
- * Server response format for account list
+ * wallet object from listAccounts raw (Bybit-style and similar)
+ */
+export interface AccountWalletData {
+  info?: WalletInfo;
+  timestamp?: number;
+  datetime?: string;
+  /** Per-coin: { free, used, total, debt } */
+  free?: Record<string, number>;
+  used?: Record<string, number>;
+  total?: Record<string, number>;
+  debt?: Record<string, number>;
+  /** Dynamic keys: BTC, SOL, USDT, … → WalletCoinBalance */
+  [crypto: string]: WalletCoinBalance | Record<string, number> | WalletInfo | number | string | undefined;
+}
+
+/**
+ * Server response format for account list (listAccounts API)
  */
 export interface AccountValue {
   channel: string;
@@ -21,8 +102,9 @@ export interface AccountValue {
     exchange: string;
     signature?: string;
     publicKey?: string;
-    apiKey?: string;
-    secret?: string;
+    /** Plain string or encrypted { data, iv, salt, version } when credentialsEncrypted */
+    apiKey?: string | EncryptedCredential;
+    secret?: string | EncryptedCredential;
     password?: string;
     note?: string;
     viewers?: string[];
@@ -31,14 +113,15 @@ export interface AccountValue {
     connection?: boolean;
     status?: "active" | "learn" | "stopped";
     timestamp?: number;
-    wallet?: unknown;
+    credentialsEncrypted?: boolean;
+    wallet?: AccountWalletData;
     [id: string]: unknown;
   };
   timestamp: number;
 }
 
 /**
- * Full raw account data from server
+ * Full raw account data from server (raw + channel/module/widget merged on fetch)
  */
 export interface AccountRawData {
   address: string;
@@ -46,8 +129,8 @@ export interface AccountRawData {
   exchange: string;
   signature?: string;
   publicKey?: string;
-  apiKey?: string;
-  secret?: string;
+  apiKey?: string | EncryptedCredential;
+  secret?: string | EncryptedCredential;
   password?: string;
   note?: string;
   viewers?: string[];
@@ -56,39 +139,12 @@ export interface AccountRawData {
   connection?: boolean;
   status?: "active" | "learn" | "stopped";
   timestamp?: number;
-  wallet?: {
-    info?: {
-      retCode?: string;
-      retMsg?: string;
-      result?: {
-        list?: Array<{
-          accountType?: string;
-          totalEquity?: string;
-          totalWalletBalance?: string;
-          coin?: Array<{
-            coin: string;
-            equity?: string;
-            walletBalance?: string;
-            usdValue?: string;
-            free?: string;
-            used?: string;
-            total?: string;
-            [customKey: string]: unknown;
-          }>;
-          [customKey: string]: unknown;
-        }>;
-      };
-      [customKey: string]: unknown;
-    };
-    timestamp?: number;
-    datetime?: string;
-    [crypto: string]: {
-      free?: number;
-      used?: number;
-      total?: number;
-      debt?: number;
-    } | unknown;
-  };
+  credentialsEncrypted?: boolean;
+  /** From item: channel, module, widget */
+  channel?: string;
+  module?: string;
+  widget?: string;
+  wallet?: AccountWalletData;
   [id: string]: unknown;
 }
 
@@ -122,14 +178,15 @@ export interface AccountsActions {
   getAccount: (id: string) => StoredAccount | undefined;
   getActiveAccount: () => StoredAccount | undefined;
   sendAccountToServer: (
-    account: AccountRequest,
+    payload: SetAccountPayload,
     session: string,
     apiUrl: string,
+    options?: { omitSecrets?: boolean },
   ) => Promise<boolean>;
   fetchAccountsFromServer: (
-    address: string,
     session: string,
     apiUrl: string,
+    options?: ListAccountsOptions,
   ) => Promise<void>;
   clearAllAccounts: () => void;
 }

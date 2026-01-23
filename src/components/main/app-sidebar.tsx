@@ -4,7 +4,7 @@
  */
 
 import * as React from "react";
-import { Boxes, Bot, Code, Home, Settings, Zap } from "lucide-react";
+import { Boxes, Bot, Code, Home, Wallet, Zap } from "lucide-react";
 import { useAppStore } from "@/stores";
 import { navigateTo } from "@/lib/router";
 
@@ -50,6 +50,18 @@ const NAV_ITEMS = [
     label: "Canvas",
     icon: Boxes,
     route: "canvas",
+  },
+  {
+    id: "accounts",
+    label: "Accounts",
+    icon: Wallet,
+    route: "accounts",
+  },
+  {
+    id: "strategies",
+    label: "Strategies",
+    icon: Zap,
+    route: "strategies",
   },
 ] as const;
 

@@ -1,0 +1,543 @@
+# Task Schemas - Autonomous task management
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+TriggerType:
+  type: string
+  enum: [manual, scheduled, event, condition, webhook, chain]
+  description: Task trigger type
+
+ScheduleTrigger:
+  type: object
+  required:
+    - type
+  properties:
+    type:
+      type: string
+      const: scheduled
+    cron:
+      type: string
+      description: Cron expression
+    interval:
+      type: integer
+      minimum: 1000
+      description: Interval in milliseconds
+    timezone:
+      type: string
+      default: UTC
+
+EventTrigger:
+  type: object
+  required:
+    - type
+    - source
+    - eventType
+  properties:
+    type:
+      type: string
+      const: event
+    source:
+      type: string
+      enum: [kv, domain, agent, external]
+    eventType:
+      type: string
+    filter:
+      type: object
+
+ConditionTrigger:
+  type: object
+  required:
+    - type
+    - expression
+  properties:
+    type:
+      type: string
+      const: condition
+    kvKey:
+      type: array
+      items:
+        type: string
+    expression:
+      type: string
+    checkInterval:
+      type: integer
+      minimum: 1000
+      default: 5000
+
+WebhookTrigger:
+  type: object
+  required:
+    - type
+    - path
+  properties:
+    type:
+      type: string
+      const: webhook
+    path:
+      type: string
+      pattern: "^/[a-zA-Z0-9\\-_/]*$"
+    method:
+      type: string
+      enum: [GET, POST, PUT]
+      default: POST
+    secret:
+      type: string
+
+ManualTrigger:
+  type: object
+  required:
+    - type
+  properties:
+    type:
+      type: string
+      const: manual
+
+ChainTrigger:
+  type: object
+  required:
+    - type
+    - chainId
+  properties:
+    type:
+      type: string
+      const: chain
+    chainId:
+      $ref: "common.yaml#/UUID"
+    stepId:
+      type: string
+    onSuccess:
+      type: boolean
+    onFailure:
+      type: boolean
+
+Trigger:
+  oneOf:
+    - $ref: "#/ScheduleTrigger"
+    - $ref: "#/EventTrigger"
+    - $ref: "#/ConditionTrigger"
+    - $ref: "#/WebhookTrigger"
+    - $ref: "#/ManualTrigger"
+    - $ref: "#/ChainTrigger"
+  discriminator:
+    propertyName: type
+
+ComparisonOperator:
+  type: string
+  enum:
+    - eq
+    - ne
+    - gt
+    - gte
+    - lt
+    - lte
+    - contains
+    - not_contains
+    - starts_with
+    - ends_with
+    - matches
+    - in
+    - not_in
+    - between
+    - is_null
+    - is_not_null
+  description: Condition comparison operator
+
+SimpleCondition:
+  type: object
+  required:
+    - field
+    - operator
+    - value
+  properties:
+    field:
+      type: string
+    operator:
+      $ref: "#/ComparisonOperator"
+    value: {}
+
+ActionType:
+  type: string
+  enum:
+    # Trading actions
+    - trading:create_order
+    - trading:cancel_order
+    - trading:modify_order
+    - trading:close_position
+    - trading:fetch_balance
+    - trading:fetch_positions
+    - trading:fetch_open_orders
+    - trading:fetch_order_history
+    - trading:fetch_trades
+    - trading:set_leverage
+    - trading:transfer_funds
+    - trading:create_batch_orders
+    - trading:create_conditional_order
+    # Market making actions
+    - trading:start_market_making
+    - trading:stop_market_making
+    - trading:update_quotes
+    - trading:get_inventory
+    - trading:rebalance_position
+    - trading:get_market_making_stats
+    # IoT actions
+    - iot:send_command
+    - iot:set_state
+    - iot:read_sensor
+    # Drone actions
+    - drone:takeoff
+    - drone:land
+    - drone:goto
+    - drone:return_home
+    - drone:patrol
+    - drone:emergency_stop
+    # Social actions
+    - social:post
+    - social:reply
+    - social:dm
+    - social:like
+    - social:follow
+    # Notification actions
+    - notify:send
+    - notify:alert
+    # Chain actions
+    - chain:start
+    - chain:emit
+    # Custom actions
+    - custom
+  description: Task action type
+
+Action:
+  type: object
+  required:
+    - type
+  properties:
+    type:
+      $ref: "#/ActionType"
+    params:
+      type: object
+      default: {}
+    accountId:
+      $ref: "common.yaml#/UUID"
+    timeout:
+      type: integer
+      minimum: 1000
+      maximum: 300000
+      default: 30000
+    retryOnFailure:
+      type: boolean
+      default: false
+    retryCount:
+      type: integer
+      minimum: 0
+      maximum: 5
+      default: 0
+    continueOnError:
+      type: boolean
+      default: false
+    outputKey:
+      type: string
+
+TaskStatus:
+  type: string
+  enum:
+    - pending
+    - scheduled
+    - waiting_approval
+    - running
+    - completed
+    - failed
+    - cancelled
+    - timeout
+  description: Task execution status
+
+TaskLimits:
+  type: object
+  properties:
+    maxExecutions:
+      type: integer
+      minimum: 1
+    maxExecutionsPerHour:
+      type: integer
+      minimum: 1
+    maxExecutionsPerDay:
+      type: integer
+      minimum: 1
+    cooldownMs:
+      type: integer
+      minimum: 0
+    maxConcurrent:
+      type: integer
+      minimum: 1
+      maximum: 10
+      default: 1
+    # Domain-specific limits
+    maxOrderSize:
+      type: number
+      description: Maximum order size (trading)
+    maxAltitude:
+      type: number
+      description: Maximum altitude in meters (drone)
+    maxRange:
+      type: number
+      description: Maximum range in meters (drone)
+    maxPostsPerDay:
+      type: integer
+      description: Maximum posts per day (social)
+
+ApprovalConfig:
+  type: object
+  required:
+    - required
+  properties:
+    required:
+      type: boolean
+      description: Whether approval is required for this task
+    approvers:
+      type: array
+      items:
+        type: string
+      description: List of approver identifiers
+    timeout:
+      type: integer
+      description: Approval timeout in milliseconds
+    autoApprove:
+      type: object
+      properties:
+        conditions:
+          type: array
+          items:
+            $ref: "#/SimpleCondition"
+      description: Conditions for automatic approval
+    notifyChannel:
+      type: string
+      description: Notification channel (telegram, email, etc.)
+    notifyRecipient:
+      type: string
+      description: Notification recipient
+
+Task:
+  allOf:
+    - $ref: "common.yaml#/NamedEntity"
+    - type: object
+      properties:
+        agentId:
+          $ref: "common.yaml#/UUID"
+        status:
+          $ref: "#/TaskStatus"
+        trigger:
+          $ref: "#/Trigger"
+        conditions:
+          type: array
+          items:
+            $ref: "#/SimpleCondition"
+        actions:
+          type: array
+          items:
+            $ref: "#/Action"
+          minItems: 1
+        limits:
+          $ref: "#/TaskLimits"
+        approval:
+          $ref: "#/ApprovalConfig"
+        lastExecutedAt:
+          $ref: "common.yaml#/Timestamp"
+        nextExecutionAt:
+          $ref: "common.yaml#/Timestamp"
+        executionCount:
+          type: integer
+        errorCount:
+          type: integer
+
+# Request/Response Schemas
+CreateTaskParams:
+  type: object
+  required:
+    - name
+    - agentId
+    - domain
+    - action
+    - trigger
+  properties:
+    name:
+      type: string
+    description:
+      type: string
+    agentId:
+      $ref: "common.yaml#/UUID"
+    domain:
+      type: string
+    action:
+      type: object
+      required:
+        - type
+        - accountId
+        - parameters
+      properties:
+        type:
+          type: string
+        accountId:
+          $ref: "common.yaml#/UUID"
+        parameters:
+          type: object
+        timeout:
+          type: integer
+    trigger:
+      type: object
+      required:
+        - type
+        - config
+      properties:
+        type:
+          type: string
+        config:
+          type: object
+    conditions:
+      type: array
+      items:
+        type: object
+        properties:
+          field:
+            type: string
+          operator:
+            type: string
+          value: {}
+          source:
+            type: string
+    approval:
+      type: object
+      properties:
+        required:
+          type: boolean
+        approvers:
+          type: array
+          items:
+            type: string
+        timeout:
+          type: integer
+    limits:
+      type: object
+      properties:
+        maxExecutions:
+          type: integer
+        maxExecutionsPerHour:
+          type: integer
+        maxExecutionsPerDay:
+          type: integer
+        cooldownMs:
+          type: integer
+    priority:
+      type: string
+    maxRetries:
+      type: integer
+
+CreateTaskResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    task:
+      $ref: "#/Task"
+    error:
+      type: string
+
+GetTaskParams:
+  type: object
+  required:
+    - taskId
+  properties:
+    taskId:
+      $ref: "common.yaml#/UUID"
+
+ListTasksParams:
+  type: object
+  properties:
+    agentId:
+      $ref: "common.yaml#/UUID"
+    status:
+      $ref: "#/TaskStatus"
+
+ListTasksResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    tasks:
+      type: array
+      items:
+        $ref: "#/Task"
+    error:
+      type: string
+
+ExecuteTaskParams:
+  type: object
+  required:
+    - taskId
+  properties:
+    taskId:
+      $ref: "common.yaml#/UUID"
+    context:
+      type: object
+
+ExecuteTaskResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    executionId:
+      $ref: "common.yaml#/UUID"
+    result:
+      type: object
+    error:
+      type: string
+
+ApproveTaskParams:
+  type: object
+  required:
+    - taskId
+  properties:
+    taskId:
+      $ref: "common.yaml#/UUID"
+    approved:
+      type: boolean
+      default: true
+    reason:
+      type: string
+
+TaskHistoryParams:
+  type: object
+  required:
+    - taskId
+  properties:
+    taskId:
+      $ref: "common.yaml#/UUID"
+    limit:
+      type: integer
+      default: 50
+
+TaskExecution:
+  type: object
+  properties:
+    id:
+      $ref: "common.yaml#/UUID"
+    taskId:
+      $ref: "common.yaml#/UUID"
+    status:
+      type: string
+      enum: [pending, running, completed, failed, cancelled]
+    triggeredBy:
+      type: string
+    startedAt:
+      $ref: "common.yaml#/Timestamp"
+    completedAt:
+      $ref: "common.yaml#/Timestamp"
+    duration:
+      type: integer
+    result:
+      type: object
+    error:
+      type: string

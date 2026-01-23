@@ -1,0 +1,526 @@
+# Agent Schemas - AI Agent management
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+AgentModel:
+  type: string
+  enum:
+    - meta-llama/llama-3.3-70b-instruct
+    - meta-llama/llama-3.1-8b-instruct
+    - anthropic/claude-3.5-sonnet
+    - openai/gpt-4o
+    - openai/gpt-4o-mini
+    - mistral/mistral-large
+
+AgentStatus:
+  type: string
+  enum: [active, paused, error]
+  description: Agent operational status
+
+AgentType:
+  type: string
+  enum: [assistant, analyst, monitor, executor, router, custom]
+
+AgentDomain:
+  type: string
+  enum: [trading, iot, drone, social, devops, general]
+
+AgentConfig:
+  type: object
+  properties:
+    model:
+      $ref: "#/AgentModel"
+    temperature:
+      type: number
+      minimum: 0
+      maximum: 2
+      default: 0.7
+    maxTokens:
+      type: integer
+      minimum: 1
+      maximum: 128000
+      default: 4096
+    systemPrompt:
+      type: string
+      maxLength: 50000
+    topP:
+      type: number
+      minimum: 0
+      maximum: 1
+    frequencyPenalty:
+      type: number
+      minimum: -2
+      maximum: 2
+    presencePenalty:
+      type: number
+      minimum: -2
+      maximum: 2
+    stopSequences:
+      type: array
+      items:
+        type: string
+      maxItems: 4
+
+WorkspaceContext:
+  type: object
+  description: |
+    Workspace context embedded in agent.
+    Auto-updated when agent is created, moved, or synced.
+    This allows agents to know which workspace they belong to.
+  properties:
+    workspaceId:
+      $ref: "common.yaml#/UUID"
+      description: ID of the workspace agent belongs to
+    workspaceName:
+      type: string
+      description: Name of the workspace
+    workspaceDescription:
+      type: string
+      description: Description of the workspace (if set)
+    assignedAt:
+      $ref: "common.yaml#/Timestamp"
+      description: When agent was assigned to this workspace
+
+Agent:
+  allOf:
+    - $ref: "common.yaml#/NamedEntity"
+    - type: object
+      properties:
+        type:
+          $ref: "#/AgentType"
+        domain:
+          $ref: "#/AgentDomain"
+        status:
+          $ref: "#/AgentStatus"
+        workspaceId:
+          $ref: "common.yaml#/UUID"
+        workspaceContext:
+          $ref: "#/WorkspaceContext"
+          description: |
+            Embedded workspace context - auto-populated on create, move, or sync.
+            Allows agent to know its workspace name and description.
+        config:
+          $ref: "#/AgentConfig"
+        knowledgeBaseIds:
+          type: array
+          items:
+            $ref: "common.yaml#/UUID"
+        connectedAccountIds:
+          type: array
+          items:
+            $ref: "common.yaml#/UUID"
+        stats:
+          type: object
+          properties:
+            totalMessages:
+              type: integer
+            totalTokens:
+              type: integer
+            lastActiveAt:
+              $ref: "common.yaml#/Timestamp"
+
+# Request/Response Schemas
+CreateAgentParams:
+  type: object
+  required:
+    - workspaceId
+    - name
+    - domain
+    - systemPrompt
+  properties:
+    workspaceId:
+      $ref: "common.yaml#/UUID"
+    name:
+      type: string
+      minLength: 1
+      maxLength: 100
+    description:
+      type: string
+      maxLength: 1000
+    domain:
+      $ref: "#/AgentDomain"
+    model:
+      $ref: "#/AgentModel"
+    systemPrompt:
+      type: string
+    knowledgeBaseIds:
+      type: array
+      items:
+        $ref: "common.yaml#/UUID"
+    tools:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+          description:
+            type: string
+          parameters:
+            type: object
+    settings:
+      type: object
+      properties:
+        temperature:
+          type: number
+        maxTokens:
+          type: integer
+
+CreateAgentResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    agent:
+      $ref: "#/Agent"
+    error:
+      type: string
+
+GetAgentParams:
+  type: object
+  required:
+    - agentId
+  properties:
+    agentId:
+      $ref: "common.yaml#/UUID"
+
+ListAgentsParams:
+  type: object
+  properties:
+    workspaceId:
+      $ref: "common.yaml#/UUID"
+    domain:
+      type: string
+      description: Filter by domain
+
+ListAgentsResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    agents:
+      type: array
+      items:
+        $ref: "#/Agent"
+    pagination:
+      $ref: "common.yaml#/PaginationResult"
+    error:
+      type: string
+
+UpdateAgentParams:
+  type: object
+  required:
+    - agentId
+  properties:
+    agentId:
+      $ref: "common.yaml#/UUID"
+    name:
+      type: string
+    description:
+      type: string
+    config:
+      $ref: "#/AgentConfig"
+    status:
+      $ref: "#/AgentStatus"
+
+DeleteAgentParams:
+  type: object
+  required:
+    - agentId
+  properties:
+    agentId:
+      $ref: "common.yaml#/UUID"
+
+ChatWithAgentParams:
+  type: object
+  description: |
+    Chat with an AI agent.
+
+    **Inference Methods:**
+    - `agent_route` - Uses deployed Gradient AI agent route (recommended)
+    - `fallback` - Uses direct inference when agent not deployed
+
+    Agents created via `createAgent` or synced via `syncFromGradient` will
+    automatically use the appropriate inference method based on deployment status.
+  required:
+    - agentId
+    - message
+  properties:
+    agentId:
+      $ref: "common.yaml#/UUID"
+    message:
+      type: string
+      minLength: 1
+      maxLength: 100000
+    conversationId:
+      $ref: "common.yaml#/UUID"
+    context:
+      type: object
+    stream:
+      type: boolean
+      default: false
+      description: Enable Server-Sent Events streaming for real-time responses
+
+ChatWithAgentResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    response:
+      type: string
+    conversationId:
+      $ref: "common.yaml#/UUID"
+    messageCount:
+      type: integer
+      description: Total messages in conversation
+    inferenceMethod:
+      type: string
+      enum: [agent_route, direct, fallback]
+      description: |
+        Which inference method was used:
+        - `agent_route` - Deployed Gradient AI agent (best)
+        - `direct` - Direct API inference (backup)
+        - `fallback` - Legacy fallback
+    agentStatus:
+      type: object
+      description: |
+        Agent deployment status for client UI.
+        Use this to show appropriate status indicators to users.
+      properties:
+        deploymentStatus:
+          type: string
+          enum:
+            - STATUS_RUNNING
+            - STATUS_DEPLOYING
+            - STATUS_WAITING_FOR_DEPLOYMENT
+            - STATUS_BUILDING
+            - STATUS_FAILED
+            - STATUS_DELETED
+            - STATUS_DISABLED
+            - unknown
+          description: Raw deployment status from Gradient AI
+        isDeployed:
+          type: boolean
+          description: True if agent is fully deployed and running
+        isDeploying:
+          type: boolean
+          description: True if agent is currently being deployed
+        isFailed:
+          type: boolean
+          description: True if deployment failed
+        deploymentUrl:
+          type: string
+          description: Agent deployment URL (if deployed)
+        statusMessage:
+          type: string
+          description: |
+            Human-readable status message for UI display.
+            Examples:
+            - "Agent is deployed and responding"
+            - "Agent is deploying... Using backup AI"
+            - "Agent deployment failed. Using backup AI"
+    usage:
+      type: object
+      properties:
+        promptTokens:
+          type: integer
+        completionTokens:
+          type: integer
+        totalTokens:
+          type: integer
+    error:
+      type: string
+
+# Move Agent to Workspace Schemas
+MoveAgentToWorkspaceParams:
+  type: object
+  description: |
+    Move an agent to a different workspace.
+
+    This operation:
+    1. Moves the agent in Gradient AI API (if integrated)
+    2. Updates local agent record with new workspaceId
+
+    Use this to organize agents into workspaces for better management.
+  required:
+    - agentId
+    - workspaceId
+  properties:
+    agentId:
+      $ref: "common.yaml#/UUID"
+      description: ID of the agent to move
+    workspaceId:
+      $ref: "common.yaml#/UUID"
+      description: ID of the target workspace
+
+MoveAgentToWorkspaceResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    message:
+      type: string
+      description: Human-readable result message
+    agent:
+      $ref: "#/Agent"
+      description: Updated agent with new workspaceId
+    error:
+      type: string
+
+# Gradient AI Sync Schemas
+SyncFromGradientParams:
+  type: object
+  description: |
+    **⚠️ Usually not needed!** Synchronization happens automatically.
+
+    Force-refresh workspaces and agents from DigitalOcean Gradient AI API.
+
+    **Automatic sync already happens on:**
+    - `listAgents` - syncs all agents (30s cooldown)
+    - `listWorkspaces` - syncs all workspaces (60s cooldown)
+    - `getAgent` - syncs specific agent
+    - `chatWithAgent` - syncs agent before chat
+
+    Use this method only if you need immediate refresh bypassing cooldowns.
+  properties:
+    syncWorkspaces:
+      type: boolean
+      default: true
+      description: Force sync workspaces from Gradient (bypasses cooldown)
+    syncAgents:
+      type: boolean
+      default: true
+      description: Force sync agents from Gradient (bypasses cooldown)
+
+SyncFromGradientResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    message:
+      type: string
+    result:
+      type: object
+      properties:
+        workspaces:
+          type: object
+          properties:
+            synced:
+              type: integer
+              description: Number of workspaces synced
+            skipped:
+              type: integer
+            errors:
+              type: integer
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    $ref: "common.yaml#/UUID"
+                  name:
+                    type: string
+        agents:
+          type: object
+          properties:
+            synced:
+              type: integer
+              description: Number of agents synced
+            skipped:
+              type: integer
+            errors:
+              type: integer
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    $ref: "common.yaml#/UUID"
+                  name:
+                    type: string
+                  workspaceId:
+                    $ref: "common.yaml#/UUID"
+    error:
+      type: string
+
+# Agent Tools - Available tools for chatWithAgent
+# These tools are automatically available to agents during chat sessions
+
+AgentTool:
+  type: object
+  description: Tool available to agents during chat sessions
+  properties:
+    name:
+      type: string
+      description: Tool name (function name)
+    description:
+      type: string
+      description: Tool description for the AI
+    parameters:
+      type: object
+      description: JSON Schema for tool parameters
+
+# News Tool - Available to all agents
+GetNewsToolParams:
+  type: object
+  description: |
+    Parameters for the getNews agent tool.
+    This tool is automatically available to all agents and fetches
+    cryptocurrency news from Google News RSS (no API key required).
+  properties:
+    query:
+      type: string
+      description: |
+        Search query or cryptocurrency name.
+        Examples: "Bitcoin", "SOL", "Ethereum", "crypto regulation".
+        If not specified, returns general crypto news.
+    limit:
+      type: string
+      description: Number of news items to fetch (default 5, max 10)
+
+NewsArticle:
+  type: object
+  description: A news article returned by the getNews tool
+  properties:
+    title:
+      type: string
+      description: Article title
+    description:
+      type: string
+      description: Article description/summary (may be truncated)
+    url:
+      type: string
+      format: uri
+      description: URL to the full article
+    source:
+      type: string
+      description: News source name
+    publishedAt:
+      type: string
+      format: date-time
+      description: Publication timestamp (ISO 8601)
+
+GetNewsToolResponse:
+  type: object
+  properties:
+    news:
+      type: array
+      items:
+        $ref: "#/NewsArticle"
+    query:
+      type: string
+      description: The search query used
+    message:
+      type: string
+      description: Human-readable result message

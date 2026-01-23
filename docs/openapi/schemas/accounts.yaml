@@ -1,0 +1,347 @@
+# Account Schemas - Connected external accounts
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+AccountType:
+  type: string
+  enum: [
+    exchange,
+    iot_hub,
+    drone_controller,
+    social_network,
+    email,
+    webhook,
+    database,
+    cloud,
+    custom,
+  ]
+
+AccountStatus:
+  type: string
+  enum: [active, inactive, error, pending_verification]
+
+AccountProvider:
+  type: string
+  enum:
+    - binance
+    - bybit
+    - okx
+    - coinbase
+    - kraken
+    - kucoin
+    - gate
+    - bitget
+    - twitter
+    - telegram
+    - discord
+    - slack
+    - mqtt
+    - home-assistant
+    - tuya
+    - smartthings
+    - mavlink
+    - dji
+    - github
+    - gitlab
+    - kubernetes
+    - docker
+    - aws
+    - gcp
+    - azure
+    - webhook
+    - http
+    - custom
+
+PermissionScope:
+  type: string
+  enum:
+    - trading:read
+    - trading:write
+    - trading:withdraw
+    - iot:read
+    - iot:write
+    - iot:control
+    - drone:read
+    - drone:control
+    - drone:arm
+    - drone:emergency
+    - social:read
+    - social:post
+    - social:dm
+    - read
+    - write
+    - admin
+
+PlainCredentials:
+  type: object
+  properties:
+    apiKey:
+      type: string
+    apiSecret:
+      type: string
+    accessToken:
+      type: string
+    refreshToken:
+      type: string
+    username:
+      type: string
+    password:
+      type: string
+    privateKey:
+      type: string
+    certificate:
+      type: string
+    connectionString:
+      type: string
+    webhookSecret:
+      type: string
+    customFields:
+      type: object
+      additionalProperties:
+        type: string
+
+ConnectedAccount:
+  type: object
+  properties:
+    id:
+      $ref: "common.yaml#/UUID"
+    userId:
+      type: string
+    name:
+      type: string
+    type:
+      $ref: "#/AccountType"
+    provider:
+      type: string
+    status:
+      $ref: "#/AccountStatus"
+    permissions:
+      type: array
+      items:
+        $ref: "#/PermissionScope"
+    lastUsed:
+      $ref: "common.yaml#/Timestamp"
+    lastVerified:
+      $ref: "common.yaml#/Timestamp"
+    createdAt:
+      $ref: "common.yaml#/Timestamp"
+
+# Request/Response Schemas
+ConnectAccountParams:
+  type: object
+  description: |
+
+    
+  required:
+    - userId
+    - name
+    - type
+    - provider
+    - credentials
+  properties:
+    userId:
+      type: string
+    name:
+      type: string
+    type:
+      $ref: "#/AccountType"
+    provider:
+      type: string
+    credentials:
+      $ref: "#/PlainCredentials"
+    permissions:
+      type: array
+      items:
+        $ref: "#/PermissionScope"
+    metadata:
+      type: object
+
+ConnectAccountResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    account:
+      type: object
+      properties:
+        id:
+          $ref: "common.yaml#/UUID"
+        name:
+          type: string
+        type:
+          $ref: "#/AccountType"
+        provider:
+          type: string
+        status:
+          $ref: "#/AccountStatus"
+        permissions:
+          type: array
+          items:
+            $ref: "#/PermissionScope"
+        createdAt:
+          $ref: "common.yaml#/Timestamp"
+    error:
+      type: string
+
+DisconnectAccountParams:
+  type: object
+  description: |
+
+  required:
+    - accountId
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+
+ValidateAccountParams:
+  type: object
+  description: |
+
+  required:
+    - accountId
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+
+ListAccountsParams:
+  type: object
+  properties:
+    userId:
+      type: string
+    type:
+      $ref: "#/AccountType"
+    provider:
+      type: string
+
+SetAccountParams:
+  type: object
+  required:
+    - nid
+    - exchange
+    - apiKey
+    - secret
+    - note
+  properties:
+    nid:
+      type: string
+      description: Network identifier for the account
+    exchange:
+      type: string
+      enum:
+        - binance
+        - binanceus
+        - binanceusdm
+        - binancecoinm
+        - bybit
+        - okx
+        - gate
+        - gateio
+        - kucoin
+        - bitget
+        - huobi
+        - htx
+        - mexc
+        - kraken
+        - coinbase
+        - coinbasepro
+      description: Exchange identifier
+    apiKey:
+      type: string
+      description: Exchange API key
+    secret:
+      type: string
+      description: Exchange API secret
+    password:
+      type: string
+      description: Exchange API password (if required)
+    protocol:
+      type: string
+    note:
+      type: string
+      description: Account description
+    viewers:
+      type: array
+      items:
+        type: string
+      description: List of users who can view this account
+
+SetAccountResponse:
+  type: object
+  properties:
+    ok:
+      type: boolean
+    warning:
+      type: string
+
+LinkAgentToAccountParams:
+  type: object
+  description: |
+
+  required:
+    - agentId
+    - accountId
+  properties:
+    agentId:
+      $ref: "common.yaml#/UUID"
+    accountId:
+      $ref: "common.yaml#/UUID"
+    grantedScopes:
+      type: array
+      items:
+        $ref: "#/PermissionScope"
+    limits:
+      type: object
+
+UnlinkAgentFromAccountParams:
+  type: object
+  description: |
+
+  required:
+    - agentId
+    - accountId
+  properties:
+    agentId:
+      $ref: "common.yaml#/UUID"
+    accountId:
+      $ref: "common.yaml#/UUID"
+
+# Additional Account Methods (v2.9.1)
+
+SyncAccountBalanceParams:
+  type: object
+  required:
+    - accountId
+  properties:
+    accountId:
+      type: string
+      description: Account NID to sync balance for
+    force:
+      type: boolean
+      default: false
+      description: Force refresh even if cached balance is recent
+
+SyncAccountBalanceResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    accountId:
+      type: string
+    balance:
+      type: object
+      description: Account balance by currency
+      additionalProperties:
+        type: object
+        properties:
+          free:
+            type: number
+          used:
+            type: number
+          total:
+            type: number
+    timestamp:
+      $ref: "common.yaml#/Timestamp"
+    cached:
+      type: boolean
+      description: Whether the balance was returned from cache
+    error:
+      type: string

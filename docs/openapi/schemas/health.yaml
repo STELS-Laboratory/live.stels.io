@@ -1,0 +1,149 @@
+# Health Schemas - Health checks
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+HealthStatus:
+  type: string
+  enum: [healthy, degraded, unhealthy]
+
+HealthResponse:
+  type: object
+  properties:
+    status:
+      $ref: "#/HealthStatus"
+    timestamp:
+      $ref: "common.yaml#/Timestamp"
+    components:
+      type: object
+      properties:
+        database:
+          $ref: "#/HealthStatus"
+        domains:
+          type: object
+          additionalProperties:
+            $ref: "#/HealthStatus"
+        taskManager:
+          $ref: "#/HealthStatus"
+        orchestrator:
+          $ref: "#/HealthStatus"
+    metrics:
+      type: object
+      properties:
+        activeAgents:
+          type: integer
+        activeTasks:
+          type: integer
+        activeChains:
+          type: integer
+
+HTTPHealthResponse:
+  type: object
+  properties:
+    status:
+      type: string
+      enum: [healthy, degraded, unhealthy]
+    checks:
+      type: object
+      properties:
+        server:
+          type: boolean
+        localKV:
+          type: boolean
+# Additional Health Methods (v2.9.1)
+
+GetMetricsParams:
+  type: object
+  properties:
+    format:
+      type: string
+      enum: [json, prometheus]
+      default: json
+      description: Output format for metrics
+
+GetMetricsResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    metrics:
+      type: object
+      properties:
+        timestamp:
+          type: integer
+          description: Collection timestamp
+        metrics:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              type:
+                type: string
+                enum: [counter, gauge, histogram, timer]
+              value:
+                oneOf:
+                  - type: number
+                  - type: object
+                    additionalProperties:
+                      type: number
+              labels:
+                type: object
+                additionalProperties:
+                  type: string
+              help:
+                type: string
+        system:
+          type: object
+          properties:
+            uptime:
+              type: integer
+              description: Uptime in milliseconds
+            memory:
+              type: object
+              properties:
+                heapUsedMB:
+                  type: number
+                heapTotalMB:
+                  type: number
+                rssMB:
+                  type: number
+            pid:
+              type: integer
+        components:
+          type: object
+          properties:
+            agents:
+              type: object
+              properties:
+                total:
+                  type: integer
+                active:
+                  type: integer
+                error:
+                  type: integer
+            tasks:
+              type: object
+              properties:
+                total:
+                  type: integer
+                running:
+                  type: integer
+                failed:
+                  type: integer
+            chains:
+              type: object
+              properties:
+                total:
+                  type: integer
+                running:
+                  type: integer
+                failed:
+                  type: integer
+            circuitBreakers:
+              type: object
+              additionalProperties:
+                type: object
+            rateLimiters:
+              type: array
+              items:
+                type: string

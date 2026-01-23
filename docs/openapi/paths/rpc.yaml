@@ -1,0 +1,207 @@
+# RPC Endpoint - Main WebFIX protocol endpoint
+# Part of STELS Agentic AI Platform OpenAPI Specification
+# Total: 88 methods (12 public, 67 session, 4 developer, 5 owner)
+
+/:
+  post:
+    operationId: rpc_call
+    summary: WebFIX RPC Endpoint
+    description: |
+      Main RPC endpoint for all WebFIX protocol methods.
+      The specific operation is determined by the `method` field in the request body.
+
+      ## Access Levels
+
+      - **public** - No authentication required (12 methods)
+      - **session** - Requires valid `stels-session` header (67 methods)
+      - **developer** - Requires developer role (4 methods)
+      - **owner** - Requires owner role (5 methods)
+
+      ## Available Methods (88 total)
+
+      ### Agents (8 methods)
+      - `listAgents` - List all agents [public]
+      - `createAgent` - Create a new agent [public]
+      - `getAgent` - Get agent by ID [session]
+      - `updateAgent` - Update agent [session]
+      - `deleteAgent` - Delete agent [session]
+      - `chatWithAgent` - Chat with agent [public]
+      - `syncFromGradient` - Sync agents from Gradient API [public]
+      - `moveAgentToWorkspace` - Move agent to another workspace [session]
+
+      ### Tasks (10 methods)
+      - `listTasks` - List all tasks [session]
+      - `createTask` - Create a new task [session]
+      - `getTask` - Get task by ID [session]
+      - `updateTask` - Update task [session]
+      - `executeTask` - Execute task manually [session]
+      - `approveTask` - Approve/reject task [session]
+      - `pauseTask` - Pause task [session]
+      - `resumeTask` - Resume task [session]
+      - `getTaskHistory` - Get task execution history [session]
+      - `deleteTask` - Delete task [session]
+
+      ### Chains (10 methods)
+      - `listChains` - List all chains [session]
+      - `createChain` - Create a new chain [session]
+      - `getChain` - Get chain by ID [session]
+      - `updateChain` - Update chain [session]
+      - `executeChain` - Execute chain [session]
+      - `getChainStatus` - Get chain status [session]
+      - `getChainHistory` - Get chain execution history [session]
+      - `pauseChain` - Pause chain [session]
+      - `resumeChain` - Resume chain [session]
+      - `deleteChain` - Delete chain [session]
+
+      ### Trading (8 methods)
+      - `getBalance` - Get account balance [session]
+      - `getTicker` - Get ticker data [session]
+      - `getOrderBook` - Get order book [session]
+      - `listOrders` - List orders [session]
+      - `listTrades` - List trades [session]
+      - `createOrder` - Create order [session]
+      - `getOrder` - Get order by ID [session]
+      - `cancelOrder` - Cancel order [session]
+
+      ### Accounts (10 methods)
+      - `listAccounts` - List connected accounts [public]
+      - `setAccount` - Set/update exchange account [session]
+      - `connectAccount` - Connect a new exchange account [session]
+      - `validateAccount` - Validate account credentials [session]
+      - `linkAgentToAccount` - Link agent to account [session]
+      - `connectAccountToAgent` - Alias for linkAgentToAccount (deprecated) [session]
+      - `unlinkAgentFromAccount` - Unlink agent from account [session]
+      - `disconnectAccountFromAgent` - Alias for unlinkAgentFromAccount (deprecated) [session]
+      - `disconnectAccount` - Disconnect account [session]
+      - `syncAccountBalance` - Sync account balance from exchange [session]
+
+      ### Strategies (8 methods)
+      - `listStrategyTemplates` - List strategy templates [session]
+      - `getStrategyTemplate` - Get strategy template details [session]
+      - `createStrategy` - Create a strategy instance [session]
+      - `listStrategies` - List user strategies [session]
+      - `getStrategy` - Get strategy details [session]
+      - `startStrategy` - Start a strategy [session]
+      - `stopStrategy` - Stop a strategy [session]
+      - `deleteStrategy` - Delete a strategy [session]
+
+      ### Orchestration (5 methods)
+      - `getOrchestratorStats` - Get orchestrator stats [session]
+      - `routeToAgents` - Route message to agents [session]
+      - `startCollaboration` - Start agent collaboration [session]
+      - `sendAgentMessage` - Send message between agents [session]
+      - `endCollaboration` - End collaboration [session]
+
+      ### Realtime (3 methods)
+      - `getAgentState` - Get agent state [session]
+      - `setTrigger` - Set realtime trigger [session]
+      - `getDomainData` - Get domain data [session]
+
+      ### Knowledge Bases (3 methods)
+      - `listKnowledgeBases` - List knowledge bases [session]
+      - `createKnowledgeBase` - Create knowledge base [session]
+      - `deleteKnowledgeBase` - Delete knowledge base [session]
+
+      ### Workspaces (4 methods)
+      - `listWorkspaces` - List workspaces [public]
+      - `createWorkspace` - Create workspace [public]
+      - `updateWorkspace` - Update a workspace [public]
+      - `deleteWorkspace` - Delete a workspace [public]
+
+      ### Domains (5 methods)
+      - `listDomains` - List domains [session]
+      - `getDomainInfo` - Get domain info [session]
+      - `executeDomainAction` - Execute domain action [session]
+      - `listTemplates` - List templates [session]
+      - `createFromTemplate` - Create from template [session]
+
+      ### Workers (8 methods)
+      - `listWorkers` - List workers [developer]
+      - `setWorker` - Set/create worker [owner]
+      - `updateWorker` - Update worker [owner]
+      - `getWorkerStats` - Get worker stats [developer]
+      - `getLeaderInfo` - Get leader info [developer]
+      - `checkLeaderHealth` - Check leader node health [developer]
+      - `migrateWorker` - Migrate worker [owner]
+      - `stopAllWorkers` - Stop all workers [owner]
+
+      ### Connection (5 methods)
+      - `connectionNode` - Connect to node [public]
+      - `githubAuth` - GitHub OAuth [public]
+      - `requestDeveloperAccess` - Request developer access [public]
+      - `listDeveloperRequests` - List developer requests [session]
+      - `approveDeveloperAccess` - Approve developer access [owner]
+
+      ### Health (1 method)
+      - `getHealth` - Get health status [session]
+    tags:
+      - Connection
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            \$ref: "../schemas/common.yaml#/WebfixRequest"
+          examples:
+            createAgent:
+              summary: Create Agent
+              value:
+                webfix: "1.0"
+                method: createAgent
+                body:
+                  workspaceId: "550e8400-e29b-41d4-a716-446655440000"
+                  name: "Trading Assistant"
+                  domain: "trading"
+                  systemPrompt: "You are a helpful trading assistant."
+            chatWithAgent:
+              summary: Chat with Agent
+              value:
+                webfix: "1.0"
+                method: chatWithAgent
+                body:
+                  agentId: "550e8400-e29b-41d4-a716-446655440000"
+                  message: "What's the current BTC price?"
+            createOrder:
+              summary: Create Trading Order
+              value:
+                webfix: "1.0"
+                method: createOrder
+                body:
+                  nid: "binance-main"
+                  symbol: "BTC/USDT"
+                  type: "limit"
+                  side: "buy"
+                  amount: 0.01
+                  price: 50000
+            createStrategy:
+              summary: Create Strategy
+              value:
+                webfix: "1.0"
+                method: createStrategy
+                body:
+                  templateId: "market-making"
+                  name: "My Market Making Bot"
+                  agentId: "550e8400-e29b-41d4-a716-446655440000"
+                  config:
+                    symbol: "SOL/USDT"
+                    accountId: "bybit-main"
+                    spreadBps: 15
+                  autoStart: false
+    responses:
+      "200":
+        description: Successful response
+        content:
+          application/json:
+            schema:
+              \$ref: "../schemas/common.yaml#/WebfixResponse"
+      "400":
+        \$ref: "../schemas/responses.yaml#/BadRequest"
+      "401":
+        \$ref: "../schemas/responses.yaml#/Unauthorized"
+      "403":
+        \$ref: "../schemas/responses.yaml#/Forbidden"
+      "429":
+        \$ref: "../schemas/responses.yaml#/RateLimited"
+      "500":
+        \$ref: "../schemas/responses.yaml#/ServerError"

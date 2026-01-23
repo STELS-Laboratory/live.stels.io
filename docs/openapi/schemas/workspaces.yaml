@@ -1,0 +1,142 @@
+# Workspace Schemas - Workspace management
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+Workspace:
+  allOf:
+    - $ref: "common.yaml#/NamedEntity"
+    - type: object
+      properties:
+        agentIds:
+          type: array
+          items:
+            $ref: "common.yaml#/UUID"
+        isDefault:
+          type: boolean
+        environment:
+          type: string
+          enum: [production, staging, development, test]
+
+# Request/Response Schemas
+CreateWorkspaceParams:
+  type: object
+  required:
+    - name
+    - ownerId
+  properties:
+    name:
+      type: string
+      maxLength: 100
+    description:
+      type: string
+      maxLength: 1000
+    ownerId:
+      type: string
+
+CreateWorkspaceResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    workspace:
+      $ref: "#/Workspace"
+    error:
+      type: string
+
+ListWorkspacesParams:
+  type: object
+  properties:
+    ownerId:
+      type: string
+
+UpdateWorkspaceParams:
+  type: object
+  description: |
+    Update workspace properties.
+
+    This operation:
+    1. Updates workspace in Gradient AI API (if synced)
+    2. Updates local workspace record
+    3. Automatically updates workspaceContext for all agents in this workspace
+  required:
+    - workspaceId
+  properties:
+    workspaceId:
+      $ref: "common.yaml#/UUID"
+      description: The UUID of the workspace to update
+    name:
+      type: string
+      maxLength: 100
+      description: New workspace name
+    description:
+      type: string
+      maxLength: 1000
+      description: New workspace description
+    settings:
+      type: object
+      description: New workspace settings
+
+UpdateWorkspaceResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    workspace:
+      $ref: "#/Workspace"
+      description: Updated workspace
+    agentsUpdated:
+      type: integer
+      description: Number of agents whose workspaceContext was updated
+    error:
+      type: string
+
+DeleteWorkspaceParams:
+  type: object
+  required:
+    - workspaceId
+  properties:
+    workspaceId:
+      $ref: "common.yaml#/UUID"
+      description: The UUID of the workspace to delete
+    deleteAgents:
+      type: boolean
+      default: true
+      description: |
+        If true (default), all agents in the workspace will be deleted from both
+        Gradient AI and local storage before deleting the workspace.
+        If false, the workspace deletion will fail if it contains agents.
+
+DeleteWorkspaceResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    deleted:
+      type: boolean
+    workspaceId:
+      $ref: "common.yaml#/UUID"
+    gradientDeleted:
+      type: boolean
+      description: Whether the workspace was deleted from Gradient AI API
+    deletedAgents:
+      type: object
+      description: Information about agents that were deleted with the workspace
+      properties:
+        gradient:
+          type: integer
+          description: Number of agents deleted from Gradient AI
+        local:
+          type: integer
+          description: Number of agents deleted from local storage
+        ids:
+          type: array
+          items:
+            $ref: "common.yaml#/UUID"
+          description: UUIDs of all deleted agents
+    error:
+      type: string

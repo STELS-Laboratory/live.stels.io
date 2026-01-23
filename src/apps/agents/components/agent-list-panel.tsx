@@ -42,6 +42,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useAccountsStore } from "@/stores/modules/accounts.store";
+import { getExchangeIconPath } from "@/apps/accounts/types";
 import type { Agent, AgentDomain, AgentStatus, FilterOptions, Workspace } from "../types";
 
 interface AgentListPanelProps {
@@ -110,7 +112,8 @@ export function AgentListPanel({
   onEditAgent,
   onMoveAgent,
 }: AgentListPanelProps) {
-  // Create workspace name lookup
+  const accounts = useAccountsStore((s) => s.accounts);
+
   const workspaceNames = useMemo(() => {
     const map = new Map<string, string>();
     workspaces.forEach((w) => map.set(w.id, w.name));
@@ -418,6 +421,37 @@ export function AgentListPanel({
                               {agent.model.split("/").pop()}
                             </Badge>
                           )}
+                          {(() => {
+                            const ids =
+                              agent.connectedAccounts?.map((c) => c.accountId) ??
+                              agent.connectedAccountIds ??
+                              [];
+                            if (ids.length === 0) return null;
+                            return (
+                              <span className="flex items-center gap-1">
+                                {ids.slice(0, 3).map((id) => {
+                                  const acc = accounts.find(
+                                    (a) => a.account.nid === id || a.id === id,
+                                  );
+                                  const ex = acc?.account.exchange ?? "gate";
+                                  return (
+                                    <img
+                                      key={id}
+                                      src={getExchangeIconPath(ex)}
+                                      alt=""
+                                      className="h-4 w-4 rounded object-contain"
+                                      title={acc?.account.nid ?? id}
+                                    />
+                                  );
+                                })}
+                                {ids.length > 3 && (
+                                  <span className="text-[10px] text-muted-foreground">
+                                    +{ids.length - 3}
+                                  </span>
+                                )}
+                              </span>
+                            );
+                          })()}
                         </div>
                       </button>
 

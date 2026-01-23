@@ -1,0 +1,292 @@
+# Worker Schemas - Worker management
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+WorkerStatus:
+  type: string
+  enum: [running, stopped, error, starting, stopping]
+
+WorkerScope:
+  type: string
+  enum: [local, network]
+  description: Worker execution scope
+
+WorkerExecutionMode:
+  type: string
+  enum: [parallel, leader, exclusive]
+  description: Worker execution mode
+
+WorkerPriority:
+  type: string
+  enum: [critical, high, normal, low]
+  description: Worker execution priority
+
+Worker:
+  type: object
+  properties:
+    id:
+      $ref: "common.yaml#/UUID"
+    name:
+      type: string
+    status:
+      $ref: "#/WorkerStatus"
+    script:
+      type: string
+    nodeId:
+      type: string
+    isLeader:
+      type: boolean
+    startedAt:
+      $ref: "common.yaml#/Timestamp"
+    lastHeartbeat:
+      $ref: "common.yaml#/Timestamp"
+    stats:
+      type: object
+      properties:
+        executions:
+          type: integer
+        errors:
+          type: integer
+        avgDuration:
+          type: number
+
+WorkerStats:
+  type: object
+  properties:
+    totalWorkers:
+      type: integer
+    runningWorkers:
+      type: integer
+    stoppedWorkers:
+      type: integer
+    totalExecutions:
+      type: integer
+    totalErrors:
+      type: integer
+    leaderNodeId:
+      type: string
+
+LeaderInfo:
+  type: object
+  properties:
+    nodeId:
+      type: string
+    isLeader:
+      type: boolean
+    leaderNodeId:
+      type: string
+    lastElection:
+      $ref: "common.yaml#/Timestamp"
+
+# Request/Response Schemas
+SetWorkerParams:
+  type: object
+  properties:
+    scriptContent:
+      type: string
+      description: Worker script content (JavaScript/TypeScript)
+    dependencies:
+      type: array
+      items:
+        type: string
+      description: Script dependencies
+    version:
+      type: string
+      default: "1.19.2"
+    scope:
+      $ref: "#/WorkerScope"
+    executionMode:
+      $ref: "#/WorkerExecutionMode"
+    priority:
+      $ref: "#/WorkerPriority"
+    accountId:
+      type: string
+      description: Associated account ID
+    assignedNode:
+      type: string
+      description: Target node for exclusive execution mode
+
+UpdateWorkerParams:
+  type: object
+  required:
+    - channel
+    - raw
+  properties:
+    channel:
+      type: string
+      description: Worker channel (e.g., ami.worker.{worker-id})
+    raw:
+      type: object
+      properties:
+        script:
+          type: string
+          description: Updated worker script
+        scope:
+          $ref: "#/WorkerScope"
+        executionMode:
+          $ref: "#/WorkerExecutionMode"
+        priority:
+          $ref: "#/WorkerPriority"
+        active:
+          type: boolean
+
+ListWorkersResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    workers:
+      type: array
+      items:
+        $ref: "#/Worker"
+
+MigrateWorkerParams:
+  type: object
+  required:
+    - channel
+    - targetScope
+  properties:
+    channel:
+      type: string
+      description: Worker channel (e.g., ami.worker.{worker-id})
+    targetScope:
+      $ref: "#/WorkerScope"
+
+GetWorkerLogsParams:
+  type: object
+  properties:
+    workerId:
+      $ref: "common.yaml#/UUID"
+    lines:
+      type: integer
+      default: 100
+      description: Number of log lines to retrieve
+
+StreamWorkerLogsParams:
+  type: object
+  properties:
+    workerId:
+      $ref: "common.yaml#/UUID"
+
+GetLeaderInfoParams:
+  type: object
+  required:
+    - workerId
+  properties:
+    workerId:
+      type: string
+      description: Worker ID to get leader info for
+
+GetLeaderInfoResponse:
+  type: object
+  properties:
+    workerId:
+      type: string
+    hasLeader:
+      type: boolean
+    leader:
+      type: string
+      description: Node ID of the leader
+    timestamp:
+      $ref: "common.yaml#/Timestamp"
+    expiresAt:
+      $ref: "common.yaml#/Timestamp"
+    renewedAt:
+      $ref: "common.yaml#/Timestamp"
+    expiresIn:
+      type: integer
+    isExpired:
+      type: boolean
+
+StopAllWorkersResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    stoppedCount:
+      type: integer
+
+# Additional Worker Methods (v2.9.1)
+
+CheckLeaderHealthParams:
+  type: object
+  properties:
+    workerId:
+      type: string
+      description: Worker ID to check leader health for
+
+CheckLeaderHealthResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    workerId:
+      type: string
+    healthy:
+      type: boolean
+      description: Whether the leader is healthy
+    leader:
+      type: string
+      description: Current leader node ID
+    lastHeartbeat:
+      $ref: "common.yaml#/Timestamp"
+    timestamp:
+      $ref: "common.yaml#/Timestamp"
+
+StreamWorkerLogsPublicParams:
+  type: object
+  description: |
+    Public worker log streaming for inter-node communication.
+    Used internally by the system for distributed log aggregation.
+  properties:
+    nodeId:
+      type: string
+      description: Target node ID
+    workerId:
+      type: string
+      description: Worker ID to stream logs for
+
+GetLoggingMetricsParams:
+  type: object
+  properties:
+    period:
+      type: string
+      enum: [hour, day, week]
+      default: hour
+      description: Time period for metrics
+
+GetLoggingMetricsResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    metrics:
+      type: object
+      properties:
+        totalLogs:
+          type: integer
+          description: Total log entries in period
+        errorLogs:
+          type: integer
+          description: Error-level logs
+        warnLogs:
+          type: integer
+          description: Warning-level logs
+        infoLogs:
+          type: integer
+          description: Info-level logs
+        debugLogs:
+          type: integer
+          description: Debug-level logs
+        byWorker:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Log counts per worker
+        period:
+          type: string
+        startTime:
+          $ref: "common.yaml#/Timestamp"
+        endTime:
+          $ref: "common.yaml#/Timestamp"

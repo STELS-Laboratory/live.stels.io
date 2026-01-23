@@ -1,0 +1,36 @@
+# Auth Endpoints - OAuth callbacks
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+/auth/github/callback:
+  get:
+    operationId: githubAuthCallback
+    summary: GitHub OAuth Callback
+    description: Callback endpoint for GitHub OAuth flow
+    tags:
+      - Connection
+    security: []
+    parameters:
+      - name: code
+        in: query
+        required: true
+        description: Authorization code from GitHub OAuth
+        schema:
+          type: string
+      - name: state
+        in: query
+        description: State parameter for CSRF protection
+        schema:
+          type: string
+    responses:
+      "302":
+        description: Redirect to client application
+        headers:
+          Location:
+            schema:
+              type: string
+      "400":
+        description: Missing authorization code
+      "429":
+        $ref: "../schemas/responses.yaml#/RateLimited"
+      "500":
+        $ref: "../schemas/responses.yaml#/ServerError"

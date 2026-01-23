@@ -1,0 +1,130 @@
+# Domain Schemas - Domain adapters and templates
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+DomainInfo:
+  type: object
+  properties:
+    name:
+      type: string
+    description:
+      type: string
+    actions:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+          description:
+            type: string
+          parameters:
+            type: object
+    providers:
+      type: array
+      items:
+        type: string
+    requiredScopes:
+      type: array
+      items:
+        $ref: "accounts.yaml#/PermissionScope"
+
+Template:
+  type: object
+  properties:
+    id:
+      type: string
+    name:
+      type: string
+    description:
+      type: string
+    type:
+      type: string
+    domain:
+      $ref: "agents.yaml#/AgentDomain"
+    config:
+      type: object
+
+# Request/Response Schemas
+ListDomainsResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    domains:
+      type: array
+      items:
+        $ref: "#/DomainInfo"
+
+GetDomainInfoParams:
+  type: object
+  required:
+    - domain
+  properties:
+    domain:
+      $ref: "agents.yaml#/AgentDomain"
+
+ExecuteDomainActionParams:
+  type: object
+  required:
+    - domain
+    - action
+    - accountId
+  properties:
+    domain:
+      $ref: "agents.yaml#/AgentDomain"
+    action:
+      type: string
+    accountId:
+      $ref: "common.yaml#/UUID"
+    params:
+      type: object
+
+ExecuteDomainActionResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    result:
+      type: object
+    error:
+      type: string
+
+ListTemplatesParams:
+  type: object
+  properties:
+    domain:
+      $ref: "agents.yaml#/AgentDomain"
+    type:
+      type: string
+      enum: [agent, chain]
+
+ListTemplatesResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    templates:
+      type: array
+      items:
+        $ref: "#/Template"
+
+CreateFromTemplateParams:
+  type: object
+  required:
+    - templateId
+    - workspaceId
+  properties:
+    templateId:
+      type: string
+    workspaceId:
+      $ref: "common.yaml#/UUID"
+    name:
+      type: string
+    variables:
+      type: object

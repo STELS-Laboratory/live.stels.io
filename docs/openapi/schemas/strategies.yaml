@@ -1,0 +1,755 @@
+# Strategy Schemas - Strategy templates and instances
+# Part of STELS Agentic AI Platform OpenAPI Specification
+#
+# IMPORTANT: Strategies are bound to agents and can only use accounts
+# that are connected to that agent via account-binding.
+
+StrategyDifficulty:
+  type: string
+  enum: [beginner, intermediate, advanced, expert]
+  description: Strategy difficulty level
+
+StrategyRiskLevel:
+  type: string
+  enum: [low, medium, high, very_high]
+  description: Strategy risk level
+
+StrategyRequirements:
+  type: object
+  description: Requirements that must be met to use this strategy
+  properties:
+    accountTypes:
+      type: array
+      items:
+        type: string
+      description: Supported exchange types (e.g., ["binance", "bybit", "okx"])
+    permissions:
+      type: array
+      items:
+        type: string
+      description: Required account permissions (e.g., ["read", "trade", "balance"])
+    minCapital:
+      type: object
+      properties:
+        amount:
+          type: number
+        currency:
+          type: string
+      description: Minimum recommended capital
+    features:
+      type: array
+      items:
+        type: string
+      description: Required exchange features (e.g., ["spot_trading"])
+
+StrategyConfigFieldType:
+  type: string
+  enum: [string, number, boolean, select, multiselect, account, symbol, cron]
+  description: |
+    Configuration field type.
+    - `account`: Shows accounts connected to the agent (from connectedAccounts)
+    - `symbol`: Shows trading pairs available on the selected account's exchange
+
+StrategyConfigField:
+  type: object
+  required:
+    - id
+    - name
+    - type
+    - required
+  properties:
+    id:
+      type: string
+      description: Field identifier used in config object
+    name:
+      type: string
+      description: Display name for the field
+    description:
+      type: string
+      description: Help text for the field
+    type:
+      $ref: "#/StrategyConfigFieldType"
+    required:
+      type: boolean
+    default: {}
+    placeholder:
+      type: string
+    helpText:
+      type: string
+      description: Additional help text shown below the field
+    unit:
+      type: string
+      description: Unit suffix (e.g., "bps", "%", "quote")
+    validation:
+      type: object
+      properties:
+        min:
+          type: number
+        max:
+          type: number
+        minLength:
+          type: integer
+        maxLength:
+          type: integer
+        pattern:
+          type: string
+        enum:
+          type: array
+          items:
+            type: object
+            properties:
+              value: {}
+              label:
+                type: string
+    showIf:
+      type: object
+      description: Conditional display based on another field value
+      properties:
+        field:
+          type: string
+        operator:
+          type: string
+          enum: [eq, neq, gt, lt, gte, lte, in]
+        value: {}
+    accountFilter:
+      type: object
+      description: Filter for account field type (shows only agent's connected accounts)
+      properties:
+        exchanges:
+          type: array
+          items:
+            type: string
+        types:
+          type: array
+          items:
+            type: string
+        permissions:
+          type: array
+          items:
+            type: string
+          description: Required scopes for this action (e.g., ["trade", "balance"])
+        agentAccountsOnly:
+          type: boolean
+          default: true
+          description: Only show accounts from agent's connectedAccounts (always true for strategies)
+    symbolFilter:
+      type: object
+      description: Filter for symbol field type
+      properties:
+        exchanges:
+          type: array
+          items:
+            type: string
+        quoteAssets:
+          type: array
+          items:
+            type: string
+        baseAssets:
+          type: array
+          items:
+            type: string
+        types:
+          type: array
+          items:
+            type: string
+          description: Market types (spot, futures, margin)
+
+StrategyConfigGroup:
+  type: object
+  required:
+    - id
+    - name
+    - fields
+  properties:
+    id:
+      type: string
+    name:
+      type: string
+    description:
+      type: string
+    icon:
+      type: string
+    collapsed:
+      type: boolean
+      default: false
+    fields:
+      type: array
+      items:
+        type: string
+      description: Array of field IDs in this group
+
+StrategyConfigSchema:
+  type: object
+  required:
+    - fields
+    - groups
+  properties:
+    fields:
+      type: array
+      items:
+        $ref: "#/StrategyConfigField"
+    groups:
+      type: array
+      items:
+        $ref: "#/StrategyConfigGroup"
+
+StrategyTaskTemplate:
+  type: object
+  required:
+    - id
+    - name
+    - action
+    - trigger
+  properties:
+    id:
+      type: string
+    name:
+      type: string
+    description:
+      type: string
+    action:
+      type: object
+      description: |
+        Action template with {{variable}} placeholders.
+        Available variables: {{strategyId}}, {{strategyName}}, {{agentId}}, {{config.fieldId}}
+      properties:
+        type:
+          type: string
+        parameters:
+          type: object
+    trigger:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [manual, scheduled, event, condition, webhook, chain]
+        config:
+          type: object
+    conditions:
+      type: array
+      items:
+        type: object
+        properties:
+          field:
+            type: string
+          operator:
+            type: string
+          value: {}
+          source:
+            type: string
+    limits:
+      type: object
+      properties:
+        maxExecutions:
+          type: integer
+        maxExecutionsPerHour:
+          type: integer
+        maxExecutionsPerDay:
+          type: integer
+        cooldownMs:
+          type: integer
+    approval:
+      type: object
+      properties:
+        required:
+          type: boolean
+        approvers:
+          type: array
+          items:
+            type: string
+        timeout:
+          type: integer
+    priority:
+      type: string
+    maxRetries:
+      type: integer
+    optional:
+      type: boolean
+    enabledIf:
+      type: object
+      description: Condition for enabling this task based on config
+      properties:
+        field:
+          type: string
+        operator:
+          type: string
+          enum: [eq, neq, gt, lt, truthy, falsy]
+        value: {}
+
+StrategyAgentTemplate:
+  type: object
+  description: Optional AI assistant template for strategy monitoring
+  properties:
+    name:
+      type: string
+    description:
+      type: string
+    systemPrompt:
+      type: string
+      description: System prompt with {{variable}} placeholders
+    settings:
+      type: object
+      properties:
+        temperature:
+          type: number
+        maxTokens:
+          type: integer
+
+StrategyDocumentation:
+  type: object
+  properties:
+    overview:
+      type: string
+      description: Markdown overview of the strategy
+    howItWorks:
+      type: string
+      description: Markdown explanation of how the strategy works
+    risks:
+      type: array
+      items:
+        type: string
+      description: List of risk warnings
+    tips:
+      type: array
+      items:
+        type: string
+      description: Best practices and tips
+    examples:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+          description:
+            type: string
+          config:
+            type: object
+    faq:
+      type: array
+      items:
+        type: object
+        properties:
+          question:
+            type: string
+          answer:
+            type: string
+    links:
+      type: array
+      items:
+        type: object
+        properties:
+          title:
+            type: string
+          url:
+            type: string
+
+StrategyTemplate:
+  type: object
+  required:
+    - id
+    - name
+    - version
+    - domain
+    - difficulty
+    - riskLevel
+    - requirements
+    - configSchema
+    - defaultConfig
+    - tasks
+  properties:
+    id:
+      type: string
+      description: Unique template identifier
+    name:
+      type: string
+    description:
+      type: string
+    domain:
+      type: string
+      description: Domain this strategy belongs to (e.g., "trading")
+    version:
+      type: string
+    author:
+      type: string
+    tags:
+      type: array
+      items:
+        type: string
+    icon:
+      type: string
+      description: Emoji or icon identifier
+    color:
+      type: string
+      description: Hex color for UI
+    difficulty:
+      $ref: "#/StrategyDifficulty"
+    riskLevel:
+      $ref: "#/StrategyRiskLevel"
+    requirements:
+      $ref: "#/StrategyRequirements"
+    configSchema:
+      $ref: "#/StrategyConfigSchema"
+    defaultConfig:
+      type: object
+      description: Default configuration values
+    tasks:
+      type: array
+      items:
+        $ref: "#/StrategyTaskTemplate"
+    agentTemplate:
+      $ref: "#/StrategyAgentTemplate"
+    documentation:
+      $ref: "#/StrategyDocumentation"
+
+StrategyTemplateSummary:
+  type: object
+  description: Lightweight template info for listing
+  properties:
+    id:
+      type: string
+    name:
+      type: string
+    description:
+      type: string
+    domain:
+      type: string
+    icon:
+      type: string
+    color:
+      type: string
+    difficulty:
+      $ref: "#/StrategyDifficulty"
+    riskLevel:
+      $ref: "#/StrategyRiskLevel"
+    tags:
+      type: array
+      items:
+        type: string
+
+StrategyStatus:
+  type: string
+  enum: [draft, configuring, ready, starting, running, paused, stopping, stopped, error]
+  description: Strategy instance status
+
+StrategyStats:
+  type: object
+  properties:
+    totalExecutions:
+      type: integer
+    successfulExecutions:
+      type: integer
+    failedExecutions:
+      type: integer
+    lastExecutionAt:
+      type: integer
+    uptime:
+      type: integer
+      description: Uptime in milliseconds
+    domainStats:
+      type: object
+      description: Domain-specific statistics (e.g., trading P&L)
+
+StrategyInstance:
+  type: object
+  required:
+    - id
+    - templateId
+    - name
+    - agentId
+    - ownerId
+    - config
+    - taskIds
+    - status
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      type: string
+      format: uuid
+    templateId:
+      type: string
+    name:
+      type: string
+    description:
+      type: string
+    ownerId:
+      type: string
+    workspaceId:
+      type: string
+    agentId:
+      type: string
+      format: uuid
+      description: |
+        Agent that executes this strategy.
+        The strategy can only use accounts connected to this agent.
+    config:
+      type: object
+      description: |
+        User configuration values.
+        Note: config.accountId must be in agent's connectedAccounts
+    assistantAgentId:
+      type: string
+      format: uuid
+      description: Optional AI assistant agent for monitoring
+    taskIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    status:
+      $ref: "#/StrategyStatus"
+    createdAt:
+      type: integer
+    updatedAt:
+      type: integer
+    startedAt:
+      type: integer
+    stoppedAt:
+      type: integer
+    stats:
+      $ref: "#/StrategyStats"
+
+# Request/Response Schemas
+
+ListStrategyTemplatesParams:
+  type: object
+  properties:
+    domain:
+      type: string
+      description: Filter by domain
+    difficulty:
+      $ref: "#/StrategyDifficulty"
+    riskLevel:
+      $ref: "#/StrategyRiskLevel"
+    tags:
+      type: array
+      items:
+        type: string
+      description: Filter by tags (OR logic)
+    includeFull:
+      type: boolean
+      default: false
+      description: Include full template data (default is summary only)
+
+ListStrategyTemplatesResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    templates:
+      type: array
+      items:
+        oneOf:
+          - $ref: "#/StrategyTemplate"
+          - $ref: "#/StrategyTemplateSummary"
+    total:
+      type: integer
+
+GetStrategyTemplateParams:
+  type: object
+  required:
+    - templateId
+  properties:
+    templateId:
+      type: string
+
+GetStrategyTemplateResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    template:
+      $ref: "#/StrategyTemplate"
+
+CreateStrategyParams:
+  type: object
+  required:
+    - templateId
+    - name
+    - ownerId
+    - agentId
+    - config
+  properties:
+    templateId:
+      type: string
+      description: ID of the template to use
+    name:
+      type: string
+      description: Strategy instance name
+    description:
+      type: string
+    ownerId:
+      type: string
+    workspaceId:
+      type: string
+    agentId:
+      type: string
+      format: uuid
+      description: |
+        Agent that will execute this strategy.
+        IMPORTANT: config.accountId must be in this agent's connectedAccounts.
+        The agent must have the account connected via connectAccountToAgent first.
+    config:
+      type: object
+      description: |
+        Configuration matching template's configSchema.
+        For trading strategies, accountId must be an account connected to the agent.
+    autoStart:
+      type: boolean
+      default: false
+      description: Start strategy immediately after creation
+    dryRun:
+      type: boolean
+      default: false
+      description: Validate configuration without creating
+
+CreateStrategyResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    strategy:
+      $ref: "#/StrategyInstance"
+    validation:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+        warnings:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+    error:
+      type: string
+
+ListStrategiesParams:
+  type: object
+  properties:
+    ownerId:
+      type: string
+    status:
+      $ref: "#/StrategyStatus"
+    templateId:
+      type: string
+    agentId:
+      type: string
+      format: uuid
+      description: Filter by agent
+    limit:
+      type: integer
+      default: 100
+    offset:
+      type: integer
+      default: 0
+
+ListStrategiesResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    strategies:
+      type: array
+      items:
+        $ref: "#/StrategyInstance"
+    pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+        hasMore:
+          type: boolean
+
+GetStrategyParams:
+  type: object
+  required:
+    - strategyId
+  properties:
+    strategyId:
+      type: string
+      format: uuid
+
+GetStrategyResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    strategy:
+      $ref: "#/StrategyInstance"
+
+StartStrategyParams:
+  type: object
+  required:
+    - strategyId
+  properties:
+    strategyId:
+      type: string
+      format: uuid
+
+StartStrategyResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    strategy:
+      $ref: "#/StrategyInstance"
+    activatedTasks:
+      type: integer
+
+StopStrategyParams:
+  type: object
+  required:
+    - strategyId
+  properties:
+    strategyId:
+      type: string
+      format: uuid
+
+StopStrategyResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    strategy:
+      $ref: "#/StrategyInstance"
+    pausedTasks:
+      type: integer
+
+DeleteStrategyParams:
+  type: object
+  required:
+    - strategyId
+  properties:
+    strategyId:
+      type: string
+      format: uuid
+
+DeleteStrategyResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    deleted:
+      type: boolean
+    strategyId:
+      type: string
+    deletedTasks:
+      type: integer

@@ -1,0 +1,127 @@
+# Orchestration Schemas - Agent coordination
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+CollaborationType:
+  type: string
+  enum: [sequential, parallel, hierarchical, peer]
+  description: Agent collaboration type
+
+# Request/Response Schemas
+RouteToAgentsParams:
+  type: object
+  required:
+    - message
+  properties:
+    message:
+      type: string
+    agentIds:
+      type: array
+      items:
+        $ref: "common.yaml#/UUID"
+    domain:
+      $ref: "agents.yaml#/AgentDomain"
+    context:
+      type: object
+    waitForAll:
+      type: boolean
+    timeout:
+      type: integer
+
+RouteToAgentsResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    responses:
+      type: array
+      items:
+        type: object
+        properties:
+          agentId:
+            $ref: "common.yaml#/UUID"
+          success:
+            type: boolean
+          response:
+            type: string
+          error:
+            type: string
+          duration:
+            type: integer
+    error:
+      type: string
+
+StartCollaborationParams:
+  type: object
+  required:
+    - name
+    - agentIds
+    - type
+  properties:
+    name:
+      type: string
+      description: Collaboration name
+    agentIds:
+      type: array
+      items:
+        $ref: "common.yaml#/UUID"
+      minItems: 2
+      description: Agent IDs to include in collaboration
+    type:
+      $ref: "#/CollaborationType"
+    context:
+      type: object
+      description: Initial context for collaboration
+
+StartCollaborationResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    collaborationId:
+      $ref: "common.yaml#/UUID"
+    error:
+      type: string
+
+EndCollaborationParams:
+  type: object
+  required:
+    - collaborationId
+  properties:
+    collaborationId:
+      $ref: "common.yaml#/UUID"
+    reason:
+      type: string
+
+SendAgentMessageParams:
+  type: object
+  required:
+    - fromAgentId
+    - toAgentId
+    - content
+  properties:
+    fromAgentId:
+      $ref: "common.yaml#/UUID"
+    toAgentId:
+      $ref: "common.yaml#/UUID"
+    type:
+      type: string
+      enum: [request, response, notification, event]
+    content:
+      type: string
+    metadata:
+      type: object
+
+OrchestratorStats:
+  type: object
+  properties:
+    success:
+      type: boolean
+    stats:
+      type: object
+      properties:
+        activeInstances:
+          type: integer
+        totalMessages:
+          type: integer
+        activeCollaborations:
+          type: integer

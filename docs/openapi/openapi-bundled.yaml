@@ -1,0 +1,228 @@
+# STELS Agentic AI Platform - Bundled OpenAPI Specification
+#
+# This is the modular version that references separate schema files.
+# For a single-file version, use openapi.yaml
+#
+# Structure:
+#   schemas/
+#     common.yaml      - Common types (UUID, Timestamp, Pagination, etc.)
+#     agents.yaml      - Agent schemas
+#     tasks.yaml       - Task schemas
+#     chains.yaml      - Chain schemas
+#     trading.yaml     - Trading schemas
+#     accounts.yaml    - Account schemas
+#     orchestration.yaml - Orchestration schemas
+#     realtime.yaml    - Realtime schemas
+#     knowledge-bases.yaml - Knowledge base schemas
+#     workspaces.yaml  - Workspace schemas
+#     domains.yaml     - Domain schemas
+#     workers.yaml     - Worker schemas
+#     channels.yaml    - Channel schemas
+#     connection.yaml  - Connection schemas
+#     health.yaml      - Health schemas
+#     responses.yaml   - Common responses
+#   paths/
+#     rpc.yaml         - Main RPC endpoint
+#     health.yaml      - Health endpoint
+#     workers.yaml     - Worker endpoints
+#     auth.yaml        - Auth endpoints
+
+openapi: 3.1.0
+info:
+  title: STELS Agentic AI Platform API
+  version: 2.9.1
+  description: |
+    # STELS Runtime API
+
+    Complete API for the Agentic AI Platform supporting autonomous AI agents,
+    task automation, cross-domain chains, trading operations, and more.
+
+    ## Protocol
+
+    All RPC methods use **POST /** with a WebFIX protocol body:
+
+    ```json
+    {
+      "webfix": "1.0",
+      "method": "methodName",
+      "body": { ... }
+    }
+    ```
+
+    ## Authentication
+
+    Most endpoints require a valid session token in the `stels-session` header.
+    Sessions are obtained via GitHub OAuth through the `githubAuth` method.
+
+    ## API Status (Integration Tests)
+
+    **Total: 73 methods | ✅ Tested: 42 | ⏭️ Require Setup: 30 | ❌ Issues: 1**
+
+  contact:
+    name: STELS Platform
+    url: https://stels.dev
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.stels.dev
+    description: Production server
+  - url: http://localhost:8080
+    description: Local development
+
+tags:
+  - name: Connection
+    description: Authentication and connection management
+  - name: Agents
+    description: AI agent management and chat
+  - name: Tasks
+    description: Autonomous task management
+  - name: Chains
+    description: Cross-domain task chains
+  - name: Trading
+    description: Trading operations (orders, balance, market data)
+  - name: Accounts
+    description: Connected external accounts
+  - name: Orchestration
+    description: Agent orchestration and collaboration
+  - name: Realtime
+    description: Real-time state and triggers
+  - name: KnowledgeBases
+    description: Knowledge bases for RAG
+  - name: Workspaces
+    description: Workspace management
+  - name: Domains
+    description: Domain adapters and templates
+  - name: Workers
+    description: Worker management (admin)
+  - name: Health
+    description: Health checks
+
+security:
+  - sessionAuth: []
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: header
+      name: stels-session
+      description: Session token obtained via GitHub OAuth
+
+  schemas:
+    # Common
+    UUID:
+      $ref: "schemas/common.yaml#/UUID"
+    Timestamp:
+      $ref: "schemas/common.yaml#/Timestamp"
+    WebfixRequest:
+      $ref: "schemas/common.yaml#/WebfixRequest"
+    WebfixResponse:
+      $ref: "schemas/common.yaml#/WebfixResponse"
+    PaginationParams:
+      $ref: "schemas/common.yaml#/PaginationParams"
+    PaginationResult:
+      $ref: "schemas/common.yaml#/PaginationResult"
+
+    # Agents
+    Agent:
+      $ref: "schemas/agents.yaml#/Agent"
+    AgentConfig:
+      $ref: "schemas/agents.yaml#/AgentConfig"
+    AgentStatus:
+      $ref: "schemas/agents.yaml#/AgentStatus"
+    CreateAgentParams:
+      $ref: "schemas/agents.yaml#/CreateAgentParams"
+    CreateAgentResponse:
+      $ref: "schemas/agents.yaml#/CreateAgentResponse"
+    ChatWithAgentParams:
+      $ref: "schemas/agents.yaml#/ChatWithAgentParams"
+    ChatWithAgentResponse:
+      $ref: "schemas/agents.yaml#/ChatWithAgentResponse"
+
+    # Tasks
+    Task:
+      $ref: "schemas/tasks.yaml#/Task"
+    TaskStatus:
+      $ref: "schemas/tasks.yaml#/TaskStatus"
+    Trigger:
+      $ref: "schemas/tasks.yaml#/Trigger"
+    Action:
+      $ref: "schemas/tasks.yaml#/Action"
+    CreateTaskParams:
+      $ref: "schemas/tasks.yaml#/CreateTaskParams"
+    CreateTaskResponse:
+      $ref: "schemas/tasks.yaml#/CreateTaskResponse"
+
+    # Chains
+    Chain:
+      $ref: "schemas/chains.yaml#/Chain"
+    ChainStatus:
+      $ref: "schemas/chains.yaml#/ChainStatus"
+    ChainStep:
+      $ref: "schemas/chains.yaml#/ChainStep"
+    CreateChainParams:
+      $ref: "schemas/chains.yaml#/CreateChainParams"
+    CreateChainResponse:
+      $ref: "schemas/chains.yaml#/CreateChainResponse"
+
+    # Trading
+    Order:
+      $ref: "schemas/trading.yaml#/Order"
+    Ticker:
+      $ref: "schemas/trading.yaml#/Ticker"
+    Balance:
+      $ref: "schemas/trading.yaml#/Balance"
+    CreateOrderParams:
+      $ref: "schemas/trading.yaml#/CreateOrderParams"
+    CreateOrderResponse:
+      $ref: "schemas/trading.yaml#/CreateOrderResponse"
+
+    # Accounts
+    ConnectedAccount:
+      $ref: "schemas/accounts.yaml#/ConnectedAccount"
+    SetAccountParams:
+      $ref: "schemas/accounts.yaml#/SetAccountParams"
+    SetAccountResponse:
+      $ref: "schemas/accounts.yaml#/SetAccountResponse"
+
+    # Workers
+    Worker:
+      $ref: "schemas/workers.yaml#/Worker"
+    WorkerStats:
+      $ref: "schemas/workers.yaml#/WorkerStats"
+    SetWorkerParams:
+      $ref: "schemas/workers.yaml#/SetWorkerParams"
+
+    # Health
+    HealthResponse:
+      $ref: "schemas/health.yaml#/HealthResponse"
+    HTTPHealthResponse:
+      $ref: "schemas/health.yaml#/HTTPHealthResponse"
+
+  responses:
+    Unauthorized:
+      $ref: "schemas/responses.yaml#/Unauthorized"
+    Forbidden:
+      $ref: "schemas/responses.yaml#/Forbidden"
+    RateLimited:
+      $ref: "schemas/responses.yaml#/RateLimited"
+    BadRequest:
+      $ref: "schemas/responses.yaml#/BadRequest"
+    ServerError:
+      $ref: "schemas/responses.yaml#/ServerError"
+    NotFound:
+      $ref: "schemas/responses.yaml#/NotFound"
+
+paths:
+  /:
+    $ref: "paths/rpc.yaml#/~1"
+  /health:
+    $ref: "paths/health.yaml#/~1health"
+  /api/worker/logs:
+    $ref: "paths/workers.yaml#/~1api~1worker~1logs"
+  /api/worker/logs/stream:
+    $ref: "paths/workers.yaml#/~1api~1worker~1logs~1stream"
+  /auth/github/callback:
+    $ref: "paths/auth.yaml#/~1auth~1github~1callback"

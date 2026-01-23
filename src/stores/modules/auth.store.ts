@@ -280,9 +280,33 @@ export const useAuthStore = create<AuthStore>()(
               isAuthenticated: true,
               connectionError: null,
             });
-            // Check if session is approaching expiry
             if (isSessionNearExpiry(connectionSession.createdAt)) {
               set({ showSessionExpiredModal: true });
+            }
+            try {
+              const { useAccountsStore } = await import(
+                "@/stores/modules/accounts.store"
+              );
+              let address: string | undefined;
+              const pr = localStorage.getItem("private-store");
+              if (pr) {
+                try {
+                  const d = JSON.parse(pr) as { raw?: { info?: { address?: string }; address?: string } };
+                  address = d?.raw?.info?.address ?? d?.raw?.address;
+                } catch {
+                  // ignore
+                }
+              }
+              useAccountsStore
+                .getState()
+                .fetchAccountsFromServer(
+                  connectionSession.session,
+                  connectionSession.api,
+                  address ? { address, params: ["gliesereum"] } : {},
+                )
+                .catch(() => {});
+            } catch {
+              // ignore
             }
             return true;
           }
@@ -331,9 +355,25 @@ export const useAuthStore = create<AuthStore>()(
               connectionError: null,
             });
 
-            // Check if session is approaching expiry (older than 6 days)
             if (isSessionNearExpiry(session.createdAt)) {
               set({ showSessionExpiredModal: true });
+            }
+
+            try {
+              const { useAccountsStore } = await import(
+                "@/stores/modules/accounts.store"
+              );
+              const address = sessionData.raw?.info?.address ?? sessionData.raw?.address;
+              useAccountsStore
+                .getState()
+                .fetchAccountsFromServer(
+                  session.session,
+                  apiUrl,
+                  address ? { address, params: ["gliesereum"] } : {},
+                )
+                .catch(() => {});
+            } catch {
+              // ignore
             }
 
             return true;

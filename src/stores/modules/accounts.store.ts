@@ -1,6 +1,10 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import type { AccountRequest } from "@/lib/api-types";
+import type {
+  AccountRequest,
+  ListAccountsOptions,
+  SetAccountPayload,
+} from "@/lib/api-types";
 import type {
   AccountRawData,
   AccountsActions,
@@ -133,70 +137,64 @@ export const useAccountsStore = create<AccountsStore>()(
           return accounts.find((acc) => acc.id === activeAccountId);
         },
 
-        // Send account to server
+        // Send account to server (OpenAPI SetAccountParams)
         sendAccountToServer: async (
-          account: AccountRequest,
+          payload: SetAccountPayload,
           session: string,
           apiUrl: string,
+          options?: { omitSecrets?: boolean },
         ): Promise<boolean> => {
-          // Remove undefined/null optional fields before sending
-          const accountForSending: AccountRequest = {
-            nid: account.nid,
-            connection: account.connection,
-            exchange: account.exchange,
-            note: account.note,
-            apiKey: account.apiKey,
-            secret: account.secret,
-            status: account.status,
-            ...(account.password && { password: account.password }),
-            ...(account.protocol && { protocol: account.protocol }),
-            ...(account.viewers && account.viewers.length > 0 &&
-              { viewers: account.viewers }),
-            ...(account.workers && account.workers.length > 0 &&
-              { workers: account.workers }),
-            ...(account.id && { id: account.id }),
+          const body: Record<string, unknown> = {
+            nid: payload.nid,
+            exchange: payload.exchange,
+            note: payload.note,
+            ...(options?.omitSecrets
+              ? {}
+              : { apiKey: payload.apiKey, secret: payload.secret }),
+            ...(payload.password && { password: payload.password }),
+            ...(payload.protocol && { protocol: payload.protocol }),
+            ...(payload.viewers &&
+              payload.viewers.length > 0 && { viewers: payload.viewers }),
           };
 
-          // Send to server using WebfixApiClient
           const { WebfixApiClient } = await import("@/lib/webfix-api-client");
           const client = new WebfixApiClient(apiUrl);
           client.setSession(session);
 
-          await client.request("setAccount", accountForSending, ["gliesereum"]);
+          await client.request("setAccount", body, ["gliesereum"]);
 
           return true;
         },
 
-        // Fetch accounts from server
+        // Fetch accounts from server (supports Gliesereum { address } or standard {})
         fetchAccountsFromServer: async (
-          address: string,
           session: string,
           apiUrl: string,
+          options?: ListAccountsOptions,
         ): Promise<void> => {
           try {
-            // Send to server using WebfixApiClient
+            const body = options?.address ? { address: options.address } : {};
+            const params = options?.address
+              ? (options.params ?? ["gliesereum"])
+              : (options?.params ?? []);
+
             const { WebfixApiClient } = await import("@/lib/webfix-api-client");
             const client = new WebfixApiClient(apiUrl);
             client.setSession(session);
 
             const result = await client.request<AccountValue[]>(
               "listAccounts",
-              { address },
-              ["gliesereum"],
+              body,
+              params,
             );
 
             // Process the accounts from server
             // Server returns AccountValue[] where each item has channel, module, widget, raw fields
-            // Module can be "balance" or other values, but not "account"
-            // Credentials (apiKey, secret, password) are deleted for non-owners
             if (Array.isArray(result) && result.length > 0) {
-              // Clear existing accounts and load from server
               set({ accounts: [] });
 
-              // Add each account from server
               const fetchedAccounts: StoredAccount[] = result
                 .filter((item: unknown): item is AccountValue => {
-                  // Type guard: check if item matches AccountValue structure
                   return (
                     typeof item === "object" &&
                     item !== null &&
@@ -204,26 +202,27 @@ export const useAccountsStore = create<AccountsStore>()(
                     typeof item.raw === "object" &&
                     item.raw !== null &&
                     "nid" in item.raw &&
-                    "exchange" in item.raw &&
-                    "address" in item.raw
+                    "exchange" in item.raw
                   );
                 })
                 .map((item: AccountValue) => {
                   const raw = item.raw;
                   const accountId = raw.nid || generateAccountId();
+                  const addressFallback =
+                    (raw as Record<string, unknown>).address ??
+                    options?.address ??
+                    "";
 
-                  // Construct AccountRequest from raw data
-                  // Note: apiKey/secret/password may be undefined for viewers
                   const accountRequest: AccountRequest = {
                     id: accountId,
                     nid: raw.nid,
                     connection: raw.connection ?? true,
                     exchange: raw.exchange,
                     note: raw.note || "",
-                    apiKey: raw.apiKey || "", // Empty string if redacted (viewer)
-                    secret: raw.secret || "", // Empty string if redacted (viewer)
+                    apiKey: typeof raw.apiKey === "string" ? raw.apiKey : "",
+                    secret: typeof raw.secret === "string" ? raw.secret : "",
                     status: raw.status || "active",
-                    password: raw.password || undefined, // Only include if present
+                    password: raw.password || undefined,
                     viewers: Array.isArray(raw.viewers)
                       ? raw.viewers
                       : undefined,
@@ -233,18 +232,24 @@ export const useAccountsStore = create<AccountsStore>()(
                       : undefined,
                   };
 
-                  // Create StoredAccount structure
-                  // Server may return publicKey and signature in the response
-                  // Store full raw data for detailed view
+                  const rawData: AccountRawData = {
+                    ...raw,
+                    channel: item.channel,
+                    module: item.module,
+                    widget: item.widget,
+                  } as AccountRawData;
+
                   return {
                     id: accountId,
                     account: accountRequest,
-                    publicKey: raw.publicKey || "", // Use from server response if available
-                    signature: raw.signature || "", // Use from server response if available
-                    address: raw.address || address, // Use raw address or fallback to request address
+                    publicKey:
+                      typeof raw.publicKey === "string" ? raw.publicKey : "",
+                    signature:
+                      typeof raw.signature === "string" ? raw.signature : "",
+                    address: String(addressFallback),
                     createdAt: raw.timestamp || item.timestamp || Date.now(),
                     updatedAt: Date.now(),
-                    rawData: raw as AccountRawData, // Store full raw data
+                    rawData,
                   };
                 });
 

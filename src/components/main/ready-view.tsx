@@ -27,6 +27,12 @@ const AMIEditor = lazy(() =>
 const AgentControl = lazy(() =>
   import("@/apps/agents").then((m) => ({ default: m.AgentControl }))
 );
+const AccountsApp = lazy(() =>
+  import("@/apps/accounts").then((m) => ({ default: m.AccountsApp }))
+);
+const StrategiesApp = lazy(() =>
+  import("@/apps/strategies").then((m) => ({ default: m.StrategiesApp }))
+);
 const SimpleLayout = lazy(() =>
   import("@/apps/layout").then((m) => ({ default: m.Layout }))
 );
@@ -105,6 +111,28 @@ export function ReadyView({
           <ReactFlowProvider>
             <Flow />
           </ReactFlowProvider>
+        </Suspense>
+      ),
+      accounts: (
+        <Suspense
+          fallback={
+            <div className="p-4 text-muted-foreground">
+              Loading accounts...
+            </div>
+          }
+        >
+          <AccountsApp />
+        </Suspense>
+      ),
+      strategies: (
+        <Suspense
+          fallback={
+            <div className="p-4 text-muted-foreground">
+              Loading strategies...
+            </div>
+          }
+        >
+          <StrategiesApp />
         </Suspense>
       ),
     };

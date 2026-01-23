@@ -12,3 +12,5 @@ export { WorkspaceTabs, UNASSIGNED_WORKSPACE_ID } from "./workspace-tabs";
 export { CreateWorkspaceDialog } from "./create-workspace-dialog";
 export { EditWorkspaceDialog } from "./edit-workspace-dialog";
 export { DeleteWorkspaceDialog } from "./delete-workspace-dialog";
+export { ConnectAccountDialog } from "./connect-account-dialog";
+export { AgentAccountList } from "./agent-account-list";

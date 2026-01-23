@@ -426,6 +426,10 @@ export function CreateAgentDialog({
               {systemPrompt.length} characters
             </p>
           </div>
+
+          <p className="text-xs text-muted-foreground">
+            You can link exchange accounts after creation in Edit Agent.
+          </p>
         </div>
 
         <DialogFooter>

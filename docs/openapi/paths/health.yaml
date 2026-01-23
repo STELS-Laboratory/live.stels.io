@@ -1,0 +1,28 @@
+# Health Endpoint - HTTP health check
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+/health:
+  get:
+    operationId: getHealthHTTP
+    summary: Health Check
+    description: HTTP health check endpoint for load balancers and orchestrators
+    tags:
+      - Health
+    security: []
+    responses:
+      "200":
+        description: Service is healthy
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/health.yaml#/HTTPHealthResponse"
+      "429":
+        $ref: "../schemas/responses.yaml#/RateLimited"
+      "500":
+        $ref: "../schemas/responses.yaml#/ServerError"
+      "503":
+        description: Service is unhealthy or degraded
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/health.yaml#/HTTPHealthResponse"

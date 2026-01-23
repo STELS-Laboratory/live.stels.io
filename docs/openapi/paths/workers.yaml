@@ -1,0 +1,73 @@
+# Worker Endpoints - HTTP worker management
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+/api/worker/logs:
+  get:
+    operationId: getWorkerLogsHTTP
+    summary: Get Worker Logs
+    description: Retrieve worker log files
+    tags:
+      - Workers
+    security:
+      - sessionAuth: []
+    parameters:
+      - name: workerId
+        in: query
+        description: Worker ID to filter logs for
+        schema:
+          $ref: "../schemas/common.yaml#/UUID"
+      - name: lines
+        in: query
+        description: Number of log lines to retrieve
+        schema:
+          type: integer
+          default: 100
+    responses:
+      "200":
+        description: Log content
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                logs:
+                  type: array
+                  items:
+                    type: string
+      "401":
+        $ref: "../schemas/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../schemas/responses.yaml#/Forbidden"
+      "429":
+        $ref: "../schemas/responses.yaml#/RateLimited"
+      "500":
+        $ref: "../schemas/responses.yaml#/ServerError"
+
+/api/worker/logs/stream:
+  get:
+    operationId: streamWorkerLogsHTTP
+    summary: Stream Worker Logs (SSE)
+    description: Server-Sent Events stream of worker logs
+    tags:
+      - Workers
+    security:
+      - sessionAuth: []
+    parameters:
+      - name: workerId
+        in: query
+        description: Worker ID to stream logs for
+        schema:
+          $ref: "../schemas/common.yaml#/UUID"
+    responses:
+      "200":
+        description: SSE stream
+        content:
+          text/event-stream:
+            schema:
+              type: string
+      "401":
+        $ref: "../schemas/responses.yaml#/Unauthorized"
+      "429":
+        $ref: "../schemas/responses.yaml#/RateLimited"
+      "500":
+        $ref: "../schemas/responses.yaml#/ServerError"

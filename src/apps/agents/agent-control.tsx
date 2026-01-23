@@ -12,6 +12,8 @@ import { useMobile } from "@/hooks/use-mobile";
 import { navigateTo } from "@/lib/router";
 import { Button } from "@/components/ui/button";
 import { DeveloperAccessRequestDialog } from "@/components/auth/developer-access-request";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MessageSquare, ListTodo } from "lucide-react";
 import {
   AgentListPanel,
   AgentChatPanel,
@@ -25,7 +27,13 @@ import {
   DeleteWorkspaceDialog,
   UNASSIGNED_WORKSPACE_ID,
 } from "./components";
-import type { Agent, AgentCreateRequest, AgentUpdateRequest, AgentStatus, FilterOptions, Workspace, WorkspaceUpdateRequest } from "./types";
+import {
+  TaskListPanel,
+  CreateTaskDialog,
+  EditTaskDialog,
+  TaskHistoryPanel,
+} from "./components/tasks";
+import type { Agent, AgentCreateRequest, AgentUpdateRequest, AgentStatus, FilterOptions, Workspace, WorkspaceUpdateRequest, Task, CreateTaskRequest, UpdateTaskRequest } from "./types";
 
 const SPLIT_SIZES = [30, 70];
 const SPLIT_MIN_SIZES = [280, 400];
@@ -46,6 +54,7 @@ export function AgentControl() {
     chatLoading,
     chatError,
     workspaceLoading,
+    tasksLoading,
     listAgents,
     listWorkspaces,
     createAgent,
@@ -61,6 +70,9 @@ export function AgentControl() {
     syncFromGradient,
     syncLoading,
     moveAgentToWorkspace,
+    // Task actions
+    createTask,
+    updateTask,
   } = useAgentStore();
 
   // Local state
@@ -85,6 +97,16 @@ export function AgentControl() {
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Task state
+  const [showCreateTaskDialog, setShowCreateTaskDialog] = useState(false);
+  const [showEditTaskDialog, setShowEditTaskDialog] = useState(false);
+  const [showTaskHistoryPanel, setShowTaskHistoryPanel] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+  const [taskForHistory, setTaskForHistory] = useState<Task | null>(null);
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
+  const [isEditingTask, setIsEditingTask] = useState(false);
+  const [rightPanelTab, setRightPanelTab] = useState<"chat" | "tasks">("chat");
 
   // Get messages for selected agent
   const currentMessages = selectedAgent
@@ -308,6 +330,43 @@ export function AgentControl() {
     [connectionSession?.developer]
   );
 
+  // Task handlers
+  const handleCreateTask = useCallback(
+    async (request: CreateTaskRequest) => {
+      setIsCreatingTask(true);
+      try {
+        await createTask(request);
+      } finally {
+        setIsCreatingTask(false);
+      }
+    },
+    [createTask]
+  );
+
+  const handleEditTask = useCallback((task: Task) => {
+    setTaskToEdit(task);
+    setShowEditTaskDialog(true);
+  }, []);
+
+  const handleUpdateTask = useCallback(
+    async (request: UpdateTaskRequest) => {
+      setIsEditingTask(true);
+      try {
+        await updateTask(request);
+        setShowEditTaskDialog(false);
+        setTaskToEdit(null);
+      } finally {
+        setIsEditingTask(false);
+      }
+    },
+    [updateTask]
+  );
+
+  const handleViewTaskHistory = useCallback((task: Task) => {
+    setTaskForHistory(task);
+    setShowTaskHistoryPanel(true);
+  }, []);
+
   // Mobile view
   if (mobile) {
     return (
@@ -410,17 +469,62 @@ export function AgentControl() {
             onMoveAgent={handleMoveAgent}
           />
 
-          {/* Right Panel - Chat */}
-          <AgentChatPanel
-            agent={selectedAgent}
-            messages={currentMessages}
-            loading={chatLoading}
-            error={chatError}
-            onSendMessage={handleSendMessage}
-            onClearConversation={handleClearConversation}
-            onEditAgent={handleEditAgent}
-            onDeleteAgent={() => setShowDeleteDialog(true)}
-          />
+          {/* Right Panel - Chat & Tasks */}
+          <div className="flex flex-col h-full overflow-hidden">
+            {selectedAgent ? (
+              <Tabs
+                value={rightPanelTab}
+                onValueChange={(v) => setRightPanelTab(v as "chat" | "tasks")}
+                className="flex flex-col h-full overflow-hidden"
+              >
+                <div className="border-b px-4 flex-shrink-0">
+                  <TabsList className="h-10">
+                    <TabsTrigger value="chat" className="gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      Chat
+                    </TabsTrigger>
+                    <TabsTrigger value="tasks" className="gap-2">
+                      <ListTodo className="h-4 w-4" />
+                      Tasks
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+
+                <TabsContent value="chat" className="flex-1 min-h-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
+                  <AgentChatPanel
+                    agent={selectedAgent}
+                    messages={currentMessages}
+                    loading={chatLoading}
+                    error={chatError}
+                    onSendMessage={handleSendMessage}
+                    onClearConversation={handleClearConversation}
+                    onEditAgent={handleEditAgent}
+                    onDeleteAgent={() => setShowDeleteDialog(true)}
+                  />
+                </TabsContent>
+
+                <TabsContent value="tasks" className="flex-1 min-h-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
+                  <TaskListPanel
+                    agent={selectedAgent}
+                    onCreateTask={() => setShowCreateTaskDialog(true)}
+                    onEditTask={handleEditTask}
+                    onViewHistory={handleViewTaskHistory}
+                  />
+                </TabsContent>
+              </Tabs>
+            ) : (
+              <AgentChatPanel
+                agent={null}
+                messages={[]}
+                loading={false}
+                error={null}
+                onSendMessage={handleSendMessage}
+                onClearConversation={handleClearConversation}
+                onEditAgent={handleEditAgent}
+                onDeleteAgent={() => setShowDeleteDialog(true)}
+              />
+            )}
+          </div>
         </Split>
       </div>
 
@@ -494,6 +598,39 @@ export function AgentControl() {
         open={showDeveloperAccessDialog}
         onOpenChange={handleCloseDeveloperAccessDialog}
       />
+
+      {/* Task Dialogs */}
+      {selectedAgent && (
+        <>
+          <CreateTaskDialog
+            open={showCreateTaskDialog}
+            onOpenChange={setShowCreateTaskDialog}
+            agent={selectedAgent}
+            onSubmit={handleCreateTask}
+            loading={isCreatingTask}
+          />
+
+          <EditTaskDialog
+            open={showEditTaskDialog}
+            onOpenChange={(open) => {
+              setShowEditTaskDialog(open);
+              if (!open) setTaskToEdit(null);
+            }}
+            task={taskToEdit}
+            onSubmit={handleUpdateTask}
+            loading={isEditingTask}
+          />
+
+          <TaskHistoryPanel
+            open={showTaskHistoryPanel}
+            onOpenChange={(open) => {
+              setShowTaskHistoryPanel(open);
+              if (!open) setTaskForHistory(null);
+            }}
+            task={taskForHistory}
+          />
+        </>
+      )}
     </div>
   ) : (
     <div className="h-full bg-background flex items-center justify-center">

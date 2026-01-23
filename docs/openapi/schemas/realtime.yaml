@@ -1,0 +1,105 @@
+# Realtime Schemas - Real-time state and triggers
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+RealtimeTriggerType:
+  type: string
+  enum: [kv, schedule, event, condition]
+  description: Realtime trigger type
+
+AgentState:
+  type: object
+  properties:
+    agentId:
+      $ref: "common.yaml#/UUID"
+    status:
+      $ref: "agents.yaml#/AgentStatus"
+    currentTask:
+      type: string
+    lastActivity:
+      $ref: "common.yaml#/Timestamp"
+    memory:
+      type: object
+    context:
+      type: object
+
+# Request/Response Schemas
+GetAgentStateParams:
+  type: object
+  required:
+    - agentId
+  properties:
+    agentId:
+      $ref: "common.yaml#/UUID"
+
+SetTriggerParams:
+  type: object
+  required:
+    - type
+  properties:
+    id:
+      type: string
+      description: Optional trigger ID (auto-generated if not provided)
+    type:
+      $ref: "#/RealtimeTriggerType"
+    enabled:
+      type: boolean
+      default: true
+    # KV trigger config
+    keyPattern:
+      type: array
+      items:
+        type: string
+      description: KV key pattern for KV triggers
+    onChange:
+      type: boolean
+      description: Trigger on value change
+    debounceMs:
+      type: integer
+      description: Debounce interval in milliseconds
+    # Schedule trigger config
+    cron:
+      type: string
+      description: Cron expression for schedule triggers
+    intervalMs:
+      type: integer
+      description: Interval in milliseconds for schedule triggers
+    timezone:
+      type: string
+      default: UTC
+    # Event trigger config
+    eventType:
+      type: string
+      description: Event type for event triggers
+    eventSource:
+      type: string
+      description: Event source for event triggers
+    filter:
+      type: object
+      description: Event filter
+    # Condition trigger config
+    expression:
+      type: string
+      description: Expression for condition triggers
+    checkIntervalMs:
+      type: integer
+      default: 5000
+      description: Check interval for condition triggers
+    # Action config
+    taskId:
+      $ref: "common.yaml#/UUID"
+    chainId:
+      $ref: "common.yaml#/UUID"
+
+GetDomainDataParams:
+  type: object
+  required:
+    - domain
+  properties:
+    domain:
+      $ref: "agents.yaml#/AgentDomain"
+    accountId:
+      $ref: "common.yaml#/UUID"
+    dataType:
+      type: string
+    filters:
+      type: object

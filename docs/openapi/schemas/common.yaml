@@ -1,0 +1,252 @@
+# Common Schemas - Shared types used across all modules
+# Part of STELS Agentic AI Platform OpenAPI Specification
+# WEBFIX Protocol Standard v1.0
+
+UUID:
+  type: string
+  format: uuid
+  example: "550e8400-e29b-41d4-a716-446655440000"
+
+Timestamp:
+  type: integer
+  format: int64
+  description: Unix timestamp in milliseconds
+  example: 1704067200000
+
+NonEmptyString:
+  type: string
+  minLength: 1
+  maxLength: 1000
+
+Metadata:
+  type: object
+  additionalProperties: true
+  nullable: true
+
+Tags:
+  type: array
+  items:
+    type: string
+    maxLength: 50
+  maxItems: 20
+  nullable: true
+
+Labels:
+  type: object
+  additionalProperties:
+    type: string
+  nullable: true
+
+# ═══════════════════════════════════════════════════════════════════════════
+# WEBFIX Protocol - Standard Request/Response Format
+# ═══════════════════════════════════════════════════════════════════════════
+
+WebfixRequest:
+  type: object
+  required:
+    - method
+    - webfix
+  properties:
+    webfix:
+      type: string
+      default: "1.0"
+      description: WEBFIX protocol version
+      example: "1.0"
+    method:
+      type: string
+      description: RPC method name (e.g., createAgent, listTasks)
+      example: "createAgent"
+    body:
+      type: object
+      description: Method-specific request parameters
+      additionalProperties: true
+
+WebfixSuccessResponse:
+  type: object
+  required:
+    - success
+    - timestamp
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+      description: Indicates successful operation
+    data:
+      type: object
+      description: Response data (varies by method)
+      additionalProperties: true
+    timestamp:
+      $ref: "#/Timestamp"
+
+WebfixErrorResponse:
+  type: object
+  required:
+    - success
+    - error
+    - timestamp
+  properties:
+    success:
+      type: boolean
+      enum: [false]
+      description: Indicates failed operation
+    error:
+      $ref: "#/ErrorDetail"
+    timestamp:
+      $ref: "#/Timestamp"
+
+WebfixResponse:
+  oneOf:
+    - $ref: "#/WebfixSuccessResponse"
+    - $ref: "#/WebfixErrorResponse"
+
+ErrorDetail:
+  type: object
+  required:
+    - code
+    - message
+  properties:
+    code:
+      type: string
+      description: Error code (e.g., VALIDATION_ERROR, NOT_FOUND)
+      example: "VALIDATION_ERROR"
+    message:
+      type: string
+      description: Human-readable error message
+      example: "Missing required field: agentId"
+    details:
+      type: object
+      description: Additional error context
+      additionalProperties: true
+
+# ═══════════════════════════════════════════════════════════════════════════
+# KV Channel Schema - Standard storage patterns
+# ═══════════════════════════════════════════════════════════════════════════
+
+KVChannel:
+  type: object
+  description: |
+    Standard KV storage channels for WEBFIX protocol:
+    - Agent: ["ami", "agent", {id}]
+    - Task: ["ami", "task", {id}]
+    - Chain: ["ami", "chain", {id}]
+    - Worker: ["ami", "worker", {id}]
+    - Workspace: ["ami", "workspace", {id}]
+    - KnowledgeBase: ["ami", "kb", {id}]
+    - Trigger: ["ami", "trigger", {id}]
+    - Account: ["account", {address}, {exchange}]
+    - Session: ["session", "store", {id}]
+  properties:
+    prefix:
+      type: array
+      items:
+        type: string
+      description: KV key prefix
+    id:
+      $ref: "#/UUID"
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Pagination
+# ═══════════════════════════════════════════════════════════════════════════
+
+PaginationParams:
+  type: object
+  properties:
+    limit:
+      type: integer
+      minimum: 1
+      maximum: 100
+      default: 20
+      description: Maximum number of items to return
+    offset:
+      type: integer
+      minimum: 0
+      default: 0
+      description: Number of items to skip
+
+PaginationResult:
+  type: object
+  properties:
+    total:
+      type: integer
+      description: Total number of items
+    limit:
+      type: integer
+      description: Items per page
+    offset:
+      type: integer
+      description: Current offset
+    hasMore:
+      type: boolean
+      description: Whether more items exist
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Base Entities
+# ═══════════════════════════════════════════════════════════════════════════
+
+BaseEntity:
+  type: object
+  required:
+    - id
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      $ref: "#/UUID"
+    createdAt:
+      $ref: "#/Timestamp"
+    updatedAt:
+      $ref: "#/Timestamp"
+
+NamedEntity:
+  allOf:
+    - $ref: "#/BaseEntity"
+    - type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 1000
+        labels:
+          $ref: "#/Labels"
+        tags:
+          $ref: "#/Tags"
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Standard Response Wrappers
+# ═══════════════════════════════════════════════════════════════════════════
+
+CreateResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    sid:
+      $ref: "#/UUID"
+      description: Created entity ID
+    timestamp:
+      $ref: "#/Timestamp"
+
+DeleteResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    deleted:
+      type: boolean
+    timestamp:
+      $ref: "#/Timestamp"
+
+ListResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    pagination:
+      $ref: "#/PaginationResult"
+    timestamp:
+      $ref: "#/Timestamp"

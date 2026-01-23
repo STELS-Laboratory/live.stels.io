@@ -1,0 +1,4249 @@
+openapi: 3.1.0
+info:
+  title: STELS Agentic AI Platform API
+  version: 2.10.0
+  description: |
+    # STELS Runtime API
+
+    Complete API for the Agentic AI Platform supporting autonomous AI agents,
+    task automation, cross-domain chains, trading operations, and more.
+
+    ## Recent Updates (v2.9.0)
+
+    ## Agent-Account Security Model (v2.9.0)
+
+    **IMPORTANT**: Agents only have access to explicitly connected accounts.
+
+    ### How It Works
+
+    1. **User connects exchange account** via `connectAccount`
+    2. **User grants agent access** via `connectAccountToAgent` with specific scopes
+    3. **Agent can only use granted accounts** - no automatic access to all accounts
+    4. **Strategies bound to agents** - `createStrategy` requires `agentId` and validates `accountId`
+
+    ### Account Scopes (Permissions)
+
+    | Scope | Description |
+    |-------|-------------|
+    | `read` | View balance, orders, trades |
+    | `trade` | Create/cancel orders |
+    | `balance` | View balance only |
+    | `orders` | View/manage orders |
+    | `history` | View trade history |
+
+    ### Strategy-Agent-Account Relationship
+
+    \`\`\`
+    User Account (Binance)
+         │
+         │ connectAccountToAgent(agentId, scopes: [read, trade])
+         ▼
+    Agent (Trading Bot)
+         │
+         │ createStrategy(agentId, config: { accountId: "binance-main" })
+         ▼
+    Strategy (DCA Bot)
+         │
+         │ accountId MUST be in agent's connectedAccounts
+         ▼
+    Tasks execute with validated account access
+    \`\`\`
+
+    ### Key Validation Rules
+
+    - \`createStrategy\` requires \`agentId\` - strategy is bound to an agent
+    - \`config.accountId\` must be in agent's \`connectedAccounts\`
+    - Account must have \`trade\` scope for trading strategies
+    - Agent tools only show connected accounts (no dev mode fallback)
+
+    See \`/docs/FRONTEND-GUIDE.md\` for detailed frontend integration guide.
+
+
+    ### Strategy Templates System
+    - ✅ **Strategy Templates**: Pre-built trading strategy templates (Market Making, DCA, Grid Trading)
+    - ✅ **8 new strategy methods**: `listStrategyTemplates`, `getStrategyTemplate`, `createStrategy`,
+      `listStrategies`, `getStrategy`, `startStrategy`, `stopStrategy`, `deleteStrategy`
+    - ✅ **Configuration Schema**: Dynamic configuration with validation, groups, and dependencies
+    - ✅ **Template Variables**: `{{accountId}}`, `{{symbol}}` placeholders resolved at creation time
+    - ✅ **Conditional Tasks**: Tasks can be enabled/disabled based on configuration
+    - ✅ **Documentation**: Built-in strategy documentation with FAQ and best practices
+    - ✅ **Risk Levels**: Strategies categorized by difficulty and risk level
+
+    ### Previous Updates (v2.7.0)
+
+    ### Market Making (Institutional Level)
+    - ✅ **Automated Market Making**: Full institutional-level market making system with Bybit priority
+    - ✅ **6 new market making actions**: `start_market_making`, `stop_market_making`, `update_quotes`,
+      `get_inventory`, `rebalance_position`, `get_market_making_stats`
+    - ✅ **Real-time Order Book**: WebSocket subscriptions via CCXT Pro (`watchOrderBook`, `watchOrderBookForSymbols`)
+    - ✅ **Low-Latency Quotes**: WebSocket order creation (`createOrderWs`, `editOrderWs`) for minimal latency
+    - ✅ **Inventory Management**: Real-time position monitoring with automatic rebalancing
+    - ✅ **Adverse Selection Protection**: Fill rate monitoring and automatic spread adjustment
+    - ✅ **Volatility Adaptation**: Dynamic spread adjustment based on real-time volatility
+    - ✅ **Connection Health Monitoring**: Automatic WebSocket reconnection and health checks
+    - ✅ **Emergency Stop**: Quick stop mechanism for all quotes
+    - ✅ **Performance Metrics**: Spread capture, fill rate, inventory turnover, Sharpe ratio
+
+    ### Trading Operations Enhancements (v2.6.0)
+    - ✅ **12 new trading actions** via tasks: `fetch_balance`, `fetch_positions`, `fetch_open_orders`,
+      `fetch_order_history`, `fetch_trades`, `set_leverage`, `transfer_funds`, `create_batch_orders`,
+      `create_conditional_order`, `modify_order`, `close_position`
+    - ✅ **Batch Operations**: Create multiple orders in parallel with `createBatchOrders`
+    - ✅ **Conditional Orders**: Execute orders when conditions are met (price, time, indicator)
+    - ✅ **Circuit Breaker**: Automatic protection against exchange API failures
+    - ✅ **Smart Retry**: Intelligent retry logic for temporary exchange errors
+    - ✅ **Audit Logging**: Complete audit trail for all trading operations
+    - ✅ **Account Health Checks**: Automatic periodic health verification
+    - ✅ **Real-time Notifications**: WebSocket and channel notifications for critical events
+    - ✅ **Account Metrics**: Usage and error metrics collection
+
+    ## Protocol
+
+    All RPC methods use **POST /** with a WebFIX protocol body:
+
+    ```json
+    {
+      "webfix": "1.0",
+      "method": "methodName",
+      "body": { ... }
+    }
+    ```
+
+    ## Authentication
+
+    Most endpoints require a valid session token in the `stels-session` header.
+    Sessions are obtained via GitHub OAuth through the `githubAuth` method.
+
+    ## Rate Limits
+
+    - Public endpoints: 300 requests/minute
+    - Auth endpoints: 20 attempts/minute
+    - Trading endpoints: 60 requests/minute
+
+    ## Gradient AI Integration
+
+    The API automatically synchronizes with DigitalOcean Gradient AI:
+
+    - **Auto-sync on read**: `listAgents` (5s), `listWorkspaces` (10s), `getAgent` automatically refresh data
+    - **Auto-sync on chat**: `chatWithAgent` refreshes agent deployment status before each request
+    - **Auto-create in Gradient**: `createWorkspace`, `createAgent` automatically create resources in Gradient
+    - **Auto-delete from Gradient**: `deleteAgent`, `deleteWorkspace` remove resources from both local storage and Gradient API
+    - **Auto-cleanup**: Stale resources are automatically removed from local storage during sync
+    - **API Key auto-refresh**: Agent API keys are refreshed automatically when expired or invalid (401)
+
+    **Data is always fresh!** Short cooldowns (5-10 seconds) ensure users always see current data.
+    The `syncFromGradient` method is available for immediate force-refresh if needed.
+
+    ## API Status (Integration Tests)
+
+    **Total: 88 methods | ✅ Tested: 58 | ⏭️ Require Setup: 43 | ❌ Issues: 0**
+
+    ### Fully Tested Methods (58)
+
+    | Group | Methods |
+    |-------|---------|
+    | **Agents** | listAgents, getAgent, updateAgent, createAgent, deleteAgent, chatWithAgent, syncFromGradient (auto), moveAgentToWorkspace |
+    | **Tasks** | listTasks, createTask, getTask, updateTask, pauseTask, resumeTask, getTaskHistory, deleteTask |
+    | **Chains** | listChains, createChain, getChain, updateChain, executeChain, getChainStatus, getChainHistory, pauseChain, deleteChain |
+    | **Workspaces** | listWorkspaces, createWorkspace, updateWorkspace, deleteWorkspace |
+    | **Accounts** | listAccounts, connectAccount, validateAccount, linkAgentToAccount, unlinkAgentFromAccount, disconnectAccount |
+    | **KnowledgeBases** | listKnowledgeBases, deleteKnowledgeBase |
+    | **Workers** | listWorkers, setWorker, updateWorker, getWorkerStats, getLeaderInfo, migrateWorker, stopAllWorkers, getWorkerLogs |
+    | **Domains** | listDomains, listTemplates |
+    | **Strategies** | listStrategyTemplates, getStrategyTemplate, createStrategy, listStrategies, getStrategy, startStrategy, stopStrategy, deleteStrategy |
+    | **Orchestration** | getOrchestratorStats |
+    | **Realtime** | setTrigger |
+    | **Accounts** | listAccounts |
+    | **Connection** | requestDeveloperAccess, listDeveloperRequests |
+    | **Health** | getHealth |
+
+    ### Methods Requiring External Setup (43)
+
+    | Group | Methods | Reason |
+    |-------|---------|--------|
+    | **Trading** | All 20 methods | Requires configured exchange account (Binance, Bybit, etc.) |
+    | **Market Making** | All 6 methods | Requires configured exchange account with WebSocket support (Bybit recommended) |
+    | **Accounts** | setAccount | Requires valid exchange credentials |
+    | **Orchestration** | routeToAgents, startCollaboration, sendAgentMessage, endCollaboration | Requires running agents |
+    | **Realtime** | getAgentState, getDomainData | Requires existing state/data |
+    | **Domains** | getDomainInfo, executeDomainAction, createFromTemplate | Requires registered adapters |
+    | **KnowledgeBases** | createKnowledgeBase | Requires DO Spaces bucket |
+    | **Tasks** | executeTask, approveTask | Requires domain config or approval state |
+    | **Chains** | resumeChain | Requires paused chain |
+    | **Connection** | connectionNode, githubAuth, approveDeveloperAccess | Requires OAuth flow or special structure |
+    | **Agents** | (none - chatWithAgent now works with fallback) |
+
+  contact:
+    name: STELS Platform
+    url: https://stels.dev
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.stels.dev
+    description: Production server
+  - url: http://localhost:8088
+    description: Local development
+
+tags:
+  - name: Connection
+    description: Authentication and connection management
+  - name: Agents
+    description: AI agent management and chat
+  - name: Tasks
+    description: Autonomous task management
+  - name: Chains
+    description: Cross-domain task chains
+  - name: Trading
+    description: Trading operations (orders, balance, market data)
+  - name: Accounts
+    description: Connected external accounts
+  - name: Orchestration
+    description: Agent orchestration and collaboration
+  - name: Realtime
+    description: Real-time state and triggers
+  - name: KnowledgeBases
+    description: Knowledge bases for RAG
+  - name: Strategies
+    description: Strategy templates and automated trading strategies
+  - name: Workspaces
+    description: Workspace management
+  - name: Domains
+    description: Domain adapters and templates
+  - name: Workers
+    description: Worker management (admin)
+  - name: Health
+    description: Health checks
+
+security:
+  - sessionAuth: []
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: header
+      name: stels-session
+      description: Session token obtained via GitHub OAuth
+
+  schemas:
+    # ═══════════════════════════════════════════════════════════════════════════
+    # COMMON SCHEMAS
+    # ═══════════════════════════════════════════════════════════════════════════
+    UUID:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+
+    Timestamp:
+      type: integer
+      format: int64
+      description: Unix timestamp in milliseconds
+      example: 1704067200000
+
+    NonEmptyString:
+      type: string
+      minLength: 1
+      maxLength: 1000
+
+    Metadata:
+      type: object
+      additionalProperties: true
+      nullable: true
+
+    Tags:
+      type: array
+      items:
+        type: string
+        maxLength: 50
+      maxItems: 20
+      nullable: true
+
+    Labels:
+      type: object
+      additionalProperties:
+        type: string
+      nullable: true
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # WEBFIX PROTOCOL
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    WebfixRequest:
+      type: object
+      required:
+        - method
+      properties:
+        webfix:
+          type: string
+          default: "1.0"
+          description: Protocol version
+        method:
+          type: string
+          description: RPC method name
+        body:
+          type: object
+          description: Method-specific parameters
+
+    WebfixResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+          default: "1.0"
+        success:
+          type: boolean
+        error:
+          $ref: "#/components/schemas/ErrorDetail"
+
+    ErrorDetail:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        details:
+          type: object
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # PAGINATION
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        offset:
+          type: integer
+          minimum: 0
+
+    PaginationResult:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+        hasNext:
+          type: boolean
+        hasPrev:
+          type: boolean
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # BASE ENTITIES
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    BaseEntity:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+
+    NamedEntity:
+      allOf:
+        - $ref: "#/components/schemas/BaseEntity"
+        - type: object
+          properties:
+            name:
+              type: string
+              minLength: 1
+              maxLength: 100
+            description:
+              type: string
+              maxLength: 1000
+            labels:
+              $ref: "#/components/schemas/Labels"
+            tags:
+              $ref: "#/components/schemas/Tags"
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # AGENT SCHEMAS
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    AgentModel:
+      type: string
+      enum:
+        - meta-llama/llama-3.3-70b-instruct
+        - meta-llama/llama-3.1-8b-instruct
+        - anthropic/claude-3.5-sonnet
+        - openai/gpt-4o
+        - openai/gpt-4o-mini
+        - mistral/mistral-large
+      example: "openai/gpt-4o"
+
+    AgentStatus:
+      type: string
+      enum: [active, paused, error]
+      description: Agent operational status
+      example: "active"
+
+    AgentType:
+      type: string
+      enum: [assistant, analyst, monitor, executor, router, custom]
+      example: "assistant"
+
+    AgentDomain:
+      type: string
+      enum: [trading, iot, drone, social, devops, general]
+      example: "trading"
+
+    AgentConfig:
+      type: object
+      properties:
+        model:
+          $ref: "#/components/schemas/AgentModel"
+        temperature:
+          type: number
+          minimum: 0
+          maximum: 2
+          default: 0.7
+          example: 0.7
+        maxTokens:
+          type: integer
+          minimum: 1
+          maximum: 128000
+          default: 4096
+          example: 4096
+        systemPrompt:
+          type: string
+          maxLength: 50000
+          example: "You are a helpful trading assistant that provides market analysis."
+        topP:
+          type: number
+          minimum: 0
+          maximum: 1
+          example: 0.9
+        frequencyPenalty:
+          type: number
+          minimum: -2
+          maximum: 2
+          example: 0
+        presencePenalty:
+          type: number
+          minimum: -2
+          maximum: 2
+          example: 0
+        stopSequences:
+          type: array
+          items:
+            type: string
+          maxItems: 4
+          example: ["END", "STOP"]
+
+    Agent:
+      allOf:
+        - $ref: "#/components/schemas/NamedEntity"
+        - type: object
+          properties:
+            type:
+              $ref: "#/components/schemas/AgentType"
+            domain:
+              $ref: "#/components/schemas/AgentDomain"
+            status:
+              $ref: "#/components/schemas/AgentStatus"
+            workspaceId:
+              $ref: "#/components/schemas/UUID"
+            config:
+              $ref: "#/components/schemas/AgentConfig"
+            knowledgeBaseIds:
+              type: array
+              items:
+                $ref: "#/components/schemas/UUID"
+              example: ["550e8400-e29b-41d4-a716-446655440001"]
+            connectedAccountIds:
+              type: array
+              items:
+                $ref: "#/components/schemas/UUID"
+              example: ["550e8400-e29b-41d4-a716-446655440002"]
+            stats:
+              type: object
+              properties:
+                totalMessages:
+                  type: integer
+                  example: 1523
+                totalTokens:
+                  type: integer
+                  example: 245890
+                lastActiveAt:
+                  $ref: "#/components/schemas/Timestamp"
+      example:
+        id: "550e8400-e29b-41d4-a716-446655440000"
+        name: "Trading Assistant"
+        description: "AI assistant for market analysis and trading signals"
+        type: "assistant"
+        domain: "trading"
+        status: "active"
+        workspaceId: "660e8400-e29b-41d4-a716-446655440000"
+        createdAt: 1704067200000
+        updatedAt: 1704153600000
+        config:
+          model: "openai/gpt-4o"
+          temperature: 0.7
+          maxTokens: 4096
+          systemPrompt: "You are a helpful trading assistant."
+        knowledgeBaseIds: ["550e8400-e29b-41d4-a716-446655440001"]
+        connectedAccountIds: ["550e8400-e29b-41d4-a716-446655440002"]
+        stats:
+          totalMessages: 1523
+          totalTokens: 245890
+          lastActiveAt: 1704153600000
+
+    CreateAgentParams:
+      type: object
+      required:
+        - workspaceId
+        - name
+        - domain
+        - systemPrompt
+      properties:
+        workspaceId:
+          $ref: "#/components/schemas/UUID"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 1000
+        domain:
+          $ref: "#/components/schemas/AgentDomain"
+        model:
+          $ref: "#/components/schemas/AgentModel"
+        systemPrompt:
+          type: string
+        knowledgeBaseIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/UUID"
+        tools:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              parameters:
+                type: object
+        settings:
+          type: object
+          properties:
+            temperature:
+              type: number
+            maxTokens:
+              type: integer
+
+    CreateAgentResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        agent:
+          $ref: "#/components/schemas/Agent"
+        error:
+          type: string
+
+    GetAgentParams:
+      type: object
+      required:
+        - agentId
+      properties:
+        agentId:
+          $ref: "#/components/schemas/UUID"
+
+    ListAgentsParams:
+      type: object
+      properties:
+        workspaceId:
+          $ref: "#/components/schemas/UUID"
+        domain:
+          type: string
+          description: Filter by domain
+
+    ListAgentsResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/Agent"
+        pagination:
+          $ref: "#/components/schemas/PaginationResult"
+        error:
+          type: string
+
+    UpdateAgentParams:
+      type: object
+      required:
+        - agentId
+      properties:
+        agentId:
+          $ref: "#/components/schemas/UUID"
+        name:
+          type: string
+        description:
+          type: string
+        config:
+          $ref: "#/components/schemas/AgentConfig"
+        status:
+          $ref: "#/components/schemas/AgentStatus"
+
+    DeleteAgentParams:
+      type: object
+      required:
+        - agentId
+      properties:
+        agentId:
+          $ref: "#/components/schemas/UUID"
+
+    ChatWithAgentParams:
+      type: object
+      description: |
+        Chat with an AI agent.
+
+        **Inference Methods:**
+        - `agent_route` - Uses deployed Gradient AI agent route (recommended)
+        - `fallback` - Uses direct inference when agent not deployed
+
+        Agents created via `createAgent` or synced via `syncFromGradient` will
+        automatically use the appropriate inference method based on deployment status.
+      required:
+        - agentId
+        - message
+      properties:
+        agentId:
+          $ref: "#/components/schemas/UUID"
+        message:
+          type: string
+          minLength: 1
+          maxLength: 100000
+        conversationId:
+          $ref: "#/components/schemas/UUID"
+        context:
+          type: object
+        stream:
+          type: boolean
+          default: false
+          description: Enable Server-Sent Events streaming for real-time responses
+
+    ChatWithAgentResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        response:
+          type: string
+        conversationId:
+          $ref: "#/components/schemas/UUID"
+        inferenceMethod:
+          type: string
+          enum: [agent_route, fallback]
+          description: Which inference method was used
+        usage:
+          type: object
+          properties:
+            promptTokens:
+              type: integer
+            completionTokens:
+              type: integer
+            totalTokens:
+              type: integer
+        error:
+          type: string
+
+    SyncFromGradientParams:
+      type: object
+      description: |
+        **⚠️ Usually not needed!** Synchronization happens automatically.
+
+        Force-refresh workspaces and agents from DigitalOcean Gradient AI API.
+
+        **Automatic sync already happens on:**
+        - `listAgents` - syncs all agents (5s cooldown)
+        - `listWorkspaces` - syncs all workspaces (10s cooldown)
+        - `getAgent` - syncs specific agent
+        - `chatWithAgent` - syncs agent before chat + auto-refreshes API keys on 401
+
+        Use this method only if you need immediate refresh bypassing cooldowns.
+      properties:
+        syncWorkspaces:
+          type: boolean
+          default: true
+          description: Whether to sync workspaces from Gradient
+        syncAgents:
+          type: boolean
+          default: true
+          description: Whether to sync agents from Gradient
+
+    SyncFromGradientResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        message:
+          type: string
+        result:
+          type: object
+          properties:
+            workspaces:
+              type: object
+              properties:
+                synced:
+                  type: integer
+                  description: Number of workspaces synced
+                skipped:
+                  type: integer
+                errors:
+                  type: integer
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        $ref: "#/components/schemas/UUID"
+                      name:
+                        type: string
+            agents:
+              type: object
+              properties:
+                synced:
+                  type: integer
+                  description: Number of agents synced
+                skipped:
+                  type: integer
+                errors:
+                  type: integer
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        $ref: "#/components/schemas/UUID"
+                      name:
+                        type: string
+                      workspaceId:
+                        $ref: "#/components/schemas/UUID"
+        error:
+          type: string
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # TASK SCHEMAS
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    TriggerType:
+      type: string
+      enum: [manual, scheduled, event, condition, webhook, chain]
+      description: Task trigger type
+      example: "scheduled"
+
+    ScheduleTrigger:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          const: scheduled
+        cron:
+          type: string
+          description: Cron expression
+          example: "0 */5 * * * *"
+        interval:
+          type: integer
+          minimum: 1000
+          description: Interval in milliseconds
+          example: 300000
+        timezone:
+          type: string
+          default: UTC
+          example: "America/New_York"
+      example:
+        type: "scheduled"
+        cron: "0 */5 * * * *"
+        timezone: "UTC"
+
+    EventTrigger:
+      type: object
+      required:
+        - type
+        - source
+        - eventType
+      properties:
+        type:
+          type: string
+          const: event
+        source:
+          type: string
+          enum: [kv, domain, agent, external]
+          example: "domain"
+        eventType:
+          type: string
+          example: "price_alert"
+        filter:
+          type: object
+          example: { "symbol": "BTC/USDT" }
+      example:
+        type: "event"
+        source: "domain"
+        eventType: "price_alert"
+        filter: { "symbol": "BTC/USDT" }
+
+    ConditionTrigger:
+      type: object
+      required:
+        - type
+        - expression
+      properties:
+        type:
+          type: string
+          const: condition
+        kvKey:
+          type: array
+          items:
+            type: string
+        expression:
+          type: string
+        checkInterval:
+          type: integer
+          minimum: 1000
+          default: 5000
+
+    WebhookTrigger:
+      type: object
+      required:
+        - type
+        - path
+      properties:
+        type:
+          type: string
+          const: webhook
+        path:
+          type: string
+          pattern: "^/[a-zA-Z0-9\\-_/]*$"
+        method:
+          type: string
+          enum: [GET, POST, PUT]
+          default: POST
+        secret:
+          type: string
+
+    ManualTrigger:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          const: manual
+
+    ChainTrigger:
+      type: object
+      required:
+        - type
+        - chainId
+      properties:
+        type:
+          type: string
+          const: chain
+        chainId:
+          $ref: "#/components/schemas/UUID"
+        stepId:
+          type: string
+        onSuccess:
+          type: boolean
+        onFailure:
+          type: boolean
+
+    Trigger:
+      oneOf:
+        - $ref: "#/components/schemas/ScheduleTrigger"
+        - $ref: "#/components/schemas/EventTrigger"
+        - $ref: "#/components/schemas/ConditionTrigger"
+        - $ref: "#/components/schemas/WebhookTrigger"
+        - $ref: "#/components/schemas/ManualTrigger"
+        - $ref: "#/components/schemas/ChainTrigger"
+      discriminator:
+        propertyName: type
+
+    ComparisonOperator:
+      type: string
+      enum:
+        - eq
+        - ne
+        - gt
+        - gte
+        - lt
+        - lte
+        - contains
+        - not_contains
+        - starts_with
+        - ends_with
+        - matches
+        - in
+        - not_in
+        - between
+        - is_null
+        - is_not_null
+      description: Condition comparison operator
+      example: "gt"
+
+    SimpleCondition:
+      type: object
+      required:
+        - field
+        - operator
+        - value
+      properties:
+        field:
+          type: string
+          example: "price"
+        operator:
+          $ref: "#/components/schemas/ComparisonOperator"
+        value:
+          example: 50000
+      example:
+        field: "price"
+        operator: "gt"
+        value: 50000
+
+    ActionType:
+      type: string
+      enum:
+        # Trading actions
+        - trading:create_order
+        - trading:cancel_order
+        - trading:modify_order
+        - trading:close_position
+        - trading:fetch_balance
+        - trading:fetch_positions
+        - trading:fetch_open_orders
+        - trading:fetch_order_history
+        - trading:fetch_trades
+        - trading:set_leverage
+        - trading:transfer_funds
+        - trading:create_batch_orders
+        - trading:create_conditional_order
+        # IoT actions
+        - iot:send_command
+        - iot:set_state
+        - iot:read_sensor
+        # Drone actions
+        - drone:takeoff
+        - drone:land
+        - drone:goto
+        - drone:return_home
+        - drone:patrol
+        - drone:emergency_stop
+        # Social actions
+        - social:post
+        - social:reply
+        - social:dm
+        - social:like
+        - social:follow
+        # Notification actions
+        - notify:send
+        - notify:alert
+        # Chain actions
+        - chain:start
+        - chain:emit
+        # Custom actions
+        - custom
+      description: Task action type
+      example: "trading:create_order"
+
+    Action:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          $ref: "#/components/schemas/ActionType"
+        params:
+          type: object
+          default: {}
+        accountId:
+          $ref: "#/components/schemas/UUID"
+        timeout:
+          type: integer
+          minimum: 1000
+          maximum: 300000
+          default: 30000
+        retryOnFailure:
+          type: boolean
+          default: false
+        retryCount:
+          type: integer
+          minimum: 0
+          maximum: 5
+          default: 0
+        continueOnError:
+          type: boolean
+          default: false
+        outputKey:
+          type: string
+
+    TaskStatus:
+      type: string
+      enum:
+        - pending
+        - scheduled
+        - waiting_approval
+        - running
+        - completed
+        - failed
+        - cancelled
+        - timeout
+      description: Task execution status
+      example: "scheduled"
+
+    TaskLimits:
+      type: object
+      properties:
+        maxExecutions:
+          type: integer
+          minimum: 1
+          example: 100
+        maxExecutionsPerHour:
+          type: integer
+          minimum: 1
+          example: 10
+        maxExecutionsPerDay:
+          type: integer
+          minimum: 1
+          example: 50
+        cooldownMs:
+          type: integer
+          minimum: 0
+          example: 5000
+        maxConcurrent:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 1
+          example: 1
+        # Domain-specific limits
+        maxOrderSize:
+          type: number
+          description: Maximum order size (trading)
+          example: 0.1
+        maxAltitude:
+          type: number
+          description: Maximum altitude in meters (drone)
+          example: 120
+        maxRange:
+          type: number
+          description: Maximum range in meters (drone)
+          example: 5000
+        maxPostsPerDay:
+          type: integer
+          description: Maximum posts per day (social)
+          example: 10
+      example:
+        maxExecutions: 100
+        maxExecutionsPerHour: 10
+        maxExecutionsPerDay: 50
+        cooldownMs: 5000
+        maxConcurrent: 1
+
+    ApprovalConfig:
+      type: object
+      required:
+        - required
+      properties:
+        required:
+          type: boolean
+          description: Whether approval is required for this task
+        approvers:
+          type: array
+          items:
+            type: string
+          description: List of approver identifiers
+        timeout:
+          type: integer
+          description: Approval timeout in milliseconds
+        autoApprove:
+          type: object
+          properties:
+            conditions:
+              type: array
+              items:
+                $ref: "#/components/schemas/SimpleCondition"
+          description: Conditions for automatic approval
+        notifyChannel:
+          type: string
+          description: Notification channel (telegram, email, etc.)
+        notifyRecipient:
+          type: string
+          description: Notification recipient
+
+    Task:
+      allOf:
+        - $ref: "#/components/schemas/NamedEntity"
+        - type: object
+          properties:
+            agentId:
+              $ref: "#/components/schemas/UUID"
+            status:
+              $ref: "#/components/schemas/TaskStatus"
+            trigger:
+              $ref: "#/components/schemas/Trigger"
+            conditions:
+              type: array
+              items:
+                $ref: "#/components/schemas/SimpleCondition"
+            actions:
+              type: array
+              items:
+                $ref: "#/components/schemas/Action"
+              minItems: 1
+            limits:
+              $ref: "#/components/schemas/TaskLimits"
+            approval:
+              $ref: "#/components/schemas/ApprovalConfig"
+            lastExecutedAt:
+              $ref: "#/components/schemas/Timestamp"
+            nextExecutionAt:
+              $ref: "#/components/schemas/Timestamp"
+            executionCount:
+              type: integer
+              example: 42
+            errorCount:
+              type: integer
+              example: 2
+      example:
+        id: "770e8400-e29b-41d4-a716-446655440000"
+        name: "BTC Price Alert Task"
+        description: "Monitor BTC price and create order when conditions met"
+        agentId: "550e8400-e29b-41d4-a716-446655440000"
+        status: "scheduled"
+        createdAt: 1704067200000
+        updatedAt: 1704153600000
+        trigger:
+          type: "scheduled"
+          cron: "0 */5 * * * *"
+        conditions:
+          - field: "price"
+            operator: "gt"
+            value: 50000
+        executionCount: 42
+        errorCount: 2
+
+    CreateTaskParams:
+      type: object
+      required:
+        - name
+        - agentId
+        - domain
+        - action
+        - trigger
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        agentId:
+          $ref: "#/components/schemas/UUID"
+        domain:
+          type: string
+        action:
+          type: object
+          required:
+            - type
+            - accountId
+            - parameters
+          properties:
+            type:
+              type: string
+            accountId:
+              $ref: "#/components/schemas/UUID"
+            parameters:
+              type: object
+            timeout:
+              type: integer
+        trigger:
+          type: object
+          required:
+            - type
+            - config
+          properties:
+            type:
+              type: string
+            config:
+              type: object
+        conditions:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              operator:
+                type: string
+              value: {}
+              source:
+                type: string
+        approval:
+          type: object
+          properties:
+            required:
+              type: boolean
+            approvers:
+              type: array
+              items:
+                type: string
+            timeout:
+              type: integer
+        limits:
+          type: object
+          properties:
+            maxExecutions:
+              type: integer
+            maxExecutionsPerHour:
+              type: integer
+            maxExecutionsPerDay:
+              type: integer
+            cooldownMs:
+              type: integer
+        priority:
+          type: string
+        maxRetries:
+          type: integer
+
+    CreateTaskResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        task:
+          $ref: "#/components/schemas/Task"
+        error:
+          type: string
+
+    GetTaskParams:
+      type: object
+      required:
+        - taskId
+      properties:
+        taskId:
+          $ref: "#/components/schemas/UUID"
+
+    ListTasksParams:
+      type: object
+      properties:
+        agentId:
+          $ref: "#/components/schemas/UUID"
+        status:
+          $ref: "#/components/schemas/TaskStatus"
+
+    ListTasksResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        tasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+        error:
+          type: string
+
+    ExecuteTaskParams:
+      type: object
+      required:
+        - taskId
+      properties:
+        taskId:
+          $ref: "#/components/schemas/UUID"
+        context:
+          type: object
+
+    ExecuteTaskResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        executionId:
+          $ref: "#/components/schemas/UUID"
+        result:
+          type: object
+        error:
+          type: string
+
+    ApproveTaskParams:
+      type: object
+      required:
+        - taskId
+      properties:
+        taskId:
+          $ref: "#/components/schemas/UUID"
+        approved:
+          type: boolean
+          default: true
+        reason:
+          type: string
+
+    TaskHistoryParams:
+      type: object
+      required:
+        - taskId
+      properties:
+        taskId:
+          $ref: "#/components/schemas/UUID"
+        limit:
+          type: integer
+          default: 50
+
+    TaskExecution:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        taskId:
+          $ref: "#/components/schemas/UUID"
+        status:
+          type: string
+          enum: [pending, running, completed, failed, cancelled]
+          example: "completed"
+        triggeredBy:
+          type: string
+          example: "schedule"
+        startedAt:
+          $ref: "#/components/schemas/Timestamp"
+        completedAt:
+          $ref: "#/components/schemas/Timestamp"
+        duration:
+          type: integer
+          example: 1523
+        result:
+          type: object
+          example: { "orderId": "12345", "status": "filled" }
+        error:
+          type: string
+      example:
+        id: "880e8400-e29b-41d4-a716-446655440000"
+        taskId: "770e8400-e29b-41d4-a716-446655440000"
+        status: "completed"
+        triggeredBy: "schedule"
+        startedAt: 1704067200000
+        completedAt: 1704067201523
+        duration: 1523
+        result: { "orderId": "12345", "status": "filled" }
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # CHAIN SCHEMAS
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    StepType:
+      type: string
+      enum: [task, agent, condition, parallel, wait, notification]
+      example: "task"
+
+    ChainStepConfig:
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/StepType"
+        taskId:
+          $ref: "#/components/schemas/UUID"
+        agentId:
+          $ref: "#/components/schemas/UUID"
+        actions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Action"
+        prompt:
+          type: string
+          example: "Analyze the market conditions and provide recommendation"
+        condition:
+          $ref: "#/components/schemas/SimpleCondition"
+        stepIds:
+          type: array
+          items:
+            type: string
+          example: ["step-1", "step-2"]
+        duration:
+          type: integer
+          example: 5000
+        channel:
+          type: string
+          example: "telegram"
+        template:
+          type: string
+          example: "Order {{orderId}} executed successfully"
+        timeout:
+          type: integer
+          example: 30000
+
+    ChainStep:
+      type: object
+      required:
+        - id
+        - name
+        - config
+      properties:
+        id:
+          type: string
+          example: "step-analyze"
+        name:
+          type: string
+          example: "Analyze Market"
+        description:
+          type: string
+          example: "Analyze current market conditions"
+        config:
+          $ref: "#/components/schemas/ChainStepConfig"
+        dependencies:
+          type: array
+          items:
+            type: object
+            properties:
+              stepId:
+                type: string
+                example: "step-fetch-data"
+              condition:
+                type: string
+                enum: [completed, success, failure, any]
+                example: "success"
+              outputMapping:
+                type: object
+                example: { "marketData": "$.result.data" }
+        continueOnError:
+          type: boolean
+          default: false
+      example:
+        id: "step-analyze"
+        name: "Analyze Market"
+        description: "Analyze current market conditions"
+        config:
+          type: "agent"
+          agentId: "550e8400-e29b-41d4-a716-446655440000"
+          prompt: "Analyze the market data and provide recommendation"
+        dependencies:
+          - stepId: "step-fetch-data"
+            condition: "success"
+
+    ChainStatus:
+      type: string
+      enum:
+        - pending
+        - running
+        - paused
+        - completed
+        - failed
+        - cancelled
+      description: Chain execution status
+      example: "running"
+
+    Chain:
+      allOf:
+        - $ref: "#/components/schemas/NamedEntity"
+        - type: object
+          properties:
+            status:
+              $ref: "#/components/schemas/ChainStatus"
+            trigger:
+              $ref: "#/components/schemas/Trigger"
+            steps:
+              type: array
+              items:
+                $ref: "#/components/schemas/ChainStep"
+            entryStepId:
+              type: string
+              example: "step-1"
+            timeout:
+              type: integer
+              default: 3600000
+              example: 3600000
+            maxConcurrentExecutions:
+              type: integer
+              default: 1
+              example: 1
+            lastExecutedAt:
+              $ref: "#/components/schemas/Timestamp"
+            executionCount:
+              type: integer
+              example: 15
+      example:
+        id: "990e8400-e29b-41d4-a716-446655440000"
+        name: "Trading Pipeline"
+        description: "Automated trading pipeline with analysis and execution"
+        status: "running"
+        createdAt: 1704067200000
+        updatedAt: 1704153600000
+        entryStepId: "step-1"
+        timeout: 3600000
+        maxConcurrentExecutions: 1
+        executionCount: 15
+
+    CreateChainParams:
+      type: object
+      required:
+        - name
+        - ownerId
+        - steps
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        ownerId:
+          type: string
+        steps:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              taskId:
+                type: string
+              action:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  config:
+                    type: object
+              dependsOn:
+                type: array
+                items:
+                  type: string
+              condition:
+                type: object
+              onSuccess:
+                type: object
+              onFailure:
+                type: object
+              timeout:
+                type: integer
+              retries:
+                type: integer
+        initialContext:
+          type: object
+
+    CreateChainResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        chain:
+          $ref: "#/components/schemas/Chain"
+        error:
+          type: string
+
+    GetChainParams:
+      type: object
+      required:
+        - chainId
+      properties:
+        chainId:
+          $ref: "#/components/schemas/UUID"
+
+    ListChainsParams:
+      type: object
+      properties:
+        ownerId:
+          type: string
+        status:
+          $ref: "#/components/schemas/ChainStatus"
+        limit:
+          type: integer
+          default: 50
+        offset:
+          type: integer
+          default: 0
+
+    ExecuteChainParams:
+      type: object
+      required:
+        - chainId
+      properties:
+        chainId:
+          $ref: "#/components/schemas/UUID"
+        context:
+          type: object
+        triggerData:
+          type: object
+
+    ExecuteChainResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        executionId:
+          $ref: "#/components/schemas/UUID"
+        error:
+          type: string
+
+    ChainExecutionStatus:
+      type: string
+      enum: [pending, running, completed, failed, cancelled, paused]
+
+    ChainExecution:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        chainId:
+          $ref: "#/components/schemas/UUID"
+        status:
+          $ref: "#/components/schemas/ChainExecutionStatus"
+        triggeredBy:
+          type: string
+        context:
+          type: object
+        currentStepIds:
+          type: array
+          items:
+            type: string
+        startedAt:
+          $ref: "#/components/schemas/Timestamp"
+        completedAt:
+          $ref: "#/components/schemas/Timestamp"
+        duration:
+          type: integer
+        error:
+          type: string
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # TRADING SCHEMAS
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    Symbol:
+      type: string
+      pattern: "^[A-Z0-9]+/[A-Z0-9]+$"
+      example: "BTC/USDT"
+
+    OrderSide:
+      type: string
+      enum: [buy, sell]
+      example: "buy"
+
+    OrderType:
+      type: string
+      enum: [
+        market,
+        limit,
+        stop,
+        stop_limit,
+        trailing_stop,
+        take_profit,
+        take_profit_limit,
+      ]
+      example: "limit"
+
+    OrderStatus:
+      type: string
+      enum: [pending, open, partial, filled, cancelled, rejected, expired]
+      example: "filled"
+
+    TimeInForce:
+      type: string
+      enum: [GTC, IOC, FOK, GTD, PO]
+      description: |
+        - GTC: Good Till Cancelled
+        - IOC: Immediate Or Cancel
+        - FOK: Fill Or Kill
+        - GTD: Good Till Date
+        - PO: Post Only
+      example: "GTC"
+
+    Order:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        accountId:
+          $ref: "#/components/schemas/UUID"
+        exchangeOrderId:
+          type: string
+          example: "1234567890"
+        symbol:
+          $ref: "#/components/schemas/Symbol"
+        side:
+          $ref: "#/components/schemas/OrderSide"
+        type:
+          $ref: "#/components/schemas/OrderType"
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        price:
+          type: number
+          example: 50000.00
+        amount:
+          type: number
+          example: 0.01
+        filled:
+          type: number
+          example: 0.01
+        remaining:
+          type: number
+          example: 0
+        cost:
+          type: number
+          example: 500.00
+        average:
+          type: number
+          example: 50000.00
+        stopPrice:
+          type: number
+        timeInForce:
+          $ref: "#/components/schemas/TimeInForce"
+        fee:
+          type: object
+          properties:
+            cost:
+              type: number
+              example: 0.50
+            currency:
+              type: string
+              example: "USDT"
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+      example:
+        id: "aa0e8400-e29b-41d4-a716-446655440000"
+        accountId: "550e8400-e29b-41d4-a716-446655440002"
+        exchangeOrderId: "1234567890"
+        symbol: "BTC/USDT"
+        side: "buy"
+        type: "limit"
+        status: "filled"
+        price: 50000.00
+        amount: 0.01
+        filled: 0.01
+        remaining: 0
+        cost: 500.00
+        average: 50000.00
+        timeInForce: "GTC"
+        fee:
+          cost: 0.50
+          currency: "USDT"
+        createdAt: 1704067200000
+        updatedAt: 1704067205000
+
+    CreateOrderParams:
+      type: object
+      description: |
+        Create a trading order on a connected exchange.
+
+        **⚠️ Prerequisites:**
+        - Exchange account must be configured via `setAccount` method
+        - Valid API credentials with trading permissions
+        - Sufficient balance for the order
+      required:
+        - nid
+        - symbol
+        - type
+        - side
+        - amount
+      properties:
+        nid:
+          type: string
+          description: Account NID (exchange identifier, e.g., "binance-main")
+        symbol:
+          $ref: "#/components/schemas/Symbol"
+        type:
+          $ref: "#/components/schemas/OrderType"
+        side:
+          $ref: "#/components/schemas/OrderSide"
+        amount:
+          type: number
+          minimum: 0.00000001
+          description: Order amount (must be greater than 0)
+        price:
+          type: number
+          description: Required for limit orders
+        stopPrice:
+          type: number
+          description: Required for stop orders
+        timeInForce:
+          $ref: "#/components/schemas/TimeInForce"
+        reduceOnly:
+          type: boolean
+
+    CreateOrderResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/Order"
+        error:
+          type: string
+
+    CancelOrderParams:
+      type: object
+      required:
+        - nid
+        - orderId
+      properties:
+        nid:
+          type: string
+        orderId:
+          type: string
+        symbol:
+          $ref: "#/components/schemas/Symbol"
+
+    GetOrderParams:
+      type: object
+      required:
+        - nid
+        - orderId
+      properties:
+        nid:
+          type: string
+        orderId:
+          type: string
+        symbol:
+          $ref: "#/components/schemas/Symbol"
+
+    ListOrdersParams:
+      type: object
+      required:
+        - nid
+      properties:
+        nid:
+          type: string
+        symbol:
+          $ref: "#/components/schemas/Symbol"
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        since:
+          $ref: "#/components/schemas/Timestamp"
+        limit:
+          type: integer
+
+    ListTradesParams:
+      type: object
+      required:
+        - nid
+      properties:
+        nid:
+          type: string
+        symbol:
+          $ref: "#/components/schemas/Symbol"
+        since:
+          $ref: "#/components/schemas/Timestamp"
+        limit:
+          type: integer
+
+    Trade:
+      type: object
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        symbol:
+          $ref: "#/components/schemas/Symbol"
+        side:
+          $ref: "#/components/schemas/OrderSide"
+        price:
+          type: number
+        amount:
+          type: number
+        cost:
+          type: number
+        fee:
+          type: object
+          properties:
+            cost:
+              type: number
+            currency:
+              type: string
+        timestamp:
+          $ref: "#/components/schemas/Timestamp"
+
+    GetOrderBookParams:
+      type: object
+      required:
+        - nid
+        - symbol
+      properties:
+        nid:
+          type: string
+        symbol:
+          $ref: "#/components/schemas/Symbol"
+        limit:
+          type: integer
+          default: 20
+
+    OrderBook:
+      type: object
+      properties:
+        symbol:
+          $ref: "#/components/schemas/Symbol"
+        bids:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+            minItems: 2
+            maxItems: 2
+        asks:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+            minItems: 2
+            maxItems: 2
+        timestamp:
+          $ref: "#/components/schemas/Timestamp"
+
+    GetTickerParams:
+      type: object
+      required:
+        - nid
+        - symbol
+      properties:
+        nid:
+          type: string
+        symbol:
+          $ref: "#/components/schemas/Symbol"
+
+    Ticker:
+      type: object
+      properties:
+        symbol:
+          $ref: "#/components/schemas/Symbol"
+        last:
+          type: number
+        bid:
+          type: number
+        ask:
+          type: number
+        high:
+          type: number
+        low:
+          type: number
+        volume:
+          type: number
+        change:
+          type: number
+        changePercent:
+          type: number
+        timestamp:
+          $ref: "#/components/schemas/Timestamp"
+
+    GetBalanceParams:
+      type: object
+      required:
+        - nid
+      properties:
+        nid:
+          type: string
+
+    Balance:
+      type: object
+      properties:
+        currency:
+          type: string
+          example: "USDT"
+        free:
+          type: number
+          example: 10000.00
+        used:
+          type: number
+          example: 500.00
+        total:
+          type: number
+          example: 10500.00
+      example:
+        currency: "USDT"
+        free: 10000.00
+        used: 500.00
+        total: 10500.00
+
+    BalanceResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/Balance"
+          example:
+            USDT:
+              currency: "USDT"
+              free: 10000.00
+              used: 500.00
+              total: 10500.00
+            BTC:
+              currency: "BTC"
+              free: 0.5
+              used: 0.01
+              total: 0.51
+
+    # New Trading Actions Schemas (v2.6.0)
+    FetchBalanceParams:
+      $ref: "../schemas/trading.yaml#/FetchBalanceParams"
+    FetchPositionsParams:
+      $ref: "../schemas/trading.yaml#/FetchPositionsParams"
+    Position:
+      $ref: "../schemas/trading.yaml#/Position"
+    FetchOpenOrdersParams:
+      $ref: "../schemas/trading.yaml#/FetchOpenOrdersParams"
+    FetchOrderHistoryParams:
+      $ref: "../schemas/trading.yaml#/FetchOrderHistoryParams"
+    FetchTradesParams:
+      $ref: "../schemas/trading.yaml#/FetchTradesParams"
+    SetLeverageParams:
+      $ref: "../schemas/trading.yaml#/SetLeverageParams"
+    TransferFundsParams:
+      $ref: "../schemas/trading.yaml#/TransferFundsParams"
+    CreateBatchOrdersParams:
+      $ref: "../schemas/trading.yaml#/CreateBatchOrdersParams"
+    CreateBatchOrdersResponse:
+      $ref: "../schemas/trading.yaml#/CreateBatchOrdersResponse"
+    ConditionalOrderCondition:
+      $ref: "../schemas/trading.yaml#/ConditionalOrderCondition"
+    ConditionalOrder:
+      $ref: "../schemas/trading.yaml#/ConditionalOrder"
+    CreateConditionalOrderParams:
+      $ref: "../schemas/trading.yaml#/CreateConditionalOrderParams"
+      CreateConditionalOrderResponse:
+        $ref: "../schemas/trading.yaml#/CreateConditionalOrderResponse"
+      # Market Making Schemas
+      StartMarketMakingParams:
+        $ref: "../schemas/market-making.yaml#/StartMarketMakingParams"
+      StartMarketMakingResponse:
+        $ref: "../schemas/market-making.yaml#/StartMarketMakingResponse"
+      MarketMakingInstance:
+        $ref: "../schemas/market-making.yaml#/MarketMakingInstance"
+      StopMarketMakingParams:
+        $ref: "../schemas/market-making.yaml#/StopMarketMakingParams"
+      StopMarketMakingResponse:
+        $ref: "../schemas/market-making.yaml#/StopMarketMakingResponse"
+      UpdateQuotesParams:
+        $ref: "../schemas/market-making.yaml#/UpdateQuotesParams"
+      UpdateQuotesResponse:
+        $ref: "../schemas/market-making.yaml#/UpdateQuotesResponse"
+      GetInventoryParams:
+        $ref: "../schemas/market-making.yaml#/GetInventoryParams"
+      InventoryState:
+        $ref: "../schemas/market-making.yaml#/InventoryState"
+      GetInventoryResponse:
+        $ref: "../schemas/market-making.yaml#/GetInventoryResponse"
+      RebalancePositionParams:
+        $ref: "../schemas/market-making.yaml#/RebalancePositionParams"
+      RebalancePositionResponse:
+        $ref: "../schemas/market-making.yaml#/RebalancePositionResponse"
+      GetMarketMakingStatsParams:
+        $ref: "../schemas/market-making.yaml#/GetMarketMakingStatsParams"
+      PerformanceStats:
+        $ref: "../schemas/market-making.yaml#/PerformanceStats"
+      GetMarketMakingStatsResponse:
+        $ref: "../schemas/market-making.yaml#/GetMarketMakingStatsResponse"
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # ACCOUNT SCHEMAS
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    AccountType:
+      type: string
+      enum: [
+        exchange,
+        iot_hub,
+        drone_controller,
+        social_network,
+        email,
+        webhook,
+        database,
+        cloud,
+        custom,
+      ]
+      example: "exchange"
+
+    AccountStatus:
+      type: string
+      enum: [active, inactive, error, pending_verification]
+      example: "active"
+
+    AccountProvider:
+      type: string
+      enum:
+        - binance
+        - bybit
+        - okx
+        - coinbase
+        - kraken
+        - kucoin
+        - gate
+        - bitget
+        - twitter
+        - telegram
+        - discord
+        - slack
+        - mqtt
+        - home-assistant
+        - tuya
+        - smartthings
+        - mavlink
+        - dji
+        - github
+        - gitlab
+        - kubernetes
+        - docker
+        - aws
+        - gcp
+        - azure
+        - webhook
+        - http
+        - custom
+      example: "binance"
+
+    PermissionScope:
+      type: string
+      enum:
+        - trading:read
+        - trading:write
+        - trading:withdraw
+        - iot:read
+        - iot:write
+        - iot:control
+        - drone:read
+        - drone:control
+        - drone:arm
+        - drone:emergency
+        - social:read
+        - social:post
+        - social:dm
+        - read
+        - write
+        - admin
+      example: "trading:read"
+
+    PlainCredentials:
+      type: object
+      properties:
+        apiKey:
+          type: string
+        apiSecret:
+          type: string
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+        privateKey:
+          type: string
+        certificate:
+          type: string
+        connectionString:
+          type: string
+        webhookSecret:
+          type: string
+        customFields:
+          type: object
+          additionalProperties:
+            type: string
+
+    ConnectedAccount:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        userId:
+          type: string
+          example: "user-12345"
+        name:
+          type: string
+          example: "My Binance Account"
+        type:
+          $ref: "#/components/schemas/AccountType"
+        provider:
+          type: string
+          example: "binance"
+        status:
+          $ref: "#/components/schemas/AccountStatus"
+        permissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PermissionScope"
+          example: ["trading:read", "trading:write"]
+        lastUsed:
+          $ref: "#/components/schemas/Timestamp"
+        lastVerified:
+          $ref: "#/components/schemas/Timestamp"
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+      example:
+        id: "bb0e8400-e29b-41d4-a716-446655440000"
+        userId: "user-12345"
+        name: "My Binance Account"
+        type: "exchange"
+        provider: "binance"
+        status: "active"
+        permissions: ["trading:read", "trading:write"]
+        lastUsed: 1704153600000
+        lastVerified: 1704067200000
+        createdAt: 1704000000000
+
+    ConnectAccountParams:
+      type: object
+      description: |
+        **⚠️ NOT IMPLEMENTED** - This method is not registered in the server.
+        Use `setAccount` for exchange account management.
+      required:
+        - userId
+        - name
+        - type
+        - provider
+        - credentials
+      properties:
+        userId:
+          type: string
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/AccountType"
+        provider:
+          type: string
+        credentials:
+          $ref: "#/components/schemas/PlainCredentials"
+        permissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PermissionScope"
+        metadata:
+          type: object
+
+    ConnectAccountResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        account:
+          type: object
+          properties:
+            id:
+              $ref: "#/components/schemas/UUID"
+            name:
+              type: string
+            type:
+              $ref: "#/components/schemas/AccountType"
+            provider:
+              type: string
+            status:
+              $ref: "#/components/schemas/AccountStatus"
+            permissions:
+              type: array
+              items:
+                $ref: "#/components/schemas/PermissionScope"
+            createdAt:
+              $ref: "#/components/schemas/Timestamp"
+        error:
+          type: string
+
+    DisconnectAccountParams:
+      type: object
+      description: |
+        **⚠️ NOT IMPLEMENTED** - This method is not registered in the server.
+      required:
+        - accountId
+      properties:
+        accountId:
+          $ref: "#/components/schemas/UUID"
+
+    ValidateAccountParams:
+      type: object
+      description: |
+        **⚠️ NOT IMPLEMENTED** - This method is not registered in the server.
+      required:
+        - accountId
+      properties:
+        accountId:
+          $ref: "#/components/schemas/UUID"
+
+    ListAccountsParams:
+      type: object
+      properties:
+        userId:
+          type: string
+        type:
+          $ref: "#/components/schemas/AccountType"
+        provider:
+          type: string
+
+    SetAccountParams:
+      type: object
+      required:
+        - nid
+        - exchange
+        - apiKey
+        - secret
+        - note
+      properties:
+        nid:
+          type: string
+          description: Network identifier for the account
+        exchange:
+          type: string
+          enum:
+            - binance
+            - binanceus
+            - binanceusdm
+            - binancecoinm
+            - bybit
+            - okx
+            - gate
+            - gateio
+            - kucoin
+            - bitget
+            - huobi
+            - htx
+            - mexc
+            - kraken
+            - coinbase
+            - coinbasepro
+          description: Exchange identifier
+        apiKey:
+          type: string
+          description: Exchange API key
+        secret:
+          type: string
+          description: Exchange API secret
+        password:
+          type: string
+          description: Exchange API password (if required)
+        protocol:
+          type: string
+        note:
+          type: string
+          description: Account description
+        viewers:
+          type: array
+          items:
+            type: string
+          description: List of users who can view this account
+
+    SetAccountResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        warning:
+          type: string
+
+    LinkAgentToAccountParams:
+      type: object
+      description: |
+        **⚠️ NOT IMPLEMENTED** - This method is not registered in the server.
+      required:
+        - agentId
+        - accountId
+      properties:
+        agentId:
+          $ref: "#/components/schemas/UUID"
+        accountId:
+          $ref: "#/components/schemas/UUID"
+        grantedScopes:
+          type: array
+          items:
+            $ref: "#/components/schemas/PermissionScope"
+        limits:
+          type: object
+
+    UnlinkAgentFromAccountParams:
+      type: object
+      description: |
+        **⚠️ NOT IMPLEMENTED** - This method is not registered in the server.
+      required:
+        - agentId
+        - accountId
+      properties:
+        agentId:
+          $ref: "#/components/schemas/UUID"
+        accountId:
+          $ref: "#/components/schemas/UUID"
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # ORCHESTRATION SCHEMAS
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    RouteToAgentsParams:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+        agentIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/UUID"
+        domain:
+          $ref: "#/components/schemas/AgentDomain"
+        context:
+          type: object
+        waitForAll:
+          type: boolean
+        timeout:
+          type: integer
+
+    RouteToAgentsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        responses:
+          type: array
+          items:
+            type: object
+            properties:
+              agentId:
+                $ref: "#/components/schemas/UUID"
+              success:
+                type: boolean
+              response:
+                type: string
+              error:
+                type: string
+              duration:
+                type: integer
+        error:
+          type: string
+
+    CollaborationType:
+      type: string
+      enum: [sequential, parallel, hierarchical, peer]
+      description: Agent collaboration type
+
+    StartCollaborationParams:
+      type: object
+      required:
+        - name
+        - agentIds
+        - type
+      properties:
+        name:
+          type: string
+          description: Collaboration name
+        agentIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/UUID"
+          minItems: 2
+          description: Agent IDs to include in collaboration
+        type:
+          $ref: "#/components/schemas/CollaborationType"
+        context:
+          type: object
+          description: Initial context for collaboration
+
+    StartCollaborationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        collaborationId:
+          $ref: "#/components/schemas/UUID"
+        error:
+          type: string
+
+    EndCollaborationParams:
+      type: object
+      required:
+        - collaborationId
+      properties:
+        collaborationId:
+          $ref: "#/components/schemas/UUID"
+        reason:
+          type: string
+
+    SendAgentMessageParams:
+      type: object
+      required:
+        - fromAgentId
+        - toAgentId
+        - content
+      properties:
+        fromAgentId:
+          $ref: "#/components/schemas/UUID"
+        toAgentId:
+          $ref: "#/components/schemas/UUID"
+        type:
+          type: string
+          enum: [request, response, notification, event]
+        content:
+          type: string
+        metadata:
+          type: object
+
+    OrchestratorStats:
+      type: object
+      properties:
+        success:
+          type: boolean
+        stats:
+          type: object
+          properties:
+            activeInstances:
+              type: integer
+            totalMessages:
+              type: integer
+            activeCollaborations:
+              type: integer
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # REALTIME SCHEMAS
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    GetAgentStateParams:
+      type: object
+      required:
+        - agentId
+      properties:
+        agentId:
+          $ref: "#/components/schemas/UUID"
+
+    AgentState:
+      type: object
+      properties:
+        agentId:
+          $ref: "#/components/schemas/UUID"
+        status:
+          $ref: "#/components/schemas/AgentStatus"
+        currentTask:
+          type: string
+        lastActivity:
+          $ref: "#/components/schemas/Timestamp"
+        memory:
+          type: object
+        context:
+          type: object
+
+    RealtimeTriggerType:
+      type: string
+      enum: [kv, schedule, event, condition]
+      description: Realtime trigger type
+
+    SetTriggerParams:
+      type: object
+      required:
+        - type
+      properties:
+        id:
+          type: string
+          description: Optional trigger ID (auto-generated if not provided)
+        type:
+          $ref: "#/components/schemas/RealtimeTriggerType"
+        enabled:
+          type: boolean
+          default: true
+        # KV trigger config
+        keyPattern:
+          type: array
+          items:
+            type: string
+          description: KV key pattern for KV triggers
+        onChange:
+          type: boolean
+          description: Trigger on value change
+        debounceMs:
+          type: integer
+          description: Debounce interval in milliseconds
+        # Schedule trigger config
+        cron:
+          type: string
+          description: Cron expression for schedule triggers
+        intervalMs:
+          type: integer
+          description: Interval in milliseconds for schedule triggers
+        timezone:
+          type: string
+          default: UTC
+        # Event trigger config
+        eventType:
+          type: string
+          description: Event type for event triggers
+        eventSource:
+          type: string
+          description: Event source for event triggers
+        filter:
+          type: object
+          description: Event filter
+        # Condition trigger config
+        expression:
+          type: string
+          description: Expression for condition triggers
+        checkIntervalMs:
+          type: integer
+          default: 5000
+          description: Check interval for condition triggers
+        # Action config
+        taskId:
+          $ref: "#/components/schemas/UUID"
+        chainId:
+          $ref: "#/components/schemas/UUID"
+
+    GetDomainDataParams:
+      type: object
+      required:
+        - domain
+      properties:
+        domain:
+          $ref: "#/components/schemas/AgentDomain"
+        accountId:
+          $ref: "#/components/schemas/UUID"
+        dataType:
+          type: string
+        filters:
+          type: object
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # KNOWLEDGE BASE SCHEMAS
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    KnowledgeBaseStatus:
+      type: string
+      enum: [ready, indexing, error]
+
+    KnowledgeBase:
+      allOf:
+        - $ref: "#/components/schemas/NamedEntity"
+        - type: object
+          properties:
+            totalDocuments:
+              type: integer
+            totalChunks:
+              type: integer
+            embeddingModel:
+              type: string
+            chunkSize:
+              type: integer
+            chunkOverlap:
+              type: integer
+            status:
+              $ref: "#/components/schemas/KnowledgeBaseStatus"
+
+    CreateKnowledgeBaseParams:
+      type: object
+      required:
+        - workspaceId
+        - name
+      properties:
+        workspaceId:
+          $ref: "#/components/schemas/UUID"
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 1000
+        settings:
+          type: object
+          properties:
+            chunkSize:
+              type: integer
+              minimum: 100
+              maximum: 10000
+            chunkOverlap:
+              type: integer
+              minimum: 0
+              maximum: 500
+            embeddingModel:
+              type: string
+
+    CreateKnowledgeBaseResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        knowledgeBase:
+          $ref: "#/components/schemas/KnowledgeBase"
+        error:
+          type: string
+
+    ListKnowledgeBasesParams:
+      type: object
+      properties:
+        workspaceId:
+          $ref: "#/components/schemas/UUID"
+
+    DeleteKnowledgeBaseParams:
+      type: object
+      required:
+        - knowledgeBaseId
+      properties:
+        knowledgeBaseId:
+          $ref: "#/components/schemas/UUID"
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # WORKSPACE SCHEMAS
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    Workspace:
+      allOf:
+        - $ref: "#/components/schemas/NamedEntity"
+        - type: object
+          properties:
+            agentIds:
+              type: array
+              items:
+                $ref: "#/components/schemas/UUID"
+            isDefault:
+              type: boolean
+            environment:
+              type: string
+              enum: [production, staging, development, test]
+
+    CreateWorkspaceParams:
+      type: object
+      required:
+        - name
+        - ownerId
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 1000
+        ownerId:
+          type: string
+
+    CreateWorkspaceResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        workspace:
+          $ref: "#/components/schemas/Workspace"
+        error:
+          type: string
+
+    ListWorkspacesParams:
+      type: object
+      properties:
+        ownerId:
+          type: string
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # STRATEGY SCHEMAS (inserted above)
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # DOMAIN SCHEMAS
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # STRATEGY SCHEMAS
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    StrategyDifficulty:
+      type: string
+      enum: [beginner, intermediate, advanced, expert]
+      description: Strategy difficulty level
+
+    StrategyRiskLevel:
+      type: string
+      enum: [low, medium, high, extreme]
+      description: Strategy risk level
+
+    StrategyStatus:
+      type: string
+      enum: [draft, configuring, ready, starting, running, paused, stopped, error, completed]
+      description: Strategy instance status
+
+    StrategyRequirements:
+      type: object
+      properties:
+        minAccounts:
+          type: integer
+          minimum: 1
+        accountTypes:
+          type: array
+          items:
+            type: string
+        requiredPermissions:
+          type: array
+          items:
+            type: string
+        minimumBalance:
+          type: number
+        supportedExchanges:
+          type: array
+          items:
+            type: string
+
+    StrategyConfigField:
+      type: object
+      required:
+        - id
+        - label
+        - type
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+          enum: [string, number, boolean, select, multiselect, account, symbol, array]
+        description:
+          type: string
+        required:
+          type: boolean
+        default: {}
+        min:
+          type: number
+        max:
+          type: number
+        options:
+          type: array
+          items:
+            type: object
+        advanced:
+          type: boolean
+
+    StrategyConfigGroup:
+      type: object
+      required:
+        - id
+        - label
+        - fields
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        description:
+          type: string
+        collapsed:
+          type: boolean
+        fields:
+          type: array
+          items:
+            $ref: "#/components/schemas/StrategyConfigField"
+
+    StrategyConfigSchema:
+      type: object
+      required:
+        - version
+        - groups
+      properties:
+        version:
+          type: string
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/StrategyConfigGroup"
+
+    StrategyTaskTemplate:
+      type: object
+      required:
+        - id
+        - name
+        - action
+        - trigger
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        action:
+          type: object
+        trigger:
+          type: object
+        conditions:
+          type: array
+          items:
+            type: object
+        limits:
+          type: object
+        enabledIf:
+          type: string
+
+    StrategyDocumentation:
+      type: object
+      properties:
+        overview:
+          type: string
+        howItWorks:
+          type: string
+        riskWarning:
+          type: string
+        bestPractices:
+          type: array
+          items:
+            type: string
+        faq:
+          type: array
+          items:
+            type: object
+
+    StrategyTemplate:
+      type: object
+      required:
+        - id
+        - name
+        - version
+        - domain
+        - configSchema
+        - tasks
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        version:
+          type: string
+        domain:
+          type: string
+        icon:
+          type: string
+        color:
+          type: string
+        difficulty:
+          $ref: "#/components/schemas/StrategyDifficulty"
+        riskLevel:
+          $ref: "#/components/schemas/StrategyRiskLevel"
+        estimatedSetupTime:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        requirements:
+          $ref: "#/components/schemas/StrategyRequirements"
+        configSchema:
+          $ref: "#/components/schemas/StrategyConfigSchema"
+        defaultConfig:
+          type: object
+        tasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/StrategyTaskTemplate"
+        documentation:
+          $ref: "#/components/schemas/StrategyDocumentation"
+
+    StrategyTemplateSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        version:
+          type: string
+        domain:
+          type: string
+        icon:
+          type: string
+        difficulty:
+          $ref: "#/components/schemas/StrategyDifficulty"
+        riskLevel:
+          $ref: "#/components/schemas/StrategyRiskLevel"
+        tags:
+          type: array
+          items:
+            type: string
+        taskCount:
+          type: integer
+
+    StrategyStats:
+      type: object
+      properties:
+        totalExecutions:
+          type: integer
+        successfulExecutions:
+          type: integer
+        failedExecutions:
+          type: integer
+        totalProfit:
+          type: number
+        totalLoss:
+          type: number
+        winRate:
+          type: number
+
+    StrategyInstance:
+      type: object
+      required:
+        - id
+        - templateId
+        - name
+        - status
+        - config
+        - taskIds
+        - ownerId
+        - createdAt
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        templateId:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: "#/components/schemas/StrategyStatus"
+        config:
+          type: object
+        taskIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/UUID"
+        agentId:
+          $ref: "#/components/schemas/UUID"
+        ownerId:
+          type: string
+        stats:
+          $ref: "#/components/schemas/StrategyStats"
+        startedAt:
+          $ref: "#/components/schemas/Timestamp"
+        stoppedAt:
+          $ref: "#/components/schemas/Timestamp"
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    ListStrategyTemplatesParams:
+      type: object
+      properties:
+        domain:
+          type: string
+        difficulty:
+          $ref: "#/components/schemas/StrategyDifficulty"
+        riskLevel:
+          $ref: "#/components/schemas/StrategyRiskLevel"
+        tags:
+          type: array
+          items:
+            type: string
+        summaryOnly:
+          type: boolean
+
+    ListStrategyTemplatesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        templates:
+          type: array
+          items:
+            $ref: "#/components/schemas/StrategyTemplate"
+        total:
+          type: integer
+
+    GetStrategyTemplateParams:
+      type: object
+      required:
+        - templateId
+      properties:
+        templateId:
+          type: string
+
+    GetStrategyTemplateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        template:
+          $ref: "#/components/schemas/StrategyTemplate"
+
+    CreateStrategyParams:
+      type: object
+      required:
+        - templateId
+        - name
+        - config
+      properties:
+        templateId:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        config:
+          type: object
+        autoStart:
+          type: boolean
+        dryRun:
+          type: boolean
+
+    CreateStrategyResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        strategy:
+          $ref: "#/components/schemas/StrategyInstance"
+        taskIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/UUID"
+        validationErrors:
+          type: array
+          items:
+            type: string
+
+    ListStrategiesParams:
+      type: object
+      properties:
+        ownerId:
+          type: string
+        status:
+          $ref: "#/components/schemas/StrategyStatus"
+        templateId:
+          type: string
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    ListStrategiesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        strategies:
+          type: array
+          items:
+            $ref: "#/components/schemas/StrategyInstance"
+        pagination:
+          type: object
+          properties:
+            total:
+              type: integer
+            limit:
+              type: integer
+            offset:
+              type: integer
+            hasMore:
+              type: boolean
+
+    GetStrategyParams:
+      type: object
+      required:
+        - strategyId
+      properties:
+        strategyId:
+          $ref: "#/components/schemas/UUID"
+
+    GetStrategyResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        strategy:
+          $ref: "#/components/schemas/StrategyInstance"
+
+    StartStrategyParams:
+      type: object
+      required:
+        - strategyId
+      properties:
+        strategyId:
+          $ref: "#/components/schemas/UUID"
+
+    StartStrategyResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        strategy:
+          $ref: "#/components/schemas/StrategyInstance"
+        activatedTasks:
+          type: integer
+
+    StopStrategyParams:
+      type: object
+      required:
+        - strategyId
+      properties:
+        strategyId:
+          $ref: "#/components/schemas/UUID"
+
+    StopStrategyResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        strategy:
+          $ref: "#/components/schemas/StrategyInstance"
+        pausedTasks:
+          type: integer
+
+    DeleteStrategyParams:
+      type: object
+      required:
+        - strategyId
+      properties:
+        strategyId:
+          $ref: "#/components/schemas/UUID"
+
+    DeleteStrategyResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        deleted:
+          type: boolean
+        strategyId:
+          type: string
+        deletedTasks:
+          type: integer
+
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    DomainInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        actions:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              parameters:
+                type: object
+        providers:
+          type: array
+          items:
+            type: string
+        requiredScopes:
+          type: array
+          items:
+            $ref: "#/components/schemas/PermissionScope"
+
+    ListDomainsResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        domains:
+          type: array
+          items:
+            $ref: "#/components/schemas/DomainInfo"
+
+    GetDomainInfoParams:
+      type: object
+      required:
+        - domain
+      properties:
+        domain:
+          $ref: "#/components/schemas/AgentDomain"
+
+    ExecuteDomainActionParams:
+      type: object
+      required:
+        - domain
+        - action
+        - accountId
+      properties:
+        domain:
+          $ref: "#/components/schemas/AgentDomain"
+        action:
+          type: string
+        accountId:
+          $ref: "#/components/schemas/UUID"
+        params:
+          type: object
+
+    ExecuteDomainActionResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        result:
+          type: object
+        error:
+          type: string
+
+    ListTemplatesParams:
+      type: object
+      properties:
+        domain:
+          $ref: "#/components/schemas/AgentDomain"
+        type:
+          type: string
+          enum: [agent, chain]
+
+    Template:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+        domain:
+          $ref: "#/components/schemas/AgentDomain"
+        config:
+          type: object
+
+    ListTemplatesResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        templates:
+          type: array
+          items:
+            $ref: "#/components/schemas/Template"
+
+    CreateFromTemplateParams:
+      type: object
+      required:
+        - templateId
+        - workspaceId
+      properties:
+        templateId:
+          type: string
+        workspaceId:
+          $ref: "#/components/schemas/UUID"
+        name:
+          type: string
+        variables:
+          type: object
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # WORKER SCHEMAS
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    WorkerStatus:
+      type: string
+      enum: [running, stopped, error, starting, stopping]
+
+    Worker:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        name:
+          type: string
+        status:
+          $ref: "#/components/schemas/WorkerStatus"
+        script:
+          type: string
+        nodeId:
+          type: string
+        isLeader:
+          type: boolean
+        startedAt:
+          $ref: "#/components/schemas/Timestamp"
+        lastHeartbeat:
+          $ref: "#/components/schemas/Timestamp"
+        stats:
+          type: object
+          properties:
+            executions:
+              type: integer
+            errors:
+              type: integer
+            avgDuration:
+              type: number
+
+    WorkerScope:
+      type: string
+      enum: [local, network]
+      description: Worker execution scope
+
+    WorkerExecutionMode:
+      type: string
+      enum: [parallel, leader, exclusive]
+      description: Worker execution mode
+
+    WorkerPriority:
+      type: string
+      enum: [critical, high, normal, low]
+      description: Worker execution priority
+
+    SetWorkerParams:
+      type: object
+      properties:
+        scriptContent:
+          type: string
+          description: Worker script content (JavaScript/TypeScript)
+        dependencies:
+          type: array
+          items:
+            type: string
+          description: Script dependencies
+        version:
+          type: string
+          default: "1.19.2"
+        scope:
+          $ref: "#/components/schemas/WorkerScope"
+        executionMode:
+          $ref: "#/components/schemas/WorkerExecutionMode"
+        priority:
+          $ref: "#/components/schemas/WorkerPriority"
+        accountId:
+          type: string
+          description: Associated account ID
+        assignedNode:
+          type: string
+          description: Target node for exclusive execution mode
+
+    UpdateWorkerParams:
+      type: object
+      required:
+        - channel
+        - raw
+      properties:
+        channel:
+          type: string
+          description: Worker channel (e.g., ami.worker.{worker-id})
+        raw:
+          type: object
+          properties:
+            script:
+              type: string
+              description: Updated worker script
+            scope:
+              $ref: "#/components/schemas/WorkerScope"
+            executionMode:
+              $ref: "#/components/schemas/WorkerExecutionMode"
+            priority:
+              $ref: "#/components/schemas/WorkerPriority"
+            active:
+              type: boolean
+
+    ListWorkersResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        workers:
+          type: array
+          items:
+            $ref: "#/components/schemas/Worker"
+
+    WorkerStats:
+      type: object
+      properties:
+        totalWorkers:
+          type: integer
+        runningWorkers:
+          type: integer
+        stoppedWorkers:
+          type: integer
+        totalExecutions:
+          type: integer
+        totalErrors:
+          type: integer
+        leaderNodeId:
+          type: string
+
+    LeaderInfo:
+      type: object
+      properties:
+        nodeId:
+          type: string
+        isLeader:
+          type: boolean
+        leaderNodeId:
+          type: string
+        lastElection:
+          $ref: "#/components/schemas/Timestamp"
+
+    MigrateWorkerParams:
+      type: object
+      required:
+        - channel
+        - targetScope
+      properties:
+        channel:
+          type: string
+          description: Worker channel (e.g., ami.worker.{worker-id})
+        targetScope:
+          $ref: "#/components/schemas/WorkerScope"
+
+    GetWorkerLogsParams:
+      type: object
+      properties:
+        workerId:
+          $ref: "#/components/schemas/UUID"
+        lines:
+          type: integer
+          default: 100
+          description: Number of log lines to retrieve
+
+    StreamWorkerLogsParams:
+      type: object
+      properties:
+        workerId:
+          $ref: "#/components/schemas/UUID"
+
+    GetLeaderInfoParams:
+      type: object
+      required:
+        - workerId
+      properties:
+        workerId:
+          type: string
+          description: Worker ID to get leader info for
+
+    GetLeaderInfoResponse:
+      type: object
+      properties:
+        workerId:
+          type: string
+        hasLeader:
+          type: boolean
+        leader:
+          type: string
+          description: Node ID of the leader
+        timestamp:
+          $ref: "#/components/schemas/Timestamp"
+        expiresAt:
+          $ref: "#/components/schemas/Timestamp"
+        renewedAt:
+          $ref: "#/components/schemas/Timestamp"
+        expiresIn:
+          type: integer
+        isExpired:
+          type: boolean
+
+    StopAllWorkersResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        stoppedCount:
+          type: integer
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # CONNECTION SCHEMAS
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    ConnectionNodeParams:
+      type: object
+      properties:
+        clientInfo:
+          type: object
+          properties:
+            userAgent:
+              type: string
+            platform:
+              type: string
+            version:
+              type: string
+
+    ConnectionNodeResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        nodeId:
+          type: string
+        serverTime:
+          $ref: "#/components/schemas/Timestamp"
+
+    GitHubAuthParams:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          description: GitHub OAuth authorization code
+        state:
+          type: string
+          description: OAuth state parameter
+
+    GitHubAuthResponse:
+      type: object
+      properties:
+        webfix:
+          type: string
+        success:
+          type: boolean
+        session:
+          type: string
+          description: Session token
+        user:
+          type: object
+          properties:
+            githubUsername:
+              type: string
+            avatarUrl:
+              type: string
+        error:
+          type: string
+
+    RequestDeveloperAccessParams:
+      type: object
+      required:
+        - githubUsername
+        - reason
+      properties:
+        githubUsername:
+          type: string
+        reason:
+          type: string
+          maxLength: 500
+
+    ApproveDeveloperAccessParams:
+      type: object
+      required:
+        - requestId
+        - approved
+      properties:
+        requestId:
+          $ref: "#/components/schemas/UUID"
+        approved:
+          type: boolean
+        reason:
+          type: string
+
+    DeveloperRequest:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        githubUsername:
+          type: string
+        reason:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        requestedAt:
+          $ref: "#/components/schemas/Timestamp"
+        respondedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # HEALTH SCHEMAS
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    HealthStatus:
+      type: string
+      enum: [healthy, degraded, unhealthy]
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/HealthStatus"
+        timestamp:
+          $ref: "#/components/schemas/Timestamp"
+        components:
+          type: object
+          properties:
+            database:
+              $ref: "#/components/schemas/HealthStatus"
+            domains:
+              type: object
+              additionalProperties:
+                $ref: "#/components/schemas/HealthStatus"
+            taskManager:
+              $ref: "#/components/schemas/HealthStatus"
+            orchestrator:
+              $ref: "#/components/schemas/HealthStatus"
+        metrics:
+          type: object
+          properties:
+            activeAgents:
+              type: integer
+            activeTasks:
+              type: integer
+            activeChains:
+              type: integer
+
+    HTTPHealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        checks:
+          type: object
+          properties:
+            server:
+              type: boolean
+            localKV:
+              type: boolean
+            netKV:
+              type: boolean
+            timestamp:
+              $ref: "#/components/schemas/Timestamp"
+        nodeId:
+          type: string
+        openApi:
+          type: boolean
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # COMMON HEADERS (Rate Limiting - DO API Standard)
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  headers:
+    RateLimitLimit:
+      description: The number of requests allowed per time window
+      schema:
+        type: integer
+        example: 100
+    RateLimitRemaining:
+      description: The number of requests remaining in the current time window
+      schema:
+        type: integer
+        example: 87
+    RateLimitReset:
+      description: Unix timestamp when the rate limit window resets
+      schema:
+        type: integer
+        format: int64
+        example: 1704067260
+
+  responses:
+    Unauthorized:
+      description: Authentication required
+      headers:
+        ratelimit-limit:
+          $ref: "#/components/headers/RateLimitLimit"
+        ratelimit-remaining:
+          $ref: "#/components/headers/RateLimitRemaining"
+        ratelimit-reset:
+          $ref: "#/components/headers/RateLimitReset"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Unauthorized
+              message:
+                type: string
+                example: Valid session required. Please provide stels-session header.
+
+    Forbidden:
+      description: Insufficient permissions
+      headers:
+        ratelimit-limit:
+          $ref: "#/components/headers/RateLimitLimit"
+        ratelimit-remaining:
+          $ref: "#/components/headers/RateLimitRemaining"
+        ratelimit-reset:
+          $ref: "#/components/headers/RateLimitReset"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Forbidden
+              message:
+                type: string
+                example: You do not have permission to access this resource.
+
+    NotFound:
+      description: Resource not found
+      headers:
+        ratelimit-limit:
+          $ref: "#/components/headers/RateLimitLimit"
+        ratelimit-remaining:
+          $ref: "#/components/headers/RateLimitRemaining"
+        ratelimit-reset:
+          $ref: "#/components/headers/RateLimitReset"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              webfix:
+                type: string
+                example: "1.0"
+              error:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: The requested resource was not found.
+                  details:
+                    type: object
+                    properties:
+                      resourceType:
+                        type: string
+                        example: agent
+                      resourceId:
+                        type: string
+                        example: "550e8400-e29b-41d4-a716-446655440000"
+
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        ratelimit-limit:
+          $ref: "#/components/headers/RateLimitLimit"
+        ratelimit-remaining:
+          description: Always 0 when rate limited
+          schema:
+            type: integer
+            example: 0
+        ratelimit-reset:
+          $ref: "#/components/headers/RateLimitReset"
+        retry-after:
+          description: Seconds to wait before retrying
+          schema:
+            type: integer
+            example: 30
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              webfix:
+                type: string
+                example: "1.0"
+              error:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 429
+                  message:
+                    type: string
+                    example: Too many requests. Please wait before making another request.
+                  details:
+                    type: object
+                    properties:
+                      retryAfter:
+                        type: integer
+                        example: 30
+                      limitType:
+                        type: string
+                        example: sliding-window
+                      limit:
+                        type: integer
+                        example: 100
+                      windowMs:
+                        type: integer
+                        example: 60000
+
+    ServerError:
+      description: Internal server error
+      headers:
+        ratelimit-limit:
+          $ref: "#/components/headers/RateLimitLimit"
+        ratelimit-remaining:
+          $ref: "#/components/headers/RateLimitRemaining"
+        ratelimit-reset:
+          $ref: "#/components/headers/RateLimitReset"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              webfix:
+                type: string
+                example: "1.0"
+              error:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 500
+                  message:
+                    type: string
+                    example: An unexpected error occurred. Please try again later.
+                  requestId:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                    description: Request ID for support reference
+
+    BadRequest:
+      description: Invalid request
+      headers:
+        ratelimit-limit:
+          $ref: "#/components/headers/RateLimitLimit"
+        ratelimit-remaining:
+          $ref: "#/components/headers/RateLimitRemaining"
+        ratelimit-reset:
+          $ref: "#/components/headers/RateLimitReset"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              webfix:
+                type: string
+                example: "1.0"
+              error:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: Invalid request parameters.
+                  details:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                        example: agentId
+                      reason:
+                        type: string
+                        example: Must be a valid UUID
+
+paths:
+  /:
+    post:
+      operationId: webfix_rpc
+      summary: WebFIX RPC Endpoint
+      description: |
+        Main RPC endpoint for all WebFIX protocol methods.
+        The specific operation is determined by the `method` field in the request body.
+      tags:
+        - Connection
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebfixRequest"
+            examples:
+              createAgent:
+                summary: Create Agent
+                value:
+                  webfix: "1.0"
+                  method: createAgent
+                  body:
+                    workspaceId: "550e8400-e29b-41d4-a716-446655440000"
+                    name: "Trading Assistant"
+                    domain: "trading"
+                    systemPrompt: "You are a helpful trading assistant."
+              chatWithAgent:
+                summary: Chat with Agent
+                value:
+                  webfix: "1.0"
+                  method: chatWithAgent
+                  body:
+                    agentId: "550e8400-e29b-41d4-a716-446655440000"
+                    message: "What's the current BTC price?"
+                    conversationId: "optional-uuid-for-continuing-conversation"
+                    stream: true
+              moveAgentToWorkspace:
+                summary: Move Agent to Workspace
+                value:
+                  webfix: "1.0"
+                  method: moveAgentToWorkspace
+                  body:
+                    agentId: "550e8400-e29b-41d4-a716-446655440000"
+                    workspaceId: "660e8400-e29b-41d4-a716-446655440001"
+              updateWorkspace:
+                summary: Update Workspace
+                value:
+                  webfix: "1.0"
+                  method: updateWorkspace
+                  body:
+                    workspaceId: "660e8400-e29b-41d4-a716-446655440001"
+                    name: "Updated Workspace Name"
+                    description: "New description for the workspace"
+              createOrder:
+                summary: Create Trading Order
+                value:
+                  webfix: "1.0"
+                  method: createOrder
+                  body:
+                    nid: "binance-main"
+                    symbol: "BTC/USDT"
+                    type: "limit"
+                    side: "buy"
+                    amount: 0.01
+                    price: 50000
+              listStrategyTemplates:
+                summary: List Strategy Templates
+                value:
+                  webfix: "1.0"
+                  method: listStrategyTemplates
+                  body:
+                    domain: trading
+                    summaryOnly: true
+              createStrategy:
+                summary: Create Strategy from Template
+                value:
+                  webfix: "1.0"
+                  method: createStrategy
+                  body:
+                    templateId: "dca-bot"
+                    name: "My DCA Strategy"
+                    config:
+                      accountId: "550e8400-e29b-41d4-a716-446655440000"
+                      symbol: "BTC/USDT"
+                      amount: 100
+                      interval: "daily"
+      responses:
+        "200":
+          description: Successful response
+          headers:
+            ratelimit-limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            ratelimit-remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            ratelimit-reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebfixResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /health:
+    get:
+      operationId: health_get
+      summary: Health Check
+      description: HTTP health check endpoint for load balancers and orchestrators
+      tags:
+        - Health
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+          headers:
+            ratelimit-limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            ratelimit-remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            ratelimit-reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPHealthResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          description: Service is unhealthy or degraded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPHealthResponse"
+
+  /api/worker/logs:
+    get:
+      operationId: workers_get_logs
+      summary: Get Worker Logs
+      description: Retrieve worker log files
+      tags:
+        - Workers
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: workerId
+          in: query
+          description: UUID of the worker to get logs for
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - name: lines
+          in: query
+          description: Number of log lines to retrieve (default 100)
+          schema:
+            type: integer
+            default: 100
+      responses:
+        "200":
+          description: Log content
+          headers:
+            ratelimit-limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            ratelimit-remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            ratelimit-reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logs:
+                    type: array
+                    items:
+                      type: string
+                    example: [
+                      "2024-01-01T12:00:00Z [INFO] Worker started",
+                      "2024-01-01T12:00:01Z [INFO] Processing task",
+                    ]
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/worker/logs/stream:
+    get:
+      operationId: workers_stream_logs
+      summary: Stream Worker Logs (SSE)
+      description: Server-Sent Events stream of worker logs
+      tags:
+        - Workers
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: workerId
+          in: query
+          description: UUID of the worker to stream logs for
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: SSE stream
+          headers:
+            ratelimit-limit:
+              $ref: "#/components/headers/RateLimitLimit"
+            ratelimit-remaining:
+              $ref: "#/components/headers/RateLimitRemaining"
+            ratelimit-reset:
+              $ref: "#/components/headers/RateLimitReset"
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: "data: {\"timestamp\":\"2024-01-01T12:00:00Z\",\"level\":\"INFO\",\"message\":\"Worker started\"}\n\n"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /auth/github/callback:
+    get:
+      operationId: auth_github_callback
+      summary: GitHub OAuth Callback
+      description: Callback endpoint for GitHub OAuth flow
+      tags:
+        - Connection
+      security: []
+      parameters:
+        - name: code
+          in: query
+          required: true
+          description: GitHub OAuth authorization code
+          schema:
+            type: string
+            example: "abc123def456"
+        - name: state
+          in: query
+          description: OAuth state parameter for CSRF protection
+          schema:
+            type: string
+            example: "random-state-string"
+      responses:
+        "302":
+          description: Redirect to client application
+          headers:
+            Location:
+              schema:
+                type: string
+                example: "https://app.stels.dev/auth/callback?session=xyz"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"

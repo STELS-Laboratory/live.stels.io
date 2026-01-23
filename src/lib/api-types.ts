@@ -45,6 +45,29 @@ export interface AccountRequest {
 }
 
 /**
+ * Payload for setAccount RPC (OpenAPI SetAccountParams).
+ * Only fields supported by the API; use for sendAccountToServer.
+ */
+export interface SetAccountPayload {
+  nid: string;
+  exchange: string;
+  apiKey: string;
+  secret: string;
+  note: string;
+  password?: string;
+  protocol?: string;
+  viewers?: string[];
+}
+
+/**
+ * Options for listAccounts RPC (Gliesereum vs standard backend).
+ */
+export interface ListAccountsOptions {
+  address?: string;
+  params?: string[];
+}
+
+/**
  * New request type: signed package + public key and address
  */
 export interface SignedAccountRequest {

@@ -1,0 +1,160 @@
+# Response Schemas - Common API responses
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+Unauthorized:
+  description: Authentication required
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error:
+            type: string
+            example: Unauthorized
+          message:
+            type: string
+            example: Valid session required. Please provide stels-session header.
+
+Forbidden:
+  description: Insufficient permissions
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          error:
+            type: string
+            example: Forbidden
+          message:
+            type: string
+
+RateLimited:
+  description: Rate limit exceeded
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          webfix:
+            type: string
+          error:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 429
+              message:
+                type: string
+                example: Too many requests. Please wait before making another request.
+              details:
+                type: object
+                properties:
+                  retryAfter:
+                    type: integer
+                  limitType:
+                    type: string
+
+BadRequest:
+  description: Invalid request
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          webfix:
+            type: string
+          error:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 400
+              message:
+                type: string
+
+ServerError:
+  description: Internal server error
+  headers:
+    ratelimit-limit:
+      description: The number of requests allowed per time window
+      schema:
+        type: integer
+        example: 300
+    ratelimit-remaining:
+      description: The number of requests remaining in the current time window
+      schema:
+        type: integer
+        example: 299
+    ratelimit-reset:
+      description: Unix timestamp when the rate limit resets
+      schema:
+        type: integer
+        example: 1705123456
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          webfix:
+            type: string
+            example: "1.0"
+          error:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 500
+              message:
+                type: string
+                example: An unexpected internal server error occurred.
+              details:
+                type: object
+                properties:
+                  requestId:
+                    type: string
+                    example: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+
+NotFound:
+  description: Resource not found
+  headers:
+    ratelimit-limit:
+      description: The number of requests allowed per time window
+      schema:
+        type: integer
+        example: 300
+    ratelimit-remaining:
+      description: The number of requests remaining in the current time window
+      schema:
+        type: integer
+        example: 299
+    ratelimit-reset:
+      description: Unix timestamp when the rate limit resets
+      schema:
+        type: integer
+        example: 1705123456
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          webfix:
+            type: string
+            example: "1.0"
+          error:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 404
+              message:
+                type: string
+                example: The requested resource was not found.
+              details:
+                type: object
+                properties:
+                  resourceType:
+                    type: string
+                    example: agent
+                  resourceId:
+                    type: string
+                    example: "550e8400-e29b-41d4-a716-446655440000"

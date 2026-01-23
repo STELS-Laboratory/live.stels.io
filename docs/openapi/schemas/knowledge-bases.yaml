@@ -1,0 +1,79 @@
+# Knowledge Base Schemas - RAG knowledge bases
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+KnowledgeBaseStatus:
+  type: string
+  enum: [ready, indexing, error]
+
+KnowledgeBase:
+  allOf:
+    - $ref: "common.yaml#/NamedEntity"
+    - type: object
+      properties:
+        totalDocuments:
+          type: integer
+        totalChunks:
+          type: integer
+        embeddingModel:
+          type: string
+        chunkSize:
+          type: integer
+        chunkOverlap:
+          type: integer
+        status:
+          $ref: "#/KnowledgeBaseStatus"
+
+# Request/Response Schemas
+CreateKnowledgeBaseParams:
+  type: object
+  required:
+    - workspaceId
+    - name
+  properties:
+    workspaceId:
+      $ref: "common.yaml#/UUID"
+    name:
+      type: string
+      maxLength: 100
+    description:
+      type: string
+      maxLength: 1000
+    settings:
+      type: object
+      properties:
+        chunkSize:
+          type: integer
+          minimum: 100
+          maximum: 10000
+        chunkOverlap:
+          type: integer
+          minimum: 0
+          maximum: 500
+        embeddingModel:
+          type: string
+
+CreateKnowledgeBaseResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    knowledgeBase:
+      $ref: "#/KnowledgeBase"
+    error:
+      type: string
+
+ListKnowledgeBasesParams:
+  type: object
+  properties:
+    workspaceId:
+      $ref: "common.yaml#/UUID"
+
+DeleteKnowledgeBaseParams:
+  type: object
+  required:
+    - knowledgeBaseId
+  properties:
+    knowledgeBaseId:
+      $ref: "common.yaml#/UUID"

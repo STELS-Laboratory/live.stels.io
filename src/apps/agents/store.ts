@@ -25,6 +25,35 @@ import type {
   SyncFromGradientResponse,
   MoveAgentToWorkspaceParams,
   MoveAgentToWorkspaceResponse,
+  // Task types
+  Task,
+  TaskExecutionLog,
+  CreateTaskRequest,
+  UpdateTaskRequest,
+  ListTasksRequest,
+  ExecuteTaskRequest,
+  ApproveTaskRequest,
+  TaskHistoryRequest,
+  ListTasksResponse,
+  TaskResponse,
+  ExecuteTaskResponse,
+  ApproveTaskResponse,
+  PauseTaskResponse,
+  ResumeTaskResponse,
+  DeleteTaskResponse,
+  TaskHistoryResponse,
+  // Agent-Account binding types
+  ConnectAccountToAgentParams,
+  ConnectAccountToAgentResponse,
+  DisconnectAccountFromAgentParams,
+  DisconnectAccountFromAgentResponse,
+  // Conversation History types
+  Conversation,
+  ConversationListItem,
+  GetConversationParams,
+  GetConversationResponse,
+  ListConversationsParams,
+  ListConversationsResponse,
 } from "./types";
 
 /**
@@ -83,6 +112,37 @@ function getApiClient(): WebfixApiClient | null {
 }
 
 /**
+ * Helper functions for localStorage conversation persistence
+ */
+function saveConversationId(agentId: string, conversationId: string): void {
+  const key = `chat_conversation_${agentId}`;
+  try {
+    localStorage.setItem(key, conversationId);
+  } catch (error) {
+    console.warn("[AgentStore] Failed to save conversationId to localStorage:", error);
+  }
+}
+
+function loadConversationId(agentId: string): string | null {
+  const key = `chat_conversation_${agentId}`;
+  try {
+    return localStorage.getItem(key);
+  } catch (error) {
+    console.warn("[AgentStore] Failed to load conversationId from localStorage:", error);
+    return null;
+  }
+}
+
+function removeConversationId(agentId: string): void {
+  const key = `chat_conversation_${agentId}`;
+  try {
+    localStorage.removeItem(key);
+  } catch (error) {
+    console.warn("[AgentStore] Failed to remove conversationId from localStorage:", error);
+  }
+}
+
+/**
  * Empty params for methods that don't need channel routing
  * Agent/Workspace methods filter by workspaceId in body, not params
  * The backend was interpreting network IDs like "localnet" as workspace names
@@ -103,16 +163,27 @@ export const useAgentStore = create<AgentStore>()(
       knowledgeBases: [],
       conversations: new Map(),
       currentConversationId: null,
+      conversationList: [],
       lastSyncTime: null,
+      
+      // Task state
+      tasks: [],
+      selectedTask: null,
+      taskHistory: [],
       
       agentsLoading: false,
       agentLoading: false,
       chatLoading: false,
+      conversationLoading: false,
       syncLoading: false,
       workspaceLoading: false,
+      tasksLoading: false,
+      taskExecuting: false,
+      accountLinking: false,
       
       agentsError: null,
       chatError: null,
+      tasksError: null,
 
       // List all agents
       listAgents: async (): Promise<void> => {
@@ -361,12 +432,130 @@ export const useAgentStore = create<AgentStore>()(
         }
       },
 
+      // Connect account to agent with specific permissions
+      connectAccountToAgent: async (
+        params: ConnectAccountToAgentParams
+      ): Promise<boolean> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Connection failed", "No active connection");
+          return false;
+        }
+
+        set({ accountLinking: true });
+
+        try {
+          const data = await client.request<ConnectAccountToAgentResponse>(
+            "connectAccountToAgent",
+            params,
+            NO_CHANNEL
+          );
+
+          if (data?.success) {
+            // Refresh the agent to get updated connectedAccounts
+            const updatedAgent = await get().getAgent(params.agentId);
+            if (updatedAgent) {
+              set((state) => ({
+                agents: state.agents.map((a) =>
+                  a.id === params.agentId ? updatedAgent : a
+                ),
+                selectedAgent:
+                  state.selectedAgent?.id === params.agentId
+                    ? updatedAgent
+                    : state.selectedAgent,
+              }));
+            }
+
+            toast.success(
+              "Account connected",
+              `Account linked to agent with ${params.grantedScopes.length} permission(s)`
+            );
+            set({ accountLinking: false });
+            return true;
+          }
+
+          throw new Error(data?.error || "Failed to connect account");
+        } catch (error) {
+          console.error("[AgentStore] Failed to connect account:", error);
+          toast.error(
+            "Failed to connect account",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          set({ accountLinking: false });
+          return false;
+        }
+      },
+
+      // Disconnect account from agent
+      disconnectAccountFromAgent: async (
+        params: DisconnectAccountFromAgentParams
+      ): Promise<boolean> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Connection failed", "No active connection");
+          return false;
+        }
+
+        set({ accountLinking: true });
+
+        try {
+          const data = await client.request<DisconnectAccountFromAgentResponse>(
+            "disconnectAccountFromAgent",
+            params,
+            NO_CHANNEL
+          );
+
+          if (data?.success) {
+            // Update local state immediately
+            set((state) => {
+              const updateConnectedAccounts = (agent: Agent): Agent => ({
+                ...agent,
+                connectedAccounts: agent.connectedAccounts?.filter(
+                  (acc) => acc.accountId !== params.accountId
+                ),
+                connectedAccountIds: agent.connectedAccountIds?.filter(
+                  (id) => id !== params.accountId
+                ),
+              });
+
+              return {
+                agents: state.agents.map((a) =>
+                  a.id === params.agentId ? updateConnectedAccounts(a) : a
+                ),
+                selectedAgent:
+                  state.selectedAgent?.id === params.agentId
+                    ? updateConnectedAccounts(state.selectedAgent)
+                    : state.selectedAgent,
+                accountLinking: false,
+              };
+            });
+
+            toast.success("Account disconnected", "Account unlinked from agent");
+            return true;
+          }
+
+          throw new Error(data?.error || "Failed to disconnect account");
+        } catch (error) {
+          console.error("[AgentStore] Failed to disconnect account:", error);
+          toast.error(
+            "Failed to disconnect account",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          set({ accountLinking: false });
+          return false;
+        }
+      },
+
       // Chat with agent (supports streaming)
       chatWithAgent: async (request: ChatRequest): Promise<ChatResponse | null> => {
         const connectionSession = useAuthStore.getState().connectionSession;
         if (!connectionSession) return null;
 
         set({ chatLoading: true, chatError: null });
+
+        // Get conversationId from localStorage if not provided
+        const savedConversationId = request.conversationId || loadConversationId(request.agentId);
+        const conversationIdToUse = savedConversationId || request.conversationId;
 
         // Add user message to conversation
         const userMessage: ChatMessage = {
@@ -379,7 +568,7 @@ export const useAgentStore = create<AgentStore>()(
         const conversations = new Map(get().conversations);
         const existing = conversations.get(request.agentId) || [];
         conversations.set(request.agentId, [...existing, userMessage]);
-        set({ conversations, currentConversationId: request.conversationId || null });
+        set({ conversations, currentConversationId: conversationIdToUse || null });
 
         const startTime = Date.now();
 
@@ -403,7 +592,7 @@ export const useAgentStore = create<AgentStore>()(
                 body: {
                   agentId: request.agentId,
                   message: request.message,
-                  conversationId: request.conversationId,
+                  conversationId: conversationIdToUse,
                   context: request.context,
                   stream: true,
                 },
@@ -436,6 +625,7 @@ export const useAgentStore = create<AgentStore>()(
             set({ conversations: streamConversations });
 
             // Read stream
+            let currentConversationId = conversationIdToUse;
             while (true) {
               const { done, value } = await reader.read();
               if (done) break;
@@ -451,7 +641,17 @@ export const useAgentStore = create<AgentStore>()(
                   
                   try {
                     const parsed = JSON.parse(data);
-                    const content = parsed.choices?.[0]?.delta?.content || 
+                    
+                    // Extract conversationId from chunk if available (per guide)
+                    if (parsed.conversationId && !currentConversationId) {
+                      currentConversationId = parsed.conversationId;
+                      saveConversationId(request.agentId, currentConversationId);
+                      set({ currentConversationId });
+                    }
+                    
+                    // Extract content - prioritize delta.content as per guide
+                    const delta = parsed.choices?.[0]?.delta;
+                    const content = delta?.content || 
                                    parsed.content || 
                                    parsed.chunk || 
                                    "";
@@ -496,14 +696,21 @@ export const useAgentStore = create<AgentStore>()(
                 : msg
             );
             finalConversations.set(request.agentId, finalizedMessages);
+            
+            // Save conversationId if we got one
+            if (currentConversationId) {
+              saveConversationId(request.agentId, currentConversationId);
+            }
+            
             set({
               conversations: finalConversations,
+              currentConversationId: currentConversationId || null,
               chatLoading: false,
             });
 
             return {
               message: fullContent,
-              conversationId: request.conversationId || "",
+              conversationId: currentConversationId || request.conversationId || "",
             };
           } catch (error) {
             console.error("[AgentStore] Streaming chat error:", error);
@@ -529,7 +736,7 @@ export const useAgentStore = create<AgentStore>()(
             {
               agentId: request.agentId,
               message: request.message,
-              conversationId: request.conversationId,
+              conversationId: conversationIdToUse,
               context: request.context,
             },
             NO_CHANNEL
@@ -564,11 +771,19 @@ export const useAgentStore = create<AgentStore>()(
           const currentMessages = updatedConversations.get(request.agentId) || [];
           updatedConversations.set(request.agentId, [...currentMessages, assistantMessage]);
           
+          // Save conversationId to localStorage
+          if (data.conversationId) {
+            saveConversationId(request.agentId, data.conversationId);
+          }
+          
           set({
             conversations: updatedConversations,
             currentConversationId: data.conversationId,
             chatLoading: false,
           });
+
+          // Refresh conversation list to update lastMessage
+          get().listConversations({ agentId: request.agentId });
 
           return { ...data, message: responseContent };
         } catch (error) {
@@ -864,19 +1079,491 @@ export const useAgentStore = create<AgentStore>()(
         }
       },
 
-      // UI actions
+      // ========================================================================
+      // Task Actions
+      // ========================================================================
+
+      // List tasks
+      listTasks: async (params?: ListTasksRequest): Promise<void> => {
+        const client = getApiClient();
+        if (!client) {
+          set({ tasksError: "No active connection", tasksLoading: false });
+          return;
+        }
+
+        set({ tasksLoading: true, tasksError: null });
+
+        try {
+          const data = await client.request<ListTasksResponse>(
+            "listTasks",
+            params || {},
+            NO_CHANNEL
+          );
+
+          if (data && Array.isArray(data.tasks)) {
+            set({
+              tasks: data.tasks,
+              tasksLoading: false,
+              tasksError: null,
+            });
+          } else if (data && Array.isArray(data)) {
+            set({
+              tasks: data as unknown as Task[],
+              tasksLoading: false,
+              tasksError: null,
+            });
+          } else {
+            set({
+              tasks: [],
+              tasksLoading: false,
+              tasksError: null,
+            });
+          }
+        } catch (error) {
+          console.error("[AgentStore] Failed to list tasks:", error);
+          const errorMessage = error instanceof Error
+            ? error.message
+            : "Failed to fetch tasks";
+          set({
+            tasksError: errorMessage,
+            tasksLoading: false,
+          });
+          toast.error("Failed to load tasks", errorMessage);
+        }
+      },
+
+      // Get single task
+      getTask: async (taskId: string): Promise<Task | null> => {
+        const client = getApiClient();
+        if (!client) return null;
+
+        try {
+          const data = await client.request<TaskResponse>(
+            "getTask",
+            { taskId },
+            NO_CHANNEL
+          );
+
+          const task = data?.task || data as unknown as Task;
+          return task;
+        } catch (error) {
+          console.error("[AgentStore] Failed to get task:", error);
+          toast.error(
+            "Failed to load task",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          return null;
+        }
+      },
+
+      // Create task
+      createTask: async (request: CreateTaskRequest): Promise<Task | null> => {
+        const client = getApiClient();
+        if (!client) return null;
+
+        set({ tasksLoading: true });
+
+        try {
+          const data = await client.request<TaskResponse>(
+            "createTask",
+            request,
+            NO_CHANNEL
+          );
+
+          const task = data?.task || data as unknown as Task;
+
+          // Add to tasks list
+          set((state) => ({
+            tasks: [task, ...state.tasks],
+            selectedTask: task,
+            tasksLoading: false,
+          }));
+
+          toast.success("Task created", `${task.name} is ready`);
+          return task;
+        } catch (error) {
+          console.error("[AgentStore] Failed to create task:", error);
+          const errorMessage = error instanceof Error
+            ? error.message
+            : "Unknown error occurred";
+          toast.error("Failed to create task", errorMessage);
+          set({ tasksLoading: false });
+          return null;
+        }
+      },
+
+      // Update task
+      updateTask: async (request: UpdateTaskRequest): Promise<Task | null> => {
+        const client = getApiClient();
+        if (!client) return null;
+
+        set({ tasksLoading: true });
+
+        try {
+          const data = await client.request<TaskResponse>(
+            "updateTask",
+            request,
+            NO_CHANNEL
+          );
+
+          const task = data?.task || data as unknown as Task;
+
+          // Update tasks list
+          set((state) => ({
+            tasks: state.tasks.map((t) =>
+              t.id === task.id ? task : t
+            ),
+            selectedTask: state.selectedTask?.id === task.id
+              ? task
+              : state.selectedTask,
+            tasksLoading: false,
+          }));
+
+          toast.success("Task updated", `${task.name} has been updated`);
+          return task;
+        } catch (error) {
+          console.error("[AgentStore] Failed to update task:", error);
+          toast.error(
+            "Failed to update task",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          set({ tasksLoading: false });
+          return null;
+        }
+      },
+
+      // Delete task
+      deleteTask: async (taskId: string): Promise<boolean> => {
+        const client = getApiClient();
+        if (!client) return false;
+
+        set({ tasksLoading: true });
+
+        try {
+          await client.request<DeleteTaskResponse>(
+            "deleteTask",
+            { taskId },
+            NO_CHANNEL
+          );
+
+          // Remove from tasks list
+          set((state) => ({
+            tasks: state.tasks.filter((t) => t.id !== taskId),
+            selectedTask: state.selectedTask?.id === taskId
+              ? null
+              : state.selectedTask,
+            tasksLoading: false,
+          }));
+
+          toast.success("Task deleted", "Task has been removed");
+          return true;
+        } catch (error) {
+          console.error("[AgentStore] Failed to delete task:", error);
+          toast.error(
+            "Failed to delete task",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          set({ tasksLoading: false });
+          return false;
+        }
+      },
+
+      // Execute task
+      executeTask: async (request: ExecuteTaskRequest): Promise<ExecuteTaskResponse | null> => {
+        const client = getApiClient();
+        if (!client) return null;
+
+        set({ taskExecuting: true });
+
+        try {
+          const data = await client.request<ExecuteTaskResponse>(
+            "executeTask",
+            request,
+            NO_CHANNEL
+          );
+
+          set({ taskExecuting: false });
+
+          if (data.status === "completed") {
+            toast.success("Task executed", `Completed in ${data.duration}ms`);
+          } else {
+            toast.error("Task failed", data.error || "Execution failed");
+          }
+
+          // Refresh task to get updated status
+          await get().listTasks({ agentId: get().selectedAgent?.id });
+
+          return data;
+        } catch (error) {
+          console.error("[AgentStore] Failed to execute task:", error);
+          toast.error(
+            "Failed to execute task",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          set({ taskExecuting: false });
+          return null;
+        }
+      },
+
+      // Approve task
+      approveTask: async (request: ApproveTaskRequest): Promise<ApproveTaskResponse | null> => {
+        const client = getApiClient();
+        if (!client) return null;
+
+        try {
+          const data = await client.request<ApproveTaskResponse>(
+            "approveTask",
+            request,
+            NO_CHANNEL
+          );
+
+          // Update task status in list
+          set((state) => ({
+            tasks: state.tasks.map((t) =>
+              t.id === request.taskId
+                ? { ...t, status: data.newStatus as Task["status"] }
+                : t
+            ),
+          }));
+
+          toast.success(
+            request.approved ? "Task approved" : "Task rejected",
+            request.reason || (request.approved ? "Task will proceed" : "Task has been rejected")
+          );
+
+          return data;
+        } catch (error) {
+          console.error("[AgentStore] Failed to approve task:", error);
+          toast.error(
+            "Failed to process approval",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          return null;
+        }
+      },
+
+      // Pause task
+      pauseTask: async (taskId: string): Promise<PauseTaskResponse | null> => {
+        const client = getApiClient();
+        if (!client) return null;
+
+        try {
+          const data = await client.request<PauseTaskResponse>(
+            "pauseTask",
+            { taskId },
+            NO_CHANNEL
+          );
+
+          // Update task status in list
+          set((state) => ({
+            tasks: state.tasks.map((t) =>
+              t.id === taskId ? { ...t, status: "cancelled" as const } : t
+            ),
+          }));
+
+          toast.success("Task paused", "Task has been paused");
+          return data;
+        } catch (error) {
+          console.error("[AgentStore] Failed to pause task:", error);
+          toast.error(
+            "Failed to pause task",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          return null;
+        }
+      },
+
+      // Resume task
+      resumeTask: async (taskId: string): Promise<ResumeTaskResponse | null> => {
+        const client = getApiClient();
+        if (!client) return null;
+
+        try {
+          const data = await client.request<ResumeTaskResponse>(
+            "resumeTask",
+            { taskId },
+            NO_CHANNEL
+          );
+
+          // Update task status in list
+          set((state) => ({
+            tasks: state.tasks.map((t) =>
+              t.id === taskId ? { ...t, status: data.status as Task["status"] } : t
+            ),
+          }));
+
+          toast.success("Task resumed", "Task has been resumed");
+          return data;
+        } catch (error) {
+          console.error("[AgentStore] Failed to resume task:", error);
+          toast.error(
+            "Failed to resume task",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          return null;
+        }
+      },
+
+      // Get task history
+      getTaskHistory: async (request: TaskHistoryRequest): Promise<void> => {
+        const client = getApiClient();
+        if (!client) return;
+
+        try {
+          const data = await client.request<TaskHistoryResponse>(
+            "getTaskHistory",
+            request,
+            NO_CHANNEL
+          );
+
+          set({ taskHistory: data.history || [] });
+        } catch (error) {
+          console.error("[AgentStore] Failed to get task history:", error);
+          toast.error(
+            "Failed to load task history",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+        }
+      },
+
+      // Set selected task
+      setSelectedTask: (task: Task | null): void => {
+        set({ selectedTask: task });
+      },
+
+      // Clear task history
+      clearTaskHistory: (): void => {
+        set({ taskHistory: [] });
+      },
+
+      // ========================================================================
+      // Conversation History Actions
+      // ========================================================================
+
+      // Get full conversation by ID
+      getConversation: async (params: GetConversationParams): Promise<Conversation | null> => {
+        const client = getApiClient();
+        if (!client) return null;
+
+        set({ conversationLoading: true });
+
+        try {
+          const data = await client.request<GetConversationResponse>(
+            "getConversation",
+            params,
+            NO_CHANNEL
+          );
+
+          if (data?.success && data.conversation) {
+            // Restore messages to conversation map
+            const conversations = new Map(get().conversations);
+            conversations.set(data.conversation.agentId, data.conversation.messages);
+            
+            set({
+              conversations,
+              currentConversationId: data.conversation.id,
+              conversationLoading: false,
+            });
+
+            // Save conversationId to localStorage
+            saveConversationId(data.conversation.agentId, data.conversation.id);
+
+            return data.conversation;
+          }
+
+          set({ conversationLoading: false });
+          return null;
+        } catch (error) {
+          console.error("[AgentStore] Failed to get conversation:", error);
+          toast.error(
+            "Failed to load conversation",
+            error instanceof Error ? error.message : "Unknown error"
+          );
+          set({ conversationLoading: false });
+          return null;
+        }
+      },
+
+      // List all conversations
+      listConversations: async (params?: ListConversationsParams): Promise<void> => {
+        const client = getApiClient();
+        if (!client) return;
+
+        set({ conversationLoading: true });
+
+        try {
+          const data = await client.request<ListConversationsResponse>(
+            "listConversations",
+            params || {},
+            NO_CHANNEL
+          );
+
+          if (data?.success && Array.isArray(data.conversations)) {
+            set({
+              conversationList: data.conversations,
+              conversationLoading: false,
+            });
+          } else {
+            set({
+              conversationList: [],
+              conversationLoading: false,
+            });
+          }
+        } catch (error) {
+          console.error("[AgentStore] Failed to list conversations:", error);
+          set({
+            conversationList: [],
+            conversationLoading: false,
+          });
+        }
+      },
+
+      // Load conversation for agent (from localStorage or latest)
+      loadConversationForAgent: async (agentId: string): Promise<void> => {
+        // Try to load saved conversationId from localStorage (per guide)
+        const savedConversationId = loadConversationId(agentId);
+        
+        if (savedConversationId) {
+          const conversation = await get().getConversation({ conversationId: savedConversationId });
+          if (conversation) {
+            // Successfully loaded - conversation is already restored
+            return;
+          }
+          // Conversation not found - remove invalid conversationId from localStorage
+          removeConversationId(agentId);
+        }
+
+        // If no saved conversation or failed to load, try to get latest conversation
+        await get().listConversations({ agentId, limit: 1 });
+        const latestConversation = get().conversationList[0];
+        
+        if (latestConversation) {
+          await get().getConversation({ conversationId: latestConversation.id });
+        }
+      },
+
+      // ========================================================================
+      // UI Actions
+      // ========================================================================
+
       setSelectedAgent: (agent: Agent | null): void => {
         set({ selectedAgent: agent });
+        
+        // Load conversation for selected agent
+        if (agent) {
+          get().loadConversationForAgent(agent.id);
+        }
       },
 
       clearConversation: (agentId: string): void => {
         const conversations = new Map(get().conversations);
         conversations.delete(agentId);
+        removeConversationId(agentId);
         set({ conversations, currentConversationId: null });
       },
 
       clearError: (): void => {
-        set({ agentsError: null, chatError: null });
+        set({ agentsError: null, chatError: null, tasksError: null });
       },
     }),
     {
@@ -900,3 +1587,17 @@ export const useWorkspaceLoading = () => useAgentStore((state) => state.workspac
 export const useLastSyncTime = () => useAgentStore((state) => state.lastSyncTime);
 export const useConversation = (agentId: string) => 
   useAgentStore((state) => state.conversations.get(agentId) || []);
+export const useConversationList = () => useAgentStore((state) => state.conversationList);
+export const useCurrentConversationId = () => useAgentStore((state) => state.currentConversationId);
+export const useConversationLoading = () => useAgentStore((state) => state.conversationLoading);
+
+// Task selectors
+export const useTasks = () => useAgentStore((state) => state.tasks);
+export const useSelectedTask = () => useAgentStore((state) => state.selectedTask);
+export const useTaskHistory = () => useAgentStore((state) => state.taskHistory);
+export const useTasksLoading = () => useAgentStore((state) => state.tasksLoading);
+export const useTaskExecuting = () => useAgentStore((state) => state.taskExecuting);
+export const useTasksError = () => useAgentStore((state) => state.tasksError);
+
+// Account linking selector
+export const useAccountLinking = () => useAgentStore((state) => state.accountLinking);

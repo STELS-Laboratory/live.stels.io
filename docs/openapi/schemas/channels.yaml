@@ -1,0 +1,283 @@
+# Channel Schemas - User data channels
+# 
+# NOTE: Channel methods are implemented but not yet exposed via WebFIX RPC.
+# They are available for internal use and will be registered in a future version.
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+ChannelVisibility:
+  type: string
+  enum: [public, private]
+  description: Channel visibility setting
+
+ChannelDefinition:
+  type: object
+  required:
+    - id
+    - name
+    - owner
+    - visibility
+    - namespace
+    - keyPrefix
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      type: string
+      description: Unique channel identifier (auto-generated from name)
+    name:
+      type: string
+      description: Display name for the channel
+    description:
+      type: string
+      description: Optional channel description
+    owner:
+      type: string
+      description: Username of channel owner
+    visibility:
+      $ref: "#/ChannelVisibility"
+    namespace:
+      type: string
+      enum: [user, system]
+      description: Channel namespace
+    keyPrefix:
+      type: string
+      description: KV key prefix for channel data
+    readers:
+      type: array
+      items:
+        type: string
+      description: List of usernames with read access
+    writers:
+      type: array
+      items:
+        type: string
+      description: List of usernames with write access
+    createdAt:
+      type: integer
+      description: Unix timestamp of creation
+    updatedAt:
+      type: integer
+      description: Unix timestamp of last update
+    metadata:
+      type: object
+      description: Optional custom metadata
+
+AvailableChannel:
+  type: object
+  properties:
+    id:
+      type: string
+      description: Channel ID
+    name:
+      type: string
+      description: Channel name
+    description:
+      type: string
+    owner:
+      type: string
+      description: Channel owner username
+    visibility:
+      $ref: "#/ChannelVisibility"
+    isOwner:
+      type: boolean
+      description: Whether current user is the owner
+    permission:
+      type: string
+      enum: [admin, write, read]
+      description: User's permission level
+    subscriptionKey:
+      type: string
+      description: Key to subscribe to channel updates
+    createdAt:
+      type: integer
+    updatedAt:
+      type: integer
+
+# Request/Response Schemas
+
+CreateChannelParams:
+  type: object
+  required:
+    - name
+  properties:
+    name:
+      type: string
+      description: Channel display name
+    description:
+      type: string
+      description: Optional channel description
+    visibility:
+      $ref: "#/ChannelVisibility"
+      default: private
+    readers:
+      type: array
+      items:
+        type: string
+      description: List of usernames with read access
+    writers:
+      type: array
+      items:
+        type: string
+      description: List of usernames with write access
+    metadata:
+      type: object
+      description: Optional custom metadata
+
+CreateChannelResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    data:
+      type: object
+      properties:
+        channel:
+          $ref: "#/ChannelDefinition"
+        keyPrefix:
+          type: string
+          description: KV key prefix for channel data
+
+ListChannelsParams:
+  type: object
+  properties:
+    owner:
+      type: string
+      description: Filter by owner username
+    visibility:
+      $ref: "#/ChannelVisibility"
+    ownOnly:
+      type: boolean
+      default: false
+      description: Include only own channels
+
+ListChannelsResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    data:
+      type: object
+      properties:
+        channels:
+          type: array
+          items:
+            $ref: "#/ChannelDefinition"
+        total:
+          type: integer
+
+ReadChannelDataParams:
+  type: object
+  required:
+    - channelId
+  properties:
+    channelId:
+      type: string
+      description: Channel ID to read from
+    subKey:
+      type: array
+      items:
+        oneOf:
+          - type: string
+          - type: integer
+      description: Optional sub-key path within the channel
+
+ReadChannelDataResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    data:
+      type: object
+      properties:
+        value:
+          description: The stored value (any JSON type)
+        key:
+          type: string
+          description: Full key path
+        versionstamp:
+          type: string
+          description: Version stamp for optimistic locking
+        timestamp:
+          type: integer
+          description: Read timestamp
+
+WriteChannelDataParams:
+  type: object
+  required:
+    - channelId
+    - data
+  properties:
+    channelId:
+      type: string
+      description: Channel ID to write to
+    owner:
+      type: string
+      description: Channel owner (optional, defaults to current user)
+    subKey:
+      type: array
+      items:
+        oneOf:
+          - type: string
+          - type: integer
+      description: Optional sub-key path within the channel
+    data:
+      description: Data to write (any JSON type)
+    ttl:
+      type: integer
+      description: Optional TTL in milliseconds
+
+WriteChannelDataResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    data:
+      type: object
+      properties:
+        written:
+          type: boolean
+        key:
+          type: string
+          description: Full key path
+        timestamp:
+          type: integer
+
+GetAvailableChannelsParams:
+  type: object
+  properties:
+    includeOwn:
+      type: boolean
+      default: true
+      description: Include own channels
+    includePublic:
+      type: boolean
+      default: true
+      description: Include public channels from others
+    includeShared:
+      type: boolean
+      default: true
+      description: Include private channels where user has access
+
+GetAvailableChannelsResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    data:
+      type: object
+      properties:
+        channels:
+          type: array
+          items:
+            $ref: "#/AvailableChannel"
+        total:
+          type: integer
+        summary:
+          type: object
+          properties:
+            own:
+              type: integer
+            public:
+              type: integer
+            shared:
+              type: integer

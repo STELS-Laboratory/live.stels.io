@@ -3,7 +3,9 @@
  * Interactive chat interface for communicating with agents
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, memo } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   Bot,
   Send,
@@ -41,6 +43,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useAccountsStore } from "@/stores/modules/accounts.store";
+import { getExchangeIconPath } from "@/apps/accounts/types";
 import type { Agent, ChatMessage } from "../types";
 
 interface AgentChatPanelProps {
@@ -65,7 +69,119 @@ function formatTimestamp(timestamp: number): string {
   return date.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
-function MessageBubble({ message }: { message: ChatMessage }) {
+/** Markdown content renderer with custom styling */
+const MarkdownContent = memo(function MarkdownContent({ content }: { content: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        // Headings
+        h1: ({ children }) => (
+          <h1 className="text-lg font-bold mt-3 mb-2 first:mt-0">{children}</h1>
+        ),
+        h2: ({ children }) => (
+          <h2 className="text-base font-bold mt-3 mb-2 first:mt-0">{children}</h2>
+        ),
+        h3: ({ children }) => (
+          <h3 className="text-sm font-bold mt-2 mb-1 first:mt-0">{children}</h3>
+        ),
+        // Paragraphs
+        p: ({ children }) => (
+          <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>
+        ),
+        // Lists
+        ul: ({ children }) => (
+          <ul className="list-disc list-outside ml-4 mb-2 space-y-0.5">{children}</ul>
+        ),
+        ol: ({ children }) => (
+          <ol className="list-decimal list-outside ml-4 mb-2 space-y-0.5">{children}</ol>
+        ),
+        li: ({ children }) => (
+          <li className="leading-relaxed">{children}</li>
+        ),
+        // Inline code
+        code: ({ className, children, ...props }) => {
+          const isBlock = className?.includes("language-");
+          if (isBlock) {
+            return (
+              <code
+                className="block bg-background/50 rounded-md p-3 my-2 text-xs font-mono overflow-x-auto"
+                {...props}
+              >
+                {children}
+              </code>
+            );
+          }
+          return (
+            <code
+              className="bg-background/50 px-1.5 py-0.5 rounded text-xs font-mono"
+              {...props}
+            >
+              {children}
+            </code>
+          );
+        },
+        // Code blocks
+        pre: ({ children }) => (
+          <pre className="bg-background/50 rounded-md overflow-x-auto my-2">
+            {children}
+          </pre>
+        ),
+        // Bold
+        strong: ({ children }) => (
+          <strong className="font-semibold">{children}</strong>
+        ),
+        // Italic
+        em: ({ children }) => (
+          <em className="italic">{children}</em>
+        ),
+        // Links
+        a: ({ href, children }) => (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary underline underline-offset-2 hover:text-primary/80"
+          >
+            {children}
+          </a>
+        ),
+        // Blockquote
+        blockquote: ({ children }) => (
+          <blockquote className="border-l-2 border-primary/50 pl-3 my-2 italic text-muted-foreground">
+            {children}
+          </blockquote>
+        ),
+        // Horizontal rule
+        hr: () => <hr className="my-3 border-border" />,
+        // Tables
+        table: ({ children }) => (
+          <div className="overflow-x-auto my-2">
+            <table className="min-w-full text-xs border-collapse">{children}</table>
+          </div>
+        ),
+        thead: ({ children }) => (
+          <thead className="bg-muted/50">{children}</thead>
+        ),
+        th: ({ children }) => (
+          <th className="border border-border px-2 py-1 text-left font-semibold">{children}</th>
+        ),
+        td: ({ children }) => (
+          <td className="border border-border px-2 py-1">{children}</td>
+        ),
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
+});
+
+interface MessageBubbleProps {
+  message: ChatMessage;
+  isStreaming?: boolean;
+}
+
+function MessageBubble({ message, isStreaming = false }: MessageBubbleProps) {
   const [copied, setCopied] = useState(false);
   
   const handleCopy = useCallback(async () => {
@@ -76,6 +192,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 
   const isUser = message.role === "user";
   const isError = message.role === "system" && message.content.startsWith("Error:");
+  const isAssistant = message.role === "assistant";
 
   return (
     <div
@@ -121,9 +238,15 @@ function MessageBubble({ message }: { message: ChatMessage }) {
               : "bg-muted rounded-bl-md"
           )}
         >
-          <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-            {message.content}
-          </p>
+          {isAssistant && !isStreaming ? (
+            <div className="text-sm prose prose-sm dark:prose-invert max-w-none">
+              <MarkdownContent content={message.content} />
+            </div>
+          ) : (
+            <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+              {message.content}
+            </p>
+          )}
         </div>
 
         {/* Message Meta */}
@@ -193,6 +316,7 @@ export function AgentChatPanel({
   onEditAgent,
   onDeleteAgent,
 }: AgentChatPanelProps) {
+  const accounts = useAccountsStore((s) => s.accounts);
   const [input, setInput] = useState("");
   const [streamEnabled, setStreamEnabled] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -339,6 +463,37 @@ export function AgentChatPanel({
                   </TooltipContent>
                 </Tooltip>
               )}
+              {(() => {
+                const ids =
+                  agent.connectedAccounts?.map((c) => c.accountId) ??
+                  agent.connectedAccountIds ??
+                  [];
+                if (ids.length === 0) return null;
+                return (
+                  <span className="flex items-center gap-1" title="Connected accounts">
+                    {ids.slice(0, 4).map((id) => {
+                      const acc = accounts.find(
+                        (a) => a.account.nid === id || a.id === id,
+                      );
+                      const ex = acc?.account.exchange ?? "gate";
+                      return (
+                        <img
+                          key={id}
+                          src={getExchangeIconPath(ex)}
+                          alt=""
+                          className="h-4 w-4 rounded object-contain"
+                          title={acc?.account.nid ?? id}
+                        />
+                      );
+                    })}
+                    {ids.length > 4 && (
+                      <span className="text-[10px] text-muted-foreground">
+                        +{ids.length - 4}
+                      </span>
+                    )}
+                  </span>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -407,7 +562,7 @@ export function AgentChatPanel({
       )}
 
       {/* Messages */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-h-0 overflow-hidden">
         <ScrollArea className="h-full" ref={scrollContainerRef}>
           <div className="p-4">
             {messages.length === 0 ? (
@@ -424,9 +579,19 @@ export function AgentChatPanel({
               </div>
             ) : (
               <div className="space-y-4">
-                {messages.map((message) => (
-                  <MessageBubble key={message.id} message={message} />
-                ))}
+                {messages.map((message, index) => {
+                  // Check if this is the last assistant message and we're still loading (streaming)
+                  const isLastMessage = index === messages.length - 1;
+                  const isStreamingMessage = loading && isLastMessage && message.role === "assistant";
+                  
+                  return (
+                    <MessageBubble
+                      key={message.id}
+                      message={message}
+                      isStreaming={isStreamingMessage}
+                    />
+                  );
+                })}
 
                 {/* Typing indicator when loading and no streaming content */}
                 {loading && messages[messages.length - 1]?.role !== "assistant" && (

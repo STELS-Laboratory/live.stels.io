@@ -1,0 +1,101 @@
+# Connection Schemas - Authentication and connection management
+# Part of STELS Agentic AI Platform OpenAPI Specification
+
+ConnectionNodeParams:
+  type: object
+  properties:
+    clientInfo:
+      type: object
+      properties:
+        userAgent:
+          type: string
+        platform:
+          type: string
+        version:
+          type: string
+
+ConnectionNodeResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    nodeId:
+      type: string
+    serverTime:
+      $ref: "common.yaml#/Timestamp"
+
+GitHubAuthParams:
+  type: object
+  required:
+    - code
+  properties:
+    code:
+      type: string
+      description: GitHub OAuth authorization code
+    state:
+      type: string
+      description: OAuth state parameter
+
+GitHubAuthResponse:
+  type: object
+  properties:
+    webfix:
+      type: string
+    success:
+      type: boolean
+    session:
+      type: string
+      description: Session token
+    user:
+      type: object
+      properties:
+        githubUsername:
+          type: string
+        avatarUrl:
+          type: string
+    error:
+      type: string
+
+RequestDeveloperAccessParams:
+  type: object
+  required:
+    - githubUsername
+    - reason
+  properties:
+    githubUsername:
+      type: string
+    reason:
+      type: string
+      maxLength: 500
+
+ApproveDeveloperAccessParams:
+  type: object
+  required:
+    - requestId
+    - approved
+  properties:
+    requestId:
+      $ref: "common.yaml#/UUID"
+    approved:
+      type: boolean
+    reason:
+      type: string
+
+DeveloperRequest:
+  type: object
+  properties:
+    id:
+      $ref: "common.yaml#/UUID"
+    githubUsername:
+      type: string
+    reason:
+      type: string
+    status:
+      type: string
+      enum: [pending, approved, rejected]
+    requestedAt:
+      $ref: "common.yaml#/Timestamp"
+    respondedAt:
+      $ref: "common.yaml#/Timestamp"
