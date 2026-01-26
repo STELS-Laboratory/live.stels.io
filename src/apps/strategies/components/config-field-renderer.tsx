@@ -67,6 +67,13 @@ export function ConfigFieldRenderer({
   disabled = false,
   selectedAgent,
 }: ConfigFieldRendererProps) {
+  const handleChange = useCallback(
+    (newValue: unknown) => {
+      onChange(field.id, newValue);
+    },
+    [field.id, onChange]
+  );
+
   // Check dependsOn condition
   if (field.dependsOn) {
     const dependentValue = allValues[field.dependsOn.field];
@@ -74,13 +81,6 @@ export function ConfigFieldRenderer({
       return null; // Don't render this field
     }
   }
-
-  const handleChange = useCallback(
-    (newValue: unknown) => {
-      onChange(field.id, newValue);
-    },
-    [field.id, onChange]
-  );
 
   return (
     <div className="space-y-2">
@@ -467,7 +467,7 @@ interface AccountFieldProps {
   selectedAgent?: Agent;
 }
 
-function AccountField({ field, value, onChange, error, disabled, selectedAgent }: AccountFieldProps) {
+function AccountField({ value, onChange, error, disabled, selectedAgent }: AccountFieldProps) {
   const { accounts: allAccounts } = useAccountsStore();
 
   // Filter accounts based on agent's connectedAccounts
@@ -704,9 +704,10 @@ function ArrayField({ field, value, onChange, error, disabled }: ArrayFieldProps
 }
 
 // ============================================================================
-// Validation Helpers
+// Validation Helpers (exported for use in parent components)
 // ============================================================================
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function validateField(
   field: StrategyConfigField,
   value: unknown
@@ -754,6 +755,7 @@ export function validateField(
   return undefined;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function validateConfig(
   fields: StrategyConfigField[],
   values: Record<string, unknown>
@@ -773,6 +775,7 @@ export function validateConfig(
 /**
  * Check if a field should be visible based on dependsOn condition
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function isFieldVisible(
   field: StrategyConfigField,
   allValues: Record<string, unknown>

@@ -55,10 +55,11 @@ const DATE_FILTERS: { value: DateFilter; label: string }[] = [
 function getFilterStartTime(filter: DateFilter): number {
   const now = Date.now();
   switch (filter) {
-    case "today":
+    case "today": {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       return today.getTime();
+    }
     case "7d":
       return now - 7 * 24 * 60 * 60 * 1000;
     case "30d":

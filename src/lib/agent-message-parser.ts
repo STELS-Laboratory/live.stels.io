@@ -34,7 +34,7 @@ export interface ParsedMessage {
 // Patterns for detecting different content types
 const PATTERNS = {
   // JSON object or array (standalone on its own lines)
-  json: /^(\s*)([\[{][\s\S]*?[\]}])(\s*)$/m,
+  json: /^(\s*)([[{][\s\S]*?[\]}])(\s*)$/m,
   // Tool call pattern: { "name": "...", "arguments": {...} }
   toolCall: /\{\s*"name"\s*:\s*"([^"]+)"\s*,\s*"arguments"\s*:\s*(\{[\s\S]*?\})\s*\}/g,
   // Thinking/reasoning patterns (common LLM patterns)
@@ -50,12 +50,12 @@ const PATTERNS = {
   // HTML anchor tags
   htmlLink: /<a\s+href="([^"]+)"[^>]*>([^<]*)<\/a>/gi,
   // Raw URLs
-  rawUrl: /(?<!["\(])https?:\/\/[^\s<>\)"',]+/g,
+  rawUrl: /(?<!["(])https?:\/\/[^\s<>)"',]+/g,
   // LaTeX math (block and inline)
   latexBlock: /\\\[([\s\S]*?)\\\]/g,
   latexInline: /\\\(([\s\S]*?)\\\)/g,
   // Result prefix
-  resultPrefix: /^Результат:\s*/m,
+  resultPrefix: /^(?:Result|Результат):\s*/m,
 };
 
 /**
@@ -69,7 +69,7 @@ function isThinkingText(text: string): boolean {
   if (trimmed.length > 1000) return false;
   
   // Skip if it has markdown formatting (likely actual content for user)
-  if (/^#{1,6}\s|^\*{1,2}[^*]|\|[\s\-]+\|/.test(trimmed)) return false;
+  if (/^#{1,6}\s|^\*{1,2}[^*]|\|[\s-]+\|/.test(trimmed)) return false;
   
   const thinkingIndicators = [
     // English patterns
@@ -153,7 +153,7 @@ function isToolCallJson(str: string): { isToolCall: boolean; name?: string; args
 export function convertHtmlLinksToMarkdown(text: string): string {
   return text.replace(PATTERNS.htmlLink, (_, href, linkText) => {
     // Clean up the link text
-    const cleanText = linkText.trim() || "Читати →";
+    const cleanText = linkText.trim() || "Read more →";
     return `[${cleanText}](${href})`;
   });
 }
@@ -202,10 +202,10 @@ export function processLatex(text: string): string {
 }
 
 /**
- * Extracts JSON from text that contains "Результат:" or similar prefixes
+ * Extracts JSON from text that contains "Result:" or similar prefixes
  */
 function extractResultJson(text: string): { prefix: string; json: string } | null {
-  const resultMatch = text.match(/^(Результат:?\s*)([\[{][\s\S]*[\]}])$/m);
+  const resultMatch = text.match(/^((?:Result|Результат):?\s*)([[{][\s\S]*[\]}])$/m);
   if (resultMatch && isValidJson(resultMatch[2])) {
     return { prefix: resultMatch[1], json: resultMatch[2] };
   }
@@ -250,7 +250,7 @@ export function parseAgentMessage(content: string): ParsedMessage {
     };
   }
   
-  // Check for "Результат:" followed by JSON
+  // Check for "Result:" followed by JSON
   const resultExtraction = extractResultJson(processedContent.trim());
   if (resultExtraction) {
     return {
@@ -283,7 +283,7 @@ export function parseAgentMessage(content: string): ParsedMessage {
     }
     pendingResultMarker = false;
     
-    // Check for "Результат:" prefix in this paragraph
+    // Check for "Result:" prefix in this paragraph
     const inlineResult = extractResultJson(paragraph);
     if (inlineResult) {
       hasJson = true;
@@ -294,8 +294,8 @@ export function parseAgentMessage(content: string): ParsedMessage {
       continue;
     }
     
-    // Check if this is just "Результат:" waiting for JSON in next paragraph
-    if (/^Результат:?\s*$/.test(paragraph)) {
+    // Check if this is just "Result:" waiting for JSON in next paragraph
+    if (/^(?:Result|Результат):?\s*$/i.test(paragraph)) {
       pendingResultMarker = true;
       continue;
     }

@@ -28,25 +28,15 @@ import type {
   Chain,
   ChainExecution,
   ListChainsParams,
-  ListChainsResponse,
   CreateChainParams,
-  CreateChainResponse,
   GetChainParams,
-  GetChainResponse,
   UpdateChainParams,
-  UpdateChainResponse,
   ExecuteChainParams,
-  ExecuteChainResponse,
   GetChainStatusParams,
-  GetChainStatusResponse,
   GetChainHistoryParams,
-  GetChainHistoryResponse,
   PauseChainParams,
-  PauseChainResponse,
   ResumeChainParams,
-  ResumeChainResponse,
   DeleteChainParams,
-  DeleteChainResponse,
 } from "./types";
 
 /**
@@ -74,7 +64,7 @@ const initialFilters: ChainsFilters = {
  */
 export const useChainsStore = create<ChainsStore>()(
   devtools(
-    (set, get) => ({
+    (set) => ({
       // Initial state
       chains: [],
       selectedChain: null,

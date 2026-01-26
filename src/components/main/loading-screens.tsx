@@ -16,6 +16,7 @@ interface LoadingScreenProps {
 /**
  * Get state message for display
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function getStateMessage(state: AppState): string {
   return STATE_MESSAGES[state] || "Loading...";
 }

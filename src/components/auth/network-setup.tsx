@@ -37,6 +37,8 @@ export function NetworkSetup(
     switch (network.id) {
       case "snaga":
         return <Network className="h-5 w-5 text-secondary-foreground" />;
+      case "air":
+        return <Network className="h-5 w-5 text-white" />;
       default:
         return <Network className="h-5 w-5 text-muted-foreground" />;
     }
@@ -46,6 +48,8 @@ export function NetworkSetup(
     switch (network.id) {
       case "snaga":
         return "bg-secondary text-secondary-foreground border-secondary-foreground/30";
+      case "air":
+        return "bg-sky-500/20 text-sky-700 dark:text-sky-400 border-sky-500/30";
       default:
         return "bg-muted/20 text-muted-foreground border-border";
     }
@@ -126,6 +130,8 @@ export function NetworkSetup(
                         ? "bg-blue-500"
                         : selectedNetwork.id === "mainnet"
                         ? "bg-emerald-500"
+                        : selectedNetwork.id === "air"
+                        ? "bg-sky-500"
                         : "bg-purple-500"
                     }`}
                   >

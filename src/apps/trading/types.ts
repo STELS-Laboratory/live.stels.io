@@ -321,6 +321,368 @@ export interface GetAccountMarketTypesResponse {
 }
 
 // ============================================
+// Professional Trading Types (v2.15.0)
+// ============================================
+
+// Bybit-specific types
+export type PositionIdx = 0 | 1 | 2; // 0=one-way, 1=buy side hedge, 2=sell side hedge
+
+export type TriggerBy = "LastPrice" | "MarkPrice" | "IndexPrice";
+
+export type TpSlMode = "Full" | "Partial";
+
+export type OrderFilter = "Order" | "StopOrder" | "tpslOrder";
+
+export type StopOrderType = 
+  | "stop_loss" 
+  | "take_profit" 
+  | "stop_loss_limit" 
+  | "take_profit_limit" 
+  | "trailing_stop";
+
+export type MarginMode = "cross" | "isolated";
+
+export type MarginAction = "add" | "reduce";
+
+export type MarketTypeOverride = "spot" | "linear" | "inverse" | "option";
+
+// === Order Management (v2.15.0) ===
+
+export interface EditOrderParams {
+  accountId: string;
+  orderId: string;
+  symbol: Symbol;
+  type?: OrderType;
+  side?: OrderSide;
+  amount?: number;
+  price?: number;
+  positionIdx?: PositionIdx;
+}
+
+export interface EditOrderResponse {
+  success: boolean;
+  raw?: {
+    orderId: string;
+    symbol: Symbol;
+    type: OrderType;
+    side: OrderSide;
+    amount: number;
+    price: number;
+    status: OrderStatus;
+    timestamp: number;
+  };
+  error?: string;
+}
+
+export interface CancelAllOrdersParams {
+  accountId: string;
+  symbol?: Symbol;
+  marketType?: MarketTypeOverride;
+  orderFilter?: OrderFilter;
+}
+
+export interface CancelAllOrdersResponse {
+  success: boolean;
+  raw?: {
+    canceledCount: number;
+    canceledOrders: Order[];
+    symbol?: Symbol;
+    timestamp: number;
+  };
+  error?: string;
+}
+
+export interface CreateOrderWithTpSlParams {
+  accountId: string;
+  symbol: Symbol;
+  type: "market" | "limit";
+  side: OrderSide;
+  amount: number;
+  price?: number;
+  takeProfitPrice?: number;
+  stopLossPrice?: number;
+  tpTriggerBy?: TriggerBy;
+  slTriggerBy?: TriggerBy;
+  tpslMode?: TpSlMode;
+  positionIdx?: PositionIdx;
+  reduceOnly?: boolean;
+  timeInForce?: "GTC" | "IOC" | "FOK" | "PostOnly";
+  marketType?: MarketTypeOverride;
+}
+
+export interface CreateOrderWithTpSlResponse {
+  success: boolean;
+  raw?: {
+    orderId: string;
+    symbol: Symbol;
+    type: string;
+    side: OrderSide;
+    amount: number;
+    price?: number;
+    takeProfitPrice?: number;
+    stopLossPrice?: number;
+    status: OrderStatus;
+    timestamp: number;
+    info?: Record<string, unknown>;
+  };
+  error?: string;
+}
+
+export interface CreateStopOrderParams {
+  accountId: string;
+  symbol: Symbol;
+  stopOrderType: StopOrderType;
+  side: OrderSide;
+  amount: number;
+  triggerPrice: number;
+  price?: number; // For limit stop orders
+  triggerBy?: TriggerBy;
+  positionIdx?: PositionIdx;
+  reduceOnly?: boolean;
+  timeInForce?: "GTC" | "IOC" | "FOK" | "PostOnly";
+  trailingDelta?: number; // For trailing_stop
+  activationPrice?: number; // For trailing_stop
+  marketType?: MarketTypeOverride;
+}
+
+export interface CreateStopOrderResponse {
+  success: boolean;
+  raw?: {
+    orderId: string;
+    symbol: Symbol;
+    stopOrderType: StopOrderType;
+    side: OrderSide;
+    amount: number;
+    triggerPrice: number;
+    price?: number;
+    status: OrderStatus;
+    timestamp: number;
+    info?: Record<string, unknown>;
+  };
+  error?: string;
+}
+
+// === Position Management (v2.15.0) ===
+
+export interface SetMarginModeParams {
+  accountId: string;
+  marginMode: MarginMode;
+  symbol: Symbol;
+  marketType?: "linear" | "inverse";
+}
+
+export interface SetMarginModeResponse {
+  success: boolean;
+  raw?: {
+    marginMode: MarginMode;
+    symbol: Symbol;
+    timestamp: number;
+  };
+  error?: string;
+}
+
+export interface ClosePositionParams {
+  accountId: string;
+  symbol: Symbol;
+  amount?: number; // Full position if not provided
+  positionIdx?: PositionIdx;
+  price?: number; // Market close if not provided
+  marketType?: "linear" | "inverse" | "option";
+}
+
+export interface ClosePositionResponse {
+  success: boolean;
+  raw?: {
+    orderId: string;
+    symbol: Symbol;
+    side: OrderSide;
+    amount: number;
+    price?: number;
+    status: OrderStatus;
+    closedPosition?: {
+      side: string;
+      contracts: number;
+    };
+    timestamp: number;
+    info?: Record<string, unknown>;
+  };
+  error?: string;
+}
+
+export interface SetPositionModeParams {
+  accountId: string;
+  hedged: boolean; // true = hedge mode, false = one-way
+  symbol?: Symbol;
+  marketType?: "linear" | "inverse";
+}
+
+export interface SetPositionModeResponse {
+  success: boolean;
+  raw?: {
+    hedged: boolean;
+    positionMode: "hedge" | "one-way";
+    symbol?: Symbol;
+    timestamp: number;
+  };
+  error?: string;
+}
+
+export interface ModifyMarginParams {
+  accountId: string;
+  symbol: Symbol;
+  amount: number;
+  action: MarginAction;
+  positionIdx?: PositionIdx;
+  marketType?: "linear" | "inverse";
+}
+
+export interface ModifyMarginResponse {
+  success: boolean;
+  raw?: {
+    symbol: Symbol;
+    action: MarginAction;
+    amount: number;
+    timestamp: number;
+    result?: Record<string, unknown>;
+  };
+  error?: string;
+}
+
+// === Risk Management (v2.15.0) ===
+
+export interface FetchLeverageTiersParams {
+  accountId: string;
+  symbol?: Symbol;
+  symbols?: Symbol[];
+  marketType?: "linear" | "inverse";
+}
+
+export interface LeverageTier {
+  tier: number;
+  currency?: string;
+  minNotional: number;
+  maxNotional: number;
+  maintenanceMarginRate: number;
+  maxLeverage: number;
+  info?: Record<string, unknown>;
+}
+
+export interface FetchLeverageTiersResponse {
+  success: boolean;
+  raw?: {
+    tiers: Record<string, LeverageTier[]>;
+    timestamp: number;
+  };
+  error?: string;
+}
+
+export interface FetchFundingRateParams {
+  accountId: string;
+  symbol: Symbol;
+  history?: boolean;
+  since?: number;
+  limit?: number;
+  marketType?: "linear" | "inverse";
+}
+
+export interface FundingRate {
+  symbol: Symbol;
+  fundingRate: number;
+  fundingTimestamp: number;
+  fundingDatetime?: string;
+  nextFundingTimestamp?: number;
+  nextFundingDatetime?: string;
+  nextFundingRate?: number;
+  previousFundingTimestamp?: number;
+  previousFundingDatetime?: string;
+  previousFundingRate?: number;
+  markPrice?: number;
+  indexPrice?: number;
+  interestRate?: number;
+  estimatedSettlePrice?: number;
+  interval?: string;
+  timestamp: number;
+  datetime?: string;
+  info?: Record<string, unknown>;
+}
+
+export interface FetchFundingRateResponse {
+  success: boolean;
+  raw?: {
+    fundingRate?: FundingRate;
+    fundingRates?: FundingRate[]; // For historical data
+    timestamp: number;
+  };
+  error?: string;
+}
+
+export interface FetchMyLiquidationsParams {
+  accountId: string;
+  symbol?: Symbol;
+  since?: number;
+  limit?: number;
+  marketType?: "linear" | "inverse" | "option";
+}
+
+export interface Liquidation {
+  id: string;
+  symbol: Symbol;
+  timestamp: number;
+  datetime?: string;
+  price: number;
+  baseValue?: number;
+  quoteValue?: number;
+  contracts?: number;
+  contractSize?: number;
+  side: string;
+  info?: Record<string, unknown>;
+}
+
+export interface FetchMyLiquidationsResponse {
+  success: boolean;
+  raw?: {
+    liquidations: Liquidation[];
+    total: number;
+    timestamp: number;
+  };
+  error?: string;
+}
+
+export interface FetchGreeksParams {
+  accountId: string;
+  symbol?: Symbol;
+  baseCurrency?: string; // Fetch all Greeks for base currency (e.g., BTC)
+}
+
+export interface Greeks {
+  symbol: Symbol;
+  timestamp: number;
+  datetime?: string;
+  delta: number;
+  gamma: number;
+  vega: number;
+  theta: number;
+  rho?: number;
+  bidIv?: number;
+  askIv?: number;
+  markIv?: number;
+  underlyingPrice?: number;
+  markPrice?: number;
+  info?: Record<string, unknown>;
+}
+
+export interface FetchGreeksResponse {
+  success: boolean;
+  raw?: {
+    greeks: Greeks | Greeks[];
+    baseCurrency?: string;
+    total?: number;
+    timestamp: number;
+  };
+  error?: string;
+}
+
+// ============================================
 // Response Types
 // ============================================
 
@@ -608,6 +970,15 @@ export interface TradingStore {
   marketTypes: MarketTypeInfo[];
   selectedMarketType: MarketType | null;
   availableMethods: string[];
+  
+  // Risk Management State (v2.15.0)
+  leverageTiers: Record<string, LeverageTier[]>;
+  fundingRate: FundingRate | null;
+  fundingRateHistory: FundingRate[];
+  liquidations: Liquidation[];
+  greeks: Greeks | Greeks[] | null;
+  marginMode: MarginMode | null;
+  positionMode: "hedge" | "one-way" | null;
 
   // Loading states
   balanceLoading: boolean;
@@ -623,6 +994,17 @@ export interface TradingStore {
   leverageUpdating: boolean;
   transferring: boolean;
   marketTypesLoading: boolean;
+  // Professional Trading Loading States (v2.15.0)
+  orderEditing: boolean;
+  cancellingAll: boolean;
+  closingPosition: boolean;
+  marginModeUpdating: boolean;
+  positionModeUpdating: boolean;
+  marginModifying: boolean;
+  leverageTiersLoading: boolean;
+  fundingRateLoading: boolean;
+  liquidationsLoading: boolean;
+  greeksLoading: boolean;
 
   // Error states
   balanceError: string | null;
@@ -632,6 +1014,11 @@ export interface TradingStore {
   tickerError: string | null;
   orderBookError: string | null;
   marketTypesError: string | null;
+  // Professional Trading Error States (v2.15.0)
+  leverageTiersError: string | null;
+  fundingRateError: string | null;
+  liquidationsError: string | null;
+  greeksError: string | null;
 
   // NID-based Actions (using network identifier)
   getBalance: (params: GetBalanceParams) => Promise<BalanceMap | null>;
@@ -657,6 +1044,24 @@ export interface TradingStore {
   // Multi-Market Trading (v2.13.0)
   getAccountMarketTypes: (params: GetAccountMarketTypesParams) => Promise<GetAccountMarketTypesResponse | null>;
   setSelectedMarketType: (marketType: MarketType) => void;
+  
+  // Professional Trading - Order Management (v2.15.0)
+  editOrder: (params: EditOrderParams) => Promise<EditOrderResponse["raw"] | null>;
+  cancelAllOrders: (params: CancelAllOrdersParams) => Promise<CancelAllOrdersResponse["raw"] | null>;
+  createOrderWithTpSl: (params: CreateOrderWithTpSlParams) => Promise<CreateOrderWithTpSlResponse["raw"] | null>;
+  createStopOrder: (params: CreateStopOrderParams) => Promise<CreateStopOrderResponse["raw"] | null>;
+  
+  // Professional Trading - Position Management (v2.15.0)
+  setMarginMode: (params: SetMarginModeParams) => Promise<boolean>;
+  closePosition: (params: ClosePositionParams) => Promise<ClosePositionResponse["raw"] | null>;
+  setPositionMode: (params: SetPositionModeParams) => Promise<boolean>;
+  modifyMargin: (params: ModifyMarginParams) => Promise<boolean>;
+  
+  // Professional Trading - Risk Management (v2.15.0)
+  fetchLeverageTiers: (params: FetchLeverageTiersParams) => Promise<FetchLeverageTiersResponse["raw"] | null>;
+  fetchFundingRate: (params: FetchFundingRateParams) => Promise<FetchFundingRateResponse["raw"] | null>;
+  fetchMyLiquidations: (params: FetchMyLiquidationsParams) => Promise<Liquidation[] | null>;
+  fetchGreeks: (params: FetchGreeksParams) => Promise<FetchGreeksResponse["raw"] | null>;
 
   // UI Actions
   setFilters: (filters: Partial<TradingFilters>) => void;

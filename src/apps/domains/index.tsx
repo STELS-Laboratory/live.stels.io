@@ -52,7 +52,6 @@ export function DomainsApp() {
     actionExecuting,
     creating,
     listDomains,
-    getDomainInfo,
     executeDomainAction,
     listTemplates,
     createFromTemplate,

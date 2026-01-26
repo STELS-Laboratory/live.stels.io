@@ -7,7 +7,15 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useTradingStore } from "../store";
 import { useRealtimeTicker, useRealtimeAccountBalance } from "../hooks";
 import { AmountSlider } from "./amount-slider";
-import type { OrderSide, OrderType, TimeInForce } from "../types";
+import type { 
+  OrderSide, 
+  OrderType, 
+  TimeInForce, 
+  StopOrderType,
+  TriggerBy,
+  TpSlMode,
+  PositionIdx,
+} from "../types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,11 +57,14 @@ import { cn } from "@/lib/utils";
 
 interface OrderFormProps {
   nid: string;
+  accountId?: string; // For v2.15.0 API methods
   symbol: string;
   exchange?: string;
   market?: string;
   initialPrice?: string;
   onPriceChange?: (price: string) => void;
+  /** Enable professional trading features (v2.15.0) */
+  enableProfessionalFeatures?: boolean;
 }
 
 interface ValidationError {
@@ -90,13 +101,21 @@ function getUserAddress(): string | null {
 
 export function OrderForm({
   nid,
+  accountId,
   symbol,
   exchange = "bybit",
   market = "spot",
   initialPrice = "",
   onPriceChange,
+  enableProfessionalFeatures = false,
 }: OrderFormProps) {
-  const { createOrder, orderCreating, balances: rpcBalances } = useTradingStore();
+  const { 
+    createOrder, 
+    createOrderWithTpSl,
+    createStopOrder,
+    orderCreating, 
+    balances: rpcBalances 
+  } = useTradingStore();
 
   // Get realtime ticker for price reference
   const { raw: tickerData } = useRealtimeTicker(symbol, exchange, market, { interval: 1000 });
@@ -129,6 +148,16 @@ export function OrderForm({
   const [showTpSl, setShowTpSl] = useState(false);
   const [takeProfit, setTakeProfit] = useState("");
   const [stopLoss, setStopLoss] = useState("");
+  
+  // Professional Trading State (v2.15.0)
+  // showAdvanced state reserved for future advanced order features
+  const [triggerBy, setTriggerBy] = useState<TriggerBy>("LastPrice");
+  const [tpslMode, setTpslMode] = useState<TpSlMode>("Full");
+  const [positionIdx, setPositionIdx] = useState<PositionIdx>(0);
+  const [stopOrderType, setStopOrderType] = useState<StopOrderType>("stop_loss");
+  const [triggerPrice, setTriggerPrice] = useState("");
+  const [trailingDelta, setTrailingDelta] = useState("");
+  const [activationPrice, setActivationPrice] = useState("");
 
   // Validation state
   const [errors, setErrors] = useState<ValidationError[]>([]);
@@ -333,31 +362,91 @@ export function OrderForm({
         return;
       }
 
-      const params = {
-        nid,
-        symbol,
-        side,
-        type: orderType,
-        amount: amountNum,
-        price: orderType !== "market" && priceNum ? priceNum : undefined,
-        stopPrice: stopPrice ? parseFloat(stopPrice) : undefined,
-        timeInForce: orderType !== "market" ? timeInForce : undefined,
-        reduceOnly: reduceOnly || undefined,
-      };
+      let success = false;
 
-      const order = await createOrder(params);
-      if (order) {
+      // Use professional API if enabled and accountId is provided
+      const useProfessionalApi = enableProfessionalFeatures && accountId;
+
+      // Check if this is a stop order type
+      const isStopOrder = orderType === "stop" || orderType === "stop_limit" || 
+                          orderType === "trailing_stop" || orderType === "take_profit" || 
+                          orderType === "take_profit_limit";
+
+      // Use createOrderWithTpSl if TP/SL values are set and professional API is enabled
+      if (useProfessionalApi && showTpSl && (takeProfit || stopLoss) && !isStopOrder) {
+        const result = await createOrderWithTpSl({
+          accountId,
+          symbol,
+          type: orderType === "market" ? "market" : "limit",
+          side,
+          amount: amountNum,
+          price: orderType !== "market" && priceNum ? priceNum : undefined,
+          takeProfitPrice: takeProfit ? parseFloat(takeProfit) : undefined,
+          stopLossPrice: stopLoss ? parseFloat(stopLoss) : undefined,
+          tpTriggerBy: triggerBy,
+          slTriggerBy: triggerBy,
+          tpslMode,
+          positionIdx: positionIdx !== 0 ? positionIdx : undefined,
+          reduceOnly: reduceOnly || undefined,
+          timeInForce: orderType !== "market" ? timeInForce : undefined,
+        });
+        success = !!result;
+      }
+      // Use createStopOrder for stop orders with professional API
+      else if (useProfessionalApi && isStopOrder && triggerPrice) {
+        const result = await createStopOrder({
+          accountId,
+          symbol,
+          stopOrderType: stopOrderType,
+          side,
+          amount: amountNum,
+          triggerPrice: parseFloat(triggerPrice),
+          price: orderType === "stop_limit" || orderType === "take_profit_limit" ? priceNum : undefined,
+          triggerBy,
+          positionIdx: positionIdx !== 0 ? positionIdx : undefined,
+          reduceOnly: reduceOnly || undefined,
+          timeInForce: orderType !== "market" ? timeInForce : undefined,
+          trailingDelta: orderType === "trailing_stop" && trailingDelta ? parseFloat(trailingDelta) : undefined,
+          activationPrice: orderType === "trailing_stop" && activationPrice ? parseFloat(activationPrice) : undefined,
+        });
+        success = !!result;
+      }
+      // Fallback to standard createOrder
+      else {
+        const params = {
+          nid,
+          symbol,
+          side,
+          type: orderType,
+          amount: amountNum,
+          price: orderType !== "market" && priceNum ? priceNum : undefined,
+          stopPrice: stopPrice ? parseFloat(stopPrice) : undefined,
+          timeInForce: orderType !== "market" ? timeInForce : undefined,
+          reduceOnly: reduceOnly || undefined,
+        };
+
+        const order = await createOrder(params);
+        success = !!order;
+      }
+
+      if (success) {
         // Reset form on success
         setAmount("");
         setPrice("");
         setStopPrice("");
         setTakeProfit("");
         setStopLoss("");
+        setTriggerPrice("");
+        setTrailingDelta("");
+        setActivationPrice("");
         setTouched(new Set());
         setErrors([]);
       }
     },
-    [nid, symbol, side, orderType, amountNum, priceNum, stopPrice, timeInForce, reduceOnly, createOrder, validateForm]
+    [nid, accountId, symbol, side, orderType, amountNum, priceNum, stopPrice, timeInForce, reduceOnly, 
+     createOrder, createOrderWithTpSl, createStopOrder, validateForm, showTpSl, takeProfit, stopLoss,
+     enableProfessionalFeatures, triggerBy, tpslMode, positionIdx, stopOrderType, triggerPrice, 
+     trailingDelta, activationPrice]
   );
 
   // Format balance for display
@@ -435,8 +524,15 @@ export function OrderForm({
               <SelectContent>
                 <SelectItem value="market" className="text-xs">Market</SelectItem>
                 <SelectItem value="limit" className="text-xs">Limit</SelectItem>
-                <SelectItem value="stop" className="text-xs">Stop</SelectItem>
+                <SelectItem value="stop" className="text-xs">Stop Market</SelectItem>
                 <SelectItem value="stop_limit" className="text-xs">Stop Limit</SelectItem>
+                {enableProfessionalFeatures && (
+                  <>
+                    <SelectItem value="take_profit" className="text-xs">Take Profit</SelectItem>
+                    <SelectItem value="take_profit_limit" className="text-xs">TP Limit</SelectItem>
+                    <SelectItem value="trailing_stop" className="text-xs">Trailing Stop</SelectItem>
+                  </>
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -660,8 +756,119 @@ export function OrderForm({
                   </span>
                 </div>
               )}
+
+              {/* Advanced TP/SL Options (v2.15.0) */}
+              {enableProfessionalFeatures && (
+                <div className="space-y-1.5 pt-1 border-t border-muted">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-[10px] w-16">Trigger By</Label>
+                    <Select value={triggerBy} onValueChange={(v) => setTriggerBy(v as TriggerBy)}>
+                      <SelectTrigger className="h-5 text-[10px] flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="LastPrice" className="text-xs">Last Price</SelectItem>
+                        <SelectItem value="MarkPrice" className="text-xs">Mark Price</SelectItem>
+                        <SelectItem value="IndexPrice" className="text-xs">Index Price</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-[10px] w-16">TP/SL Mode</Label>
+                    <Select value={tpslMode} onValueChange={(v) => setTpslMode(v as TpSlMode)}>
+                      <SelectTrigger className="h-5 text-[10px] flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Full" className="text-xs">Full Position</SelectItem>
+                        <SelectItem value="Partial" className="text-xs">Partial</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
             </CollapsibleContent>
           </Collapsible>
+
+          {/* Advanced Stop Order Section (v2.15.0) */}
+          {enableProfessionalFeatures && (orderType === "stop" || orderType === "stop_limit" || orderType === "trailing_stop" || orderType === "take_profit" || orderType === "take_profit_limit") && (
+            <div className="space-y-1.5 p-2 rounded border border-muted bg-muted/30">
+              <div className="flex items-center gap-2">
+                <Label className="text-[10px] w-20">Stop Type</Label>
+                <Select value={stopOrderType} onValueChange={(v) => setStopOrderType(v as StopOrderType)}>
+                  <SelectTrigger className="h-6 text-[10px] flex-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="stop_loss" className="text-xs">Stop Loss</SelectItem>
+                    <SelectItem value="take_profit" className="text-xs">Take Profit</SelectItem>
+                    <SelectItem value="stop_loss_limit" className="text-xs">Stop Loss Limit</SelectItem>
+                    <SelectItem value="take_profit_limit" className="text-xs">Take Profit Limit</SelectItem>
+                    <SelectItem value="trailing_stop" className="text-xs">Trailing Stop</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Label className="text-[10px] w-20">Trigger Price</Label>
+                <Input
+                  type="number"
+                  step="any"
+                  placeholder="0.00"
+                  value={triggerPrice}
+                  onChange={(e) => setTriggerPrice(e.target.value)}
+                  className="h-6 text-[10px] font-mono flex-1"
+                />
+              </div>
+
+              {stopOrderType === "trailing_stop" && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-[10px] w-20">Trail Delta</Label>
+                    <Input
+                      type="number"
+                      step="any"
+                      placeholder="Delta (%)"
+                      value={trailingDelta}
+                      onChange={(e) => setTrailingDelta(e.target.value)}
+                      className="h-6 text-[10px] font-mono flex-1"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-[10px] w-20">Activation</Label>
+                    <Input
+                      type="number"
+                      step="any"
+                      placeholder="Activation price"
+                      value={activationPrice}
+                      onChange={(e) => setActivationPrice(e.target.value)}
+                      className="h-6 text-[10px] font-mono flex-1"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Position Index for Hedge Mode (v2.15.0) */}
+          {enableProfessionalFeatures && market !== "spot" && (
+            <div className="flex items-center gap-2">
+              <Label className="text-[10px]">Position</Label>
+              <Select 
+                value={positionIdx.toString()} 
+                onValueChange={(v) => setPositionIdx(parseInt(v) as PositionIdx)}
+              >
+                <SelectTrigger className="h-6 text-[10px] flex-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0" className="text-xs">One-Way</SelectItem>
+                  <SelectItem value="1" className="text-xs">Hedge - Buy</SelectItem>
+                  <SelectItem value="2" className="text-xs">Hedge - Sell</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Glass-morphism Order Preview */}
           {amountNum > 0 && (

@@ -8,6 +8,7 @@ export { MarketDataPanel } from "./market-data-panel";
 export { OrderForm } from "./order-form";
 export { OrderList } from "./order-list";
 export { PositionsPanel } from "./positions-panel";
+export { RiskPanel } from "./risk-panel";
 
 // New Components - Charts & Data
 export { CandlestickChart } from "./candlestick-chart";

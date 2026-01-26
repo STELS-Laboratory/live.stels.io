@@ -7,7 +7,6 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   ChevronDown,
-  ExternalLink,
   Lock,
   Pencil,
   Shield,
@@ -96,13 +95,6 @@ function getPnlColor(value: string | number | null | undefined): string {
   return n > 0 ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500";
 }
 
-function getPnlBg(value: string | number | null | undefined): string {
-  if (value == null) return "bg-muted/50";
-  const n = typeof value === "string" ? parseFloat(value) : value;
-  if (Number.isNaN(n) || n === 0) return "bg-muted/50";
-  return n > 0 ? "bg-green-500/10" : "bg-red-500/10";
-}
-
 function isEncrypted(
   v: unknown,
 ): v is { data: string; iv: string; salt: string; version: number } {
@@ -133,14 +125,6 @@ function StatCard({
   icon?: React.ComponentType<{ className?: string }>;
   variant?: "default" | "success" | "danger" | "muted";
 }) {
-  const bgClass =
-    variant === "success"
-      ? "bg-green-500/10 border-green-500/20"
-      : variant === "danger"
-        ? "bg-red-500/10 border-red-500/20"
-        : variant === "muted"
-          ? "bg-muted/50"
-          : "bg-card";
   const textClass =
     variant === "success"
       ? "text-green-600 dark:text-green-500"
@@ -149,12 +133,12 @@ function StatCard({
         : "";
 
   return (
-    <div className={`rounded-lg border p-3 ${bgClass}`}>
+    <div className="rounded-lg border p-3">
       <div className="flex items-center gap-2 mb-1">
         {Icon && <Icon className="h-3.5 w-3.5 text-muted-foreground" />}
         <p className="text-xs font-medium text-muted-foreground">{label}</p>
       </div>
-      <p className={`text-lg font-bold tracking-tight ${textClass}`}>{value}</p>
+      <p className={`text-lg font-semibold tracking-tight ${textClass}`}>{value}</p>
       {subValue && (
         <p className="text-xs text-muted-foreground mt-0.5">{subValue}</p>
       )}
@@ -272,7 +256,7 @@ export function AccountDetailsSheet({
               <img
                 src={getExchangeIconPath(a.exchange)}
                 alt={a.exchange}
-                className="h-14 w-14 rounded-xl object-contain shadow-md ring-1 ring-border"
+                className="h-12 w-12 rounded-lg object-contain ring-1 ring-border"
               />
               <span
                 className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-background ${
@@ -324,12 +308,12 @@ export function AccountDetailsSheet({
             {first && (
               <div className="space-y-4">
                 {/* Primary Balance */}
-                <div className="rounded-xl bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 border p-5">
+                <div className="rounded-lg border p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Wallet className="h-4 w-4 text-muted-foreground" />
                     <p className="text-sm font-medium text-muted-foreground">Total Equity</p>
                   </div>
-                  <p className="text-4xl font-bold tracking-tight">
+                  <p className="text-3xl font-semibold tracking-tight">
                     {formatUSD(totalEquity ?? totalWalletBalance)}
                   </p>
                   {totalAvailableBalance != null && (

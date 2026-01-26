@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ArrowDownRight,
   ArrowUpRight,
   ChevronRight,
   Info,
   Pencil,
+  SearchX,
   Trash2,
   Wallet,
   Zap,
@@ -19,13 +20,39 @@ import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
 import type { StoredAccount, WalletAccountSummary } from "@/types/stores/types";
+import type { DisconnectAccountParams } from "./hooks/use-accounts-api";
 import { useAccountsStore } from "@/stores/modules/accounts.store";
 import { getExchangeIconPath } from "./types";
 import { AccountDetailsSheet } from "./account-details-sheet";
+import { DeleteAccountDialog } from "./delete-account-dialog";
+import type { SortOption } from "./index";
 
 interface AccountListProps {
   onEdit: (account: StoredAccount) => void;
+  onDelete: (params: DisconnectAccountParams) => Promise<boolean>;
   loading?: boolean;
+  searchQuery?: string;
+  exchangeFilter?: string;
+  statusFilter?: string;
+  sortBy?: SortOption;
+}
+
+function getEquityValue(stored: StoredAccount): number {
+  const list0 = stored.rawData?.wallet?.info?.result?.list?.[0] as WalletAccountSummary | undefined;
+  const equity = list0?.totalEquity ?? list0?.totalWalletBalance;
+  if (equity == null) return 0;
+  return typeof equity === "string" ? parseFloat(equity) : equity;
+}
+
+function getPnlValue(stored: StoredAccount): number {
+  const list0 = stored.rawData?.wallet?.info?.result?.list?.[0] as WalletAccountSummary | undefined;
+  const pnl = list0?.totalPerpUPL;
+  if (pnl == null) return 0;
+  return typeof pnl === "string" ? parseFloat(pnl) : pnl;
+}
+
+function getStatus(stored: StoredAccount): string {
+  return stored.rawData?.status ?? stored.account.status ?? "active";
 }
 
 function formatUSD(value: string | number | null | undefined): string {
@@ -59,9 +86,76 @@ function getPnlColor(value: string | number | null | undefined): string {
   return n > 0 ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500";
 }
 
-export function AccountList({ onEdit, loading }: AccountListProps) {
+export function AccountList({
+  onEdit,
+  onDelete,
+  loading,
+  searchQuery = "",
+  exchangeFilter = "all",
+  statusFilter = "all",
+  sortBy = "equity-desc",
+}: AccountListProps) {
   const accounts = useAccountsStore((s) => s.accounts);
   const [detailsAccount, setDetailsAccount] = useState<StoredAccount | null>(null);
+  const [accountToDelete, setAccountToDelete] = useState<StoredAccount | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // Filter and sort accounts
+  const filteredAndSorted = useMemo(() => {
+    return accounts
+      .filter((acc) => {
+        // Search filter
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          const nidMatch = acc.account.nid.toLowerCase().includes(q);
+          const noteMatch = acc.account.note?.toLowerCase().includes(q);
+          if (!nidMatch && !noteMatch) {
+            return false;
+          }
+        }
+        // Exchange filter
+        if (exchangeFilter !== "all" && acc.account.exchange !== exchangeFilter) {
+          return false;
+        }
+        // Status filter
+        const status = getStatus(acc);
+        if (statusFilter !== "all" && status !== statusFilter) {
+          return false;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "equity-desc":
+            return getEquityValue(b) - getEquityValue(a);
+          case "equity-asc":
+            return getEquityValue(a) - getEquityValue(b);
+          case "pnl-desc":
+            return getPnlValue(b) - getPnlValue(a);
+          case "pnl-asc":
+            return getPnlValue(a) - getPnlValue(b);
+          case "name-asc":
+            return a.account.nid.localeCompare(b.account.nid);
+          case "name-desc":
+            return b.account.nid.localeCompare(a.account.nid);
+          case "updated-desc":
+            return b.updatedAt - a.updatedAt;
+          default:
+            return 0;
+        }
+      });
+  }, [accounts, searchQuery, exchangeFilter, statusFilter, sortBy]);
+
+  const handleDelete = async () => {
+    if (!accountToDelete) return;
+    setDeleting(true);
+    try {
+      await onDelete({ accountId: accountToDelete.id });
+    } finally {
+      setDeleting(false);
+      setAccountToDelete(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -74,10 +168,8 @@ export function AccountList({ onEdit, loading }: AccountListProps) {
 
   if (accounts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed py-16">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-          <Wallet className="h-8 w-8 text-muted-foreground" />
-        </div>
+      <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed py-16">
+        <Wallet className="h-8 w-8 text-muted-foreground" />
         <div className="text-center">
           <p className="font-medium">No accounts yet</p>
           <p className="text-sm text-muted-foreground">
@@ -88,10 +180,24 @@ export function AccountList({ onEdit, loading }: AccountListProps) {
     );
   }
 
+  if (filteredAndSorted.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed py-16">
+        <SearchX className="h-8 w-8 text-muted-foreground" />
+        <div className="text-center">
+          <p className="font-medium">No matching accounts</p>
+          <p className="text-sm text-muted-foreground">
+            Try adjusting your search or filter criteria
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <TooltipProvider>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-        {accounts.map((stored) => {
+        {filteredAndSorted.map((stored) => {
           const a = stored.account;
           const r = stored.rawData;
           const status = r?.status ?? a.status ?? "active";
@@ -111,7 +217,7 @@ export function AccountList({ onEdit, loading }: AccountListProps) {
           return (
             <Card
               key={stored.id}
-              className="group relative overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/5 dark:hover:shadow-primary/10"
+              className="group relative overflow-hidden"
             >
               <CardContent className="p-0">
                 {/* Header */}
@@ -125,7 +231,7 @@ export function AccountList({ onEdit, loading }: AccountListProps) {
                       <img
                         src={getExchangeIconPath(a.exchange)}
                         alt={a.exchange}
-                        className="h-12 w-12 rounded-lg object-contain shadow-sm ring-1 ring-border"
+                        className="h-10 w-10 rounded object-contain ring-1 ring-border"
                       />
                       {/* Connection indicator */}
                       <span
@@ -208,13 +314,13 @@ export function AccountList({ onEdit, loading }: AccountListProps) {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8"
-                          disabled
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => setAccountToDelete(stored)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent>Delete (not supported)</TooltipContent>
+                      <TooltipContent>Delete</TooltipContent>
                     </Tooltip>
                   </div>
                 </div>
@@ -232,7 +338,7 @@ export function AccountList({ onEdit, loading }: AccountListProps) {
                         <p className="text-xs font-medium text-muted-foreground mb-1">
                           Total Equity
                         </p>
-                        <p className="text-xl font-bold tracking-tight">
+                        <p className="text-xl font-semibold tracking-tight">
                           {formatPrecise(primaryBalance)}
                         </p>
                         {totalAvailableBalance != null && (
@@ -254,7 +360,7 @@ export function AccountList({ onEdit, loading }: AccountListProps) {
                             ) : parseFloat(String(totalPerpUPL)) < 0 ? (
                               <ArrowDownRight className="h-5 w-5" />
                             ) : null}
-                            <p className="text-xl font-bold tracking-tight">
+                            <p className="text-xl font-semibold tracking-tight">
                               {formatPrecise(totalPerpUPL)}
                             </p>
                           </div>
@@ -264,7 +370,7 @@ export function AccountList({ onEdit, loading }: AccountListProps) {
                           <p className="text-xs font-medium text-muted-foreground mb-1">
                             Wallet Balance
                           </p>
-                          <p className="text-xl font-bold tracking-tight">
+                          <p className="text-xl font-semibold tracking-tight">
                             {formatPrecise(totalWalletBalance)}
                           </p>
                         </div>
@@ -297,6 +403,14 @@ export function AccountList({ onEdit, loading }: AccountListProps) {
           onEdit(acc);
           setDetailsAccount(null);
         }}
+      />
+
+      <DeleteAccountDialog
+        account={accountToDelete}
+        open={accountToDelete != null}
+        onOpenChange={(open) => !open && setAccountToDelete(null)}
+        onConfirm={handleDelete}
+        loading={deleting}
       />
     </TooltipProvider>
   );

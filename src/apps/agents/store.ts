@@ -38,7 +38,6 @@ import type {
   SyncFromGradientParams,
   SyncFromGradientResponse,
   MoveAgentToWorkspaceParams,
-  MoveAgentToWorkspaceResponse,
   // Task types
   Task,
   TaskExecutionLog,
@@ -48,50 +47,33 @@ import type {
   ExecuteTaskRequest,
   ApproveTaskRequest,
   TaskHistoryRequest,
-  ListTasksResponse,
-  TaskResponse,
   ExecuteTaskResponse,
   ApproveTaskResponse,
   PauseTaskResponse,
   ResumeTaskResponse,
-  DeleteTaskResponse,
-  TaskHistoryResponse,
   // Agent-Account binding types
   ConnectAccountToAgentParams,
-  ConnectAccountToAgentResponse,
   DisconnectAccountFromAgentParams,
-  DisconnectAccountFromAgentResponse,
   // Conversation History types
   Conversation,
   ConversationListItem,
   GetConversationParams,
-  GetConversationResponse,
   ListConversationsParams,
-  ListConversationsResponse,
   // Orchestration types
   RouteToAgentsParams,
   RouteToAgentsResponse,
   StartCollaborationParams,
-  StartCollaborationResponse,
   SendAgentMessageParams,
-  SendAgentMessageResponse,
   EndCollaborationParams,
-  EndCollaborationResponse,
   OrchestratorStats,
-  GetOrchestratorStatsResponse,
   // Realtime types
   AgentState,
   GetAgentStateParams,
-  GetAgentStateResponse,
   GetDomainDataParams,
-  GetDomainDataResponse,
   SetTriggerParams,
-  SetTriggerResponse,
   // Knowledge Base types
   CreateKnowledgeBaseParams,
-  CreateKnowledgeBaseResponse,
   DeleteKnowledgeBaseParams,
-  DeleteKnowledgeBaseResponse,
 } from "./types";
 
 /**

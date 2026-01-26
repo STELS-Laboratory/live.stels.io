@@ -34,43 +34,52 @@ import type {
   ConditionalOrder,
   BatchOrderResult,
   MarketType,
-  MarketTypeInfo,
   GetBalanceParams,
   GetBalanceResponse,
   GetTickerParams,
-  GetTickerResponse,
   GetOrderBookParams,
-  GetOrderBookResponse,
   ListOrdersParams,
-  ListOrdersResponse,
   ListTradesParams,
-  ListTradesResponse,
   CreateOrderParams,
-  CreateOrderResponse,
   GetOrderParams,
-  GetOrderResponse,
   CancelOrderParams,
-  CancelOrderResponse,
   FetchBalanceParams,
   FetchBalanceResponse,
   FetchPositionsParams,
-  FetchPositionsResponse,
   FetchOpenOrdersParams,
-  FetchOpenOrdersResponse,
   FetchOrderHistoryParams,
-  FetchOrderHistoryResponse,
   FetchTradesParams,
-  FetchTradesResponse,
   SetLeverageParams,
-  SetLeverageResponse,
   TransferFundsParams,
-  TransferFundsResponse,
   CreateBatchOrdersParams,
-  CreateBatchOrdersResponse,
   CreateConditionalOrderParams,
-  CreateConditionalOrderResponse,
   GetAccountMarketTypesParams,
   GetAccountMarketTypesResponse,
+  // Professional Trading Types (v2.15.0)
+  EditOrderParams,
+  EditOrderResponse,
+  CancelAllOrdersParams,
+  CancelAllOrdersResponse,
+  CreateOrderWithTpSlParams,
+  CreateOrderWithTpSlResponse,
+  CreateStopOrderParams,
+  CreateStopOrderResponse,
+  SetMarginModeParams,
+  SetMarginModeResponse,
+  ClosePositionParams,
+  ClosePositionResponse,
+  SetPositionModeParams,
+  SetPositionModeResponse,
+  ModifyMarginParams,
+  ModifyMarginResponse,
+  FetchLeverageTiersParams,
+  FetchLeverageTiersResponse,
+  FetchFundingRateParams,
+  FetchFundingRateResponse,
+  FetchMyLiquidationsParams,
+  FetchMyLiquidationsResponse,
+  FetchGreeksParams,
+  FetchGreeksResponse,
 } from "./types";
 
 /**
@@ -117,6 +126,15 @@ export const useTradingStore = create<TradingStore>()(
       marketTypes: [],
       selectedMarketType: null,
       availableMethods: [],
+      
+      // Risk Management State (v2.15.0)
+      leverageTiers: {},
+      fundingRate: null,
+      fundingRateHistory: [],
+      liquidations: [],
+      greeks: null,
+      marginMode: null,
+      positionMode: null,
 
       // Loading states
       balanceLoading: false,
@@ -132,6 +150,17 @@ export const useTradingStore = create<TradingStore>()(
       leverageUpdating: false,
       transferring: false,
       marketTypesLoading: false,
+      // Professional Trading Loading States (v2.15.0)
+      orderEditing: false,
+      cancellingAll: false,
+      closingPosition: false,
+      marginModeUpdating: false,
+      positionModeUpdating: false,
+      marginModifying: false,
+      leverageTiersLoading: false,
+      fundingRateLoading: false,
+      liquidationsLoading: false,
+      greeksLoading: false,
 
       // Error states
       balanceError: null,
@@ -141,6 +170,11 @@ export const useTradingStore = create<TradingStore>()(
       tickerError: null,
       orderBookError: null,
       marketTypesError: null,
+      // Professional Trading Error States (v2.15.0)
+      leverageTiersError: null,
+      fundingRateError: null,
+      liquidationsError: null,
+      greeksError: null,
 
       // Get account balance
       getBalance: async (params: GetBalanceParams): Promise<BalanceMap | null> => {
@@ -161,7 +195,7 @@ export const useTradingStore = create<TradingStore>()(
           console.log("[TradingStore] getBalance response:", response);
 
           // WebFIX v2.12.0: Parse response.raw
-          let balances: BalanceMap = {};
+          const balances: BalanceMap = {};
           const rawData = response.raw;
           
           if (rawData && typeof rawData === 'object') {
@@ -484,7 +518,7 @@ export const useTradingStore = create<TradingStore>()(
           console.log("[TradingStore] fetchBalance response:", response);
 
           // WebFIX v2.12.0: Parse response.raw
-          let balances: BalanceMap = {};
+          const balances: BalanceMap = {};
           const rawData = response.raw;
           
           if (rawData && typeof rawData === 'object') {
@@ -863,6 +897,531 @@ export const useTradingStore = create<TradingStore>()(
       },
 
       // ============================================
+      // Professional Trading - Order Management (v2.15.0)
+      // ============================================
+
+      // Edit an existing order
+      editOrder: async (params: EditOrderParams): Promise<EditOrderResponse["raw"] | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        set({ orderEditing: true });
+
+        try {
+          const response = await client.request<WebfixResponse<EditOrderResponse["raw"]>>(
+            "editOrder",
+            params
+          );
+
+          console.log("[TradingStore] editOrder response:", response);
+
+          if (response.success && response.raw) {
+            // Update order in list
+            set((state) => ({
+              orders: state.orders.map((o) =>
+                o.id === params.orderId ? { ...o, ...response.raw } : o
+              ),
+              orderEditing: false,
+            }));
+
+            toast.success("Order updated", `Order ${params.orderId} has been modified`);
+            return response.raw;
+          }
+
+          throw new Error(response.error?.message || "Failed to edit order");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to edit order";
+          if (!message.includes("not found")) {
+            console.error("[TradingStore] editOrder error:", error);
+            toast.error("Failed to edit order", message);
+          }
+          set({ orderEditing: false });
+          return null;
+        }
+      },
+
+      // Cancel all orders for a symbol
+      cancelAllOrders: async (params: CancelAllOrdersParams): Promise<CancelAllOrdersResponse["raw"] | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        set({ cancellingAll: true });
+
+        try {
+          const response = await client.request<WebfixResponse<CancelAllOrdersResponse["raw"]>>(
+            "cancelAllOrders",
+            params
+          );
+
+          console.log("[TradingStore] cancelAllOrders response:", response);
+
+          if (response.success && response.raw) {
+            // Update orders list - mark matching orders as cancelled
+            set((state) => ({
+              orders: state.orders.map((o) => {
+                const shouldCancel = params.symbol ? o.symbol === params.symbol : true;
+                return shouldCancel && o.status === "open"
+                  ? { ...o, status: "cancelled" as const }
+                  : o;
+              }),
+              cancellingAll: false,
+            }));
+
+            toast.success(
+              "Orders cancelled",
+              `${response.raw.canceledCount} orders cancelled${params.symbol ? ` for ${params.symbol}` : ""}`
+            );
+            return response.raw;
+          }
+
+          throw new Error(response.error?.message || "Failed to cancel orders");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to cancel all orders";
+          if (!message.includes("not found")) {
+            console.error("[TradingStore] cancelAllOrders error:", error);
+            toast.error("Failed to cancel orders", message);
+          }
+          set({ cancellingAll: false });
+          return null;
+        }
+      },
+
+      // Create order with Take Profit / Stop Loss
+      createOrderWithTpSl: async (params: CreateOrderWithTpSlParams): Promise<CreateOrderWithTpSlResponse["raw"] | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        set({ orderCreating: true });
+
+        try {
+          const response = await client.request<WebfixResponse<CreateOrderWithTpSlResponse["raw"]>>(
+            "createOrderWithTpSl",
+            params
+          );
+
+          console.log("[TradingStore] createOrderWithTpSl response:", response);
+
+          if (response.success && response.raw) {
+            // Add order to list
+            const newOrder: Order = {
+              id: response.raw.orderId,
+              symbol: response.raw.symbol,
+              side: response.raw.side,
+              type: response.raw.type as Order["type"],
+              status: response.raw.status,
+              amount: response.raw.amount,
+              price: response.raw.price,
+              filled: 0,
+              remaining: response.raw.amount,
+              cost: 0,
+              createdAt: response.raw.timestamp,
+              updatedAt: response.raw.timestamp,
+            };
+
+            set((state) => ({
+              orders: [newOrder, ...state.orders],
+              orderCreating: false,
+            }));
+
+            const tpSlInfo = [];
+            if (params.takeProfitPrice) tpSlInfo.push(`TP: ${params.takeProfitPrice}`);
+            if (params.stopLossPrice) tpSlInfo.push(`SL: ${params.stopLossPrice}`);
+            
+            toast.success(
+              "Order created with TP/SL",
+              `${params.side.toUpperCase()} ${params.amount} ${params.symbol}${tpSlInfo.length ? ` (${tpSlInfo.join(", ")})` : ""}`
+            );
+            return response.raw;
+          }
+
+          throw new Error(response.error?.message || "Failed to create order");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to create order";
+          if (!message.includes("not found")) {
+            console.error("[TradingStore] createOrderWithTpSl error:", error);
+            toast.error("Failed to create order", message);
+          }
+          set({ orderCreating: false });
+          return null;
+        }
+      },
+
+      // Create stop/trigger order
+      createStopOrder: async (params: CreateStopOrderParams): Promise<CreateStopOrderResponse["raw"] | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        set({ orderCreating: true });
+
+        try {
+          const response = await client.request<WebfixResponse<CreateStopOrderResponse["raw"]>>(
+            "createStopOrder",
+            params
+          );
+
+          console.log("[TradingStore] createStopOrder response:", response);
+
+          if (response.success && response.raw) {
+            toast.success(
+              "Stop order created",
+              `${params.stopOrderType.replace(/_/g, " ")} @ ${params.triggerPrice} for ${params.symbol}`
+            );
+            set({ orderCreating: false });
+            return response.raw;
+          }
+
+          throw new Error(response.error?.message || "Failed to create stop order");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to create stop order";
+          if (!message.includes("not found")) {
+            console.error("[TradingStore] createStopOrder error:", error);
+            toast.error("Failed to create stop order", message);
+          }
+          set({ orderCreating: false });
+          return null;
+        }
+      },
+
+      // ============================================
+      // Professional Trading - Position Management (v2.15.0)
+      // ============================================
+
+      // Set margin mode (cross/isolated)
+      setMarginMode: async (params: SetMarginModeParams): Promise<boolean> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return false;
+        }
+
+        set({ marginModeUpdating: true });
+
+        try {
+          const response = await client.request<WebfixResponse<SetMarginModeResponse["raw"]>>(
+            "setMarginMode",
+            params
+          );
+
+          console.log("[TradingStore] setMarginMode response:", response);
+
+          if (response.success) {
+            set({ 
+              marginMode: params.marginMode,
+              marginModeUpdating: false 
+            });
+            toast.success("Margin mode updated", `Set to ${params.marginMode} margin for ${params.symbol}`);
+            return true;
+          }
+
+          throw new Error(response.error?.message || "Failed to set margin mode");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to set margin mode";
+          if (!message.includes("not found")) {
+            console.error("[TradingStore] setMarginMode error:", error);
+            toast.error("Failed to set margin mode", message);
+          }
+          set({ marginModeUpdating: false });
+          return false;
+        }
+      },
+
+      // Close position
+      closePosition: async (params: ClosePositionParams): Promise<ClosePositionResponse["raw"] | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        set({ closingPosition: true });
+
+        try {
+          const response = await client.request<WebfixResponse<ClosePositionResponse["raw"]>>(
+            "closePosition",
+            params
+          );
+
+          console.log("[TradingStore] closePosition response:", response);
+
+          if (response.success && response.raw) {
+            // Remove or update position in list
+            set((state) => ({
+              positions: params.amount
+                ? state.positions.map((p) =>
+                    p.symbol === params.symbol
+                      ? { ...p, amount: p.amount - (params.amount || 0) }
+                      : p
+                  ).filter((p) => p.amount > 0)
+                : state.positions.filter((p) => p.symbol !== params.symbol),
+              closingPosition: false,
+            }));
+
+            toast.success(
+              "Position closed",
+              `Closed ${params.amount || "full"} ${params.symbol} position`
+            );
+            return response.raw;
+          }
+
+          throw new Error(response.error?.message || "Failed to close position");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to close position";
+          if (!message.includes("not found")) {
+            console.error("[TradingStore] closePosition error:", error);
+            toast.error("Failed to close position", message);
+          }
+          set({ closingPosition: false });
+          return null;
+        }
+      },
+
+      // Set position mode (one-way/hedge)
+      setPositionMode: async (params: SetPositionModeParams): Promise<boolean> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return false;
+        }
+
+        set({ positionModeUpdating: true });
+
+        try {
+          const response = await client.request<WebfixResponse<SetPositionModeResponse["raw"]>>(
+            "setPositionMode",
+            params
+          );
+
+          console.log("[TradingStore] setPositionMode response:", response);
+
+          if (response.success) {
+            set({ 
+              positionMode: params.hedged ? "hedge" : "one-way",
+              positionModeUpdating: false 
+            });
+            toast.success(
+              "Position mode updated",
+              `Set to ${params.hedged ? "hedge" : "one-way"} mode`
+            );
+            return true;
+          }
+
+          throw new Error(response.error?.message || "Failed to set position mode");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to set position mode";
+          if (!message.includes("not found")) {
+            console.error("[TradingStore] setPositionMode error:", error);
+            toast.error("Failed to set position mode", message);
+          }
+          set({ positionModeUpdating: false });
+          return false;
+        }
+      },
+
+      // Modify position margin
+      modifyMargin: async (params: ModifyMarginParams): Promise<boolean> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return false;
+        }
+
+        set({ marginModifying: true });
+
+        try {
+          const response = await client.request<WebfixResponse<ModifyMarginResponse["raw"]>>(
+            "modifyMargin",
+            params
+          );
+
+          console.log("[TradingStore] modifyMargin response:", response);
+
+          if (response.success) {
+            set({ marginModifying: false });
+            toast.success(
+              "Margin modified",
+              `${params.action === "add" ? "Added" : "Reduced"} ${params.amount} margin for ${params.symbol}`
+            );
+            return true;
+          }
+
+          throw new Error(response.error?.message || "Failed to modify margin");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to modify margin";
+          if (!message.includes("not found")) {
+            console.error("[TradingStore] modifyMargin error:", error);
+            toast.error("Failed to modify margin", message);
+          }
+          set({ marginModifying: false });
+          return false;
+        }
+      },
+
+      // ============================================
+      // Professional Trading - Risk Management (v2.15.0)
+      // ============================================
+
+      // Fetch leverage tiers
+      fetchLeverageTiers: async (params: FetchLeverageTiersParams): Promise<FetchLeverageTiersResponse["raw"] | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        set({ leverageTiersLoading: true, leverageTiersError: null });
+
+        try {
+          const response = await client.request<WebfixResponse<FetchLeverageTiersResponse["raw"]>>(
+            "fetchLeverageTiers",
+            params
+          );
+
+          console.log("[TradingStore] fetchLeverageTiers response:", response);
+
+          if (response.success && response.raw) {
+            set({ 
+              leverageTiers: response.raw.tiers,
+              leverageTiersLoading: false 
+            });
+            return response.raw;
+          }
+
+          throw new Error(response.error?.message || "Failed to fetch leverage tiers");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to fetch leverage tiers";
+          if (!message.includes("not found")) {
+            console.error("[TradingStore] fetchLeverageTiers error:", error);
+          }
+          set({ leverageTiersError: message, leverageTiersLoading: false });
+          return null;
+        }
+      },
+
+      // Fetch funding rate
+      fetchFundingRate: async (params: FetchFundingRateParams): Promise<FetchFundingRateResponse["raw"] | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        set({ fundingRateLoading: true, fundingRateError: null });
+
+        try {
+          const response = await client.request<WebfixResponse<FetchFundingRateResponse["raw"]>>(
+            "fetchFundingRate",
+            params
+          );
+
+          console.log("[TradingStore] fetchFundingRate response:", response);
+
+          if (response.success && response.raw) {
+            set({ 
+              fundingRate: response.raw.fundingRate || null,
+              fundingRateHistory: response.raw.fundingRates || [],
+              fundingRateLoading: false 
+            });
+            return response.raw;
+          }
+
+          throw new Error(response.error?.message || "Failed to fetch funding rate");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to fetch funding rate";
+          if (!message.includes("not found")) {
+            console.error("[TradingStore] fetchFundingRate error:", error);
+          }
+          set({ fundingRateError: message, fundingRateLoading: false });
+          return null;
+        }
+      },
+
+      // Fetch liquidation history
+      fetchMyLiquidations: async (params: FetchMyLiquidationsParams): Promise<Liquidation[] | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        set({ liquidationsLoading: true, liquidationsError: null });
+
+        try {
+          const response = await client.request<WebfixResponse<FetchMyLiquidationsResponse["raw"]>>(
+            "fetchMyLiquidations",
+            params
+          );
+
+          console.log("[TradingStore] fetchMyLiquidations response:", response);
+
+          if (response.success && response.raw) {
+            set({ 
+              liquidations: response.raw.liquidations,
+              liquidationsLoading: false 
+            });
+            return response.raw.liquidations;
+          }
+
+          throw new Error(response.error?.message || "Failed to fetch liquidations");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to fetch liquidations";
+          if (!message.includes("not found")) {
+            console.error("[TradingStore] fetchMyLiquidations error:", error);
+          }
+          set({ liquidationsError: message, liquidationsLoading: false });
+          return null;
+        }
+      },
+
+      // Fetch option Greeks
+      fetchGreeks: async (params: FetchGreeksParams): Promise<FetchGreeksResponse["raw"] | null> => {
+        const client = getApiClient();
+        if (!client) {
+          toast.error("Not connected to server");
+          return null;
+        }
+
+        set({ greeksLoading: true, greeksError: null });
+
+        try {
+          const response = await client.request<WebfixResponse<FetchGreeksResponse["raw"]>>(
+            "fetchGreeks",
+            params
+          );
+
+          console.log("[TradingStore] fetchGreeks response:", response);
+
+          if (response.success && response.raw) {
+            set({ 
+              greeks: response.raw.greeks,
+              greeksLoading: false 
+            });
+            return response.raw;
+          }
+
+          throw new Error(response.error?.message || "Failed to fetch Greeks");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to fetch Greeks";
+          if (!message.includes("not found")) {
+            console.error("[TradingStore] fetchGreeks error:", error);
+          }
+          set({ greeksError: message, greeksLoading: false });
+          return null;
+        }
+      },
+
+      // ============================================
       // UI Actions
       // ============================================
 
@@ -916,6 +1475,15 @@ export const useTradingStore = create<TradingStore>()(
           marketTypes: [],
           selectedMarketType: null,
           availableMethods: [],
+          // Risk Management State (v2.15.0)
+          leverageTiers: {},
+          fundingRate: null,
+          fundingRateHistory: [],
+          liquidations: [],
+          greeks: null,
+          marginMode: null,
+          positionMode: null,
+          // Error states
           balanceError: null,
           ordersError: null,
           tradesError: null,
@@ -923,6 +1491,10 @@ export const useTradingStore = create<TradingStore>()(
           tickerError: null,
           orderBookError: null,
           marketTypesError: null,
+          leverageTiersError: null,
+          fundingRateError: null,
+          liquidationsError: null,
+          greeksError: null,
         });
       },
 

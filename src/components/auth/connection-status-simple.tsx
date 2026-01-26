@@ -83,6 +83,8 @@ export function ConnectionStatusSimple(): React.ReactElement {
     switch (connectionSession.network) {
       case "snaga":
         return <Network className="h-4 w-4 text-secondary-foreground" />;
+      case "air":
+        return <Network className="h-4 w-4 text-sky-500" />;
       default:
         return <Network className="h-4 w-4 text-muted-foreground" />;
     }
@@ -96,6 +98,8 @@ export function ConnectionStatusSimple(): React.ReactElement {
     switch (connectionSession.network) {
       case "snaga":
         return "bg-secondary text-secondary-foreground border-secondary-foreground/30";
+      case "air":
+        return "bg-sky-500/20 text-sky-700 dark:text-sky-400 border-sky-500/30";
       default:
         return "bg-muted/20 text-muted-foreground border-border";
     }

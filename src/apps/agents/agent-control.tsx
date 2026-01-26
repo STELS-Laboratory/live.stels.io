@@ -54,7 +54,6 @@ export function AgentControl() {
     chatLoading,
     chatError,
     workspaceLoading,
-    tasksLoading,
     listAgents,
     listWorkspaces,
     createAgent,

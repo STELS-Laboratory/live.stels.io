@@ -4,7 +4,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { Bot, Loader2, Plus, FolderPlus, Rocket, Power } from "lucide-react";
+import { Bot, Loader2, Plus, FolderPlus, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -141,6 +141,7 @@ export function CreateAgentDialog({
         setShowNewWorkspace(false);
         setNewWorkspaceName("");
         setErrors((prev) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { newWorkspace, workspaceId, ...rest } = prev;
           return rest;
         });

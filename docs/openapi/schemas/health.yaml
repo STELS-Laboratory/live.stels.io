@@ -343,3 +343,348 @@ GetMetricsResponse:
               $ref: "#/TracingMetrics"
             application:
               $ref: "#/ApplicationMetrics"
+
+# ═══════════════════════════════════════════════════════════════════════════
+# WORKER METRICS (v2.14.0) - Comprehensive Worker Statistics
+# ═══════════════════════════════════════════════════════════════════════════
+
+WorkerCapacity:
+  type: object
+  description: Worker capacity and utilization information
+  properties:
+    current:
+      type: integer
+      description: Current number of running workers
+      example: 5
+    maxRecommended:
+      type: integer
+      description: Maximum recommended workers per node
+      example: 100
+    utilizationPercent:
+      type: number
+      description: Capacity utilization percentage
+      example: 5
+
+WorkerThresholds:
+  type: object
+  description: Worker error thresholds configuration
+  properties:
+    maxConsecutiveNetworkErrors:
+      type: integer
+      description: Max consecutive network errors before pause
+      example: 20
+    maxCriticalErrors:
+      type: integer
+      description: Max critical errors before stop
+      example: 10
+    maxConsecutiveErrors:
+      type: integer
+      description: Max consecutive errors of any type
+      example: 50
+    networkErrorPauseMs:
+      type: integer
+      description: Pause duration after network errors (ms)
+      example: 300000
+
+WorkerCache:
+  type: object
+  description: Worker function cache statistics
+  properties:
+    functions:
+      type: integer
+      description: Number of cached functions
+      example: 15
+    loggers:
+      type: integer
+      description: Number of cached loggers
+      example: 15
+    hitRate:
+      type: number
+      description: Cache hit rate percentage
+      example: 85.5
+    totalHits:
+      type: integer
+      description: Total cache hits
+      example: 1250
+
+WorkerDetail:
+  type: object
+  description: Individual worker statistics
+  properties:
+    sid:
+      type: string
+      format: uuid
+      description: Worker session ID
+      example: "9948e72a-f9af-4cab-ad8f-a7ce3cad7429"
+    isRunning:
+      type: boolean
+      description: Whether worker is currently running
+      example: true
+    executions:
+      type: integer
+      description: Total executions count
+      example: 48
+    errors:
+      type: integer
+      description: Total errors count
+      example: 0
+    errorRate:
+      type: number
+      description: Error rate percentage
+      example: 0
+    uptime:
+      type: integer
+      description: Worker uptime in milliseconds
+      example: 3600000
+    lastRun:
+      type: integer
+      nullable: true
+      description: Last run timestamp (null if never ran)
+      example: 1737561234567
+
+WorkerMetrics:
+  type: object
+  description: Comprehensive worker metrics
+  properties:
+    # Counts
+    totalWorkers:
+      type: integer
+      description: Total number of workers (running + stopped)
+      example: 23
+    runningWorkers:
+      type: integer
+      description: Number of currently running workers
+      example: 1
+    stoppedWorkers:
+      type: integer
+      description: Number of stopped workers
+      example: 22
+    localWorkers:
+      type: integer
+      description: Workers running locally on this node
+      example: 1
+    networkWorkers:
+      type: integer
+      description: Workers available on network
+      example: 0
+    
+    # Execution stats
+    totalExecutions:
+      type: integer
+      description: Total worker executions across all workers
+      example: 48
+    totalErrors:
+      type: integer
+      description: Total errors across all workers
+      example: 0
+    networkErrors:
+      type: integer
+      description: Total network-related errors
+      example: 0
+    criticalErrors:
+      type: integer
+      description: Total critical errors (may stop worker)
+      example: 0
+    errorRate:
+      type: number
+      description: Overall error rate percentage
+      example: 0
+    
+    # Capacity
+    capacity:
+      $ref: "#/WorkerCapacity"
+    
+    # Thresholds
+    thresholds:
+      $ref: "#/WorkerThresholds"
+    
+    # Cache
+    cache:
+      $ref: "#/WorkerCache"
+    
+    # Top workers
+    topWorkers:
+      type: array
+      description: Top 10 workers by execution count
+      items:
+        $ref: "#/WorkerDetail"
+
+# Updated GetMetricsParams with workers flag
+GetMetricsParamsV2:
+  type: object
+  properties:
+    format:
+      type: string
+      enum: [json, prometheus]
+      default: json
+      description: Output format for metrics
+    includeSystem:
+      type: boolean
+      default: true
+      description: Include system metrics (memory, uptime)
+    includeRpc:
+      type: boolean
+      default: true
+      description: Include RPC and routing metrics
+    includeTracing:
+      type: boolean
+      default: true
+      description: Include tracing metrics
+    includeApplication:
+      type: boolean
+      default: true
+      description: Include application metrics (agents, tasks, etc.)
+    includeWorkers:
+      type: boolean
+      default: true
+      description: Include worker metrics (executions, errors, capacity)
+
+# Updated Full Metrics Response with Workers
+GetMetricsResponseV2:
+  allOf:
+    - $ref: "#/ApiResponse"
+    - type: object
+      properties:
+        raw:
+          type: object
+          properties:
+            timestamp:
+              type: integer
+              description: Collection timestamp
+            system:
+              $ref: "#/SystemMetrics"
+            rpc:
+              $ref: "#/RpcMetrics"
+            routing:
+              $ref: "#/RoutingMetrics"
+            tracing:
+              $ref: "#/TracingMetrics"
+            application:
+              $ref: "#/ApplicationMetrics"
+            workers:
+              $ref: "#/WorkerMetrics"
+
+# Updated WorkerMetrics with scope breakdown (v2.14.1)
+WorkerScopeStats:
+  type: object
+  description: Worker statistics by scope (local or network)
+  properties:
+    total:
+      type: integer
+      description: Total workers of this scope in KV
+      example: 15
+    active:
+      type: integer
+      description: Workers with active=true flag
+      example: 5
+    running:
+      type: integer
+      description: Currently running workers on this node
+      example: 3
+
+WorkerMetricsV2:
+  type: object
+  description: Comprehensive worker metrics with scope breakdown
+  properties:
+    # Counts
+    totalWorkers:
+      type: integer
+      description: Total number of workers (running + stopped)
+      example: 23
+    runningWorkers:
+      type: integer
+      description: Number of currently running workers
+      example: 1
+    stoppedWorkers:
+      type: integer
+      description: Number of stopped workers
+      example: 22
+    
+    # By scope
+    local:
+      $ref: "#/WorkerScopeStats"
+      description: Local workers (scope=local, stored in local KV)
+    network:
+      $ref: "#/WorkerScopeStats"
+      description: Network workers (scope=network, stored in distributed KV)
+    
+    # Execution stats
+    totalExecutions:
+      type: integer
+      description: Total worker executions across all workers
+      example: 48
+    totalErrors:
+      type: integer
+      description: Total errors across all workers
+      example: 0
+    networkErrors:
+      type: integer
+      description: Total network-related errors
+      example: 0
+    criticalErrors:
+      type: integer
+      description: Total critical errors (may stop worker)
+      example: 0
+    errorRate:
+      type: number
+      description: Overall error rate percentage
+      example: 0
+    
+    # Capacity
+    capacity:
+      $ref: "#/WorkerCapacity"
+    
+    # Thresholds
+    thresholds:
+      $ref: "#/WorkerThresholds"
+    
+    # Cache
+    cache:
+      $ref: "#/WorkerCache"
+    
+    # Top workers
+    topWorkers:
+      type: array
+      description: Top 10 workers by execution count
+      items:
+        $ref: "#/WorkerDetailV2"
+
+WorkerDetailV2:
+  type: object
+  description: Individual worker statistics with scope
+  properties:
+    sid:
+      type: string
+      format: uuid
+      description: Worker session ID
+      example: "9948e72a-f9af-4cab-ad8f-a7ce3cad7429"
+    isRunning:
+      type: boolean
+      description: Whether worker is currently running
+      example: true
+    scope:
+      type: string
+      enum: [local, network]
+      description: Worker scope
+      example: "local"
+    executions:
+      type: integer
+      description: Total executions count
+      example: 48
+    errors:
+      type: integer
+      description: Total errors count
+      example: 0
+    errorRate:
+      type: number
+      description: Error rate percentage
+      example: 0
+    uptime:
+      type: integer
+      description: Worker uptime in milliseconds
+      example: 3600000
+    lastRun:
+      type: integer
+      nullable: true
+      description: Last run timestamp (null if never ran)
+      example: 1737561234567

@@ -27,15 +27,10 @@ import type {
   DomainInfo,
   Template,
   ListDomainsParams,
-  ListDomainsResponse,
   GetDomainInfoParams,
-  GetDomainInfoResponse,
   ExecuteDomainActionParams,
-  ExecuteDomainActionResponse,
   ListTemplatesParams,
-  ListTemplatesResponse,
   CreateFromTemplateParams,
-  CreateFromTemplateResponse,
 } from "./types";
 
 /**
@@ -76,7 +71,8 @@ export const useDomainsStore = create<DomainsStore>()(
       actionError: null,
 
       // List all domains
-      listDomains: async (_params?: ListDomainsParams): Promise<void> => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      listDomains: async (params?: ListDomainsParams): Promise<void> => {
         const client = getApiClient();
         if (!client) {
           toast.error("Not connected to server");

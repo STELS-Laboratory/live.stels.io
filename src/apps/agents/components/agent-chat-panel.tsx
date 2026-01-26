@@ -60,7 +60,6 @@ import {
   getJsonPreview,
   convertHtmlLinksToMarkdown,
   processLatex,
-  type MessageBlock,
 } from "@/lib/agent-message-parser";
 import {
   Collapsible,
@@ -280,10 +279,10 @@ const ThinkingBlock = memo(function ThinkingBlock({ content }: { content: string
               <ChevronRight className="w-3.5 h-3.5 text-amber-600" />
             )}
             <Brain className="w-3.5 h-3.5 text-amber-600" />
-            <span className="font-medium text-amber-700 dark:text-amber-500">Хід думок агента</span>
+            <span className="font-medium text-amber-700 dark:text-amber-500">Agent Thinking</span>
             {!isOpen && (
               <span className="text-amber-600/60 ml-2 truncate text-[10px]">
-                (натисніть, щоб розгорнути)
+                (click to expand)
               </span>
             )}
           </button>
@@ -335,7 +334,7 @@ const ToolCallBlock = memo(function ToolCallBlock({
             )}
             <Wrench className="w-3.5 h-3.5 text-purple-600" />
             <span className="font-medium text-purple-700 dark:text-purple-400">
-              Виклик функції
+              Function Call
             </span>
             <code className="text-purple-600 dark:text-purple-400 font-mono text-[10px] truncate">
               {summary}
@@ -403,7 +402,7 @@ const ParsedMessageContent = memo(function ParsedMessageContent({
               <JsonBlock
                 key={index}
                 content={block.content}
-                label="Дані"
+                label="Data"
                 defaultCollapsed={false}
               />
             );
@@ -413,7 +412,7 @@ const ParsedMessageContent = memo(function ParsedMessageContent({
               <JsonBlock
                 key={index}
                 content={block.content}
-                label="Результат"
+                label="Result"
                 defaultCollapsed={false}
               />
             );
@@ -594,13 +593,14 @@ export function AgentChatPanel({
     if (lastMessage?.role === "assistant") {
       scrollToBottom("auto");
     }
-  }, [lastMessage?.content, scrollToBottom]);
+  }, [lastMessage?.content, lastMessage?.role, scrollToBottom]);
 
   // Focus textarea when agent changes
   useEffect(() => {
     if (agent && textareaRef.current) {
       textareaRef.current.focus();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agent?.id]);
 
   const handleSend = useCallback(() => {

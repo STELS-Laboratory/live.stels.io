@@ -19,6 +19,14 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
     developer: true,
     description: "Local development network",
   },
+  air: {
+    id: "air",
+    name: "Air",
+    api: "https://rpc.airarchy.net",
+    socket: "wss://rpc.airarchy.net",
+    developer: false,
+    description: "Airarchy production network",
+  },
 };
 
 /**

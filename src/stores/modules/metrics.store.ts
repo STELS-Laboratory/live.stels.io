@@ -136,6 +136,77 @@ export interface ApplicationMetrics {
   };
 }
 
+// ============================================
+// Worker Metrics (v2.14.0)
+// ============================================
+
+export interface WorkerCapacity {
+  current: number;        // Current number of running workers
+  maxRecommended: number; // Maximum recommended workers per node
+  utilizationPercent: number; // Capacity utilization percentage
+}
+
+export interface WorkerThresholds {
+  maxConsecutiveNetworkErrors: number; // Max consecutive network errors before pause
+  maxCriticalErrors: number;           // Max critical errors before stop
+  maxConsecutiveErrors: number;        // Max consecutive errors of any type
+  networkErrorPauseMs: number;         // Pause duration after network errors (ms)
+}
+
+export interface WorkerCache {
+  functions: number;  // Number of cached functions
+  loggers: number;    // Number of cached loggers
+  hitRate: number;    // Cache hit rate percentage
+  totalHits: number;  // Total cache hits
+}
+
+export interface WorkerScopeStats {
+  total: number;   // Total workers of this scope in KV
+  active: number;  // Workers with active=true flag
+  running: number; // Currently running workers on this node
+}
+
+export interface WorkerDetail {
+  sid: string;         // Worker session ID
+  isRunning: boolean;  // Whether worker is currently running
+  scope: "local" | "network"; // Worker scope
+  executions: number;  // Total executions count
+  errors: number;      // Total errors count
+  errorRate: number;   // Error rate percentage
+  uptime: number;      // Worker uptime in milliseconds
+  lastRun: number | null; // Last run timestamp (null if never ran)
+}
+
+export interface WorkerMetrics {
+  // Counts
+  totalWorkers: number;   // Total number of workers (running + stopped)
+  runningWorkers: number; // Number of currently running workers
+  stoppedWorkers: number; // Number of stopped workers
+  
+  // By scope (v2.14.0)
+  local: WorkerScopeStats;   // Local workers (scope=local, stored in local KV)
+  network: WorkerScopeStats; // Network workers (scope=network, stored in distributed KV)
+  
+  // Execution stats
+  totalExecutions: number;  // Total worker executions across all workers
+  totalErrors: number;      // Total errors across all workers
+  networkErrors: number;    // Total network-related errors
+  criticalErrors: number;   // Total critical errors (may stop worker)
+  errorRate: number;        // Overall error rate percentage
+  
+  // Capacity
+  capacity: WorkerCapacity;
+  
+  // Thresholds
+  thresholds: WorkerThresholds;
+  
+  // Cache
+  cache: WorkerCache;
+  
+  // Top workers
+  topWorkers: WorkerDetail[];
+}
+
 // Full Metrics data structure (new unified format)
 export interface FullMetrics {
   timestamp: number;
@@ -144,10 +215,11 @@ export interface FullMetrics {
   routing: RoutingMetrics;
   tracing: TracingMetrics;
   application: ApplicationMetrics;
+  workers?: WorkerMetrics; // Added in v2.14.0
 }
 
 // Legacy MetricsData (for backward compatibility)
-export interface MetricsData extends FullMetrics {}
+export type MetricsData = FullMetrics;
 
 export interface GetMetricsParams {
   format?: "json" | "prometheus";
@@ -155,6 +227,7 @@ export interface GetMetricsParams {
   includeRpc?: boolean;
   includeTracing?: boolean;
   includeApplication?: boolean;
+  includeWorkers?: boolean; // Added in v2.14.0
 }
 
 // Logging Metrics

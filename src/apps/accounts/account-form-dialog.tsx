@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import type { SetAccountPayload } from "@/lib/api-types";
 import type { StoredAccount } from "@/types/stores/types";
-import { EXCHANGE_OPTIONS } from "./types";
+import { EXCHANGE_OPTIONS, getExchangeIconPath } from "./types";
 
 interface AccountFormDialogProps {
   open: boolean;
@@ -158,12 +158,30 @@ export function AccountFormDialog({
               disabled={isEdit}
             >
               <SelectTrigger id="exchange" className={errors.exchange ? "border-destructive" : ""}>
-                <SelectValue placeholder="Select exchange" />
+                <SelectValue placeholder="Select exchange">
+                  {exchange && (
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={getExchangeIconPath(exchange)}
+                        alt=""
+                        className="h-4 w-4 rounded object-contain"
+                      />
+                      <span>{EXCHANGE_OPTIONS.find((o) => o.value === exchange)?.label}</span>
+                    </div>
+                  )}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {EXCHANGE_OPTIONS.map((o) => (
                   <SelectItem key={o.value} value={o.value}>
-                    {o.label}
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={getExchangeIconPath(o.value)}
+                        alt={o.label}
+                        className="h-4 w-4 rounded object-contain"
+                      />
+                      <span>{o.label}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -82,9 +82,9 @@ export function ConditionalOrderDialog({
   const [orderAmount, setOrderAmount] = useState("");
   const [orderPrice, setOrderPrice] = useState("");
 
-  // Expiration
-  const [hasExpiration, setHasExpiration] = useState(false);
-  const [expiresAt, setExpiresAt] = useState("");
+  // Expiration (reserved for future use)
+  const [hasExpiration] = useState(false);
+  const [expiresAt] = useState("");
 
   const handleSubmit = useCallback(async () => {
     if (!conditionValue || !orderAmount || parseFloat(orderAmount) <= 0) return;

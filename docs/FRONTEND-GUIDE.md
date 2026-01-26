@@ -1633,3 +1633,740 @@ const balance = await rpc("fetchBalanceById", {
 
 ---
 
+
+## System Metrics API (v2.14.0)
+
+### Overview
+
+The `getMetrics` RPC method provides comprehensive system metrics including workers, RPC calls, system resources, and more. This is useful for building admin dashboards, monitoring tools, and debugging.
+
+### Getting Metrics
+
+```javascript
+const metrics = await rpc("getMetrics", {
+  format: "json",           // "json" | "prometheus"
+  includeSystem: true,      // Memory, uptime, Deno info
+  includeRpc: true,         // RPC calls stats
+  includeTracing: true,     // Tracing spans
+  includeApplication: true, // Agents, tasks, chains
+  includeWorkers: true      // Worker statistics
+});
+```
+
+### Worker Metrics (v2.14.0)
+
+Worker metrics now include detailed breakdown by scope (local vs network):
+
+```javascript
+{
+  "workers": {
+    // Total counts
+    "totalWorkers": 23,
+    "runningWorkers": 1,
+    "stoppedWorkers": 22,
+
+    // Local workers (scope: "local", stored in local KV)
+    "local": {
+      "total": 15,      // Total local workers in KV
+      "active": 5,      // Workers with active=true flag
+      "running": 3      // Actually running on this node
+    },
+
+    // Network workers (scope: "network", stored in distributed KV)
+    "network": {
+      "total": 8,       // Total network workers
+      "active": 2,      // Active in network
+      "running": 1      // Running on this node (as leader/parallel)
+    },
+
+    // Execution statistics
+    "totalExecutions": 48,
+    "totalErrors": 0,
+    "networkErrors": 0,
+    "criticalErrors": 0,
+    "errorRate": 0,
+
+    // Capacity limits
+    "capacity": {
+      "current": 1,           // Currently running
+      "maxRecommended": 100,  // Max recommended per node
+      "utilizationPercent": 1 // Current utilization
+    },
+
+    // Error thresholds (when worker stops)
+    "thresholds": {
+      "maxConsecutiveNetworkErrors": 20,
+      "maxCriticalErrors": 10,
+      "maxConsecutiveErrors": 50,
+      "networkErrorPauseMs": 300000
+    },
+
+    // Function cache stats
+    "cache": {
+      "functions": 1,
+      "loggers": 1,
+      "hitRate": 0,
+      "totalHits": 0
+    },
+
+    // Top 10 workers by executions
+    "topWorkers": [
+      {
+        "sid": "9948e72a-f9af-4cab-ad8f-a7ce3cad7429",
+        "isRunning": true,
+        "scope": "local",   // "local" | "network"
+        "executions": 48,
+        "errors": 0,
+        "errorRate": 0,
+        "uptime": 3600000,
+        "lastRun": 1737561234567
+      }
+    ]
+  }
+}
+```
+
+### Worker Scope Explanation
+
+| Scope | Description |
+|-------|-------------|
+| `local` | Workers stored in local KV, visible only on this node. Always executed locally. |
+| `network` | Workers stored in distributed KV, visible across all nodes. Execution depends on `executionMode`. |
+
+### Worker States
+
+| State | Description |
+|-------|-------------|
+| `total` | All workers in KV (including inactive) |
+| `active` | Workers with `active: true` flag (should be running) |
+| `running` | Actually executing on this node right now |
+
+### UI Example: Workers Dashboard
+
+```tsx
+function WorkersDashboard() {
+  const [metrics, setMetrics] = useState(null);
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      const result = await rpc("getMetrics", { includeWorkers: true });
+      if (result.success) {
+        setMetrics(result.raw.workers);
+      }
+    };
+    fetchMetrics();
+    const interval = setInterval(fetchMetrics, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!metrics) return <div>Loading...</div>;
+
+  return (
+    <div className="workers-dashboard">
+      {/* Summary Cards */}
+      <div className="cards">
+        <Card title="Total Workers" value={metrics.totalWorkers} />
+        <Card title="Running" value={metrics.runningWorkers} color="green" />
+        <Card title="Stopped" value={metrics.stoppedWorkers} color="gray" />
+      </div>
+
+      {/* By Scope */}
+      <div className="scope-breakdown">
+        <h3>Local Workers</h3>
+        <Progress 
+          value={metrics.local.running} 
+          max={metrics.local.active}
+          label={`${metrics.local.running}/${metrics.local.active} running`}
+        />
+        
+        <h3>Network Workers</h3>
+        <Progress 
+          value={metrics.network.running} 
+          max={metrics.network.active}
+          label={`${metrics.network.running}/${metrics.network.active} running`}
+        />
+      </div>
+
+      {/* Capacity */}
+      <div className="capacity">
+        <h3>Capacity Utilization</h3>
+        <ProgressBar
+          percent={metrics.capacity.utilizationPercent}
+          label={`${metrics.capacity.current}/${metrics.capacity.maxRecommended}`}
+        />
+      </div>
+
+      {/* Execution Stats */}
+      <div className="stats">
+        <Stat label="Total Executions" value={metrics.totalExecutions} />
+        <Stat label="Total Errors" value={metrics.totalErrors} />
+        <Stat 
+          label="Error Rate" 
+          value={`${metrics.errorRate}%`}
+          color={metrics.errorRate > 5 ? "red" : "green"}
+        />
+      </div>
+
+      {/* Top Workers Table */}
+      <table className="workers-table">
+        <thead>
+          <tr>
+            <th>Worker ID</th>
+            <th>Scope</th>
+            <th>Status</th>
+            <th>Executions</th>
+            <th>Errors</th>
+            <th>Uptime</th>
+          </tr>
+        </thead>
+        <tbody>
+          {metrics.topWorkers.map(worker => (
+            <tr key={worker.sid}>
+              <td>{worker.sid.slice(0, 8)}...</td>
+              <td>
+                <Badge type={worker.scope === "local" ? "blue" : "purple"}>
+                  {worker.scope}
+                </Badge>
+              </td>
+              <td>
+                <StatusDot active={worker.isRunning} />
+                {worker.isRunning ? "Running" : "Stopped"}
+              </td>
+              <td>{worker.executions}</td>
+              <td>{worker.errors}</td>
+              <td>{formatDuration(worker.uptime)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+```
+
+### Prometheus Format
+
+For Grafana/Prometheus integration, request with `format: "prometheus"`:
+
+```javascript
+const response = await rpc("getMetrics", { format: "prometheus" });
+// Returns plain text Prometheus format
+```
+
+Key worker metrics in Prometheus format:
+```
+# Total workers
+stels_workers_total 23
+stels_workers_running 1
+stels_workers_stopped 22
+
+# Local workers
+stels_workers_local_total 15
+stels_workers_local_active 5
+stels_workers_local_running 3
+
+# Network workers
+stels_workers_network_total 8
+stels_workers_network_active 2
+stels_workers_network_running 1
+
+# Execution stats
+stels_worker_executions_total 48
+stels_worker_errors_total 0
+stels_worker_error_rate_percent 0
+
+# Capacity
+stels_worker_capacity_current 1
+stels_worker_capacity_max 100
+stels_worker_capacity_utilization_percent 1
+
+# Per-worker (top 10)
+stels_worker_executions{sid="9948e72a-...",scope="local",running="true"} 48
+stels_worker_errors{sid="9948e72a-...",scope="local"} 0
+```
+
+---
+
+## Professional Trading Terminal API (v2.15.0)
+
+### Overview
+
+The platform now includes a comprehensive Professional Trading API designed for building advanced trading terminals. This API provides full order management, position control, and risk management capabilities with priority support for Bybit.
+
+### API Categories
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Professional Trading API                                    │
+│                                                              │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
+│  │ Order Management│  │Position Control │  │ Risk Mgmt    │ │
+│  │                 │  │                 │  │              │ │
+│  │ • editOrder     │  │ • setMarginMode │  │ • fetchLever │ │
+│  │ • cancelAll     │  │ • closePosition │  │   ageTiers   │ │
+│  │ • createWithTpSl│  │ • setPosition   │  │ • fetchFund  │ │
+│  │ • createStop    │  │   Mode          │  │   ingRate    │ │
+│  │   Order         │  │ • modifyMargin  │  │ • fetchMy    │ │
+│  │                 │  │                 │  │   Liquidations│ │
+│  └─────────────────┘  └─────────────────┘  │ • fetchGreeks│ │
+│                                             └──────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Order Management
+
+#### Edit Order
+
+Modify an existing order's price or amount:
+
+```javascript
+const result = await rpc("editOrder", {
+  accountId: "account-uuid",
+  orderId: "order-id",
+  symbol: "BTC/USDT",
+  amount: 0.5,              // New amount
+  price: 45000,             // New price
+  positionIdx: 0            // Bybit: 0=one-way, 1=buy hedge, 2=sell hedge
+});
+
+// Response:
+{
+  "success": true,
+  "raw": {
+    "orderId": "order-id",
+    "symbol": "BTC/USDT",
+    "amount": 0.5,
+    "price": 45000,
+    "status": "open",
+    "timestamp": 1706000000000
+  }
+}
+```
+
+#### Cancel All Orders
+
+Cancel all open orders for a symbol or all symbols:
+
+```javascript
+const result = await rpc("cancelAllOrders", {
+  accountId: "account-uuid",
+  symbol: "BTC/USDT",           // Optional - if omitted, cancels all
+  marketType: "linear",          // Optional: spot, linear, inverse, option
+  orderFilter: "Order"           // Bybit: "Order", "StopOrder", "tpslOrder"
+});
+
+// Response:
+{
+  "success": true,
+  "raw": {
+    "canceledCount": 5,
+    "canceledOrders": [...],
+    "symbol": "BTC/USDT",
+    "timestamp": 1706000000000
+  }
+}
+```
+
+#### Create Order with Take Profit / Stop Loss
+
+Create an order with attached TP/SL:
+
+```javascript
+const result = await rpc("createOrderWithTpSl", {
+  accountId: "account-uuid",
+  symbol: "BTC/USDT",
+  type: "limit",
+  side: "buy",
+  amount: 0.1,
+  price: 44000,
+  takeProfitPrice: 48000,
+  stopLossPrice: 42000,
+  // Bybit-specific options
+  tpTriggerBy: "MarkPrice",      // "LastPrice", "MarkPrice", "IndexPrice"
+  slTriggerBy: "MarkPrice",
+  tpslMode: "Full",              // "Full" or "Partial"
+  positionIdx: 0,                // For hedge mode
+  reduceOnly: false,
+  timeInForce: "GTC"             // "GTC", "IOC", "FOK", "PostOnly"
+});
+```
+
+#### Create Stop Order
+
+Create stop/trigger orders:
+
+```javascript
+const result = await rpc("createStopOrder", {
+  accountId: "account-uuid",
+  symbol: "BTC/USDT",
+  stopOrderType: "stop_loss",    // See types below
+  side: "sell",
+  amount: 0.1,
+  triggerPrice: 43000,
+  price: 42900,                  // For limit stop orders
+  triggerBy: "MarkPrice",
+  positionIdx: 0,
+  reduceOnly: true
+});
+```
+
+**Stop Order Types:**
+| Type | Description |
+|------|-------------|
+| `stop_loss` | Market sell when price falls below trigger |
+| `take_profit` | Market sell when price rises above trigger |
+| `stop_loss_limit` | Limit sell when price falls below trigger |
+| `take_profit_limit` | Limit sell when price rises above trigger |
+| `trailing_stop` | Dynamic stop that follows price movement |
+
+---
+
+### Position Management
+
+#### Set Margin Mode
+
+Switch between cross and isolated margin:
+
+```javascript
+await rpc("setMarginMode", {
+  accountId: "account-uuid",
+  marginMode: "isolated",        // "cross" or "isolated"
+  symbol: "BTC/USDT"
+});
+```
+
+#### Close Position
+
+Close an open position:
+
+```javascript
+const result = await rpc("closePosition", {
+  accountId: "account-uuid",
+  symbol: "BTC/USDT",
+  amount: 0.05,                  // Optional - closes full position if omitted
+  positionIdx: 0,                // For hedge mode
+  price: 45000                   // Optional - market close if omitted
+});
+
+// Response includes closed position details
+{
+  "success": true,
+  "raw": {
+    "orderId": "close-order-id",
+    "symbol": "BTC/USDT",
+    "side": "sell",
+    "amount": 0.1,
+    "status": "closed",
+    "closedPosition": {
+      "side": "long",
+      "contracts": 0.1
+    }
+  }
+}
+```
+
+#### Set Position Mode
+
+Switch between one-way and hedge mode:
+
+```javascript
+await rpc("setPositionMode", {
+  accountId: "account-uuid",
+  hedged: true,                  // true = hedge mode, false = one-way
+  symbol: "BTC/USDT"             // Optional for some exchanges
+});
+```
+
+#### Modify Margin
+
+Add or reduce margin for isolated positions:
+
+```javascript
+await rpc("modifyMargin", {
+  accountId: "account-uuid",
+  symbol: "BTC/USDT",
+  amount: 100,                   // Amount in quote currency
+  action: "add",                 // "add" or "reduce"
+  positionIdx: 0                 // For hedge mode
+});
+```
+
+---
+
+### Risk Management
+
+#### Fetch Leverage Tiers
+
+Get leverage tier information:
+
+```javascript
+const result = await rpc("fetchLeverageTiers", {
+  accountId: "account-uuid",
+  symbol: "BTC/USDT",            // Or symbols: ["BTC/USDT", "ETH/USDT"]
+  marketType: "linear"
+});
+
+// Response:
+{
+  "success": true,
+  "raw": {
+    "tiers": {
+      "BTC/USDT": [
+        {
+          "tier": 1,
+          "minNotional": 0,
+          "maxNotional": 2000000,
+          "maintenanceMarginRate": 0.004,
+          "maxLeverage": 125
+        },
+        {
+          "tier": 2,
+          "minNotional": 2000000,
+          "maxNotional": 10000000,
+          "maintenanceMarginRate": 0.005,
+          "maxLeverage": 100
+        }
+      ]
+    }
+  }
+}
+```
+
+#### Fetch Funding Rate
+
+Get current and historical funding rates:
+
+```javascript
+// Current funding rate
+const current = await rpc("fetchFundingRate", {
+  accountId: "account-uuid",
+  symbol: "BTC/USDT"
+});
+
+// Historical funding rates
+const history = await rpc("fetchFundingRate", {
+  accountId: "account-uuid",
+  symbol: "BTC/USDT",
+  history: true,
+  since: Date.now() - 7 * 24 * 60 * 60 * 1000,  // Last 7 days
+  limit: 100
+});
+
+// Response:
+{
+  "success": true,
+  "raw": {
+    "fundingRate": {
+      "symbol": "BTC/USDT",
+      "fundingRate": 0.0001,
+      "fundingTimestamp": 1706000000000,
+      "nextFundingTimestamp": 1706028800000,
+      "nextFundingRate": 0.00012,
+      "markPrice": 45000,
+      "indexPrice": 44995
+    }
+  }
+}
+```
+
+#### Fetch Liquidation History
+
+Get user's liquidation history:
+
+```javascript
+const result = await rpc("fetchMyLiquidations", {
+  accountId: "account-uuid",
+  symbol: "BTC/USDT",            // Optional
+  since: Date.now() - 30 * 24 * 60 * 60 * 1000,
+  limit: 50
+});
+
+// Response:
+{
+  "success": true,
+  "raw": {
+    "liquidations": [
+      {
+        "id": "liq-123",
+        "symbol": "BTC/USDT",
+        "timestamp": 1705900000000,
+        "price": 42000,
+        "contracts": 0.5,
+        "side": "long",
+        "quoteValue": 21000
+      }
+    ],
+    "total": 1
+  }
+}
+```
+
+#### Fetch Greeks (Options)
+
+Get option Greeks for options trading:
+
+```javascript
+// Single option
+const greeks = await rpc("fetchGreeks", {
+  accountId: "account-uuid",
+  symbol: "BTC-31JAN25-50000-C"
+});
+
+// All options for base currency
+const allGreeks = await rpc("fetchGreeks", {
+  accountId: "account-uuid",
+  baseCurrency: "BTC"
+});
+
+// Response:
+{
+  "success": true,
+  "raw": {
+    "greeks": {
+      "symbol": "BTC-31JAN25-50000-C",
+      "delta": 0.45,
+      "gamma": 0.00012,
+      "vega": 25.5,
+      "theta": -15.2,
+      "rho": 0.08,
+      "markIv": 0.65,
+      "underlyingPrice": 45000,
+      "markPrice": 1250
+    }
+  }
+}
+```
+
+---
+
+### Bybit-Specific Parameters
+
+Bybit has additional parameters supported across all endpoints:
+
+| Parameter | Values | Description |
+|-----------|--------|-------------|
+| `positionIdx` | `0`, `1`, `2` | 0=one-way, 1=buy side hedge, 2=sell side hedge |
+| `tpslMode` | `"Full"`, `"Partial"` | TP/SL applies to full position or partial |
+| `triggerBy` | `"LastPrice"`, `"MarkPrice"`, `"IndexPrice"` | Price type for triggers |
+| `orderFilter` | `"Order"`, `"StopOrder"`, `"tpslOrder"` | Filter for cancelAllOrders |
+
+---
+
+### UI Implementation: Professional Trading Terminal
+
+```tsx
+function ProfessionalTradingTerminal({ accountId }) {
+  const [positions, setPositions] = useState([]);
+  const [openOrders, setOpenOrders] = useState([]);
+  const [leverageTiers, setLeverageTiers] = useState({});
+  const [fundingRate, setFundingRate] = useState(null);
+
+  // Fetch data on mount
+  useEffect(() => {
+    Promise.all([
+      rpc("fetchPositions", { accountId }),
+      rpc("fetchOpenOrders", { accountId }),
+      rpc("fetchLeverageTiers", { accountId }),
+      rpc("fetchFundingRate", { accountId, symbol: "BTC/USDT" })
+    ]).then(([pos, orders, tiers, funding]) => {
+      setPositions(pos.raw);
+      setOpenOrders(orders.raw.orders);
+      setLeverageTiers(tiers.raw.tiers);
+      setFundingRate(funding.raw.fundingRate);
+    });
+  }, [accountId]);
+
+  return (
+    <div className="trading-terminal">
+      {/* Header: Account Info & Funding Rate */}
+      <header>
+        <FundingRateDisplay rate={fundingRate} />
+        <AccountBalance accountId={accountId} />
+      </header>
+
+      {/* Main Trading Area */}
+      <div className="trading-grid">
+        {/* Order Form with TP/SL */}
+        <OrderFormWithTpSl 
+          accountId={accountId}
+          onOrderCreated={refreshOrders}
+        />
+
+        {/* Order Book */}
+        <OrderBook accountId={accountId} symbol="BTC/USDT" />
+
+        {/* Positions Panel */}
+        <PositionsPanel
+          positions={positions}
+          onClosePosition={handleClosePosition}
+          onModifyMargin={handleModifyMargin}
+        />
+
+        {/* Open Orders with Edit/Cancel */}
+        <OpenOrdersPanel
+          orders={openOrders}
+          onEditOrder={handleEditOrder}
+          onCancelOrder={handleCancelOrder}
+          onCancelAll={handleCancelAll}
+        />
+      </div>
+
+      {/* Bottom: Leverage Tiers & Risk Info */}
+      <footer>
+        <LeverageTiersTable tiers={leverageTiers["BTC/USDT"]} />
+        <RiskMetrics accountId={accountId} />
+      </footer>
+    </div>
+  );
+}
+```
+
+### Position Row with Actions
+
+```tsx
+function PositionRow({ position, onClose, onModifyMargin }) {
+  return (
+    <tr className={position.side === "long" ? "bg-green-50" : "bg-red-50"}>
+      <td>{position.symbol}</td>
+      <td className={position.side === "long" ? "text-green-600" : "text-red-600"}>
+        {position.side.toUpperCase()}
+      </td>
+      <td>{position.amount}</td>
+      <td>${position.entryPrice.toFixed(2)}</td>
+      <td>${position.markPrice.toFixed(2)}</td>
+      <td className={position.unrealizedPnl >= 0 ? "text-green-600" : "text-red-600"}>
+        ${position.unrealizedPnl.toFixed(2)} ({position.percentage.toFixed(2)}%)
+      </td>
+      <td>${position.liquidationPrice.toFixed(2)}</td>
+      <td>{position.leverage}x</td>
+      <td>
+        <button onClick={() => onClose(position)}>Close</button>
+        <button onClick={() => onModifyMargin(position, "add")}>+Margin</button>
+        <button onClick={() => onModifyMargin(position, "reduce")}>-Margin</button>
+      </td>
+    </tr>
+  );
+}
+```
+
+---
+
+### API Methods Summary (v2.15.0)
+
+| Category | Method | Description |
+|----------|--------|-------------|
+| **Order Mgmt** | `editOrder` | Edit existing order |
+| | `cancelAllOrders` | Cancel all orders for symbol |
+| | `createOrderWithTpSl` | Create order with TP/SL |
+| | `createStopOrder` | Create stop/trigger order |
+| **Position** | `setMarginMode` | Set cross/isolated margin |
+| | `closePosition` | Close open position |
+| | `setPositionMode` | Set one-way/hedge mode |
+| | `modifyMargin` | Add/reduce position margin |
+| **Risk** | `fetchLeverageTiers` | Get leverage tier info |
+| | `fetchFundingRate` | Get funding rate data |
+| | `fetchMyLiquidations` | Get liquidation history |
+| | `fetchGreeks` | Get option Greeks |
+

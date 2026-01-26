@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Keyboard, RotateCcw, Edit2, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useHotkeysList, DEFAULT_HOTKEYS } from "../hooks/use-hotkeys";
+import { useHotkeysList } from "../hooks/use-hotkeys";
 
 interface HotkeysDialogProps {
   trigger?: React.ReactNode;

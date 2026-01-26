@@ -6,24 +6,46 @@ import {
   Wallet,
   ArrowUpRight,
   ArrowDownRight,
+  Search,
+  ArrowUpDown,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAccountsApi } from "./hooks/use-accounts-api";
 import { useAccountsStore } from "@/stores/modules/accounts.store";
 import type { SetAccountPayload } from "@/lib/api-types";
 import type { StoredAccount, WalletAccountSummary } from "@/types/stores/types";
 import { AccountList } from "./account-list";
 import { AccountFormDialog } from "./account-form-dialog";
+import { EXCHANGE_OPTIONS, getExchangeIconPath } from "./types";
 
-function formatUSD(value: number): string {
-  return value.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
+export type SortOption = "equity-desc" | "equity-asc" | "pnl-desc" | "pnl-asc" | "name-asc" | "name-desc" | "updated-desc";
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "equity-desc", label: "Equity: High to Low" },
+  { value: "equity-asc", label: "Equity: Low to High" },
+  { value: "pnl-desc", label: "PnL: Best first" },
+  { value: "pnl-asc", label: "PnL: Worst first" },
+  { value: "name-asc", label: "Name: A-Z" },
+  { value: "name-desc", label: "Name: Z-A" },
+  { value: "updated-desc", label: "Recently updated" },
+];
+
+const STATUS_OPTIONS = [
+  { value: "all", label: "All Statuses" },
+  { value: "active", label: "Active" },
+  { value: "stopped", label: "Stopped" },
+  { value: "error", label: "Error" },
+];
 
 function formatPrecise(value: number): string {
   return value.toLocaleString("en-US", {
@@ -35,11 +57,17 @@ function formatPrecise(value: number): string {
 }
 
 export function AccountsApp() {
-  const { listAccounts, setAccount, loading } = useAccountsApi();
+  const { listAccounts, setAccount, disconnectAccount, loading } = useAccountsApi();
   const accounts = useAccountsStore((s) => s.accounts);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editAccount, setEditAccount] = useState<StoredAccount | null>(null);
+
+  // Filter & Sort state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [exchangeFilter, setExchangeFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<SortOption>("equity-desc");
 
   useEffect(() => {
     listAccounts();
@@ -132,16 +160,14 @@ export function AccountsApp() {
           <div className="border-t px-6 py-4">
             <div className="grid gap-4 sm:grid-cols-3">
               {/* Total Equity */}
-              <Card className="bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5">
+              <Card>
                 <CardContent className="flex items-center gap-4 p-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                    <Wallet className="h-6 w-6 text-primary" />
-                  </div>
+                  <Wallet className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="text-xs font-medium text-muted-foreground">
                       Total Portfolio
                     </p>
-                    <p className="text-2xl font-bold tracking-tight">
+                    <p className="text-2xl font-semibold tracking-tight">
                       {formatPrecise(summary.totalEquity)}
                     </p>
                   </div>
@@ -149,31 +175,19 @@ export function AccountsApp() {
               </Card>
 
               {/* Total PnL */}
-              <Card
-                className={
-                  summary.totalPnL >= 0
-                    ? "bg-green-500/5 border-green-500/20"
-                    : "bg-red-500/5 border-red-500/20"
-                }
-              >
+              <Card>
                 <CardContent className="flex items-center gap-4 p-4">
-                  <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-full ${
-                      summary.totalPnL >= 0 ? "bg-green-500/10" : "bg-red-500/10"
-                    }`}
-                  >
-                    {summary.totalPnL >= 0 ? (
-                      <ArrowUpRight className="h-6 w-6 text-green-600 dark:text-green-500" />
-                    ) : (
-                      <ArrowDownRight className="h-6 w-6 text-red-600 dark:text-red-500" />
-                    )}
-                  </div>
+                  {summary.totalPnL >= 0 ? (
+                    <ArrowUpRight className="h-5 w-5 text-green-600 dark:text-green-500" />
+                  ) : (
+                    <ArrowDownRight className="h-5 w-5 text-red-600 dark:text-red-500" />
+                  )}
                   <div>
                     <p className="text-xs font-medium text-muted-foreground">
                       Unrealized PnL
                     </p>
                     <p
-                      className={`text-2xl font-bold tracking-tight ${
+                      className={`text-2xl font-semibold tracking-tight ${
                         summary.totalPnL >= 0
                           ? "text-green-600 dark:text-green-500"
                           : "text-red-600 dark:text-red-500"
@@ -189,14 +203,12 @@ export function AccountsApp() {
               {/* Account Count */}
               <Card>
                 <CardContent className="flex items-center gap-4 p-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                    <TrendingUp className="h-6 w-6 text-muted-foreground" />
-                  </div>
+                  <TrendingUp className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="text-xs font-medium text-muted-foreground">
                       Connected Accounts
                     </p>
-                    <p className="text-2xl font-bold tracking-tight">
+                    <p className="text-2xl font-semibold tracking-tight">
                       {summary.accountCount}
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -208,11 +220,120 @@ export function AccountsApp() {
             </div>
           </div>
         )}
+
+        {/* Toolbar: Search, Filter, Sort */}
+        {accounts.length > 0 && (
+          <div className="border-t px-6 py-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              {/* Search */}
+              <div className="relative flex-1 sm:max-w-xs">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search by NID or note..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 pr-8"
+                />
+                {searchQuery && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 h-6 w-6 -translate-y-1/2"
+                    onClick={() => setSearchQuery("")}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Exchange Filter */}
+                <Select value={exchangeFilter} onValueChange={setExchangeFilter}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="All Exchanges" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Exchanges</SelectItem>
+                    {EXCHANGE_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={getExchangeIconPath(o.value)}
+                            alt={o.label}
+                            className="h-4 w-4 rounded object-contain"
+                          />
+                          <span>{o.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Status Filter */}
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="All Statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Sort */}
+                <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                  <SelectTrigger className="w-[170px]">
+                    <div className="flex items-center gap-2">
+                      <ArrowUpDown className="h-3.5 w-3.5" />
+                      <SelectValue placeholder="Sort by" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SORT_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Clear filters button */}
+                {(searchQuery || exchangeFilter !== "all" || statusFilter !== "all" || sortBy !== "equity-desc") && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setExchangeFilter("all");
+                      setStatusFilter("all");
+                      setSortBy("equity-desc");
+                    }}
+                    className="text-muted-foreground"
+                  >
+                    <X className="mr-1 h-3 w-3" />
+                    Clear
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Account List */}
       <div className="flex-1 overflow-auto p-6">
-        <AccountList onEdit={handleEdit} loading={loading} />
+        <AccountList
+          onEdit={handleEdit}
+          onDelete={disconnectAccount}
+          loading={loading}
+          searchQuery={searchQuery}
+          exchangeFilter={exchangeFilter}
+          statusFilter={statusFilter}
+          sortBy={sortBy}
+        />
       </div>
 
       {/* Form Dialog */}

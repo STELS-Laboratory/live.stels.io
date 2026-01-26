@@ -99,6 +99,7 @@ export class WebfixApiClient {
       }
       // Otherwise return the response without 'success' field
       // This handles {success: true, workspaces: [...]} format
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { success, ...rest } = response as Record<string, unknown>;
       return rest as T;
     }

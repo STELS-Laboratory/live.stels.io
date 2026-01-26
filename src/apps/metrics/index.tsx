@@ -51,6 +51,11 @@ import {
   Link2,
   Bot,
   ListTodo,
+  Users,
+  Play,
+  Square,
+  HardDrive,
+  Network,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -154,6 +159,10 @@ export function MetricsApp() {
           <TabsTrigger value="system">
             <Server className="h-4 w-4 mr-2" />
             System
+          </TabsTrigger>
+          <TabsTrigger value="workers">
+            <Users className="h-4 w-4 mr-2" />
+            Workers
           </TabsTrigger>
           <TabsTrigger value="application">
             <Activity className="h-4 w-4 mr-2" />
@@ -342,6 +351,321 @@ export function MetricsApp() {
                     </CardContent>
                   </Card>
                 )}
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Workers Metrics (v2.14.0) */}
+        <TabsContent value="workers" className="mt-4">
+          {metricsError ? (
+            <ErrorCard error={metricsError} onRetry={() => getMetrics({ includeWorkers: true })} />
+          ) : metricsLoading && !metrics ? (
+            <LoadingCards count={4} />
+          ) : metrics?.workers ? (
+            <>
+              {/* Worker Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <MetricCard
+                  title="Total Workers"
+                  icon={Users}
+                  value={metrics.workers.totalWorkers.toString()}
+                  description={`${metrics.workers.runningWorkers} running, ${metrics.workers.stoppedWorkers} stopped`}
+                />
+                <MetricCard
+                  title="Total Executions"
+                  icon={Play}
+                  value={metrics.workers.totalExecutions.toLocaleString()}
+                  description="Since startup"
+                />
+                <MetricCard
+                  title="Error Rate"
+                  icon={AlertTriangle}
+                  value={`${metrics.workers.errorRate.toFixed(2)}%`}
+                  description={`${metrics.workers.totalErrors.toLocaleString()} total errors`}
+                  variant={metrics.workers.errorRate > 5 ? "destructive" : "default"}
+                />
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Gauge className="h-4 w-4" />
+                      Capacity
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold font-mono">
+                      {metrics.workers.capacity.utilizationPercent.toFixed(1)}%
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {metrics.workers.capacity.current} / {metrics.workers.capacity.maxRecommended} workers
+                    </p>
+                    <Progress 
+                      value={metrics.workers.capacity.utilizationPercent} 
+                      className={cn(
+                        "mt-2 h-1.5",
+                        metrics.workers.capacity.utilizationPercent > 80 && "[&>div]:bg-yellow-500",
+                        metrics.workers.capacity.utilizationPercent > 95 && "[&>div]:bg-red-500"
+                      )} 
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Scope Breakdown Cards */}
+              <h3 className="text-sm font-medium mb-3">Scope Breakdown</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                {/* Local Workers */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <HardDrive className="h-4 w-4" />
+                      Local Workers
+                      <Badge variant="secondary" className="ml-auto">scope=local</Badge>
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      Stored in local KV (this node only)
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold font-mono">{metrics.workers.local.total}</div>
+                        <p className="text-xs text-muted-foreground">Total</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold font-mono text-green-500">{metrics.workers.local.active}</div>
+                        <p className="text-xs text-muted-foreground">Active</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold font-mono text-blue-500">{metrics.workers.local.running}</div>
+                        <p className="text-xs text-muted-foreground">Running</p>
+                      </div>
+                    </div>
+                    <Progress 
+                      value={metrics.workers.local.total > 0 
+                        ? (metrics.workers.local.running / metrics.workers.local.total) * 100 
+                        : 0
+                      } 
+                      className="mt-3 h-1" 
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Network Workers */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Network className="h-4 w-4" />
+                      Network Workers
+                      <Badge variant="secondary" className="ml-auto">scope=network</Badge>
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      Stored in distributed KV (cluster-wide)
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold font-mono">{metrics.workers.network.total}</div>
+                        <p className="text-xs text-muted-foreground">Total</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold font-mono text-green-500">{metrics.workers.network.active}</div>
+                        <p className="text-xs text-muted-foreground">Active</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold font-mono text-blue-500">{metrics.workers.network.running}</div>
+                        <p className="text-xs text-muted-foreground">Running</p>
+                      </div>
+                    </div>
+                    <Progress 
+                      value={metrics.workers.network.total > 0 
+                        ? (metrics.workers.network.running / metrics.workers.network.total) * 100 
+                        : 0
+                      } 
+                      className="mt-3 h-1" 
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Error Details */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Error Breakdown</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Network Errors</span>
+                        <Badge variant={metrics.workers.networkErrors > 0 ? "destructive" : "outline"}>
+                          {metrics.workers.networkErrors}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Critical Errors</span>
+                        <Badge variant={metrics.workers.criticalErrors > 0 ? "destructive" : "outline"}>
+                          {metrics.workers.criticalErrors}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Total Errors</span>
+                        <Badge variant="outline">{metrics.workers.totalErrors}</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Thresholds */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Error Thresholds</CardTitle>
+                    <CardDescription className="text-xs">Auto-pause/stop limits</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Max Consecutive</span>
+                        <span className="font-mono">{metrics.workers.thresholds.maxConsecutiveErrors}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Max Network</span>
+                        <span className="font-mono">{metrics.workers.thresholds.maxConsecutiveNetworkErrors}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Max Critical</span>
+                        <span className="font-mono">{metrics.workers.thresholds.maxCriticalErrors}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Network Pause</span>
+                        <span className="font-mono">{metrics.workers.thresholds.networkErrorPauseMs}ms</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Cache Stats */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Cache Statistics</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Functions</span>
+                        <span className="font-mono">{metrics.workers.cache.functions}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Loggers</span>
+                        <span className="font-mono">{metrics.workers.cache.loggers}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Hit Rate</span>
+                        <Badge variant={metrics.workers.cache.hitRate > 80 ? "default" : "secondary"}>
+                          {metrics.workers.cache.hitRate.toFixed(1)}%
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Total Hits</span>
+                        <span className="font-mono">{metrics.workers.cache.totalHits.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Top Workers Table */}
+              {metrics.workers.topWorkers && metrics.workers.topWorkers.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Top Workers by Executions</CardTitle>
+                    <CardDescription>Most active workers with their scope and stats</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Worker ID</TableHead>
+                          <TableHead>Scope</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Executions</TableHead>
+                          <TableHead className="text-right">Errors</TableHead>
+                          <TableHead className="text-right">Error Rate</TableHead>
+                          <TableHead className="text-right">Uptime</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {metrics.workers.topWorkers.map((worker) => (
+                          <TableRow key={worker.sid}>
+                            <TableCell>
+                              <code className="text-xs">{worker.sid}</code>
+                            </TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={worker.scope === "network" ? "default" : "secondary"}
+                                className="text-xs"
+                              >
+                                {worker.scope === "network" ? (
+                                  <Network className="h-3 w-3 mr-1" />
+                                ) : (
+                                  <HardDrive className="h-3 w-3 mr-1" />
+                                )}
+                                {worker.scope}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={worker.isRunning ? "default" : "secondary"}
+                                className={cn(
+                                  "text-xs",
+                                  worker.isRunning && "bg-green-500"
+                                )}
+                              >
+                                {worker.isRunning ? (
+                                  <Play className="h-3 w-3 mr-1" />
+                                ) : (
+                                  <Square className="h-3 w-3 mr-1" />
+                                )}
+                                {worker.isRunning ? "Running" : "Stopped"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right font-mono">
+                              {worker.executions.toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-right font-mono">
+                              <span className={worker.errors > 0 ? "text-destructive" : ""}>
+                                {worker.errors}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right font-mono">
+                              <span className={worker.errorRate > 5 ? "text-destructive" : ""}>
+                                {worker.errorRate.toFixed(2)}%
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-muted-foreground">
+                              {formatUptime(worker.uptime / 1000)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          ) : (
+            <div className="space-y-4">
+              <EmptyState message="No worker metrics available. Click Refresh to load with workers data." />
+              <div className="text-center">
+                <Button 
+                  variant="outline" 
+                  onClick={() => getMetrics({ includeWorkers: true })}
+                  disabled={metricsLoading}
+                >
+                  <RefreshCw className={cn("h-4 w-4 mr-2", metricsLoading && "animate-spin")} />
+                  Load Worker Metrics
+                </Button>
               </div>
             </div>
           )}
@@ -773,42 +1097,7 @@ function MetricCard({ title, icon: Icon, value, description, progress, variant =
   );
 }
 
-interface ComponentCardProps {
-  title: string;
-  icon: React.ElementType;
-  total: number;
-  active: number;
-  error: number;
-  activeLabel?: string;
-}
-
-function ComponentCard({ title, icon: Icon, total, active, error, activeLabel = "Active" }: ComponentCardProps) {
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <Icon className="h-4 w-4" />
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-3xl font-bold font-mono">{total}</div>
-        <div className="flex items-center gap-4 mt-2 text-sm">
-          <span className="flex items-center gap-1 text-green-500">
-            <CheckCircle className="h-3 w-3" />
-            {active} {activeLabel}
-          </span>
-          {error > 0 && (
-            <span className="flex items-center gap-1 text-destructive">
-              <AlertTriangle className="h-3 w-3" />
-              {error} Error
-            </span>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+// ComponentCard - reserved for future use in component metrics display
 
 interface LogLevelBarProps {
   label: string;

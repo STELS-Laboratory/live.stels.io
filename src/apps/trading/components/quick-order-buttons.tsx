@@ -70,9 +70,6 @@ export function QuickOrderButtons({
     [nid, symbol, createOrder, tickerData?.last]
   );
 
-  // Extract base currency from symbol
-  const baseCurrency = symbol.split("/")[0] || "";
-
   // Dynamic presets based on symbol price
   const presets = DEFAULT_PRESETS;
 

@@ -3,7 +3,7 @@ import { devtools, persist } from "zustand/middleware";
 import { generateDataHash } from "@/lib/utils";
 import { ALLOWED_ROUTES, ROUTES, STORAGE_KEYS } from "@/lib/constants";
 import { getNetworkConnection } from "@/types/common";
-import type { ExtendedNavigator } from "@/types/common";
+// ExtendedNavigator type available from @/types/common if needed
 
 /**
  * Network status interface with connection information

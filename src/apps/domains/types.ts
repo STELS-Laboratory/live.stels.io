@@ -36,9 +36,8 @@ export interface Template {
 // Request Types
 // ============================================
 
-export interface ListDomainsParams {
-  // No parameters required
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ListDomainsParams {}
 
 export interface GetDomainInfoParams {
   domain: AgentDomain;

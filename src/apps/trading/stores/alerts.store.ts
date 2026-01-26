@@ -5,7 +5,7 @@
 
 import { create } from "zustand";
 import { persist, devtools } from "zustand/middleware";
-import type { PriceAlert, AlertCondition, AlertNotifyMethod } from "../types";
+import type { PriceAlert } from "../types";
 
 // ============================================
 // Audio for alerts

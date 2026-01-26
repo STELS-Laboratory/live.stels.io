@@ -145,7 +145,8 @@ function useSessionStorageData<T>(
     return () => {
       clearInterval(intervalId);
     };
-  }, [key, enabled, interval]); // Note: fetchData excluded to avoid re-creating interval
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, enabled, interval]); // fetchData excluded to avoid re-creating interval
 
   return { data, loading, error, lastUpdate };
 }
@@ -358,6 +359,7 @@ export function useMultipleTickers(
     const intervalId = setInterval(fetchAll, interval);
 
     return () => clearInterval(intervalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemsKey, interval, enabled]); // tickers excluded to avoid loop
 
   return tickers;

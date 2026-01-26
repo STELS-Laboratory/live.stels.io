@@ -15,7 +15,6 @@ import {
   TrendingUp,
   TrendingDown,
   Eye,
-  GripVertical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMultipleTickers } from "../hooks";
@@ -32,7 +31,6 @@ export function Watchlist({ onSymbolSelect, currentSymbol }: WatchlistProps) {
     items,
     toggleFavorite,
     removeItem,
-    reorderItems,
   } = useWatchlistStore();
 
   // Get realtime tickers for all watchlist items

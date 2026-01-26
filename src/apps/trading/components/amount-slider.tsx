@@ -92,7 +92,6 @@ export function AmountSlider({
   };
 
   const isBuy = side === "buy";
-  const activeColor = isBuy ? "trading-buy" : "trading-sell";
 
   return (
     <div className={cn("space-y-2", className)}>

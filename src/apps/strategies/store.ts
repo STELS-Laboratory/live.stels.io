@@ -29,14 +29,10 @@ import type {
   Strategy,
   StrategyFilters,
   ListTemplatesRequest,
-  ListTemplatesResponse,
-  GetTemplateResponse,
   CreateStrategyRequest,
   CreateStrategyResponse,
   ListStrategiesRequest,
-  ListStrategiesResponse,
   UpdateStrategyRequest,
-  StrategyResponse,
 } from "./types";
 
 /**
@@ -68,7 +64,7 @@ const initialFilters: StrategyFilters = {
  */
 export const useStrategyStore = create<StrategyStore>()(
   devtools(
-    (set, get) => ({
+    (set) => ({
       // Initial state
       templates: [],
       selectedTemplate: null,

@@ -37,6 +37,8 @@ export function NetworkSelectorCompact(
     switch (network.id) {
       case "snaga":
         return <Network className="h-4 w-4 text-purple-500" />;
+      case "air":
+        return <Network className="h-4 w-4 text-sky-500" />;
       default:
         return <Network className="h-4 w-4 text-muted-foreground" />;
     }
@@ -46,6 +48,8 @@ export function NetworkSelectorCompact(
     switch (network.id) {
       case "snaga":
         return "text-purple-700 dark:text-purple-400";
+      case "air":
+        return "text-sky-700 dark:text-sky-400";
       default:
         return "text-muted-foreground";
     }

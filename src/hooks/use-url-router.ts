@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useAppStore } from "@/stores";
 import { useAuthStore } from "@/stores/modules/auth.store";
-import { ROUTES, getDefaultRoute } from "@/lib/constants";
+import { getDefaultRoute } from "@/lib/constants";
 
 /**
  * Hook for synchronizing application routing with URL query parameters

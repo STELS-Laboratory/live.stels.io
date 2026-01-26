@@ -150,6 +150,7 @@ export class RouteErrorBoundary extends Component<
 /**
  * Wrapper function to create error boundaries with custom handlers
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function withRouteErrorBoundary<P extends object>(
   WrappedComponent: React.ComponentType<P>,
   options?: {

@@ -1046,3 +1046,744 @@ CreateConditionalOrderResponse:
           type: string
         timestamp:
           $ref: "common.yaml#/Timestamp"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROFESSIONAL TRADING METHODS (v2.15.0)
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Advanced trading endpoints for professional terminals with Bybit priority support.
+# These methods support advanced order types, position management, and risk metrics.
+
+# === Bybit-specific Types ===
+PositionIdx:
+  type: integer
+  enum: [0, 1, 2]
+  description: |
+    Bybit position index for hedge mode:
+    - 0: One-way mode
+    - 1: Buy side (hedge mode)
+    - 2: Sell side (hedge mode)
+
+TriggerBy:
+  type: string
+  enum: [LastPrice, MarkPrice, IndexPrice]
+  description: Price type for triggers (Bybit)
+
+TpSlMode:
+  type: string
+  enum: [Full, Partial]
+  description: |
+    Take Profit / Stop Loss mode (Bybit):
+    - Full: TP/SL for entire position
+    - Partial: TP/SL for partial position
+
+OrderFilter:
+  type: string
+  enum: [Order, StopOrder, tpslOrder]
+  description: Order type filter for cancelAllOrders (Bybit)
+
+StopOrderType:
+  type: string
+  enum: [stop_loss, take_profit, stop_loss_limit, take_profit_limit, trailing_stop]
+  description: Type of stop/trigger order
+
+MarginMode:
+  type: string
+  enum: [cross, isolated]
+  description: Margin mode for futures trading
+
+MarginAction:
+  type: string
+  enum: [add, reduce]
+  description: Action for modifying position margin
+
+MarketTypeOverride:
+  type: string
+  enum: [spot, linear, inverse, option]
+  description: Market type override for the request
+
+# === Order Management Schemas ===
+EditOrderParams:
+  type: object
+  description: Edit an existing order (price, amount)
+  required:
+    - accountId
+    - orderId
+    - symbol
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    orderId:
+      type: string
+      description: Order ID to edit
+    symbol:
+      $ref: "#/Symbol"
+    type:
+      $ref: "#/OrderType"
+    side:
+      $ref: "#/OrderSide"
+    amount:
+      type: number
+      description: New amount (optional)
+    price:
+      type: number
+      description: New price (required for limit orders)
+    positionIdx:
+      $ref: "#/PositionIdx"
+
+EditOrderResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        orderId:
+          type: string
+        symbol:
+          $ref: "#/Symbol"
+        type:
+          $ref: "#/OrderType"
+        side:
+          $ref: "#/OrderSide"
+        amount:
+          type: number
+        price:
+          type: number
+        status:
+          $ref: "#/OrderStatus"
+        timestamp:
+          $ref: "common.yaml#/Timestamp"
+
+CancelAllOrdersParams:
+  type: object
+  description: Cancel all open orders for a symbol or all symbols
+  required:
+    - accountId
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    symbol:
+      $ref: "#/Symbol"
+      description: Optional - cancels all if not provided
+    marketType:
+      $ref: "#/MarketTypeOverride"
+    orderFilter:
+      $ref: "#/OrderFilter"
+      description: Bybit-specific order filter
+
+CancelAllOrdersResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        canceledCount:
+          type: integer
+        canceledOrders:
+          type: array
+          items:
+            $ref: "#/Order"
+        symbol:
+          $ref: "#/Symbol"
+        timestamp:
+          $ref: "common.yaml#/Timestamp"
+
+CreateOrderWithTpSlParams:
+  type: object
+  description: Create order with Take Profit and Stop Loss
+  required:
+    - accountId
+    - symbol
+    - type
+    - side
+    - amount
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    symbol:
+      $ref: "#/Symbol"
+    type:
+      type: string
+      enum: [market, limit]
+    side:
+      $ref: "#/OrderSide"
+    amount:
+      type: number
+    price:
+      type: number
+      description: Required for limit orders
+    takeProfitPrice:
+      type: number
+      description: Take profit trigger price
+    stopLossPrice:
+      type: number
+      description: Stop loss trigger price
+    tpTriggerBy:
+      $ref: "#/TriggerBy"
+    slTriggerBy:
+      $ref: "#/TriggerBy"
+    tpslMode:
+      $ref: "#/TpSlMode"
+    positionIdx:
+      $ref: "#/PositionIdx"
+    reduceOnly:
+      type: boolean
+    timeInForce:
+      type: string
+      enum: [GTC, IOC, FOK, PostOnly]
+    marketType:
+      $ref: "#/MarketTypeOverride"
+
+CreateOrderWithTpSlResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        orderId:
+          type: string
+        symbol:
+          $ref: "#/Symbol"
+        type:
+          type: string
+        side:
+          $ref: "#/OrderSide"
+        amount:
+          type: number
+        price:
+          type: number
+        takeProfitPrice:
+          type: number
+        stopLossPrice:
+          type: number
+        status:
+          $ref: "#/OrderStatus"
+        timestamp:
+          $ref: "common.yaml#/Timestamp"
+        info:
+          type: object
+          description: Exchange-specific response
+
+CreateStopOrderParams:
+  type: object
+  description: Create stop/trigger order
+  required:
+    - accountId
+    - symbol
+    - stopOrderType
+    - side
+    - amount
+    - triggerPrice
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    symbol:
+      $ref: "#/Symbol"
+    stopOrderType:
+      $ref: "#/StopOrderType"
+    side:
+      $ref: "#/OrderSide"
+    amount:
+      type: number
+    triggerPrice:
+      type: number
+      description: Trigger price for the stop order
+    price:
+      type: number
+      description: Limit price (for stop_loss_limit, take_profit_limit)
+    triggerBy:
+      $ref: "#/TriggerBy"
+    positionIdx:
+      $ref: "#/PositionIdx"
+    reduceOnly:
+      type: boolean
+    timeInForce:
+      type: string
+      enum: [GTC, IOC, FOK, PostOnly]
+    trailingDelta:
+      type: number
+      description: Trailing stop delta (for trailing_stop)
+    activationPrice:
+      type: number
+      description: Activation price (for trailing_stop)
+    marketType:
+      $ref: "#/MarketTypeOverride"
+
+CreateStopOrderResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        orderId:
+          type: string
+        symbol:
+          $ref: "#/Symbol"
+        stopOrderType:
+          $ref: "#/StopOrderType"
+        side:
+          $ref: "#/OrderSide"
+        amount:
+          type: number
+        triggerPrice:
+          type: number
+        price:
+          type: number
+        status:
+          $ref: "#/OrderStatus"
+        timestamp:
+          $ref: "common.yaml#/Timestamp"
+        info:
+          type: object
+
+# === Position Management Schemas ===
+SetMarginModeParams:
+  type: object
+  description: Set margin mode (cross/isolated)
+  required:
+    - accountId
+    - marginMode
+    - symbol
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    marginMode:
+      $ref: "#/MarginMode"
+    symbol:
+      $ref: "#/Symbol"
+    marketType:
+      type: string
+      enum: [linear, inverse]
+
+SetMarginModeResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        marginMode:
+          $ref: "#/MarginMode"
+        symbol:
+          $ref: "#/Symbol"
+        timestamp:
+          $ref: "common.yaml#/Timestamp"
+
+ClosePositionParams:
+  type: object
+  description: Close an open position
+  required:
+    - accountId
+    - symbol
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    symbol:
+      $ref: "#/Symbol"
+    amount:
+      type: number
+      description: Amount to close (full position if not provided)
+    positionIdx:
+      $ref: "#/PositionIdx"
+    price:
+      type: number
+      description: Limit price (market close if not provided)
+    marketType:
+      type: string
+      enum: [linear, inverse, option]
+
+ClosePositionResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        orderId:
+          type: string
+        symbol:
+          $ref: "#/Symbol"
+        side:
+          $ref: "#/OrderSide"
+        amount:
+          type: number
+        price:
+          type: number
+        status:
+          $ref: "#/OrderStatus"
+        closedPosition:
+          type: object
+          properties:
+            side:
+              type: string
+            contracts:
+              type: number
+        timestamp:
+          $ref: "common.yaml#/Timestamp"
+        info:
+          type: object
+
+SetPositionModeParams:
+  type: object
+  description: Set position mode (one-way/hedge)
+  required:
+    - accountId
+    - hedged
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    hedged:
+      type: boolean
+      description: true = hedge mode, false = one-way
+    symbol:
+      $ref: "#/Symbol"
+      description: Optional for some exchanges
+    marketType:
+      type: string
+      enum: [linear, inverse]
+
+SetPositionModeResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        hedged:
+          type: boolean
+        positionMode:
+          type: string
+          enum: [hedge, one-way]
+        symbol:
+          $ref: "#/Symbol"
+        timestamp:
+          $ref: "common.yaml#/Timestamp"
+
+ModifyMarginParams:
+  type: object
+  description: Add or reduce margin for isolated positions
+  required:
+    - accountId
+    - symbol
+    - amount
+    - action
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    symbol:
+      $ref: "#/Symbol"
+    amount:
+      type: number
+      description: Amount in quote currency
+    action:
+      $ref: "#/MarginAction"
+    positionIdx:
+      $ref: "#/PositionIdx"
+    marketType:
+      type: string
+      enum: [linear, inverse]
+
+ModifyMarginResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        symbol:
+          $ref: "#/Symbol"
+        action:
+          $ref: "#/MarginAction"
+        amount:
+          type: number
+        timestamp:
+          $ref: "common.yaml#/Timestamp"
+        result:
+          type: object
+
+# === Risk Management Schemas ===
+FetchLeverageTiersParams:
+  type: object
+  description: Fetch leverage tier information
+  required:
+    - accountId
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    symbols:
+      type: array
+      items:
+        $ref: "#/Symbol"
+      description: Symbols to fetch tiers for
+    symbol:
+      $ref: "#/Symbol"
+      description: Single symbol (alternative to symbols)
+    marketType:
+      type: string
+      enum: [linear, inverse]
+
+LeverageTier:
+  type: object
+  properties:
+    tier:
+      type: integer
+    currency:
+      type: string
+    minNotional:
+      type: number
+    maxNotional:
+      type: number
+    maintenanceMarginRate:
+      type: number
+    maxLeverage:
+      type: number
+    info:
+      type: object
+
+FetchLeverageTiersResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        tiers:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/LeverageTier"
+        timestamp:
+          $ref: "common.yaml#/Timestamp"
+
+FetchFundingRateParams:
+  type: object
+  description: Fetch funding rate data
+  required:
+    - accountId
+    - symbol
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    symbol:
+      $ref: "#/Symbol"
+    history:
+      type: boolean
+      description: Fetch historical rates
+    since:
+      $ref: "common.yaml#/Timestamp"
+      description: Start time for historical data
+    limit:
+      type: integer
+      description: Limit for historical data
+    marketType:
+      type: string
+      enum: [linear, inverse]
+
+FundingRate:
+  type: object
+  properties:
+    symbol:
+      $ref: "#/Symbol"
+    fundingRate:
+      type: number
+    fundingTimestamp:
+      $ref: "common.yaml#/Timestamp"
+    fundingDatetime:
+      type: string
+    nextFundingTimestamp:
+      $ref: "common.yaml#/Timestamp"
+    nextFundingDatetime:
+      type: string
+    nextFundingRate:
+      type: number
+    previousFundingTimestamp:
+      $ref: "common.yaml#/Timestamp"
+    previousFundingDatetime:
+      type: string
+    previousFundingRate:
+      type: number
+    markPrice:
+      type: number
+    indexPrice:
+      type: number
+    interestRate:
+      type: number
+    estimatedSettlePrice:
+      type: number
+    interval:
+      type: string
+    timestamp:
+      $ref: "common.yaml#/Timestamp"
+    datetime:
+      type: string
+    info:
+      type: object
+
+FetchFundingRateResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        fundingRate:
+          $ref: "#/FundingRate"
+        fundingRates:
+          type: array
+          items:
+            $ref: "#/FundingRate"
+          description: For historical data
+        timestamp:
+          $ref: "common.yaml#/Timestamp"
+
+FetchMyLiquidationsParams:
+  type: object
+  description: Fetch liquidation history
+  required:
+    - accountId
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    symbol:
+      $ref: "#/Symbol"
+    since:
+      $ref: "common.yaml#/Timestamp"
+    limit:
+      type: integer
+    marketType:
+      type: string
+      enum: [linear, inverse, option]
+
+Liquidation:
+  type: object
+  properties:
+    id:
+      type: string
+    symbol:
+      $ref: "#/Symbol"
+    timestamp:
+      $ref: "common.yaml#/Timestamp"
+    datetime:
+      type: string
+    price:
+      type: number
+    baseValue:
+      type: number
+    quoteValue:
+      type: number
+    contracts:
+      type: number
+    contractSize:
+      type: number
+    side:
+      type: string
+    info:
+      type: object
+
+FetchMyLiquidationsResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        liquidations:
+          type: array
+          items:
+            $ref: "#/Liquidation"
+        total:
+          type: integer
+        timestamp:
+          $ref: "common.yaml#/Timestamp"
+
+FetchGreeksParams:
+  type: object
+  description: Fetch option Greeks
+  required:
+    - accountId
+  properties:
+    accountId:
+      $ref: "common.yaml#/UUID"
+    symbol:
+      $ref: "#/Symbol"
+      description: Option symbol
+    baseCurrency:
+      type: string
+      description: Fetch all Greeks for base currency (e.g., BTC)
+
+Greeks:
+  type: object
+  properties:
+    symbol:
+      $ref: "#/Symbol"
+    timestamp:
+      $ref: "common.yaml#/Timestamp"
+    datetime:
+      type: string
+    delta:
+      type: number
+      description: Rate of change of option price with respect to underlying price
+    gamma:
+      type: number
+      description: Rate of change of delta with respect to underlying price
+    vega:
+      type: number
+      description: Rate of change of option price with respect to volatility
+    theta:
+      type: number
+      description: Rate of change of option price with respect to time
+    rho:
+      type: number
+      description: Rate of change of option price with respect to interest rate
+    bidIv:
+      type: number
+      description: Bid implied volatility
+    askIv:
+      type: number
+      description: Ask implied volatility
+    markIv:
+      type: number
+      description: Mark implied volatility
+    underlyingPrice:
+      type: number
+    markPrice:
+      type: number
+    info:
+      type: object
+
+FetchGreeksResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+    raw:
+      type: object
+      properties:
+        greeks:
+          oneOf:
+            - $ref: "#/Greeks"
+            - type: array
+              items:
+                $ref: "#/Greeks"
+        baseCurrency:
+          type: string
+        total:
+          type: integer
+        timestamp:
+          $ref: "common.yaml#/Timestamp"
