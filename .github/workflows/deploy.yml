@@ -34,9 +34,12 @@ jobs:
       - name: Build step
         run: "npm run build"
 
+      - name: Copy server to dist
+        run: cp server.ts dist/
+
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
           project: "live-stels-io"
-          entrypoint: "https://deno.land/std@0.217.0/http/file_server.ts"
+          entrypoint: "server.ts"
           root: "dist"
