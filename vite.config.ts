@@ -107,7 +107,19 @@ export default defineConfig({
           "**/assets/*worker*.js", // Exclude Monaco Editor workers from precache
         ],
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB limit for large assets
+        // SPA navigation fallback - return index.html for all navigation requests
+        navigateFallback: "index.html",
+        // Don't use navigateFallback for these URL patterns (API calls, auth callbacks, etc.)
+        navigateFallbackDenylist: [
+          /^\/api\//,
+          /^\/auth\/github\/callback/,
+        ],
         runtimeCaching: [
+          {
+            // Auth callbacks - always go to network, never cache
+            urlPattern: /\/auth\//,
+            handler: "NetworkOnly",
+          },
           {
             // Match schemas with or without session parameter
             // Note: Service Worker automatically caches by full URL including query params
