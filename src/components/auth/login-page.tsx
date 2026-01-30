@@ -15,6 +15,7 @@ import {
 import { ArrowRight, Lock } from "lucide-react";
 import { ProfessionalConnectionFlow } from "./professional-connection-flow";
 import { useAuthStore } from "@/stores/modules/auth.store";
+import { NETWORK_CONFIGS } from "@/stores/modules/network.store";
 import { navigateTo } from "@/lib/router";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -50,7 +51,17 @@ export function LoginPage(): React.ReactElement {
       if (avatarParam) {
         sessionStorage.setItem("github_oauth_avatar", avatarParam);
       }
-      
+
+      // Restore selected network so dialog shows "connecting" step and can process session
+      const savedNetworkId = sessionStorage.getItem("github_oauth_network_id");
+      if (savedNetworkId) {
+        const network = Object.values(NETWORK_CONFIGS).find((n) => n.id === savedNetworkId);
+        if (network) {
+          useAuthStore.getState().selectNetwork(network);
+        }
+        sessionStorage.removeItem("github_oauth_network_id");
+      }
+
       // Open auth dialog to process callback
       setIsAuthDialogOpen(true);
       

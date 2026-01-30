@@ -56,11 +56,18 @@ export function ProfessionalConnectionFlow({
 
   // Auto-advance to connecting step if there's a pending GitHub OAuth callback
   useEffect(() => {
+    // New callback format: session param → pending session in sessionStorage
+    const pendingSession = sessionStorage.getItem("github_oauth_session");
+    if (pendingSession && currentStep === "network") {
+      setCurrentStep("connecting");
+      return;
+    }
+
+    // Old callback format: code + state
     const pendingCode = sessionStorage.getItem("github_oauth_pending_code");
     const pendingState = sessionStorage.getItem("github_oauth_pending_state");
     const storedState = sessionStorage.getItem("github_oauth_state");
 
-    // If we have pending callback and valid state, go to connecting step
     if (
       pendingCode && pendingState && storedState === pendingState &&
       currentStep === "network"

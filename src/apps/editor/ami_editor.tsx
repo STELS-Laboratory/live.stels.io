@@ -166,6 +166,8 @@ export function AMIEditor() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const loadWorkersTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  /** SID of the tool for which we've loaded full data and set toolForm (avoids false "unsaved" when selectedTool is still the list item) */
+  const lastLoadedToolSidRef = useRef<string | null>(null);
 
   // Editor state hook
   const editorState = useEditorState();
@@ -320,6 +322,7 @@ export function AMIEditor() {
   // When selectedTool changes, fetch full tool (with script) and populate form
   useEffect(() => {
     if (!selectedTool) {
+      lastLoadedToolSidRef.current = null;
       setToolForm({
         name: "",
         description: "",
@@ -348,6 +351,7 @@ export function AMIEditor() {
       try {
         const full = await getTool(toolId, true);
         if (cancelled || !full) return;
+        lastLoadedToolSidRef.current = full.sid ?? null;
         setSelectedTool(full);
         setToolForm({
           name: full.name ?? "",
@@ -374,7 +378,7 @@ export function AMIEditor() {
     return () => {
       cancelled = true;
     };
-  }, [selectedTool, getTool]);
+  }, [selectedTool?.sid, getTool]);
 
   useEffect(() => {
     if (newlyCreatedToolId) {
@@ -503,11 +507,12 @@ export function AMIEditor() {
   // Tool handlers
   const handleSelectTool = useCallback(
     (tool: ToolRaw) => {
-      if (
-        selectedTool &&
-        selectedTool.sid !== tool.sid &&
-        toolFormDirty()
-      ) {
+      const currentSid = selectedTool?.sid;
+      const isLeavingCurrentTool = currentSid != null && currentSid !== tool.sid;
+      const fullDataLoadedForCurrent = lastLoadedToolSidRef.current === currentSid;
+      const hasRealUnsavedChanges = fullDataLoadedForCurrent && toolFormDirty();
+
+      if (isLeavingCurrentTool && hasRealUnsavedChanges) {
         if (
           !window.confirm(
             "You have unsaved changes to this tool. Discard and switch?",
@@ -909,7 +914,7 @@ export function AMIEditor() {
               validationError={toolValidationError}
               saving={toolsSaving}
               loading={toolDetailsLoading}
-              hasUnsavedChanges={toolFormDirty()}
+              hasUnsavedChanges={lastLoadedToolSidRef.current === selectedTool?.sid && toolFormDirty()}
               onNameChange={(v) => setToolForm((f) => ({ ...f, name: v }))}
               onDescriptionChange={(v) => setToolForm((f) => ({ ...f, description: v }))}
               onScriptChange={(v) => setToolForm((f) => ({ ...f, script: v ?? "" }))}

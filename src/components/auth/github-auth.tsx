@@ -406,6 +406,8 @@ export function GitHubAuth({
     try {
       setIsRedirecting(true);
       setError(null);
+      // Persist selected network for restore after OAuth callback (new page load)
+      sessionStorage.setItem("github_oauth_network_id", selectedNetwork.id);
       // Use backend URL for callback
       const backendUrl = selectedNetwork.api.replace(/\/$/, ""); // Remove trailing slash
       const oauthUrl = getGitHubOAuthUrl(backendUrl);
