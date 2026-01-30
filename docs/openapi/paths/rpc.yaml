@@ -1,6 +1,6 @@
 # RPC Endpoint - Main WebFIX protocol endpoint
 # Part of STELS Agentic AI Platform OpenAPI Specification
-# Total: 88 methods (12 public, 67 session, 4 developer, 5 owner)
+# Total: 97 methods (12 public, 69 session, 8 developer, 7 owner)
 
 /:
   post:
@@ -84,6 +84,17 @@
       - `startStrategy` - Start a strategy [session]
       - `stopStrategy` - Stop a strategy [session]
       - `deleteStrategy` - Delete a strategy [session]
+
+      ### Tools (9 methods)
+      - `setTool` - Create or update a tool worker [owner]
+      - `getTool` - Get tool details [developer]
+      - `listTools` - List available tools [developer]
+      - `deleteTool` - Delete a tool [owner]
+      - `callTool` - Execute a tool directly [session]
+      - `bindToolToAgent` - Bind tool to agent [developer]
+      - `unbindToolFromAgent` - Remove tool from agent [developer]
+      - `applyToolPreset` - Apply tool preset to agent [developer]
+      - `listAgentTools` - List tools available to agent [session]
 
       ### Orchestration (5 methods)
       - `getOrchestratorStats` - Get orchestrator stats [session]

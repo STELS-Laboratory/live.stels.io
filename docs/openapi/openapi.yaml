@@ -3822,6 +3822,235 @@ components:
           type: boolean
 
   # ═══════════════════════════════════════════════════════════════════════════
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # TOOL WORKER SCHEMAS (v2.13.0)
+    # MCP-compatible tool workers for AI agents
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    ToolCategory:
+      type: string
+      enum:
+        - trading
+        - analysis
+        - notification
+        - data
+        - utility
+        - custom
+      description: Tool category for organization and filtering
+
+    ToolScope:
+      type: string
+      enum:
+        - local
+        - network
+      description: Tool storage scope (local node or network-wide)
+
+    ToolDefinition:
+      type: object
+      description: Tool worker definition for MCP-compatible tools
+      required:
+        - name
+        - description
+        - inputSchema
+      properties:
+        name:
+          type: string
+          pattern: "^[a-z][a-z0-9-]*$"
+          maxLength: 100
+          description: Unique tool name (lowercase, hyphens allowed)
+          example: "sentiment-analyzer"
+        description:
+          type: string
+          maxLength: 1000
+          description: Tool description for LLM function calling
+        category:
+          $ref: "#/components/schemas/ToolCategory"
+        inputSchema:
+          type: object
+          description: JSON Schema for tool input parameters
+          additionalProperties: true
+        outputSchema:
+          type: object
+          description: JSON Schema for tool output (optional)
+          additionalProperties: true
+        timeout:
+          type: integer
+          minimum: 1000
+          maximum: 300000
+          default: 30000
+          description: Execution timeout in milliseconds
+        requiredScopes:
+          type: array
+          items:
+            type: string
+          description: Permission scopes required to use this tool
+
+    ToolBindingLimits:
+      type: object
+      description: Rate limits for tool bindings
+      properties:
+        maxCallsPerMinute:
+          type: integer
+          minimum: 1
+        maxCallsPerHour:
+          type: integer
+          minimum: 1
+        maxCallsPerDay:
+          type: integer
+          minimum: 1
+
+    ToolBinding:
+      type: object
+      description: Binding that connects a tool to an agent with permissions
+      required:
+        - toolId
+        - toolName
+        - grantedScopes
+        - addedAt
+      properties:
+        toolId:
+          type: string
+          description: Tool worker SID
+        toolName:
+          type: string
+          description: Tool name for display
+        grantedScopes:
+          type: array
+          items:
+            type: string
+          description: Scopes granted to agent for this tool
+          example: ["read", "execute"]
+        limits:
+          $ref: "#/components/schemas/ToolBindingLimits"
+        addedAt:
+          type: integer
+          format: int64
+          description: Timestamp when binding was created
+
+    ToolExecutionResult:
+      type: object
+      description: Result of tool execution
+      required:
+        - success
+        - duration
+        - toolId
+      properties:
+        success:
+          type: boolean
+        result:
+          description: Result data (on success)
+        error:
+          type: string
+          description: Error message (on failure)
+        duration:
+          type: integer
+          description: Execution duration in milliseconds
+        toolId:
+          type: string
+        toolName:
+          type: string
+
+    SetToolRequest:
+      type: object
+      required:
+        - name
+        - description
+        - script
+        - inputSchema
+      properties:
+        sid:
+          type: string
+          format: uuid
+          description: Existing tool SID (for updates)
+        name:
+          type: string
+          pattern: "^[a-z][a-z0-9-]*$"
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 1000
+        category:
+          $ref: "#/components/schemas/ToolCategory"
+        script:
+          type: string
+          maxLength: 500000
+          description: Tool script code
+        inputSchema:
+          type: object
+          additionalProperties: true
+        outputSchema:
+          type: object
+          additionalProperties: true
+        timeout:
+          type: integer
+          minimum: 1000
+          maximum: 300000
+          default: 30000
+        requiredScopes:
+          type: array
+          items:
+            type: string
+        scope:
+          $ref: "#/components/schemas/ToolScope"
+        active:
+          type: boolean
+          default: true
+
+    BindToolToAgentRequest:
+      type: object
+      required:
+        - agentId
+        - toolId
+      properties:
+        agentId:
+          $ref: "#/components/schemas/UUID"
+        toolId:
+          type: string
+        grantedScopes:
+          type: array
+          items:
+            type: string
+          default: ["read"]
+        limits:
+          $ref: "#/components/schemas/ToolBindingLimits"
+
+    ApplyToolPresetRequest:
+      type: object
+      required:
+        - agentId
+        - preset
+      properties:
+        agentId:
+          $ref: "#/components/schemas/UUID"
+        preset:
+          type: string
+          description: Preset name (e.g., "trading-basic", "monitoring")
+        defaultScopes:
+          type: array
+          items:
+            type: string
+          default: ["read"]
+        defaultLimits:
+          $ref: "#/components/schemas/ToolBindingLimits"
+        replaceExisting:
+          type: boolean
+          default: false
+
+    CallToolRequest:
+      type: object
+      required:
+        - toolId
+      properties:
+        toolId:
+          type: string
+        input:
+          type: object
+          additionalProperties: true
+          default: {}
+        agentId:
+          $ref: "#/components/schemas/UUID"
+
   # COMMON HEADERS (Rate Limiting - DO API Standard)
   # ═══════════════════════════════════════════════════════════════════════════
 

@@ -1,36 +1,19 @@
 # STELS Agentic AI Platform - Bundled OpenAPI Specification
 #
-# This is the modular version that references separate schema files.
-# For a single-file version, use openapi.yaml
+# Modular spec with $ref to paths/ and schemas/. Single-file: openapi.yaml
 #
-# Structure:
-#   schemas/
-#     common.yaml      - Common types (UUID, Timestamp, Pagination, etc.)
-#     agents.yaml      - Agent schemas
-#     tasks.yaml       - Task schemas
-#     chains.yaml      - Chain schemas
-#     trading.yaml     - Trading schemas
-#     accounts.yaml    - Account schemas
-#     orchestration.yaml - Orchestration schemas
-#     realtime.yaml    - Realtime schemas
-#     knowledge-bases.yaml - Knowledge base schemas
-#     workspaces.yaml  - Workspace schemas
-#     domains.yaml     - Domain schemas
-#     workers.yaml     - Worker schemas
-#     channels.yaml    - Channel schemas
-#     connection.yaml  - Connection schemas
-#     health.yaml      - Health schemas
-#     responses.yaml   - Common responses
-#   paths/
-#     rpc.yaml         - Main RPC endpoint
-#     health.yaml      - Health endpoint
-#     workers.yaml     - Worker endpoints
-#     auth.yaml        - Auth endpoints
-
+# Structure (this bundle):
+#   schemas/ referenced here: common, agents, tasks, chains, trading, accounts,
+#     workers, tools, health, responses
+#   schemas/ also present (used in openapi.yaml): orchestration, realtime,
+#     knowledge-bases, workspaces, domains, channels, connection, strategies,
+#     market-making
+#   paths/: rpc.yaml (main RPC + method list), health, workers, auth
+#
 openapi: 3.1.0
 info:
   title: STELS Agentic AI Platform API
-  version: 2.9.1
+  version: 2.12.0
   description: |
     # STELS Runtime API
 
@@ -56,7 +39,7 @@ info:
 
     ## API Status (Integration Tests)
 
-    **Total: 73 methods | ✅ Tested: 42 | ⏭️ Require Setup: 30 | ❌ Issues: 1**
+    **Total: 97 methods | ✅ Tested: 58 | ⏭️ Require Setup: 39 | ❌ Issues: 0**
 
   contact:
     name: STELS Platform
@@ -96,6 +79,8 @@ tags:
     description: Domain adapters and templates
   - name: Workers
     description: Worker management (admin)
+  - name: Tools
+    description: MCP-compatible tool workers and agent bindings
   - name: Health
     description: Health checks
 
@@ -194,6 +179,18 @@ components:
       $ref: "schemas/workers.yaml#/WorkerStats"
     SetWorkerParams:
       $ref: "schemas/workers.yaml#/SetWorkerParams"
+
+    # Tools
+    SetToolRequest:
+      $ref: "schemas/tools.yaml#/SetToolRequest"
+    ListToolsRequest:
+      $ref: "schemas/tools.yaml#/ListToolsRequest"
+    CallToolRequest:
+      $ref: "schemas/tools.yaml#/CallToolRequest"
+    BindToolToAgentRequest:
+      $ref: "schemas/tools.yaml#/BindToolToAgentRequest"
+    ApplyToolPresetRequest:
+      $ref: "schemas/tools.yaml#/ApplyToolPresetRequest"
 
     # Health
     HealthResponse:

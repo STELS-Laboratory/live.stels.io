@@ -182,18 +182,27 @@ export const useAccountsStore = create<AccountsStore>()(
             const client = new WebfixApiClient(apiUrl);
             client.setSession(session);
 
-            const result = await client.request<AccountValue[]>(
-              "listAccounts",
-              body,
-              params,
-            );
+            const result = await client.request<
+              AccountValue[] | { raw?: { list?: AccountValue[] }; timestamp?: number }
+            >("listAccounts", body, params);
+
+            // WebFIX v2.12: payload in result.raw.list or result.raw (array); legacy: array directly
+            const list: AccountValue[] = Array.isArray(result)
+              ? result
+              : (result && typeof result === "object" && "raw" in result
+                  ? (() => {
+                      const raw = (result as { raw?: unknown }).raw;
+                      if (Array.isArray(raw)) return raw as AccountValue[];
+                      return (raw as { list?: AccountValue[] } | undefined)?.list ?? [];
+                    })()
+                  : []);
 
             // Process the accounts from server
             // Server returns AccountValue[] where each item has channel, module, widget, raw fields
-            if (Array.isArray(result) && result.length > 0) {
+            if (list.length > 0) {
               set({ accounts: [] });
 
-              const fetchedAccounts: StoredAccount[] = result
+              const fetchedAccounts: StoredAccount[] = list
                 .filter((item: unknown): item is AccountValue => {
                   return (
                     typeof item === "object" &&

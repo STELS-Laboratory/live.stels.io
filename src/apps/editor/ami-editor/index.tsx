@@ -4,7 +4,7 @@
 
 /* eslint-disable react-refresh/only-export-components */
 import EditorErrorBoundary from "../error-boundary";
-import { AMIEditor } from "../ami-editor";
+import { AMIEditor } from "../ami_editor";
 
 // Wrap AMIEditor with Error Boundary
 const AMIEditorWithErrorBoundary = () => (
@@ -24,6 +24,9 @@ export { WorkerLogsPanel } from "./worker-logs-panel";
 export { StopAllDialog } from "./stop-all-dialog";
 export { MigrateWorkerDialog } from "./migrate-worker-dialog";
 export { ConfirmToggleDialog } from "./confirm-toggle-dialog";
+export { CreateToolDialog } from "./CreateToolDialog";
+export { DeleteToolDialog } from "./DeleteToolDialog";
+export { CallToolDialog } from "./CallToolDialog";
 export type {
   LeaderInfo,
   Worker,

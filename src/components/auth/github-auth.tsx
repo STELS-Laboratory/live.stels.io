@@ -23,7 +23,7 @@ interface GitHubAuthProps {
 
 /**
  * Normalize backend URL for GitHub OAuth callback
- * GitHub requires exact match, so we normalize localhost/127.0.0.1/10.0.0.206 to 10.0.0.241
+ * GitHub requires exact match, so we normalize localhost/127.0.0.1/10.0.0.206 to 10.0.0.125
  * Or use explicit callback URL from environment if provided
  */
 function normalizeCallbackUrl(backendUrl: string): string {
@@ -39,16 +39,16 @@ function normalizeCallbackUrl(backendUrl: string): string {
   // Parse backend URL
   const url = new URL(backendUrl);
 
-  // If backend URL already uses 10.0.0.241, use it as-is
-  if (url.hostname === "10.0.0.241") {
+  // If backend URL already uses 10.0.0.125, use it as-is
+  if (url.hostname === "10.0.0.125") {
     const callbackUrl = `${backendUrl}/auth/github/callback`;
     if (import.meta.env.DEV) {
-      console.log("[GitHub Auth] Backend already uses 10.0.0.241, callback URL:", callbackUrl);
+      console.log("[GitHub Auth] Backend already uses 10.0.0.125, callback URL:", callbackUrl);
     }
     return callbackUrl;
   }
 
-  // For other local development IPs, normalize to 10.0.0.241
+  // For other local development IPs, normalize to 10.0.0.125
   // GitHub OAuth App must have this exact callback URL registered
   const localhostIPs = [
     "127.0.0.1",
@@ -57,10 +57,10 @@ function normalizeCallbackUrl(backendUrl: string): string {
   ];
 
   if (localhostIPs.includes(url.hostname)) {
-    // Normalize to 10.0.0.241 for GitHub OAuth callback
-    const callbackUrl = `http://10.0.0.241:${url.port || "8088"}/auth/github/callback`;
+    // Normalize to 10.0.0.125 for GitHub OAuth callback
+    const callbackUrl = `http://10.0.0.125:${url.port || "8088"}/auth/github/callback`;
     if (import.meta.env.DEV) {
-      console.log("[GitHub Auth] Normalized localhost to 10.0.0.241, callback URL:", callbackUrl);
+      console.log("[GitHub Auth] Normalized localhost to 10.0.0.125, callback URL:", callbackUrl);
     }
     return callbackUrl;
   }
@@ -172,6 +172,94 @@ export function GitHubAuth({
     }
   }, [selectedNetwork, connectWithGitHub, connectionError, onSuccess, onError]);
 
+  // Handle session from backend (new flow where backend exchanges code and returns session)
+  const handleSessionAuth = useCallback(async (sessionId: string, username?: string, avatar?: string): Promise<void> => {
+    if (!selectedNetwork) {
+      setError("Please select a network first");
+      return;
+    }
+
+    setError(null);
+    setIsRedirecting(false);
+
+    try {
+      // Import auth store to directly set session
+      const { useAuthStore } = await import("@/stores/modules/auth.store");
+
+      // Create session object from backend-provided data
+      const apiUrl = selectedNetwork.api;
+      const socketUrl = selectedNetwork.socket;
+
+      const session = {
+        session: sessionId,
+        token: sessionId, // Use session as token for now
+        network: selectedNetwork.id,
+        title: username || "heterogen",
+        nid: `gliese_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+        api: apiUrl,
+        socket: socketUrl,
+        developer: selectedNetwork.developer || false,
+        createdAt: Date.now(),
+      };
+
+      // Store session in localStorage for WebSocket and persistence
+      localStorage.setItem(
+        "private-store",
+        JSON.stringify({
+          channel: `session.store.${session.session}`,
+          module: "session",
+          widget: "session",
+          raw: {
+            session: session.session,
+            token: session.token,
+            info: {
+              network: session.network,
+              title: session.title,
+              nid: session.nid,
+              api: session.api,
+              connector: {
+                socket: session.socket,
+              },
+              developer: session.developer,
+              githubUsername: username,
+              avatarUrl: avatar,
+            },
+            createdAt: session.createdAt,
+          },
+          timestamp: Date.now(),
+        }),
+      );
+
+      // Update auth store state
+      useAuthStore.setState({
+        isConnected: true,
+        isConnecting: false,
+        connectionSession: session,
+        isAuthenticated: true,
+        connectionError: null,
+      });
+
+      if (import.meta.env.DEV) {
+        console.log("[GitHub Auth] Session established from backend:", {
+          sessionId: sessionId.substring(0, 8) + "...",
+          username,
+        });
+      }
+
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error
+        ? err.message
+        : "Unknown error occurred";
+      setError(errorMessage);
+      if (onError) {
+        onError();
+      }
+    }
+  }, [selectedNetwork, onSuccess, onError]);
+
   // Check if we're returning from backend redirect after GitHub OAuth
   // Flow: Client → GitHub → Backend callback (8088) → Backend redirects to Client
   // Backend processes callback, exchanges code for token using SECRET, then redirects back
@@ -181,7 +269,6 @@ export function GitHubAuth({
     const state = urlParams.get("state");
     const errorParam = urlParams.get("error");
     const sessionParam = urlParams.get("session"); // Backend might pass session if secure
-    const successParam = urlParams.get("success");
 
     // Handle errors immediately, even without selectedNetwork
     if (errorParam) {
@@ -239,14 +326,30 @@ export function GitHubAuth({
       handleGitHubAuth(code);
     }
 
-    // If backend redirected with session token (if backend implements secure session passing)
-    if (sessionParam && successParam === "true") {
+    // If backend redirected with session token (new flow)
+    if (sessionParam) {
       // Backend already authenticated and created session
-      // Store session and mark as connected
-      // Note: This requires backend to implement secure session passing
-      // For now, we'll use the code exchange flow above
+      const username = urlParams.get("username") || undefined;
+      const avatar = urlParams.get("avatar") || undefined;
+      
+      // If selectedNetwork is not ready yet, wait for it
+      if (!selectedNetwork) {
+        sessionStorage.setItem("github_oauth_session", sessionParam);
+        if (username) sessionStorage.setItem("github_oauth_username", username);
+        if (avatar) sessionStorage.setItem("github_oauth_avatar", avatar);
+        return;
+      }
+      
+      // Clean URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete("session");
+      url.searchParams.delete("username");
+      url.searchParams.delete("avatar");
+      window.history.replaceState({}, "", url.toString());
+      
+      handleSessionAuth(sessionParam, username, avatar);
     }
-  }, [onError, handleGitHubAuth, selectedNetwork]);
+  }, [onError, handleGitHubAuth, handleSessionAuth, selectedNetwork]);
 
   // Process pending OAuth callback when selectedNetwork becomes available
   useEffect(() => {
@@ -254,7 +357,23 @@ export function GitHubAuth({
       return;
     }
 
-    // Check if there's a pending OAuth callback
+    // Check if there's a pending session (new backend flow)
+    const pendingSession = sessionStorage.getItem("github_oauth_session");
+    if (pendingSession) {
+      const username = sessionStorage.getItem("github_oauth_username") || undefined;
+      const avatar = sessionStorage.getItem("github_oauth_avatar") || undefined;
+      
+      // Clear pending data
+      sessionStorage.removeItem("github_oauth_session");
+      sessionStorage.removeItem("github_oauth_username");
+      sessionStorage.removeItem("github_oauth_avatar");
+      
+      // Process the session
+      handleSessionAuth(pendingSession, username, avatar);
+      return;
+    }
+
+    // Check if there's a pending OAuth callback (old flow with code)
     const pendingCode = sessionStorage.getItem("github_oauth_pending_code");
     const pendingState = sessionStorage.getItem("github_oauth_pending_state");
 
@@ -276,7 +395,7 @@ export function GitHubAuth({
         setError("Invalid state parameter. Please try again.");
       }
     }
-  }, [selectedNetwork, handleGitHubAuth]);
+  }, [selectedNetwork, handleGitHubAuth, handleSessionAuth]);
 
   const handleGitHubLogin = useCallback((): void => {
     if (!selectedNetwork) {
@@ -430,7 +549,7 @@ export function GitHubAuth({
                   <br />
                   <code className="bg-muted px-1 py-0.5 rounded">
                     Authorization callback URL:
-                    http://10.0.0.241:8088/auth/github/callback
+                    http://10.0.0.125:8088/auth/github/callback
                   </code>
                   <br />
                   <small className="text-muted-foreground">

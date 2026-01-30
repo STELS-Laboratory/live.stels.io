@@ -1,7 +1,8 @@
 /**
  * Webfix API Client
  * Universal client for Webfix RPC protocol (v1.0)
- * Handles unified request format and multiple response formats
+ * Handles unified request format and WebFIX v2.12 response format (success + raw + timestamp).
+ * OpenAPI: WebfixSuccessResponse / WebfixErrorResponse in openapi/schemas/common.yaml
  */
 
 export interface WebfixRequest {
@@ -11,9 +12,18 @@ export interface WebfixRequest {
   body?: unknown;
 }
 
+/** Legacy / alternate success format: { success: true, data: T } */
 export interface SuccessResponse<T = unknown> {
   success: true;
   data: T;
+}
+
+/** WebFIX v2.12 success: { webfix?, success, raw, timestamp } — API standard (webfix optional if API omits) */
+export interface WebfixSuccessResponse<T = unknown> {
+  webfix?: "1.0";
+  success: true;
+  raw?: T;
+  timestamp?: number;
 }
 
 export interface ErrorResponse {
@@ -21,6 +31,7 @@ export interface ErrorResponse {
   error: string;
 }
 
+/** Legacy webfix success: { webfix, result } */
 export interface WebfixResponse<T = unknown> {
   webfix: "1.0";
   result: T;
@@ -28,23 +39,27 @@ export interface WebfixResponse<T = unknown> {
 
 export interface WebfixErrorResponse {
   webfix: "1.0";
+  success?: false;
   error: {
-    code: number;
+    code: number | string;
     message: string;
     details?: unknown;
   };
+  timestamp?: number;
 }
 
 export type ApiResponse<T = unknown> =
   | SuccessResponse<T>
   | ErrorResponse
+  | WebfixSuccessResponse<T>
   | WebfixResponse<T>
   | WebfixErrorResponse;
 
+/** API error codes: string (e.g. NOT_FOUND, UNAUTHORIZED) per OpenAPI, or number for legacy/HTTP status */
 export class WebfixApiError extends Error {
   constructor(
     public message: string,
-    public code?: number,
+    public code?: number | string,
     public details?: unknown,
   ) {
     super(message);
@@ -87,29 +102,31 @@ export class WebfixApiClient {
   }
 
   /**
-   * Extract data from various response formats
+   * Extract data from various response formats.
+   * WebFIX v2.12: { webfix, success, raw, timestamp } — return full wrapper so callers can use .raw
    */
   private extractData<T>(response: ApiResponse<T>): T {
     // SuccessResponse format: {success: true, data: T}
     if ("success" in response && response.success === true) {
       const successResponse = response as SuccessResponse<T>;
-      // If there's a data field, return it
       if ("data" in successResponse && successResponse.data !== undefined) {
         return successResponse.data;
       }
-      // Otherwise return the response without 'success' field
-      // This handles {success: true, workspaces: [...]} format
+      // WebFIX v2.12: { webfix, success, raw, timestamp } — return full object so stores can use .raw
+      if ("raw" in response) {
+        return response as T;
+      }
+      // Legacy: { success: true, workspaces: [...] } — return rest
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { success, ...rest } = response as Record<string, unknown>;
       return rest as T;
     }
 
-    // WebfixResponse format: {webfix: "1.0", result: T}
+    // Legacy WebfixResponse: { webfix: "1.0", result: T }
     if ("webfix" in response && "result" in response) {
       return (response as WebfixResponse<T>).result;
     }
 
-    // If response is already the data type (some endpoints return data directly)
     return response as T;
   }
 
@@ -123,12 +140,14 @@ export class WebfixApiClient {
       throw new WebfixApiError(errorResponse.error);
     }
 
-    // WebfixErrorResponse format: {webfix: "1.0", error: {code, message, details}}
+    // WebfixErrorResponse: { webfix, success, error: { code, message, details } }
+    // OpenAPI: error.code is string (e.g. NOT_FOUND); support number for legacy/HTTP
     if ("webfix" in response && "error" in response) {
       const errorResponse = response as WebfixErrorResponse;
+      const code = errorResponse.error.code;
       throw new WebfixApiError(
         errorResponse.error.message,
-        errorResponse.error.code,
+        code,
         errorResponse.error.details,
       );
     }
@@ -201,13 +220,13 @@ export class WebfixApiClient {
   /**
    * Make Webfix RPC request with custom params
    * @param method - RPC method name
-   * @param body - Method-specific request body
+   * @param body - Method-specific request body (optional, consistent with request())
    * @param params - Custom params array
    * @returns Extracted data from response
    */
   async requestWithParams<T = unknown>(
     method: string,
-    body: unknown,
+    body?: unknown,
     params: string[],
   ): Promise<T> {
     return this.request<T>(method, body, params);

@@ -300,6 +300,34 @@
   --chart-volume-down: rgba(248, 113, 113, 0.5);
 }
 
+/* ===== Editor layout – inherits system/theme colors ===== */
+:root,
+.dark,
+.light {
+  --editor-activity-bar: var(--sidebar);
+  --editor-activity-bar-foreground: var(--sidebar-foreground);
+  --editor-activity-bar-hover: var(--sidebar-accent);
+  --editor-activity-bar-active: var(--background);
+  --editor-activity-bar-active-foreground: var(--foreground);
+  --editor-activity-bar-border: var(--sidebar-border);
+  --editor-sidebar: var(--card);
+  --editor-sidebar-foreground: var(--card-foreground);
+  --editor-sidebar-title: var(--foreground);
+  --editor-sidebar-border: var(--border);
+  --editor-main: var(--background);
+  --editor-main-foreground: var(--foreground);
+  --editor-tab-bar: var(--muted);
+  --editor-tab-inactive: var(--secondary);
+  --editor-tab-active: var(--background);
+  --editor-tab-active-foreground: var(--foreground);
+  --editor-tab-border: var(--border);
+  --editor-status-bar: var(--primary);
+  --editor-status-bar-foreground: var(--primary-foreground);
+  --editor-status-bar-muted: var(--primary-foreground);
+  --editor-status-bar-border: var(--ring);
+  --editor-accent: var(--primary);
+}
+
 /* Reduced motion - complete override */
 @media (prefers-reduced-motion: reduce) {
   *,

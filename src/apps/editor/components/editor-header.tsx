@@ -39,17 +39,17 @@ export function EditorHeader({
   const hasUnsavedChanges = isEditing || isEditingNote || isEditingConfig;
 
   return (
-    <div className="bg-card border-b border-border px-3 py-2 shadow-sm relative">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div className="relative w-7 h-7 bg-muted rounded flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:bg-muted/80 hover:scale-105">
-            <Terminal className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 transition-transform duration-200" />
+    <div className="bg-[var(--editor-tab-bar)] border-b border-[var(--editor-tab-border)] px-3 py-2 flex items-center min-h-[40px]">
+      <div className="flex items-center justify-between w-full">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="relative w-7 h-7 rounded flex items-center justify-center flex-shrink-0 bg-[var(--editor-tab-inactive)] text-[var(--editor-sidebar-foreground)]">
+            <Terminal className="w-3.5 h-3.5" />
             {worker.value.raw.active && (
-              <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-sm shadow-green-400/50" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full animate-pulse" aria-hidden />
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-foreground font-mono text-[11px] font-bold truncate">
+            <h3 className="text-[13px] font-medium text-[var(--editor-main-foreground)] truncate">
               {worker.value.raw.sid}
             </h3>
             <div className="flex items-center gap-1.5 mt-0.5">
@@ -63,10 +63,10 @@ export function EditorHeader({
             </div>
           </div>
           {hasUnsavedChanges && (
-            <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 border border-amber-500/30 rounded text-[10px] text-amber-700 dark:text-amber-400 font-mono">
-              <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
-              <span>Unsaved changes</span>
-            </div>
+            <span className="flex items-center gap-1.5 px-2 py-1 rounded text-[11px] text-[var(--editor-accent)] font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--editor-accent)] animate-pulse" aria-hidden />
+              Unsaved
+            </span>
           )}
         </div>
 
@@ -103,10 +103,10 @@ export function EditorHeader({
                   onClick={onToggle}
                   size="sm"
                   disabled={toggling}
-                  className={`h-6 w-6 p-0 ${
+                  className={`h-7 w-7 p-0 rounded ${
                     worker.value.raw.active
-                      ? "bg-red-500 hover:bg-red-600 text-white dark:text-white"
-                      : "bg-green-500 hover:bg-green-600 text-white dark:text-white"
+                      ? "bg-red-600 hover:bg-red-700 text-white"
+                      : "bg-green-600 hover:bg-green-700 text-white"
                   }`}
                 >
                   {toggling ? (

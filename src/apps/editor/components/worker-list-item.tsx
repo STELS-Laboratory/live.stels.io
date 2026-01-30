@@ -69,10 +69,10 @@ export const WorkerListItem = memo(function WorkerListItem({
       }`}
       className={`group flex flex-col px-2 py-1.5 cursor-pointer transition-all duration-200 ease-out ${
         isSelected
-          ? "bg-amber-500/20 border-l-2 border-amber-500 shadow-sm"
+          ? "bg-[var(--editor-accent)]/15 border-l-2 border-[var(--editor-accent)]"
           : isNewlyCreated
           ? "bg-green-500/10 animate-pulse border-l-2 border-green-500"
-          : "hover:bg-muted/50 hover:border-l-2 hover:border-muted-foreground/30 hover:shadow-sm"
+          : "hover:bg-[var(--editor-sidebar)]/80 hover:border-l-2 hover:border-[var(--editor-sidebar-border)]"
       }`}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
@@ -86,14 +86,14 @@ export const WorkerListItem = memo(function WorkerListItem({
         {/* File Icon with Status */}
         <div className="relative flex-shrink-0">
           <FileCode
-            className={`w-4 h-4 ${
+            className={`w-4 h-4 shrink-0 ${
               isNewlyCreated
-                ? "text-green-700 dark:text-green-700 dark:text-green-600"
+                ? "text-green-600"
                 : isSelected
-                ? "text-amber-700 dark:text-amber-400"
+                ? "text-[var(--editor-accent)]"
                 : worker.value.raw.active
-                ? "text-blue-700 dark:text-blue-400"
-                : "text-muted-foreground"
+                ? "text-[var(--editor-sidebar-foreground)]"
+                : "text-[var(--editor-sidebar-foreground)]/60"
             }`}
           />
           {/* Active indicator */}
@@ -102,7 +102,7 @@ export const WorkerListItem = memo(function WorkerListItem({
           )}
           {/* Leader crown */}
           {isLeaderMode && (
-            <Crown className="absolute -bottom-0.5 -right-0.5 w-2 h-2 text-amber-500" />
+            <Crown className="absolute -bottom-0.5 -right-0.5 w-2 h-2 text-[var(--editor-accent)]" />
           )}
         </div>
 
@@ -111,10 +111,10 @@ export const WorkerListItem = memo(function WorkerListItem({
           <span
             className={`font-mono text-[11px] font-semibold truncate ${
               isSelected
-                ? "text-amber-700 dark:text-amber-400"
+                ? "text-[var(--editor-sidebar-title)]"
                 : worker.value.raw.active
-                ? "text-green-700 dark:text-green-700 dark:text-green-600"
-                : "text-red-700 dark:text-red-400"
+                ? "text-[var(--editor-sidebar-foreground)]"
+                : "text-[var(--editor-sidebar-foreground)]/70"
             }`}
           >
             {worker.value.raw.sid}

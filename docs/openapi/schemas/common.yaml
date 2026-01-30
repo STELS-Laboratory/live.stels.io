@@ -19,23 +19,20 @@ NonEmptyString:
   maxLength: 1000
 
 Metadata:
-  type: object
+  type: [object, "null"]
   additionalProperties: true
-  nullable: true
 
 Tags:
-  type: array
+  type: [array, "null"]
   items:
     type: string
     maxLength: 50
   maxItems: 20
-  nullable: true
 
 Labels:
-  type: object
+  type: [object, "null"]
   additionalProperties:
     type: string
-  nullable: true
 
 # ═══════════════════════════════════════════════════════════════════════════
 # WEBFIX Protocol - Standard Request/Response Format
@@ -71,9 +68,9 @@ WebfixSuccessResponse:
       type: boolean
       enum: [true]
       description: Indicates successful operation
-    data:
+    raw:
       type: object
-      description: Response data (varies by method)
+      description: Response data payload (varies by method)
       additionalProperties: true
     timestamp:
       $ref: "#/Timestamp"
@@ -250,3 +247,9 @@ ListResponse:
       $ref: "#/PaginationResult"
     timestamp:
       $ref: "#/Timestamp"
+
+# Aliases for paths that reference SuccessResponse/ErrorResponse
+SuccessResponse:
+  $ref: "#/WebfixSuccessResponse"
+ErrorResponse:
+  $ref: "#/WebfixErrorResponse"

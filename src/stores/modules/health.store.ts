@@ -86,16 +86,20 @@ export const useHealthStore = create<HealthStore>()(
         set({ loading: true, error: null });
 
         try {
-          const response = await client.request<HealthResponse>(
-            "getHealth",
-            {}
-          );
+          const response = await client.request<
+            HealthResponse | { raw?: HealthResponse; timestamp?: number }
+          >("getHealth", {});
 
           console.log("[HealthStore] getHealth response:", response);
 
+          // WebFIX v2.12: payload in response.raw
+          const payload =
+            response && typeof response === "object" && "raw" in response
+              ? (response as { raw?: HealthResponse; timestamp?: number }).raw
+              : (response as HealthResponse);
           const health = {
-            ...response,
-            timestamp: response.timestamp || Date.now(),
+            ...payload,
+            timestamp: payload?.timestamp ?? (response as { timestamp?: number })?.timestamp ?? Date.now(),
           };
 
           set({
@@ -105,11 +109,11 @@ export const useHealthStore = create<HealthStore>()(
           });
 
           // Show toast based on status
-          if (response.status === "healthy") {
+          if (health?.status === "healthy") {
             toast.success("System healthy", "All components are operational");
-          } else if (response.status === "degraded") {
+          } else if (health?.status === "degraded") {
             toast.error("System degraded", "Some components may be experiencing issues");
-          } else if (response.status === "unhealthy") {
+          } else if (health?.status === "unhealthy") {
             toast.error("System unhealthy", "Critical components are down");
           }
 

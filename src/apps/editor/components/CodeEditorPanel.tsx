@@ -24,11 +24,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EditorHeader } from "./EditorHeader.tsx";
-import { ConfigForm } from "./ConfigForm.tsx";
-import { PromptsEditor } from "./PromptsEditor.tsx";
-import { WorkerLogsPanel } from "../ami_editor/worker_logs_panel.tsx";
-import { LeaderInfoCard } from "../ami_editor/leader_info_card.tsx";
+import { EditorHeader } from "./editor-header";
+import { ConfigForm } from "./config-form";
+import { PromptsEditor } from "./prompts-editor";
+import { WorkerLogsPanel } from "../ami-editor/worker-logs-panel";
+import { LeaderInfoCard } from "../ami-editor/leader-info-card";
 import type { CodeEditorPanelProps } from "../types/editor.types.ts";
 import type { LeaderInfo } from "@/types/apps/editor/types";
 
@@ -72,19 +72,19 @@ export function CodeEditorPanel({
 
   if (!worker || !worker.value || !worker.value.raw) {
     return (
-      <div className="h-full flex items-center justify-center">
+      <div className="h-full flex items-center justify-center bg-[var(--editor-main)]">
         <div className="text-center max-w-md">
-          <div className="w-20 h-20 bg-muted rounded flex items-center justify-center mb-6 mx-auto">
-            <Code className="w-10 h-10 text-amber-700 dark:text-amber-400" />
+          <div className="w-20 h-20 rounded flex items-center justify-center mb-6 mx-auto bg-[var(--editor-tab-bar)]">
+            <Code className="w-10 h-10 text-[var(--editor-sidebar-foreground)]" />
           </div>
-          <h3 className="text-amber-700 dark:text-amber-400 font-mono text-xl font-bold mb-2">
-            CODE EDITOR
+          <h3 className="text-[var(--editor-main-foreground)] font-semibold text-lg mb-2">
+            Code Editor
           </h3>
-          <p className="text-muted-foreground text-sm mb-6">
+          <p className="text-[var(--editor-sidebar-foreground)] text-sm mb-6">
             Select a protocol from the registry to start editing
           </p>
-          <div className="px-4 py-2 bg-muted rounded inline-block">
-            <div className="text-xs text-muted-foreground font-mono flex items-center gap-2">
+          <div className="px-4 py-2 rounded inline-block bg-[var(--editor-tab-inactive)]">
+            <div className="text-xs text-[var(--editor-sidebar-foreground)] font-mono flex items-center gap-2">
               <Terminal className="w-3 h-3" />
               Ready for development
             </div>
@@ -97,8 +97,8 @@ export function CodeEditorPanel({
   const hasUnsavedChanges = isEditingScript || isEditingNote || isEditingConfig;
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Editor Header */}
+    <div className="h-full flex flex-col bg-[var(--editor-main)]">
+      {/* Editor Header - VS Code title bar */}
       <EditorHeader
         worker={worker}
         isEditing={isEditingScript}
@@ -122,47 +122,47 @@ export function CodeEditorPanel({
         onValueChange={onTabChange}
         className="flex-1 flex flex-col min-h-0 p-0 m-0 gap-0"
       >
-        <div className="bg-card border-b border-border px-2 py-1.5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <TabsList className="bg-muted/30 p-0.5 h-7 transition-all duration-200">
+        <div className="bg-[var(--editor-tab-bar)] border-b border-[var(--editor-tab-border)] px-1 py-0 flex items-end min-h-[35px]">
+          <div className="flex items-center justify-between w-full">
+            <TabsList className="bg-transparent p-0 h-full gap-0 rounded-none border-0 flex items-end">
               <TabsTrigger
                 value="code"
-                className="text-[11px] h-6 px-2 transition-all duration-200 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-700 dark:data-[state=active]:text-amber-400 hover:bg-muted/50"
+                className="text-[12px] h-[35px] px-4 rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--editor-accent)] data-[state=active]:bg-[var(--editor-tab-active)] data-[state=active]:text-[var(--editor-tab-active-foreground)] text-[var(--editor-sidebar-foreground)] hover:bg-[var(--editor-tab-inactive)] transition-colors"
                 title="Code Editor (⌘1)"
               >
-                <Code className="w-3 h-3 mr-1 transition-transform duration-200 group-data-[state=active]:scale-110" />
+                <Code className="w-3.5 h-3.5 mr-2" />
                 Code
               </TabsTrigger>
               <TabsTrigger
                 value="config"
-                className="text-[11px] h-6 px-2 transition-all duration-200 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-700 dark:data-[state=active]:text-amber-400 hover:bg-muted/50"
+                className="text-[12px] h-[35px] px-4 rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--editor-accent)] data-[state=active]:bg-[var(--editor-tab-active)] data-[state=active]:text-[var(--editor-tab-active-foreground)] text-[var(--editor-sidebar-foreground)] hover:bg-[var(--editor-tab-inactive)] transition-colors"
                 title="Configuration (⌘2)"
               >
-                <Settings className="w-3 h-3 mr-1 transition-transform duration-200 group-data-[state=active]:scale-110" />
+                <Settings className="w-3.5 h-3.5 mr-2" />
                 Config
               </TabsTrigger>
               <TabsTrigger
                 value="prompts"
-                className="text-[11px] h-6 px-2 transition-all duration-200 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-700 dark:data-[state=active]:text-amber-400 hover:bg-muted/50"
+                className="text-[12px] h-[35px] px-4 rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--editor-accent)] data-[state=active]:bg-[var(--editor-tab-active)] data-[state=active]:text-[var(--editor-tab-active-foreground)] text-[var(--editor-sidebar-foreground)] hover:bg-[var(--editor-tab-inactive)] transition-colors"
                 title="Prompts (⌘3)"
               >
-                <FileText className="w-3 h-3 mr-1 transition-transform duration-200 group-data-[state=active]:scale-110" />
+                <FileText className="w-3.5 h-3.5 mr-2" />
                 Prompts
               </TabsTrigger>
               <TabsTrigger
                 value="logs"
-                className="text-[11px] h-6 px-2 transition-all duration-200 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-700 dark:data-[state=active]:text-amber-400 hover:bg-muted/50"
+                className="text-[12px] h-[35px] px-4 rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--editor-accent)] data-[state=active]:bg-[var(--editor-tab-active)] data-[state=active]:text-[var(--editor-tab-active-foreground)] text-[var(--editor-sidebar-foreground)] hover:bg-[var(--editor-tab-inactive)] transition-colors"
                 title="Logs (⌘4)"
               >
-                <Terminal className="w-3 h-3 mr-1 transition-transform duration-200 group-data-[state=active]:scale-110" />
+                <Terminal className="w-3.5 h-3.5 mr-2" />
                 Logs
               </TabsTrigger>
               {worker?.value?.raw?.executionMode === "leader" && (
                 <TabsTrigger
                   value="leader"
-                  className="text-[11px] h-6 px-2"
+                  className="text-[12px] h-[35px] px-4 rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--editor-accent)] data-[state=active]:bg-[var(--editor-tab-active)] text-[var(--editor-sidebar-foreground)] hover:bg-[var(--editor-tab-inactive)]"
                 >
-                  <Crown className="w-3 h-3 mr-1" />
+                  <Crown className="w-3.5 h-3.5 mr-2" />
                   Leader
                 </TabsTrigger>
               )}
@@ -244,7 +244,7 @@ export function CodeEditorPanel({
                         <Button
                           onClick={onSave}
                           size="sm"
-                          className="h-6 px-2 bg-amber-500 hover:bg-amber-600 text-zinc-950 dark:text-black"
+                          className="h-6 px-2 bg-[var(--editor-accent)] hover:opacity-90 text-white"
                           disabled={saving}
                         >
                           <Save className="w-3 h-3 mr-1" />

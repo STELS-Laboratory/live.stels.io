@@ -22,7 +22,7 @@ import { TIMING } from "@/lib/constants";
 
 const Flow = lazy(() => import("@/apps/canvas/flow"));
 const AMIEditor = lazy(() =>
-  import("@/apps/editor/ami-editor").then((m) => ({ default: m.AMIEditor }))
+  import("@/apps/editor/ami-editor/index").then((m) => ({ default: m.AMIEditor }))
 );
 const AgentControl = lazy(() =>
   import("@/apps/agents").then((m) => ({ default: m.AgentControl }))

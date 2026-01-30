@@ -99,3 +99,16 @@ export const EDITOR_CONSTANTS = {
   MAX_NOTE_LENGTH: 1000,
   CONTENT_DIFF_THRESHOLD: 200,
 } as const;
+
+/** MCP Tool categories (OpenAPI ToolCategory) */
+export const TOOL_CATEGORIES = [
+  "trading",
+  "analysis",
+  "notification",
+  "data",
+  "utility",
+  "custom",
+] as const;
+
+/** MCP Tool scopes */
+export const TOOL_SCOPES = ["local", "network"] as const;

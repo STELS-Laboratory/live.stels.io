@@ -5,39 +5,91 @@
   get:
     operationId: getWorkerLogsHTTP
     summary: Get Worker Logs
-    description: Retrieve worker log files
+    description: |
+      Retrieve worker log files. Returns either a list of all worker logs 
+      or specific worker log info if `sid` is provided.
     tags:
       - Workers
     security:
       - sessionAuth: []
     parameters:
-      - name: workerId
+      - name: sid
         in: query
-        description: Worker ID to filter logs for
+        description: Worker ID (session ID) to get log info for. If omitted, returns list of all worker logs.
         schema:
           $ref: "../schemas/common.yaml#/UUID"
-      - name: lines
-        in: query
-        description: Number of log lines to retrieve
-        schema:
-          type: integer
-          default: 100
     responses:
       "200":
-        description: Log content
+        description: Log information
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  description: Single worker log info (when sid is provided)
+                  properties:
+                    sid:
+                      type: string
+                      format: uuid
+                    exists:
+                      type: boolean
+                    size:
+                      type: integer
+                    modified:
+                      type: [string, "null"]
+                      format: date-time
+                    lines:
+                      type: integer
+                    sizeFormatted:
+                      type: string
+                  required:
+                    - sid
+                    - exists
+                    - size
+                    - lines
+                    - sizeFormatted
+                - type: object
+                  description: List of all worker logs (when sid is omitted)
+                  properties:
+                    total:
+                      type: integer
+                    logs:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          sid:
+                            type: string
+                            format: uuid
+                          exists:
+                            type: boolean
+                          size:
+                            type: integer
+                          modified:
+                            type: [string, "null"]
+                            format: date-time
+                          lines:
+                            type: integer
+                          sizeFormatted:
+                            type: string
+                  required:
+                    - total
+                    - logs
+      "401":
+        $ref: "../schemas/responses.yaml#/Unauthorized"
+      "403":
+        $ref: "../schemas/responses.yaml#/Forbidden"
+      "404":
+        description: Log file not found
         content:
           application/json:
             schema:
               type: object
               properties:
-                logs:
-                  type: array
-                  items:
-                    type: string
-      "401":
-        $ref: "../schemas/responses.yaml#/Unauthorized"
-      "403":
-        $ref: "../schemas/responses.yaml#/Forbidden"
+                error:
+                  type: string
+                sid:
+                  type: string
       "429":
         $ref: "../schemas/responses.yaml#/RateLimited"
       "500":
@@ -47,17 +99,37 @@
   get:
     operationId: streamWorkerLogsHTTP
     summary: Stream Worker Logs (SSE)
-    description: Server-Sent Events stream of worker logs
+    description: |
+      Server-Sent Events stream of worker logs for authenticated users.
+      When `follow=true`, only the last N lines (default 100, max 1000) are sent initially,
+      then new lines are streamed in real-time.
     tags:
       - Workers
     security:
       - sessionAuth: []
     parameters:
-      - name: workerId
+      - name: sid
         in: query
-        description: Worker ID to stream logs for
+        required: true
+        description: Worker ID (session ID) to stream logs for
         schema:
           $ref: "../schemas/common.yaml#/UUID"
+      - name: follow
+        in: query
+        description: Whether to follow/tail the log stream (default false)
+        schema:
+          type: boolean
+          default: false
+      - name: tailLines
+        in: query
+        description: |
+          Number of last lines to show on initial connect when `follow=true`.
+          Default is 100, maximum is 1000. Ignored when `follow=false`.
+        schema:
+          type: integer
+          default: 100
+          minimum: 1
+          maximum: 1000
     responses:
       "200":
         description: SSE stream
@@ -65,9 +137,75 @@
           text/event-stream:
             schema:
               type: string
+      "400":
+        description: Invalid or missing sid parameter
+        content:
+          text/plain:
+            schema:
+              type: string
+              example: "Invalid worker ID"
       "401":
         $ref: "../schemas/responses.yaml#/Unauthorized"
       "429":
         $ref: "../schemas/responses.yaml#/RateLimited"
+      "500":
+        $ref: "../schemas/responses.yaml#/ServerError"
+
+/api/worker/logs/stream/public:
+  get:
+    operationId: streamWorkerLogsPublicHTTP
+    summary: Stream Worker Logs (SSE) - Inter-Node
+    description: |
+      Public endpoint for streaming worker logs without session validation.
+      Designed for inter-node communication and requires inter-node authentication.
+      When `follow=true`, only the last N lines (default 100, max 1000) are sent initially.
+    tags:
+      - Workers
+      - Internal
+    security:
+      - interNodeAuth: []
+    parameters:
+      - name: sid
+        in: query
+        required: true
+        description: Worker ID (session ID) to stream logs for
+        schema:
+          $ref: "../schemas/common.yaml#/UUID"
+      - name: follow
+        in: query
+        description: Whether to follow/tail the log stream (default false)
+        schema:
+          type: boolean
+          default: false
+      - name: tailLines
+        in: query
+        description: |
+          Number of last lines to show on initial connect when `follow=true`.
+          Default is 100, maximum is 1000. Ignored when `follow=false`.
+        schema:
+          type: integer
+          default: 100
+          minimum: 1
+          maximum: 1000
+    responses:
+      "200":
+        description: SSE stream with connected event and log data
+        content:
+          text/event-stream:
+            schema:
+              type: string
+      "400":
+        description: Invalid or missing sid parameter
+        content:
+          text/plain:
+            schema:
+              type: string
+              example: "Invalid worker ID"
+      "401":
+        description: Unauthorized - inter-node authentication required
+        content:
+          text/plain:
+            schema:
+              type: string
       "500":
         $ref: "../schemas/responses.yaml#/ServerError"

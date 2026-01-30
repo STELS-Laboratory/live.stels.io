@@ -34,6 +34,38 @@ export function LoginPage(): React.ReactElement {
     const code = urlParams.get("code");
     const state = urlParams.get("state");
     const router = urlParams.get("router");
+    
+    // New callback format: backend returns session directly
+    const sessionParam = urlParams.get("session");
+    const usernameParam = urlParams.get("username");
+    const avatarParam = urlParams.get("avatar");
+    
+    // Handle new backend callback format (session returned directly)
+    if (sessionParam && (window.location.pathname.includes("/auth/callback") || window.location.pathname.includes("/auth/"))) {
+      // Store session data for processing
+      sessionStorage.setItem("github_oauth_session", sessionParam);
+      if (usernameParam) {
+        sessionStorage.setItem("github_oauth_username", usernameParam);
+      }
+      if (avatarParam) {
+        sessionStorage.setItem("github_oauth_avatar", avatarParam);
+      }
+      
+      // Open auth dialog to process callback
+      setIsAuthDialogOpen(true);
+      
+      // Clean URL parameters and pathname
+      const url = new URL(window.location.href);
+      url.pathname = "/";
+      url.searchParams.delete("session");
+      url.searchParams.delete("username");
+      url.searchParams.delete("avatar");
+      if (router) {
+        url.searchParams.set("router", router);
+      }
+      window.history.replaceState({}, "", url.toString());
+      return;
+    }
 
     // If we have GitHub OAuth callback parameters, open dialog and process
     if (code && state) {
@@ -49,7 +81,7 @@ export function LoginPage(): React.ReactElement {
 
         // Clean URL parameters and pathname (keep router if present)
         const url = new URL(window.location.href);
-        if (url.pathname.includes("/auth/github/callback")) {
+        if (url.pathname.includes("/auth/github/callback") || url.pathname.includes("/auth/callback")) {
           url.pathname = "/";
         }
         url.searchParams.delete("code");
@@ -61,7 +93,7 @@ export function LoginPage(): React.ReactElement {
       } else {
         // Invalid state - clean URL and pathname
         const url = new URL(window.location.href);
-        if (url.pathname.includes("/auth/github/callback")) {
+        if (url.pathname.includes("/auth/github/callback") || url.pathname.includes("/auth/callback")) {
           url.pathname = "/";
         }
         url.searchParams.delete("code");
@@ -77,21 +109,24 @@ export function LoginPage(): React.ReactElement {
   // Redirect to welcome after successful authentication
   useEffect(() => {
     if (isAuthenticated) {
-      const isOnCallbackPath = window.location.pathname.includes(
-        "/auth/github/callback"
-      );
+      const isOnCallbackPath = window.location.pathname.includes("/auth/github/callback") ||
+        window.location.pathname.includes("/auth/callback");
 
       if (
         isOnCallbackPath ||
         window.location.search.includes("code") ||
-        window.location.search.includes("state")
+        window.location.search.includes("state") ||
+        window.location.search.includes("session=")
       ) {
         const url = new URL(window.location.href);
-        if (url.pathname.includes("/auth/github/callback")) {
+        if (url.pathname.includes("/auth/")) {
           url.pathname = "/";
         }
         url.searchParams.delete("code");
         url.searchParams.delete("state");
+        url.searchParams.delete("session");
+        url.searchParams.delete("username");
+        url.searchParams.delete("avatar");
         url.searchParams.set("router", "welcome");
         window.history.replaceState({}, "", url.toString());
       }

@@ -14,8 +14,8 @@ export const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
   localnet: {
     id: "snaga",
     name: "Snaga",
-    api: "http://10.0.0.241:8088",
-    socket: "ws://10.0.0.241:8088",
+    api: "http://10.0.0.125:8088",
+    socket: "ws://10.0.0.125:8088",
     developer: true,
     description: "Local development network",
   },

@@ -51,19 +51,109 @@ Worker:
 
 WorkerStats:
   type: object
+  description: Summary of all worker statistics returned by getWorkerStats
   properties:
     totalWorkers:
       type: integer
+      description: Total number of workers tracked
     runningWorkers:
       type: integer
+      description: Number of currently running workers
     stoppedWorkers:
       type: integer
+      description: Number of stopped workers
     totalExecutions:
       type: integer
+      description: Total executions across all workers
     totalErrors:
       type: integer
-    leaderNodeId:
+      description: Total errors across all workers
+    totalNetworkErrors:
+      type: integer
+      description: Total network-related errors
+    totalCriticalErrors:
+      type: integer
+      description: Total critical errors
+    workers:
+      type: array
+      description: Detailed statistics for each worker
+      items:
+        $ref: "#/WorkerStatItem"
+    timestamp:
+      $ref: "common.yaml#/Timestamp"
+  required:
+    - totalWorkers
+    - runningWorkers
+    - stoppedWorkers
+    - totalExecutions
+    - totalErrors
+    - workers
+    - timestamp
+
+WorkerStatItem:
+  type: object
+  description: Individual worker statistics
+  properties:
+    sid:
       type: string
+      format: uuid
+      description: Worker session ID
+    started:
+      $ref: "common.yaml#/Timestamp"
+      description: Timestamp when worker started
+    uptime:
+      type: integer
+      description: Worker uptime in milliseconds
+    executions:
+      type: integer
+      description: Number of executions
+    errors:
+      type: integer
+      description: Total error count
+    networkErrors:
+      type: integer
+      description: Network-related errors
+    criticalErrors:
+      type: integer
+      description: Critical errors
+    consecutiveErrors:
+      type: integer
+      description: Consecutive errors without success
+    errorRate:
+      type: string
+      description: Error rate as percentage (e.g., "5.00%")
+    lastError:
+      type: [string, "null"]
+      description: Last error message
+    lastErrorType:
+      type: [string, "null"]
+      enum: [network, critical]
+      description: Type of last error
+    lastRun:
+      oneOf:
+        - $ref: "common.yaml#/Timestamp"
+        - type: "null"
+      description: Timestamp of last execution
+    lastRunAgo:
+      type: [integer, "null"]
+      description: Milliseconds since last run
+    scriptHash:
+      type: [string, "null"]
+      description: Hash of worker script
+    isRunning:
+      type: boolean
+      description: Whether worker is currently running
+  required:
+    - sid
+    - started
+    - uptime
+    - executions
+    - errors
+    - networkErrors
+    - criticalErrors
+    - consecutiveErrors
+    - errorRate
+    - isRunning
 
 LeaderInfo:
   type: object
