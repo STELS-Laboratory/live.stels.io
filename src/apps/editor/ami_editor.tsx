@@ -5,37 +5,68 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Split from "react-split";
-import { Code, Cpu, X } from "lucide-react";
+import { Code, Cpu, X, AlertCircle, RefreshCw } from "lucide-react";
 import Graphite from "@/components/ui/vectors/logos/graphite";
 import { Button } from "@/components/ui/button";
 import { useEditorStore } from "./store.ts";
 import { useAuthStore } from "@/stores/modules/auth.store.ts";
+import { useNetworkStore } from "@/stores/modules/network.store";
 import { useMobile } from "@/hooks/use-mobile";
 import { navigateTo } from "@/lib/router";
 import { toast } from "@/stores";
 import { logError, getSafeKeys } from "./utils/logger.ts";
-import { EDITOR_CONSTANTS } from "./ami_editor/constants.ts";
-import { useKeyboardShortcuts } from "./ami_editor/hooks/use_keyboard_shortcuts.ts";
-import { useWorkerFilters } from "./ami_editor/hooks/use_worker_filters.ts";
-import { CreateWorkerDialog } from "./ami_editor/create_worker_dialog";
-import { StopAllDialog } from "./ami_editor/stop_all_dialog";
-import { MigrateWorkerDialog } from "./ami_editor/migrate_worker_dialog";
-import { ConfirmToggleDialog } from "./ami_editor/confirm_toggle_dialog";
+import { EDITOR_CONSTANTS } from "./ami-editor/constants.ts";
+import { useKeyboardShortcuts } from "./ami-editor/hooks/use-keyboard-shortcuts.ts";
+import { useWorkerFilters } from "./ami-editor/hooks/use-worker-filters.ts";
+import { CreateWorkerDialog } from "./ami-editor/create-worker-dialog";
+import { CreateToolDialog } from "./ami-editor/CreateToolDialog";
+import { DeleteToolDialog } from "./ami-editor/DeleteToolDialog";
+import { CallToolDialog } from "./ami-editor/CallToolDialog";
+import { StopAllDialog } from "./ami-editor/stop-all-dialog";
+import { MigrateWorkerDialog } from "./ami-editor/migrate-worker-dialog";
+import { ConfirmToggleDialog } from "./ami-editor/confirm-toggle-dialog";
 import { DeveloperAccessRequestDialog } from "@/components/auth/developer-access-request";
-import { WorkerStatsPanel } from "./ami_editor/worker_stats_panel";
-import { WorkerRegistryPanel } from "./components/WorkerRegistryPanel.tsx";
-import { CodeEditorPanel } from "./components/CodeEditorPanel.tsx";
-import { useEditorState } from "./hooks/use_editor_state.ts";
-import { useWorkerEditor } from "./hooks/use_worker_editor.ts";
-import { useWorkerOperations } from "./hooks/use_worker_operations.ts";
+import { WorkerStatsPanel } from "./ami-editor/worker-stats-panel";
+import { WorkerRegistryPanel } from "./components/worker-registry-panel";
+import { ToolRegistryPanel } from "./components/ToolRegistryPanel";
+import { ToolEditorPanel } from "./components/ToolEditorPanel";
+import { CodeEditorPanel } from "./components/code-editor-panel";
+import { EditorActivityBar } from "./components/EditorActivityBar";
+import { EditorStatusBar } from "./components/EditorStatusBar";
+import { useEditorState } from "./hooks/use-editor-state.ts";
+import { useWorkerEditor } from "./hooks/use-worker-editor.ts";
+import { useWorkerOperations } from "./hooks/use-worker-operations.ts";
 import type { Worker, WorkerCreateRequest } from "@/types/apps/editor/types";
+import type { ToolRaw } from "./types/tools.types";
+import {
+  validateToolName,
+  validateToolTimeout,
+  validateJsonObject,
+} from "./services/tool-validator";
+
+export type EditorMode = "workers" | "tools";
 
 export function AMIEditor() {
   const mobile = useMobile();
   const { connectionSession } = useAuthStore();
+  const currentNetworkId = useNetworkStore((s) => s.currentNetworkId);
   const listWorkers = useEditorStore((state) => state.listWorkers);
+  const listTools = useEditorStore((state) => state.listTools);
+  const getTool = useEditorStore((state) => state.getTool);
+  const setTool = useEditorStore((state) => state.setTool);
+  const deleteTool = useEditorStore((state) => state.deleteTool);
+  const callTool = useEditorStore((state) => state.callTool);
   const getLeaderInfo = useEditorStore((state) => state.getLeaderInfo);
   const getWorkerStats = useEditorStore((state) => state.getWorkerStats);
+  const tools = useEditorStore((state) => state.tools);
+  const toolsLoading = useEditorStore((state) => state.toolsLoading);
+  const toolsError = useEditorStore((state) => state.toolsError);
+  const workersError = useEditorStore((state) => state.workersError);
+  const clearError = useEditorStore((state) => state.clearError);
+  const clearToolsError = useEditorStore((state) => state.clearToolsError);
+
+  // Editor mode: Workers | MCP Tools
+  const [editorMode, setEditorMode] = useState<EditorMode>("workers");
 
   // Workers list state
   const [workers, setWorkers] = useState<Worker[]>([]);
@@ -76,6 +107,56 @@ export function AMIEditor() {
   const [showToggleConfirmDialog, setShowToggleConfirmDialog] = useState(false);
   const [showDeveloperAccessDialog, setShowDeveloperAccessDialog] = useState(false);
   const [newlyCreatedWorker, setNewlyCreatedWorker] = useState<string | null>(null);
+  const [showCreateToolDialog, setShowCreateToolDialog] = useState(false);
+  const [showDeleteToolDialog, setShowDeleteToolDialog] = useState(false);
+  const [showCallToolDialog, setShowCallToolDialog] = useState(false);
+  const [newlyCreatedToolId, setNewlyCreatedToolId] = useState<string | null>(null);
+
+  // Tools state
+  const [selectedTool, setSelectedTool] = useState<ToolRaw | null>(null);
+  const [toolForm, setToolForm] = useState({
+    name: "",
+    description: "",
+    script: "",
+    inputSchemaJson: "{}",
+    outputSchemaJson: "{}",
+    category: "utility",
+    scope: "local",
+    timeout: 30000,
+    active: true,
+  });
+  const [toolsSaving, setToolsSaving] = useState(false);
+  const [toolDetailsLoading, setToolDetailsLoading] = useState(false);
+  const [toolValidationError, setToolValidationError] = useState<string | null>(null);
+  const [toolSearchTerm, setToolSearchTerm] = useState("");
+  const [toolFilterCategory, setToolFilterCategory] = useState<string | null>(null);
+  const [toolFilterScope, setToolFilterScope] = useState<string | null>(null);
+  const [toolFilterActive, setToolFilterActive] = useState<boolean | null>(null);
+  const [toolSortOrder, setToolSortOrder] = useState<"asc" | "desc">("asc");
+  const toolSearchInputRef = useRef<HTMLInputElement>(null);
+
+  const toolFormDirty = useCallback((): boolean => {
+    if (!selectedTool) return false;
+    const inputSchemaStr =
+      selectedTool.inputSchema && typeof selectedTool.inputSchema === "object"
+        ? JSON.stringify(selectedTool.inputSchema)
+        : "{}";
+    const outputSchemaStr =
+      selectedTool.outputSchema && typeof selectedTool.outputSchema === "object"
+        ? JSON.stringify(selectedTool.outputSchema)
+        : "{}";
+    return (
+      toolForm.name !== (selectedTool.name ?? "") ||
+      toolForm.description !== (selectedTool.description ?? "") ||
+      toolForm.script !== (selectedTool.script ?? "") ||
+      toolForm.inputSchemaJson.replace(/\s/g, "") !== inputSchemaStr.replace(/\s/g, "") ||
+      toolForm.outputSchemaJson.replace(/\s/g, "") !== outputSchemaStr.replace(/\s/g, "") ||
+      toolForm.category !== (selectedTool.category ?? "utility") ||
+      toolForm.scope !== (selectedTool.scope ?? "local") ||
+      toolForm.timeout !== (typeof selectedTool.timeout === "number" ? selectedTool.timeout : 30000) ||
+      toolForm.active !== (selectedTool.active !== false)
+    );
+  }, [selectedTool, toolForm]);
 
   // Editor state
   const [activeTab, setActiveTab] = useState("code");
@@ -224,15 +305,118 @@ export function AMIEditor() {
     }
   }, [newlyCreatedWorker]);
 
+  // Load tools when in tools mode or when network changes
+  const loadTools = useCallback(async () => {
+    if (!connectionSession?.developer || editorMode !== "tools") return;
+    await listTools();
+  }, [connectionSession?.developer, editorMode, listTools]);
+
+  useEffect(() => {
+    if (editorMode === "tools") {
+      loadTools();
+    }
+  }, [editorMode, loadTools, currentNetworkId]);
+
+  // When selectedTool changes, fetch full tool (with script) and populate form
+  useEffect(() => {
+    if (!selectedTool) {
+      setToolForm({
+        name: "",
+        description: "",
+        script: "",
+        inputSchemaJson: "{}",
+        outputSchemaJson: "{}",
+        category: "utility",
+        scope: "local",
+        timeout: 30000,
+        active: true,
+      });
+      setToolValidationError(null);
+      setToolDetailsLoading(false);
+      return;
+    }
+    const toolId = selectedTool.sid?.trim();
+    if (!toolId) {
+      logError("Selected tool has no valid sid:", selectedTool);
+      setToolValidationError("Tool has no valid ID - please reload tools");
+      setToolDetailsLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setToolDetailsLoading(true);
+    (async () => {
+      try {
+        const full = await getTool(toolId, true);
+        if (cancelled || !full) return;
+        setSelectedTool(full);
+        setToolForm({
+          name: full.name ?? "",
+          description: full.description ?? "",
+          script: full.script ?? "",
+          inputSchemaJson:
+            full.inputSchema && typeof full.inputSchema === "object"
+              ? JSON.stringify(full.inputSchema, null, 2)
+              : "{}",
+          outputSchemaJson:
+            full.outputSchema && typeof full.outputSchema === "object"
+              ? JSON.stringify(full.outputSchema, null, 2)
+              : "{}",
+          category: full.category ?? "utility",
+          scope: full.scope ?? "local",
+          timeout: typeof full.timeout === "number" ? full.timeout : 30000,
+          active: full.active !== false,
+        });
+        setToolValidationError(null);
+      } finally {
+        if (!cancelled) setToolDetailsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedTool, getTool]);
+
+  useEffect(() => {
+    if (newlyCreatedToolId) {
+      const timer = setTimeout(() => setNewlyCreatedToolId(null), EDITOR_CONSTANTS.NEW_WORKER_HIGHLIGHT_MS);
+      return () => clearTimeout(timer);
+    }
+  }, [newlyCreatedToolId]);
+
 
   // Handle worker selection
   const handleSelectWorker = useCallback(
     (worker: Worker) => {
+      const currentSid = selectedWorker?.value?.raw?.sid;
+      const nextSid = worker?.value?.raw?.sid;
+      const hasUnsavedWorkerChanges =
+        editorState.isEditingScript ||
+        editorState.isEditingNote ||
+        editorState.isEditingConfig;
+      if (
+        currentSid != null &&
+        nextSid != null &&
+        currentSid !== nextSid &&
+        hasUnsavedWorkerChanges
+      ) {
+        if (
+          !window.confirm(
+            "You have unsaved changes to this worker. Discard and switch?",
+          )
+        ) {
+          return;
+        }
+      }
       setSelectedWorker(worker);
       editorState.loadWorker(worker, workerEditor.formattedScriptsCache.current);
       setValidationError(null);
     },
-    [editorState, workerEditor.formattedScriptsCache, setSelectedWorker],
+    [
+      selectedWorker?.value?.raw?.sid,
+      editorState,
+      workerEditor.formattedScriptsCache,
+      setSelectedWorker,
+    ],
   );
 
   // Handle create worker
@@ -304,9 +488,9 @@ export function AMIEditor() {
   // Handle save all
   const handleSaveAll = useCallback(async () => {
     if (!selectedWorker) return;
-    
+
     await workerOperations.handleSaveAll();
-    
+
     // After save, update original script to current script (since it was saved)
     editorState.updateOriginalScript(editorState.state.script);
   }, [workerOperations, selectedWorker, editorState]);
@@ -315,6 +499,146 @@ export function AMIEditor() {
   const handleReset = useCallback(() => {
     editorState.resetAll();
   }, [editorState]);
+
+  // Tool handlers
+  const handleSelectTool = useCallback(
+    (tool: ToolRaw) => {
+      if (
+        selectedTool &&
+        selectedTool.sid !== tool.sid &&
+        toolFormDirty()
+      ) {
+        if (
+          !window.confirm(
+            "You have unsaved changes to this tool. Discard and switch?",
+          )
+        ) {
+          return;
+        }
+      }
+      setSelectedTool(tool);
+      setToolValidationError(null);
+    },
+    [selectedTool, toolFormDirty],
+  );
+
+  const handleSaveTool = useCallback(async () => {
+    if (!selectedTool) return;
+    const nameCheck = validateToolName(toolForm.name);
+    if (!nameCheck.valid) {
+      setToolValidationError(nameCheck.error ?? "Invalid name");
+      return;
+    }
+    const timeoutCheck = validateToolTimeout(toolForm.timeout);
+    if (!timeoutCheck.valid) {
+      setToolValidationError(timeoutCheck.error ?? "Invalid timeout");
+      return;
+    }
+    const inputSchemaCheck = validateJsonObject(toolForm.inputSchemaJson || "{}");
+    if (!inputSchemaCheck.valid) {
+      setToolValidationError(inputSchemaCheck.error ?? "Invalid input schema JSON");
+      return;
+    }
+    let inputSchema: Record<string, unknown>;
+    try {
+      inputSchema = JSON.parse(toolForm.inputSchemaJson || "{}");
+    } catch {
+      setToolValidationError("Invalid input schema JSON");
+      return;
+    }
+    let outputSchema: Record<string, unknown> | undefined;
+    if (toolForm.outputSchemaJson.trim()) {
+      const outputCheck = validateJsonObject(toolForm.outputSchemaJson);
+      if (!outputCheck.valid) {
+        setToolValidationError(outputCheck.error ?? "Invalid output schema JSON");
+        return;
+      }
+      try {
+        outputSchema = JSON.parse(toolForm.outputSchemaJson);
+      } catch {
+        setToolValidationError("Invalid output schema JSON");
+        return;
+      }
+    }
+    setToolValidationError(null);
+    setToolsSaving(true);
+    try {
+      const saved = await setTool({
+        sid: selectedTool.sid,
+        name: toolForm.name,
+        description: toolForm.description,
+        script: toolForm.script,
+        inputSchema,
+        outputSchema,
+        category: toolForm.category as ToolRaw["category"],
+        scope: toolForm.scope as "local" | "network",
+        timeout: toolForm.timeout,
+        active: toolForm.active,
+      });
+      if (saved) {
+        setSelectedTool(saved);
+        toast.success("Tool saved");
+      }
+    } finally {
+      setToolsSaving(false);
+    }
+  }, [selectedTool, toolForm, setTool]);
+
+  const handleResetTool = useCallback(() => {
+    if (!selectedTool) return;
+    setToolForm({
+      name: selectedTool.name ?? "",
+      description: selectedTool.description ?? "",
+      script: selectedTool.script ?? "",
+      inputSchemaJson:
+        selectedTool.inputSchema && typeof selectedTool.inputSchema === "object"
+          ? JSON.stringify(selectedTool.inputSchema, null, 2)
+          : "{}",
+      outputSchemaJson:
+        selectedTool.outputSchema && typeof selectedTool.outputSchema === "object"
+          ? JSON.stringify(selectedTool.outputSchema, null, 2)
+          : "{}",
+      category: selectedTool.category ?? "utility",
+      scope: selectedTool.scope ?? "local",
+      timeout: typeof selectedTool.timeout === "number" ? selectedTool.timeout : 30000,
+      active: selectedTool.active !== false,
+    });
+    setToolValidationError(null);
+  }, [selectedTool]);
+
+  const handleDeleteToolClick = useCallback(() => {
+    if (selectedTool) setShowDeleteToolDialog(true);
+  }, [selectedTool]);
+
+  const handleCreateTool = useCallback(
+    async (request: import("./types/tools.types").SetToolRequest) => {
+      const saved = await setTool(request);
+      if (saved) {
+        setSelectedTool(saved);
+        setNewlyCreatedToolId(saved.sid);
+      }
+      return saved;
+    },
+    [setTool],
+  );
+
+  const handleConfirmDeleteTool = useCallback(
+    async (toolId: string, force: boolean) => {
+      const ok = await deleteTool(toolId, force);
+      if (ok) {
+        setSelectedTool(null);
+      }
+      return ok;
+    },
+    [deleteTool],
+  );
+
+  const handleCallTool = useCallback(
+    async (toolId: string, input: Record<string, unknown>) => {
+      return callTool({ toolId, input });
+    },
+    [callTool],
+  );
 
   // Refs for keyboard shortcuts
   const handleSaveAllRef = useRef<() => void>(() => {});
@@ -430,71 +754,194 @@ export function AMIEditor() {
     );
   }
 
-  // Main view
+  // Main view - VS Code-style layout: Activity Bar | Sidebar + Editor | Status Bar
   return connectionSession ? (
-    <div className="h-full">
-      <Split
-        className="flex h-full bg-background p-0 m-0"
-        direction="horizontal"
-        sizes={EDITOR_CONSTANTS.SPLIT_SIZES}
-        minSize={EDITOR_CONSTANTS.SPLIT_MIN_SIZES}
-        gutterSize={2}
-      >
-        {/* Left Panel - Workers Registry */}
-        <WorkerRegistryPanel
-          workers={workers}
-          selectedWorker={selectedWorker}
-          loading={loading}
-          searchTerm={searchTerm}
-          filterActive={filterActive}
-          filterExecutionMode={filterExecutionMode}
-          filterPriority={filterPriority}
-          filterScope={filterScope}
-          sortOrder={sortOrder}
-          newlyCreatedWorker={newlyCreatedWorker}
-          onSearchChange={setSearchTerm}
-          onFilterActiveChange={setFilterActive}
-          onFilterExecutionModeChange={setFilterExecutionMode}
-          onFilterPriorityChange={setFilterPriority}
-          onFilterScopeChange={setFilterScope}
-          onSortOrderChange={setSortOrder}
-          onSelectWorker={handleSelectWorker}
-          onCreateWorker={() => setShowCreateDialog(true)}
-          onShowStats={() => setShowStatsPanel(true)}
-          onStopAll={() => setShowStopAllDialog(true)}
-          searchInputRef={searchInputRef}
-          onMigrate={handleOpenMigrateDialog}
+    <div className="editor-layout h-full flex flex-col bg-[var(--editor-main)]">
+      <div className="flex flex-1 min-h-0">
+        <EditorActivityBar
+          activeId={editorMode}
+          onSelect={(id) => setEditorMode(id)}
         />
 
-        {/* Right Panel - Code Editor */}
-        <CodeEditorPanel
-          worker={selectedWorker}
-          script={editorState.state.script}
-          note={editorState.state.note}
-          config={editorState.state.config}
-          isEditingScript={editorState.isEditingScript}
-          isEditingNote={editorState.isEditingNote}
-          isEditingConfig={editorState.isEditingConfig}
-          validationError={validationError}
-          saving={workerOperations.saving}
-          activeTab={activeTab}
-          onScriptChange={workerEditor.handleEditorChange}
-          onNoteChange={workerEditor.handleNoteChange}
-          onConfigChange={workerEditor.handleConfigChange}
-          onTabChange={setActiveTab}
-          onSave={handleSaveAll}
-          onReset={handleReset}
-          onFormatCodeReady={() => {}}
-          onUndoRedoReady={() => {}}
-          onToggle={handleToggleWorkerStatusClick}
-          onMigrate={() => {
-            if (selectedWorker) {
-              handleOpenMigrateDialog(selectedWorker);
-            }
-          }}
-          getLeaderInfo={getLeaderInfo}
-        />
-      </Split>
+        <div className="editor-body flex flex-1 flex-col min-w-0 min-h-0">
+          {/* Global error banner */}
+          {(editorMode === "workers" && workersError) || (editorMode === "tools" && toolsError) ? (
+            <div
+              className="flex-shrink-0 px-3 py-2 flex items-center justify-between gap-3 bg-red-500/10 border-b border-red-500/30 text-red-700 dark:text-red-400"
+              role="alert"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <AlertCircle className="h-4 w-4 shrink-0 text-red-500" aria-hidden />
+                <span className="text-sm truncate">
+                  {editorMode === "workers" ? workersError : toolsError}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs border-red-500/30 hover:bg-red-500/10"
+                  onClick={() => {
+                    if (editorMode === "workers") clearError();
+                    else clearToolsError();
+                  }}
+                >
+                  Dismiss
+                </Button>
+                <Button
+                  size="sm"
+                  className="h-7 text-xs bg-red-600 hover:bg-red-700 text-white"
+                  onClick={() => {
+                    if (editorMode === "workers") loadWorkers();
+                    else listTools();
+                  }}
+                >
+                  <RefreshCw className="w-3 h-3 mr-1" />
+                  Retry
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
+          <Split
+            className="flex flex-1 min-h-0 bg-[var(--editor-main)] [&_.gutter]:!bg-[var(--editor-tab-border)] [&_.gutter:hover]:!bg-[var(--editor-accent)]"
+            direction="horizontal"
+            sizes={EDITOR_CONSTANTS.SPLIT_SIZES}
+            minSize={EDITOR_CONSTANTS.SPLIT_MIN_SIZES}
+            gutterSize={4}
+          >
+        {editorMode === "workers" ? (
+          <>
+            <div className="editor-sidebar-wrap flex flex-col min-w-0 min-h-0 w-full bg-[var(--editor-sidebar)] border-r border-[var(--editor-sidebar-border)]">
+              <WorkerRegistryPanel
+              workers={workers}
+              selectedWorker={selectedWorker}
+              loading={loading}
+              searchTerm={searchTerm}
+              filterActive={filterActive}
+              filterExecutionMode={filterExecutionMode}
+              filterPriority={filterPriority}
+              filterScope={filterScope}
+              sortOrder={sortOrder}
+              newlyCreatedWorker={newlyCreatedWorker}
+              onSearchChange={setSearchTerm}
+              onFilterActiveChange={setFilterActive}
+              onFilterExecutionModeChange={setFilterExecutionMode}
+              onFilterPriorityChange={setFilterPriority}
+              onFilterScopeChange={setFilterScope}
+              onSortOrderChange={setSortOrder}
+              onSelectWorker={handleSelectWorker}
+              onCreateWorker={() => setShowCreateDialog(true)}
+              onShowStats={() => setShowStatsPanel(true)}
+              onStopAll={() => setShowStopAllDialog(true)}
+              searchInputRef={searchInputRef}
+              onMigrate={handleOpenMigrateDialog}
+            />
+            </div>
+            <div className="editor-main-wrap flex flex-col min-w-0 min-h-0 flex-1 bg-[var(--editor-main)]">
+            <CodeEditorPanel
+              worker={selectedWorker}
+              script={editorState.state.script}
+              note={editorState.state.note}
+              config={editorState.state.config}
+              isEditingScript={editorState.isEditingScript}
+              isEditingNote={editorState.isEditingNote}
+              isEditingConfig={editorState.isEditingConfig}
+              validationError={validationError}
+              saving={workerOperations.saving}
+              activeTab={activeTab}
+              onScriptChange={workerEditor.handleEditorChange}
+              onNoteChange={workerEditor.handleNoteChange}
+              onConfigChange={workerEditor.handleConfigChange}
+              onTabChange={setActiveTab}
+              onSave={handleSaveAll}
+              onReset={handleReset}
+              onFormatCodeReady={() => {}}
+              onUndoRedoReady={() => {}}
+              onToggle={handleToggleWorkerStatusClick}
+              onMigrate={() => {
+                if (selectedWorker) {
+                  handleOpenMigrateDialog(selectedWorker);
+                }
+              }}
+              getLeaderInfo={getLeaderInfo}
+            />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="editor-sidebar-wrap flex flex-col min-w-0 min-h-0 w-full bg-[var(--editor-sidebar)] border-r border-[var(--editor-sidebar-border)]">
+            <ToolRegistryPanel
+              tools={tools}
+              selectedTool={selectedTool}
+              loading={toolsLoading}
+              error={toolsError}
+              searchTerm={toolSearchTerm}
+              filterCategory={toolFilterCategory}
+              filterScope={toolFilterScope}
+              filterActive={toolFilterActive}
+              sortOrder={toolSortOrder}
+              newlyCreatedToolId={newlyCreatedToolId}
+              onSearchChange={setToolSearchTerm}
+              onFilterCategoryChange={setToolFilterCategory}
+              onFilterScopeChange={setToolFilterScope}
+              onFilterActiveChange={setToolFilterActive}
+              onSortOrderChange={setToolSortOrder}
+              onSelectTool={handleSelectTool}
+              onCreateTool={() => setShowCreateToolDialog(true)}
+              onRetry={listTools}
+              searchInputRef={toolSearchInputRef}
+              canCreate={connectionSession?.owner !== false}
+            />
+            </div>
+            <div className="editor-main-wrap flex flex-col min-w-0 min-h-0 flex-1 bg-[var(--editor-main)]">
+            <ToolEditorPanel
+              tool={selectedTool}
+              name={toolForm.name}
+              description={toolForm.description}
+              script={toolForm.script}
+              inputSchemaJson={toolForm.inputSchemaJson}
+              outputSchemaJson={toolForm.outputSchemaJson}
+              category={toolForm.category}
+              scope={toolForm.scope}
+              timeout={toolForm.timeout}
+              active={toolForm.active}
+              validationError={toolValidationError}
+              saving={toolsSaving}
+              loading={toolDetailsLoading}
+              hasUnsavedChanges={toolFormDirty()}
+              onNameChange={(v) => setToolForm((f) => ({ ...f, name: v }))}
+              onDescriptionChange={(v) => setToolForm((f) => ({ ...f, description: v }))}
+              onScriptChange={(v) => setToolForm((f) => ({ ...f, script: v ?? "" }))}
+              onInputSchemaChange={(v) => setToolForm((f) => ({ ...f, inputSchemaJson: v }))}
+              onOutputSchemaChange={(v) => setToolForm((f) => ({ ...f, outputSchemaJson: v }))}
+              onCategoryChange={(v) => setToolForm((f) => ({ ...f, category: v }))}
+              onScopeChange={(v) => setToolForm((f) => ({ ...f, scope: v }))}
+              onTimeoutChange={(v) => setToolForm((f) => ({ ...f, timeout: v }))}
+              onActiveChange={(v) => setToolForm((f) => ({ ...f, active: v }))}
+              onSave={handleSaveTool}
+              onReset={handleResetTool}
+              onDelete={connectionSession?.owner !== false ? handleDeleteToolClick : undefined}
+              onCallTool={() => setShowCallToolDialog(true)}
+              canEdit={connectionSession?.owner !== false}
+            />
+            </div>
+          </>
+        )}
+          </Split>
+        </div>
+      </div>
+
+      <EditorStatusBar
+        mode={editorMode}
+        primaryLabel={editorMode === "workers" ? "Protocol Registry" : "MCP Tools"}
+        secondaryLabel={
+          editorMode === "workers"
+            ? selectedWorker?.value?.raw?.sid ?? undefined
+            : selectedTool?.name ?? undefined
+        }
+        encoding="UTF-8"
+      />
 
       {/* Dialogs */}
       <CreateWorkerDialog
@@ -523,6 +970,26 @@ export function AMIEditor() {
         worker={selectedWorker}
         onConfirm={handleToggleWorkerStatus}
         isToggling={workerOperations.toggling}
+      />
+
+      <CreateToolDialog
+        open={showCreateToolDialog}
+        onOpenChange={setShowCreateToolDialog}
+        onSubmit={handleCreateTool}
+      />
+
+      <DeleteToolDialog
+        open={showDeleteToolDialog}
+        onOpenChange={setShowDeleteToolDialog}
+        tool={selectedTool}
+        onConfirm={handleConfirmDeleteTool}
+      />
+
+      <CallToolDialog
+        open={showCallToolDialog}
+        onOpenChange={setShowCallToolDialog}
+        tool={selectedTool}
+        onExecute={handleCallTool}
       />
 
       {showStatsPanel && (
