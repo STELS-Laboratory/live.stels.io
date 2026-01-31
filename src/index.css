@@ -1077,6 +1077,37 @@
   }
 }
 
+/* Auth page background orbs - subtle float */
+@keyframes auth-orb-slow {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate(3%, -2%) scale(1.02);
+    opacity: 0.85;
+  }
+}
+
+@keyframes auth-orb-slower {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate(-2%, 2%) scale(1.03);
+    opacity: 0.85;
+  }
+}
+
+.animate-auth-orb-slow {
+  animation: auth-orb-slow 20s ease-in-out infinite;
+}
+
+.animate-auth-orb-slower {
+  animation: auth-orb-slower 28s ease-in-out infinite;
+}
+
 /* React-Split Gutter Styles - GPU optimized */
 .gutter {
   background-color: var(--border);

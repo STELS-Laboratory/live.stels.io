@@ -549,7 +549,7 @@ function FlowWithPanels(): React.ReactElement | null {
           />
           <div className="absolute z-1 flex justify-center items-center flex-col w-60 h-40 bottom-0 right-0">
             <div>
-              <Graphite size={3} primary="gray" />
+              <Graphite size={3} />
             </div>
             <div className="mt-4 text-xl font-semibold text-muted-foreground/60">
               STELS

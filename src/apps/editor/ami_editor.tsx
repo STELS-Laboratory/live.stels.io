@@ -1025,7 +1025,7 @@ export function AMIEditor() {
       <div className="text-center max-w-md mx-auto p-8">
         <div className="w-24 h-24 flex items-center justify-center mb-8 mx-auto relative">
           <div className="w-16 h-16 rounded flex items-center justify-center">
-            <Graphite size={6} primary="gray" />
+            <Graphite size={6} />
           </div>
         </div>
 

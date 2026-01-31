@@ -6,7 +6,7 @@
 export { ConnectionProcess } from "./connection-process";
 export { ConnectionStatusSimple } from "./connection-status-simple";
 export { DeveloperAccessRequestDialog } from "./developer-access-request";
-export { LoginPage } from "./login-page";
+export { AuthPage, AuthPage as LoginPage } from "./auth-page";
 export { NetworkSelectorCompact } from "./network-selector-compact";
 export { NetworkSetup } from "./network-setup";
 export { ProfessionalConnectionFlow } from "./professional-connection-flow";

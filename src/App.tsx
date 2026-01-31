@@ -16,7 +16,7 @@ import {
   getStateMessage,
 } from "@/components/main/loading-screens";
 import { ReadyView } from "@/components/main/ready-view";
-import { LoginPage } from "@/components/auth/login-page";
+import { LoginPage } from "@/components/auth";
 import SessionProvider from "@/components/main/provider";
 import UpgradeScreen from "@/components/main/upgrade-screen";
 
