@@ -173,7 +173,8 @@ export function GitHubAuth({
   }, [selectedNetwork, connectWithGitHub, connectionError, onSuccess, onError]);
 
   // Handle session from backend (new flow where backend exchanges code and returns session)
-  const handleSessionAuth = useCallback(async (sessionId: string, username?: string, avatar?: string): Promise<void> => {
+  // developer comes from URL query (?developer=true|false) per OpenAPI; client sets connectionSession.developer from it
+  const handleSessionAuth = useCallback(async (sessionId: string, username?: string, avatar?: string, developer?: boolean): Promise<void> => {
     if (!selectedNetwork) {
       setError("Please select a network first");
       return;
@@ -198,7 +199,7 @@ export function GitHubAuth({
         nid: `gliese_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
         api: apiUrl,
         socket: socketUrl,
-        developer: selectedNetwork.developer || false,
+        developer: developer ?? false,
         createdAt: Date.now(),
       };
 
@@ -328,15 +329,17 @@ export function GitHubAuth({
 
     // If backend redirected with session token (new flow)
     if (sessionParam) {
-      // Backend already authenticated and created session
+      // Backend already authenticated and created session; developer from query (?developer=true|false)
       const username = urlParams.get("username") || undefined;
       const avatar = urlParams.get("avatar") || undefined;
+      const developer = urlParams.get("developer") === "true";
       
       // If selectedNetwork is not ready yet, wait for it
       if (!selectedNetwork) {
         sessionStorage.setItem("github_oauth_session", sessionParam);
         if (username) sessionStorage.setItem("github_oauth_username", username);
         if (avatar) sessionStorage.setItem("github_oauth_avatar", avatar);
+        sessionStorage.setItem("github_oauth_developer", urlParams.get("developer") ?? "");
         return;
       }
       
@@ -345,9 +348,10 @@ export function GitHubAuth({
       url.searchParams.delete("session");
       url.searchParams.delete("username");
       url.searchParams.delete("avatar");
+      url.searchParams.delete("developer");
       window.history.replaceState({}, "", url.toString());
       
-      handleSessionAuth(sessionParam, username, avatar);
+      handleSessionAuth(sessionParam, username, avatar, developer);
     }
   }, [onError, handleGitHubAuth, handleSessionAuth, selectedNetwork]);
 
@@ -362,14 +366,17 @@ export function GitHubAuth({
     if (pendingSession) {
       const username = sessionStorage.getItem("github_oauth_username") || undefined;
       const avatar = sessionStorage.getItem("github_oauth_avatar") || undefined;
+      const developerStr = sessionStorage.getItem("github_oauth_developer");
+      const developer = developerStr === "true";
       
       // Clear pending data
       sessionStorage.removeItem("github_oauth_session");
       sessionStorage.removeItem("github_oauth_username");
       sessionStorage.removeItem("github_oauth_avatar");
+      sessionStorage.removeItem("github_oauth_developer");
       
       // Process the session
-      handleSessionAuth(pendingSession, username, avatar);
+      handleSessionAuth(pendingSession, username, avatar, developer);
       return;
     }
 

@@ -36,10 +36,11 @@ export function LoginPage(): React.ReactElement {
     const state = urlParams.get("state");
     const router = urlParams.get("router");
     
-    // New callback format: backend returns session directly
+    // New callback format: backend returns session directly (+ developer from query)
     const sessionParam = urlParams.get("session");
     const usernameParam = urlParams.get("username");
     const avatarParam = urlParams.get("avatar");
+    const developerParam = urlParams.get("developer");
     
     // Handle new backend callback format (session returned directly)
     // Accept on any path so /auth/callback (SPA fallback) or /?session=... both work
@@ -51,6 +52,9 @@ export function LoginPage(): React.ReactElement {
       }
       if (avatarParam) {
         sessionStorage.setItem("github_oauth_avatar", avatarParam);
+      }
+      if (developerParam !== null && developerParam !== undefined) {
+        sessionStorage.setItem("github_oauth_developer", developerParam);
       }
 
       // Restore selected network so dialog shows "connecting" step and can process session
@@ -139,6 +143,7 @@ export function LoginPage(): React.ReactElement {
         url.searchParams.delete("session");
         url.searchParams.delete("username");
         url.searchParams.delete("avatar");
+        url.searchParams.delete("developer");
         url.searchParams.set("router", "welcome");
         window.history.replaceState({}, "", url.toString());
       }
