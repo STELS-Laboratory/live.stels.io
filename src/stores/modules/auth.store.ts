@@ -342,7 +342,7 @@ export const useAuthStore = create<AuthStore>()(
               nid: sessionData.raw.info.nid,
               api: apiUrl,
               socket: socketUrl,
-              developer: sessionData.raw.info.developer,
+              developer: sessionData.raw.info.developer ?? false,
               createdAt: createdAt || Date.now(), // Fallback for old sessions
             };
 

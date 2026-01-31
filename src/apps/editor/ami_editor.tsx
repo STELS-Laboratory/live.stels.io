@@ -896,7 +896,7 @@ export function AMIEditor() {
               onCreateTool={() => setShowCreateToolDialog(true)}
               onRetry={listTools}
               searchInputRef={toolSearchInputRef}
-              canCreate={connectionSession?.owner !== false}
+              canCreate={connectionSession?.developer === true}
             />
             </div>
             <div className="editor-main-wrap flex flex-col min-w-0 min-h-0 flex-1 bg-[var(--editor-main)]">
@@ -926,9 +926,9 @@ export function AMIEditor() {
               onActiveChange={(v) => setToolForm((f) => ({ ...f, active: v }))}
               onSave={handleSaveTool}
               onReset={handleResetTool}
-              onDelete={connectionSession?.owner !== false ? handleDeleteToolClick : undefined}
+              onDelete={connectionSession?.developer === true ? handleDeleteToolClick : undefined}
               onCallTool={() => setShowCallToolDialog(true)}
-              canEdit={connectionSession?.owner !== false}
+              canEdit={connectionSession?.developer === true}
             />
             </div>
           </>

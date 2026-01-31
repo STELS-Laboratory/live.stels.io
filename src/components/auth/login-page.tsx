@@ -42,7 +42,8 @@ export function LoginPage(): React.ReactElement {
     const avatarParam = urlParams.get("avatar");
     
     // Handle new backend callback format (session returned directly)
-    if (sessionParam && (window.location.pathname.includes("/auth/callback") || window.location.pathname.includes("/auth/"))) {
+    // Accept on any path so /auth/callback (SPA fallback) or /?session=... both work
+    if (sessionParam) {
       // Store session data for processing
       sessionStorage.setItem("github_oauth_session", sessionParam);
       if (usernameParam) {

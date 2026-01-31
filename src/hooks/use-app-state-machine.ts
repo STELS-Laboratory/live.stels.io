@@ -132,7 +132,7 @@ export function useAppStateMachine(): AppStateMachineReturn {
     };
   }, []);
 
-  // Session check memoization
+  // Session check: re-read from storage when auth state changes so logout (cleared storage) is reflected
   const sessionCheck = useMemo(() => {
     if (typeof window === "undefined") {
       return {
@@ -148,7 +148,7 @@ export function useAppStateMachine(): AppStateMachineReturn {
       (privateStoreData && JSON.parse(privateStoreData)?.raw?.session) || false;
 
     return { authStoreData, privateStoreData, hasValidSession };
-  }, []);
+  }, [isAuthenticated, isConnected]);
 
   // Handle auth state changes when ready
   useEffect(() => {
