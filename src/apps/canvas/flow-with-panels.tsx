@@ -323,11 +323,13 @@ function FlowWithPanels(): React.ReactElement | null {
   );
 
   const onDragStart = (
-    event: React.DragEvent<HTMLDivElement>,
+    _event: React.DragEvent<HTMLDivElement>,
     key: string,
   ): void => {
-    event.dataTransfer.setData("application/reactflow", key);
-    event.dataTransfer.effectAllowed = "move";
+    // Note: Don't set dataTransfer here - it's already set by useDragAndDrop hook
+    // with JSON.stringify(widgetData). Setting it here would overwrite with just the key.
+    console.log("[Canvas] onDragStart - key:", key);
+    // Data is already set by handleDragStart in useDragAndDrop hook
   };
 
   const onTouchStart = (): void => {
@@ -337,17 +339,20 @@ function FlowWithPanels(): React.ReactElement | null {
 
   const onDrop = (event: React.DragEvent<HTMLDivElement>): void => {
     event.preventDefault();
+    
+    const rawData = event.dataTransfer.getData("application/reactflow");
+    console.log("[Canvas] onDrop - raw data:", rawData);
 
     try {
       // Try to get widget data from enhanced drag
-      const widgetData = JSON.parse(
-        event.dataTransfer.getData("application/reactflow"),
-      );
+      const widgetData = JSON.parse(rawData);
+      console.log("[Canvas] onDrop - parsed widget data:", widgetData);
 
       const position = screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
       });
+      console.log("[Canvas] onDrop - position:", position);
 
       const newNodeId = `node-${Date.now()}`;
 
@@ -359,6 +364,8 @@ function FlowWithPanels(): React.ReactElement | null {
       const label = widgetData.type === "schema"
         ? (widgetData.name || widgetData.widgetKey)
         : (widgetData.module || widgetData.channel);
+
+      console.log("[Canvas] onDrop - channelKey:", channelKey, "label:", label);
 
       const newNode = {
         id: newNodeId,
@@ -372,15 +379,24 @@ function FlowWithPanels(): React.ReactElement | null {
         dragHandle: ".drag-handle",
       };
 
+      console.log("[Canvas] onDrop - creating node:", newNode);
+
       setNodes((prevNodes) => {
         const updatedNodes = [...prevNodes, newNode];
+        console.log("[Canvas] onDrop - nodes updated, count:", updatedNodes.length);
         debouncedSaveNodes(updatedNodes);
         return updatedNodes;
       });
-    } catch {
-      // Fallback to old method
-      const key = event.dataTransfer.getData("application/reactflow");
-      if (!session?.[key]) return;
+    } catch (error) {
+      console.log("[Canvas] onDrop - JSON parse failed, using fallback. Error:", error);
+      // Fallback to old method - use raw key as channel
+      const key = rawData;
+      console.log("[Canvas] onDrop fallback - key:", key);
+
+      if (!key) {
+        console.log("[Canvas] onDrop fallback - no key, aborting");
+        return;
+      }
 
       const position = screenToFlowPosition({
         x: event.clientX,
@@ -401,8 +417,11 @@ function FlowWithPanels(): React.ReactElement | null {
         dragHandle: ".drag-handle",
       };
 
+      console.log("[Canvas] onDrop fallback - creating node:", newNode);
+
       setNodes((prevNodes) => {
         const updatedNodes = [...prevNodes, newNode];
+        console.log("[Canvas] onDrop fallback - nodes updated, count:", updatedNodes.length);
         debouncedSaveNodes(updatedNodes);
         return updatedNodes;
       });

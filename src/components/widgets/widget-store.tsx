@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronRight,
@@ -27,7 +27,7 @@ import {
   type SessionWidgetData,
   type WidgetCategories,
 } from "@/lib/canvas-types";
-import useSessionStoreSync from "@/hooks/use-session-store-sync";
+// Session data is loaded directly from sessionStorage
 /**
  * Props for the WidgetStore component
  */
@@ -133,17 +133,46 @@ interface FilterBarProps {
 }
 
 /**
- * Helper function to extract category from widget key
+ * Helper function to extract category from widget key or data
  */
-function extractCategory(key: string): string {
+function extractCategory(key: string, data?: SessionWidgetData): string {
+  // Use module from data if available
+  if (data?.module) {
+    return data.module;
+  }
+  
+  // For airnet channels like airnet.network.connections or airnet.runtime.book.SOL/USDT
   const parts = key.split(".");
-  return parts[1] || "Unknown";
+  
+  // Try to find a meaningful category
+  if (parts[0] === "airnet" && parts.length >= 2) {
+    return parts[1]; // "network", "runtime", "peer"
+  }
+  
+  return parts[1] || parts[0] || "Unknown";
 }
 
 /**
- * Helper function to extract widget type from widget key
+ * Helper function to extract widget type from widget key or data
  */
-function extractWidgetType(key: string): string {
+function extractWidgetType(key: string, data?: SessionWidgetData): string {
+  // Use module from data if available
+  if (data?.module) {
+    return data.module;
+  }
+  
+  const lowerKey = key.toLowerCase();
+  
+  // Detect type from key patterns
+  if (lowerKey.includes(".ticker.")) return "ticker";
+  if (lowerKey.includes(".book.")) return "book";
+  if (lowerKey.includes(".candles.")) return "candles";
+  if (lowerKey.includes(".sonar")) return "sonar";
+  if (lowerKey.includes(".peer.") || lowerKey.includes("network.peer")) return "peer";
+  if (lowerKey.includes(".connections")) return "connections";
+  if (lowerKey.includes(".trades.")) return "trades";
+  
+  // Fallback to last part
   const parts = key.split(".");
   return parts[parts.length - 1] || "Unknown";
 }
@@ -153,31 +182,19 @@ function extractWidgetType(key: string): string {
  */
 function getWidgetIcon(widgetType: string): React.ReactNode {
   const iconClass = "h-4 w-4";
+  const type = widgetType.toLowerCase();
 
-  switch (widgetType.toLowerCase()) {
-    case "trades":
-      return <Zap className={iconClass} />;
-    case "book":
-      return <List className={iconClass} />;
-    case "indexes":
-      return <List className={iconClass} />;
-    case "candles":
-      return <Grid3X3 className={iconClass} />;
-    case "ticker":
-      return <Zap className={iconClass} />;
-    case "indicator":
-      return <Filter className={iconClass} />;
-    case "ariadna":
-      return <Zap className={iconClass} />;
-    case "finance":
-      return <Zap className={iconClass} />;
-    case "sonar":
-      return <Zap className={iconClass} />;
-    case "timezone":
-      return <Zap className={iconClass} />;
-    default:
-      return <Zap className={iconClass} />;
-  }
+  // Match common widget types
+  if (type.includes("ticker")) return <Zap className={iconClass} />;
+  if (type.includes("book")) return <List className={iconClass} />;
+  if (type.includes("candles") || type.includes("ohlcv")) return <Grid3X3 className={iconClass} />;
+  if (type.includes("sonar")) return <Zap className={iconClass} />;
+  if (type.includes("peer") || type.includes("network")) return <Zap className={iconClass} />;
+  if (type.includes("connection")) return <Zap className={iconClass} />;
+  if (type.includes("trades")) return <Zap className={iconClass} />;
+  if (type.includes("indicator")) return <Filter className={iconClass} />;
+
+  return <Zap className={iconClass} />;
 }
 
 /**
@@ -200,16 +217,22 @@ function WidgetItem({
     handleTouchMove,
     handleTouchEnd,
   } = useDragAndDrop();
-  const widgetType = extractWidgetType(widget.widget);
+  const widgetType = extractWidgetType(widget.widget || widget.channel, widget);
 
   const handleItemDragStart = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
+      console.log("[WidgetStore] handleItemDragStart - keyStore:", keyStore);
+      console.log("[WidgetStore] handleItemDragStart - widget:", widget);
+      console.log("[WidgetStore] handleItemDragStart - isInCanvas:", isInCanvas);
+      
       if (isInCanvas) {
+        console.log("[WidgetStore] handleItemDragStart - BLOCKED: already in canvas");
         event.preventDefault();
         return;
       }
       handleDragStart(event, widget);
       onDragStart(event, keyStore);
+      console.log("[WidgetStore] handleItemDragStart - drag started successfully");
     },
     [keyStore, onDragStart, handleDragStart, widget, isInCanvas],
   );
@@ -225,6 +248,10 @@ function WidgetItem({
     },
     [keyStore, onTouchStart, handleTouchStart, widget, isInCanvas],
   );
+
+  // Get display values with fallbacks
+  const displayModule = widget.module || widgetType;
+  const displayChannel = widget.channel || keyStore;
 
   if (isCompact) {
     return (
@@ -249,10 +276,10 @@ function WidgetItem({
           {getWidgetIcon(widgetType)}
           <div className="flex-1 min-w-0">
             <div className="text-sm font-medium truncate">
-              {widget.module}
+              {displayModule}
             </div>
             <div className="text-xs opacity-75 truncate">
-              {widget.channel}
+              {displayChannel}
             </div>
           </div>
           <WidgetStatusBadge
@@ -288,7 +315,7 @@ function WidgetItem({
           <div className="flex items-center space-x-2">
             {getWidgetIcon(widgetType)}
             <CardTitle className="text-sm font-medium truncate ">
-              {widget.module}
+              {displayModule}
             </CardTitle>
           </div>
           <WidgetStatusBadge
@@ -301,7 +328,7 @@ function WidgetItem({
       <CardContent className="pt-0">
         <div className="space-y-2">
           <div className="text-xs ">
-            Channel: {widget.channel}
+            Channel: {displayChannel}
           </div>
           <div className="text-xs ">
             Type: {widgetType}
@@ -310,7 +337,7 @@ function WidgetItem({
             variant="secondary"
             className="text-xs"
           >
-            {extractCategory(keyStore)}
+            {extractCategory(keyStore, widget)}
           </Badge>
         </div>
       </CardContent>
@@ -433,6 +460,31 @@ function FilterBar({
 }
 
 /**
+ * Load session data directly from sessionStorage
+ */
+function loadSessionData(): SessionStore {
+  const data: SessionStore = {};
+  try {
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      if (key) {
+        const value = sessionStorage.getItem(key);
+        if (value) {
+          try {
+            data[key] = JSON.parse(value);
+          } catch {
+            // Skip invalid JSON
+          }
+        }
+      }
+    }
+  } catch {
+    // Handle errors silently
+  }
+  return data;
+}
+
+/**
  * Main Widget Store Component
  */
 export function WidgetStore({
@@ -442,9 +494,28 @@ export function WidgetStore({
   onTouchStart,
   existingWidgets = [],
 }: WidgetStoreProps): React.ReactElement | null {
-  const session = useSessionStoreSync() as SessionStore | null;
   const { isMobile, isTablet } = useDeviceType();
   const { dragState } = useDragAndDrop();
+
+  // Load session data directly from sessionStorage
+  const [session, setSession] = useState<SessionStore>(() => loadSessionData());
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Refresh session data when widget store opens and periodically
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Load immediately when opened
+    setSession(loadSessionData());
+
+    // Refresh periodically while open
+    const interval = setInterval(() => {
+      setSession(loadSessionData());
+      setRefreshKey(k => k + 1);
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [isOpen]);
 
   // State
   const [searchTerm, setSearchTerm] = useState("");
@@ -467,15 +538,15 @@ export function WidgetStore({
     null,
   );
 
-  // Get all widget keys with professional filtering
+  // Get all widget keys with filtering
   const keys = useMemo(() => {
     if (!session) return [];
 
     return Object.keys(session).filter((key) => {
       const data = session[key];
 
-      // Must have module field
-      if (!data || !data.module) return false;
+      // Must be an object with data
+      if (!data || typeof data !== 'object') return false;
 
       // Skip heartbeat channels
       if (key.endsWith(".heartbeat")) return false;
@@ -483,11 +554,19 @@ export function WidgetStore({
       // Skip phantom channels
       if (key.startsWith("phantom.")) return false;
 
-      // Must have raw data or ui
-      if (!data.raw && !data.ui) return false;
+      // Skip modal focus storage
+      if (key.startsWith("modal-")) return false;
 
-      // Must be active
-      if (data.active === false) return false;
+      // Must have module OR channel OR raw data (any indicator it's widget data)
+      const hasModule = 'module' in data && data.module;
+      const hasChannel = 'channel' in data && data.channel;
+      const hasRaw = 'raw' in data;
+      const hasWidget = 'widget' in data;
+
+      if (!hasModule && !hasChannel && !hasRaw && !hasWidget) return false;
+
+      // Must be active (if property exists)
+      if ('active' in data && data.active === false) return false;
 
       return true;
     });
@@ -501,12 +580,12 @@ export function WidgetStore({
     if (session) {
       keys.forEach((key) => {
         const widget = session[key];
-        if (widget && widget.module) {
+        if (widget) {
           // Add to "All" category
           categorized.All.push(key);
 
           // Add to specific category
-          const category = extractCategory(key);
+          const category = extractCategory(key, widget);
           if (!categorized[category]) {
             categorized[category] = [];
           }
@@ -536,13 +615,18 @@ export function WidgetStore({
       categoryWidgets = categoryWidgets.filter((key) => {
         if (!session) return false;
         const widget = session[key];
+        if (!widget) return false;
         const searchLower = searchTerm.toLowerCase();
 
-        return (
-          widget.module.toLowerCase().includes(searchLower) ||
-          widget.channel.toLowerCase().includes(searchLower) ||
-          extractWidgetType(widget.widget).toLowerCase().includes(searchLower)
-        );
+        // Search in various fields
+        const moduleMatch = widget.module?.toLowerCase().includes(searchLower);
+        const channelMatch = widget.channel?.toLowerCase().includes(searchLower);
+        const keyMatch = key.toLowerCase().includes(searchLower);
+        const typeMatch = extractWidgetType(widget.widget || widget.channel || key, widget)
+          .toLowerCase()
+          .includes(searchLower);
+
+        return moduleMatch || channelMatch || keyMatch || typeMatch;
       });
     }
 
@@ -574,7 +658,11 @@ export function WidgetStore({
 
       if (!widgetA || !widgetB) return 0;
 
-      const comparison = widgetA.module.localeCompare(widgetB.module);
+      // Use module, channel, or key for sorting
+      const nameA = widgetA.module || widgetA.channel || a;
+      const nameB = widgetB.module || widgetB.channel || b;
+
+      const comparison = nameA.localeCompare(nameB);
       return sortDirection === "asc" ? comparison : -comparison;
     });
   }, [filteredWidgets, session, sortDirection]);
@@ -595,8 +683,9 @@ export function WidgetStore({
     const grouped: GroupedWidgets = {};
 
     sortedWidgets.forEach((key) => {
-      const exchange = extractCategory(key);
-      const asset = extractWidgetType(key);
+      const widget = session?.[key];
+      const exchange = extractCategory(key, widget);
+      const asset = extractWidgetType(key, widget);
 
       if (!grouped[exchange]) {
         grouped[exchange] = {};
@@ -665,7 +754,7 @@ export function WidgetStore({
         return (
           <div key={exchange} className="border-b last:border-b-0">
             <GroupHeader
-              title={`Exchange: ${exchange}`}
+              title={exchange}
               count={exchangeWidgetCount}
               isOpen={isExchangeOpen}
               onToggle={() => toggleExchange(exchange)}
@@ -826,7 +915,7 @@ export function WidgetStore({
     }
   };
 
-  if (!isOpen || !session) return null;
+  if (!isOpen) return null;
 
   return (
     <section

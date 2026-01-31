@@ -1,11 +1,42 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Handle, type NodeProps, Position, useReactFlow } from "reactflow";
-import { Minus, Square, X } from "lucide-react";
+import { Minus, Square, X, Activity, BookOpen, BarChart3, Server, Radar, Network, ArrowLeftRight } from "lucide-react";
 import NodeFlow from "@/apps/canvas/node-flow";
 import type { FlowNodeData, NodeState } from "@/lib/canvas-types.ts";
 
 interface MacOSNodeProps extends NodeProps {
   data: FlowNodeData;
+}
+
+/**
+ * Get icon and color based on channel/module type
+ */
+function getWidgetMeta(channel: string): { icon: React.ElementType; color: string; title: string } {
+  const lowerChannel = channel.toLowerCase();
+  
+  if (lowerChannel.includes(".ticker.")) {
+    return { icon: Activity, color: "text-emerald-500", title: "Ticker" };
+  }
+  if (lowerChannel.includes(".book.")) {
+    return { icon: BookOpen, color: "text-blue-500", title: "Order Book" };
+  }
+  if (lowerChannel.includes(".candles.")) {
+    return { icon: BarChart3, color: "text-amber-500", title: "Candles" };
+  }
+  if (lowerChannel.includes(".peer.") || lowerChannel.includes("network.peer")) {
+    return { icon: Server, color: "text-purple-500", title: "Peer" };
+  }
+  if (lowerChannel.includes(".sonar")) {
+    return { icon: Radar, color: "text-cyan-500", title: "Sonar" };
+  }
+  if (lowerChannel.includes(".connections")) {
+    return { icon: Network, color: "text-indigo-500", title: "Connections" };
+  }
+  if (lowerChannel.includes(".trades.")) {
+    return { icon: ArrowLeftRight, color: "text-orange-500", title: "Trades" };
+  }
+  
+  return { icon: Activity, color: "text-muted-foreground", title: "Widget" };
 }
 
 const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
@@ -16,6 +47,13 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
       maximized: false,
     },
   );
+
+  // Get widget metadata for icon and styling
+  const widgetMeta = useMemo(() => {
+    return getWidgetMeta(props.data.channel || "");
+  }, [props.data.channel]);
+
+  const WidgetIcon = widgetMeta.icon;
 
   const handleClose = useCallback(() => {
     if (props.data.onDelete) {
@@ -110,10 +148,11 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
       />
 
       {/* Header - Document Style */}
-      <div className="flex min-w-[250px] bg-card h-6 relative items-center justify-between p-1 border-b cursor-move drag-handle">
-        <div className="flex items-center space-x-2 flex-1 min-w-0">
-          <span className="text-xs font-medium truncate">
-            {/*{props.data.label.slice(0, 10)}*/}
+      <div className="flex min-w-[250px] bg-card h-7 relative items-center justify-between px-2 py-1 border-b cursor-move drag-handle">
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          <WidgetIcon className={`h-3 w-3 ${widgetMeta.color} flex-shrink-0`} />
+          <span className="text-[10px] font-medium truncate text-muted-foreground">
+            {widgetMeta.title}
           </span>
         </div>
 

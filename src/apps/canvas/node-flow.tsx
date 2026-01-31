@@ -1,5 +1,15 @@
 import React, { memo, useEffect, useMemo, useState } from "react";
 import { getSessionStorageManager } from "@/lib/gui/ui.ts";
+import { detectDataType, type AirnetChannelData } from "@/lib/airnet-types";
+import {
+  TickerWidget,
+  BookWidget,
+  CandlesWidget,
+  PeerWidget,
+  SonarWidget,
+  ConnectionsWidget,
+  TradesWidget,
+} from "@/apps/canvas/widgets";
 
 interface NodeFlowProps {
   data: {
@@ -9,7 +19,8 @@ interface NodeFlowProps {
 }
 
 /**
- * NodeFlow component - renders JSON data from sessionStorage
+ * NodeFlow component - renders specialized widgets based on data type
+ * Automatically detects the data type and renders the appropriate visualization
  */
 const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
   const sessionManager = useMemo(() => getSessionStorageManager(), []);
@@ -60,7 +71,7 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
     const pollInterval = setInterval(() => {
       const now = Date.now();
       // Throttle polling to prevent excessive operations
-      if (now - lastPollTime < 2000) {
+      if (now - lastPollTime < 500) {
         return;
       }
       lastPollTime = now;
@@ -70,7 +81,7 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
           setSessionData(freshData);
         }
       });
-    }, 2000); // Poll every 2 seconds
+    }, 500); // Poll every 500ms for real-time updates
 
     return () => {
       unsubscribe();
@@ -80,6 +91,11 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
     };
   }, [data.channel, sessionManager]);
 
+  // Detect data type for rendering
+  const dataType = useMemo(() => {
+    return detectDataType(sessionData as AirnetChannelData | null);
+  }, [sessionData]);
+
   if (!sessionData) {
     return (
       <div className="bg-card flex items-center justify-center p-4 min-h-32">
@@ -88,16 +104,53 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
     );
   }
 
-  // Render JSON format
-  return (
-    <div className="bg-card overflow-auto">
-      <div className="p-2">
-        <code className="block text-[8px] whitespace-pre-wrap text-card-foreground">
-          {JSON.stringify(sessionData, null, 2)}
-        </code>
-      </div>
-    </div>
-  );
+  // Render specialized widget based on data type
+  const typedData = sessionData as AirnetChannelData;
+
+  switch (dataType) {
+    case "ticker":
+      return <TickerWidget data={typedData as never} />;
+
+    case "book":
+      return <BookWidget data={typedData as never} />;
+
+    case "candles":
+      return <CandlesWidget data={typedData as never} />;
+
+    case "peer":
+    case "registry":
+      return <PeerWidget data={typedData as never} />;
+
+    case "sonar":
+    case "sonar-node":
+      return <SonarWidget data={{ ...typedData, channel: data.channel } as never} />;
+
+    case "connections":
+      return <ConnectionsWidget data={typedData as never} />;
+
+    case "trades":
+      return <TradesWidget data={typedData as never} />;
+
+    default:
+      // Fallback to JSON view for unknown types
+      return (
+        <div className="bg-card overflow-auto max-h-[300px]">
+          <div className="p-2">
+            <div className="flex items-center justify-between mb-2 pb-1 border-b border-border/50">
+              <span className="text-[10px] text-muted-foreground font-mono">
+                {typedData.module || "unknown"}
+              </span>
+              <span className="text-[10px] text-muted-foreground/50">
+                {typedData.widget || "raw"}
+              </span>
+            </div>
+            <code className="block text-[8px] whitespace-pre-wrap text-card-foreground">
+              {JSON.stringify(typedData.raw || sessionData, null, 2)}
+            </code>
+          </div>
+        </div>
+      );
+  }
 });
 
 NodeFlow.displayName = "NodeFlow";

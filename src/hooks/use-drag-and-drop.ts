@@ -30,6 +30,7 @@ export function useDragAndDrop() {
    */
   const handleDragStart = useCallback(
     (event: React.DragEvent<HTMLDivElement>, widgetData: SessionWidgetData) => {
+      console.log("[useDragAndDrop] handleDragStart - widgetData:", widgetData);
       dragStartTimeRef.current = Date.now();
 
       setDragState({
@@ -40,9 +41,11 @@ export function useDragAndDrop() {
       });
 
       // Set drag data
+      const jsonData = JSON.stringify(widgetData);
+      console.log("[useDragAndDrop] handleDragStart - setting dataTransfer:", jsonData);
       event.dataTransfer.setData(
         "application/reactflow",
-        JSON.stringify(widgetData),
+        jsonData,
       );
       event.dataTransfer.effectAllowed = "move";
 
