@@ -3,9 +3,9 @@
  * Provides subscription to KV store data via sessionStorage with proper caching
  *
  * KV Key formats:
- * - Ticker: snaga.runtime.ticker.{SYMBOL}.{EXCHANGE}.{MARKET}
- * - Order Book: snaga.runtime.book.{SYMBOL}.{EXCHANGE}.{MARKET}
- * - Candles: snaga.runtime.candles.{SYMBOL}.{EXCHANGE}.{MARKET}.{TIMEFRAME}
+ * - Ticker: airnet.runtime.ticker.{SYMBOL}.{EXCHANGE}.{MARKET}
+ * - Order Book: airnet.runtime.book.{SYMBOL}.{EXCHANGE}.{MARKET}
+ * - Candles: airnet.runtime.candles.{SYMBOL}.{EXCHANGE}.{MARKET}.{TIMEFRAME}
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
@@ -27,7 +27,7 @@ export function getTickerKey(
   exchange: string,
   market: string
 ): string {
-  return `snaga.runtime.ticker.${symbol}.${exchange}.${market}`;
+  return `airnet.runtime.ticker.${symbol}.${exchange}.${market}`;
 }
 
 /**
@@ -38,7 +38,7 @@ export function getOrderBookKey(
   exchange: string,
   market: string
 ): string {
-  return `snaga.runtime.book.${symbol}.${exchange}.${market}`;
+  return `airnet.runtime.book.${symbol}.${exchange}.${market}`;
 }
 
 /**
@@ -50,7 +50,7 @@ export function getCandlesKey(
   market: string,
   timeframe: string
 ): string {
-  return `snaga.runtime.candles.${symbol}.${exchange}.${market}.${timeframe}`;
+  return `airnet.runtime.candles.${symbol}.${exchange}.${market}.${timeframe}`;
 }
 
 // ============================================
@@ -382,6 +382,44 @@ export function getAccountBalanceKey(
 }
 
 /**
+ * Normalized wallet info structure (Bybit-like format)
+ */
+interface NormalizedWalletInfo {
+  result?: {
+    list?: Array<{
+      accountType?: string;
+      totalEquity?: string;
+      totalWalletBalance?: string;
+      totalAvailableBalance?: string;
+      totalPerpUPL?: string;
+      coin?: Array<{
+        coin: string;
+        equity: string;
+        walletBalance: string;
+        usdValue: string;
+        unrealisedPnl: string;
+        cumRealisedPnl: string;
+        marginCollateral: boolean;
+      }>;
+    }>;
+  };
+}
+
+/**
+ * Wallet data structure
+ */
+interface WalletData {
+  timestamp: number;
+  datetime: string;
+  free: Record<string, number>;
+  used: Record<string, number>;
+  total: Record<string, number>;
+  debt?: Record<string, number>;
+  info?: NormalizedWalletInfo;
+  [currency: string]: unknown;
+}
+
+/**
  * Realtime account balance data from KV store
  */
 export interface RealtimeAccountBalance {
@@ -395,16 +433,9 @@ export interface RealtimeAccountBalance {
     connection: boolean;
     timestamp: number;
     lastBalanceSync: number;
-    wallet: {
-      timestamp: number;
-      datetime: string;
-      free: Record<string, number>;
-      used: Record<string, number>;
-      total: Record<string, number>;
-      debt?: Record<string, number>;
-      info?: unknown;
-      [currency: string]: unknown;
-    };
+    wallet: WalletData;
+    /** Normalized wallet in unified Bybit-like format (from backend) */
+    normalizedWallet?: WalletData;
     workers?: string[];
     note?: string;
   };
@@ -441,10 +472,11 @@ export function useRealtimeAccountBalance(
   );
 
   // Parse balances into normalized format
+  // Prefer normalizedWallet if available for unified format
   const balances = useMemo(() => {
-    if (!data?.raw?.wallet) return {};
+    const wallet = data?.raw?.normalizedWallet ?? data?.raw?.wallet;
+    if (!wallet) return {};
 
-    const wallet = data.raw.wallet;
     const result: Record<string, { free: number; used: number; total: number }> = {};
 
     // Get all currency keys from total object
@@ -465,16 +497,34 @@ export function useRealtimeAccountBalance(
     return result;
   }, [data]);
 
+  // Get account summary from normalized wallet info
+  const accountSummary = useMemo(() => {
+    const wallet = data?.raw?.normalizedWallet ?? data?.raw?.wallet;
+    const list0 = wallet?.info?.result?.list?.[0];
+    
+    if (!list0) return null;
+    
+    return {
+      accountType: list0.accountType,
+      totalEquity: list0.totalEquity ? parseFloat(list0.totalEquity) : undefined,
+      totalWalletBalance: list0.totalWalletBalance ? parseFloat(list0.totalWalletBalance) : undefined,
+      totalAvailableBalance: list0.totalAvailableBalance ? parseFloat(list0.totalAvailableBalance) : undefined,
+      totalPerpUPL: list0.totalPerpUPL ? parseFloat(list0.totalPerpUPL) : undefined,
+      coins: list0.coin || [],
+    };
+  }, [data]);
+
   return useMemo(
     () => ({
       data,
       balances,
+      accountSummary,
       loading,
       error,
       lastUpdate,
       isConnected: data?.raw?.connection ?? false,
     }),
-    [data, balances, loading, error, lastUpdate]
+    [data, balances, accountSummary, loading, error, lastUpdate]
   );
 }
 

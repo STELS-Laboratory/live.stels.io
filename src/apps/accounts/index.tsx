@@ -94,14 +94,16 @@ export function AccountsApp() {
     [setAccount],
   );
 
-  // Calculate portfolio summary
+  // Calculate portfolio summary (use normalizedWallet if available)
   const summary = useMemo(() => {
     let totalEquity = 0;
     let totalPnL = 0;
     let accountsWithData = 0;
 
     for (const stored of accounts) {
-      const list0 = stored.rawData?.wallet?.info?.result?.list?.[0] as
+      // Prefer normalizedWallet, fallback to wallet
+      const wallet = stored.rawData?.normalizedWallet ?? stored.rawData?.wallet;
+      const list0 = wallet?.info?.result?.list?.[0] as
         | WalletAccountSummary
         | undefined;
       if (list0?.totalEquity != null) {

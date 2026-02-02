@@ -9,3 +9,4 @@ export { default as PeerWidget } from "./peer-widget";
 export { default as SonarWidget } from "./sonar-widget";
 export { default as ConnectionsWidget } from "./connections-widget";
 export { default as TradesWidget } from "./trades-widget";
+export { default as BalanceWidget } from "./balance-widget";

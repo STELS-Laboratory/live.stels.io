@@ -47,9 +47,9 @@ function getUserAddress(): string | null {
     const privateStore = localStorage.getItem("private-store");
     if (privateStore) {
       const data = JSON.parse(privateStore) as {
-        raw?: { info?: { address?: string }; address?: string };
+        raw?: { info?: { title?: string; address?: string }; address?: string };
       };
-      return data?.raw?.info?.address ?? data?.raw?.address ?? null;
+      return data?.raw?.info?.title ?? data?.raw?.info?.address ?? data?.raw?.address ?? null;
     }
   } catch {
     // Ignore parse errors
@@ -97,6 +97,7 @@ export function BalancePanel({ nid, exchange, address: propAddress }: BalancePan
   // Get realtime balance data from sessionStorage
   const {
     balances: realtimeBalances,
+    accountSummary,
     isConnected,
     data: realtimeData,
   } = useRealtimeAccountBalance(
@@ -126,9 +127,15 @@ export function BalancePanel({ nid, exchange, address: propAddress }: BalancePan
     return { mainBalances: main, otherBalances: other };
   }, [balances]);
 
-  // Calculate estimated total in USD (simplified)
+  // Calculate estimated total in USD
+  // Prefer totalEquity from normalized wallet if available
   const estimatedTotal = useMemo(() => {
-    // This is very simplified - ideally would use actual USD values
+    // Use total equity from normalized wallet if available
+    if (accountSummary?.totalEquity) {
+      return accountSummary.totalEquity;
+    }
+    
+    // Fallback: simplified calculation using stablecoin balances
     const usdtLike = ["USDT", "USDC", "USD", "BUSD", "DAI"];
     let total = 0;
     for (const [currency, balance] of Object.entries(balances)) {
@@ -137,7 +144,7 @@ export function BalancePanel({ nid, exchange, address: propAddress }: BalancePan
       }
     }
     return total;
-  }, [balances]);
+  }, [balances, accountSummary]);
 
   if (balanceLoading && mainBalances.length === 0) {
     return (

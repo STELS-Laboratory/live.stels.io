@@ -225,7 +225,21 @@ export interface WidgetStoreUIState {
 export interface NodeState {
   minimized: boolean;
   maximized: boolean;
+  /** Custom width in pixels (undefined = auto) */
+  width?: number;
+  /** Custom height in pixels (undefined = auto) */
+  height?: number;
 }
+
+/**
+ * Default node dimensions
+ */
+export const DEFAULT_NODE_SIZE = {
+  minWidth: 200,
+  minHeight: 100,
+  maxWidth: 1200,
+  maxHeight: 800,
+} as const;
 
 /**
  * Connection group keys for automatic node linking

@@ -38,14 +38,18 @@ interface AccountListProps {
 }
 
 function getEquityValue(stored: StoredAccount): number {
-  const list0 = stored.rawData?.wallet?.info?.result?.list?.[0] as WalletAccountSummary | undefined;
+  // Prefer normalizedWallet, fallback to wallet
+  const wallet = stored.rawData?.normalizedWallet ?? stored.rawData?.wallet;
+  const list0 = wallet?.info?.result?.list?.[0] as WalletAccountSummary | undefined;
   const equity = list0?.totalEquity ?? list0?.totalWalletBalance;
   if (equity == null) return 0;
   return typeof equity === "string" ? parseFloat(equity) : equity;
 }
 
 function getPnlValue(stored: StoredAccount): number {
-  const list0 = stored.rawData?.wallet?.info?.result?.list?.[0] as WalletAccountSummary | undefined;
+  // Prefer normalizedWallet, fallback to wallet
+  const wallet = stored.rawData?.normalizedWallet ?? stored.rawData?.wallet;
+  const list0 = wallet?.info?.result?.list?.[0] as WalletAccountSummary | undefined;
   const pnl = list0?.totalPerpUPL;
   if (pnl == null) return 0;
   return typeof pnl === "string" ? parseFloat(pnl) : pnl;
@@ -201,7 +205,9 @@ export function AccountList({
           const a = stored.account;
           const r = stored.rawData;
           const status = r?.status ?? a.status ?? "active";
-          const list0 = r?.wallet?.info?.result?.list?.[0] as WalletAccountSummary | undefined;
+          // Prefer normalizedWallet for unified format
+          const wallet = r?.normalizedWallet ?? r?.wallet;
+          const list0 = wallet?.info?.result?.list?.[0] as WalletAccountSummary | undefined;
           
           const totalEquity = list0?.totalEquity;
           const totalWalletBalance = list0?.totalWalletBalance;

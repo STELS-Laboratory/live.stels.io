@@ -257,6 +257,99 @@ export interface TradesData extends AirnetChannelData {
 }
 
 // ============================================================================
+// Account Balance Types
+// ============================================================================
+
+/**
+ * Coin balance entry
+ */
+export interface CoinBalance {
+  free: number;
+  used: number;
+  total: number;
+  debt?: number;
+}
+
+/**
+ * Detailed coin info (from OKX and similar exchanges)
+ */
+export interface CoinDetailedInfo {
+  ccy: string;
+  availBal: string;
+  cashBal: string;
+  eq: string;
+  eqUsd: string;
+  frozenBal: string;
+  spotBal: string;
+  spotUpl: string;
+  spotUplRatio: string;
+  totalPnl: string;
+  totalPnlRatio: string;
+  uTime: string;
+  collateralEnabled?: boolean;
+}
+
+/**
+ * Wallet balance structure
+ */
+export interface WalletBalance {
+  info?: {
+    code?: string;
+    data?: Array<{
+      totalEq?: string;
+      details?: CoinDetailedInfo[];
+    }>;
+    result?: {
+      list?: Array<{
+        totalEquity?: string;
+        totalWalletBalance?: string;
+        totalAvailableBalance?: string;
+        totalPerpUPL?: string;
+        coin?: Array<{
+          coin: string;
+          equity: string;
+          usdValue: string;
+          walletBalance: string;
+          unrealisedPnl: string;
+          cumRealisedPnl: string;
+          marginCollateral: boolean;
+        }>;
+      }>;
+    };
+  };
+  timestamp?: number;
+  datetime?: string;
+  free: Record<string, number>;
+  used: Record<string, number>;
+  total: Record<string, number>;
+  debt?: Record<string, number>;
+  [coin: string]: CoinBalance | Record<string, number> | number | string | undefined | unknown;
+}
+
+/**
+ * Account balance raw data
+ */
+export interface AccountBalanceRaw {
+  nid: string;
+  address: string;
+  exchange: string;
+  availableMarketTypes: string[];
+  defaultMarketType: string;
+  wallet: WalletBalance;
+  workers: string[];
+  connection: boolean;
+  note?: string;
+  timestamp: number;
+  credentialsEncrypted?: boolean;
+  lastBalanceSync?: number;
+}
+
+export interface AccountBalanceData extends AirnetChannelData {
+  module: "balance";
+  raw: AccountBalanceRaw;
+}
+
+// ============================================================================
 // Sonar (Runtime Statistics) Types
 // ============================================================================
 
@@ -390,6 +483,8 @@ export function detectDataType(data: AirnetChannelData | null): string | null {
       return "ticker";
     case "trades":
       return "trades";
+    case "balance":
+      return "balance";
     case "sonar":
       // Could be node sonar or network sonar
       if (channel.includes(".sonar.")) {
@@ -403,6 +498,7 @@ export function detectDataType(data: AirnetChannelData | null): string | null {
   if (channel.includes(".candles.")) return "candles";
   if (channel.includes(".ticker.")) return "ticker";
   if (channel.includes(".trades.")) return "trades";
+  if (channel.includes(".balance.") || channel.startsWith("account.balance.")) return "balance";
   if (channel.includes(".sonar")) return "sonar";
   if (channel.includes(".peer.")) return "peer";
   if (channel.includes(".network.peer.")) return "peer";
@@ -413,6 +509,7 @@ export function detectDataType(data: AirnetChannelData | null): string | null {
   if (widget?.includes("candles") || widget?.includes("ohlcv")) return "candles";
   if (widget?.includes("ticker")) return "ticker";
   if (widget?.includes("trades")) return "trades";
+  if (widget?.includes("balance")) return "balance";
   if (widget?.includes("sonar")) return "sonar";
 
   return null;

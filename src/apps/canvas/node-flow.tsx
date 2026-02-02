@@ -9,6 +9,7 @@ import {
   SonarWidget,
   ConnectionsWidget,
   TradesWidget,
+  BalanceWidget,
 } from "@/apps/canvas/widgets";
 
 interface NodeFlowProps {
@@ -16,13 +17,17 @@ interface NodeFlowProps {
     channel: string;
     label?: string;
   };
+  /** Container width in pixels (for responsive content) */
+  containerWidth?: number;
+  /** Container height in pixels (for responsive content) */
+  containerHeight?: number;
 }
 
 /**
  * NodeFlow component - renders specialized widgets based on data type
  * Automatically detects the data type and renders the appropriate visualization
  */
-const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
+const NodeFlow = memo(({ data, containerWidth, containerHeight }: NodeFlowProps): React.ReactElement => {
   const sessionManager = useMemo(() => getSessionStorageManager(), []);
   const [sessionData, setSessionData] = useState<
     Record<string, unknown> | null
@@ -106,35 +111,47 @@ const NodeFlow = memo(({ data }: NodeFlowProps): React.ReactElement => {
 
   // Render specialized widget based on data type
   const typedData = sessionData as AirnetChannelData;
+  
+  // Common dimension props for responsive widgets
+  const dimensionProps = { containerWidth, containerHeight };
 
   switch (dataType) {
     case "ticker":
-      return <TickerWidget data={typedData as never} />;
+      return <TickerWidget data={typedData as never} {...dimensionProps} />;
 
     case "book":
-      return <BookWidget data={typedData as never} />;
+      return <BookWidget data={typedData as never} {...dimensionProps} />;
 
     case "candles":
-      return <CandlesWidget data={typedData as never} />;
+      return <CandlesWidget data={typedData as never} {...dimensionProps} />;
 
     case "peer":
     case "registry":
-      return <PeerWidget data={typedData as never} />;
+      return <PeerWidget data={typedData as never} {...dimensionProps} />;
 
     case "sonar":
     case "sonar-node":
-      return <SonarWidget data={{ ...typedData, channel: data.channel } as never} />;
+      return <SonarWidget data={{ ...typedData, channel: data.channel } as never} {...dimensionProps} />;
 
     case "connections":
-      return <ConnectionsWidget data={typedData as never} />;
+      return <ConnectionsWidget data={typedData as never} {...dimensionProps} />;
 
     case "trades":
-      return <TradesWidget data={typedData as never} />;
+      return <TradesWidget data={typedData as never} {...dimensionProps} />;
+
+    case "balance":
+      return <BalanceWidget data={typedData as never} {...dimensionProps} />;
 
     default:
       // Fallback to JSON view for unknown types
       return (
-        <div className="bg-card overflow-auto max-h-[300px]">
+        <div 
+          className="bg-card overflow-auto"
+          style={{ 
+            maxHeight: containerHeight ?? 300,
+            width: containerWidth ? "100%" : "auto",
+          }}
+        >
           <div className="p-2">
             <div className="flex items-center justify-between mb-2 pb-1 border-b border-border/50">
               <span className="text-[10px] text-muted-foreground font-mono">

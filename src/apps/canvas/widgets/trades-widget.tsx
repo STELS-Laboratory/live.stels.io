@@ -15,6 +15,10 @@ interface TradesWidgetProps {
     raw: TradesRaw;
     timestamp: number;
   };
+  /** Container width for responsive layout */
+  containerWidth?: number;
+  /** Container height for responsive layout */
+  containerHeight?: number;
 }
 
 /**
@@ -75,8 +79,18 @@ const TradeRow = memo(({ trade }: { trade: Trade }): React.ReactElement => {
 TradeRow.displayName = "TradeRow";
 
 const TradesWidget = memo(
-  ({ data }: TradesWidgetProps): React.ReactElement => {
+  ({ data, containerWidth, containerHeight }: TradesWidgetProps): React.ReactElement => {
     const { raw, timestamp } = data;
+
+    // Calculate how many trades to show based on container height
+    const maxTrades = useMemo(() => {
+      if (!containerHeight) return 20;
+      // Header(40) + Stats(44) + ColumnHeaders(24) + Footer(32) = ~140px
+      const availableHeight = containerHeight - 140;
+      const rowHeight = 24;
+      const calculated = Math.floor(availableHeight / rowHeight);
+      return Math.max(5, Math.min(calculated, 50));
+    }, [containerHeight]);
 
     // Calculate stats
     const stats = useMemo(() => {
@@ -112,21 +126,33 @@ const TradesWidget = memo(
 
     // Get last N trades for display
     const displayTrades = useMemo(() => {
-      return (raw.trades || []).slice(0, 20);
-    }, [raw.trades]);
+      return (raw.trades || []).slice(0, maxTrades);
+    }, [raw.trades, maxTrades]);
+
+    // Calculate list height
+    const listHeight = containerHeight 
+      ? containerHeight - 140 
+      : 240;
 
     return (
-      <div className="bg-card min-w-[320px] max-w-[400px]">
+      <div 
+        className="bg-card flex flex-col h-full"
+        style={{
+          width: containerWidth ?? "auto",
+          minWidth: 320,
+          maxWidth: containerWidth ?? 500,
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-2 border-b border-border/50">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-muted-foreground uppercase">
+        <div className="flex items-center justify-between p-2 border-b border-border/50 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-xs font-mono text-muted-foreground uppercase truncate">
               {raw.exchange}
             </span>
             <span className="text-xs text-muted-foreground/50">•</span>
-            <span className="text-sm font-semibold">{raw.market}</span>
+            <span className="text-sm font-semibold truncate">{raw.market}</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <span className="text-[10px] text-muted-foreground">
               {stats.count} trades
             </span>
@@ -135,7 +161,7 @@ const TradesWidget = memo(
         </div>
 
         {/* Stats Bar */}
-        <div className="px-2 py-1.5 border-b border-border/50 bg-muted/30">
+        <div className="px-2 py-1.5 border-b border-border/50 bg-muted/30 shrink-0">
           <div className="flex items-center justify-between text-[10px] mb-1">
             <span className="text-emerald-500">
               Buy: {stats.buyCount} (${formatNumber(stats.buyVolume, 0)})
@@ -154,7 +180,7 @@ const TradesWidget = memo(
         </div>
 
         {/* Column Headers */}
-        <div className="flex items-center gap-2 px-2 py-1 text-[9px] text-muted-foreground border-b border-border/50 bg-muted/20">
+        <div className="flex items-center gap-2 px-2 py-1 text-[9px] text-muted-foreground border-b border-border/50 bg-muted/20 shrink-0">
           <span className="w-3" />
           <span className="w-20 text-right">Price</span>
           <span className="w-16 text-right">Amount</span>
@@ -162,8 +188,11 @@ const TradesWidget = memo(
           <span className="flex-1 text-right">Time</span>
         </div>
 
-        {/* Trades List */}
-        <div className="max-h-[240px] overflow-y-auto">
+        {/* Trades List - flexible height */}
+        <div 
+          className="overflow-y-auto flex-1"
+          style={{ maxHeight: listHeight > 0 ? listHeight : 240 }}
+        >
           {displayTrades.length > 0 ? (
             displayTrades.map((trade, index) => (
               <TradeRow key={`${trade.id}-${index}`} trade={trade} />
@@ -176,7 +205,7 @@ const TradesWidget = memo(
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between text-[10px] text-muted-foreground/70 p-2 border-t border-border/50">
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground/70 p-2 border-t border-border/50 shrink-0">
           <span>
             Total: ${formatNumber(stats.totalVolume, 0)}
           </span>

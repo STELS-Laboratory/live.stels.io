@@ -1,8 +1,9 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Handle, type NodeProps, Position, useReactFlow } from "reactflow";
-import { Minus, Square, X, Activity, BookOpen, BarChart3, Server, Radar, Network, ArrowLeftRight } from "lucide-react";
+import { Minus, Square, X, Activity, BookOpen, BarChart3, Server, Radar, Network, ArrowLeftRight, Wallet, RotateCcw } from "lucide-react";
 import NodeFlow from "@/apps/canvas/node-flow";
 import type { FlowNodeData, NodeState } from "@/lib/canvas-types.ts";
+import { useNodeResize } from "./hooks";
 
 interface MacOSNodeProps extends NodeProps {
   data: FlowNodeData;
@@ -35,6 +36,9 @@ function getWidgetMeta(channel: string): { icon: React.ElementType; color: strin
   if (lowerChannel.includes(".trades.")) {
     return { icon: ArrowLeftRight, color: "text-orange-500", title: "Trades" };
   }
+  if (lowerChannel.includes(".balance.") || lowerChannel.startsWith("account.balance.")) {
+    return { icon: Wallet, color: "text-green-500", title: "Balance" };
+  }
   
   return { icon: Activity, color: "text-muted-foreground", title: "Widget" };
 }
@@ -47,6 +51,17 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
       maximized: false,
     },
   );
+
+  // Resize functionality
+  const { width, height, isResizing, handleResizeStart, resetSize } = useNodeResize({
+    nodeId: props.id,
+    initialWidth: nodeState.width,
+    initialHeight: nodeState.height,
+    minWidth: 250,
+    minHeight: 120,
+    maxWidth: 1000,
+    maxHeight: 700,
+  });
 
   // Get widget metadata for icon and styling
   const widgetMeta = useMemo(() => {
@@ -121,6 +136,22 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
     });
   }, [setNodes, props.id]);
 
+  // Custom style with dimensions
+  const containerStyle = useMemo(() => {
+    if (nodeState.maximized) {
+      return { width: "100vw", height: "100vh" };
+    }
+    if (nodeState.minimized) {
+      return { width: width ?? "auto", height: 28 };
+    }
+    return {
+      width: width ?? "auto",
+      height: height ?? "auto",
+    };
+  }, [nodeState.maximized, nodeState.minimized, width, height]);
+
+  const hasCustomSize = width !== undefined || height !== undefined;
+
   return (
     <div
       className={`
@@ -129,9 +160,10 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
         rounded
         shadow-sm hover:shadow-md
         overflow-hidden
-        ${nodeState.maximized ? "w-full h-full" : "w-auto h-auto"} 
-        ${nodeState.minimized ? "h-10" : ""}
+        relative
+        ${isResizing ? "ring-2 ring-primary/50" : ""}
       `}
+      style={containerStyle}
     >
       {/* Auto connection handles */}
       <Handle
@@ -154,10 +186,26 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
           <span className="text-[10px] font-medium truncate text-muted-foreground">
             {widgetMeta.title}
           </span>
+          {/* Size indicator */}
+          {hasCustomSize && !nodeState.minimized && (
+            <span className="text-[8px] text-muted-foreground/50 font-mono ml-1">
+              {Math.round(width ?? 0)}×{Math.round(height ?? 0)}
+            </span>
+          )}
         </div>
 
         {/* Window Controls - Soft Colors */}
         <div className="flex space-x-1.5">
+          {/* Reset size button (only show if custom size) */}
+          {hasCustomSize && (
+            <button
+              onClick={resetSize}
+              className="w-3 h-3 cursor-pointer hover:bg-blue-400/90 dark:hover:bg-blue-500/80 rounded-full flex items-center justify-center transition-all duration-200"
+              title="Reset size"
+            >
+              <RotateCcw size={5} />
+            </button>
+          )}
           <button
             onClick={handleClose}
             className="w-3 h-3 cursor-pointer hover:bg-red-400/90 dark:hover:bg-red-500/80 rounded-full flex items-center justify-center transition-all duration-200"
@@ -196,8 +244,62 @@ const MacOSNode: React.FC<MacOSNodeProps> = (props) => {
         </div>
       </div>
 
-      {/* Content */}
-      {!nodeState.minimized && <NodeFlow {...props} />}
+      {/* Content - fills available space */}
+      {!nodeState.minimized && (
+        <div 
+          className="flex-1 overflow-auto"
+          style={{ 
+            height: height ? `calc(100% - 28px)` : "auto",
+            width: "100%",
+          }}
+        >
+          <NodeFlow {...props} containerWidth={width} containerHeight={height ? height - 28 : undefined} />
+        </div>
+      )}
+
+      {/* Resize Handles - only show when not minimized/maximized */}
+      {!nodeState.minimized && !nodeState.maximized && (
+        <>
+          {/* Right edge - wider hit area for easier grabbing */}
+          <div
+            className={`absolute top-7 right-0 w-2 bottom-0 cursor-ew-resize transition-colors ${
+              isResizing ? "bg-primary/40" : "hover:bg-primary/30"
+            }`}
+            onMouseDown={handleResizeStart("right")}
+          />
+          
+          {/* Bottom edge - taller hit area for easier grabbing */}
+          <div
+            className={`absolute bottom-0 left-0 h-2 right-0 cursor-ns-resize transition-colors ${
+              isResizing ? "bg-primary/40" : "hover:bg-primary/30"
+            }`}
+            onMouseDown={handleResizeStart("bottom")}
+          />
+          
+          {/* Bottom-right corner - larger hit area */}
+          <div
+            className={`absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize group ${
+              isResizing ? "bg-primary/20" : ""
+            }`}
+            onMouseDown={handleResizeStart("bottom-right")}
+          >
+            {/* Resize grip indicator */}
+            <svg
+              className={`absolute bottom-0.5 right-0.5 w-2.5 h-2.5 transition-colors ${
+                isResizing 
+                  ? "text-primary" 
+                  : "text-muted-foreground/40 group-hover:text-primary/60"
+              }`}
+              viewBox="0 0 6 6"
+            >
+              <path
+                d="M6 6H4.5V4.5H6V6ZM6 3H4.5V1.5H6V3ZM3 6H1.5V4.5H3V6Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+        </>
+      )}
     </div>
   );
 };

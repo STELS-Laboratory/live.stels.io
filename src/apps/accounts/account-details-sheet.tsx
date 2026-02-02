@@ -225,7 +225,8 @@ export function AccountDetailsSheet({
   const a = account.account;
   const r = account.rawData as AccountRawData | undefined;
   const status = r?.status ?? a.status ?? "active";
-  const w = r?.wallet;
+  // Prefer normalizedWallet for unified format
+  const w = r?.normalizedWallet ?? r?.wallet;
   const info = w?.info;
   const result = info?.result;
   const list = result?.list;

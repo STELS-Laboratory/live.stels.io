@@ -145,6 +145,8 @@ export interface AccountRawData {
   module?: string;
   widget?: string;
   wallet?: AccountWalletData;
+  /** Normalized wallet in unified Bybit-like format (from backend) */
+  normalizedWallet?: AccountWalletData;
   [id: string]: unknown;
 }
 
