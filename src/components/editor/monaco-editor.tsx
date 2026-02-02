@@ -511,6 +511,7 @@ export default function MonacoEditor({
   /**
    * Cleanup on unmount - properly dispose editor
    * Note: "Canceled" errors are handled globally in main.tsx
+   * We use queueMicrotask to defer disposal and avoid sync promise rejections
    */
   useEffect(() => {
     return () => {
@@ -519,38 +520,42 @@ export default function MonacoEditor({
         const editor = editorRef.current;
         editorRef.current = null; // Clear ref first to prevent re-use
         
-        try {
-          const model = editor.getModel();
-          if (model) {
-            // Wrap dispose in try-catch to handle Canceled errors
-            try {
-              model.dispose();
-            } catch (error) {
-              // Ignore Canceled errors during model disposal
-              const errorMessage = error instanceof Error ? error.message : String(error);
-              if (!errorMessage.includes("Canceled") && import.meta.env.DEV) {
-                console.debug("Monaco Editor model disposal error:", error);
+        // Defer disposal to next microtask to allow Monaco's internal
+        // async operations to complete or be properly cancelled
+        queueMicrotask(() => {
+          try {
+            const model = editor.getModel();
+            if (model) {
+              // Wrap dispose in try-catch to handle Canceled errors
+              try {
+                model.dispose();
+              } catch (error) {
+                // Ignore Canceled errors during model disposal
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                if (!errorMessage.includes("Canceled") && import.meta.env.DEV) {
+                  console.debug("Monaco Editor model disposal error:", error);
+                }
               }
             }
-          }
-          
-          // Wrap editor dispose in try-catch
-          try {
-            editor.dispose();
+            
+            // Wrap editor dispose in try-catch
+            try {
+              editor.dispose();
+            } catch (error) {
+              // Ignore Canceled errors during editor disposal
+              const errorMessage = error instanceof Error ? error.message : String(error);
+              if (!errorMessage.includes("Canceled") && import.meta.env.DEV) {
+                console.debug("Monaco Editor disposal error:", error);
+              }
+            }
           } catch (error) {
-            // Ignore Canceled errors during editor disposal
+            // Ignore all errors during disposal - they're expected
             const errorMessage = error instanceof Error ? error.message : String(error);
             if (!errorMessage.includes("Canceled") && import.meta.env.DEV) {
-              console.debug("Monaco Editor disposal error:", error);
+              console.debug("Monaco Editor cleanup error (expected):", error);
             }
           }
-        } catch (error) {
-          // Ignore all errors during disposal - they're expected
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          if (!errorMessage.includes("Canceled") && import.meta.env.DEV) {
-            console.debug("Monaco Editor cleanup error (expected):", error);
-          }
-        }
+        });
       }
 
       // Clear all timeouts

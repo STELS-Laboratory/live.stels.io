@@ -89,9 +89,9 @@ function getUserAddress(): string | null {
     const privateStore = localStorage.getItem("private-store");
     if (privateStore) {
       const data = JSON.parse(privateStore) as {
-        raw?: { info?: { address?: string }; address?: string };
+        raw?: { info?: { title?: string; address?: string }; address?: string };
       };
-      return data?.raw?.info?.address ?? data?.raw?.address ?? null;
+      return data?.raw?.info?.title ?? data?.raw?.info?.address ?? data?.raw?.address ?? null;
     }
   } catch {
     // Ignore

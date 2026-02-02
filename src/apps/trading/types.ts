@@ -816,7 +816,7 @@ export interface CreateConditionalOrderResponse {
 
 /**
  * Realtime ticker data from KV store
- * Key format: snaga.runtime.ticker.{SYMBOL}.{EXCHANGE}.{MARKET}
+ * Key format: airnet.runtime.ticker.{SYMBOL}.{EXCHANGE}.{MARKET}
  */
 export interface RealtimeTicker {
   channel: string;
@@ -840,7 +840,7 @@ export interface RealtimeTicker {
 
 /**
  * Realtime order book data from KV store
- * Key format: snaga.runtime.book.{SYMBOL}.{EXCHANGE}.{MARKET}
+ * Key format: airnet.runtime.book.{SYMBOL}.{EXCHANGE}.{MARKET}
  */
 export interface RealtimeOrderBook {
   channel: string;
@@ -860,7 +860,7 @@ export interface RealtimeOrderBook {
 
 /**
  * Realtime candles (OHLCV) data from KV store
- * Key format: snaga.runtime.candles.{SYMBOL}.{EXCHANGE}.{MARKET}.{TIMEFRAME}
+ * Key format: airnet.runtime.candles.{SYMBOL}.{EXCHANGE}.{MARKET}.{TIMEFRAME}
  */
 export interface RealtimeCandles {
   channel: string;

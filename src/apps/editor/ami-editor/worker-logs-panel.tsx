@@ -39,10 +39,15 @@ export function WorkerLogsPanel({
   const [logs, setLogs] = useState<string[]>([]);
   const [totalLogsCount, setTotalLogsCount] = useState(0); // Track total logs received
   const [connected, setConnected] = useState(false);
-  const [following, setFollowing] = useState(true);
+  const [following, setFollowing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryAfterSeconds, setRetryAfterSeconds] = useState<number | null>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const isConnectingRef = useRef(false);
+  const retryCountRef = useRef(0);
+  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { connectionSession } = useAuthStore();
 
@@ -53,20 +58,53 @@ export function WorkerLogsPanel({
       return;
     }
 
-    // Close existing connection
+    if (isConnectingRef.current) {
+      return;
+    }
+
+    const hadConnection =
+      !!readerRef.current || !!abortControllerRef.current;
     disconnect();
+
+    // Wait 1–2s after disconnect before opening a new stream so the server can
+    // decrement the follow-stream count; avoids 429 when reconnecting same worker.
+    if (hadConnection) {
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+
+    isConnectingRef.current = true;
 
     try {
       const url = connectionSession.api;
       const streamUrl =
         `${url}/api/worker/logs/stream?sid=${workerId}&follow=${follow}`;
 
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       const response = await fetch(streamUrl, {
         method: "GET",
         headers: {
           "stels-session": connectionSession.session,
         },
+        signal: controller.signal,
       });
+
+      if (response.status === 429) {
+        const retryAfterHeader = response.headers.get("Retry-After");
+        const errorData = await response.json().catch(() => ({}));
+        const retryAfter =
+          retryAfterHeader
+            ? parseInt(retryAfterHeader, 10) || 5
+            : (errorData.retryAfter ?? 5);
+        setRetryAfterSeconds(retryAfter);
+        setError(
+          "Too many log streams open. Close other tabs or panels showing this worker's logs, or try again later.",
+        );
+        setConnected(false);
+        isConnectingRef.current = false;
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -76,20 +114,25 @@ export function WorkerLogsPanel({
         throw new Error("Response body is null");
       }
 
+      retryCountRef.current = 0;
       setConnected(true);
       setError(null);
+      setRetryAfterSeconds(null);
+
+      abortControllerRef.current = null;
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-
-      // Store reader for cleanup
       readerRef.current = reader;
 
-      // Read stream with buffer for incomplete messages
+      // Start reading immediately: no await before first reader.read(), so the server
+      // sends the first byte and HTTP headers are flushed (no long "Provisional headers").
       const readStream = async (): Promise<void> => {
-        let buffer = ""; // Buffer for incomplete SSE messages
+        let buffer = "";
 
         try {
+          // Continuous loop until done: with follow=true the stream stays open until
+          // the server or client closes it; process each chunk as it arrives (SSE parse, update UI).
           while (true) {
             const { done, value } = await reader.read();
 
@@ -98,20 +141,15 @@ export function WorkerLogsPanel({
               break;
             }
 
-            // Decode chunk and add to buffer
             buffer += decoder.decode(value, { stream: true });
 
-            // Process complete SSE messages (separated by \n\n)
+            // SSE: events separated by \n\n; "data: ..." lines are payload, ": ..." are comments (skipped).
             const messages = buffer.split("\n\n");
-
-            // Keep last incomplete message in buffer
             buffer = messages.pop() || "";
 
-            // Process complete messages
             for (const message of messages) {
-              if (!message.trim()) continue; // Skip empty messages
+              if (!message.trim()) continue;
 
-              // SSE format: "data: {...}\n"
               const lines = message.split("\n");
               for (const line of lines) {
                 if (line.startsWith("data: ")) {
@@ -157,22 +195,36 @@ export function WorkerLogsPanel({
         } catch (err) {
           if (err instanceof Error && err.name !== "AbortError") {
             logError("Log stream read error:", err);
-            setError(err.message);
+            retryCountRef.current += 1;
+            const delay = Math.min(
+              2000 * Math.pow(2, retryCountRef.current - 1),
+              30000,
+            );
+            setError(
+              `${err.message}. Retrying in ${delay / 1000}s...`,
+            );
             setConnected(false);
+            retryTimeoutRef.current = setTimeout(() => {
+              retryTimeoutRef.current = null;
+              connect(follow);
+            }, delay);
           }
         } finally {
-          // Ensure reader is cleaned up even if loop exits
+          // Use reader.cancel() (not response.body.cancel() — body is locked after getReader()).
           if (readerRef.current) {
-            readerRef.current.cancel().catch(() => {
-              // Ignore cleanup errors
-            });
+            readerRef.current.cancel().catch(() => {});
             readerRef.current = null;
           }
         }
       };
 
       readStream();
+      isConnectingRef.current = false;
     } catch (err) {
+      isConnectingRef.current = false;
+      if (err instanceof Error && err.name === "AbortError") {
+        return;
+      }
       logError("Failed to connect to log stream:", err);
       setError(
         err instanceof Error ? err.message : "Failed to connect to log stream",
@@ -181,19 +233,26 @@ export function WorkerLogsPanel({
     }
   };
 
-  // Disconnect from log stream
+  // Disconnect: order must be (1) clear timers, (2) reader.cancel() first, (3) then abort().
+  // If abort() is called first, reader.cancel() afterward can cause errors in some browsers.
   const disconnect = (): void => {
-    if (readerRef.current) {
-      // Cancel the reader stream
-      readerRef.current.cancel().catch((error) => {
-        // Log but don't throw - cleanup errors are expected
-        if (error.name !== "AbortError") {
-          logWarn("Error canceling log stream reader:", error);
-        }
-      });
-      readerRef.current = null;
-      setConnected(false);
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
     }
+
+    if (readerRef.current) {
+      readerRef.current.cancel().catch(() => {});
+      readerRef.current = null;
+    }
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    isConnectingRef.current = false;
+    setConnected(false);
   };
 
   // Toggle follow mode
@@ -207,6 +266,19 @@ export function WorkerLogsPanel({
   const clearLogs = (): void => {
     setLogs([]);
     setTotalLogsCount(0);
+  };
+
+  // Retry after 429: wait retryAfterSeconds then reconnect
+  const retryAfter429 = (): void => {
+    if (retryTimeoutRef.current != null) return;
+    const delay = (retryAfterSeconds ?? 5) * 1000;
+    setError(`Retrying in ${retryAfterSeconds ?? 5}s...`);
+    retryTimeoutRef.current = setTimeout(() => {
+      retryTimeoutRef.current = null;
+      setError(null);
+      setRetryAfterSeconds(null);
+      connect(following);
+    }, delay);
   };
 
   // Download logs
@@ -240,6 +312,7 @@ export function WorkerLogsPanel({
     setLogs([]);
     setTotalLogsCount(0);
     setError(null);
+    setRetryAfterSeconds(null);
 
     // Add separator message for new worker
     const separator =
@@ -252,16 +325,8 @@ export function WorkerLogsPanel({
     // Connect to new worker
     connect(following);
 
-    // Cleanup: ensure reader is properly closed
     return () => {
       disconnect();
-      // Additional cleanup: clear any pending timeouts
-      if (readerRef.current) {
-        readerRef.current.cancel().catch(() => {
-          // Ignore cleanup errors
-        });
-        readerRef.current = null;
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workerId]);
@@ -384,13 +449,23 @@ export function WorkerLogsPanel({
           <div className="p-3 mx-3 mb-3 bg-red-500/5 border border-red-500/30 rounded">
             <div className="flex items-start gap-2">
               <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-xs text-red-700 dark:text-red-400 font-medium mb-1">
                   Stream Error
                 </p>
                 <p className="text-xs text-red-800 dark:text-red-300">
                   {error}
                 </p>
+                {retryAfterSeconds != null && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 text-xs"
+                    onClick={retryAfter429}
+                  >
+                    Try again (in {retryAfterSeconds}s)
+                  </Button>
+                )}
               </div>
             </div>
           </div>

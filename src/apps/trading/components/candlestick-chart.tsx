@@ -284,9 +284,11 @@ export function CandlestickChart({
       animation: false,
       tooltip: {
         trigger: "axis",
+        confine: true,
         axisPointer: {
           type: "cross",
           crossStyle: { color: colors.text },
+          link: [{ xAxisIndex: "all" }],
           label: {
             backgroundColor: isDark ? "#1F2937" : "#F3F4F6",
             color: colors.text,
@@ -297,15 +299,18 @@ export function CandlestickChart({
         borderWidth: 1,
         textStyle: { color: colors.text, fontSize: 11 },
         padding: [6, 10],
-        formatter: (params: Array<{ seriesName: string; value: number | number[]; color: string; marker: string }>) => {
-          if (!params || params.length === 0) return "";
+        formatter: (params: Array<{ seriesName: string; value: number | number[] | undefined; color: string; marker: string }>) => {
+          if (!params || !Array.isArray(params) || params.length === 0) return "";
           
           let result = "";
           for (const param of params) {
-            if (param.seriesName === "Candles" && Array.isArray(param.value)) {
+            if (!param || param.value === undefined || param.value === null) continue;
+            
+            if (param.seriesName === "Candles" && Array.isArray(param.value) && param.value.length >= 4) {
               const [open, close, low, high] = param.value;
+              if (typeof open !== "number" || typeof close !== "number") continue;
               const change = close - open;
-              const changePercent = ((change / open) * 100).toFixed(2);
+              const changePercent = open !== 0 ? ((change / open) * 100).toFixed(2) : "0.00";
               const isUp = close >= open;
               result += `<div style="margin-bottom: 4px;">`;
               result += `<span style="color: ${colors.text}">O:</span> <span style="color: ${isUp ? colors.upColor : colors.downColor}">${open.toLocaleString()}</span><br/>`;
@@ -314,8 +319,8 @@ export function CandlestickChart({
               result += `<span style="color: ${colors.text}">C:</span> <span style="color: ${isUp ? colors.upColor : colors.downColor}">${close.toLocaleString()}</span><br/>`;
               result += `<span style="color: ${colors.text}">Chg:</span> <span style="color: ${isUp ? colors.upColor : colors.downColor}">${isUp ? "+" : ""}${changePercent}%</span>`;
               result += `</div>`;
-            } else if (param.seriesName === "Volume") {
-              result += `<div style="color: ${colors.text}">Vol: ${(param.value as number).toLocaleString()}</div>`;
+            } else if (param.seriesName === "Volume" && typeof param.value === "number") {
+              result += `<div style="color: ${colors.text}">Vol: ${param.value.toLocaleString()}</div>`;
             } else if (typeof param.value === "number" && param.seriesName !== "Price") {
               result += `<div>${param.marker} ${param.seriesName}: ${param.value.toFixed(2)}</div>`;
             }
@@ -490,26 +495,34 @@ export function CandlestickChart({
     };
   }, [chartData, colors, isDark, currentPrice, showMA7, showMA25, showVolume]);
 
-  // Handle chart events for crosshair
+  // Handle chart events for crosshair - use updateAxisPointer instead of mousemove
   const onChartEvents = useMemo(() => ({
-    mousemove: (params: { dataIndex?: number }) => {
-      if (params.dataIndex !== undefined && chartData.ohlc[params.dataIndex]) {
-        const ohlc = chartData.ohlc[params.dataIndex];
-        const [open, close, low, high] = ohlc;
-        const volume = chartData.volumes[params.dataIndex];
-        const change = close - open;
-        const changePercent = (change / open) * 100;
-        
-        setCrosshairData({
-          date: chartData.dates[params.dataIndex],
-          open,
-          high,
-          low,
-          close,
-          volume,
-          change,
-          changePercent,
-        });
+    updateAxisPointer: (params: { dataIndex?: number; axesInfo?: Array<{ axisDim: string; value: number }> }) => {
+      const dataIndex = params.dataIndex;
+      if (
+        dataIndex !== undefined && 
+        dataIndex >= 0 && 
+        dataIndex < chartData.ohlc.length &&
+        chartData.ohlc[dataIndex]
+      ) {
+        const ohlc = chartData.ohlc[dataIndex];
+        if (ohlc && ohlc.length >= 4) {
+          const [open, close, low, high] = ohlc;
+          const volume = chartData.volumes[dataIndex] ?? 0;
+          const change = close - open;
+          const changePercent = open !== 0 ? (change / open) * 100 : 0;
+          
+          setCrosshairData({
+            date: chartData.dates[dataIndex] ?? "",
+            open,
+            high,
+            low,
+            close,
+            volume,
+            change,
+            changePercent,
+          });
+        }
       }
     },
     globalout: () => {

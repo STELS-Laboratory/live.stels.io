@@ -495,8 +495,8 @@ export function AMIEditor() {
 
     await workerOperations.handleSaveAll();
 
-    // After save, update original script to current script (since it was saved)
-    editorState.updateOriginalScript(editorState.state.script);
+    // After save, update all originals to mark as not editing
+    editorState.updateOriginalsAfterSave();
   }, [workerOperations, selectedWorker, editorState]);
 
   // Handle reset

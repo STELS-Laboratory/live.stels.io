@@ -173,6 +173,9 @@ export interface UseEditorStateReturn {
   resetConfig: () => void;
   resetAll: () => void;
   updateOriginalScript: (script: string) => void;
+  updateOriginalNote: (note: string) => void;
+  updateOriginalConfig: (config: WorkerConfig) => void;
+  updateOriginalsAfterSave: () => void;
   isEditing: boolean;
   isEditingScript: boolean;
   isEditingNote: boolean;

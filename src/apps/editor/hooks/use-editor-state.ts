@@ -65,10 +65,10 @@ export function useEditorState(): UseEditorStateReturn {
     configRef.current = config;
   }, [config]);
 
-  // Computed editing flags
+  // Computed editing flags - use useState to trigger re-renders
   const isEditingScript = script !== originalScript;
-  const isEditingNote = useRef<boolean>(false);
-  const isEditingConfig = useRef<boolean>(false);
+  const [isEditingNote, setIsEditingNote] = useState<boolean>(false);
+  const [isEditingConfig, setIsEditingConfig] = useState<boolean>(false);
 
   // Track original note and config for comparison
   const originalNoteRef = useRef<string>("");
@@ -76,12 +76,13 @@ export function useEditorState(): UseEditorStateReturn {
 
   // Update editing flags when values change
   useEffect(() => {
-    isEditingNote.current = note !== originalNoteRef.current;
+    setIsEditingNote(note !== originalNoteRef.current);
   }, [note]);
 
   useEffect(() => {
-    isEditingConfig.current =
-      safeStringify(config) !== safeStringify(originalConfigRef.current);
+    setIsEditingConfig(
+      safeStringify(config) !== safeStringify(originalConfigRef.current)
+    );
   }, [config]);
 
   const setScript = useCallback((value: string) => {
@@ -130,6 +131,8 @@ export function useEditorState(): UseEditorStateReturn {
       const noteValue = worker.value.raw.note || "";
       setNote(noteValue);
       originalNoteRef.current = noteValue;
+      // Reset editing flag since we just loaded fresh data
+      setIsEditingNote(false);
 
       const scope = worker.value.raw.scope ?? "local";
       let executionMode = worker.value.raw.executionMode ?? "leader";
@@ -157,6 +160,8 @@ export function useEditorState(): UseEditorStateReturn {
       const corrected = autoCorrectConfig(workerConfig);
       setConfig(corrected);
       originalConfigRef.current = corrected;
+      // Reset editing flag since we just loaded fresh data
+      setIsEditingConfig(false);
     },
     [setScript, setNote, setConfig],
   );
@@ -182,10 +187,29 @@ export function useEditorState(): UseEditorStateReturn {
     resetConfig();
   }, [resetScript, resetNote, resetConfig]);
 
-  // Update original script after save (to mark as not editing)
+  // Update original values after save (to mark as not editing)
   const updateOriginalScript = useCallback((script: string) => {
     setOriginalScript(script);
   }, []);
+
+  const updateOriginalNote = useCallback((note: string) => {
+    originalNoteRef.current = note;
+    setIsEditingNote(false);
+  }, []);
+
+  const updateOriginalConfig = useCallback((config: WorkerConfig) => {
+    originalConfigRef.current = config;
+    setIsEditingConfig(false);
+  }, []);
+
+  // Update all originals after save
+  const updateOriginalsAfterSave = useCallback(() => {
+    setOriginalScript(script);
+    originalNoteRef.current = note;
+    originalConfigRef.current = config;
+    setIsEditingNote(false);
+    setIsEditingConfig(false);
+  }, [script, note, config]);
 
   return {
     state: {
@@ -194,8 +218,8 @@ export function useEditorState(): UseEditorStateReturn {
       config,
       originalScript,
       isEditingScript,
-      isEditingNote: isEditingNote.current,
-      isEditingConfig: isEditingConfig.current,
+      isEditingNote,
+      isEditingConfig,
     },
     setScript,
     setNote,
@@ -207,10 +231,13 @@ export function useEditorState(): UseEditorStateReturn {
     resetConfig,
     resetAll,
     updateOriginalScript,
-    isEditing: isEditingScript || isEditingNote.current || isEditingConfig.current,
+    updateOriginalNote,
+    updateOriginalConfig,
+    updateOriginalsAfterSave,
+    isEditing: isEditingScript || isEditingNote || isEditingConfig,
     isEditingScript,
-    isEditingNote: isEditingNote.current,
-    isEditingConfig: isEditingConfig.current,
+    isEditingNote,
+    isEditingConfig,
   };
 }
 

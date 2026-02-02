@@ -99,7 +99,7 @@ function formatDateTime(timestamp: number): string {
 // ============================================
 
 export function OrderList({ nid, type }: OrderListProps) {
-  const [dateFilter, setDateFilter] = useState<DateFilter>("today");
+  const [dateFilter, setDateFilter] = useState<DateFilter>("all");
   
   const {
     orders,
@@ -229,18 +229,18 @@ interface OrdersTableProps {
 
 function OrdersTable({ orders, onCancel, cancelling }: OrdersTableProps) {
   return (
-    <div className="relative">
-      <Table>
+    <div className="relative w-full">
+      <Table className="table-fixed w-full">
         <TableHeader className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm">
           <TableRow className="h-7 border-b-2">
-            <TableHead className="text-[10px] py-1 px-2 font-semibold">Time</TableHead>
-            <TableHead className="text-[10px] py-1 px-1 font-semibold">Symbol</TableHead>
-            <TableHead className="text-[10px] py-1 px-1 font-semibold">Side</TableHead>
-            <TableHead className="text-[10px] py-1 px-1 font-semibold">Type</TableHead>
-            <TableHead className="text-right text-[10px] py-1 px-1 font-semibold">Price</TableHead>
-            <TableHead className="text-right text-[10px] py-1 px-1 font-semibold">Amt</TableHead>
-            <TableHead className="text-right text-[10px] py-1 px-1 font-semibold">Filled</TableHead>
-            <TableHead className="w-6 py-1 px-1"></TableHead>
+            <TableHead className="w-[70px] text-[10px] py-1 px-1.5 font-semibold">Time</TableHead>
+            <TableHead className="w-[50px] text-[10px] py-1 px-1 font-semibold">Symbol</TableHead>
+            <TableHead className="w-[45px] text-[10px] py-1 px-1 font-semibold">Side</TableHead>
+            <TableHead className="w-[50px] text-[10px] py-1 px-1 font-semibold">Type</TableHead>
+            <TableHead className="w-[60px] text-right text-[10px] py-1 px-1 font-semibold">Price</TableHead>
+            <TableHead className="w-[65px] text-right text-[10px] py-1 px-1 font-semibold">Amt</TableHead>
+            <TableHead className="w-[65px] text-right text-[10px] py-1 px-1 font-semibold">Filled</TableHead>
+            <TableHead className="w-[24px] py-1 px-0.5"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -255,16 +255,16 @@ function OrdersTable({ orders, onCancel, cancelling }: OrdersTableProps) {
                 order.side === "buy" ? "before:bg-trading-buy" : "before:bg-trading-sell"
               )}
             >
-              <TableCell className="text-[10px] py-1 px-2 text-muted-foreground">
+              <TableCell className="text-[10px] py-1 px-1.5 text-muted-foreground truncate">
                 {formatDateTime(order.createdAt)}
               </TableCell>
-              <TableCell className="font-mono text-[10px] py-1 px-1 font-medium">
+              <TableCell className="font-mono text-[10px] py-1 px-1 font-medium truncate">
                 {order.symbol?.split("/")[0] || "-"}
               </TableCell>
               <TableCell className="py-1 px-1">
                 <span
                   className={cn(
-                    "inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[9px] font-semibold",
+                    "inline-flex items-center justify-center px-1 py-0.5 rounded text-[9px] font-semibold",
                     order.side === "buy" 
                       ? "bg-trading-buy/15 text-trading-buy" 
                       : "bg-trading-sell/15 text-trading-sell"
@@ -273,16 +273,16 @@ function OrdersTable({ orders, onCancel, cancelling }: OrdersTableProps) {
                   {order.side?.toUpperCase() || "-"}
                 </span>
               </TableCell>
-              <TableCell className="capitalize text-[10px] py-1 px-1 text-muted-foreground">
+              <TableCell className="capitalize text-[10px] py-1 px-1 text-muted-foreground truncate">
                 {order.type || "-"}
               </TableCell>
-              <TableCell className="text-right font-mono text-[10px] py-1 px-1">
+              <TableCell className="text-right font-mono text-[10px] py-1 px-1 truncate">
                 {typeof order.price === "number" ? order.price.toLocaleString() : "MKT"}
               </TableCell>
-              <TableCell className="text-right font-mono text-[10px] py-1 px-1">
+              <TableCell className="text-right font-mono text-[10px] py-1 px-1 truncate">
                 {typeof order.amount === "number" ? order.amount.toFixed(4) : "-"}
               </TableCell>
-              <TableCell className="text-right font-mono text-[10px] py-1 px-1">
+              <TableCell className="text-right font-mono text-[10px] py-1 px-1 truncate">
                 <span className={cn(
                   order.filled > 0 && order.filled < order.amount && "text-amber-500",
                   order.filled >= order.amount && "text-trading-buy"
@@ -290,7 +290,7 @@ function OrdersTable({ orders, onCancel, cancelling }: OrdersTableProps) {
                   {order.filled?.toFixed(4) || "0"}
                 </span>
               </TableCell>
-              <TableCell className="py-1 px-1">
+              <TableCell className="py-1 px-0.5">
                 {order.status === "open" && (
                   <Button
                     variant="ghost"
@@ -299,7 +299,7 @@ function OrdersTable({ orders, onCancel, cancelling }: OrdersTableProps) {
                     onClick={() => onCancel(order.id)}
                     disabled={cancelling}
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="h-3 w-3" />
                   </Button>
                 )}
               </TableCell>
@@ -321,17 +321,17 @@ interface TradesTableProps {
 
 function TradesTable({ trades }: TradesTableProps) {
   return (
-    <div className="relative">
-      <Table>
+    <div className="relative w-full">
+      <Table className="table-fixed w-full">
         <TableHeader className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm">
           <TableRow className="h-7 border-b-2">
-            <TableHead className="text-[10px] py-1 px-2 font-semibold">Time</TableHead>
-            <TableHead className="text-[10px] py-1 px-1 font-semibold">Symbol</TableHead>
-            <TableHead className="text-[10px] py-1 px-1 font-semibold">Side</TableHead>
-            <TableHead className="text-right text-[10px] py-1 px-1 font-semibold">Price</TableHead>
-            <TableHead className="text-right text-[10px] py-1 px-1 font-semibold">Amt</TableHead>
-            <TableHead className="text-right text-[10px] py-1 px-1 font-semibold">Cost</TableHead>
-            <TableHead className="text-right text-[10px] py-1 px-1 font-semibold">Fee</TableHead>
+            <TableHead className="w-[70px] text-[10px] py-1 px-1.5 font-semibold">Time</TableHead>
+            <TableHead className="w-[50px] text-[10px] py-1 px-1 font-semibold">Symbol</TableHead>
+            <TableHead className="w-[45px] text-[10px] py-1 px-1 font-semibold">Side</TableHead>
+            <TableHead className="w-[60px] text-right text-[10px] py-1 px-1 font-semibold">Price</TableHead>
+            <TableHead className="w-[65px] text-right text-[10px] py-1 px-1 font-semibold">Amt</TableHead>
+            <TableHead className="w-[70px] text-right text-[10px] py-1 px-1 font-semibold">Cost</TableHead>
+            <TableHead className="w-[60px] text-right text-[10px] py-1 px-1 font-semibold">Fee</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -346,16 +346,16 @@ function TradesTable({ trades }: TradesTableProps) {
                 trade.side === "buy" ? "before:bg-trading-buy" : "before:bg-trading-sell"
               )}
             >
-              <TableCell className="text-[10px] py-1 px-2 text-muted-foreground">
+              <TableCell className="text-[10px] py-1 px-1.5 text-muted-foreground truncate">
                 {formatDateTime(trade.timestamp)}
               </TableCell>
-              <TableCell className="font-mono text-[10px] py-1 px-1 font-medium">
+              <TableCell className="font-mono text-[10px] py-1 px-1 font-medium truncate">
                 {trade.symbol?.split("/")[0] || "-"}
               </TableCell>
               <TableCell className="py-1 px-1">
                 <span
                   className={cn(
-                    "inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[9px] font-semibold",
+                    "inline-flex items-center justify-center px-1 py-0.5 rounded text-[9px] font-semibold",
                     trade.side === "buy" 
                       ? "bg-trading-buy/15 text-trading-buy" 
                       : "bg-trading-sell/15 text-trading-sell"
@@ -364,16 +364,16 @@ function TradesTable({ trades }: TradesTableProps) {
                   {trade.side?.toUpperCase() || "-"}
                 </span>
               </TableCell>
-              <TableCell className="text-right font-mono text-[10px] py-1 px-1">
+              <TableCell className="text-right font-mono text-[10px] py-1 px-1 truncate">
                 {typeof trade.price === "number" ? trade.price.toLocaleString() : "-"}
               </TableCell>
-              <TableCell className="text-right font-mono text-[10px] py-1 px-1">
+              <TableCell className="text-right font-mono text-[10px] py-1 px-1 truncate">
                 {typeof trade.amount === "number" ? trade.amount.toFixed(4) : "-"}
               </TableCell>
-              <TableCell className="text-right font-mono text-[10px] py-1 px-1 font-medium">
+              <TableCell className="text-right font-mono text-[10px] py-1 px-1 font-medium truncate">
                 ${typeof trade.cost === "number" ? trade.cost.toFixed(2) : "-"}
               </TableCell>
-              <TableCell className="text-right font-mono text-[10px] py-1 px-1 text-muted-foreground">
+              <TableCell className="text-right font-mono text-[10px] py-1 px-1 text-muted-foreground truncate">
                 {trade.fee ? `-${trade.fee.cost.toFixed(4)}` : "-"}
               </TableCell>
             </TableRow>
